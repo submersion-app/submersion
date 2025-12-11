@@ -35,6 +35,13 @@ final siteSearchProvider = FutureProvider.family<List<domain.DiveSite>, String>(
   return repository.searchSites(query);
 });
 
+/// Dive count for a specific site
+final siteDiveCountProvider = FutureProvider.family<int, String>((ref, siteId) async {
+  final sitesWithCounts = await ref.watch(sitesWithCountsProvider.future);
+  final siteWithCount = sitesWithCounts.where((s) => s.site.id == siteId).firstOrNull;
+  return siteWithCount?.diveCount ?? 0;
+});
+
 /// Site list notifier for mutations
 class SiteListNotifier extends StateNotifier<AsyncValue<List<domain.DiveSite>>> {
   final SiteRepository _repository;

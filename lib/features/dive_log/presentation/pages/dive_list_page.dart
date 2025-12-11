@@ -411,61 +411,130 @@ class DiveListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: ListTile(
+      child: InkWell(
         onTap: onTap,
-        leading: CircleAvatar(
-          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-          child: Text(
-            '#$diveNumber',
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
-            ),
-          ),
-        ),
-        title: Text(siteName ?? 'Unknown Site'),
-        subtitle: Row(
-          children: [
-            Text(_formatDate(dateTime)),
-            if (rating != null) ...[
-              const SizedBox(width: 8),
-              Icon(
-                Icons.star,
-                size: 14,
-                color: Colors.amber.shade600,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              // Dive number badge
+              CircleAvatar(
+                backgroundColor: colorScheme.primaryContainer,
+                child: Text(
+                  '#$diveNumber',
+                  style: TextStyle(
+                    color: colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
               ),
-              Text(
-                ' $rating',
-                style: Theme.of(context).textTheme.bodySmall,
+              const SizedBox(width: 12),
+              // Main content
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Site name with optional rating
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            siteName ?? 'Unknown Site',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (rating != null) ...[
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.star,
+                            size: 16,
+                            color: Colors.amber.shade600,
+                          ),
+                          const SizedBox(width: 2),
+                          Text(
+                            '$rating',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    // Date and time
+                    Text(
+                      _formatDateTime(dateTime),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                    const SizedBox(height: 6),
+                    // Depth and duration stats (always shown)
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.arrow_downward,
+                          size: 14,
+                          color: maxDepth != null
+                              ? colorScheme.primary
+                              : colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          maxDepth != null ? '${maxDepth!.toStringAsFixed(1)}m' : '--',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: maxDepth != null
+                                    ? colorScheme.primary
+                                    : colorScheme.onSurfaceVariant,
+                              ),
+                        ),
+                        const SizedBox(width: 16),
+                        Icon(
+                          Icons.timer_outlined,
+                          size: 14,
+                          color: duration != null
+                              ? colorScheme.secondary
+                              : colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          duration != null ? _formatDuration(duration!) : '--',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: duration != null
+                                    ? colorScheme.secondary
+                                    : colorScheme.onSurfaceVariant,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // Chevron
+              Icon(
+                Icons.chevron_right,
+                color: colorScheme.onSurfaceVariant,
               ),
             ],
-          ],
-        ),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            if (maxDepth != null)
-              Text(
-                '${maxDepth!.toStringAsFixed(1)}m',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            if (duration != null)
-              Text(
-                _formatDuration(duration!),
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  String _formatDate(DateTime date) {
-    return DateFormat('MMM d, y').format(date);
+  String _formatDateTime(DateTime date) {
+    return '${DateFormat('MMM d, y').format(date)} at ${DateFormat('h:mm a').format(date)}';
   }
 
   String _formatDuration(Duration duration) {

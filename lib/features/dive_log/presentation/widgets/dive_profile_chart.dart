@@ -162,8 +162,8 @@ class _DiveProfileChartState extends State<DiveProfileChart> {
       LineChartData(
         minX: 0,
         maxX: maxTime,
-        minY: 0,
-        maxY: chartMaxDepth,
+        minY: -chartMaxDepth, // Inverted: negative depth at bottom
+        maxY: 0, // Surface (0m) at top
         gridData: FlGridData(
           show: true,
           drawVerticalLine: true,
@@ -189,8 +189,9 @@ class _DiveProfileChartState extends State<DiveProfileChart> {
               reservedSize: 40,
               interval: _calculateDepthInterval(chartMaxDepth),
               getTitlesWidget: (value, meta) {
+                // Show positive depth values (negate the negative axis values)
                 return Text(
-                  '${value.toInt()}',
+                  '${(-value).toInt()}',
                   style: Theme.of(context).textTheme.labelSmall,
                 );
               },
@@ -220,8 +221,8 @@ class _DiveProfileChartState extends State<DiveProfileChart> {
               reservedSize: 40,
               getTitlesWidget: (value, meta) {
                 if (minTemp == null || maxTemp == null) return const SizedBox();
-                // Map from depth axis to temperature
-                final temp = _mapDepthToTemp(value, chartMaxDepth, minTemp, maxTemp);
+                // Map from inverted depth axis to temperature
+                final temp = _mapDepthToTemp(-value, chartMaxDepth, minTemp, maxTemp);
                 if (temp < minTemp || temp > maxTemp) return const SizedBox();
                 return Text(
                   '${temp.toStringAsFixed(0)}°',
@@ -286,7 +287,7 @@ class _DiveProfileChartState extends State<DiveProfileChart> {
   LineChartBarData _buildDepthLine(ColorScheme colorScheme) {
     return LineChartBarData(
       spots: widget.profile
-          .map((p) => FlSpot(p.timestamp.toDouble(), p.depth))
+          .map((p) => FlSpot(p.timestamp.toDouble(), -p.depth)) // Negate depth for inverted axis
           .toList(),
       isCurved: true,
       curveSmoothness: 0.2,
@@ -300,8 +301,8 @@ class _DiveProfileChartState extends State<DiveProfileChart> {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            colorScheme.primary.withOpacity(0.3),
             colorScheme.primary.withOpacity(0.05),
+            colorScheme.primary.withOpacity(0.3),
           ],
         ),
       ),
@@ -319,7 +320,7 @@ class _DiveProfileChartState extends State<DiveProfileChart> {
           .where((p) => p.temperature != null)
           .map((p) => FlSpot(
                 p.timestamp.toDouble(),
-                _mapTempToDepth(p.temperature!, chartMaxDepth, minTemp, maxTemp),
+                -_mapTempToDepth(p.temperature!, chartMaxDepth, minTemp, maxTemp), // Negate for inverted axis
               ))
           .toList(),
       isCurved: true,
@@ -335,7 +336,7 @@ class _DiveProfileChartState extends State<DiveProfileChart> {
   // Map temperature value to depth axis for overlay
   double _mapTempToDepth(double temp, double maxDepth, double minTemp, double maxTemp) {
     final normalized = (temp - minTemp) / (maxTemp - minTemp);
-    return maxDepth * (1 - normalized); // Invert so higher temp is higher on chart
+    return maxDepth * (1 - normalized); // Higher temp maps to shallower depth
   }
 
   // Map depth axis value back to temperature for right axis labels
@@ -389,8 +390,8 @@ class DiveProfileMiniChart extends StatelessWidget {
         LineChartData(
           minX: 0,
           maxX: maxTime,
-          minY: 0,
-          maxY: maxDepth,
+          minY: -maxDepth, // Inverted: negative depth at bottom
+          maxY: 0, // Surface (0m) at top
           gridData: const FlGridData(show: false),
           titlesData: const FlTitlesData(show: false),
           borderData: FlBorderData(show: false),
@@ -398,7 +399,7 @@ class DiveProfileMiniChart extends StatelessWidget {
           lineBarsData: [
             LineChartBarData(
               spots: profile
-                  .map((p) => FlSpot(p.timestamp.toDouble(), p.depth))
+                  .map((p) => FlSpot(p.timestamp.toDouble(), -p.depth)) // Negate for inverted axis
                   .toList(),
               isCurved: true,
               curveSmoothness: 0.3,
