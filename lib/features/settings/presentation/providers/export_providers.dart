@@ -15,6 +15,10 @@ import '../../../dive_log/presentation/providers/dive_providers.dart';
 import '../../../dive_sites/domain/entities/dive_site.dart';
 import '../../../dive_sites/presentation/providers/site_providers.dart';
 import '../../../equipment/presentation/providers/equipment_providers.dart';
+import '../../../buddies/presentation/providers/buddy_providers.dart';
+import '../../../certifications/presentation/providers/certification_providers.dart';
+import '../../../dive_centers/presentation/providers/dive_center_providers.dart';
+import '../../../marine_life/presentation/providers/species_providers.dart';
 
 /// Export service provider
 final exportServiceProvider = Provider<ExportService>((ref) {
@@ -123,8 +127,26 @@ class ExportNotifier extends StateNotifier<ExportState> {
         state = state.copyWith(status: ExportStatus.error, message: 'No dives to export');
         return;
       }
+
+      // Collect all data for comprehensive export
+      state = state.copyWith(message: 'Collecting all data...');
       final sites = _ref.read(sitesProvider).value ?? [];
-      final path = await _exportService.exportDivesToUddf(dives, sites: sites);
+      final equipment = _ref.read(allEquipmentProvider).value ?? [];
+      final buddies = await _ref.read(allBuddiesProvider.future);
+      final certifications = await _ref.read(allCertificationsProvider.future);
+      final diveCenters = await _ref.read(allDiveCentersProvider.future);
+      final species = await _ref.read(allSpeciesProvider.future);
+
+      state = state.copyWith(message: 'Generating UDDF file...');
+      final path = await _exportService.exportAllDataToUddf(
+        dives: dives,
+        sites: sites,
+        equipment: equipment,
+        buddies: buddies,
+        certifications: certifications,
+        diveCenters: diveCenters,
+        species: species,
+      );
       state = state.copyWith(status: ExportStatus.success, message: 'UDDF file generated successfully', filePath: path);
     } catch (e) {
       state = state.copyWith(status: ExportStatus.error, message: 'Export failed: $e');
