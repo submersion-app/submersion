@@ -84,7 +84,7 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 | Site name, region, country | ✅ Implemented | MVP | - | Full site database |
 | GPS coordinates | ✅ Implemented | MVP | - | Lat/long with map view |
 | Boat / operator name | 🟡 In Progress | v1.0 | 🎯 High | Add dedicated fields |
-| Trip grouping | 📋 Planned | v1.5 | Medium | Multi-dive trips with dates |
+| Trip grouping | 📋 Planned | v1.0 | 🎯 High | Multi-dive trips with dates |
 | Liveaboard tracking | 📋 Planned | v2.0 | Low | Specialized trip type |
 
 **v1.0 Tasks:**
@@ -92,11 +92,14 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 - [ ] Create Dive Center/Operator entity with contact info, location
 - [ ] Site picker with "Add New Site" quick action
 - [ ] GPS from device location when creating dive (mobile)
+- [ ] Trip entity linking multiple dives
+- [ ] Trip summary page (stats, export)
+- [ ] Add/edit trips with date ranges and location
+- [ ] Assign dives to trips in dive edit form
 
 **v1.5 Tasks:**
-- [ ] Trip entity linking multiple dives
-- [ ] Trip summary page (stats, photos, export)
 - [ ] Trip templates (liveaboard, resort week, local weekend)
+- [ ] Trip photo galleries (deferred with photos to v2.0)
 
 ---
 
@@ -782,13 +785,22 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 | Full-text search | ✅ Implemented | MVP | - | Notes, sites, buddies |
 | Filter by date range | ✅ Implemented | MVP | - | |
 | Filter by location, depth | ✅ Implemented | MVP | - | |
+| Bulk operations (delete) | 📋 Planned | v1.0 | 🎯 High | Multi-select and delete dives |
 | Filter by tags, gas, gear | 📋 Planned | v1.5 | Medium | After tags implemented |
 | Saved filters ("Smart Logs") | 📋 Planned | v2.0 | Low | Persistent filter sets |
+
+**v1.0 Tasks:**
+- [ ] Multi-select mode in dive list (long-press or checkbox toggle)
+- [ ] Select all / deselect all options
+- [ ] Bulk delete with confirmation dialog (showing count)
+- [ ] Undo functionality for bulk delete (snackbar with undo for 5 seconds)
 
 **v1.5 Tasks:**
 - [ ] Expand filter UI with all available criteria (tags, equipment, buddy, gas mix, certification)
 - [ ] "Advanced Search" page with all filter options
 - [ ] Recent searches history
+- [ ] Bulk export (export selected dives to CSV/UDDF/PDF)
+- [ ] Bulk edit (change trip, add tag to multiple dives)
 
 **v2.0 Tasks:**
 - [ ] Save filter configurations as "Smart Logs"
@@ -1235,6 +1247,19 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 - [ ] Service history per equipment item
 - [ ] Service log export
 
+### Trip Grouping (🎯 HIGH PRIORITY)
+- [ ] Trip entity linking multiple dives
+- [ ] Trip list, detail, and edit pages
+- [ ] Assign dives to trips in dive edit form
+- [ ] Trip summary with stats and dive count
+- [ ] Trip-based filtering and export
+
+### Bulk Operations (🎯 HIGH PRIORITY)
+- [ ] Multi-select mode in dive list
+- [ ] Bulk delete with confirmation
+- [ ] Select all / deselect all
+- [ ] Undo functionality for bulk operations
+
 ### Dive Conditions Enhancements
 - [ ] Current, swell, entry/exit method fields
 - [ ] Water type field
@@ -1271,10 +1296,12 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 - Buddies: 1.5 weeks
 - Certifications: 1.5 weeks
 - Service Records: 1 week
+- Trips: 1 week
+- Bulk Operations: 0.5 weeks
 - Dive Centers: 1 week
 - Testing: 2 weeks
 - Polish & bug fixes: 2 weeks
-- **Total: ~9 weeks**
+- **Total: ~10.5 weeks**
 
 ---
 
