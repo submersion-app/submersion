@@ -5,6 +5,7 @@ import '../../../../core/constants/enums.dart';
 import '../../../../core/database/database.dart';
 import '../../../../core/services/database_service.dart';
 import '../../domain/entities/dive.dart' as domain;
+import '../../../dive_centers/domain/entities/dive_center.dart' as domain;
 import '../../../dive_sites/domain/entities/dive_site.dart' as domain;
 import '../../../equipment/domain/entities/equipment_item.dart';
 
@@ -56,7 +57,19 @@ class DiveRepository {
       diveMaster: Value(dive.diveMaster),
       notes: Value(dive.notes),
       siteId: Value(dive.site?.id),
+      diveCenterId: Value(dive.diveCenter?.id),
       rating: Value(dive.rating),
+      // Conditions fields
+      currentDirection: Value(dive.currentDirection?.name),
+      currentStrength: Value(dive.currentStrength?.name),
+      swellHeight: Value(dive.swellHeight),
+      entryMethod: Value(dive.entryMethod?.name),
+      exitMethod: Value(dive.exitMethod?.name),
+      waterType: Value(dive.waterType?.name),
+      // Weight system fields
+      weightAmount: Value(dive.weightAmount),
+      weightType: Value(dive.weightType?.name),
+      weightBeltUsed: Value(dive.weightBeltUsed),
       createdAt: Value(now),
       updatedAt: Value(now),
     ));
@@ -118,7 +131,19 @@ class DiveRepository {
         diveMaster: Value(dive.diveMaster),
         notes: Value(dive.notes),
         siteId: Value(dive.site?.id),
+        diveCenterId: Value(dive.diveCenter?.id),
         rating: Value(dive.rating),
+        // Conditions fields
+        currentDirection: Value(dive.currentDirection?.name),
+        currentStrength: Value(dive.currentStrength?.name),
+        swellHeight: Value(dive.swellHeight),
+        entryMethod: Value(dive.entryMethod?.name),
+        exitMethod: Value(dive.exitMethod?.name),
+        waterType: Value(dive.waterType?.name),
+        // Weight system fields
+        weightAmount: Value(dive.weightAmount),
+        weightType: Value(dive.weightType?.name),
+        weightBeltUsed: Value(dive.weightBeltUsed),
         updatedAt: Value(now),
       ),
     );
@@ -342,9 +367,16 @@ class DiveRepository {
         brand: e.brand,
         model: e.model,
         serialNumber: e.serialNumber,
+        size: e.size,
+        status: EquipmentStatus.values.firstWhere(
+          (s) => s.name == e.status,
+          orElse: () => EquipmentStatus.active,
+        ),
         purchaseDate: e.purchaseDate != null
             ? DateTime.fromMillisecondsSinceEpoch(e.purchaseDate!)
             : null,
+        purchasePrice: e.purchasePrice,
+        purchaseCurrency: e.purchaseCurrency,
         lastServiceDate: e.lastServiceDate != null
             ? DateTime.fromMillisecondsSinceEpoch(e.lastServiceDate!)
             : null,
@@ -377,6 +409,32 @@ class DiveRepository {
       }
     }
 
+    // Get dive center if exists
+    domain.DiveCenter? diveCenter;
+    if (row.diveCenterId != null) {
+      final centerQuery = _db.select(_db.diveCenters)
+        ..where((t) => t.id.equals(row.diveCenterId!));
+      final centerRow = await centerQuery.getSingleOrNull();
+      if (centerRow != null) {
+        diveCenter = domain.DiveCenter(
+          id: centerRow.id,
+          name: centerRow.name,
+          location: centerRow.location,
+          latitude: centerRow.latitude,
+          longitude: centerRow.longitude,
+          country: centerRow.country,
+          phone: centerRow.phone,
+          email: centerRow.email,
+          website: centerRow.website,
+          affiliations: centerRow.affiliations?.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList() ?? [],
+          rating: centerRow.rating,
+          notes: centerRow.notes,
+          createdAt: DateTime.fromMillisecondsSinceEpoch(centerRow.createdAt),
+          updatedAt: DateTime.fromMillisecondsSinceEpoch(centerRow.updatedAt),
+        );
+      }
+    }
+
     return domain.Dive(
       id: row.id,
       diveNumber: row.diveNumber,
@@ -400,7 +458,49 @@ class DiveRepository {
       diveMaster: row.diveMaster,
       notes: row.notes,
       site: site,
+      diveCenter: diveCenter,
       rating: row.rating,
+      // Conditions fields
+      currentDirection: row.currentDirection != null
+          ? CurrentDirection.values.firstWhere(
+              (c) => c.name == row.currentDirection,
+              orElse: () => CurrentDirection.none,
+            )
+          : null,
+      currentStrength: row.currentStrength != null
+          ? CurrentStrength.values.firstWhere(
+              (c) => c.name == row.currentStrength,
+              orElse: () => CurrentStrength.none,
+            )
+          : null,
+      swellHeight: row.swellHeight,
+      entryMethod: row.entryMethod != null
+          ? EntryMethod.values.firstWhere(
+              (e) => e.name == row.entryMethod,
+              orElse: () => EntryMethod.other,
+            )
+          : null,
+      exitMethod: row.exitMethod != null
+          ? EntryMethod.values.firstWhere(
+              (e) => e.name == row.exitMethod,
+              orElse: () => EntryMethod.other,
+            )
+          : null,
+      waterType: row.waterType != null
+          ? WaterType.values.firstWhere(
+              (w) => w.name == row.waterType,
+              orElse: () => WaterType.salt,
+            )
+          : null,
+      // Weight system fields
+      weightAmount: row.weightAmount,
+      weightType: row.weightType != null
+          ? WeightType.values.firstWhere(
+              (w) => w.name == row.weightType,
+              orElse: () => WeightType.belt,
+            )
+          : null,
+      weightBeltUsed: row.weightBeltUsed,
       tanks: tankRows.map((t) => domain.DiveTank(
         id: t.id,
         volume: t.volume,

@@ -8,6 +8,9 @@ import '../../features/buddies/presentation/pages/buddy_edit_page.dart';
 import '../../features/certifications/presentation/pages/certification_list_page.dart';
 import '../../features/certifications/presentation/pages/certification_detail_page.dart';
 import '../../features/certifications/presentation/pages/certification_edit_page.dart';
+import '../../features/dive_centers/presentation/pages/dive_center_list_page.dart';
+import '../../features/dive_centers/presentation/pages/dive_center_detail_page.dart';
+import '../../features/dive_centers/presentation/pages/dive_center_edit_page.dart';
 import '../../features/dive_log/presentation/pages/dive_list_page.dart';
 import '../../features/dive_log/presentation/pages/dive_detail_page.dart';
 import '../../features/dive_log/presentation/pages/dive_edit_page.dart';
@@ -218,6 +221,38 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     name: 'editCertification',
                     builder: (context, state) => CertificationEditPage(
                       certificationId: state.pathParameters['certificationId'],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          // Dive Centers
+          GoRoute(
+            path: '/dive-centers',
+            name: 'diveCenters',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: DiveCenterListPage(),
+            ),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'newDiveCenter',
+                builder: (context, state) => const DiveCenterEditPage(),
+              ),
+              GoRoute(
+                path: ':centerId',
+                name: 'diveCenterDetail',
+                builder: (context, state) => DiveCenterDetailPage(
+                  centerId: state.pathParameters['centerId']!,
+                ),
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    name: 'editDiveCenter',
+                    builder: (context, state) => DiveCenterEditPage(
+                      centerId: state.pathParameters['centerId'],
                     ),
                   ),
                 ],

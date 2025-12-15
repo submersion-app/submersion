@@ -166,3 +166,62 @@ enum ServiceType {
   final String displayName;
   const ServiceType(this.displayName);
 }
+
+/// Current direction
+enum CurrentDirection {
+  north('North'),
+  northEast('North-East'),
+  east('East'),
+  southEast('South-East'),
+  south('South'),
+  southWest('South-West'),
+  west('West'),
+  northWest('North-West'),
+  variable('Variable'),
+  none('None');
+
+  final String displayName;
+  const CurrentDirection(this.displayName);
+}
+
+/// Entry/exit method for dives
+enum EntryMethod {
+  shore('Shore Entry'),
+  boat('Boat Entry'),
+  backRoll('Back Roll'),
+  giantStride('Giant Stride'),
+  seatedEntry('Seated Entry'),
+  ladder('Ladder'),
+  platform('Platform'),
+  jetty('Jetty/Dock'),
+  other('Other');
+
+  final String displayName;
+  const EntryMethod(this.displayName);
+}
+
+/// Equipment status
+enum EquipmentStatus {
+  active('Active'),
+  needsService('Needs Service'),
+  inService('In Service'),
+  retired('Retired'),
+  loaned('Loaned Out'),
+  lost('Lost');
+
+  final String displayName;
+  const EquipmentStatus(this.displayName);
+}
+
+/// Weight type
+enum WeightType {
+  belt('Weight Belt'),
+  integrated('Integrated Weights'),
+  ankleWeights('Ankle Weights'),
+  trimWeights('Trim Weights'),
+  backplate('Backplate Weights'),
+  mixed('Mixed/Combined');
+
+  final String displayName;
+  const WeightType(this.displayName);
+}

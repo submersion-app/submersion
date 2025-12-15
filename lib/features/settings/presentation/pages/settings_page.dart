@@ -60,6 +60,13 @@ class SettingsPage extends ConsumerWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push('/certifications'),
           ),
+          ListTile(
+            leading: const Icon(Icons.store),
+            title: const Text('Dive Centers'),
+            subtitle: const Text('Manage dive shops and operators'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/dive-centers'),
+          ),
           const Divider(),
 
           _buildSectionHeader(context, 'Data'),

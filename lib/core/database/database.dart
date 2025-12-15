@@ -23,6 +23,19 @@ class Dives extends Table {
   TextColumn get notes => text().withDefault(const Constant(''))();
   TextColumn get siteId => text().nullable().references(DiveSites, #id)();
   IntColumn get rating => integer().nullable()();
+  // Dive center reference
+  TextColumn get diveCenterId => text().nullable().references(DiveCenters, #id)();
+  // Conditions fields
+  TextColumn get currentDirection => text().nullable()();
+  TextColumn get currentStrength => text().nullable()();
+  RealColumn get swellHeight => real().nullable()(); // meters
+  TextColumn get entryMethod => text().nullable()();
+  TextColumn get exitMethod => text().nullable()();
+  TextColumn get waterType => text().nullable()();
+  // Weight system fields
+  RealColumn get weightAmount => real().nullable()(); // kg
+  TextColumn get weightType => text().nullable()();
+  BoolColumn get weightBeltUsed => boolean().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -87,7 +100,11 @@ class Equipment extends Table {
   TextColumn get brand => text().nullable()();
   TextColumn get model => text().nullable()();
   TextColumn get serialNumber => text().nullable()();
+  TextColumn get size => text().nullable()(); // S, M, L, XL, or specific size
+  TextColumn get status => text().withDefault(const Constant('active'))(); // active, needsService, retired, etc.
   IntColumn get purchaseDate => integer().nullable()();
+  RealColumn get purchasePrice => real().nullable()();
+  TextColumn get purchaseCurrency => text().withDefault(const Constant('USD'))();
   IntColumn get lastServiceDate => integer().nullable()();
   IntColumn get serviceIntervalDays => integer().nullable()();
   TextColumn get notes => text().withDefault(const Constant(''))();
@@ -248,6 +265,27 @@ class ServiceRecords extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Dive centers/operators
+class DiveCenters extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  TextColumn get location => text().nullable()();
+  RealColumn get latitude => real().nullable()();
+  RealColumn get longitude => real().nullable()();
+  TextColumn get country => text().nullable()();
+  TextColumn get phone => text().nullable()();
+  TextColumn get email => text().nullable()();
+  TextColumn get website => text().nullable()();
+  TextColumn get affiliations => text().nullable()(); // PADI, SSI, etc. comma-separated
+  RealColumn get rating => real().nullable()();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 // ============================================================================
 // Database Class
 // ============================================================================
@@ -270,13 +308,14 @@ class ServiceRecords extends Table {
     DiveBuddies,
     Certifications,
     ServiceRecords,
+    DiveCenters,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration {
@@ -416,6 +455,47 @@ class AppDatabase extends _$AppDatabase {
           await customStatement('''
             CREATE INDEX IF NOT EXISTS idx_service_records_equipment_id ON service_records(equipment_id)
           ''');
+        }
+        if (from < 5) {
+          // Migration v4 -> v5: Add dive_centers table and new fields on dives/equipment
+
+          // Create dive_centers table
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS dive_centers (
+              id TEXT NOT NULL PRIMARY KEY,
+              name TEXT NOT NULL,
+              location TEXT,
+              latitude REAL,
+              longitude REAL,
+              country TEXT,
+              phone TEXT,
+              email TEXT,
+              website TEXT,
+              affiliations TEXT,
+              rating REAL,
+              notes TEXT NOT NULL DEFAULT '',
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL
+            )
+          ''');
+
+          // Add new columns to dives table
+          await customStatement('ALTER TABLE dives ADD COLUMN dive_center_id TEXT REFERENCES dive_centers(id)');
+          await customStatement('ALTER TABLE dives ADD COLUMN current_direction TEXT');
+          await customStatement('ALTER TABLE dives ADD COLUMN current_strength TEXT');
+          await customStatement('ALTER TABLE dives ADD COLUMN swell_height REAL');
+          await customStatement('ALTER TABLE dives ADD COLUMN entry_method TEXT');
+          await customStatement('ALTER TABLE dives ADD COLUMN exit_method TEXT');
+          await customStatement('ALTER TABLE dives ADD COLUMN water_type TEXT');
+          await customStatement('ALTER TABLE dives ADD COLUMN weight_amount REAL');
+          await customStatement('ALTER TABLE dives ADD COLUMN weight_type TEXT');
+          await customStatement('ALTER TABLE dives ADD COLUMN weight_belt_used INTEGER');
+
+          // Add new columns to equipment table
+          await customStatement('ALTER TABLE equipment ADD COLUMN size TEXT');
+          await customStatement('ALTER TABLE equipment ADD COLUMN status TEXT NOT NULL DEFAULT \'active\'');
+          await customStatement('ALTER TABLE equipment ADD COLUMN purchase_price REAL');
+          await customStatement('ALTER TABLE equipment ADD COLUMN purchase_currency TEXT NOT NULL DEFAULT \'USD\'');
         }
       },
       beforeOpen: (details) async {

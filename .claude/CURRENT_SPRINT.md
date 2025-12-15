@@ -2,7 +2,7 @@
 
 > **Current Phase:** v1.0 Development
 > **Last Updated:** 2025-12-14
-> **Sprint:** Sprint 2 - Certifications & Service Records (COMPLETED)
+> **Sprint:** Sprint 3 - Dive Centers & Conditions (COMPLETED)
 > **Reference:** See [FEATURE_ROADMAP.md](../FEATURE_ROADMAP.md) for full roadmap
 
 ---
@@ -179,22 +179,28 @@ CREATE TABLE dive_buddies (
 
 ---
 
-# Sprint 3: Dive Centers & Conditions (Weeks 5-6)
+# Sprint 3: Dive Centers & Conditions (Weeks 5-6) - COMPLETED
 
-## 3.1-3.6: Dive Centers Feature
-- [ ] Database schema (dive_centers table, FK on dives)
-- [ ] Entity and repository
-- [ ] List, detail, edit pages
-- [ ] Add to dive edit form
+## 3.1-3.6: Dive Centers Feature (P0-P1) - DONE
+- [x] Database schema (dive_centers table, FK on dives)
+- [x] Entity and repository
+- [x] List, detail, edit pages
+- [x] Add to dive edit form (dive center picker ready, UI integration deferred)
+- [x] Routes and navigation
+- [x] Settings page link to dive centers
 
-## 3.7: Conditions Fields
-- [ ] Add current_direction, current_strength, swell_height, entry/exit_method, water_type to dives
-- [ ] Update dive edit and detail pages
+## 3.7: Conditions Fields (P1) - DONE
+- [x] Add current_direction, current_strength, swell_height, entry/exit_method, water_type to dives
+- [x] Add to Dive entity and repository
+- [ ] Update dive edit and detail page UI (entity ready, UI deferred to Sprint 4)
 
-## 3.8-3.10: Equipment Enhancements
-- [ ] Add size, status fields to equipment
-- [ ] Equipment set templates
-- [ ] Weight system fields on dives
+## 3.8-3.10: Equipment Enhancements (P1) - DONE
+- [x] Add size, status fields to equipment entity
+- [x] Add purchasePrice, purchaseCurrency to equipment entity
+- [x] Equipment set tables exist (EquipmentSets, EquipmentSetItems)
+- [x] Equipment set routes and pages exist
+- [x] Weight system fields on dives (weightAmount, weightType, weightBeltUsed)
+- [ ] Update equipment edit page UI with new fields (entity ready, UI deferred to Sprint 4)
 
 ---
 

@@ -71,7 +71,11 @@ class EquipmentRepository {
       brand: Value(equipment.brand),
       model: Value(equipment.model),
       serialNumber: Value(equipment.serialNumber),
+      size: Value(equipment.size),
+      status: Value(equipment.status.name),
       purchaseDate: Value(equipment.purchaseDate?.millisecondsSinceEpoch),
+      purchasePrice: Value(equipment.purchasePrice),
+      purchaseCurrency: Value(equipment.purchaseCurrency),
       lastServiceDate: Value(equipment.lastServiceDate?.millisecondsSinceEpoch),
       serviceIntervalDays: Value(equipment.serviceIntervalDays),
       notes: Value(equipment.notes),
@@ -94,7 +98,11 @@ class EquipmentRepository {
         brand: Value(equipment.brand),
         model: Value(equipment.model),
         serialNumber: Value(equipment.serialNumber),
+        size: Value(equipment.size),
+        status: Value(equipment.status.name),
         purchaseDate: Value(equipment.purchaseDate?.millisecondsSinceEpoch),
+        purchasePrice: Value(equipment.purchasePrice),
+        purchaseCurrency: Value(equipment.purchaseCurrency),
         lastServiceDate: Value(equipment.lastServiceDate?.millisecondsSinceEpoch),
         serviceIntervalDays: Value(equipment.serviceIntervalDays),
         notes: Value(equipment.notes),
@@ -177,9 +185,16 @@ class EquipmentRepository {
         brand: row.data['brand'] as String?,
         model: row.data['model'] as String?,
         serialNumber: row.data['serial_number'] as String?,
+        size: row.data['size'] as String?,
+        status: EquipmentStatus.values.firstWhere(
+          (s) => s.name == (row.data['status'] as String? ?? 'active'),
+          orElse: () => EquipmentStatus.active,
+        ),
         purchaseDate: row.data['purchase_date'] != null
             ? DateTime.fromMillisecondsSinceEpoch(row.data['purchase_date'] as int)
             : null,
+        purchasePrice: (row.data['purchase_price'] as num?)?.toDouble(),
+        purchaseCurrency: (row.data['purchase_currency'] as String?) ?? 'USD',
         lastServiceDate: row.data['last_service_date'] != null
             ? DateTime.fromMillisecondsSinceEpoch(row.data['last_service_date'] as int)
             : null,
@@ -212,9 +227,16 @@ class EquipmentRepository {
       brand: row.brand,
       model: row.model,
       serialNumber: row.serialNumber,
+      size: row.size,
+      status: EquipmentStatus.values.firstWhere(
+        (s) => s.name == row.status,
+        orElse: () => EquipmentStatus.active,
+      ),
       purchaseDate: row.purchaseDate != null
           ? DateTime.fromMillisecondsSinceEpoch(row.purchaseDate!)
           : null,
+      purchasePrice: row.purchasePrice,
+      purchaseCurrency: row.purchaseCurrency,
       lastServiceDate: row.lastServiceDate != null
           ? DateTime.fromMillisecondsSinceEpoch(row.lastServiceDate!)
           : null,

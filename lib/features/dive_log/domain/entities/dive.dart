@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import '../../../../core/constants/enums.dart';
+import '../../../dive_centers/domain/entities/dive_center.dart';
 import '../../../dive_sites/domain/entities/dive_site.dart';
 import '../../../equipment/domain/entities/equipment_item.dart';
 
@@ -13,6 +14,7 @@ class Dive extends Equatable {
   final double? maxDepth; // meters
   final double? avgDepth; // meters
   final DiveSite? site;
+  final DiveCenter? diveCenter;
   final List<DiveTank> tanks;
   final List<DiveProfilePoint> profile;
   final List<EquipmentItem> equipment;
@@ -26,6 +28,17 @@ class Dive extends Equatable {
   final String? buddy;
   final String? diveMaster;
   final int? rating; // 1-5 stars
+  // Conditions fields
+  final CurrentDirection? currentDirection;
+  final CurrentStrength? currentStrength;
+  final double? swellHeight; // meters
+  final EntryMethod? entryMethod;
+  final EntryMethod? exitMethod;
+  final WaterType? waterType;
+  // Weight system fields
+  final double? weightAmount; // kg
+  final WeightType? weightType;
+  final bool? weightBeltUsed;
 
   const Dive({
     required this.id,
@@ -35,6 +48,7 @@ class Dive extends Equatable {
     this.maxDepth,
     this.avgDepth,
     this.site,
+    this.diveCenter,
     this.tanks = const [],
     this.profile = const [],
     this.equipment = const [],
@@ -48,6 +62,15 @@ class Dive extends Equatable {
     this.buddy,
     this.diveMaster,
     this.rating,
+    this.currentDirection,
+    this.currentStrength,
+    this.swellHeight,
+    this.entryMethod,
+    this.exitMethod,
+    this.waterType,
+    this.weightAmount,
+    this.weightType,
+    this.weightBeltUsed,
   });
 
   /// Air consumption rate in bar/min (Surface Air Consumption)
@@ -71,6 +94,7 @@ class Dive extends Equatable {
     double? maxDepth,
     double? avgDepth,
     DiveSite? site,
+    DiveCenter? diveCenter,
     List<DiveTank>? tanks,
     List<DiveProfilePoint>? profile,
     List<EquipmentItem>? equipment,
@@ -84,6 +108,15 @@ class Dive extends Equatable {
     String? buddy,
     String? diveMaster,
     int? rating,
+    CurrentDirection? currentDirection,
+    CurrentStrength? currentStrength,
+    double? swellHeight,
+    EntryMethod? entryMethod,
+    EntryMethod? exitMethod,
+    WaterType? waterType,
+    double? weightAmount,
+    WeightType? weightType,
+    bool? weightBeltUsed,
   }) {
     return Dive(
       id: id ?? this.id,
@@ -93,6 +126,7 @@ class Dive extends Equatable {
       maxDepth: maxDepth ?? this.maxDepth,
       avgDepth: avgDepth ?? this.avgDepth,
       site: site ?? this.site,
+      diveCenter: diveCenter ?? this.diveCenter,
       tanks: tanks ?? this.tanks,
       profile: profile ?? this.profile,
       equipment: equipment ?? this.equipment,
@@ -106,6 +140,15 @@ class Dive extends Equatable {
       buddy: buddy ?? this.buddy,
       diveMaster: diveMaster ?? this.diveMaster,
       rating: rating ?? this.rating,
+      currentDirection: currentDirection ?? this.currentDirection,
+      currentStrength: currentStrength ?? this.currentStrength,
+      swellHeight: swellHeight ?? this.swellHeight,
+      entryMethod: entryMethod ?? this.entryMethod,
+      exitMethod: exitMethod ?? this.exitMethod,
+      waterType: waterType ?? this.waterType,
+      weightAmount: weightAmount ?? this.weightAmount,
+      weightType: weightType ?? this.weightType,
+      weightBeltUsed: weightBeltUsed ?? this.weightBeltUsed,
     );
   }
 
@@ -118,6 +161,7 @@ class Dive extends Equatable {
         maxDepth,
         avgDepth,
         site,
+        diveCenter,
         tanks,
         profile,
         equipment,
@@ -131,6 +175,15 @@ class Dive extends Equatable {
         buddy,
         diveMaster,
         rating,
+        currentDirection,
+        currentStrength,
+        swellHeight,
+        entryMethod,
+        exitMethod,
+        waterType,
+        weightAmount,
+        weightType,
+        weightBeltUsed,
       ];
 }
 
