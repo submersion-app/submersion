@@ -745,13 +745,13 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 | Feature | Status | Phase | Priority | Notes |
 |---------|--------|-------|----------|-------|
-| Attach photos/videos to dives | 📋 Planned | v1.0 | 🎯 High | Media table exists, needs UI |
-| Auto-match by timestamp | 📋 Planned | v1.5 | Medium | EXIF datetime matching |
+| Attach photos/videos to dives | 📋 Planned | v2.0 | Medium | Media table exists, needs UI |
+| Auto-match by timestamp | 📋 Planned | v2.0 | Medium | EXIF datetime matching |
 | Tag species in photos | 📋 Planned | v2.0 | Low | Image annotation |
 | Color correction | 📋 Planned | v2.0 | Low | Blue filter removal |
 | Depth/time overlay | 🔮 Future | v3.0 | Low | Requires camera integration |
 
-**v1.0 Tasks (Critical Path):**
+**v2.0 Tasks:**
 - [ ] Photo/video picker in dive edit form
 - [ ] Attach multiple media files to dive (many-to-many)
 - [ ] Media storage strategy (local file copy vs reference, cloud upload option)
@@ -759,14 +759,10 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 - [ ] Full-screen photo viewer with swipe
 - [ ] Caption and datetime per photo
 - [ ] Export dive with photos (ZIP archive)
-
-**v1.5 Tasks:**
 - [ ] Bulk photo import with auto-match to dives
 - [ ] EXIF datetime parsing and fuzzy matching (within ±2 hours)
 - [ ] GPS extraction from photos (suggest site creation)
 - [ ] Photo thumbnail generation and caching
-
-**v2.0 Tasks:**
 - [ ] Species tagging in photos (tap to tag, bounding box)
 - [ ] Species recognition suggestions (ML model)
 - [ ] Blue/green color cast removal filter
@@ -1222,12 +1218,6 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 **Critical Path Features:**
 
-### Photos & Media (🎯 HIGHEST PRIORITY)
-- [ ] Photo/video attachment to dives
-- [ ] Photo gallery view
-- [ ] Caption and metadata
-- [ ] Export dives with photos
-
 ### Buddy System (🎯 HIGH PRIORITY)
 - [ ] Buddy entity and CRUD
 - [ ] Convert dive buddy field to many-to-many relationship
@@ -1278,14 +1268,13 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 - [ ] Fix N+1 query issues in dive repository
 
 **Estimated Effort:**
-- Photos: 2 weeks
 - Buddies: 1.5 weeks
 - Certifications: 1.5 weeks
 - Service Records: 1 week
 - Dive Centers: 1 week
 - Testing: 2 weeks
 - Polish & bug fixes: 2 weeks
-- **Total: ~11 weeks**
+- **Total: ~9 weeks**
 
 ---
 
@@ -1330,12 +1319,6 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 - [ ] Gas switch visualization on profile
 - [ ] SAC/RMV per segment
 - [ ] MOD/END/Best-Mix calculators page
-
-### Photo Enhancements
-- [ ] Bulk photo import with timestamp matching
-- [ ] EXIF GPS extraction
-- [ ] Auto-suggest sites from photo GPS
-- [ ] Photo thumbnail caching
 
 ### Advanced Features
 - [ ] Tags system (many-to-many)
@@ -1387,6 +1370,12 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 - [ ] Multi-device support
 - [ ] Automatic cloud backups
 
+### Photos & Media
+- [ ] Photo/video attachment to dives
+- [ ] Photo gallery view
+- [ ] Caption and metadata
+- [ ] Export dives with photos
+
 ### Community Features
 - [ ] Public profiles
 - [ ] Community dive site database
@@ -1434,6 +1423,7 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 - [ ] Digital signatures
 
 **Estimated Effort:**
+- Photos & Media: 2 weeks
 - Backend & Sync: 8-10 weeks
 - Community Features: 6-8 weeks
 - Advanced Stats: 3-4 weeks
@@ -1441,7 +1431,7 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 - Integrations: 4-5 weeks
 - Other Features: 4-5 weeks
 - Testing: 4-5 weeks
-- **Total: ~33-42 weeks**
+- **Total: ~35-44 weeks**
 
 ---
 
@@ -1737,7 +1727,7 @@ CREATE TABLE saved_filters (
 
 ## Feature Dependencies (Blockers)
 
-- **Photos (v1.0)** → blocks: EXIF GPS (v1.5), Species Tagging (v2.0), Photo Color Correction (v2.0)
+- **Photos (v2.0)** → blocks: EXIF GPS (v2.0), Species Tagging (v2.0), Photo Color Correction (v2.0)
 - **Buddies (v1.0)** → blocks: Buddy Signatures (v1.5), Profile Sharing (v2.0)
 - **Tags (v1.5)** → blocks: Smart Logs (v2.0), Tag-based Stats (v2.0)
 - **Deco Algorithm (v1.5)** → blocks: Dive Planner (v1.5), NDL Display (v1.5), Deco Calculator (v1.5)
