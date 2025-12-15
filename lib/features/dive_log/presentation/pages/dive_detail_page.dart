@@ -111,6 +111,10 @@ class DiveDetailPage extends ConsumerWidget {
             ],
             _buildDetailsSection(context, dive),
             const SizedBox(height: 24),
+            _buildConditionsSection(context, dive),
+            const SizedBox(height: 24),
+            _buildWeightSection(context, dive),
+            const SizedBox(height: 24),
             _buildBuddiesSection(context, ref),
             const SizedBox(height: 24),
             if (dive.tanks.isNotEmpty) ...[
@@ -277,12 +281,80 @@ class DiveDetailPage extends ConsumerWidget {
               _buildDetailRow(context, 'Avg Depth', '${dive.avgDepth!.toStringAsFixed(1)}m'),
             if (dive.airTemp != null)
               _buildDetailRow(context, 'Air Temp', '${dive.airTemp!.toStringAsFixed(0)}°C'),
+            if (dive.waterType != null)
+              _buildDetailRow(context, 'Water Type', dive.waterType!.displayName),
             if (dive.buddy != null && dive.buddy!.isNotEmpty)
               _buildDetailRow(context, 'Buddy', dive.buddy!),
             if (dive.diveMaster != null && dive.diveMaster!.isNotEmpty)
               _buildDetailRow(context, 'Dive Master', dive.diveMaster!),
             if (dive.sac != null)
               _buildDetailRow(context, 'SAC Rate', '${dive.sac!.toStringAsFixed(1)} bar/min'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildConditionsSection(BuildContext context, Dive dive) {
+    final hasConditions = dive.currentDirection != null ||
+        dive.currentStrength != null ||
+        dive.swellHeight != null ||
+        dive.entryMethod != null ||
+        dive.exitMethod != null;
+
+    if (!hasConditions) return const SizedBox.shrink();
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Conditions',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const Divider(),
+            if (dive.currentDirection != null)
+              _buildDetailRow(context, 'Current Direction', dive.currentDirection!.displayName),
+            if (dive.currentStrength != null)
+              _buildDetailRow(context, 'Current Strength', dive.currentStrength!.displayName),
+            if (dive.swellHeight != null)
+              _buildDetailRow(context, 'Swell Height', '${dive.swellHeight!.toStringAsFixed(1)}m'),
+            if (dive.entryMethod != null)
+              _buildDetailRow(context, 'Entry Method', dive.entryMethod!.displayName),
+            if (dive.exitMethod != null)
+              _buildDetailRow(context, 'Exit Method', dive.exitMethod!.displayName),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWeightSection(BuildContext context, Dive dive) {
+    final hasWeight = dive.weightAmount != null ||
+        dive.weightType != null ||
+        dive.weightBeltUsed == true;
+
+    if (!hasWeight) return const SizedBox.shrink();
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Weight',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const Divider(),
+            if (dive.weightAmount != null)
+              _buildDetailRow(context, 'Weight Amount', '${dive.weightAmount!.toStringAsFixed(1)} kg'),
+            if (dive.weightType != null)
+              _buildDetailRow(context, 'Weight Type', dive.weightType!.displayName),
+            if (dive.weightBeltUsed != null)
+              _buildDetailRow(context, 'Weight Belt Used', dive.weightBeltUsed! ? 'Yes' : 'No'),
           ],
         ),
       ),

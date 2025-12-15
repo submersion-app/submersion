@@ -25,6 +25,7 @@ import '../../features/equipment/presentation/pages/equipment_set_list_page.dart
 import '../../features/equipment/presentation/pages/equipment_set_detail_page.dart';
 import '../../features/equipment/presentation/pages/equipment_set_edit_page.dart';
 import '../../features/statistics/presentation/pages/statistics_page.dart';
+import '../../features/statistics/presentation/pages/records_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../shared/widgets/main_scaffold.dart';
 
@@ -266,6 +267,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             name: 'statistics',
             pageBuilder: (context, state) => const NoTransitionPage(
               child: StatisticsPage(),
+            ),
+          ),
+
+          // Records
+          GoRoute(
+            path: '/records',
+            name: 'records',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: RecordsPage(),
             ),
           ),
 

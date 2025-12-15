@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
@@ -19,6 +20,18 @@ class DatabaseService {
       throw StateError('Database not initialized. Call initialize() first.');
     }
     return _database!;
+  }
+
+  /// For testing only: allows injecting a test database
+  @visibleForTesting
+  void setTestDatabase(AppDatabase db) {
+    _database = db;
+  }
+
+  /// For testing only: resets the database instance
+  @visibleForTesting
+  void resetForTesting() {
+    _database = null;
   }
 
   Future<void> initialize() async {

@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../dive_log/data/repositories/dive_repository_impl.dart';
 import '../../../dive_log/presentation/providers/dive_providers.dart';
@@ -16,6 +17,11 @@ class StatisticsPage extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Statistics'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.emoji_events),
+            tooltip: 'Dive Records',
+            onPressed: () => context.push('/records'),
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () => ref.invalidate(diveStatisticsProvider),

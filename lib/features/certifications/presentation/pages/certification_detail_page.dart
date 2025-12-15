@@ -137,9 +137,9 @@ class _CertificationDetailContent extends ConsumerWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.red.withOpacity(0.1),
+          color: Colors.red.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.red.withOpacity(0.3)),
+          border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
         ),
         child: Row(
           children: [
@@ -160,7 +160,7 @@ class _CertificationDetailContent extends ConsumerWidget {
                     Text(
                       'Expired on ${DateFormat.yMMMd().format(certification.expiryDate!)}',
                       style: TextStyle(
-                        color: Colors.red.withOpacity(0.8),
+                        color: Colors.red.withValues(alpha: 0.8),
                         fontSize: 12,
                       ),
                     ),
@@ -176,9 +176,9 @@ class _CertificationDetailContent extends ConsumerWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.orange.withOpacity(0.1),
+          color: Colors.orange.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.orange.withOpacity(0.3)),
+          border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
         ),
         child: Row(
           children: [
@@ -199,7 +199,7 @@ class _CertificationDetailContent extends ConsumerWidget {
                     Text(
                       'Expires on ${DateFormat.yMMMd().format(certification.expiryDate!)}',
                       style: TextStyle(
-                        color: Colors.orange.withOpacity(0.8),
+                        color: Colors.orange.withValues(alpha: 0.8),
                         fontSize: 12,
                       ),
                     ),

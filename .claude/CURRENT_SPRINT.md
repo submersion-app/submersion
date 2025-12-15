@@ -192,7 +192,7 @@ CREATE TABLE dive_buddies (
 ## 3.7: Conditions Fields (P1) - DONE
 - [x] Add current_direction, current_strength, swell_height, entry/exit_method, water_type to dives
 - [x] Add to Dive entity and repository
-- [ ] Update dive edit and detail page UI (entity ready, UI deferred to Sprint 4)
+- [x] Update dive edit and detail page UI (completed in Sprint 4)
 
 ## 3.8-3.10: Equipment Enhancements (P1) - DONE
 - [x] Add size, status fields to equipment entity
@@ -200,19 +200,34 @@ CREATE TABLE dive_buddies (
 - [x] Equipment set tables exist (EquipmentSets, EquipmentSetItems)
 - [x] Equipment set routes and pages exist
 - [x] Weight system fields on dives (weightAmount, weightType, weightBeltUsed)
-- [ ] Update equipment edit page UI with new fields (entity ready, UI deferred to Sprint 4)
+- [x] Update equipment edit page UI with new fields (completed in Sprint 4)
 
 ---
 
-# Sprint 4: Testing & Polish (Weeks 7-9)
+# Sprint 4: Testing & Polish (Weeks 7-9) - IN PROGRESS
+
+## Completed Tasks
+- [x] Fix N+1 query issues in DiveRepository (batch loading for getAllDives)
+- [x] Fix deprecation warnings (withOpacity -> withValues)
+- [x] Records/Superlatives page (deepest, longest, coldest, warmest, first, last)
+- [x] Update dive edit page with conditions and weight fields
+- [x] Update dive detail page with conditions display
+- [x] Update equipment edit page with size, status, price fields
+- [x] Error handling improvements (try-catch and logging in all repositories)
+- [x] Unit test infrastructure with in-memory database
+- [x] Repository unit tests (137 tests covering all 6 repositories)
+  - SiteRepository: 19 tests
+  - BuddyRepository: 20 tests
+  - DiveCenterRepository: 23 tests
+  - CertificationRepository: 22 tests
+  - EquipmentRepository: 26 tests
+  - DiveRepository: 27 tests
 
 ## Critical Tasks (P0)
-- [ ] Fix N+1 query issues in DiveRepository
-- [ ] Unit test coverage (80% goal)
+- [x] Unit test coverage for repositories
 - [ ] App store preparation
 
 ## High Priority (P1)
-- [ ] Error handling improvements
 - [ ] Widget test coverage (60% goal)
 - [ ] Integration tests
 - [ ] Performance testing (1000+ dives)
@@ -222,10 +237,8 @@ CREATE TABLE dive_buddies (
 - [ ] Documentation complete
 
 ## Medium Priority (P2)
-- [ ] Fix deprecation warnings
 - [ ] Reverse geocoding for sites
 - [ ] Map marker clustering
-- [ ] Records page (superlatives)
 - [ ] Profile export as image
 
 ---
@@ -233,11 +246,12 @@ CREATE TABLE dive_buddies (
 # Known Issues & Technical Debt
 
 ## From MVP Phase
-1. **N+1 Queries in DiveRepository** - Sprint 4 priority
-2. **withOpacity() deprecated** - Replace with Color.withValues()
-3. **Limited error handling** - Add try-catch and logging
-4. **No widget tests** - Sprint 4 priority
-5. **Media table exists but unused** - Deferred to v2.0
+1. ~~**N+1 Queries in DiveRepository**~~ - Fixed with batch loading
+2. ~~**withOpacity() deprecated**~~ - Replaced with Color.withValues()
+3. ~~**Limited error handling**~~ - Added try-catch and logging via LoggerService
+4. ~~**No unit tests**~~ - 137 repository unit tests now in place
+5. **No widget tests** - Sprint 4 priority
+6. **Media table exists but unused** - Deferred to v2.0
 
 ---
 

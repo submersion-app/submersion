@@ -124,7 +124,7 @@ class _ActiveEquipmentTab extends ConsumerWidget {
           Icon(
             Icons.inventory_2,
             size: 80,
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(
@@ -205,7 +205,7 @@ class _RetiredEquipmentTab extends ConsumerWidget {
           Icon(
             Icons.inventory_2,
             size: 80,
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(
@@ -531,7 +531,7 @@ class EquipmentSearchDelegate extends SearchDelegate<EquipmentItem?> {
             Icon(
               Icons.search,
               size: 64,
-              color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+              color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
@@ -560,7 +560,7 @@ class EquipmentSearchDelegate extends SearchDelegate<EquipmentItem?> {
                 Icon(
                   Icons.search_off,
                   size: 64,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                 ),
                 const SizedBox(height: 16),
                 Text(

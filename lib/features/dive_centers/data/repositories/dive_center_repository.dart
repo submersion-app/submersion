@@ -3,28 +3,40 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../core/database/database.dart';
 import '../../../../core/services/database_service.dart';
+import '../../../../core/services/logger_service.dart';
 import '../../domain/entities/dive_center.dart' as domain;
 
 class DiveCenterRepository {
   final AppDatabase _db = DatabaseService.instance.database;
   final _uuid = const Uuid();
+  final _log = LoggerService.forClass(DiveCenterRepository);
 
   /// Get all dive centers
   Future<List<domain.DiveCenter>> getAllDiveCenters() async {
-    final query = _db.select(_db.diveCenters)
-      ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+    try {
+      final query = _db.select(_db.diveCenters)
+        ..orderBy([(t) => OrderingTerm.asc(t.name)]);
 
-    final rows = await query.get();
-    return rows.map(_mapRowToDiveCenter).toList();
+      final rows = await query.get();
+      return rows.map(_mapRowToDiveCenter).toList();
+    } catch (e, stackTrace) {
+      _log.error('Failed to get all dive centers', e, stackTrace);
+      rethrow;
+    }
   }
 
   /// Get a dive center by ID
   Future<domain.DiveCenter?> getDiveCenterById(String id) async {
-    final query = _db.select(_db.diveCenters)
-      ..where((t) => t.id.equals(id));
+    try {
+      final query = _db.select(_db.diveCenters)
+        ..where((t) => t.id.equals(id));
 
-    final row = await query.getSingleOrNull();
-    return row != null ? _mapRowToDiveCenter(row) : null;
+      final row = await query.getSingleOrNull();
+      return row != null ? _mapRowToDiveCenter(row) : null;
+    } catch (e, stackTrace) {
+      _log.error('Failed to get dive center by id: $id', e, stackTrace);
+      rethrow;
+    }
   }
 
   /// Search dive centers by name or location
@@ -68,11 +80,45 @@ class DiveCenterRepository {
 
   /// Create a new dive center
   Future<domain.DiveCenter> createDiveCenter(domain.DiveCenter center) async {
-    final id = center.id.isEmpty ? _uuid.v4() : center.id;
-    final now = DateTime.now().millisecondsSinceEpoch;
+    try {
+      _log.info('Creating dive center: ${center.name}');
+      final id = center.id.isEmpty ? _uuid.v4() : center.id;
+      final now = DateTime.now().millisecondsSinceEpoch;
 
-    await _db.into(_db.diveCenters).insert(DiveCentersCompanion(
-          id: Value(id),
+      await _db.into(_db.diveCenters).insert(DiveCentersCompanion(
+            id: Value(id),
+            name: Value(center.name),
+            location: Value(center.location),
+            latitude: Value(center.latitude),
+            longitude: Value(center.longitude),
+            country: Value(center.country),
+            phone: Value(center.phone),
+            email: Value(center.email),
+            website: Value(center.website),
+            affiliations: Value(center.affiliations.join(',')),
+            rating: Value(center.rating),
+            notes: Value(center.notes),
+            createdAt: Value(now),
+            updatedAt: Value(now),
+          ));
+
+      _log.info('Created dive center with id: $id');
+      return center.copyWith(id: id);
+    } catch (e, stackTrace) {
+      _log.error('Failed to create dive center: ${center.name}', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Update an existing dive center
+  Future<void> updateDiveCenter(domain.DiveCenter center) async {
+    try {
+      _log.info('Updating dive center: ${center.id}');
+      final now = DateTime.now().millisecondsSinceEpoch;
+
+      await (_db.update(_db.diveCenters)..where((t) => t.id.equals(center.id)))
+          .write(
+        DiveCentersCompanion(
           name: Value(center.name),
           location: Value(center.location),
           latitude: Value(center.latitude),
@@ -84,39 +130,26 @@ class DiveCenterRepository {
           affiliations: Value(center.affiliations.join(',')),
           rating: Value(center.rating),
           notes: Value(center.notes),
-          createdAt: Value(now),
           updatedAt: Value(now),
-        ));
-
-    return center.copyWith(id: id);
-  }
-
-  /// Update an existing dive center
-  Future<void> updateDiveCenter(domain.DiveCenter center) async {
-    final now = DateTime.now().millisecondsSinceEpoch;
-
-    await (_db.update(_db.diveCenters)..where((t) => t.id.equals(center.id)))
-        .write(
-      DiveCentersCompanion(
-        name: Value(center.name),
-        location: Value(center.location),
-        latitude: Value(center.latitude),
-        longitude: Value(center.longitude),
-        country: Value(center.country),
-        phone: Value(center.phone),
-        email: Value(center.email),
-        website: Value(center.website),
-        affiliations: Value(center.affiliations.join(',')),
-        rating: Value(center.rating),
-        notes: Value(center.notes),
-        updatedAt: Value(now),
-      ),
-    );
+        ),
+      );
+      _log.info('Updated dive center: ${center.id}');
+    } catch (e, stackTrace) {
+      _log.error('Failed to update dive center: ${center.id}', e, stackTrace);
+      rethrow;
+    }
   }
 
   /// Delete a dive center
   Future<void> deleteDiveCenter(String id) async {
-    await (_db.delete(_db.diveCenters)..where((t) => t.id.equals(id))).go();
+    try {
+      _log.info('Deleting dive center: $id');
+      await (_db.delete(_db.diveCenters)..where((t) => t.id.equals(id))).go();
+      _log.info('Deleted dive center: $id');
+    } catch (e, stackTrace) {
+      _log.error('Failed to delete dive center: $id', e, stackTrace);
+      rethrow;
+    }
   }
 
   /// Get dive count for a dive center

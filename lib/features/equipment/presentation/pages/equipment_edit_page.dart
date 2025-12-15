@@ -23,10 +23,14 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
   final _brandController = TextEditingController();
   final _modelController = TextEditingController();
   final _serialController = TextEditingController();
+  final _sizeController = TextEditingController();
+  final _purchasePriceController = TextEditingController();
+  final _purchaseCurrencyController = TextEditingController(text: 'USD');
   final _serviceIntervalController = TextEditingController();
   final _notesController = TextEditingController();
 
   EquipmentType _selectedType = EquipmentType.regulator;
+  EquipmentStatus _selectedStatus = EquipmentStatus.active;
   DateTime? _purchaseDate;
   DateTime? _lastServiceDate;
   bool _isLoading = false;
@@ -38,6 +42,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     _brandController.dispose();
     _modelController.dispose();
     _serialController.dispose();
+    _sizeController.dispose();
+    _purchasePriceController.dispose();
+    _purchaseCurrencyController.dispose();
     _serviceIntervalController.dispose();
     _notesController.dispose();
     super.dispose();
@@ -51,9 +58,13 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     _brandController.text = equipment.brand ?? '';
     _modelController.text = equipment.model ?? '';
     _serialController.text = equipment.serialNumber ?? '';
+    _sizeController.text = equipment.size ?? '';
+    _purchasePriceController.text = equipment.purchasePrice?.toString() ?? '';
+    _purchaseCurrencyController.text = equipment.purchaseCurrency;
     _serviceIntervalController.text = equipment.serviceIntervalDays?.toString() ?? '';
     _notesController.text = equipment.notes;
     _selectedType = equipment.type;
+    _selectedStatus = equipment.status;
     _purchaseDate = equipment.purchaseDate;
     _lastServiceDate = equipment.lastServiceDate;
   }
@@ -118,6 +129,27 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             ),
             const SizedBox(height: 16),
 
+            // Status
+            DropdownButtonFormField<EquipmentStatus>(
+              value: _selectedStatus,
+              decoration: const InputDecoration(
+                labelText: 'Status',
+                prefixIcon: Icon(Icons.flag),
+              ),
+              items: EquipmentStatus.values.map((status) {
+                return DropdownMenuItem(
+                  value: status,
+                  child: Text(status.displayName),
+                );
+              }).toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() => _selectedStatus = value);
+                }
+              },
+            ),
+            const SizedBox(height: 16),
+
             // Name
             TextFormField(
               controller: _nameController,
@@ -161,13 +193,30 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             ),
             const SizedBox(height: 16),
 
-            // Serial Number
-            TextFormField(
-              controller: _serialController,
-              decoration: const InputDecoration(
-                labelText: 'Serial Number',
-                prefixIcon: Icon(Icons.numbers),
-              ),
+            // Serial Number & Size
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _serialController,
+                    decoration: const InputDecoration(
+                      labelText: 'Serial Number',
+                      prefixIcon: Icon(Icons.numbers),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: TextFormField(
+                    controller: _sizeController,
+                    decoration: const InputDecoration(
+                      labelText: 'Size',
+                      prefixIcon: Icon(Icons.straighten),
+                      hintText: 'e.g., M, L, 42',
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 24),
 
@@ -215,7 +264,14 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Purchase Date', style: Theme.of(context).textTheme.titleMedium),
+            Text('Purchase Information', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 16),
+            Text(
+              'Purchase Date',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
             const SizedBox(height: 8),
             OutlinedButton.icon(
               onPressed: _selectPurchaseDate,
@@ -234,6 +290,31 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
                 onPressed: () => setState(() => _purchaseDate = null),
                 child: const Text('Clear Date'),
               ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: TextFormField(
+                    controller: _purchasePriceController,
+                    decoration: const InputDecoration(
+                      labelText: 'Purchase Price',
+                      prefixIcon: Icon(Icons.attach_money),
+                    ),
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: TextFormField(
+                    controller: _purchaseCurrencyController,
+                    decoration: const InputDecoration(
+                      labelText: 'Currency',
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -329,10 +410,18 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         id: widget.equipmentId ?? '',
         name: _nameController.text.trim(),
         type: _selectedType,
+        status: _selectedStatus,
         brand: _brandController.text.trim().isEmpty ? null : _brandController.text.trim(),
         model: _modelController.text.trim().isEmpty ? null : _modelController.text.trim(),
         serialNumber: _serialController.text.trim().isEmpty ? null : _serialController.text.trim(),
+        size: _sizeController.text.trim().isEmpty ? null : _sizeController.text.trim(),
         purchaseDate: _purchaseDate,
+        purchasePrice: _purchasePriceController.text.isNotEmpty
+            ? double.tryParse(_purchasePriceController.text)
+            : null,
+        purchaseCurrency: _purchaseCurrencyController.text.trim().isEmpty
+            ? 'USD'
+            : _purchaseCurrencyController.text.trim(),
         lastServiceDate: _lastServiceDate,
         serviceIntervalDays: _serviceIntervalController.text.isNotEmpty
             ? int.tryParse(_serviceIntervalController.text)

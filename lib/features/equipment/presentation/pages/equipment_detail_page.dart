@@ -201,17 +201,26 @@ class EquipmentDetailPage extends ConsumerWidget {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const Divider(),
+            _buildDetailRow(context, 'Status', equipment.status.displayName),
             if (equipment.brand != null)
               _buildDetailRow(context, 'Brand', equipment.brand!),
             if (equipment.model != null)
               _buildDetailRow(context, 'Model', equipment.model!),
             if (equipment.serialNumber != null)
               _buildDetailRow(context, 'Serial Number', equipment.serialNumber!),
+            if (equipment.size != null)
+              _buildDetailRow(context, 'Size', equipment.size!),
             if (equipment.purchaseDate != null)
               _buildDetailRow(
                 context,
                 'Purchase Date',
                 DateFormat('MMM d, yyyy').format(equipment.purchaseDate!),
+              ),
+            if (equipment.purchasePrice != null)
+              _buildDetailRow(
+                context,
+                'Purchase Price',
+                '${equipment.purchasePrice!.toStringAsFixed(2)} ${equipment.purchaseCurrency}',
               ),
             if (equipment.ownershipDuration != null)
               _buildDetailRow(
@@ -528,7 +537,7 @@ class _ServiceHistorySection extends ConsumerWidget {
                           Icon(
                             Icons.build_outlined,
                             size: 48,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+                            color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                           ),
                           const SizedBox(height: 8),
                           Text(

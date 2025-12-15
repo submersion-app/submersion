@@ -137,7 +137,7 @@ class SiteDetailPage extends ConsumerWidget {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.3),
+                          color: Colors.black.withValues(alpha: 0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -541,7 +541,7 @@ class SiteDetailPage extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: Icon(
                     index < rating ? Icons.star : Icons.star_border,
-                    color: hasRating ? Colors.amber : colorScheme.onSurfaceVariant.withOpacity(0.5),
+                    color: hasRating ? Colors.amber : colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                     size: 36,
                   ),
                 );

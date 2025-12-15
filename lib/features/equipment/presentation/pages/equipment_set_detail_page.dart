@@ -134,7 +134,7 @@ class EquipmentSetDetailPage extends ConsumerWidget {
                         Icon(
                           Icons.inventory_2_outlined,
                           size: 48,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                         ),
                         const SizedBox(height: 8),
                         Text(

@@ -145,7 +145,7 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage> {
                     Icon(
                       Icons.location_off,
                       size: 64,
-                      color: colorScheme.onSurfaceVariant.withOpacity(0.5),
+                      color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -183,7 +183,7 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: isSelected ? 8 : 4,
             offset: const Offset(0, 2),
           ),

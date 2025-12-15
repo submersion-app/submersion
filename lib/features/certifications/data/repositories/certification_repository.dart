@@ -3,32 +3,44 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../core/database/database.dart';
 import '../../../../core/services/database_service.dart';
+import '../../../../core/services/logger_service.dart';
 import '../../../../core/constants/enums.dart';
 import '../../domain/entities/certification.dart' as domain;
 
 class CertificationRepository {
   final AppDatabase _db = DatabaseService.instance.database;
   final _uuid = const Uuid();
+  final _log = LoggerService.forClass(CertificationRepository);
 
   /// Get all certifications ordered by issue date (newest first)
   Future<List<domain.Certification>> getAllCertifications() async {
-    final query = _db.select(_db.certifications)
-      ..orderBy([
-        (t) => OrderingTerm.desc(t.issueDate),
-        (t) => OrderingTerm.asc(t.name),
-      ]);
+    try {
+      final query = _db.select(_db.certifications)
+        ..orderBy([
+          (t) => OrderingTerm.desc(t.issueDate),
+          (t) => OrderingTerm.asc(t.name),
+        ]);
 
-    final rows = await query.get();
-    return rows.map(_mapRowToCertification).toList();
+      final rows = await query.get();
+      return rows.map(_mapRowToCertification).toList();
+    } catch (e, stackTrace) {
+      _log.error('Failed to get all certifications', e, stackTrace);
+      rethrow;
+    }
   }
 
   /// Get certification by ID
   Future<domain.Certification?> getCertificationById(String id) async {
-    final query = _db.select(_db.certifications)
-      ..where((t) => t.id.equals(id));
+    try {
+      final query = _db.select(_db.certifications)
+        ..where((t) => t.id.equals(id));
 
-    final row = await query.getSingleOrNull();
-    return row != null ? _mapRowToCertification(row) : null;
+      final row = await query.getSingleOrNull();
+      return row != null ? _mapRowToCertification(row) : null;
+    } catch (e, stackTrace) {
+      _log.error('Failed to get certification by id: $id', e, stackTrace);
+      rethrow;
+    }
   }
 
   /// Search certifications by name or agency
@@ -72,11 +84,45 @@ class CertificationRepository {
   /// Create a new certification
   Future<domain.Certification> createCertification(
       domain.Certification cert) async {
-    final id = cert.id.isEmpty ? _uuid.v4() : cert.id;
-    final now = DateTime.now();
+    try {
+      _log.info('Creating certification: ${cert.name}');
+      final id = cert.id.isEmpty ? _uuid.v4() : cert.id;
+      final now = DateTime.now();
 
-    await _db.into(_db.certifications).insert(CertificationsCompanion(
-          id: Value(id),
+      await _db.into(_db.certifications).insert(CertificationsCompanion(
+            id: Value(id),
+            name: Value(cert.name),
+            agency: Value(cert.agency.name),
+            level: Value(cert.level?.name),
+            cardNumber: Value(cert.cardNumber),
+            issueDate: Value(cert.issueDate?.millisecondsSinceEpoch),
+            expiryDate: Value(cert.expiryDate?.millisecondsSinceEpoch),
+            instructorName: Value(cert.instructorName),
+            instructorNumber: Value(cert.instructorNumber),
+            photoFrontPath: Value(cert.photoFrontPath),
+            photoBackPath: Value(cert.photoBackPath),
+            notes: Value(cert.notes),
+            createdAt: Value(now.millisecondsSinceEpoch),
+            updatedAt: Value(now.millisecondsSinceEpoch),
+          ));
+
+      _log.info('Created certification with id: $id');
+      return cert.copyWith(id: id, createdAt: now, updatedAt: now);
+    } catch (e, stackTrace) {
+      _log.error('Failed to create certification: ${cert.name}', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Update an existing certification
+  Future<void> updateCertification(domain.Certification cert) async {
+    try {
+      _log.info('Updating certification: ${cert.id}');
+      final now = DateTime.now().millisecondsSinceEpoch;
+
+      await (_db.update(_db.certifications)..where((t) => t.id.equals(cert.id)))
+          .write(
+        CertificationsCompanion(
           name: Value(cert.name),
           agency: Value(cert.agency.name),
           level: Value(cert.level?.name),
@@ -88,39 +134,26 @@ class CertificationRepository {
           photoFrontPath: Value(cert.photoFrontPath),
           photoBackPath: Value(cert.photoBackPath),
           notes: Value(cert.notes),
-          createdAt: Value(now.millisecondsSinceEpoch),
-          updatedAt: Value(now.millisecondsSinceEpoch),
-        ));
-
-    return cert.copyWith(id: id, createdAt: now, updatedAt: now);
-  }
-
-  /// Update an existing certification
-  Future<void> updateCertification(domain.Certification cert) async {
-    final now = DateTime.now().millisecondsSinceEpoch;
-
-    await (_db.update(_db.certifications)..where((t) => t.id.equals(cert.id)))
-        .write(
-      CertificationsCompanion(
-        name: Value(cert.name),
-        agency: Value(cert.agency.name),
-        level: Value(cert.level?.name),
-        cardNumber: Value(cert.cardNumber),
-        issueDate: Value(cert.issueDate?.millisecondsSinceEpoch),
-        expiryDate: Value(cert.expiryDate?.millisecondsSinceEpoch),
-        instructorName: Value(cert.instructorName),
-        instructorNumber: Value(cert.instructorNumber),
-        photoFrontPath: Value(cert.photoFrontPath),
-        photoBackPath: Value(cert.photoBackPath),
-        notes: Value(cert.notes),
-        updatedAt: Value(now),
-      ),
-    );
+          updatedAt: Value(now),
+        ),
+      );
+      _log.info('Updated certification: ${cert.id}');
+    } catch (e, stackTrace) {
+      _log.error('Failed to update certification: ${cert.id}', e, stackTrace);
+      rethrow;
+    }
   }
 
   /// Delete a certification
   Future<void> deleteCertification(String id) async {
-    await (_db.delete(_db.certifications)..where((t) => t.id.equals(id))).go();
+    try {
+      _log.info('Deleting certification: $id');
+      await (_db.delete(_db.certifications)..where((t) => t.id.equals(id))).go();
+      _log.info('Deleted certification: $id');
+    } catch (e, stackTrace) {
+      _log.error('Failed to delete certification: $id', e, stackTrace);
+      rethrow;
+    }
   }
 
   /// Get certifications expiring within days

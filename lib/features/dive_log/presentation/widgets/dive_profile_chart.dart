@@ -104,7 +104,7 @@ class _DiveProfileChartState extends State<DiveProfileChart> {
             Icon(
               Icons.show_chart,
               size: 48,
-              color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+              color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 8),
             Text(
@@ -170,11 +170,11 @@ class _DiveProfileChartState extends State<DiveProfileChart> {
           horizontalInterval: _calculateDepthInterval(chartMaxDepth),
           verticalInterval: _calculateTimeInterval(maxTime),
           getDrawingHorizontalLine: (value) => FlLine(
-            color: colorScheme.outlineVariant.withOpacity(0.3),
+            color: colorScheme.outlineVariant.withValues(alpha: 0.3),
             strokeWidth: 1,
           ),
           getDrawingVerticalLine: (value) => FlLine(
-            color: colorScheme.outlineVariant.withOpacity(0.3),
+            color: colorScheme.outlineVariant.withValues(alpha: 0.3),
             strokeWidth: 1,
           ),
         ),
@@ -301,8 +301,8 @@ class _DiveProfileChartState extends State<DiveProfileChart> {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            colorScheme.primary.withOpacity(0.05),
-            colorScheme.primary.withOpacity(0.3),
+            colorScheme.primary.withValues(alpha: 0.05),
+            colorScheme.primary.withValues(alpha: 0.3),
           ],
         ),
       ),
@@ -409,7 +409,7 @@ class DiveProfileMiniChart extends StatelessWidget {
               dotData: const FlDotData(show: false),
               belowBarData: BarAreaData(
                 show: true,
-                color: chartColor.withOpacity(0.2),
+                color: chartColor.withValues(alpha: 0.2),
               ),
             ),
           ],

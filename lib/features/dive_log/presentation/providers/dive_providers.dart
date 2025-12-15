@@ -122,6 +122,12 @@ final diveStatisticsProvider = FutureProvider<DiveStatistics>((ref) async {
   return repository.getStatistics();
 });
 
+/// Dive records (superlatives) provider
+final diveRecordsProvider = FutureProvider<DiveRecords>((ref) async {
+  final repository = ref.watch(diveRepositoryProvider);
+  return repository.getRecords();
+});
+
 /// Next dive number provider
 final nextDiveNumberProvider = FutureProvider<int>((ref) async {
   final repository = ref.watch(diveRepositoryProvider);

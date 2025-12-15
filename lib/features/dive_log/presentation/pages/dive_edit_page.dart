@@ -57,6 +57,19 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   List<EquipmentItem> _selectedEquipment = [];
   List<BuddyWithRole> _selectedBuddies = [];
 
+  // Conditions fields
+  CurrentDirection? _currentDirection;
+  CurrentStrength? _currentStrength;
+  EntryMethod? _entryMethod;
+  EntryMethod? _exitMethod;
+  WaterType? _waterType;
+  final _swellHeightController = TextEditingController();
+
+  // Weight fields
+  final _weightAmountController = TextEditingController();
+  WeightType? _weightType;
+  bool _weightBeltUsed = false;
+
   // Tank data
   final _tankVolumeController = TextEditingController(text: '12');
   final _startPressureController = TextEditingController(text: '200');
@@ -111,6 +124,19 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
           // Load equipment
           _selectedEquipment = List.from(dive.equipment);
+
+          // Load conditions fields
+          _currentDirection = dive.currentDirection;
+          _currentStrength = dive.currentStrength;
+          _entryMethod = dive.entryMethod;
+          _exitMethod = dive.exitMethod;
+          _waterType = dive.waterType;
+          _swellHeightController.text = dive.swellHeight?.toString() ?? '';
+
+          // Load weight fields
+          _weightAmountController.text = dive.weightAmount?.toString() ?? '';
+          _weightType = dive.weightType;
+          _weightBeltUsed = dive.weightBeltUsed ?? false;
         });
         // Load existing sightings and buddies
         _loadSightings();
@@ -155,6 +181,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     _startPressureController.dispose();
     _endPressureController.dispose();
     _o2PercentController.dispose();
+    _swellHeightController.dispose();
+    _weightAmountController.dispose();
     super.dispose();
   }
 
@@ -204,6 +232,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             _buildEquipmentSection(),
             const SizedBox(height: 16),
             _buildConditionsSection(),
+            const SizedBox(height: 16),
+            _buildWeightSection(),
             const SizedBox(height: 16),
             _buildBuddySection(),
             const SizedBox(height: 16),
@@ -477,7 +507,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                       Icon(
                         Icons.inventory_2_outlined,
                         size: 48,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -704,6 +734,197 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 ),
               ],
             ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<WaterType>(
+              value: _waterType,
+              decoration: const InputDecoration(labelText: 'Water Type'),
+              items: [
+                const DropdownMenuItem<WaterType>(
+                  value: null,
+                  child: Text('Not specified'),
+                ),
+                ...WaterType.values.map((type) {
+                  return DropdownMenuItem(
+                    value: type,
+                    child: Text(type.displayName),
+                  );
+                }),
+              ],
+              onChanged: (value) {
+                setState(() => _waterType = value);
+              },
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<CurrentDirection>(
+                    value: _currentDirection,
+                    decoration: const InputDecoration(labelText: 'Current Direction'),
+                    isExpanded: true,
+                    items: [
+                      const DropdownMenuItem<CurrentDirection>(
+                        value: null,
+                        child: Text('Not specified'),
+                      ),
+                      ...CurrentDirection.values.map((dir) {
+                        return DropdownMenuItem(
+                          value: dir,
+                          child: Text(dir.displayName),
+                        );
+                      }),
+                    ],
+                    onChanged: (value) {
+                      setState(() => _currentDirection = value);
+                    },
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: DropdownButtonFormField<CurrentStrength>(
+                    value: _currentStrength,
+                    decoration: const InputDecoration(labelText: 'Current Strength'),
+                    isExpanded: true,
+                    items: [
+                      const DropdownMenuItem<CurrentStrength>(
+                        value: null,
+                        child: Text('Not specified'),
+                      ),
+                      ...CurrentStrength.values.map((str) {
+                        return DropdownMenuItem(
+                          value: str,
+                          child: Text(str.displayName),
+                        );
+                      }),
+                    ],
+                    onChanged: (value) {
+                      setState(() => _currentStrength = value);
+                    },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _swellHeightController,
+              decoration: const InputDecoration(
+                labelText: 'Swell Height',
+                suffixText: 'm',
+              ),
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<EntryMethod>(
+                    value: _entryMethod,
+                    decoration: const InputDecoration(labelText: 'Entry Method'),
+                    isExpanded: true,
+                    items: [
+                      const DropdownMenuItem<EntryMethod>(
+                        value: null,
+                        child: Text('Not specified'),
+                      ),
+                      ...EntryMethod.values.map((method) {
+                        return DropdownMenuItem(
+                          value: method,
+                          child: Text(method.displayName),
+                        );
+                      }),
+                    ],
+                    onChanged: (value) {
+                      setState(() => _entryMethod = value);
+                    },
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: DropdownButtonFormField<EntryMethod>(
+                    value: _exitMethod,
+                    decoration: const InputDecoration(labelText: 'Exit Method'),
+                    isExpanded: true,
+                    items: [
+                      const DropdownMenuItem<EntryMethod>(
+                        value: null,
+                        child: Text('Not specified'),
+                      ),
+                      ...EntryMethod.values.map((method) {
+                        return DropdownMenuItem(
+                          value: method,
+                          child: Text(method.displayName),
+                        );
+                      }),
+                    ],
+                    onChanged: (value) {
+                      setState(() => _exitMethod = value);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWeightSection() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Weight', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _weightAmountController,
+                    decoration: const InputDecoration(
+                      labelText: 'Weight Amount',
+                      suffixText: 'kg',
+                    ),
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: DropdownButtonFormField<WeightType>(
+                    value: _weightType,
+                    decoration: const InputDecoration(labelText: 'Weight Type'),
+                    isExpanded: true,
+                    items: [
+                      const DropdownMenuItem<WeightType>(
+                        value: null,
+                        child: Text('Not specified'),
+                      ),
+                      ...WeightType.values.map((type) {
+                        return DropdownMenuItem(
+                          value: type,
+                          child: Text(type.displayName),
+                        );
+                      }),
+                    ],
+                    onChanged: (value) {
+                      setState(() => _weightType = value);
+                    },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            SwitchListTile(
+              title: const Text('Weight Belt Used'),
+              subtitle: const Text('Did you use a weight belt for this dive?'),
+              value: _weightBeltUsed,
+              onChanged: (value) {
+                setState(() => _weightBeltUsed = value);
+              },
+              contentPadding: EdgeInsets.zero,
+            ),
           ],
         ),
       ),
@@ -814,7 +1035,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                       Icon(
                         Icons.water,
                         size: 48,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -1082,6 +1303,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           ? double.parse(_o2PercentController.text)
           : 21.0;
 
+      // Parse conditions and weight values
+      final swellHeight = _swellHeightController.text.isNotEmpty
+          ? double.parse(_swellHeightController.text)
+          : null;
+      final weightAmount = _weightAmountController.text.isNotEmpty
+          ? double.parse(_weightAmountController.text)
+          : null;
+
       // Create tank
       final tanks = <DiveTank>[];
       if (tankVolume != null || startPressure != null || endPressure != null) {
@@ -1114,6 +1343,17 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         site: _selectedSite,
         tanks: tanks,
         equipment: _selectedEquipment,
+        // Conditions fields
+        currentDirection: _currentDirection,
+        currentStrength: _currentStrength,
+        swellHeight: swellHeight,
+        entryMethod: _entryMethod,
+        exitMethod: _exitMethod,
+        waterType: _waterType,
+        // Weight fields
+        weightAmount: weightAmount,
+        weightType: _weightType,
+        weightBeltUsed: _weightBeltUsed,
       );
 
       // Save using the notifier

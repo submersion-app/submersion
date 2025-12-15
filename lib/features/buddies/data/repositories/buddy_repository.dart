@@ -3,28 +3,40 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../core/database/database.dart';
 import '../../../../core/services/database_service.dart';
+import '../../../../core/services/logger_service.dart';
 import '../../../../core/constants/enums.dart';
 import '../../domain/entities/buddy.dart' as domain;
 
 class BuddyRepository {
   final AppDatabase _db = DatabaseService.instance.database;
   final _uuid = const Uuid();
+  final _log = LoggerService.forClass(BuddyRepository);
 
   /// Get all buddies ordered by name
   Future<List<domain.Buddy>> getAllBuddies() async {
-    final query = _db.select(_db.buddies)
-      ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+    try {
+      final query = _db.select(_db.buddies)
+        ..orderBy([(t) => OrderingTerm.asc(t.name)]);
 
-    final rows = await query.get();
-    return rows.map(_mapRowToBuddy).toList();
+      final rows = await query.get();
+      return rows.map(_mapRowToBuddy).toList();
+    } catch (e, stackTrace) {
+      _log.error('Failed to get all buddies', e, stackTrace);
+      rethrow;
+    }
   }
 
   /// Get buddy by ID
   Future<domain.Buddy?> getBuddyById(String id) async {
-    final query = _db.select(_db.buddies)..where((t) => t.id.equals(id));
+    try {
+      final query = _db.select(_db.buddies)..where((t) => t.id.equals(id));
 
-    final row = await query.getSingleOrNull();
-    return row != null ? _mapRowToBuddy(row) : null;
+      final row = await query.getSingleOrNull();
+      return row != null ? _mapRowToBuddy(row) : null;
+    } catch (e, stackTrace) {
+      _log.error('Failed to get buddy by id: $id', e, stackTrace);
+      rethrow;
+    }
   }
 
   /// Search buddies by name, email, or phone
@@ -65,11 +77,40 @@ class BuddyRepository {
 
   /// Create a new buddy
   Future<domain.Buddy> createBuddy(domain.Buddy buddy) async {
-    final id = buddy.id.isEmpty ? _uuid.v4() : buddy.id;
-    final now = DateTime.now();
+    try {
+      _log.info('Creating buddy: ${buddy.name}');
+      final id = buddy.id.isEmpty ? _uuid.v4() : buddy.id;
+      final now = DateTime.now();
 
-    await _db.into(_db.buddies).insert(BuddiesCompanion(
-          id: Value(id),
+      await _db.into(_db.buddies).insert(BuddiesCompanion(
+            id: Value(id),
+            name: Value(buddy.name),
+            email: Value(buddy.email),
+            phone: Value(buddy.phone),
+            certificationLevel: Value(buddy.certificationLevel?.name),
+            certificationAgency: Value(buddy.certificationAgency?.name),
+            photoPath: Value(buddy.photoPath),
+            notes: Value(buddy.notes),
+            createdAt: Value(now.millisecondsSinceEpoch),
+            updatedAt: Value(now.millisecondsSinceEpoch),
+          ));
+
+      _log.info('Created buddy with id: $id');
+      return buddy.copyWith(id: id, createdAt: now, updatedAt: now);
+    } catch (e, stackTrace) {
+      _log.error('Failed to create buddy: ${buddy.name}', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Update an existing buddy
+  Future<void> updateBuddy(domain.Buddy buddy) async {
+    try {
+      _log.info('Updating buddy: ${buddy.id}');
+      final now = DateTime.now().millisecondsSinceEpoch;
+
+      await (_db.update(_db.buddies)..where((t) => t.id.equals(buddy.id))).write(
+        BuddiesCompanion(
           name: Value(buddy.name),
           email: Value(buddy.email),
           phone: Value(buddy.phone),
@@ -77,35 +118,27 @@ class BuddyRepository {
           certificationAgency: Value(buddy.certificationAgency?.name),
           photoPath: Value(buddy.photoPath),
           notes: Value(buddy.notes),
-          createdAt: Value(now.millisecondsSinceEpoch),
-          updatedAt: Value(now.millisecondsSinceEpoch),
-        ));
-
-    return buddy.copyWith(id: id, createdAt: now, updatedAt: now);
-  }
-
-  /// Update an existing buddy
-  Future<void> updateBuddy(domain.Buddy buddy) async {
-    final now = DateTime.now().millisecondsSinceEpoch;
-
-    await (_db.update(_db.buddies)..where((t) => t.id.equals(buddy.id))).write(
-      BuddiesCompanion(
-        name: Value(buddy.name),
-        email: Value(buddy.email),
-        phone: Value(buddy.phone),
-        certificationLevel: Value(buddy.certificationLevel?.name),
-        certificationAgency: Value(buddy.certificationAgency?.name),
-        photoPath: Value(buddy.photoPath),
-        notes: Value(buddy.notes),
-        updatedAt: Value(now),
-      ),
-    );
+          updatedAt: Value(now),
+        ),
+      );
+      _log.info('Updated buddy: ${buddy.id}');
+    } catch (e, stackTrace) {
+      _log.error('Failed to update buddy: ${buddy.id}', e, stackTrace);
+      rethrow;
+    }
   }
 
   /// Delete a buddy
   Future<void> deleteBuddy(String id) async {
-    // Dive buddies will be automatically deleted due to CASCADE
-    await (_db.delete(_db.buddies)..where((t) => t.id.equals(id))).go();
+    try {
+      _log.info('Deleting buddy: $id');
+      // Dive buddies will be automatically deleted due to CASCADE
+      await (_db.delete(_db.buddies)..where((t) => t.id.equals(id))).go();
+      _log.info('Deleted buddy: $id');
+    } catch (e, stackTrace) {
+      _log.error('Failed to delete buddy: $id', e, stackTrace);
+      rethrow;
+    }
   }
 
   /// Get buddies for a specific dive
