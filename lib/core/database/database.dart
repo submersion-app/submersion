@@ -180,6 +180,35 @@ class Settings extends Table {
   Set<Column> get primaryKey => {key};
 }
 
+/// Dive buddies contact list
+class Buddies extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  TextColumn get email => text().nullable()();
+  TextColumn get phone => text().nullable()();
+  TextColumn get certificationLevel => text().nullable()();
+  TextColumn get certificationAgency => text().nullable()();
+  TextColumn get photoPath => text().nullable()();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Junction table for buddies on each dive (many-to-many with role)
+class DiveBuddies extends Table {
+  TextColumn get id => text()();
+  TextColumn get diveId => text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  TextColumn get buddyId => text().references(Buddies, #id, onDelete: KeyAction.cascade)();
+  TextColumn get role => text().withDefault(const Constant('buddy'))();
+  IntColumn get createdAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 // ============================================================================
 // Database Class
 // ============================================================================
@@ -198,13 +227,15 @@ class Settings extends Table {
     Sightings,
     Media,
     Settings,
+    Buddies,
+    DiveBuddies,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration {
@@ -270,6 +301,39 @@ class AppDatabase extends _$AppDatabase {
               equipment_id TEXT NOT NULL REFERENCES equipment(id) ON DELETE CASCADE,
               PRIMARY KEY (set_id, equipment_id)
             )
+          ''');
+        }
+        if (from < 3) {
+          // Migration v2 -> v3: Add buddies and dive_buddies tables
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS buddies (
+              id TEXT NOT NULL PRIMARY KEY,
+              name TEXT NOT NULL,
+              email TEXT,
+              phone TEXT,
+              certification_level TEXT,
+              certification_agency TEXT,
+              photo_path TEXT,
+              notes TEXT NOT NULL DEFAULT '',
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL
+            )
+          ''');
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS dive_buddies (
+              id TEXT NOT NULL PRIMARY KEY,
+              dive_id TEXT NOT NULL REFERENCES dives(id) ON DELETE CASCADE,
+              buddy_id TEXT NOT NULL REFERENCES buddies(id) ON DELETE CASCADE,
+              role TEXT NOT NULL DEFAULT 'buddy',
+              created_at INTEGER NOT NULL
+            )
+          ''');
+          // Create index for faster lookups
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dive_buddies_dive_id ON dive_buddies(dive_id)
+          ''');
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dive_buddies_buddy_id ON dive_buddies(buddy_id)
           ''');
         }
       },

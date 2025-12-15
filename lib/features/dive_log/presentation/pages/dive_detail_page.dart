@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/enums.dart';
+import '../../../buddies/domain/entities/buddy.dart';
+import '../../../buddies/presentation/providers/buddy_providers.dart';
 import '../../../marine_life/domain/entities/species.dart';
 import '../../../marine_life/presentation/providers/species_providers.dart';
 import '../../../settings/presentation/providers/export_providers.dart';
@@ -108,6 +110,8 @@ class DiveDetailPage extends ConsumerWidget {
               const SizedBox(height: 24),
             ],
             _buildDetailsSection(context, dive),
+            const SizedBox(height: 24),
+            _buildBuddiesSection(context, ref),
             const SizedBox(height: 24),
             if (dive.tanks.isNotEmpty) ...[
               _buildTanksSection(context, dive),
@@ -300,6 +304,82 @@ class DiveDetailPage extends ConsumerWidget {
           Text(value, style: Theme.of(context).textTheme.bodyMedium),
         ],
       ),
+    );
+  }
+
+  Widget _buildBuddiesSection(BuildContext context, WidgetRef ref) {
+    final buddiesAsync = ref.watch(buddiesForDiveProvider(diveId));
+
+    return buddiesAsync.when(
+      data: (buddies) {
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Buddies',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    if (buddies.isNotEmpty)
+                      Text(
+                        '${buddies.length} ${buddies.length == 1 ? 'buddy' : 'buddies'}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                      ),
+                  ],
+                ),
+                const Divider(),
+                if (buddies.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Text(
+                      'Solo dive or no buddies recorded',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            fontStyle: FontStyle.italic,
+                          ),
+                    ),
+                  )
+                else
+                  ...buddies.map((bwr) => _buildBuddyTile(context, bwr)),
+              ],
+            ),
+          ),
+        );
+      },
+      loading: () => const Card(
+        child: Padding(
+          padding: EdgeInsets.all(32),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      ),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildBuddyTile(BuildContext context, BuddyWithRole bwr) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: CircleAvatar(
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        child: Text(
+          bwr.buddy.initials,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onPrimaryContainer,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+      title: Text(bwr.buddy.name),
+      subtitle: Text(bwr.role.displayName),
+      trailing: const Icon(Icons.chevron_right, size: 20),
+      onTap: () => context.push('/buddies/${bwr.buddy.id}'),
     );
   }
 

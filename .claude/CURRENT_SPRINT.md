@@ -23,15 +23,15 @@
 
 ---
 
-# Sprint 1: Buddy System (Weeks 1-2)
+# Sprint 1: Buddy System (Weeks 1-2) - COMPLETED
 
-## 1.1: Buddy Database Schema (P0)
+## 1.1: Buddy Database Schema (P0) - DONE
 **Estimated:** 2 hours | **Dependencies:** None
 
-- [ ] Add `buddies` table to database schema
-- [ ] Add `dive_buddies` junction table (many-to-many with role)
-- [ ] Run code generation
-- [ ] Test migration
+- [x] Add `buddies` table to database schema
+- [x] Add `dive_buddies` junction table (many-to-many with role)
+- [x] Run code generation
+- [x] Test migration
 
 **Schema:**
 ```sql
@@ -62,84 +62,84 @@ CREATE TABLE dive_buddies (
 
 ---
 
-## 1.2: Buddy Entity & Repository (P0)
+## 1.2: Buddy Entity & Repository (P0) - DONE
 **Estimated:** 3 hours | **Dependencies:** 1.1
 
-- [ ] Create `lib/features/buddies/domain/entities/buddy.dart`
-- [ ] Create `lib/features/buddies/data/repositories/buddy_repository.dart`
-- [ ] Implement CRUD methods
-- [ ] Write unit tests
+- [x] Create `lib/features/buddies/domain/entities/buddy.dart`
+- [x] Create `lib/features/buddies/data/repositories/buddy_repository.dart`
+- [x] Implement CRUD methods
+- [ ] Write unit tests (deferred to Sprint 4)
 
 ---
 
-## 1.3: Buddy Providers (P1)
+## 1.3: Buddy Providers (P1) - DONE
 **Estimated:** 2 hours | **Dependencies:** 1.2
 
-- [ ] Create `lib/features/buddies/presentation/providers/buddy_providers.dart`
-- [ ] `buddyRepositoryProvider`
-- [ ] `allBuddiesProvider`
-- [ ] `buddyByIdProvider(String id)`
-- [ ] `buddiesForDiveProvider(String diveId)`
-- [ ] `buddySearchProvider(String query)`
+- [x] Create `lib/features/buddies/presentation/providers/buddy_providers.dart`
+- [x] `buddyRepositoryProvider`
+- [x] `allBuddiesProvider`
+- [x] `buddyByIdProvider(String id)`
+- [x] `buddiesForDiveProvider(String diveId)`
+- [x] `buddySearchProvider(String query)`
 
 ---
 
-## 1.4: Buddy List Page (P1)
+## 1.4: Buddy List Page (P1) - DONE
 **Estimated:** 3 hours | **Dependencies:** 1.3
 
-- [ ] Create `lib/features/buddies/presentation/pages/buddy_list_page.dart`
-- [ ] List with photo, name, cert level
-- [ ] Search bar
-- [ ] FAB to add new buddy
-- [ ] Empty state
-- [ ] Add to navigation and router
+- [x] Create `lib/features/buddies/presentation/pages/buddy_list_page.dart`
+- [x] List with photo, name, cert level
+- [x] Search bar
+- [x] FAB to add new buddy
+- [x] Empty state
+- [x] Add to navigation and router
 
 ---
 
-## 1.5: Buddy Detail Page (P1)
+## 1.5: Buddy Detail Page (P1) - DONE
 **Estimated:** 3 hours | **Dependencies:** 1.4
 
-- [ ] Create `lib/features/buddies/presentation/pages/buddy_detail_page.dart`
-- [ ] Display photo, contact info, certs
-- [ ] Statistics: total dives together, first/last dive
-- [ ] List of shared dives
-- [ ] Edit/delete actions
+- [x] Create `lib/features/buddies/presentation/pages/buddy_detail_page.dart`
+- [x] Display photo, contact info, certs
+- [x] Statistics: total dives together, first/last dive
+- [x] List of shared dives
+- [x] Edit/delete actions
 
 ---
 
-## 1.6: Buddy Edit Page (P0)
+## 1.6: Buddy Edit Page (P0) - DONE
 **Estimated:** 3 hours | **Dependencies:** 1.4
 
-- [ ] Create `lib/features/buddies/presentation/pages/buddy_edit_page.dart`
-- [ ] Form: photo, name, email, phone, cert level, agency, notes
-- [ ] Validation (name required, email/phone format)
-- [ ] Save/cancel
+- [x] Create `lib/features/buddies/presentation/pages/buddy_edit_page.dart`
+- [x] Form: photo, name, email, phone, cert level, agency, notes
+- [x] Validation (name required, email/phone format)
+- [x] Save/cancel
 
 ---
 
-## 1.7: Buddy Picker for Dive Edit (P0)
+## 1.7: Buddy Picker for Dive Edit (P0) - DONE
 **Estimated:** 4 hours | **Dependencies:** 1.6
 
-- [ ] Create `lib/features/buddies/presentation/widgets/buddy_picker.dart`
-- [ ] Multi-select with roles (Buddy, Guide, Instructor, Student, Solo)
-- [ ] Display as chips with role badges
-- [ ] "Add New Buddy" quick action
-- [ ] Modify `dive_edit_page.dart` to use BuddyPicker
-- [ ] Handle migration from old buddy text field
+- [x] Create `lib/features/buddies/presentation/widgets/buddy_picker.dart`
+- [x] Multi-select with roles (Buddy, Guide, Instructor, Student, Solo)
+- [x] Display as chips with role badges
+- [x] "Add New Buddy" quick action
+- [x] Modify `dive_edit_page.dart` to use BuddyPicker
+- [x] Handle migration from old buddy text field (kept legacy fields)
 
 ---
 
-## 1.8: Update Dive Detail for Buddies (P1)
+## 1.8: Update Dive Detail for Buddies (P1) - DONE
 **Estimated:** 2 hours | **Dependencies:** 1.7
 
-- [ ] Modify `dive_detail_page.dart`
-- [ ] Display buddy chips (photo, name, role)
-- [ ] Tap chip to navigate to buddy detail
-- [ ] Show "Solo dive" if no buddies
+- [x] Modify `dive_detail_page.dart`
+- [x] Display buddy chips (photo, name, role)
+- [x] Tap chip to navigate to buddy detail
+- [x] Show "Solo dive" if no buddies
 
 ---
 
-## 1.9: Buddy Import from Contacts (P2)
+## 1.9: Buddy Import from Contacts (P2) - DEFERRED
 **Estimated:** 3 hours | **Dependencies:** 1.6
 
 - [ ] Add flutter_contacts package
@@ -147,15 +147,17 @@ CREATE TABLE dive_buddies (
 - [ ] Request permission, show contact picker
 - [ ] Pre-fill buddy form
 
+*Deferred to v1.5 - lower priority feature*
+
 ---
 
-## 1.10: Testing & Bug Fixes (P0)
+## 1.10: Testing & Bug Fixes (P0) - PARTIAL
 **Estimated:** 3 hours | **Dependencies:** All above
 
-- [ ] Unit tests for BuddyRepository
-- [ ] Widget tests for pages
-- [ ] Test buddy-dive relationships
-- [ ] Test deletion behavior
+- [ ] Unit tests for BuddyRepository (deferred to Sprint 4)
+- [ ] Widget tests for pages (deferred to Sprint 4)
+- [x] Test buddy-dive relationships (manual testing)
+- [x] Test deletion behavior (CASCADE working)
 
 ---
 

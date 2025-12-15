@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/enums.dart';
+import '../../../buddies/domain/entities/buddy.dart';
+import '../../../buddies/presentation/providers/buddy_providers.dart';
+import '../../../buddies/presentation/widgets/buddy_picker.dart';
 import '../../../dive_sites/domain/entities/dive_site.dart';
 import '../../../dive_sites/presentation/providers/site_providers.dart';
 import '../../../equipment/domain/entities/equipment_item.dart';
@@ -52,6 +55,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   DiveSite? _selectedSite;
   List<Sighting> _sightings = [];
   List<EquipmentItem> _selectedEquipment = [];
+  List<BuddyWithRole> _selectedBuddies = [];
 
   // Tank data
   final _tankVolumeController = TextEditingController(text: '12');
@@ -108,8 +112,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           // Load equipment
           _selectedEquipment = List.from(dive.equipment);
         });
-        // Load existing sightings
+        // Load existing sightings and buddies
         _loadSightings();
+        _loadBuddies();
       }
     } finally {
       if (mounted) {
@@ -124,6 +129,15 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final sightings = await repository.getSightingsForDive(widget.diveId!);
     if (mounted) {
       setState(() => _sightings = sightings);
+    }
+  }
+
+  Future<void> _loadBuddies() async {
+    if (widget.diveId == null) return;
+    final repository = ref.read(buddyRepositoryProvider);
+    final buddies = await repository.getBuddiesForDive(widget.diveId!);
+    if (mounted) {
+      setState(() => _selectedBuddies = buddies);
     }
   }
 
@@ -703,13 +717,29 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Companions', style: Theme.of(context).textTheme.titleMedium),
+            BuddyPicker(
+              diveId: widget.diveId,
+              selectedBuddies: _selectedBuddies,
+              onChanged: (buddies) {
+                setState(() => _selectedBuddies = buddies);
+              },
+            ),
             const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 8),
+            Text(
+              'Legacy Fields (for imported dives)',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+            const SizedBox(height: 8),
             TextFormField(
               controller: _buddyController,
               decoration: const InputDecoration(
-                labelText: 'Buddy',
+                labelText: 'Buddy (text)',
                 prefixIcon: Icon(Icons.person),
+                helperText: 'For backward compatibility with imported dives',
               ),
             ),
             const SizedBox(height: 16),
@@ -1111,6 +1141,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             );
           }
         }
+      }
+
+      // Save buddies
+      if (savedDiveId != null) {
+        final buddyRepository = ref.read(buddyRepositoryProvider);
+        await buddyRepository.setBuddiesForDive(savedDiveId, _selectedBuddies);
       }
 
       if (mounted) {

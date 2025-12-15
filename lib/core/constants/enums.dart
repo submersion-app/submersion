@@ -92,3 +92,60 @@ enum SpeciesCategory {
   final String displayName;
   const SpeciesCategory(this.displayName);
 }
+
+/// Buddy role on a dive
+enum BuddyRole {
+  buddy('Buddy'),
+  diveGuide('Dive Guide'),
+  instructor('Instructor'),
+  student('Student'),
+  diveMaster('Divemaster'),
+  solo('Solo');
+
+  final String displayName;
+  const BuddyRole(this.displayName);
+}
+
+/// Certification agencies
+enum CertificationAgency {
+  padi('PADI'),
+  ssi('SSI'),
+  naui('NAUI'),
+  sdi('SDI'),
+  tdi('TDI'),
+  gue('GUE'),
+  raid('RAID'),
+  bsac('BSAC'),
+  cmas('CMAS'),
+  iantd('IANTD'),
+  psai('PSAI'),
+  other('Other');
+
+  final String displayName;
+  const CertificationAgency(this.displayName);
+}
+
+/// Common certification levels
+enum CertificationLevel {
+  openWater('Open Water'),
+  advancedOpenWater('Advanced Open Water'),
+  rescue('Rescue Diver'),
+  diveMaster('Divemaster'),
+  instructor('Instructor'),
+  masterInstructor('Master Instructor'),
+  courseDirector('Course Director'),
+  nitrox('Nitrox'),
+  advancedNitrox('Advanced Nitrox'),
+  decompression('Decompression'),
+  trimix('Trimix'),
+  cavern('Cavern'),
+  cave('Cave'),
+  wreck('Wreck'),
+  sidemount('Sidemount'),
+  rebreather('Rebreather'),
+  techDiver('Tech Diver'),
+  other('Other');
+
+  final String displayName;
+  const CertificationLevel(this.displayName);
+}

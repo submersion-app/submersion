@@ -1,0 +1,322 @@
+import 'package:drift/drift.dart';
+import 'package:uuid/uuid.dart';
+
+import '../../../../core/database/database.dart';
+import '../../../../core/services/database_service.dart';
+import '../../../../core/constants/enums.dart';
+import '../../domain/entities/buddy.dart' as domain;
+
+class BuddyRepository {
+  final AppDatabase _db = DatabaseService.instance.database;
+  final _uuid = const Uuid();
+
+  /// Get all buddies ordered by name
+  Future<List<domain.Buddy>> getAllBuddies() async {
+    final query = _db.select(_db.buddies)
+      ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+
+    final rows = await query.get();
+    return rows.map(_mapRowToBuddy).toList();
+  }
+
+  /// Get buddy by ID
+  Future<domain.Buddy?> getBuddyById(String id) async {
+    final query = _db.select(_db.buddies)..where((t) => t.id.equals(id));
+
+    final row = await query.getSingleOrNull();
+    return row != null ? _mapRowToBuddy(row) : null;
+  }
+
+  /// Search buddies by name, email, or phone
+  Future<List<domain.Buddy>> searchBuddies(String query) async {
+    final searchTerm = '%${query.toLowerCase()}%';
+
+    final results = await _db.customSelect('''
+      SELECT * FROM buddies
+      WHERE LOWER(name) LIKE ?
+         OR LOWER(email) LIKE ?
+         OR phone LIKE ?
+      ORDER BY name ASC
+    ''', variables: [
+      Variable.withString(searchTerm),
+      Variable.withString(searchTerm),
+      Variable.withString(searchTerm),
+    ]).get();
+
+    return results.map((row) {
+      return domain.Buddy(
+        id: row.data['id'] as String,
+        name: row.data['name'] as String,
+        email: row.data['email'] as String?,
+        phone: row.data['phone'] as String?,
+        certificationLevel: _parseCertificationLevel(
+            row.data['certification_level'] as String?),
+        certificationAgency: _parseCertificationAgency(
+            row.data['certification_agency'] as String?),
+        photoPath: row.data['photo_path'] as String?,
+        notes: (row.data['notes'] as String?) ?? '',
+        createdAt:
+            DateTime.fromMillisecondsSinceEpoch(row.data['created_at'] as int),
+        updatedAt:
+            DateTime.fromMillisecondsSinceEpoch(row.data['updated_at'] as int),
+      );
+    }).toList();
+  }
+
+  /// Create a new buddy
+  Future<domain.Buddy> createBuddy(domain.Buddy buddy) async {
+    final id = buddy.id.isEmpty ? _uuid.v4() : buddy.id;
+    final now = DateTime.now();
+
+    await _db.into(_db.buddies).insert(BuddiesCompanion(
+          id: Value(id),
+          name: Value(buddy.name),
+          email: Value(buddy.email),
+          phone: Value(buddy.phone),
+          certificationLevel: Value(buddy.certificationLevel?.name),
+          certificationAgency: Value(buddy.certificationAgency?.name),
+          photoPath: Value(buddy.photoPath),
+          notes: Value(buddy.notes),
+          createdAt: Value(now.millisecondsSinceEpoch),
+          updatedAt: Value(now.millisecondsSinceEpoch),
+        ));
+
+    return buddy.copyWith(id: id, createdAt: now, updatedAt: now);
+  }
+
+  /// Update an existing buddy
+  Future<void> updateBuddy(domain.Buddy buddy) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+
+    await (_db.update(_db.buddies)..where((t) => t.id.equals(buddy.id))).write(
+      BuddiesCompanion(
+        name: Value(buddy.name),
+        email: Value(buddy.email),
+        phone: Value(buddy.phone),
+        certificationLevel: Value(buddy.certificationLevel?.name),
+        certificationAgency: Value(buddy.certificationAgency?.name),
+        photoPath: Value(buddy.photoPath),
+        notes: Value(buddy.notes),
+        updatedAt: Value(now),
+      ),
+    );
+  }
+
+  /// Delete a buddy
+  Future<void> deleteBuddy(String id) async {
+    // Dive buddies will be automatically deleted due to CASCADE
+    await (_db.delete(_db.buddies)..where((t) => t.id.equals(id))).go();
+  }
+
+  /// Get buddies for a specific dive
+  Future<List<domain.BuddyWithRole>> getBuddiesForDive(String diveId) async {
+    final results = await _db.customSelect('''
+      SELECT b.*, db.role
+      FROM buddies b
+      INNER JOIN dive_buddies db ON b.id = db.buddy_id
+      WHERE db.dive_id = ?
+      ORDER BY b.name ASC
+    ''', variables: [Variable.withString(diveId)]).get();
+
+    return results.map((row) {
+      final buddy = domain.Buddy(
+        id: row.data['id'] as String,
+        name: row.data['name'] as String,
+        email: row.data['email'] as String?,
+        phone: row.data['phone'] as String?,
+        certificationLevel: _parseCertificationLevel(
+            row.data['certification_level'] as String?),
+        certificationAgency: _parseCertificationAgency(
+            row.data['certification_agency'] as String?),
+        photoPath: row.data['photo_path'] as String?,
+        notes: (row.data['notes'] as String?) ?? '',
+        createdAt:
+            DateTime.fromMillisecondsSinceEpoch(row.data['created_at'] as int),
+        updatedAt:
+            DateTime.fromMillisecondsSinceEpoch(row.data['updated_at'] as int),
+      );
+      final role = BuddyRole.values.firstWhere(
+        (r) => r.name == row.data['role'],
+        orElse: () => BuddyRole.buddy,
+      );
+      return domain.BuddyWithRole(buddy: buddy, role: role);
+    }).toList();
+  }
+
+  /// Set buddies for a dive (replaces existing)
+  Future<void> setBuddiesForDive(
+      String diveId, List<domain.BuddyWithRole> buddies) async {
+    // Delete existing dive buddies
+    await (_db.delete(_db.diveBuddies)..where((t) => t.diveId.equals(diveId)))
+        .go();
+
+    // Insert new dive buddies
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final buddyWithRole in buddies) {
+      await _db.into(_db.diveBuddies).insert(DiveBuddiesCompanion(
+            id: Value(_uuid.v4()),
+            diveId: Value(diveId),
+            buddyId: Value(buddyWithRole.buddy.id),
+            role: Value(buddyWithRole.role.name),
+            createdAt: Value(now),
+          ));
+    }
+  }
+
+  /// Add a buddy to a dive
+  Future<void> addBuddyToDive(
+      String diveId, String buddyId, BuddyRole role) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+
+    // Check if already exists
+    final existing = await (_db.select(_db.diveBuddies)
+          ..where((t) => t.diveId.equals(diveId) & t.buddyId.equals(buddyId)))
+        .getSingleOrNull();
+
+    if (existing != null) {
+      // Update role
+      await (_db.update(_db.diveBuddies)
+            ..where((t) => t.diveId.equals(diveId) & t.buddyId.equals(buddyId)))
+          .write(DiveBuddiesCompanion(role: Value(role.name)));
+    } else {
+      // Insert new
+      await _db.into(_db.diveBuddies).insert(DiveBuddiesCompanion(
+            id: Value(_uuid.v4()),
+            diveId: Value(diveId),
+            buddyId: Value(buddyId),
+            role: Value(role.name),
+            createdAt: Value(now),
+          ));
+    }
+  }
+
+  /// Remove a buddy from a dive
+  Future<void> removeBuddyFromDive(String diveId, String buddyId) async {
+    await (_db.delete(_db.diveBuddies)
+          ..where((t) => t.diveId.equals(diveId) & t.buddyId.equals(buddyId)))
+        .go();
+  }
+
+  /// Get dive count for a buddy
+  Future<int> getDiveCountForBuddy(String buddyId) async {
+    final result = await _db.customSelect('''
+      SELECT COUNT(*) as count
+      FROM dive_buddies
+      WHERE buddy_id = ?
+    ''', variables: [Variable.withString(buddyId)]).getSingle();
+
+    return result.data['count'] as int? ?? 0;
+  }
+
+  /// Get dives shared with a buddy
+  Future<List<String>> getDiveIdsForBuddy(String buddyId) async {
+    final results = await _db.customSelect('''
+      SELECT dive_id
+      FROM dive_buddies
+      WHERE buddy_id = ?
+      ORDER BY created_at DESC
+    ''', variables: [Variable.withString(buddyId)]).get();
+
+    return results.map((row) => row.data['dive_id'] as String).toList();
+  }
+
+  /// Get buddy statistics
+  Future<BuddyStats> getBuddyStats(String buddyId) async {
+    // Get dive count
+    final diveCount = await getDiveCountForBuddy(buddyId);
+
+    // Get first and last dive dates
+    final datesResult = await _db.customSelect('''
+      SELECT
+        MIN(d.dive_date_time) as first_dive,
+        MAX(d.dive_date_time) as last_dive
+      FROM dives d
+      INNER JOIN dive_buddies db ON d.id = db.dive_id
+      WHERE db.buddy_id = ?
+    ''', variables: [Variable.withString(buddyId)]).getSingleOrNull();
+
+    DateTime? firstDive;
+    DateTime? lastDive;
+
+    if (datesResult != null) {
+      final firstDiveTs = datesResult.data['first_dive'] as int?;
+      final lastDiveTs = datesResult.data['last_dive'] as int?;
+      if (firstDiveTs != null) {
+        firstDive = DateTime.fromMillisecondsSinceEpoch(firstDiveTs);
+      }
+      if (lastDiveTs != null) {
+        lastDive = DateTime.fromMillisecondsSinceEpoch(lastDiveTs);
+      }
+    }
+
+    // Get favorite site (most dived together)
+    final favoriteSiteResult = await _db.customSelect('''
+      SELECT ds.name, COUNT(*) as count
+      FROM dives d
+      INNER JOIN dive_buddies db ON d.id = db.dive_id
+      INNER JOIN dive_sites ds ON d.site_id = ds.id
+      WHERE db.buddy_id = ?
+      GROUP BY d.site_id
+      ORDER BY count DESC
+      LIMIT 1
+    ''', variables: [Variable.withString(buddyId)]).getSingleOrNull();
+
+    String? favoriteSite;
+    if (favoriteSiteResult != null) {
+      favoriteSite = favoriteSiteResult.data['name'] as String?;
+    }
+
+    return BuddyStats(
+      totalDives: diveCount,
+      firstDive: firstDive,
+      lastDive: lastDive,
+      favoriteSite: favoriteSite,
+    );
+  }
+
+  domain.Buddy _mapRowToBuddy(Buddy row) {
+    return domain.Buddy(
+      id: row.id,
+      name: row.name,
+      email: row.email,
+      phone: row.phone,
+      certificationLevel: _parseCertificationLevel(row.certificationLevel),
+      certificationAgency: _parseCertificationAgency(row.certificationAgency),
+      photoPath: row.photoPath,
+      notes: row.notes,
+      createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
+    );
+  }
+
+  CertificationLevel? _parseCertificationLevel(String? value) {
+    if (value == null) return null;
+    return CertificationLevel.values.firstWhere(
+      (l) => l.name == value,
+      orElse: () => CertificationLevel.other,
+    );
+  }
+
+  CertificationAgency? _parseCertificationAgency(String? value) {
+    if (value == null) return null;
+    return CertificationAgency.values.firstWhere(
+      (a) => a.name == value,
+      orElse: () => CertificationAgency.other,
+    );
+  }
+}
+
+/// Statistics about a buddy's dive history
+class BuddyStats {
+  final int totalDives;
+  final DateTime? firstDive;
+  final DateTime? lastDive;
+  final String? favoriteSite;
+
+  const BuddyStats({
+    required this.totalDives,
+    this.firstDive,
+    this.lastDive,
+    this.favoriteSite,
+  });
+}

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/units.dart';
 import '../providers/export_providers.dart';
@@ -42,6 +43,16 @@ class SettingsPage extends ConsumerWidget {
 
           _buildSectionHeader(context, 'Appearance'),
           _buildThemeSelector(context, ref, settings.themeMode),
+          const Divider(),
+
+          _buildSectionHeader(context, 'Manage'),
+          ListTile(
+            leading: const Icon(Icons.people),
+            title: const Text('Buddies'),
+            subtitle: const Text('Manage your dive buddies'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/buddies'),
+          ),
           const Divider(),
 
           _buildSectionHeader(context, 'Data'),

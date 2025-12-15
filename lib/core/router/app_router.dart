@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/buddies/presentation/pages/buddy_list_page.dart';
+import '../../features/buddies/presentation/pages/buddy_detail_page.dart';
+import '../../features/buddies/presentation/pages/buddy_edit_page.dart';
 import '../../features/dive_log/presentation/pages/dive_list_page.dart';
 import '../../features/dive_log/presentation/pages/dive_detail_page.dart';
 import '../../features/dive_log/presentation/pages/dive_edit_page.dart';
@@ -148,6 +151,38 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     name: 'editEquipment',
                     builder: (context, state) => EquipmentEditPage(
                       equipmentId: state.pathParameters['equipmentId'],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          // Buddies
+          GoRoute(
+            path: '/buddies',
+            name: 'buddies',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: BuddyListPage(),
+            ),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'newBuddy',
+                builder: (context, state) => const BuddyEditPage(),
+              ),
+              GoRoute(
+                path: ':buddyId',
+                name: 'buddyDetail',
+                builder: (context, state) => BuddyDetailPage(
+                  buddyId: state.pathParameters['buddyId']!,
+                ),
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    name: 'editBuddy',
+                    builder: (context, state) => BuddyEditPage(
+                      buddyId: state.pathParameters['buddyId'],
                     ),
                   ),
                 ],
