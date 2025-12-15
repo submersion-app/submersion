@@ -2,10 +2,11 @@ import 'dart:math' as math;
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 
 import '../../domain/entities/dive.dart';
 
-/// Interactive dive profile chart showing depth over time
+/// Interactive dive profile chart showing depth over time with zoom/pan support
 class DiveProfileChart extends StatefulWidget {
   final List<DiveProfilePoint> profile;
   final Duration? diveDuration;
@@ -29,10 +30,53 @@ class DiveProfileChart extends StatefulWidget {
 class _DiveProfileChartState extends State<DiveProfileChart> {
   bool _showTemperature = true;
 
+  // Zoom/pan state
+  double _zoomLevel = 1.0;
+  double _panOffsetX = 0.0; // Normalized offset (0-1 range based on total data)
+  double _panOffsetY = 0.0;
+
+  // For gesture handling
+  double _previousZoom = 1.0;
+  Offset _previousPan = Offset.zero;
+  Offset _startFocalPoint = Offset.zero;
+
+  // Zoom limits
+  static const double _minZoom = 1.0;
+  static const double _maxZoom = 10.0;
+
   @override
   void initState() {
     super.initState();
     _showTemperature = widget.showTemperature;
+  }
+
+  void _resetZoom() {
+    setState(() {
+      _zoomLevel = 1.0;
+      _panOffsetX = 0.0;
+      _panOffsetY = 0.0;
+    });
+  }
+
+  void _zoomIn() {
+    setState(() {
+      _zoomLevel = (_zoomLevel * 1.5).clamp(_minZoom, _maxZoom);
+      _clampPanOffsets();
+    });
+  }
+
+  void _zoomOut() {
+    setState(() {
+      _zoomLevel = (_zoomLevel / 1.5).clamp(_minZoom, _maxZoom);
+      _clampPanOffsets();
+    });
+  }
+
+  void _clampPanOffsets() {
+    // Calculate maximum allowed pan based on zoom level
+    final maxPan = 1.0 - (1.0 / _zoomLevel);
+    _panOffsetX = _panOffsetX.clamp(0.0, maxPan);
+    _panOffsetY = _panOffsetY.clamp(0.0, maxPan);
   }
 
   @override
@@ -47,17 +91,18 @@ class _DiveProfileChartState extends State<DiveProfileChart> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Chart header with toggle
-        if (hasTemperatureData)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(
-              children: [
-                _buildLegendItem(
-                  context,
-                  color: colorScheme.primary,
-                  label: 'Depth',
-                ),
+        // Chart header with toggles and zoom controls
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(
+            children: [
+              // Legend items
+              _buildLegendItem(
+                context,
+                color: colorScheme.primary,
+                label: 'Depth',
+              ),
+              if (hasTemperatureData) ...[
                 const SizedBox(width: 16),
                 InkWell(
                   onTap: () => setState(() => _showTemperature = !_showTemperature),
@@ -78,15 +123,152 @@ class _DiveProfileChartState extends State<DiveProfileChart> {
                   ),
                 ),
               ],
-            ),
+              const Spacer(),
+              // Zoom controls
+              _buildZoomControls(context),
+            ],
           ),
+        ),
 
-        // The chart
+        // The chart with gesture handling
         SizedBox(
           height: 200,
-          child: _buildChart(context, hasTemperatureData),
+          child: _buildInteractiveChart(context, hasTemperatureData),
         ),
+
+        // Zoom hint
+        if (_zoomLevel > 1.0)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              'Zoom: ${_zoomLevel.toStringAsFixed(1)}x • Pinch or scroll to zoom, drag to pan',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+            ),
+          ),
       ],
+    );
+  }
+
+  Widget _buildZoomControls(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isZoomed = _zoomLevel > 1.0;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Zoom out button
+        IconButton(
+          onPressed: _zoomLevel > _minZoom ? _zoomOut : null,
+          icon: const Icon(Icons.remove),
+          iconSize: 18,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          tooltip: 'Zoom out',
+        ),
+        // Zoom level indicator
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(
+            '${_zoomLevel.toStringAsFixed(1)}x',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w500,
+                  color: isZoomed ? colorScheme.primary : colorScheme.onSurfaceVariant,
+                ),
+          ),
+        ),
+        // Zoom in button
+        IconButton(
+          onPressed: _zoomLevel < _maxZoom ? _zoomIn : null,
+          icon: const Icon(Icons.add),
+          iconSize: 18,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          tooltip: 'Zoom in',
+        ),
+        // Reset button (only show when zoomed)
+        if (isZoomed) ...[
+          const SizedBox(width: 4),
+          IconButton(
+            onPressed: _resetZoom,
+            icon: const Icon(Icons.fit_screen),
+            iconSize: 18,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            tooltip: 'Reset zoom',
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildInteractiveChart(BuildContext context, bool hasTemperatureData) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return GestureDetector(
+          onScaleStart: (details) {
+            _previousZoom = _zoomLevel;
+            _previousPan = Offset(_panOffsetX, _panOffsetY);
+            _startFocalPoint = details.localFocalPoint;
+          },
+          onScaleUpdate: (details) {
+            setState(() {
+              // Handle zoom
+              final newZoom = (_previousZoom * details.scale).clamp(_minZoom, _maxZoom);
+
+              // Handle pan
+              final panDelta = details.localFocalPoint - _startFocalPoint;
+
+              // Convert pixel delta to normalized offset based on chart size
+              final chartWidth = constraints.maxWidth;
+              final chartHeight = constraints.maxHeight;
+
+              // Only apply pan if zoomed in
+              if (newZoom > 1.0) {
+                final normalizedDeltaX = -panDelta.dx / chartWidth / newZoom;
+                final normalizedDeltaY = -panDelta.dy / chartHeight / newZoom;
+
+                _panOffsetX = (_previousPan.dx + normalizedDeltaX).clamp(0.0, 1.0 - (1.0 / newZoom));
+                _panOffsetY = (_previousPan.dy + normalizedDeltaY).clamp(0.0, 1.0 - (1.0 / newZoom));
+              } else {
+                _panOffsetX = 0.0;
+                _panOffsetY = 0.0;
+              }
+
+              _zoomLevel = newZoom;
+            });
+          },
+          onDoubleTap: () {
+            if (_zoomLevel > 1.0) {
+              _resetZoom();
+            } else {
+              setState(() {
+                _zoomLevel = 2.0;
+              });
+            }
+          },
+          child: Listener(
+            onPointerSignal: (event) {
+              // Handle mouse scroll wheel for zoom
+              if (event is PointerScrollEvent) {
+                setState(() {
+                  final scrollDelta = event.scrollDelta.dy;
+                  if (scrollDelta < 0) {
+                    // Scroll up = zoom in
+                    _zoomLevel = (_zoomLevel * 1.1).clamp(_minZoom, _maxZoom);
+                  } else {
+                    // Scroll down = zoom out
+                    _zoomLevel = (_zoomLevel / 1.1).clamp(_minZoom, _maxZoom);
+                  }
+                  _clampPanOffsets();
+                });
+              }
+            },
+            child: _buildChart(context, hasTemperatureData),
+          ),
+        );
+      },
     );
   }
 
@@ -143,10 +325,20 @@ class _DiveProfileChartState extends State<DiveProfileChart> {
   Widget _buildChart(BuildContext context, bool hasTemperatureData) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    // Calculate bounds
-    final maxTime = widget.profile.map((p) => p.timestamp).reduce(math.max).toDouble();
+    // Calculate full data bounds
+    final totalMaxTime = widget.profile.map((p) => p.timestamp).reduce(math.max).toDouble();
     final maxDepthValue = widget.profile.map((p) => p.depth).reduce(math.max);
-    final chartMaxDepth = (widget.maxDepth ?? maxDepthValue) * 1.1; // Add 10% padding
+    final totalMaxDepth = (widget.maxDepth ?? maxDepthValue) * 1.1; // Add 10% padding
+
+    // Apply zoom and pan to calculate visible bounds
+    final visibleRangeX = totalMaxTime / _zoomLevel;
+    final visibleRangeY = totalMaxDepth / _zoomLevel;
+
+    final visibleMinX = _panOffsetX * totalMaxTime;
+    final visibleMaxX = visibleMinX + visibleRangeX;
+
+    final visibleMinDepth = _panOffsetY * totalMaxDepth;
+    final visibleMaxDepth = visibleMinDepth + visibleRangeY;
 
     // Temperature bounds (if showing)
     double? minTemp, maxTemp;
@@ -160,15 +352,16 @@ class _DiveProfileChartState extends State<DiveProfileChart> {
 
     return LineChart(
       LineChartData(
-        minX: 0,
-        maxX: maxTime,
-        minY: -chartMaxDepth, // Inverted: negative depth at bottom
-        maxY: 0, // Surface (0m) at top
+        minX: visibleMinX,
+        maxX: visibleMaxX,
+        minY: -visibleMaxDepth, // Inverted: negative depth at bottom
+        maxY: -visibleMinDepth, // Surface area at top (inverted)
+        clipData: const FlClipData.all(), // Clip data points outside visible area
         gridData: FlGridData(
           show: true,
           drawVerticalLine: true,
-          horizontalInterval: _calculateDepthInterval(chartMaxDepth),
-          verticalInterval: _calculateTimeInterval(maxTime),
+          horizontalInterval: _calculateDepthInterval(visibleRangeY),
+          verticalInterval: _calculateTimeInterval(visibleRangeX),
           getDrawingHorizontalLine: (value) => FlLine(
             color: colorScheme.outlineVariant.withValues(alpha: 0.3),
             strokeWidth: 1,
@@ -187,7 +380,7 @@ class _DiveProfileChartState extends State<DiveProfileChart> {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 40,
-              interval: _calculateDepthInterval(chartMaxDepth),
+              interval: _calculateDepthInterval(visibleRangeY),
               getTitlesWidget: (value, meta) {
                 // Show positive depth values (negate the negative axis values)
                 return Text(
@@ -205,7 +398,7 @@ class _DiveProfileChartState extends State<DiveProfileChart> {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 30,
-              interval: _calculateTimeInterval(maxTime),
+              interval: _calculateTimeInterval(visibleRangeX),
               getTitlesWidget: (value, meta) {
                 final minutes = (value / 60).round();
                 return Text(
@@ -222,7 +415,7 @@ class _DiveProfileChartState extends State<DiveProfileChart> {
               getTitlesWidget: (value, meta) {
                 if (minTemp == null || maxTemp == null) return const SizedBox();
                 // Map from inverted depth axis to temperature
-                final temp = _mapDepthToTemp(-value, chartMaxDepth, minTemp, maxTemp);
+                final temp = _mapDepthToTemp(-value, totalMaxDepth, minTemp, maxTemp);
                 if (temp < minTemp || temp > maxTemp) return const SizedBox();
                 return Text(
                   '${temp.toStringAsFixed(0)}°',
@@ -245,7 +438,7 @@ class _DiveProfileChartState extends State<DiveProfileChart> {
 
           // Temperature line (if showing)
           if (_showTemperature && hasTemperatureData && minTemp != null && maxTemp != null)
-            _buildTemperatureLine(colorScheme, chartMaxDepth, minTemp, maxTemp),
+            _buildTemperatureLine(colorScheme, totalMaxDepth, minTemp, maxTemp),
         ],
         lineTouchData: LineTouchData(
           enabled: true,
