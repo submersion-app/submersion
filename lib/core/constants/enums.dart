@@ -149,3 +149,20 @@ enum CertificationLevel {
   final String displayName;
   const CertificationLevel(this.displayName);
 }
+
+/// Service type for equipment maintenance
+enum ServiceType {
+  annual('Annual Service'),
+  repair('Repair'),
+  inspection('Inspection'),
+  overhaul('Overhaul'),
+  replacement('Part Replacement'),
+  cleaning('Cleaning'),
+  calibration('Calibration'),
+  warranty('Warranty Service'),
+  recall('Recall/Safety'),
+  other('Other');
+
+  final String displayName;
+  const ServiceType(this.displayName);
+}

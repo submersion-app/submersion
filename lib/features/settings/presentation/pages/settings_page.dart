@@ -53,6 +53,13 @@ class SettingsPage extends ConsumerWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push('/buddies'),
           ),
+          ListTile(
+            leading: const Icon(Icons.card_membership),
+            title: const Text('Certifications'),
+            subtitle: const Text('Manage your dive certifications'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/certifications'),
+          ),
           const Divider(),
 
           _buildSectionHeader(context, 'Data'),

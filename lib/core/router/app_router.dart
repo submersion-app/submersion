@@ -5,6 +5,9 @@ import 'package:go_router/go_router.dart';
 import '../../features/buddies/presentation/pages/buddy_list_page.dart';
 import '../../features/buddies/presentation/pages/buddy_detail_page.dart';
 import '../../features/buddies/presentation/pages/buddy_edit_page.dart';
+import '../../features/certifications/presentation/pages/certification_list_page.dart';
+import '../../features/certifications/presentation/pages/certification_detail_page.dart';
+import '../../features/certifications/presentation/pages/certification_edit_page.dart';
 import '../../features/dive_log/presentation/pages/dive_list_page.dart';
 import '../../features/dive_log/presentation/pages/dive_detail_page.dart';
 import '../../features/dive_log/presentation/pages/dive_edit_page.dart';
@@ -183,6 +186,38 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     name: 'editBuddy',
                     builder: (context, state) => BuddyEditPage(
                       buddyId: state.pathParameters['buddyId'],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          // Certifications
+          GoRoute(
+            path: '/certifications',
+            name: 'certifications',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: CertificationListPage(),
+            ),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'newCertification',
+                builder: (context, state) => const CertificationEditPage(),
+              ),
+              GoRoute(
+                path: ':certificationId',
+                name: 'certificationDetail',
+                builder: (context, state) => CertificationDetailPage(
+                  certificationId: state.pathParameters['certificationId']!,
+                ),
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    name: 'editCertification',
+                    builder: (context, state) => CertificationEditPage(
+                      certificationId: state.pathParameters['certificationId'],
                     ),
                   ),
                 ],

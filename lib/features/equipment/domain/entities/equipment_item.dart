@@ -107,25 +107,3 @@ class EquipmentItem extends Equatable {
         isActive,
       ];
 }
-
-/// Service record for equipment maintenance
-class ServiceRecord extends Equatable {
-  final String id;
-  final String equipmentId;
-  final DateTime date;
-  final String description;
-  final double? cost;
-  final String? provider; // shop/technician name
-
-  const ServiceRecord({
-    required this.id,
-    required this.equipmentId,
-    required this.date,
-    required this.description,
-    this.cost,
-    this.provider,
-  });
-
-  @override
-  List<Object?> get props => [id, equipmentId, date, description, cost, provider];
-}

@@ -2,7 +2,7 @@
 
 > **Current Phase:** v1.0 Development
 > **Last Updated:** 2025-12-14
-> **Sprint:** Sprint 1 - Buddy System
+> **Sprint:** Sprint 2 - Certifications & Service Records (COMPLETED)
 > **Reference:** See [FEATURE_ROADMAP.md](../FEATURE_ROADMAP.md) for full roadmap
 
 ---
@@ -161,21 +161,21 @@ CREATE TABLE dive_buddies (
 
 ---
 
-# Sprint 2: Certifications & Service Records (Weeks 3-4)
+# Sprint 2: Certifications & Service Records (Weeks 3-4) - COMPLETED
 
-## 2.1-2.6: Certifications Feature (P0-P1)
-- [ ] Database schema (certifications table)
-- [ ] Entity and repository
-- [ ] List, detail, edit pages
-- [ ] Photo storage for cert cards
-- [ ] Expiry warnings
+## 2.1-2.6: Certifications Feature (P0-P1) - DONE
+- [x] Database schema (certifications table)
+- [x] Entity and repository
+- [x] List, detail, edit pages
+- [x] Photo storage for cert cards (placeholder - photos in v2.0)
+- [x] Expiry warnings
 
-## 2.7-2.11: Service Records Feature (P0-P1)
-- [ ] Verify/create service_records schema
-- [ ] Repository with CRUD
-- [ ] Service history UI on equipment detail
-- [ ] Service record edit dialog
-- [ ] Service log PDF export
+## 2.7-2.11: Service Records Feature (P0-P1) - DONE
+- [x] Verify/create service_records schema
+- [x] Repository with CRUD
+- [x] Service history UI on equipment detail
+- [x] Service record edit dialog
+- [ ] Service log PDF export (deferred to Sprint 4)
 
 ---
 

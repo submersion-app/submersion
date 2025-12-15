@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/constants/enums.dart';
 import '../../domain/entities/equipment_item.dart';
+import '../../domain/entities/service_record.dart';
 import '../providers/equipment_providers.dart';
 
 class EquipmentDetailPage extends ConsumerWidget {
@@ -93,6 +94,8 @@ class EquipmentDetailPage extends ConsumerWidget {
               const SizedBox(height: 24),
               _buildServiceSection(context, equipment),
             ],
+            const SizedBox(height: 24),
+            _ServiceHistorySection(equipmentId: equipmentId),
             if (equipment.notes.isNotEmpty) ...[
               const SizedBox(height: 24),
               _buildNotesSection(context, equipment),
@@ -469,6 +472,544 @@ class EquipmentDetailPage extends ConsumerWidget {
         return Icons.camera_alt;
       default:
         return Icons.inventory_2;
+    }
+  }
+}
+
+/// Service History Section Widget
+class _ServiceHistorySection extends ConsumerWidget {
+  final String equipmentId;
+
+  const _ServiceHistorySection({required this.equipmentId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final recordsAsync = ref.watch(serviceRecordNotifierProvider(equipmentId));
+    final totalCostAsync = ref.watch(serviceRecordTotalCostProvider(equipmentId));
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.history,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Service History',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ],
+                ),
+                FilledButton.tonalIcon(
+                  onPressed: () => _showAddServiceDialog(context, ref),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Add'),
+                ),
+              ],
+            ),
+            const Divider(),
+            recordsAsync.when(
+              data: (records) {
+                if (records.isEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 24),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.build_outlined,
+                            size: 48,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'No service records yet',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                return Column(
+                  children: [
+                    // Total cost summary
+                    totalCostAsync.when(
+                      data: (totalCost) {
+                        if (totalCost > 0) {
+                          return Container(
+                            padding: const EdgeInsets.all(12),
+                            margin: const EdgeInsets.only(bottom: 12),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Total Service Cost',
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                ),
+                                Text(
+                                  '\$${totalCost.toStringAsFixed(2)}',
+                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      },
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
+                    ),
+                    // Service records list
+                    ...records.map((record) => _ServiceRecordTile(
+                          record: record,
+                          onTap: () => _showEditServiceDialog(context, ref, record),
+                          onDelete: () => _confirmDeleteRecord(context, ref, record),
+                        )),
+                  ],
+                );
+              },
+              loading: () => const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(24),
+                  child: CircularProgressIndicator(),
+                ),
+              ),
+              error: (error, _) => Center(
+                child: Text('Error: $error'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAddServiceDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (context) => ServiceRecordDialog(
+        equipmentId: equipmentId,
+        onSave: (record) async {
+          await ref.read(serviceRecordNotifierProvider(equipmentId).notifier).addRecord(record);
+        },
+      ),
+    );
+  }
+
+  void _showEditServiceDialog(BuildContext context, WidgetRef ref, ServiceRecord record) {
+    showDialog(
+      context: context,
+      builder: (context) => ServiceRecordDialog(
+        equipmentId: equipmentId,
+        existingRecord: record,
+        onSave: (updatedRecord) async {
+          await ref.read(serviceRecordNotifierProvider(equipmentId).notifier).updateRecord(updatedRecord);
+        },
+      ),
+    );
+  }
+
+  Future<void> _confirmDeleteRecord(BuildContext context, WidgetRef ref, ServiceRecord record) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Service Record?'),
+        content: Text('Are you sure you want to delete this ${record.serviceType.displayName} record?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await ref.read(serviceRecordNotifierProvider(equipmentId).notifier).deleteRecord(record.id);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Service record deleted')),
+        );
+      }
+    }
+  }
+}
+
+/// Service Record Tile Widget
+class _ServiceRecordTile extends StatelessWidget {
+  final ServiceRecord record;
+  final VoidCallback onTap;
+  final VoidCallback onDelete;
+
+  const _ServiceRecordTile({
+    required this.record,
+    required this.onTap,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: CircleAvatar(
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        child: Icon(
+          _getServiceTypeIcon(record.serviceType),
+          color: Theme.of(context).colorScheme.onPrimaryContainer,
+          size: 20,
+        ),
+      ),
+      title: Text(record.serviceType.displayName),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(DateFormat('MMM d, yyyy').format(record.serviceDate)),
+          if (record.provider != null)
+            Text(
+              record.provider!,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+        ],
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (record.cost != null)
+            Text(
+              '\$${record.cost!.toStringAsFixed(2)}',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'edit') {
+                onTap();
+              } else if (value == 'delete') {
+                onDelete();
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(value: 'edit', child: Text('Edit')),
+              const PopupMenuItem(
+                value: 'delete',
+                child: Text('Delete', style: TextStyle(color: Colors.red)),
+              ),
+            ],
+          ),
+        ],
+      ),
+      onTap: onTap,
+    );
+  }
+
+  IconData _getServiceTypeIcon(ServiceType type) {
+    switch (type) {
+      case ServiceType.annual:
+        return Icons.event_repeat;
+      case ServiceType.repair:
+        return Icons.build;
+      case ServiceType.inspection:
+        return Icons.search;
+      case ServiceType.overhaul:
+        return Icons.settings_suggest;
+      case ServiceType.replacement:
+        return Icons.swap_horiz;
+      case ServiceType.cleaning:
+        return Icons.cleaning_services;
+      case ServiceType.calibration:
+        return Icons.tune;
+      case ServiceType.warranty:
+        return Icons.verified_user;
+      case ServiceType.recall:
+        return Icons.warning;
+      case ServiceType.other:
+      default:
+        return Icons.handyman;
+    }
+  }
+}
+
+/// Service Record Dialog for Add/Edit
+class ServiceRecordDialog extends StatefulWidget {
+  final String equipmentId;
+  final ServiceRecord? existingRecord;
+  final Future<void> Function(ServiceRecord) onSave;
+
+  const ServiceRecordDialog({
+    super.key,
+    required this.equipmentId,
+    this.existingRecord,
+    required this.onSave,
+  });
+
+  @override
+  State<ServiceRecordDialog> createState() => _ServiceRecordDialogState();
+}
+
+class _ServiceRecordDialogState extends State<ServiceRecordDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late ServiceType _serviceType;
+  late DateTime _serviceDate;
+  final _providerController = TextEditingController();
+  final _costController = TextEditingController();
+  final _notesController = TextEditingController();
+  DateTime? _nextServiceDue;
+  bool _isSaving = false;
+
+  bool get isEditing => widget.existingRecord != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (isEditing) {
+      final record = widget.existingRecord!;
+      _serviceType = record.serviceType;
+      _serviceDate = record.serviceDate;
+      _providerController.text = record.provider ?? '';
+      _costController.text = record.cost?.toString() ?? '';
+      _notesController.text = record.notes;
+      _nextServiceDue = record.nextServiceDue;
+    } else {
+      _serviceType = ServiceType.annual;
+      _serviceDate = DateTime.now();
+    }
+  }
+
+  @override
+  void dispose() {
+    _providerController.dispose();
+    _costController.dispose();
+    _notesController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(isEditing ? 'Edit Service Record' : 'Add Service Record'),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Service type dropdown
+                DropdownButtonFormField<ServiceType>(
+                  value: _serviceType,
+                  decoration: const InputDecoration(
+                    labelText: 'Service Type',
+                    prefixIcon: Icon(Icons.build),
+                  ),
+                  items: ServiceType.values.map((type) {
+                    return DropdownMenuItem(
+                      value: type,
+                      child: Text(type.displayName),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => _serviceType = value);
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Service date picker
+                InkWell(
+                  onTap: () => _pickServiceDate(),
+                  child: InputDecorator(
+                    decoration: const InputDecoration(
+                      labelText: 'Service Date',
+                      prefixIcon: Icon(Icons.calendar_today),
+                    ),
+                    child: Text(DateFormat('MMM d, yyyy').format(_serviceDate)),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Provider field
+                TextFormField(
+                  controller: _providerController,
+                  decoration: const InputDecoration(
+                    labelText: 'Provider/Shop',
+                    prefixIcon: Icon(Icons.store),
+                    hintText: 'e.g., Dive Shop Name',
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Cost field
+                TextFormField(
+                  controller: _costController,
+                  decoration: const InputDecoration(
+                    labelText: 'Cost',
+                    prefixIcon: Icon(Icons.attach_money),
+                    hintText: '0.00',
+                  ),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  validator: (value) {
+                    if (value != null && value.isNotEmpty) {
+                      final parsed = double.tryParse(value);
+                      if (parsed == null || parsed < 0) {
+                        return 'Enter a valid amount';
+                      }
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Next service due date picker
+                InkWell(
+                  onTap: () => _pickNextServiceDate(),
+                  child: InputDecorator(
+                    decoration: InputDecoration(
+                      labelText: 'Next Service Due',
+                      prefixIcon: const Icon(Icons.event),
+                      suffixIcon: _nextServiceDue != null
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () => setState(() => _nextServiceDue = null),
+                            )
+                          : null,
+                    ),
+                    child: Text(
+                      _nextServiceDue != null
+                          ? DateFormat('MMM d, yyyy').format(_nextServiceDue!)
+                          : 'Not set',
+                      style: TextStyle(
+                        color: _nextServiceDue == null
+                            ? Theme.of(context).colorScheme.onSurfaceVariant
+                            : null,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Notes field
+                TextFormField(
+                  controller: _notesController,
+                  decoration: const InputDecoration(
+                    labelText: 'Notes',
+                    prefixIcon: Icon(Icons.notes),
+                    alignLabelWithHint: true,
+                  ),
+                  maxLines: 3,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: _isSaving ? null : _save,
+          child: _isSaving
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Text(isEditing ? 'Update' : 'Add'),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _pickServiceDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _serviceDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) {
+      setState(() => _serviceDate = picked);
+    }
+  }
+
+  Future<void> _pickNextServiceDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _nextServiceDue ?? DateTime.now().add(const Duration(days: 365)),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365 * 10)),
+    );
+    if (picked != null) {
+      setState(() => _nextServiceDue = picked);
+    }
+  }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isSaving = true);
+
+    try {
+      final now = DateTime.now();
+      final record = ServiceRecord(
+        id: widget.existingRecord?.id ?? '',
+        equipmentId: widget.equipmentId,
+        serviceType: _serviceType,
+        serviceDate: _serviceDate,
+        provider: _providerController.text.trim().isEmpty ? null : _providerController.text.trim(),
+        cost: _costController.text.isEmpty ? null : double.tryParse(_costController.text),
+        currency: 'USD',
+        nextServiceDue: _nextServiceDue,
+        notes: _notesController.text.trim(),
+        createdAt: widget.existingRecord?.createdAt ?? now,
+        updatedAt: now,
+      );
+
+      await widget.onSave(record);
+
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(isEditing ? 'Service record updated' : 'Service record added')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+        setState(() => _isSaving = false);
+      }
     }
   }
 }

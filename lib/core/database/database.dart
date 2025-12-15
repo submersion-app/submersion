@@ -209,6 +209,45 @@ class DiveBuddies extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Diver certifications
+class Certifications extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()(); // e.g., "Open Water Diver"
+  TextColumn get agency => text()(); // PADI, SSI, etc.
+  TextColumn get level => text().nullable()(); // For more specific level info
+  TextColumn get cardNumber => text().nullable()();
+  IntColumn get issueDate => integer().nullable()();
+  IntColumn get expiryDate => integer().nullable()(); // For certs that expire
+  TextColumn get instructorName => text().nullable()();
+  TextColumn get instructorNumber => text().nullable()();
+  TextColumn get photoFrontPath => text().nullable()(); // Front of cert card
+  TextColumn get photoBackPath => text().nullable()(); // Back of cert card
+  TextColumn get notes => text().withDefault(const Constant(''))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Equipment service records
+class ServiceRecords extends Table {
+  TextColumn get id => text()();
+  TextColumn get equipmentId => text().references(Equipment, #id, onDelete: KeyAction.cascade)();
+  TextColumn get serviceType => text()(); // annual, repair, inspection, etc.
+  IntColumn get serviceDate => integer()();
+  TextColumn get provider => text().nullable()(); // Shop or technician name
+  RealColumn get cost => real().nullable()();
+  TextColumn get currency => text().withDefault(const Constant('USD'))();
+  IntColumn get nextServiceDue => integer().nullable()();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 // ============================================================================
 // Database Class
 // ============================================================================
@@ -229,13 +268,15 @@ class DiveBuddies extends Table {
     Settings,
     Buddies,
     DiveBuddies,
+    Certifications,
+    ServiceRecords,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration {
@@ -334,6 +375,46 @@ class AppDatabase extends _$AppDatabase {
           ''');
           await customStatement('''
             CREATE INDEX IF NOT EXISTS idx_dive_buddies_buddy_id ON dive_buddies(buddy_id)
+          ''');
+        }
+        if (from < 4) {
+          // Migration v3 -> v4: Add certifications and service_records tables
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS certifications (
+              id TEXT NOT NULL PRIMARY KEY,
+              name TEXT NOT NULL,
+              agency TEXT NOT NULL,
+              level TEXT,
+              card_number TEXT,
+              issue_date INTEGER,
+              expiry_date INTEGER,
+              instructor_name TEXT,
+              instructor_number TEXT,
+              photo_front_path TEXT,
+              photo_back_path TEXT,
+              notes TEXT NOT NULL DEFAULT '',
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL
+            )
+          ''');
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS service_records (
+              id TEXT NOT NULL PRIMARY KEY,
+              equipment_id TEXT NOT NULL REFERENCES equipment(id) ON DELETE CASCADE,
+              service_type TEXT NOT NULL,
+              service_date INTEGER NOT NULL,
+              provider TEXT,
+              cost REAL,
+              currency TEXT NOT NULL DEFAULT 'USD',
+              next_service_due INTEGER,
+              notes TEXT NOT NULL DEFAULT '',
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL
+            )
+          ''');
+          // Create index for faster equipment service lookups
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_service_records_equipment_id ON service_records(equipment_id)
           ''');
         }
       },
