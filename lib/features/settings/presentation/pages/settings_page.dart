@@ -47,6 +47,13 @@ class SettingsPage extends ConsumerWidget {
 
           _buildSectionHeader(context, 'Manage'),
           ListTile(
+            leading: const Icon(Icons.flight_takeoff),
+            title: const Text('Trips'),
+            subtitle: const Text('Manage your dive trips'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/trips'),
+          ),
+          ListTile(
             leading: const Icon(Icons.people),
             title: const Text('Buddies'),
             subtitle: const Text('Manage your dive buddies'),

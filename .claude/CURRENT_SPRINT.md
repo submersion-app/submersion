@@ -140,15 +140,10 @@ CREATE TABLE dive_buddies (
 
 ---
 
-## 1.9: Buddy Import from Contacts (P2) - DEFERRED
+## 1.9: Buddy Import from Contacts (P2) - MOVED TO SPRINT 5
 **Estimated:** 3 hours | **Dependencies:** 1.6
 
-- [ ] Add flutter_contacts package
-- [ ] "Import from Contacts" button
-- [ ] Request permission, show contact picker
-- [ ] Pre-fill buddy form
-
-*Deferred to v1.5 - lower priority feature*
+*Moved to Sprint 5 as task 5.9*
 
 ---
 
@@ -259,13 +254,13 @@ CREATE TABLE dive_buddies (
 
 # Sprint 5: Trips & Bulk Operations (Weeks 10-11) - NEW
 
-## 5.1: Trips Database Schema (P0)
+## 5.1: Trips Database Schema (P0) - COMPLETE
 **Estimated:** 1 hour | **Dependencies:** None
 
-- [ ] Add `trips` table to database schema
-- [ ] Add `trip_id` FK to dives table
-- [ ] Run code generation
-- [ ] Test migration
+- [x] Add `trips` table to database schema
+- [x] Add `trip_id` FK to dives table
+- [x] Run code generation
+- [x] Test migration
 
 **Schema:**
 ```sql
@@ -287,62 +282,67 @@ ALTER TABLE dives ADD COLUMN trip_id TEXT REFERENCES trips(id);
 
 ---
 
-## 5.2: Trip Repository (P0)
+## 5.2: Trip Repository (P0) - COMPLETE
 **Estimated:** 3 hours | **Dependencies:** 5.1
 
-- [ ] Create trip entity and repository
-- [ ] Implement CRUD operations
-- [ ] Methods: create, get, getAll, search, update, delete
-- [ ] Get dives for trip
-- [ ] Assign/remove dives to/from trip
-- [ ] Computed properties: dive count, total bottom time, deepest dive, avg depth
-- [ ] Unit tests
+- [x] Create trip entity and repository
+- [x] Implement CRUD operations
+- [x] Methods: create, get, getAll, search, update, delete
+- [x] Get dives for trip
+- [x] Assign/remove dives to/from trip
+- [x] Computed properties: dive count, total bottom time, deepest dive, avg depth
+- [ ] Unit tests (deferred to 5.8)
 
 **Files:**
-- `lib/features/trips/data/trip_repository.dart`
+- `lib/features/trips/data/repositories/trip_repository.dart`
 - `lib/features/trips/domain/entities/trip.dart`
-- `test/features/trips/data/trip_repository_test.dart`
 
 ---
 
-## 5.3: Trip Providers (P1)
+## 5.3: Trip Providers (P1) - COMPLETE
 **Estimated:** 2 hours | **Dependencies:** 5.2
 
-- [ ] Create trip providers
-- [ ] tripRepositoryProvider
-- [ ] allTripsProvider
-- [ ] tripByIdProvider
-- [ ] divesForTripProvider
-- [ ] tripSearchProvider
+- [x] Create trip providers
+- [x] tripRepositoryProvider
+- [x] allTripsProvider
+- [x] tripByIdProvider
+- [x] divesForTripProvider
+- [x] tripSearchProvider
+- [x] tripListNotifierProvider
 
 **Files:**
-- `lib/features/trips/providers/trip_providers.dart`
+- `lib/features/trips/presentation/providers/trip_providers.dart`
 
 ---
 
-## 5.4: Trip UI Pages (P1)
+## 5.4: Trip UI Pages (P1) - COMPLETE
 **Estimated:** 8 hours | **Dependencies:** 5.3
 
-- [ ] Trip list page (sorted by start date)
-- [ ] Trip detail page (stats, dive list, export)
-- [ ] Trip edit page (form with validation)
-- [ ] Trip picker for dive edit form
-- [ ] Auto-suggest trip based on dive date
-- [ ] Update router
+- [x] Trip list page (sorted by start date)
+- [x] Trip detail page (stats, dive list, export)
+- [x] Trip edit page (form with validation)
+- [x] Trip picker for dive edit form
+- [x] Auto-suggest trip based on dive date
+- [x] Update router
+- [x] Add trips link in settings page
 
 **Files:**
 - `lib/features/trips/presentation/pages/trip_list_page.dart`
 - `lib/features/trips/presentation/pages/trip_detail_page.dart`
 - `lib/features/trips/presentation/pages/trip_edit_page.dart`
+- `lib/features/trips/presentation/widgets/trip_picker.dart`
 
 ---
 
-## 5.5: Trip Export (P2)
+## 5.5: Trip Export (P2) - COMPLETE
 **Estimated:** 2 hours | **Dependencies:** 5.4
 
-- [ ] Export trip to CSV (all dives)
-- [ ] Export trip to PDF (summary + dive details)
-- [ ] Use existing export service
+- [x] Export trip to CSV (all dives)
+- [x] Export trip to PDF (summary + dive details)
+- [x] Use existing export service
+
+**Files:**
+- `lib/core/services/export_service.dart` (added exportTripsToCsv, exportTripToPdf)
 
 ---
 
@@ -385,10 +385,24 @@ ALTER TABLE dives ADD COLUMN trip_id TEXT REFERENCES trips(id);
 
 ---
 
+## 5.9: Buddy Import from Contacts (P2)
+**Estimated:** 3 hours | **Dependencies:** Sprint 1 complete
+
+- [ ] Add flutter_contacts package
+- [ ] "Import from Contacts" button on buddy list/edit page
+- [ ] Request permission, show contact picker
+- [ ] Pre-fill buddy form with name, email, phone from contact
+
+**Files:**
+- `lib/features/buddies/presentation/pages/buddy_list_page.dart`
+- `lib/features/buddies/presentation/pages/buddy_edit_page.dart`
+
+---
+
 **Sprint 5 Summary:**
-- **Total Tasks:** 8
-- **Estimated Hours:** 24
-- **Target:** Add trip grouping and bulk operations to v1.0
+- **Total Tasks:** 9
+- **Estimated Hours:** 27
+- **Target:** Add trip grouping, bulk operations, and buddy import to v1.0
 
 ---
 

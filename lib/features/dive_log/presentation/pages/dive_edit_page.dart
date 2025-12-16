@@ -15,6 +15,8 @@ import '../../../equipment/presentation/providers/equipment_providers.dart';
 import '../../../equipment/presentation/providers/equipment_set_providers.dart';
 import '../../../marine_life/domain/entities/species.dart';
 import '../../../marine_life/presentation/providers/species_providers.dart';
+import '../../../trips/domain/entities/trip.dart';
+import '../../../trips/presentation/providers/trip_providers.dart';
 import '../../domain/entities/dive.dart';
 import '../providers/dive_providers.dart';
 
@@ -53,6 +55,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   Visibility _selectedVisibility = Visibility.unknown;
   int _rating = 0;
   DiveSite? _selectedSite;
+  Trip? _selectedTrip;
   List<Sighting> _sightings = [];
   List<EquipmentItem> _selectedEquipment = [];
   List<BuddyWithRole> _selectedBuddies = [];
@@ -112,6 +115,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _selectedVisibility = dive.visibility ?? Visibility.unknown;
           _rating = dive.rating ?? 0;
           _selectedSite = dive.site;
+          _selectedTrip = dive.trip;
 
           // Load tank data if available
           if (dive.tanks.isNotEmpty) {
@@ -224,6 +228,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             _buildDateTimeSection(),
             const SizedBox(height: 16),
             _buildSiteSection(),
+            const SizedBox(height: 16),
+            _buildTripSection(),
             const SizedBox(height: 16),
             _buildDepthDurationSection(),
             const SizedBox(height: 16),
@@ -348,6 +354,128 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           onSiteSelected: (site) {
             setState(() => _selectedSite = site);
             Navigator.of(context).pop();
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTripSection() {
+    final diveDateTime = DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+      _selectedTime.hour,
+      _selectedTime.minute,
+    );
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Trip', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _showTripPicker,
+                    icon: const Icon(Icons.flight_takeoff),
+                    label: Text(
+                      _selectedTrip?.name ?? 'Select Trip',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 48),
+                    ),
+                  ),
+                ),
+                if (_selectedTrip != null) ...[
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () => setState(() => _selectedTrip = null),
+                    tooltip: 'Clear trip',
+                  ),
+                ],
+              ],
+            ),
+            if (_selectedTrip != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  '${DateFormat.yMMMd().format(_selectedTrip!.startDate)} - ${DateFormat.yMMMd().format(_selectedTrip!.endDate)}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ),
+            // Show suggested trip if no trip selected and dive date matches a trip
+            if (_selectedTrip == null) _buildTripSuggestion(diveDateTime),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTripSuggestion(DateTime diveDateTime) {
+    final suggestedTripAsync = ref.watch(tripForDateProvider(diveDateTime));
+
+    return suggestedTripAsync.when(
+      data: (suggestedTrip) {
+        if (suggestedTrip == null) return const SizedBox.shrink();
+
+        return Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: InkWell(
+            onTap: () => setState(() => _selectedTrip = suggestedTrip),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.auto_awesome,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Suggested: ${suggestedTrip.name}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => setState(() => _selectedTrip = suggestedTrip),
+                  child: const Text('Use'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  void _showTripPicker() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (_, scrollController) => _TripPickerSheet(
+          scrollController: scrollController,
+          selectedTrip: _selectedTrip,
+          onTripSelected: (trip) {
+            Navigator.of(sheetContext).pop();
+            setState(() => _selectedTrip = trip);
           },
         ),
       ),
@@ -1341,6 +1469,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         notes: _notesController.text,
         rating: _rating > 0 ? _rating : null,
         site: _selectedSite,
+        trip: _selectedTrip,
         tanks: tanks,
         equipment: _selectedEquipment,
         // Conditions fields
@@ -2266,6 +2395,132 @@ class _EquipmentSetTile extends ConsumerWidget {
         title: Text(set.name),
         subtitle: const Text('Error loading items'),
       ),
+    );
+  }
+}
+
+class _TripPickerSheet extends ConsumerWidget {
+  final ScrollController scrollController;
+  final Trip? selectedTrip;
+  final void Function(Trip) onTripSelected;
+
+  const _TripPickerSheet({
+    required this.scrollController,
+    required this.selectedTrip,
+    required this.onTripSelected,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tripsAsync = ref.watch(allTripsProvider);
+
+    return Column(
+      children: [
+        // Handle bar
+        Container(
+          margin: const EdgeInsets.only(top: 12),
+          width: 40,
+          height: 4,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Select Trip',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              TextButton.icon(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  context.push('/trips/new');
+                },
+                icon: const Icon(Icons.add),
+                label: const Text('New Trip'),
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
+        Expanded(
+          child: tripsAsync.when(
+            data: (trips) {
+              if (trips.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.flight_takeoff,
+                        size: 48,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No trips yet',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      TextButton.icon(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          context.push('/trips/new');
+                        },
+                        icon: const Icon(Icons.add),
+                        label: const Text('Create Trip'),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return ListView.builder(
+                controller: scrollController,
+                itemCount: trips.length,
+                itemBuilder: (context, index) {
+                  final trip = trips[index];
+                  final isSelected = trip.id == selectedTrip?.id;
+                  final dateFormat = DateFormat.yMMMd();
+
+                  return ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: isSelected
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).colorScheme.primaryContainer,
+                      child: Icon(
+                        trip.isLiveaboard ? Icons.sailing : Icons.flight_takeoff,
+                        color: isSelected
+                            ? Theme.of(context).colorScheme.onPrimary
+                            : Theme.of(context).colorScheme.onPrimaryContainer,
+                      ),
+                    ),
+                    title: Text(trip.name),
+                    subtitle: Text(
+                      '${dateFormat.format(trip.startDate)} - ${dateFormat.format(trip.endDate)}',
+                    ),
+                    trailing: isSelected
+                        ? Icon(
+                            Icons.check_circle,
+                            color: Theme.of(context).colorScheme.primary,
+                          )
+                        : null,
+                    onTap: () => onTripSelected(trip),
+                  );
+                },
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, _) => Center(
+              child: Text('Error loading trips: $error'),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

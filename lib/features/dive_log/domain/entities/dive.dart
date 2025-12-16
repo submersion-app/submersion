@@ -4,6 +4,7 @@ import '../../../../core/constants/enums.dart';
 import '../../../dive_centers/domain/entities/dive_center.dart';
 import '../../../dive_sites/domain/entities/dive_site.dart';
 import '../../../equipment/domain/entities/equipment_item.dart';
+import '../../../trips/domain/entities/trip.dart';
 
 /// Core dive log entry entity
 class Dive extends Equatable {
@@ -15,6 +16,8 @@ class Dive extends Equatable {
   final double? avgDepth; // meters
   final DiveSite? site;
   final DiveCenter? diveCenter;
+  final Trip? trip;
+  final String? tripId;
   final List<DiveTank> tanks;
   final List<DiveProfilePoint> profile;
   final List<EquipmentItem> equipment;
@@ -49,6 +52,8 @@ class Dive extends Equatable {
     this.avgDepth,
     this.site,
     this.diveCenter,
+    this.trip,
+    this.tripId,
     this.tanks = const [],
     this.profile = const [],
     this.equipment = const [],
@@ -95,6 +100,8 @@ class Dive extends Equatable {
     double? avgDepth,
     DiveSite? site,
     DiveCenter? diveCenter,
+    Trip? trip,
+    String? tripId,
     List<DiveTank>? tanks,
     List<DiveProfilePoint>? profile,
     List<EquipmentItem>? equipment,
@@ -127,6 +134,8 @@ class Dive extends Equatable {
       avgDepth: avgDepth ?? this.avgDepth,
       site: site ?? this.site,
       diveCenter: diveCenter ?? this.diveCenter,
+      trip: trip ?? this.trip,
+      tripId: tripId ?? this.tripId,
       tanks: tanks ?? this.tanks,
       profile: profile ?? this.profile,
       equipment: equipment ?? this.equipment,
@@ -162,6 +171,8 @@ class Dive extends Equatable {
         avgDepth,
         site,
         diveCenter,
+        trip,
+        tripId,
         tanks,
         profile,
         equipment,

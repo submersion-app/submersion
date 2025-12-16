@@ -24,6 +24,9 @@ import '../../features/equipment/presentation/pages/equipment_edit_page.dart';
 import '../../features/equipment/presentation/pages/equipment_set_list_page.dart';
 import '../../features/equipment/presentation/pages/equipment_set_detail_page.dart';
 import '../../features/equipment/presentation/pages/equipment_set_edit_page.dart';
+import '../../features/trips/presentation/pages/trip_list_page.dart';
+import '../../features/trips/presentation/pages/trip_detail_page.dart';
+import '../../features/trips/presentation/pages/trip_edit_page.dart';
 import '../../features/statistics/presentation/pages/statistics_page.dart';
 import '../../features/statistics/presentation/pages/records_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
@@ -254,6 +257,38 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     name: 'editDiveCenter',
                     builder: (context, state) => DiveCenterEditPage(
                       centerId: state.pathParameters['centerId'],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          // Trips
+          GoRoute(
+            path: '/trips',
+            name: 'trips',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: TripListPage(),
+            ),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'newTrip',
+                builder: (context, state) => const TripEditPage(),
+              ),
+              GoRoute(
+                path: ':tripId',
+                name: 'tripDetail',
+                builder: (context, state) => TripDetailPage(
+                  tripId: state.pathParameters['tripId']!,
+                ),
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    name: 'editTrip',
+                    builder: (context, state) => TripEditPage(
+                      tripId: state.pathParameters['tripId'],
                     ),
                   ),
                 ],

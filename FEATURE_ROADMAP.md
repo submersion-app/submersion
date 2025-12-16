@@ -1,7 +1,7 @@
 # Submersion Feature Roadmap
 ## Comprehensive Development Plan
 
-> **Last Updated:** 2025-12-11
+> **Last Updated:** 2025-12-15
 > **Current Version:** 0.1.0+1 (MVP Complete)
 > **Status:** Production-ready core, expanding to feature parity with industry leaders
 
@@ -313,6 +313,8 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 - [ ] Dynamic tank list with Add/Remove buttons
 - [ ] Add `tank_type` enum (Back Gas, Stage, Deco, Bailout, Sidemount Left/Right)
 - [ ] Add `material` enum (Steel, Aluminum, Carbon Fiber)
+- [ ] Common tank presets dropdown (AL80, HP100, HP120, LP85, Doubles, etc.)
+- [ ] Save custom tank configurations as user presets
 
 ---
 
@@ -554,8 +556,12 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 | Gas / cylinder config | ✅ Implemented | MVP | - | Per-tank gas mixes |
 
 **v1.0 Tasks:**
-- [ ] Add `weight_system` enum (Belt, Integrated, Trim Pockets, Ankle Weights) to dives table
-- [ ] Add `total_weight_kg` field
+- [ ] Support multiple weight entries per dive (e.g., integrated + trim weights)
+- [ ] Create `dive_weights` table (dive_id, weight_type, amount_kg)
+- [ ] Add `weight_type` enum (Integrated, Belt, Trim, Ankle, Backplate, Other)
+- [ ] Weight entry UI with add/remove for multiple weight entries
+- [ ] Remove "Weight belt used" toggle from UI (replaced by weight entries)
+- [ ] Display total weight on dive detail page
 - [ ] Weight calculator based on exposure suit, tank type, water type
 
 ---
@@ -579,6 +585,8 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 - [ ] Buddy picker in dive edit form (multi-select with roles)
 - [ ] Add `role` enum to dive_buddies (Buddy, Dive Guide, Instructor, Student, Solo)
 - [ ] Buddy detail page showing all dives together, stats
+- [ ] Auto-convert legacy plaintext buddies/divemaster/guide on import to proper Buddy entities
+- [ ] Disable adding legacy plaintext buddies/divemaster/guide in the UI (use Buddy picker only)
 
 **v1.5 Tasks:**
 - [ ] Import buddies from contacts (mobile)
@@ -993,11 +1001,16 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 |---------|--------|-------|----------|-------|
 | CSV import/export | ✅ Implemented | MVP | - | Dives, sites, equipment |
 | UDDF import/export | ✅ Implemented | MVP | - | v3.2.0 compliant |
+| UDDF buddy/guide export | 📋 Planned | v1.0 | Medium | Export to both legacy and app-specific fields |
 | DAN DL7 export | 📋 Planned | v1.5 | Low | Research data format |
 | PDF export | ✅ Implemented | MVP | - | Printable logbook |
 | HTML export | 📋 Planned | v2.0 | Low | Web-viewable logbook |
 | Excel export | 📋 Planned | v1.5 | Low | .xlsx format |
 | Google Earth KML export | 📋 Planned | v1.5 | Low | Map all dive sites |
+
+**v1.0 Tasks:**
+- [ ] On UDDF export: write non-legacy Buddy entities to both legacy UDDF fields (buddy, divemaster, guide) and app-specific fields for maximum compatibility
+- [ ] On UDDF import: auto-create Buddy entities from legacy plaintext buddy/divemaster/guide fields
 
 **v1.5 Tasks:**
 - [ ] DAN DL7 export (research format specification)
@@ -1560,6 +1573,31 @@ CREATE TABLE dive_centers (
   updated_at INTEGER NOT NULL
 );
 
+-- Dive Weights (multiple weight entries per dive)
+CREATE TABLE dive_weights (
+  id TEXT PRIMARY KEY,
+  dive_id TEXT NOT NULL REFERENCES dives(id) ON DELETE CASCADE,
+  weight_type TEXT NOT NULL, -- Integrated, Belt, Trim, Ankle, Backplate, Other
+  amount_kg REAL NOT NULL,
+  notes TEXT,
+  created_at INTEGER NOT NULL,
+  UNIQUE(dive_id, weight_type)
+);
+
+-- Tank Presets (user-defined common tank configurations)
+CREATE TABLE tank_presets (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL, -- e.g., "AL80", "HP100", "Doubles HP80"
+  volume_liters REAL NOT NULL,
+  working_pressure_bar REAL,
+  material TEXT, -- Steel, Aluminum, Carbon Fiber
+  o2_percent REAL DEFAULT 21,
+  he_percent REAL DEFAULT 0,
+  is_system_preset INTEGER DEFAULT 0, -- true for built-in presets
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL
+);
+
 -- Extend dives table
 ALTER TABLE dives ADD COLUMN dive_center_id TEXT REFERENCES dive_centers(id);
 ALTER TABLE dives ADD COLUMN boat_name TEXT;
@@ -1570,8 +1608,6 @@ ALTER TABLE dives ADD COLUMN swell_height_meters REAL;
 ALTER TABLE dives ADD COLUMN entry_method TEXT;
 ALTER TABLE dives ADD COLUMN exit_method TEXT;
 ALTER TABLE dives ADD COLUMN water_type TEXT;
-ALTER TABLE dives ADD COLUMN weight_system TEXT;
-ALTER TABLE dives ADD COLUMN total_weight_kg REAL;
 ALTER TABLE dives ADD COLUMN is_favorite INTEGER DEFAULT 0;
 
 -- Extend equipment table
