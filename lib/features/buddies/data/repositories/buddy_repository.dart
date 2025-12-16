@@ -103,6 +103,60 @@ class BuddyRepository {
     }
   }
 
+  /// Find an existing buddy by exact name (case-insensitive) or create a new one
+  /// Used during import to convert legacy plaintext buddy names to proper entities
+  Future<domain.Buddy> findOrCreateByName(String name, {String? notes}) async {
+    try {
+      final trimmedName = name.trim();
+      if (trimmedName.isEmpty) {
+        throw ArgumentError('Buddy name cannot be empty');
+      }
+
+      // Search for exact match (case-insensitive)
+      final results = await _db.customSelect('''
+        SELECT * FROM buddies
+        WHERE LOWER(name) = LOWER(?)
+        LIMIT 1
+      ''', variables: [Variable.withString(trimmedName)]).get();
+
+      if (results.isNotEmpty) {
+        final row = results.first;
+        _log.info('Found existing buddy: $trimmedName');
+        return domain.Buddy(
+          id: row.data['id'] as String,
+          name: row.data['name'] as String,
+          email: row.data['email'] as String?,
+          phone: row.data['phone'] as String?,
+          certificationLevel: _parseCertificationLevel(
+              row.data['certification_level'] as String?),
+          certificationAgency: _parseCertificationAgency(
+              row.data['certification_agency'] as String?),
+          photoPath: row.data['photo_path'] as String?,
+          notes: (row.data['notes'] as String?) ?? '',
+          createdAt:
+              DateTime.fromMillisecondsSinceEpoch(row.data['created_at'] as int),
+          updatedAt:
+              DateTime.fromMillisecondsSinceEpoch(row.data['updated_at'] as int),
+        );
+      }
+
+      // Create new buddy
+      _log.info('Creating new buddy from import: $trimmedName');
+      final newBuddy = domain.Buddy(
+        id: _uuid.v4(),
+        name: trimmedName,
+        notes: notes ?? 'Imported from dive log',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      return createBuddy(newBuddy);
+    } catch (e, stackTrace) {
+      _log.error('Failed to find or create buddy: $name', e, stackTrace);
+      rethrow;
+    }
+  }
+
   /// Update an existing buddy
   Future<void> updateBuddy(domain.Buddy buddy) async {
     try {

@@ -590,7 +590,7 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 - [x] Buddy picker in dive edit form (multi-select with roles)
 - [x] Add `role` enum to dive_buddies (Buddy, Dive Guide, Instructor, Student, Solo)
 - [x] Buddy detail page showing all dives together, stats
-- [ ] Auto-convert legacy plaintext buddies/divemaster/guide on import to proper Buddy entities - deferred to v1.1
+- [x] Auto-convert legacy plaintext buddies/divemaster/guide on import to proper Buddy entities
 - [x] Legacy plaintext buddy fields retained for compatibility, UI uses Buddy picker
 
 **v1.5 Tasks:**
@@ -1008,7 +1008,7 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 |---------|--------|-------|----------|-------|
 | CSV import/export | ✅ Implemented | MVP | - | Dives, sites, equipment |
 | UDDF import/export | ✅ Implemented | MVP | - | v3.2.0 compliant |
-| UDDF buddy/guide export | 📋 Planned | v1.1 | Medium | Export to both legacy and app-specific fields - deferred |
+| UDDF buddy/guide export | ✅ Implemented | v1.1 | - | Export to both legacy and app-specific fields |
 | DAN DL7 export | 📋 Planned | v1.5 | Low | Research data format |
 | PDF export | ✅ Implemented | MVP | - | Printable logbook |
 | HTML export | 📋 Planned | v2.0 | Low | Web-viewable logbook |
@@ -1016,8 +1016,9 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 | Google Earth KML export | 📋 Planned | v1.5 | Low | Map all dive sites |
 
 **v1.1 Tasks:** (deferred from v1.0)
-- [ ] On UDDF export: write non-legacy Buddy entities to both legacy UDDF fields (buddy, divemaster, guide) and app-specific fields for maximum compatibility
-- [ ] On UDDF import: auto-create Buddy entities from legacy plaintext buddy/divemaster/guide fields
+- [x] On UDDF export: write non-legacy Buddy entities to both legacy UDDF fields (buddy, divemaster, guide) and app-specific fields for maximum compatibility
+- [x] On UDDF import: auto-create Buddy entities from legacy plaintext buddy/divemaster/guide fields
+- [x] Remove legacy buddy/divemaster text fields from dive edit screen
 
 **v1.5 Tasks:**
 - [ ] DAN DL7 export (research format specification)

@@ -16,6 +16,8 @@ import '../../../dive_sites/domain/entities/dive_site.dart';
 import '../../../dive_sites/presentation/providers/site_providers.dart';
 import '../../../equipment/presentation/providers/equipment_providers.dart';
 import '../../../buddies/presentation/providers/buddy_providers.dart';
+import '../../../buddies/data/repositories/buddy_repository.dart';
+import '../../../buddies/domain/entities/buddy.dart';
 import '../../../certifications/presentation/providers/certification_providers.dart';
 import '../../../dive_centers/presentation/providers/dive_center_providers.dart';
 import '../../../marine_life/presentation/providers/species_providers.dart';
@@ -137,6 +139,16 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final diveCenters = await _ref.read(allDiveCentersProvider.future);
       final species = await _ref.read(allSpeciesProvider.future);
 
+      // Fetch dive buddies for each dive
+      final buddyRepository = _ref.read(buddyRepositoryProvider);
+      final Map<String, List<BuddyWithRole>> diveBuddies = {};
+      for (final dive in dives) {
+        final buddiesForDive = await buddyRepository.getBuddiesForDive(dive.id);
+        if (buddiesForDive.isNotEmpty) {
+          diveBuddies[dive.id] = buddiesForDive;
+        }
+      }
+
       state = state.copyWith(message: 'Generating UDDF file...');
       final path = await _exportService.exportAllDataToUddf(
         dives: dives,
@@ -146,6 +158,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         certifications: certifications,
         diveCenters: diveCenters,
         species: species,
+        diveBuddies: diveBuddies,
       );
       state = state.copyWith(status: ExportStatus.success, message: 'UDDF file generated successfully', filePath: path);
     } catch (e) {
@@ -160,10 +173,11 @@ class ExportNotifier extends StateNotifier<ExportState> {
   Future<void> importDivesFromCsv() async {
     state = state.copyWith(status: ExportStatus.exporting, message: 'Selecting file...');
     try {
-      // Use FileType.any on iOS since custom extensions don't work reliably
+      // Use FileType.any on iOS/macOS since custom extensions don't work reliably
+      final useAnyType = Platform.isIOS || Platform.isMacOS;
       final result = await FilePicker.platform.pickFiles(
-        type: Platform.isIOS ? FileType.any : FileType.custom,
-        allowedExtensions: Platform.isIOS ? null : ['csv'],
+        type: useAnyType ? FileType.any : FileType.custom,
+        allowedExtensions: useAnyType ? null : ['csv'],
         allowMultiple: false,
       );
 
@@ -179,7 +193,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         return;
       }
 
-      // On iOS, verify file extension manually
+      // On iOS/macOS, verify file extension manually
       final extension = filePath.split('.').last.toLowerCase();
       if (extension != 'csv') {
         state = state.copyWith(
@@ -205,9 +219,19 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final diveNotifier = _ref.read(diveListNotifierProvider.notifier);
 
       var importedCount = 0;
+      var buddiesCreated = 0;
       for (final diveData in parsedDives) {
+        // Parse legacy buddy/divemaster text fields into proper Buddy entities
+        final buddyText = diveData['buddy'] as String?;
+        final diveMasterText = diveData['diveMaster'] as String?;
+        final buddies = await _parseBuddiesFromLegacyText(
+          buddyText: buddyText,
+          diveMasterText: diveMasterText,
+        );
+
+        final diveId = uuid.v4();
         final dive = Dive(
-          id: uuid.v4(),
+          id: diveId,
           diveNumber: diveData['diveNumber'] as int?,
           dateTime: diveData['dateTime'] as DateTime? ?? DateTime.now(),
           duration: diveData['duration'] as Duration?,
@@ -215,8 +239,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
           avgDepth: diveData['avgDepth'] as double?,
           waterTemp: diveData['waterTemp'] as double?,
           airTemp: diveData['airTemp'] as double?,
-          buddy: diveData['buddy'] as String?,
-          diveMaster: diveData['diveMaster'] as String?,
+          // Keep legacy text for backwards compatibility display, but also link proper buddies
+          buddy: buddyText,
+          diveMaster: diveMasterText,
           rating: diveData['rating'] as int?,
           notes: diveData['notes'] as String? ?? '',
           visibility: diveData['visibility'] as Visibility?,
@@ -225,12 +250,23 @@ class ExportNotifier extends StateNotifier<ExportState> {
         );
 
         await diveNotifier.addDive(dive);
+        
+        // Link buddy entities to the dive
+        if (buddies.isNotEmpty) {
+          await _linkBuddiesToDive(diveId, buddies);
+          buddiesCreated += buddies.length;
+        }
+        
         importedCount++;
       }
 
+      // Refresh buddies provider
+      _ref.invalidate(allBuddiesProvider);
+
+      final buddyMessage = buddiesCreated > 0 ? ' and $buddiesCreated buddy associations' : '';
       state = state.copyWith(
         status: ExportStatus.success,
-        message: 'Successfully imported $importedCount dives',
+        message: 'Successfully imported $importedCount dives$buddyMessage',
       );
     } catch (e) {
       state = state.copyWith(status: ExportStatus.error, message: 'Import failed: $e');
@@ -258,13 +294,82 @@ class ExportNotifier extends StateNotifier<ExportState> {
     ];
   }
 
+  /// Parse plaintext buddy/divemaster/guide names and convert them to proper Buddy entities
+  /// Returns a list of BuddyWithRole to be linked to the dive after creation
+  Future<List<BuddyWithRole>> _parseBuddiesFromLegacyText({
+    String? buddyText,
+    String? diveMasterText,
+  }) async {
+    final buddyRepository = _ref.read(buddyRepositoryProvider);
+    final result = <BuddyWithRole>[];
+
+    // Parse buddy field - may contain multiple names separated by comma
+    if (buddyText != null && buddyText.trim().isNotEmpty) {
+      // Split by comma, semicolon, or " and "
+      final names = buddyText
+          .split(RegExp(r'[,;]|\s+and\s+', caseSensitive: false))
+          .map((n) => n.trim())
+          .where((n) => n.isNotEmpty)
+          .toList();
+
+      for (final name in names) {
+        final buddy = await buddyRepository.findOrCreateByName(name);
+        result.add(BuddyWithRole(buddy: buddy, role: BuddyRole.buddy));
+      }
+    }
+
+    // Parse divemaster/guide field
+    if (diveMasterText != null && diveMasterText.trim().isNotEmpty) {
+      // Check if already added as buddy (avoid duplicates)
+      final existingNames = result.map((b) => b.buddy.name.toLowerCase()).toSet();
+      
+      final names = diveMasterText
+          .split(RegExp(r'[,;]|\s+and\s+', caseSensitive: false))
+          .map((n) => n.trim())
+          .where((n) => n.isNotEmpty && !existingNames.contains(n.toLowerCase()))
+          .toList();
+
+      for (final name in names) {
+        final buddy = await buddyRepository.findOrCreateByName(name);
+        // Try to determine role from name or default to diveGuide
+        final lowerName = name.toLowerCase();
+        BuddyRole role;
+        if (lowerName.contains('instructor')) {
+          role = BuddyRole.instructor;
+        } else if (lowerName.contains('divemaster') || lowerName.contains('dm')) {
+          role = BuddyRole.diveMaster;
+        } else {
+          role = BuddyRole.diveGuide;
+        }
+        result.add(BuddyWithRole(buddy: buddy, role: role));
+      }
+    }
+
+    return result;
+  }
+
+  /// Link buddies to a dive after the dive has been created
+  Future<void> _linkBuddiesToDive(String diveId, List<BuddyWithRole> buddies) async {
+    if (buddies.isEmpty) return;
+    
+    final buddyRepository = _ref.read(buddyRepositoryProvider);
+    for (final buddyWithRole in buddies) {
+      await buddyRepository.addBuddyToDive(
+        diveId,
+        buddyWithRole.buddy.id,
+        buddyWithRole.role,
+      );
+    }
+  }
+
   Future<void> importDivesFromUddf() async {
     state = state.copyWith(status: ExportStatus.exporting, message: 'Selecting file...');
     try {
-      // Use FileType.any on iOS since custom extensions don't work reliably
+      // Use FileType.any on iOS/macOS since custom extensions don't work reliably
+      final useAnyType = Platform.isIOS || Platform.isMacOS;
       final result = await FilePicker.platform.pickFiles(
-        type: Platform.isIOS ? FileType.any : FileType.custom,
-        allowedExtensions: Platform.isIOS ? null : ['uddf', 'xml'],
+        type: useAnyType ? FileType.any : FileType.custom,
+        allowedExtensions: useAnyType ? null : ['uddf', 'xml'],
         allowMultiple: false,
       );
 
@@ -280,7 +385,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         return;
       }
 
-      // On iOS, verify file extension manually
+      // On iOS/macOS, verify file extension manually
       final extension = filePath.split('.').last.toLowerCase();
       if (!['uddf', 'xml'].contains(extension)) {
         state = state.copyWith(
@@ -342,6 +447,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final diveNotifier = _ref.read(diveListNotifierProvider.notifier);
 
       var importedCount = 0;
+      var buddiesCreated = 0;
       for (final diveData in parsedDives) {
         // Build profile points if present
         final profileData = diveData['profile'] as List<Map<String, dynamic>>?;
@@ -401,8 +507,17 @@ class ExportNotifier extends StateNotifier<ExportState> {
           notes += 'Weight used: ${weightUsed.toStringAsFixed(1)} kg';
         }
 
+        // Parse legacy buddy text fields into proper Buddy entities
+        final buddyText = diveData['buddy'] as String?;
+        final diveMasterText = diveData['diveMaster'] as String?;
+        final buddies = await _parseBuddiesFromLegacyText(
+          buddyText: buddyText,
+          diveMasterText: diveMasterText,
+        );
+
+        final diveId = uuid.v4();
         final dive = Dive(
-          id: uuid.v4(),
+          id: diveId,
           diveNumber: diveData['diveNumber'] as int?,
           dateTime: diveData['dateTime'] as DateTime? ?? DateTime.now(),
           duration: diveData['duration'] as Duration?,
@@ -410,7 +525,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
           avgDepth: diveData['avgDepth'] as double?,
           waterTemp: diveData['waterTemp'] as double?,
           airTemp: diveData['airTemp'] as double?,
-          buddy: diveData['buddy'] as String?,
+          buddy: buddyText, // Keep legacy text for backwards compatibility
+          diveMaster: diveMasterText, // Keep legacy text for backwards compatibility
           rating: diveData['rating'] as int?,
           notes: notes,
           visibility: diveData['visibility'] as Visibility?,
@@ -421,15 +537,24 @@ class ExportNotifier extends StateNotifier<ExportState> {
         );
 
         await diveNotifier.addDive(dive);
+        
+        // Link buddy entities to the dive
+        if (buddies.isNotEmpty) {
+          await _linkBuddiesToDive(diveId, buddies);
+          buddiesCreated += buddies.length;
+        }
+        
         importedCount++;
       }
 
-      // Refresh sites provider
+      // Refresh sites and buddies providers
       _ref.invalidate(sitesProvider);
+      _ref.invalidate(allBuddiesProvider);
 
+      final buddyMessage = buddiesCreated > 0 ? ' and $buddiesCreated buddy associations' : '';
       state = state.copyWith(
         status: ExportStatus.success,
-        message: 'Successfully imported $importedCount dives and ${siteMapping.length} sites from UDDF',
+        message: 'Successfully imported $importedCount dives, ${siteMapping.length} sites$buddyMessage from UDDF',
       );
     } catch (e) {
       state = state.copyWith(status: ExportStatus.error, message: 'Import failed: $e');
@@ -467,10 +592,11 @@ class ExportNotifier extends StateNotifier<ExportState> {
   Future<void> restoreBackup() async {
     state = state.copyWith(status: ExportStatus.exporting, message: 'Selecting backup file...');
     try {
-      // Use FileType.any on iOS since custom extensions don't work reliably
+      // Use FileType.any on iOS/macOS since custom extensions don't work reliably
+      final useAnyType = Platform.isIOS || Platform.isMacOS;
       final result = await FilePicker.platform.pickFiles(
-        type: Platform.isIOS ? FileType.any : FileType.custom,
-        allowedExtensions: Platform.isIOS ? null : ['db'],
+        type: useAnyType ? FileType.any : FileType.custom,
+        allowedExtensions: useAnyType ? null : ['db'],
         allowMultiple: false,
       );
 
@@ -485,7 +611,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         return;
       }
 
-      // On iOS, verify file extension manually
+      // On iOS/macOS, verify file extension manually
       final extension = filePath.split('.').last.toLowerCase();
       if (extension != 'db') {
         state = state.copyWith(

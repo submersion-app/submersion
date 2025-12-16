@@ -938,6 +938,8 @@ class ExportService {
     List<Species>? species,
     List<ServiceRecord>? serviceRecords,
     Map<String, String>? settings,
+    /// Map of dive ID to list of buddies with roles for that dive
+    Map<String, List<BuddyWithRole>>? diveBuddies,
   }) async {
     final builder = XmlBuilder();
 
@@ -1037,7 +1039,8 @@ class ExportService {
           for (final dateEntry in divesByDate.entries) {
             builder.element('repetitiongroup', nest: () {
               for (final dive in dateEntry.value) {
-                _buildDiveElement(builder, dive, buddies);
+                final diveBuddyList = diveBuddies?[dive.id] ?? [];
+                _buildDiveElement(builder, dive, buddies, diveBuddyList);
               }
             });
           }
@@ -1092,7 +1095,15 @@ class ExportService {
     });
   }
 
-  void _buildDiveElement(XmlBuilder builder, Dive dive, List<Buddy>? buddies) {
+  void _buildDiveElement(XmlBuilder builder, Dive dive, List<Buddy>? buddies, List<BuddyWithRole> diveBuddyList) {
+    // Separate buddies by role for UDDF export
+    final regularBuddies = diveBuddyList.where((b) => b.role == BuddyRole.buddy || b.role == BuddyRole.student).toList();
+    final guidesAndDivemasters = diveBuddyList.where((b) => 
+      b.role == BuddyRole.diveGuide || 
+      b.role == BuddyRole.diveMaster || 
+      b.role == BuddyRole.instructor
+    ).toList();
+
     builder.element('dive', attributes: {'id': 'dive_${dive.id}'}, nest: () {
       // Information before dive
       builder.element('informationbeforedive', nest: () {
@@ -1106,7 +1117,12 @@ class ExportService {
         if (dive.site != null) {
           builder.element('link', attributes: {'ref': 'site_${dive.site!.id}'});
         }
-        if (dive.diveMaster != null && dive.diveMaster!.isNotEmpty) {
+        // Export guides/divemasters/instructors in the divemaster field
+        if (guidesAndDivemasters.isNotEmpty) {
+          final names = guidesAndDivemasters.map((b) => b.buddy.name).join(', ');
+          builder.element('divemaster', nest: names);
+        } else if (dive.diveMaster != null && dive.diveMaster!.isNotEmpty) {
+          // Fallback to legacy field if no linked buddies
           builder.element('divemaster', nest: dive.diveMaster);
         }
         if (dive.diveCenter != null) {
@@ -1115,6 +1131,10 @@ class ExportService {
         builder.element('divetype', nest: dive.diveType.name);
         if (dive.entryMethod != null) {
           builder.element('entrytype', nest: dive.entryMethod!.name);
+        }
+        // Link to buddy records in diver section
+        for (final buddyWithRole in diveBuddyList) {
+          builder.element('link', attributes: {'ref': 'buddy_${buddyWithRole.buddy.id}'});
         }
       });
 
@@ -1240,7 +1260,21 @@ class ExportService {
             builder.element('para', nest: dive.notes);
           });
         }
-        if (dive.buddy != null && dive.buddy!.isNotEmpty) {
+        // Export regular buddies in the buddy field for compatibility
+        if (regularBuddies.isNotEmpty) {
+          for (final buddyWithRole in regularBuddies) {
+            builder.element('buddy', nest: () {
+              builder.element('personal', nest: () {
+                final nameParts = buddyWithRole.buddy.name.split(' ');
+                builder.element('firstname', nest: nameParts.first);
+                if (nameParts.length > 1) {
+                  builder.element('lastname', nest: nameParts.sublist(1).join(' '));
+                }
+              });
+            });
+          }
+        } else if (dive.buddy != null && dive.buddy!.isNotEmpty) {
+          // Fallback to legacy field if no linked buddies
           builder.element('buddy', nest: () {
             builder.element('personal', nest: () {
               builder.element('firstname', nest: dive.buddy);
