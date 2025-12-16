@@ -121,6 +121,35 @@ class ExportService {
 
   // ==================== CSV EXPORT ====================
 
+  /// Sanitize a string value to prevent CSV injection attacks.
+  /// 
+  /// This method prevents formula injection by prefixing values that start
+  /// with dangerous characters (=, +, -, @, tab, carriage return) with a
+  /// single quote, which forces spreadsheet applications to treat the value
+  /// as plain text instead of a formula.
+  /// 
+  /// References:
+  /// - OWASP CSV Injection: https://owasp.org/www-community/attacks/CSV_Injection
+  String _sanitizeCsvField(String? value) {
+    if (value == null || value.isEmpty) {
+      return '';
+    }
+    
+    // Check if the value starts with a dangerous character
+    final firstChar = value[0];
+    if (firstChar == '=' || 
+        firstChar == '+' || 
+        firstChar == '-' || 
+        firstChar == '@' ||
+        firstChar == '\t' ||
+        firstChar == '\r') {
+      // Prefix with single quote to neutralize formula execution
+      return "'$value";
+    }
+    
+    return value;
+  }
+
   /// Export dives to CSV format
   Future<String> exportDivesToCsv(List<Dive> dives) async {
     final headers = [
@@ -271,14 +300,14 @@ class ExportService {
 
     for (final trip in trips) {
       rows.add([
-        trip.name,
+        _sanitizeCsvField(trip.name),
         _dateFormat.format(trip.startDate),
         _dateFormat.format(trip.endDate),
         trip.durationDays,
-        trip.location ?? '',
-        trip.resortName ?? '',
-        trip.liveaboardName ?? '',
-        trip.notes.replaceAll('\n', ' '),
+        _sanitizeCsvField(trip.location),
+        _sanitizeCsvField(trip.resortName),
+        _sanitizeCsvField(trip.liveaboardName),
+        _sanitizeCsvField(trip.notes.replaceAll('\n', ' ')),
       ]);
     }
 
