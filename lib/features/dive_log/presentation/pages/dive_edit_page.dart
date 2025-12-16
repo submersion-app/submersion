@@ -2,6 +2,7 @@ import 'package:flutter/material.dart' hide Visibility;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../../core/constants/enums.dart';
 import '../../../buddies/domain/entities/buddy.dart';
@@ -22,6 +23,7 @@ import '../../../trips/presentation/providers/trip_providers.dart';
 import '../../../trips/presentation/widgets/trip_picker.dart';
 import '../../domain/entities/dive.dart';
 import '../providers/dive_providers.dart';
+import '../widgets/tank_editor.dart';
 
 class DiveEditPage extends ConsumerStatefulWidget {
   final String? diveId;
@@ -77,11 +79,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   WeightType? _weightType;
   bool _weightBeltUsed = false;
 
-  // Tank data
-  final _tankVolumeController = TextEditingController(text: '12');
-  final _startPressureController = TextEditingController(text: '200');
-  final _endPressureController = TextEditingController(text: '50');
-  final _o2PercentController = TextEditingController(text: '21');
+  // Tank data - list of tanks with multi-tank support
+  List<DiveTank> _tanks = [];
+  final _uuid = const Uuid();
 
   // Existing dive for editing
   Dive? _existingDive;
@@ -91,6 +91,19 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     super.initState();
     _selectedDate = DateTime.now();
     _selectedTime = TimeOfDay.now();
+
+    // Initialize with one default tank
+    _tanks = [
+      DiveTank(
+        id: _uuid.v4(),
+        volume: 12.0,
+        startPressure: 200,
+        endPressure: 50,
+        gasMix: const GasMix(),
+        role: TankRole.backGas,
+        order: 0,
+      ),
+    ];
 
     if (widget.isEditing) {
       _loadExistingDive();
@@ -122,13 +135,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _selectedTrip = dive.trip;
           _selectedDiveCenter = dive.diveCenter;
 
-          // Load tank data if available
+          // Load all tanks from the dive
           if (dive.tanks.isNotEmpty) {
-            final tank = dive.tanks.first;
-            _tankVolumeController.text = tank.volume?.toString() ?? '12';
-            _startPressureController.text = tank.startPressure?.toString() ?? '200';
-            _endPressureController.text = tank.endPressure?.toString() ?? '50';
-            _o2PercentController.text = tank.gasMix.o2.toString();
+            _tanks = List.from(dive.tanks);
           }
 
           // Load equipment
@@ -186,10 +195,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     _buddyController.dispose();
     _diveMasterController.dispose();
     _notesController.dispose();
-    _tankVolumeController.dispose();
-    _startPressureController.dispose();
-    _endPressureController.dispose();
-    _o2PercentController.dispose();
     _swellHeightController.dispose();
     _weightAmountController.dispose();
     super.dispose();
@@ -610,69 +615,71 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   }
 
   Widget _buildTankSection() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Tank', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _tankVolumeController,
-                    decoration: const InputDecoration(
-                      labelText: 'Volume',
-                      suffixText: 'L',
-                    ),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: TextFormField(
-                    controller: _o2PercentController,
-                    decoration: const InputDecoration(
-                      labelText: 'O2',
-                      suffixText: '%',
-                    ),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _startPressureController,
-                    decoration: const InputDecoration(
-                      labelText: 'Start',
-                      suffixText: 'bar',
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: TextFormField(
-                    controller: _endPressureController,
-                    decoration: const InputDecoration(
-                      labelText: 'End',
-                      suffixText: 'bar',
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-              ],
-            ),
-          ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header with tank count and add button
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Tanks (${_tanks.length})',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              TextButton.icon(
+                onPressed: _addTank,
+                icon: const Icon(Icons.add, size: 18),
+                label: const Text('Add Tank'),
+              ),
+            ],
+          ),
         ),
-      ),
+        // Tank editors
+        ..._tanks.asMap().entries.map((entry) {
+          final index = entry.key;
+          final tank = entry.value;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: TankEditor(
+              tank: tank,
+              tankNumber: index + 1,
+              canRemove: _tanks.length > 1,
+              onChanged: (updatedTank) {
+                setState(() {
+                  _tanks[index] = updatedTank;
+                });
+              },
+              onRemove: () => _removeTank(index),
+            ),
+          );
+        }),
+      ],
     );
+  }
+
+  void _addTank() {
+    setState(() {
+      _tanks.add(DiveTank(
+        id: _uuid.v4(),
+        volume: 12.0,
+        startPressure: 200,
+        gasMix: const GasMix(),
+        role: _tanks.isEmpty ? TankRole.backGas : TankRole.stage,
+        order: _tanks.length,
+      ));
+    });
+  }
+
+  void _removeTank(int index) {
+    setState(() {
+      _tanks.removeAt(index);
+      // Update order for remaining tanks
+      for (var i = 0; i < _tanks.length; i++) {
+        _tanks[i] = _tanks[i].copyWith(order: i);
+      }
+    });
   }
 
   Widget _buildEquipmentSection() {
@@ -1495,20 +1502,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           ? double.parse(_airTempController.text)
           : null;
 
-      // Parse tank values
-      final tankVolume = _tankVolumeController.text.isNotEmpty
-          ? double.parse(_tankVolumeController.text)
-          : null;
-      final startPressure = _startPressureController.text.isNotEmpty
-          ? int.parse(_startPressureController.text)
-          : null;
-      final endPressure = _endPressureController.text.isNotEmpty
-          ? int.parse(_endPressureController.text)
-          : null;
-      final o2Percent = _o2PercentController.text.isNotEmpty
-          ? double.parse(_o2PercentController.text)
-          : 21.0;
-
       // Parse conditions and weight values
       final swellHeight = _swellHeightController.text.isNotEmpty
           ? double.parse(_swellHeightController.text)
@@ -1516,19 +1509,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       final weightAmount = _weightAmountController.text.isNotEmpty
           ? double.parse(_weightAmountController.text)
           : null;
-
-      // Create tank
-      final tanks = <DiveTank>[];
-      if (tankVolume != null || startPressure != null || endPressure != null) {
-        tanks.add(DiveTank(
-          id: '',
-          volume: tankVolume,
-          startPressure: startPressure,
-          endPressure: endPressure,
-          gasMix: GasMix(o2: o2Percent),
-          order: 0,
-        ));
-      }
 
       // Create dive entity
       final dive = Dive(
@@ -1549,7 +1529,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         site: _selectedSite,
         trip: _selectedTrip,
         diveCenter: _selectedDiveCenter,
-        tanks: tanks,
+        tanks: _tanks,
         equipment: _selectedEquipment,
         // Conditions fields
         currentDirection: _currentDirection,

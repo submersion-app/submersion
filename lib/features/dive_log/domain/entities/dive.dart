@@ -221,18 +221,26 @@ class DiveProfilePoint extends Equatable {
 /// Tank configuration for a dive
 class DiveTank extends Equatable {
   final String id;
+  final String? name; // user-friendly name like "Primary AL80"
   final double? volume; // liters
+  final int? workingPressure; // bar - rated pressure
   final int? startPressure; // bar
   final int? endPressure; // bar
   final GasMix gasMix;
+  final TankRole role; // back gas, stage, deco, bailout, etc.
+  final TankMaterial? material; // aluminum, steel, carbon fiber
   final int order; // for multi-tank ordering
 
   const DiveTank({
     required this.id,
+    this.name,
     this.volume,
+    this.workingPressure,
     this.startPressure,
     this.endPressure,
     this.gasMix = const GasMix(),
+    this.role = TankRole.backGas,
+    this.material,
     this.order = 0,
   });
 
@@ -242,8 +250,46 @@ class DiveTank extends Equatable {
     return startPressure! - endPressure!;
   }
 
+  /// Create a copy with updated fields
+  DiveTank copyWith({
+    String? id,
+    String? name,
+    double? volume,
+    int? workingPressure,
+    int? startPressure,
+    int? endPressure,
+    GasMix? gasMix,
+    TankRole? role,
+    TankMaterial? material,
+    int? order,
+  }) {
+    return DiveTank(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      volume: volume ?? this.volume,
+      workingPressure: workingPressure ?? this.workingPressure,
+      startPressure: startPressure ?? this.startPressure,
+      endPressure: endPressure ?? this.endPressure,
+      gasMix: gasMix ?? this.gasMix,
+      role: role ?? this.role,
+      material: material ?? this.material,
+      order: order ?? this.order,
+    );
+  }
+
   @override
-  List<Object?> get props => [id, volume, startPressure, endPressure, gasMix, order];
+  List<Object?> get props => [
+        id,
+        name,
+        volume,
+        workingPressure,
+        startPressure,
+        endPressure,
+        gasMix,
+        role,
+        material,
+        order,
+      ];
 }
 
 /// Gas mixture (Air, Nitrox, Trimix)

@@ -173,11 +173,15 @@ class DiveRepository {
         id: Value(_uuid.v4()),
         diveId: Value(id),
         volume: Value(tank.volume),
+        workingPressure: Value(tank.workingPressure),
         startPressure: Value(tank.startPressure),
         endPressure: Value(tank.endPressure),
         o2Percent: Value(tank.gasMix.o2),
         hePercent: Value(tank.gasMix.he),
         tankOrder: Value(tank.order),
+        tankRole: Value(tank.role.name),
+        tankMaterial: Value(tank.material?.name),
+        tankName: Value(tank.name),
       ));
     }
 
@@ -256,11 +260,15 @@ class DiveRepository {
         id: Value(_uuid.v4()),
         diveId: Value(dive.id),
         volume: Value(tank.volume),
+        workingPressure: Value(tank.workingPressure),
         startPressure: Value(tank.startPressure),
         endPressure: Value(tank.endPressure),
         o2Percent: Value(tank.gasMix.o2),
         hePercent: Value(tank.gasMix.he),
         tankOrder: Value(tank.order),
+        tankRole: Value(tank.role.name),
+        tankMaterial: Value(tank.material?.name),
+        tankName: Value(tank.name),
       ));
     }
 
@@ -721,10 +729,22 @@ class DiveRepository {
       weightBeltUsed: row.weightBeltUsed,
       tanks: tanks.map((t) => domain.DiveTank(
         id: t.id,
+        name: t.tankName,
         volume: t.volume,
+        workingPressure: t.workingPressure,
         startPressure: t.startPressure,
         endPressure: t.endPressure,
         gasMix: domain.GasMix(o2: t.o2Percent, he: t.hePercent),
+        role: TankRole.values.firstWhere(
+          (r) => r.name == t.tankRole,
+          orElse: () => TankRole.backGas,
+        ),
+        material: t.tankMaterial != null
+            ? TankMaterial.values.firstWhere(
+                (m) => m.name == t.tankMaterial,
+                orElse: () => TankMaterial.aluminum,
+              )
+            : null,
         order: t.tankOrder,
       )).toList(),
       profile: const [], // Profile not loaded for list views
@@ -899,10 +919,22 @@ class DiveRepository {
       weightBeltUsed: row.weightBeltUsed,
       tanks: tankRows.map((t) => domain.DiveTank(
         id: t.id,
+        name: t.tankName,
         volume: t.volume,
+        workingPressure: t.workingPressure,
         startPressure: t.startPressure,
         endPressure: t.endPressure,
         gasMix: domain.GasMix(o2: t.o2Percent, he: t.hePercent),
+        role: TankRole.values.firstWhere(
+          (r) => r.name == t.tankRole,
+          orElse: () => TankRole.backGas,
+        ),
+        material: t.tankMaterial != null
+            ? TankMaterial.values.firstWhere(
+                (m) => m.name == t.tankMaterial,
+                orElse: () => TankMaterial.aluminum,
+              )
+            : null,
         order: t.tankOrder,
       )).toList(),
       profile: profileRows.map((p) => domain.DiveProfilePoint(
