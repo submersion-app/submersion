@@ -17,6 +17,7 @@ import '../../../marine_life/domain/entities/species.dart';
 import '../../../marine_life/presentation/providers/species_providers.dart';
 import '../../../trips/domain/entities/trip.dart';
 import '../../../trips/presentation/providers/trip_providers.dart';
+import '../../../trips/presentation/widgets/trip_picker.dart';
 import '../../domain/entities/dive.dart';
 import '../providers/dive_providers.dart';
 
@@ -470,7 +471,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         minChildSize: 0.5,
         maxChildSize: 0.9,
         expand: false,
-        builder: (_, scrollController) => _TripPickerSheet(
+        builder: (_, scrollController) => TripPickerSheet(
           scrollController: scrollController,
           selectedTrip: _selectedTrip,
           onTripSelected: (trip) {
@@ -2395,132 +2396,6 @@ class _EquipmentSetTile extends ConsumerWidget {
         title: Text(set.name),
         subtitle: const Text('Error loading items'),
       ),
-    );
-  }
-}
-
-class _TripPickerSheet extends ConsumerWidget {
-  final ScrollController scrollController;
-  final Trip? selectedTrip;
-  final void Function(Trip) onTripSelected;
-
-  const _TripPickerSheet({
-    required this.scrollController,
-    required this.selectedTrip,
-    required this.onTripSelected,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final tripsAsync = ref.watch(allTripsProvider);
-
-    return Column(
-      children: [
-        // Handle bar
-        Container(
-          margin: const EdgeInsets.only(top: 12),
-          width: 40,
-          height: 4,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Select Trip',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              TextButton.icon(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  context.push('/trips/new');
-                },
-                icon: const Icon(Icons.add),
-                label: const Text('New Trip'),
-              ),
-            ],
-          ),
-        ),
-        const Divider(height: 1),
-        Expanded(
-          child: tripsAsync.when(
-            data: (trips) {
-              if (trips.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.flight_takeoff,
-                        size: 48,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No trips yet',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      TextButton.icon(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          context.push('/trips/new');
-                        },
-                        icon: const Icon(Icons.add),
-                        label: const Text('Create Trip'),
-                      ),
-                    ],
-                  ),
-                );
-              }
-
-              return ListView.builder(
-                controller: scrollController,
-                itemCount: trips.length,
-                itemBuilder: (context, index) {
-                  final trip = trips[index];
-                  final isSelected = trip.id == selectedTrip?.id;
-                  final dateFormat = DateFormat.yMMMd();
-
-                  return ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: isSelected
-                          ? Theme.of(context).colorScheme.primary
-                          : Theme.of(context).colorScheme.primaryContainer,
-                      child: Icon(
-                        trip.isLiveaboard ? Icons.sailing : Icons.flight_takeoff,
-                        color: isSelected
-                            ? Theme.of(context).colorScheme.onPrimary
-                            : Theme.of(context).colorScheme.onPrimaryContainer,
-                      ),
-                    ),
-                    title: Text(trip.name),
-                    subtitle: Text(
-                      '${dateFormat.format(trip.startDate)} - ${dateFormat.format(trip.endDate)}',
-                    ),
-                    trailing: isSelected
-                        ? Icon(
-                            Icons.check_circle,
-                            color: Theme.of(context).colorScheme.primary,
-                          )
-                        : null,
-                    onTap: () => onTripSelected(trip),
-                  );
-                },
-              );
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) => Center(
-              child: Text('Error loading trips: $error'),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
