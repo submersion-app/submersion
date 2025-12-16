@@ -260,16 +260,15 @@ class TripRepository {
 
   /// Get all trips with their statistics
   Future<List<domain.TripWithStats>> getAllTripsWithStats() async {
-    // Example assumes statistics are: number of dives and total expenses per trip.
-    // Adjust the JOINs and aggregations as needed for your schema.
     final rows = await _db.customSelect('''
-      SELECT 
-        t.*, 
+      SELECT
+        t.*,
         COUNT(DISTINCT d.id) AS dive_count,
-        COALESCE(SUM(e.amount), 0) AS total_expenses
+        COALESCE(SUM(d.duration), 0) AS total_bottom_time,
+        MAX(d.max_depth) AS max_depth,
+        AVG(d.avg_depth) AS avg_depth
       FROM trips t
       LEFT JOIN dives d ON d.trip_id = t.id
-      LEFT JOIN expenses e ON e.trip_id = t.id
       GROUP BY t.id
       ORDER BY t.start_date DESC
     ''').get();
@@ -287,11 +286,12 @@ class TripRepository {
         createdAt: DateTime.fromMillisecondsSinceEpoch(row.data['created_at'] as int),
         updatedAt: DateTime.fromMillisecondsSinceEpoch(row.data['updated_at'] as int),
       );
-      // Adjust the following according to your TripWithStats constructor
       return domain.TripWithStats(
         trip: trip,
         diveCount: row.data['dive_count'] as int,
-        totalExpenses: (row.data['total_expenses'] as num).toDouble(),
+        totalBottomTime: row.data['total_bottom_time'] as int,
+        maxDepth: row.data['max_depth'] as double?,
+        avgDepth: row.data['avg_depth'] as double?,
       );
     }).toList();
   }
