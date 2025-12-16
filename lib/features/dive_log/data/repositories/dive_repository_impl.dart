@@ -291,6 +291,39 @@ class DiveRepository {
     }
   }
 
+  /// Bulk delete multiple dives
+  /// Returns the list of deleted dive IDs for potential undo
+  Future<List<String>> bulkDeleteDives(List<String> ids) async {
+    if (ids.isEmpty) return [];
+
+    try {
+      _log.info('Bulk deleting ${ids.length} dives');
+      await (_db.delete(_db.dives)..where((t) => t.id.isIn(ids))).go();
+      _log.info('Bulk deleted ${ids.length} dives');
+      return ids;
+    } catch (e, stackTrace) {
+      _log.error('Failed to bulk delete dives', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Get dives by their IDs (for undo functionality)
+  Future<List<domain.Dive>> getDivesByIds(List<String> ids) async {
+    if (ids.isEmpty) return [];
+
+    try {
+      final query = _db.select(_db.dives)
+        ..where((t) => t.id.isIn(ids))
+        ..orderBy([(t) => OrderingTerm.desc(t.diveDateTime)]);
+
+      final rows = await query.get();
+      return Future.wait(rows.map(_mapRowToDive));
+    } catch (e, stackTrace) {
+      _log.error('Failed to get dives by ids', e, stackTrace);
+      rethrow;
+    }
+  }
+
   // ============================================================================
   // Query Operations
   // ============================================================================

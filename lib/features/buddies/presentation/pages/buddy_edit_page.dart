@@ -8,8 +8,17 @@ import '../providers/buddy_providers.dart';
 
 class BuddyEditPage extends ConsumerStatefulWidget {
   final String? buddyId;
+  final String? initialName;
+  final String? initialEmail;
+  final String? initialPhone;
 
-  const BuddyEditPage({super.key, this.buddyId});
+  const BuddyEditPage({
+    super.key,
+    this.buddyId,
+    this.initialName,
+    this.initialEmail,
+    this.initialPhone,
+  });
 
   @override
   ConsumerState<BuddyEditPage> createState() => _BuddyEditPageState();
@@ -30,12 +39,23 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
   Buddy? _originalBuddy;
 
   bool get isEditing => widget.buddyId != null;
+  bool get hasInitialData =>
+      widget.initialName != null ||
+      widget.initialEmail != null ||
+      widget.initialPhone != null;
 
   @override
   void initState() {
     super.initState();
     if (isEditing) {
       _loadBuddy();
+    } else if (hasInitialData) {
+      // Pre-fill from imported contact
+      _nameController.text = widget.initialName ?? '';
+      _emailController.text = widget.initialEmail ?? '';
+      _phoneController.text = widget.initialPhone ?? '';
+      // Mark as having changes since we have pre-filled data
+      _hasChanges = true;
     }
     _nameController.addListener(_onFieldChanged);
     _emailController.addListener(_onFieldChanged);

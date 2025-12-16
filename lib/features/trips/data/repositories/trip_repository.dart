@@ -134,10 +134,12 @@ class TripRepository {
     try {
       _log.info('Deleting trip: $id');
 
-      // First, remove trip association from dives
-      await _db.customStatement('''
-        UPDATE dives SET trip_id = NULL WHERE trip_id = ?
-      ''', [Variable.withString(id)]);
+      // First, remove trip association from dives using customUpdate
+      await _db.customUpdate(
+        'UPDATE dives SET trip_id = NULL WHERE trip_id = ?',
+        variables: [Variable.withString(id)],
+        updates: {_db.dives},
+      );
 
       // Then delete the trip
       await (_db.delete(_db.trips)..where((t) => t.id.equals(id))).go();
@@ -174,9 +176,11 @@ class TripRepository {
   Future<void> assignDiveToTrip(String diveId, String tripId) async {
     try {
       _log.info('Assigning dive $diveId to trip $tripId');
-      await _db.customStatement('''
-        UPDATE dives SET trip_id = ? WHERE id = ?
-      ''', [Variable.withString(tripId), Variable.withString(diveId)]);
+      await _db.customUpdate(
+        'UPDATE dives SET trip_id = ? WHERE id = ?',
+        variables: [Variable.withString(tripId), Variable.withString(diveId)],
+        updates: {_db.dives},
+      );
       _log.info('Assigned dive to trip');
     } catch (e, stackTrace) {
       _log.error('Failed to assign dive to trip', e, stackTrace);
@@ -188,9 +192,11 @@ class TripRepository {
   Future<void> removeDiveFromTrip(String diveId) async {
     try {
       _log.info('Removing dive $diveId from trip');
-      await _db.customStatement('''
-        UPDATE dives SET trip_id = NULL WHERE id = ?
-      ''', [Variable.withString(diveId)]);
+      await _db.customUpdate(
+        'UPDATE dives SET trip_id = NULL WHERE id = ?',
+        variables: [Variable.withString(diveId)],
+        updates: {_db.dives},
+      );
       _log.info('Removed dive from trip');
     } catch (e, stackTrace) {
       _log.error('Failed to remove dive from trip', e, stackTrace);

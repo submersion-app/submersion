@@ -1,4 +1,8 @@
+import 'dart:io' show Platform;
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -7,6 +11,67 @@ import '../providers/buddy_providers.dart';
 
 class BuddyListPage extends ConsumerWidget {
   const BuddyListPage({super.key});
+
+  /// Check if contact import is supported on this platform
+  bool get _isContactImportSupported {
+    if (kIsWeb) return false;
+    return Platform.isIOS || Platform.isAndroid;
+  }
+
+  Future<void> _importFromContacts(BuildContext context) async {
+    // Check platform support first
+    if (!_isContactImportSupported) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Contact import is only available on iOS and Android'),
+          ),
+        );
+      }
+      return;
+    }
+
+    // Request permission
+    if (!await FlutterContacts.requestPermission(readonly: true)) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Contact permission is required to import buddies'),
+          ),
+        );
+      }
+      return;
+    }
+
+    // Let user pick a contact
+    final contact = await FlutterContacts.openExternalPick();
+    if (contact == null) return;
+
+    // Get full contact details
+    final fullContact = await FlutterContacts.getContact(contact.id);
+    if (fullContact == null) return;
+
+    // Extract contact info
+    final name = fullContact.displayName;
+    final email = fullContact.emails.isNotEmpty
+        ? fullContact.emails.first.address
+        : null;
+    final phone = fullContact.phones.isNotEmpty
+        ? fullContact.phones.first.number
+        : null;
+
+    if (context.mounted) {
+      // Navigate to buddy edit page with pre-filled data
+      context.push(
+        '/buddies/new',
+        extra: {
+          'name': name,
+          'email': email,
+          'phone': phone,
+        },
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -24,6 +89,23 @@ class BuddyListPage extends ConsumerWidget {
                 delegate: BuddySearchDelegate(ref),
               );
             },
+          ),
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'import') {
+                _importFromContacts(context);
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'import',
+                child: ListTile(
+                  leading: Icon(Icons.contacts),
+                  title: Text('Import from Contacts'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ],
           ),
         ],
       ),
