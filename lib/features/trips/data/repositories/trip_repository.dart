@@ -260,15 +260,40 @@ class TripRepository {
 
   /// Get all trips with their statistics
   Future<List<domain.TripWithStats>> getAllTripsWithStats() async {
-    final trips = await getAllTrips();
-    final result = <domain.TripWithStats>[];
+    // Example assumes statistics are: number of dives and total expenses per trip.
+    // Adjust the JOINs and aggregations as needed for your schema.
+    final rows = await _db.customSelect('''
+      SELECT 
+        t.*, 
+        COUNT(DISTINCT d.id) AS dive_count,
+        COALESCE(SUM(e.amount), 0) AS total_expenses
+      FROM trips t
+      LEFT JOIN dives d ON d.trip_id = t.id
+      LEFT JOIN expenses e ON e.trip_id = t.id
+      GROUP BY t.id
+      ORDER BY t.start_date DESC
+    ''').get();
 
-    for (final trip in trips) {
-      final stats = await getTripWithStats(trip.id);
-      result.add(stats);
-    }
-
-    return result;
+    return rows.map((row) {
+      final trip = domain.Trip(
+        id: row.data['id'] as String,
+        name: row.data['name'] as String,
+        startDate: DateTime.fromMillisecondsSinceEpoch(row.data['start_date'] as int),
+        endDate: DateTime.fromMillisecondsSinceEpoch(row.data['end_date'] as int),
+        location: row.data['location'] as String?,
+        resortName: row.data['resort_name'] as String?,
+        liveaboardName: row.data['liveaboard_name'] as String?,
+        notes: (row.data['notes'] as String?) ?? '',
+        createdAt: DateTime.fromMillisecondsSinceEpoch(row.data['created_at'] as int),
+        updatedAt: DateTime.fromMillisecondsSinceEpoch(row.data['updated_at'] as int),
+      );
+      // Adjust the following according to your TripWithStats constructor
+      return domain.TripWithStats(
+        trip: trip,
+        diveCount: row.data['dive_count'] as int,
+        totalExpenses: (row.data['total_expenses'] as num).toDouble(),
+      );
+    }).toList();
   }
 
   domain.Trip _mapRowToTrip(Trip row) {
