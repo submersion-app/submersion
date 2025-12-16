@@ -17,13 +17,18 @@ pubspec.lock
 # macOS
 .DS_Store
 
-# Generated platforms (recreate with flutter create)
-/android/
-/ios/
-/linux/
-/macos/
-/windows/
-/web/
+# Platform build artifacts (but track source files)
+/android/.gradle/
+/android/app/build/
+/android/build/
+/android/local.properties
+/ios/.symlinks/
+/ios/Pods/
+/ios/Flutter/Flutter.podspec
+/linux/flutter/ephemeral/
+/macos/Flutter/ephemeral/
+/macos/Pods/
+/windows/flutter/ephemeral/
 
 # Local dev
 *.db
