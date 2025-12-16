@@ -17,6 +17,7 @@ import '../../features/marine_life/domain/entities/species.dart';
 import '../../features/buddies/domain/entities/buddy.dart';
 import '../../features/certifications/domain/entities/certification.dart';
 import '../../features/dive_centers/domain/entities/dive_center.dart';
+import '../../features/trips/domain/entities/trip.dart';
 
 /// Result class for comprehensive UDDF import
 class UddfImportResult {
@@ -119,6 +120,36 @@ class ExportService {
   final _dateTimeFormat = DateFormat('yyyy-MM-dd HH:mm');
 
   // ==================== CSV EXPORT ====================
+
+  /// Sanitize a string value to prevent CSV injection attacks.
+  /// 
+  /// This method prevents formula injection by prefixing values that start
+  /// with dangerous characters (=, +, -, @, tab, carriage return) with a
+  /// single quote, which forces spreadsheet applications to treat the value
+  /// as plain text instead of a formula.
+  /// 
+  /// References:
+  /// - OWASP CSV Injection: https://owasp.org/www-community/attacks/CSV_Injection
+  String _sanitizeCsvField(String? value) {
+    if (value == null || value.isEmpty) {
+      return '';
+    }
+    
+    // Check if the value starts with a dangerous character
+    final firstChar = value[0];
+    if (firstChar == '=' || 
+        firstChar == '+' || 
+        firstChar == '-' || 
+        firstChar == '@' ||
+        firstChar == '\t' ||
+        firstChar == '\r' ||
+        firstChar == '|') {
+      // Prefix with single quote to neutralize formula execution
+      return "'$value";
+    }
+    
+    return value;
+  }
 
   /// Export dives to CSV format
   Future<String> exportDivesToCsv(List<Dive> dives) async {
@@ -251,6 +282,155 @@ class ExportService {
 
     final csvData = const ListToCsvConverter().convert(rows);
     return _saveAndShareFile(csvData, 'equipment_export.csv', 'text/csv');
+  }
+
+  /// Export trips to CSV format
+  Future<String> exportTripsToCsv(List<Trip> trips) async {
+    final headers = [
+      'Name',
+      'Start Date',
+      'End Date',
+      'Duration (days)',
+      'Location',
+      'Resort',
+      'Liveaboard',
+      'Notes',
+    ];
+
+    final rows = <List<dynamic>>[headers];
+
+    for (final trip in trips) {
+      rows.add([
+        _sanitizeCsvField(trip.name),
+        _dateFormat.format(trip.startDate),
+        _dateFormat.format(trip.endDate),
+        trip.durationDays,
+        _sanitizeCsvField(trip.location),
+        _sanitizeCsvField(trip.resortName),
+        _sanitizeCsvField(trip.liveaboardName),
+        _sanitizeCsvField(trip.notes.replaceAll('\n', ' ')),
+      ]);
+    }
+
+    final csvData = const ListToCsvConverter().convert(rows);
+    return _saveAndShareFile(csvData, 'trips_export.csv', 'text/csv');
+  }
+
+  /// Export trip with dives to PDF
+  Future<String> exportTripToPdf(
+    Trip trip,
+    List<Dive> dives, {
+    TripWithStats? stats,
+  }) async {
+    final pdf = pw.Document();
+
+    // Title page
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        build: (context) => pw.Center(
+          child: pw.Column(
+            mainAxisAlignment: pw.MainAxisAlignment.center,
+            children: [
+              pw.Text(
+                trip.name,
+                style: pw.TextStyle(
+                  fontSize: 36,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              pw.SizedBox(height: 20),
+              pw.Text(
+                '${_dateFormat.format(trip.startDate)} - ${_dateFormat.format(trip.endDate)}',
+                style: const pw.TextStyle(fontSize: 18),
+              ),
+              if (trip.location != null) ...[
+                pw.SizedBox(height: 10),
+                pw.Text(
+                  trip.location!,
+                  style: const pw.TextStyle(fontSize: 16),
+                ),
+              ],
+              if (trip.resortName != null) ...[
+                pw.SizedBox(height: 10),
+                pw.Text(
+                  'Resort: ${trip.resortName}',
+                  style: const pw.TextStyle(fontSize: 14),
+                ),
+              ],
+              if (trip.liveaboardName != null) ...[
+                pw.SizedBox(height: 10),
+                pw.Text(
+                  'Liveaboard: ${trip.liveaboardName}',
+                  style: const pw.TextStyle(fontSize: 14),
+                ),
+              ],
+              pw.SizedBox(height: 30),
+              pw.Text(
+                '${dives.length} Dives',
+                style: pw.TextStyle(
+                  fontSize: 24,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              if (stats != null) ...[
+                pw.SizedBox(height: 10),
+                pw.Text(
+                  'Total Bottom Time: ${stats.formattedBottomTime}',
+                  style: const pw.TextStyle(fontSize: 14),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+
+    // Dive pages
+    for (final dive in dives) {
+      pdf.addPage(
+        pw.Page(
+          pageFormat: PdfPageFormat.a4,
+          build: (context) => pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text(
+                'Dive ${dive.diveNumber ?? ""}',
+                style: pw.TextStyle(
+                  fontSize: 24,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              pw.SizedBox(height: 10),
+              pw.Text('Date: ${_dateTimeFormat.format(dive.dateTime)}'),
+              if (dive.site != null)
+                pw.Text('Site: ${dive.site!.name}'),
+              pw.SizedBox(height: 10),
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  if (dive.maxDepth != null)
+                    pw.Text('Max Depth: ${dive.maxDepth!.toStringAsFixed(1)} m'),
+                  if (dive.duration != null)
+                    pw.Text('Duration: ${dive.duration!.inMinutes} min'),
+                ],
+              ),
+              if (dive.waterTemp != null)
+                pw.Text('Water Temp: ${dive.waterTemp!.toStringAsFixed(1)}°C'),
+              if (dive.notes.isNotEmpty) ...[
+                pw.SizedBox(height: 10),
+                pw.Text('Notes:'),
+                pw.Text(dive.notes),
+              ],
+            ],
+          ),
+        ),
+      );
+    }
+
+    final bytes = await pdf.save();
+    final fileName = 'trip_${trip.name.replaceAll(RegExp(r'[^\w]'), '_')}.pdf';
+    return _saveAndShareFileBytes(bytes, fileName, 'application/pdf');
   }
 
   // ==================== PDF EXPORT ====================

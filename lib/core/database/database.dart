@@ -6,6 +6,23 @@ part 'database.g.dart';
 // Table Definitions
 // ============================================================================
 
+/// Dive trips (group of dives at a destination)
+class Trips extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  IntColumn get startDate => integer()(); // Unix timestamp
+  IntColumn get endDate => integer()(); // Unix timestamp
+  TextColumn get location => text().nullable()();
+  TextColumn get resortName => text().nullable()();
+  TextColumn get liveaboardName => text().nullable()();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Dive log entries
 class Dives extends Table {
   TextColumn get id => text()();
@@ -25,6 +42,8 @@ class Dives extends Table {
   IntColumn get rating => integer().nullable()();
   // Dive center reference
   TextColumn get diveCenterId => text().nullable().references(DiveCenters, #id)();
+  // Trip reference
+  TextColumn get tripId => text().nullable().references(Trips, #id)();
   // Conditions fields
   TextColumn get currentDirection => text().nullable()();
   TextColumn get currentStrength => text().nullable()();
@@ -292,6 +311,7 @@ class DiveCenters extends Table {
 
 @DriftDatabase(
   tables: [
+    Trips,
     Dives,
     DiveProfiles,
     DiveSites,
@@ -315,7 +335,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration {
@@ -496,6 +516,33 @@ class AppDatabase extends _$AppDatabase {
           await customStatement('ALTER TABLE equipment ADD COLUMN status TEXT NOT NULL DEFAULT \'active\'');
           await customStatement('ALTER TABLE equipment ADD COLUMN purchase_price REAL');
           await customStatement('ALTER TABLE equipment ADD COLUMN purchase_currency TEXT NOT NULL DEFAULT \'USD\'');
+        }
+        if (from < 6) {
+          // Migration v5 -> v6: Add trips table and trip_id to dives
+
+          // Create trips table
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS trips (
+              id TEXT NOT NULL PRIMARY KEY,
+              name TEXT NOT NULL,
+              start_date INTEGER NOT NULL,
+              end_date INTEGER NOT NULL,
+              location TEXT,
+              resort_name TEXT,
+              liveaboard_name TEXT,
+              notes TEXT NOT NULL DEFAULT '',
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL
+            )
+          ''');
+
+          // Add trip_id column to dives table
+          await customStatement('ALTER TABLE dives ADD COLUMN trip_id TEXT REFERENCES trips(id)');
+
+          // Create index for faster trip lookups
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dives_trip_id ON dives(trip_id)
+          ''');
         }
       },
       beforeOpen: (details) async {

@@ -1,7 +1,7 @@
 # Submersion Feature Roadmap
 ## Comprehensive Development Plan
 
-> **Last Updated:** 2025-12-11
+> **Last Updated:** 2025-12-15
 > **Current Version:** 0.1.0+1 (MVP Complete)
 > **Status:** Production-ready core, expanding to feature parity with industry leaders
 
@@ -84,7 +84,7 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 | Site name, region, country | ✅ Implemented | MVP | - | Full site database |
 | GPS coordinates | ✅ Implemented | MVP | - | Lat/long with map view |
 | Boat / operator name | 🟡 In Progress | v1.0 | 🎯 High | Add dedicated fields |
-| Trip grouping | 📋 Planned | v1.5 | Medium | Multi-dive trips with dates |
+| Trip grouping | 📋 Planned | v1.0 | 🎯 High | Multi-dive trips with dates |
 | Liveaboard tracking | 📋 Planned | v2.0 | Low | Specialized trip type |
 
 **v1.0 Tasks:**
@@ -92,11 +92,14 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 - [ ] Create Dive Center/Operator entity with contact info, location
 - [ ] Site picker with "Add New Site" quick action
 - [ ] GPS from device location when creating dive (mobile)
+- [ ] Trip entity linking multiple dives
+- [ ] Trip summary page (stats, export)
+- [ ] Add/edit trips with date ranges and location
+- [ ] Assign dives to trips in dive edit form
 
 **v1.5 Tasks:**
-- [ ] Trip entity linking multiple dives
-- [ ] Trip summary page (stats, photos, export)
 - [ ] Trip templates (liveaboard, resort week, local weekend)
+- [ ] Trip photo galleries (deferred with photos to v2.0)
 
 ---
 
@@ -310,6 +313,8 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 - [ ] Dynamic tank list with Add/Remove buttons
 - [ ] Add `tank_type` enum (Back Gas, Stage, Deco, Bailout, Sidemount Left/Right)
 - [ ] Add `material` enum (Steel, Aluminum, Carbon Fiber)
+- [ ] Common tank presets dropdown (AL80, HP100, HP120, LP85, Doubles, etc.)
+- [ ] Save custom tank configurations as user presets
 
 ---
 
@@ -551,8 +556,12 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 | Gas / cylinder config | ✅ Implemented | MVP | - | Per-tank gas mixes |
 
 **v1.0 Tasks:**
-- [ ] Add `weight_system` enum (Belt, Integrated, Trim Pockets, Ankle Weights) to dives table
-- [ ] Add `total_weight_kg` field
+- [ ] Support multiple weight entries per dive (e.g., integrated + trim weights)
+- [ ] Create `dive_weights` table (dive_id, weight_type, amount_kg)
+- [ ] Add `weight_type` enum (Integrated, Belt, Trim, Ankle, Backplate, Other)
+- [ ] Weight entry UI with add/remove for multiple weight entries
+- [ ] Remove "Weight belt used" toggle from UI (replaced by weight entries)
+- [ ] Display total weight on dive detail page
 - [ ] Weight calculator based on exposure suit, tank type, water type
 
 ---
@@ -576,6 +585,8 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 - [ ] Buddy picker in dive edit form (multi-select with roles)
 - [ ] Add `role` enum to dive_buddies (Buddy, Dive Guide, Instructor, Student, Solo)
 - [ ] Buddy detail page showing all dives together, stats
+- [ ] Auto-convert legacy plaintext buddies/divemaster/guide on import to proper Buddy entities
+- [ ] Disable adding legacy plaintext buddies/divemaster/guide in the UI (use Buddy picker only)
 
 **v1.5 Tasks:**
 - [ ] Import buddies from contacts (mobile)
@@ -782,13 +793,22 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 | Full-text search | ✅ Implemented | MVP | - | Notes, sites, buddies |
 | Filter by date range | ✅ Implemented | MVP | - | |
 | Filter by location, depth | ✅ Implemented | MVP | - | |
+| Bulk operations (delete) | 📋 Planned | v1.0 | 🎯 High | Multi-select and delete dives |
 | Filter by tags, gas, gear | 📋 Planned | v1.5 | Medium | After tags implemented |
 | Saved filters ("Smart Logs") | 📋 Planned | v2.0 | Low | Persistent filter sets |
+
+**v1.0 Tasks:**
+- [ ] Multi-select mode in dive list (long-press or checkbox toggle)
+- [ ] Select all / deselect all options
+- [ ] Bulk delete with confirmation dialog (showing count)
+- [ ] Undo functionality for bulk delete (snackbar with undo for 5 seconds)
 
 **v1.5 Tasks:**
 - [ ] Expand filter UI with all available criteria (tags, equipment, buddy, gas mix, certification)
 - [ ] "Advanced Search" page with all filter options
 - [ ] Recent searches history
+- [ ] Bulk export (export selected dives to CSV/UDDF/PDF)
+- [ ] Bulk edit (change trip, add tag to multiple dives)
 
 **v2.0 Tasks:**
 - [ ] Save filter configurations as "Smart Logs"
@@ -981,11 +1001,16 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 |---------|--------|-------|----------|-------|
 | CSV import/export | ✅ Implemented | MVP | - | Dives, sites, equipment |
 | UDDF import/export | ✅ Implemented | MVP | - | v3.2.0 compliant |
+| UDDF buddy/guide export | 📋 Planned | v1.0 | Medium | Export to both legacy and app-specific fields |
 | DAN DL7 export | 📋 Planned | v1.5 | Low | Research data format |
 | PDF export | ✅ Implemented | MVP | - | Printable logbook |
 | HTML export | 📋 Planned | v2.0 | Low | Web-viewable logbook |
 | Excel export | 📋 Planned | v1.5 | Low | .xlsx format |
 | Google Earth KML export | 📋 Planned | v1.5 | Low | Map all dive sites |
+
+**v1.0 Tasks:**
+- [ ] On UDDF export: write non-legacy Buddy entities to both legacy UDDF fields (buddy, divemaster, guide) and app-specific fields for maximum compatibility
+- [ ] On UDDF import: auto-create Buddy entities from legacy plaintext buddy/divemaster/guide fields
 
 **v1.5 Tasks:**
 - [ ] DAN DL7 export (research format specification)
@@ -1235,6 +1260,19 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 - [ ] Service history per equipment item
 - [ ] Service log export
 
+### Trip Grouping (🎯 HIGH PRIORITY)
+- [ ] Trip entity linking multiple dives
+- [ ] Trip list, detail, and edit pages
+- [ ] Assign dives to trips in dive edit form
+- [ ] Trip summary with stats and dive count
+- [ ] Trip-based filtering and export
+
+### Bulk Operations (🎯 HIGH PRIORITY)
+- [ ] Multi-select mode in dive list
+- [ ] Bulk delete with confirmation
+- [ ] Select all / deselect all
+- [ ] Undo functionality for bulk operations
+
 ### Dive Conditions Enhancements
 - [ ] Current, swell, entry/exit method fields
 - [ ] Water type field
@@ -1271,10 +1309,12 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 - Buddies: 1.5 weeks
 - Certifications: 1.5 weeks
 - Service Records: 1 week
+- Trips: 1 week
+- Bulk Operations: 0.5 weeks
 - Dive Centers: 1 week
 - Testing: 2 weeks
 - Polish & bug fixes: 2 weeks
-- **Total: ~9 weeks**
+- **Total: ~10.5 weeks**
 
 ---
 
@@ -1533,6 +1573,31 @@ CREATE TABLE dive_centers (
   updated_at INTEGER NOT NULL
 );
 
+-- Dive Weights (multiple weight entries per dive)
+CREATE TABLE dive_weights (
+  id TEXT PRIMARY KEY,
+  dive_id TEXT NOT NULL REFERENCES dives(id) ON DELETE CASCADE,
+  weight_type TEXT NOT NULL, -- Integrated, Belt, Trim, Ankle, Backplate, Other
+  amount_kg REAL NOT NULL,
+  notes TEXT,
+  created_at INTEGER NOT NULL,
+  UNIQUE(dive_id, weight_type)
+);
+
+-- Tank Presets (user-defined common tank configurations)
+CREATE TABLE tank_presets (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL, -- e.g., "AL80", "HP100", "Doubles HP80"
+  volume_liters REAL NOT NULL,
+  working_pressure_bar REAL,
+  material TEXT, -- Steel, Aluminum, Carbon Fiber
+  o2_percent REAL DEFAULT 21,
+  he_percent REAL DEFAULT 0,
+  is_system_preset INTEGER DEFAULT 0, -- true for built-in presets
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL
+);
+
 -- Extend dives table
 ALTER TABLE dives ADD COLUMN dive_center_id TEXT REFERENCES dive_centers(id);
 ALTER TABLE dives ADD COLUMN boat_name TEXT;
@@ -1543,8 +1608,6 @@ ALTER TABLE dives ADD COLUMN swell_height_meters REAL;
 ALTER TABLE dives ADD COLUMN entry_method TEXT;
 ALTER TABLE dives ADD COLUMN exit_method TEXT;
 ALTER TABLE dives ADD COLUMN water_type TEXT;
-ALTER TABLE dives ADD COLUMN weight_system TEXT;
-ALTER TABLE dives ADD COLUMN total_weight_kg REAL;
 ALTER TABLE dives ADD COLUMN is_favorite INTEGER DEFAULT 0;
 
 -- Extend equipment table

@@ -1,10 +1,10 @@
 # Current Sprint - v1.0 Development
 
-> **Current Phase:** v1.0 Development - COMPLETE
+> **Current Phase:** v1.0 Development - IN PROGRESS
 > **Last Updated:** 2025-12-15
-> **Sprint:** Sprint 4 - Testing & Polish (COMPLETED)
+> **Sprint:** Sprint 5 - Trips & Bulk Operations (NEW)
 > **Reference:** See [FEATURE_ROADMAP.md](../FEATURE_ROADMAP.md) for full roadmap
-> **Status:** All 4 sprints completed, v1.0 ready for release
+> **Status:** Sprints 1-4 completed, Sprint 5 added for trips and bulk delete features
 
 ---
 
@@ -140,15 +140,10 @@ CREATE TABLE dive_buddies (
 
 ---
 
-## 1.9: Buddy Import from Contacts (P2) - DEFERRED
+## 1.9: Buddy Import from Contacts (P2) - MOVED TO SPRINT 5
 **Estimated:** 3 hours | **Dependencies:** 1.6
 
-- [ ] Add flutter_contacts package
-- [ ] "Import from Contacts" button
-- [ ] Request permission, show contact picker
-- [ ] Pre-fill buddy form
-
-*Deferred to v1.5 - lower priority feature*
+*Moved to Sprint 5 as task 5.9*
 
 ---
 
@@ -257,6 +252,160 @@ CREATE TABLE dive_buddies (
 
 ---
 
+# Sprint 5: Trips & Bulk Operations (Weeks 10-11) - NEW
+
+## 5.1: Trips Database Schema (P0) - COMPLETE
+**Estimated:** 1 hour | **Dependencies:** None
+
+- [x] Add `trips` table to database schema
+- [x] Add `trip_id` FK to dives table
+- [x] Run code generation
+- [x] Test migration
+
+**Schema:**
+```sql
+CREATE TABLE trips (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  start_date INTEGER NOT NULL,
+  end_date INTEGER NOT NULL,
+  location TEXT,
+  resort_name TEXT,
+  liveaboard_name TEXT,
+  notes TEXT,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL
+);
+
+ALTER TABLE dives ADD COLUMN trip_id TEXT REFERENCES trips(id);
+```
+
+---
+
+## 5.2: Trip Repository (P0) - COMPLETE
+**Estimated:** 3 hours | **Dependencies:** 5.1
+
+- [x] Create trip entity and repository
+- [x] Implement CRUD operations
+- [x] Methods: create, get, getAll, search, update, delete
+- [x] Get dives for trip
+- [x] Assign/remove dives to/from trip
+- [x] Computed properties: dive count, total bottom time, deepest dive, avg depth
+- [ ] Unit tests (deferred to 5.8)
+
+**Files:**
+- `lib/features/trips/data/repositories/trip_repository.dart`
+- `lib/features/trips/domain/entities/trip.dart`
+
+---
+
+## 5.3: Trip Providers (P1) - COMPLETE
+**Estimated:** 2 hours | **Dependencies:** 5.2
+
+- [x] Create trip providers
+- [x] tripRepositoryProvider
+- [x] allTripsProvider
+- [x] tripByIdProvider
+- [x] divesForTripProvider
+- [x] tripSearchProvider
+- [x] tripListNotifierProvider
+
+**Files:**
+- `lib/features/trips/presentation/providers/trip_providers.dart`
+
+---
+
+## 5.4: Trip UI Pages (P1) - COMPLETE
+**Estimated:** 8 hours | **Dependencies:** 5.3
+
+- [x] Trip list page (sorted by start date)
+- [x] Trip detail page (stats, dive list, export)
+- [x] Trip edit page (form with validation)
+- [x] Trip picker for dive edit form
+- [x] Auto-suggest trip based on dive date
+- [x] Update router
+- [x] Add trips link in settings page
+
+**Files:**
+- `lib/features/trips/presentation/pages/trip_list_page.dart`
+- `lib/features/trips/presentation/pages/trip_detail_page.dart`
+- `lib/features/trips/presentation/pages/trip_edit_page.dart`
+- `lib/features/trips/presentation/widgets/trip_picker.dart`
+
+---
+
+## 5.5: Trip Export (P2) - COMPLETE
+**Estimated:** 2 hours | **Dependencies:** 5.4
+
+- [x] Export trip to CSV (all dives)
+- [x] Export trip to PDF (summary + dive details)
+- [x] Use existing export service
+
+**Files:**
+- `lib/core/services/export_service.dart` (added exportTripsToCsv, exportTripToPdf)
+
+---
+
+## 5.6: Bulk Delete UI (P0)
+**Estimated:** 3 hours | **Dependencies:** None
+
+- [ ] Multi-select mode in dive list
+- [ ] Long-press to enter select mode
+- [ ] Show checkboxes when in select mode
+- [ ] App bar actions: Select All, Deselect All, Delete, Cancel
+- [ ] Display selection count
+
+**Files to modify:**
+- `lib/features/dive_log/presentation/pages/dive_list_page.dart`
+
+---
+
+## 5.7: Bulk Delete Logic (P0)
+**Estimated:** 2 hours | **Dependencies:** 5.6
+
+- [ ] Add bulkDeleteDives method to repository
+- [ ] Confirmation dialog with count
+- [ ] Undo functionality (5-second timeout)
+- [ ] Show snackbar with undo button
+- [ ] Exit select mode after delete
+
+**Files to modify:**
+- `lib/features/dive_log/data/repositories/dive_repository.dart`
+
+---
+
+## 5.8: Testing & Documentation (P0)
+**Estimated:** 3 hours | **Dependencies:** All above
+
+- [ ] Unit tests for TripRepository
+- [ ] Widget tests for trip pages
+- [ ] Test bulk delete with undo
+- [ ] Update CLAUDE.md
+- [ ] Update README.md
+
+---
+
+## 5.9: Buddy Import from Contacts (P2)
+**Estimated:** 3 hours | **Dependencies:** Sprint 1 complete
+
+- [ ] Add flutter_contacts package
+- [ ] "Import from Contacts" button on buddy list/edit page
+- [ ] Request permission, show contact picker
+- [ ] Pre-fill buddy form with name, email, phone from contact
+
+**Files:**
+- `lib/features/buddies/presentation/pages/buddy_list_page.dart`
+- `lib/features/buddies/presentation/pages/buddy_edit_page.dart`
+
+---
+
+**Sprint 5 Summary:**
+- **Total Tasks:** 9
+- **Estimated Hours:** 27
+- **Target:** Add trip grouping, bulk operations, and buddy import to v1.0
+
+---
+
 # Workflow Instructions
 
 ## How to Work Through This List
@@ -310,4 +459,4 @@ git push -u origin feature/buddy-schema
 
 ---
 
-**v1.0 Total Estimate:** ~52 tasks, ~168 hours, 9 weeks
+**v1.0 Total Estimate:** ~60 tasks, ~192 hours, 11 weeks (including Sprint 5: Trips & Bulk Operations)
