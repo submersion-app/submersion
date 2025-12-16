@@ -365,12 +365,6 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
     if (!_formKey.currentState!.validate()) return;
 
     // Validate dates
-    if (_endDate.isBefore(_startDate)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('End date must be after start date')),
-      );
-      return;
-    }
 
     setState(() => _isSaving = true);
 
