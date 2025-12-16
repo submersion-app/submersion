@@ -55,9 +55,9 @@ class Trip extends Equatable {
     String? name,
     DateTime? startDate,
     DateTime? endDate,
-    String? location,
-    String? resortName,
-    String? liveaboardName,
+    Object? location = _undefined,
+    Object? resortName = _undefined,
+    Object? liveaboardName = _undefined,
     String? notes,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -67,9 +67,9 @@ class Trip extends Equatable {
       name: name ?? this.name,
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
-      location: location ?? this.location,
-      resortName: resortName ?? this.resortName,
-      liveaboardName: liveaboardName ?? this.liveaboardName,
+      location: location == _undefined ? this.location : location as String?,
+      resortName: resortName == _undefined ? this.resortName : resortName as String?,
+      liveaboardName: liveaboardName == _undefined ? this.liveaboardName : liveaboardName as String?,
       notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -90,6 +90,9 @@ class Trip extends Equatable {
         updatedAt,
       ];
 }
+
+// Sentinel value for distinguishing null from undefined in copyWith
+const _undefined = Object();
 
 /// Trip with computed statistics
 class TripWithStats extends Equatable {
