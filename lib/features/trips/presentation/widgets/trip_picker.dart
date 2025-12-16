@@ -117,7 +117,7 @@ class _TripPickerState extends ConsumerState<TripPicker> {
         minChildSize: 0.5,
         maxChildSize: 0.9,
         expand: false,
-        builder: (_, scrollController) => _TripPickerSheet(
+        builder: (_, scrollController) => TripPickerSheet(
           scrollController: scrollController,
           selectedTrip: widget.selectedTrip,
           onTripSelected: (trip) {
@@ -130,12 +130,14 @@ class _TripPickerState extends ConsumerState<TripPicker> {
   }
 }
 
-class _TripPickerSheet extends ConsumerWidget {
+/// A bottom sheet widget for selecting a trip from a list
+class TripPickerSheet extends ConsumerWidget {
   final ScrollController scrollController;
   final Trip? selectedTrip;
   final ValueChanged<Trip> onTripSelected;
 
-  const _TripPickerSheet({
+  const TripPickerSheet({
+    super.key,
     required this.scrollController,
     required this.selectedTrip,
     required this.onTripSelected,
@@ -192,11 +194,8 @@ class _TripPickerSheet extends ConsumerWidget {
                     children: [
                       Icon(
                         Icons.flight_takeoff,
-                        size: 64,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurfaceVariant
-                            .withValues(alpha: 0.5),
+                        size: 48,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                       const SizedBox(height: 16),
                       Text(
