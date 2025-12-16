@@ -17,6 +17,7 @@ class Dive extends Equatable {
   final DiveSite? site;
   final DiveCenter? diveCenter;
   final Trip? trip;
+  final String? tripId;
   final List<DiveTank> tanks;
   final List<DiveProfilePoint> profile;
   final List<EquipmentItem> equipment;
