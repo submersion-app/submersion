@@ -142,7 +142,8 @@ class ExportService {
         firstChar == '-' || 
         firstChar == '@' ||
         firstChar == '\t' ||
-        firstChar == '\r') {
+        firstChar == '\r' ||
+        firstChar == '|') {
       // Prefix with single quote to neutralize formula execution
       return "'$value";
     }
