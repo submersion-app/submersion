@@ -459,4 +459,6 @@ git push -u origin feature/buddy-schema
 
 ---
 
-**v1.0 Total Estimate:** ~60 tasks, ~192 hours, 11 weeks (including Sprint 5: Trips & Bulk Operations)
+**v1.0 Total Estimate:** ~60 tasks, ~192 hours, 11 weeks
+
+**Remaining for v1.0:** Tasks 5.6-5.9 (Bulk Delete UI/Logic, Testing, Buddy Import from Contacts)
