@@ -52,8 +52,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   final _avgDepthController = TextEditingController();
   final _waterTempController = TextEditingController();
   final _airTempController = TextEditingController();
-  final _buddyController = TextEditingController();
-  final _diveMasterController = TextEditingController();
   final _notesController = TextEditingController();
 
   DiveType _selectedDiveType = DiveType.recreational;
@@ -125,8 +123,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _avgDepthController.text = dive.avgDepth?.toString() ?? '';
           _waterTempController.text = dive.waterTemp?.toString() ?? '';
           _airTempController.text = dive.airTemp?.toString() ?? '';
-          _buddyController.text = dive.buddy ?? '';
-          _diveMasterController.text = dive.diveMaster ?? '';
           _notesController.text = dive.notes;
           _selectedDiveType = dive.diveType;
           _selectedVisibility = dive.visibility ?? Visibility.unknown;
@@ -192,8 +188,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     _avgDepthController.dispose();
     _waterTempController.dispose();
     _airTempController.dispose();
-    _buddyController.dispose();
-    _diveMasterController.dispose();
     _notesController.dispose();
     _swellHeightController.dispose();
     _weightAmountController.dispose();
@@ -1148,43 +1142,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            BuddyPicker(
-              diveId: widget.diveId,
-              selectedBuddies: _selectedBuddies,
-              onChanged: (buddies) {
-                setState(() => _selectedBuddies = buddies);
-              },
-            ),
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 8),
-            Text(
-              'Legacy Fields (for imported dives)',
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _buddyController,
-              decoration: const InputDecoration(
-                labelText: 'Buddy (text)',
-                prefixIcon: Icon(Icons.person),
-                helperText: 'For backward compatibility with imported dives',
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _diveMasterController,
-              decoration: const InputDecoration(
-                labelText: 'Dive Master / Guide',
-                prefixIcon: Icon(Icons.person_outline),
-              ),
-            ),
-          ],
+        child: BuddyPicker(
+          diveId: widget.diveId,
+          selectedBuddies: _selectedBuddies,
+          onChanged: (buddies) {
+            setState(() => _selectedBuddies = buddies);
+          },
         ),
       ),
     );
@@ -1522,8 +1485,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         airTemp: airTemp,
         visibility: _selectedVisibility != Visibility.unknown ? _selectedVisibility : null,
         diveType: _selectedDiveType,
-        buddy: _buddyController.text.isNotEmpty ? _buddyController.text : null,
-        diveMaster: _diveMasterController.text.isNotEmpty ? _diveMasterController.text : null,
         notes: _notesController.text,
         rating: _rating > 0 ? _rating : null,
         site: _selectedSite,
