@@ -225,3 +225,27 @@ enum WeightType {
   final String displayName;
   const WeightType(this.displayName);
 }
+
+/// Tank role/purpose during a dive
+enum TankRole {
+  backGas('Back Gas'),
+  stage('Stage'),
+  deco('Deco'),
+  bailout('Bailout'),
+  sidemountLeft('Sidemount Left'),
+  sidemountRight('Sidemount Right'),
+  pony('Pony Bottle');
+
+  final String displayName;
+  const TankRole(this.displayName);
+}
+
+/// Tank construction material
+enum TankMaterial {
+  aluminum('Aluminum'),
+  steel('Steel'),
+  carbonFiber('Carbon Fiber');
+
+  final String displayName;
+  const TankMaterial(this.displayName);
+}

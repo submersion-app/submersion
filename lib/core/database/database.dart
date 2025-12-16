@@ -101,11 +101,15 @@ class DiveTanks extends Table {
   TextColumn get diveId => text().references(Dives, #id, onDelete: KeyAction.cascade)();
   TextColumn get equipmentId => text().nullable().references(Equipment, #id)();
   RealColumn get volume => real().nullable()(); // liters
+  IntColumn get workingPressure => integer().nullable()(); // bar - rated pressure
   IntColumn get startPressure => integer().nullable()(); // bar
   IntColumn get endPressure => integer().nullable()(); // bar
   RealColumn get o2Percent => real().withDefault(const Constant(21.0))();
   RealColumn get hePercent => real().withDefault(const Constant(0.0))();
   IntColumn get tankOrder => integer().withDefault(const Constant(0))();
+  TextColumn get tankRole => text().withDefault(const Constant('backGas'))(); // backGas, stage, deco, bailout, etc.
+  TextColumn get tankMaterial => text().nullable()(); // aluminum, steel, carbonFiber
+  TextColumn get tankName => text().nullable()(); // user-friendly name like "Primary AL80"
 
   @override
   Set<Column> get primaryKey => {id};
@@ -335,7 +339,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration {
@@ -543,6 +547,13 @@ class AppDatabase extends _$AppDatabase {
           await customStatement('''
             CREATE INDEX IF NOT EXISTS idx_dives_trip_id ON dives(trip_id)
           ''');
+        }
+        if (from < 7) {
+          // Migration v6 -> v7: Add tank enhancements (role, material, working pressure, name)
+          await customStatement("ALTER TABLE dive_tanks ADD COLUMN working_pressure INTEGER");
+          await customStatement("ALTER TABLE dive_tanks ADD COLUMN tank_role TEXT NOT NULL DEFAULT 'backGas'");
+          await customStatement('ALTER TABLE dive_tanks ADD COLUMN tank_material TEXT');
+          await customStatement('ALTER TABLE dive_tanks ADD COLUMN tank_name TEXT');
         }
       },
       beforeOpen: (details) async {
