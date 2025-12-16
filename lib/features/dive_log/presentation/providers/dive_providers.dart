@@ -184,6 +184,26 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
     await _loadDives();
     _ref.invalidate(diveStatisticsProvider);
   }
+
+  /// Bulk delete multiple dives
+  /// Returns the deleted dives for potential undo
+  Future<List<domain.Dive>> bulkDeleteDives(List<String> ids) async {
+    // Get the dives before deleting for undo capability
+    final divesToDelete = await _repository.getDivesByIds(ids);
+    await _repository.bulkDeleteDives(ids);
+    await _loadDives();
+    _ref.invalidate(diveStatisticsProvider);
+    return divesToDelete;
+  }
+
+  /// Restore multiple dives (for undo functionality)
+  Future<void> restoreDives(List<domain.Dive> dives) async {
+    for (final dive in dives) {
+      await _repository.createDive(dive);
+    }
+    await _loadDives();
+    _ref.invalidate(diveStatisticsProvider);
+  }
 }
 
 final diveListNotifierProvider =

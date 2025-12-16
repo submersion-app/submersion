@@ -179,7 +179,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newBuddy',
-                builder: (context, state) => const BuddyEditPage(),
+                builder: (context, state) {
+                  final extra = state.extra as Map<String, dynamic>?;
+                  return BuddyEditPage(
+                    initialName: extra?['name'] as String?,
+                    initialEmail: extra?['email'] as String?,
+                    initialPhone: extra?['phone'] as String?,
+                  );
+                },
               ),
               GoRoute(
                 path: ':buddyId',
