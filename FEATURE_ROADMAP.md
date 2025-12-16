@@ -302,19 +302,21 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 | Feature | Status | Phase | Priority | Notes |
 |---------|--------|-------|----------|-------|
-| Multi-tank support | ✅ Implemented | MVP | - | Currently 3 tanks max in UI |
-| Tank volume, pressures | ✅ Implemented | MVP | - | Start/end pressure |
-| Tank material | 📋 Planned | v1.1 | Low | Steel vs aluminum |
-| Tank location | 📋 Planned | v1.5 | Medium | Back gas, stage, deco, bailout |
-| Unlimited tanks | 📋 Planned | v1.1 | Medium | Remove UI limit |
+| Multi-tank support | ✅ Implemented | MVP | - | Unlimited tanks with add/remove buttons |
+| Tank volume, pressures | ✅ Implemented | MVP | - | Start/end/working pressure |
+| Tank material | ✅ Implemented | v1.1 | - | Steel, Aluminum, Carbon Fiber |
+| Tank role | ✅ Implemented | v1.1 | - | Back gas, stage, deco, bailout, sidemount, pony |
+| Unlimited tanks | ✅ Implemented | v1.1 | - | Dynamic list with add/remove |
+| Tank presets | ✅ Implemented | v1.1 | - | AL40/63/80, HP80/100/120, LP85, Steel 10/12/15L |
 
-**v1.1 Tasks:** (deferred from v1.0)
-- [ ] Remove artificial 3-tank limit in dive edit form
-- [ ] Dynamic tank list with Add/Remove buttons
-- [ ] Add `tank_type` enum (Back Gas, Stage, Deco, Bailout, Sidemount Left/Right)
-- [ ] Add `material` enum (Steel, Aluminum, Carbon Fiber)
-- [ ] Common tank presets dropdown (AL80, HP100, HP120, LP85, Doubles, etc.)
-- [ ] Save custom tank configurations as user presets
+**v1.1 Tasks:** ✅ COMPLETE
+- [x] Remove artificial tank limit in dive edit form
+- [x] Dynamic tank list with Add/Remove buttons
+- [x] Add `tank_role` enum (Back Gas, Stage, Deco, Bailout, Sidemount Left/Right, Pony)
+- [x] Add `tank_material` enum (Steel, Aluminum, Carbon Fiber)
+- [x] Common tank presets dropdown (AL80, HP100, HP120, LP85, Steel 10/12/15L, etc.)
+- [x] TankEditor widget with all tank configuration options
+- [ ] Save custom tank configurations as user presets (deferred to v1.5)
 
 ---
 
@@ -324,11 +326,12 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 |---------|--------|-------|----------|-------|
 | O₂ %, He %, N₂ balance | ✅ Implemented | MVP | - | Air, Nitrox, Trimix |
 | Gas changes on profile | 📋 Planned | v1.5 | High | Mark switch points |
-| Gas naming | 📋 Planned | v1.1 | Low | "EAN32", "TMX 18/45" |
+| Gas naming | ✅ Implemented | v1.1 | - | "EAN32", "TMX 18/45" auto-generated |
+| Gas mix templates | ✅ Implemented | v1.1 | - | Air, EAN32/36/40/50, O₂, Trimix blends |
 
-**v1.1 Tasks:** (deferred from v1.0)
-- [ ] Add common gas mix templates (Air, EAN32, EAN36, O₂, TMX 18/45, TMX 21/35)
-- [ ] Gas mix name auto-generation based on O₂/He percentages
+**v1.1 Tasks:** ✅ COMPLETE
+- [x] Add common gas mix templates (Air, EAN32, EAN36, EAN40, EAN50, O₂, TMX 18/45, TMX 21/35, TMX 15/55, Helitrox 25/25)
+- [x] Gas mix name auto-generation based on O₂/He percentages (already in GasMix.name)
 
 **v1.5 Tasks:**
 - [ ] Gas switch events on profile (table: `gas_switches` with timestamp, tank_id)
