@@ -94,8 +94,16 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
   Widget build(BuildContext context) {
     final dateFormat = DateFormat.yMMMd();
 
-    return WillPopScope(
-      onWillPop: _onWillPop,
+    return PopScope(
+      canPop: true,
+      onPopInvoked: (didPop) async {
+        if (!didPop) {
+          final shouldPop = await _onWillPop();
+          if (shouldPop) {
+            Navigator.of(context).pop();
+          }
+        }
+      },
       child: Scaffold(
         appBar: AppBar(
           title: Text(isEditing ? 'Edit Trip' : 'Add Trip'),
