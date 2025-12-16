@@ -150,6 +150,7 @@ class DiveRepository {
       notes: Value(dive.notes),
       siteId: Value(dive.site?.id),
       diveCenterId: Value(dive.diveCenter?.id),
+      tripId: Value(dive.tripId ?? dive.trip?.id),
       rating: Value(dive.rating),
       // Conditions fields
       currentDirection: Value(dive.currentDirection?.name),
@@ -231,6 +232,7 @@ class DiveRepository {
         notes: Value(dive.notes),
         siteId: Value(dive.site?.id),
         diveCenterId: Value(dive.diveCenter?.id),
+        tripId: Value(dive.tripId ?? dive.trip?.id),
         rating: Value(dive.rating),
         // Conditions fields
         currentDirection: Value(dive.currentDirection?.name),

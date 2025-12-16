@@ -15,6 +15,9 @@ import '../../../equipment/presentation/providers/equipment_providers.dart';
 import '../../../equipment/presentation/providers/equipment_set_providers.dart';
 import '../../../marine_life/domain/entities/species.dart';
 import '../../../marine_life/presentation/providers/species_providers.dart';
+import '../../../trips/domain/entities/trip.dart';
+import '../../../trips/presentation/providers/trip_providers.dart';
+import '../../../trips/presentation/widgets/trip_picker.dart';
 import '../../domain/entities/dive.dart';
 import '../providers/dive_providers.dart';
 
@@ -53,6 +56,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   Visibility _selectedVisibility = Visibility.unknown;
   int _rating = 0;
   DiveSite? _selectedSite;
+  Trip? _selectedTrip;
   List<Sighting> _sightings = [];
   List<EquipmentItem> _selectedEquipment = [];
   List<BuddyWithRole> _selectedBuddies = [];
@@ -112,6 +116,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _selectedVisibility = dive.visibility ?? Visibility.unknown;
           _rating = dive.rating ?? 0;
           _selectedSite = dive.site;
+          _selectedTrip = dive.trip;
 
           // Load tank data if available
           if (dive.tanks.isNotEmpty) {
@@ -224,6 +229,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             _buildDateTimeSection(),
             const SizedBox(height: 16),
             _buildSiteSection(),
+            const SizedBox(height: 16),
+            _buildTripSection(),
             const SizedBox(height: 16),
             _buildDepthDurationSection(),
             const SizedBox(height: 16),
@@ -348,6 +355,128 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           onSiteSelected: (site) {
             setState(() => _selectedSite = site);
             Navigator.of(context).pop();
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTripSection() {
+    final diveDateTime = DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+      _selectedTime.hour,
+      _selectedTime.minute,
+    );
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Trip', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _showTripPicker,
+                    icon: const Icon(Icons.flight_takeoff),
+                    label: Text(
+                      _selectedTrip?.name ?? 'Select Trip',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 48),
+                    ),
+                  ),
+                ),
+                if (_selectedTrip != null) ...[
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () => setState(() => _selectedTrip = null),
+                    tooltip: 'Clear trip',
+                  ),
+                ],
+              ],
+            ),
+            if (_selectedTrip != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  '${DateFormat.yMMMd().format(_selectedTrip!.startDate)} - ${DateFormat.yMMMd().format(_selectedTrip!.endDate)}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ),
+            // Show suggested trip if no trip selected and dive date matches a trip
+            if (_selectedTrip == null) _buildTripSuggestion(diveDateTime),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTripSuggestion(DateTime diveDateTime) {
+    final suggestedTripAsync = ref.watch(tripForDateProvider(diveDateTime));
+
+    return suggestedTripAsync.when(
+      data: (suggestedTrip) {
+        if (suggestedTrip == null) return const SizedBox.shrink();
+
+        return Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: InkWell(
+            onTap: () => setState(() => _selectedTrip = suggestedTrip),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.auto_awesome,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Suggested: ${suggestedTrip.name}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => setState(() => _selectedTrip = suggestedTrip),
+                  child: const Text('Use'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  void _showTripPicker() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (_, scrollController) => TripPickerSheet(
+          scrollController: scrollController,
+          selectedTrip: _selectedTrip,
+          onTripSelected: (trip) {
+            Navigator.of(sheetContext).pop();
+            setState(() => _selectedTrip = trip);
           },
         ),
       ),
@@ -1341,6 +1470,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         notes: _notesController.text,
         rating: _rating > 0 ? _rating : null,
         site: _selectedSite,
+        trip: _selectedTrip,
         tanks: tanks,
         equipment: _selectedEquipment,
         // Conditions fields
