@@ -15,6 +15,8 @@ import '../../../equipment/presentation/providers/equipment_providers.dart';
 import '../../../equipment/presentation/providers/equipment_set_providers.dart';
 import '../../../marine_life/domain/entities/species.dart';
 import '../../../marine_life/presentation/providers/species_providers.dart';
+import '../../../dive_centers/domain/entities/dive_center.dart';
+import '../../../dive_centers/presentation/widgets/dive_center_picker.dart';
 import '../../../trips/domain/entities/trip.dart';
 import '../../../trips/presentation/providers/trip_providers.dart';
 import '../../../trips/presentation/widgets/trip_picker.dart';
@@ -57,6 +59,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   int _rating = 0;
   DiveSite? _selectedSite;
   Trip? _selectedTrip;
+  DiveCenter? _selectedDiveCenter;
   List<Sighting> _sightings = [];
   List<EquipmentItem> _selectedEquipment = [];
   List<BuddyWithRole> _selectedBuddies = [];
@@ -117,6 +120,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _rating = dive.rating ?? 0;
           _selectedSite = dive.site;
           _selectedTrip = dive.trip;
+          _selectedDiveCenter = dive.diveCenter;
 
           // Load tank data if available
           if (dive.tanks.isNotEmpty) {
@@ -231,6 +235,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             _buildSiteSection(),
             const SizedBox(height: 16),
             _buildTripSection(),
+            const SizedBox(height: 16),
+            _buildDiveCenterSection(),
             const SizedBox(height: 16),
             _buildDepthDurationSection(),
             const SizedBox(height: 16),
@@ -477,6 +483,77 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           onTripSelected: (trip) {
             Navigator.of(sheetContext).pop();
             setState(() => _selectedTrip = trip);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDiveCenterSection() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Dive Center', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _showDiveCenterPicker,
+                    icon: const Icon(Icons.store),
+                    label: Text(
+                      _selectedDiveCenter?.name ?? 'Select Dive Center',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 48),
+                    ),
+                  ),
+                ),
+                if (_selectedDiveCenter != null) ...[
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () => setState(() => _selectedDiveCenter = null),
+                    tooltip: 'Clear dive center',
+                  ),
+                ],
+              ],
+            ),
+            if (_selectedDiveCenter?.displayLocation != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  _selectedDiveCenter!.displayLocation!,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showDiveCenterPicker() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (_, scrollController) => DiveCenterPickerSheet(
+          scrollController: scrollController,
+          selectedCenter: _selectedDiveCenter,
+          onCenterSelected: (center) {
+            Navigator.of(sheetContext).pop();
+            setState(() => _selectedDiveCenter = center);
           },
         ),
       ),
@@ -1471,6 +1548,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         rating: _rating > 0 ? _rating : null,
         site: _selectedSite,
         trip: _selectedTrip,
+        diveCenter: _selectedDiveCenter,
         tanks: tanks,
         equipment: _selectedEquipment,
         // Conditions fields
