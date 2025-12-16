@@ -58,6 +58,30 @@ void main() {
       expect(csvOutput, contains("'@ATFORMULA()"));
     });
 
+    test('exportTripsToCsv sanitizes tab and carriage return characters', () async {
+      final now = DateTime.now();
+      final dangerousTrips = [
+        Trip(
+          id: 'test-1',
+          name: '\tTABFORMULA()',
+          startDate: DateTime(2024, 1, 1),
+          endDate: DateTime(2024, 1, 2),
+          location: '\rCRFORMULA()',
+          resortName: '|PIPEFORMULA()',
+          notes: '',
+          createdAt: now,
+          updatedAt: now,
+        ),
+      ];
+
+      final csvOutput = await exportService.exportTripsToCsv(dangerousTrips);
+
+      // Tab, carriage return, and pipe characters should be prefixed with single quote
+      expect(csvOutput, contains("'\tTABFORMULA()"));
+      expect(csvOutput, contains("'\rCRFORMULA()"));
+      expect(csvOutput, contains("'|PIPEFORMULA()"));
+    });
+
     test('exportTripsToCsv does not modify safe strings', () async {
       final now = DateTime.now();
       final safeTrip = Trip(
