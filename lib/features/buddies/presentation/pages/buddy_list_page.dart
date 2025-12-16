@@ -31,45 +31,64 @@ class BuddyListPage extends ConsumerWidget {
       return;
     }
 
-    // Request permission
-    if (!await FlutterContacts.requestPermission(readonly: true)) {
+    try {
+      // Request permission
+      if (!await FlutterContacts.requestPermission(readonly: true)) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Contact permission is required to import buddies'),
+            ),
+          );
+        }
+        return;
+      }
+
+      // Let user pick a contact
+      final contact = await FlutterContacts.openExternalPick();
+      if (contact == null) return;
+
+      // Get full contact details
+      final fullContact = await FlutterContacts.getContact(contact.id);
+      if (fullContact == null) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Could not load contact details'),
+            ),
+          );
+        }
+        return;
+      }
+
+      // Extract contact info
+      final name = fullContact.displayName;
+      final email = fullContact.emails.isNotEmpty
+          ? fullContact.emails.first.address
+          : null;
+      final phone = fullContact.phones.isNotEmpty
+          ? fullContact.phones.first.number
+          : null;
+
+      if (context.mounted) {
+        // Navigate to buddy edit page with pre-filled data
+        context.push(
+          '/buddies/new',
+          extra: {
+            'name': name,
+            'email': email,
+            'phone': phone,
+          },
+        );
+      }
+    } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Contact permission is required to import buddies'),
+          SnackBar(
+            content: Text('Error importing contact: $e'),
           ),
         );
       }
-      return;
-    }
-
-    // Let user pick a contact
-    final contact = await FlutterContacts.openExternalPick();
-    if (contact == null) return;
-
-    // Get full contact details
-    final fullContact = await FlutterContacts.getContact(contact.id);
-    if (fullContact == null) return;
-
-    // Extract contact info
-    final name = fullContact.displayName;
-    final email = fullContact.emails.isNotEmpty
-        ? fullContact.emails.first.address
-        : null;
-    final phone = fullContact.phones.isNotEmpty
-        ? fullContact.phones.first.number
-        : null;
-
-    if (context.mounted) {
-      // Navigate to buddy edit page with pre-filled data
-      context.push(
-        '/buddies/new',
-        extra: {
-          'name': name,
-          'email': email,
-          'phone': phone,
-        },
-      );
     }
   }
 

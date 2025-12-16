@@ -453,15 +453,15 @@ git push -u origin feature/buddy-schema
 
 ---
 
-# Open Questions
+# Architecture Decisions (Resolved)
 
-- [ ] Certification agencies: hardcoded list or user-defined?
-- [ ] Buddy photo storage: app documents or device photos reference?
-- [ ] Include any localization in v1.0?
-- [ ] Include opt-in crash reporting?
+- **Certification agencies:** Hardcoded list (not user-defined)
+- **Buddy photo storage:** App documents directory
+- **Localization:** Deferred to v1.1+
+- **Crash reporting:** Not included in v1.0
 
 ---
 
 **v1.0 Total Estimate:** ~60 tasks, ~192 hours, 11 weeks
 
-**Remaining for v1.0:** Tasks 5.6-5.9 (Bulk Delete UI/Logic, Testing, Buddy Import from Contacts)
+**Status:** All v1.0 core features complete. Deferred items (additional tests, PDF export, etc.) moved to v1.1+.

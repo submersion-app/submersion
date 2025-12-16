@@ -275,6 +275,8 @@ class DiveDetailPage extends ConsumerWidget {
             ),
             const Divider(),
             _buildDetailRow(context, 'Dive Type', dive.diveType.displayName),
+            if (dive.diveCenter != null)
+              _buildDiveCenterRow(context, dive),
             if (dive.visibility != null)
               _buildDetailRow(context, 'Visibility', dive.visibility!.displayName),
             if (dive.avgDepth != null)
@@ -375,6 +377,37 @@ class DiveDetailPage extends ConsumerWidget {
           ),
           Text(value, style: Theme.of(context).textTheme.bodyMedium),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDiveCenterRow(BuildContext context, Dive dive) {
+    return InkWell(
+      onTap: () => context.push('/dive-centers/${dive.diveCenter!.id}'),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Dive Center',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+            Row(
+              children: [
+                Text(dive.diveCenter!.name, style: Theme.of(context).textTheme.bodyMedium),
+                const SizedBox(width: 4),
+                Icon(
+                  Icons.chevron_right,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

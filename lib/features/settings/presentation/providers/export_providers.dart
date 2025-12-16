@@ -160,9 +160,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
   Future<void> importDivesFromCsv() async {
     state = state.copyWith(status: ExportStatus.exporting, message: 'Selecting file...');
     try {
+      // Use FileType.any on iOS since custom extensions don't work reliably
       final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['csv'],
+        type: Platform.isIOS ? FileType.any : FileType.custom,
+        allowedExtensions: Platform.isIOS ? null : ['csv'],
         allowMultiple: false,
       );
 
@@ -175,6 +176,16 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final filePath = result.files.first.path;
       if (filePath == null) {
         state = state.copyWith(status: ExportStatus.error, message: 'Could not access file');
+        return;
+      }
+
+      // On iOS, verify file extension manually
+      final extension = filePath.split('.').last.toLowerCase();
+      if (extension != 'csv') {
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: 'Please select a CSV file',
+        );
         return;
       }
 
@@ -250,9 +261,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
   Future<void> importDivesFromUddf() async {
     state = state.copyWith(status: ExportStatus.exporting, message: 'Selecting file...');
     try {
+      // Use FileType.any on iOS since custom extensions don't work reliably
       final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['uddf', 'xml'],
+        type: Platform.isIOS ? FileType.any : FileType.custom,
+        allowedExtensions: Platform.isIOS ? null : ['uddf', 'xml'],
         allowMultiple: false,
       );
 
@@ -265,6 +277,16 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final filePath = result.files.first.path;
       if (filePath == null) {
         state = state.copyWith(status: ExportStatus.error, message: 'Could not access file');
+        return;
+      }
+
+      // On iOS, verify file extension manually
+      final extension = filePath.split('.').last.toLowerCase();
+      if (!['uddf', 'xml'].contains(extension)) {
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: 'Please select a UDDF or XML file',
+        );
         return;
       }
 
@@ -445,9 +467,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
   Future<void> restoreBackup() async {
     state = state.copyWith(status: ExportStatus.exporting, message: 'Selecting backup file...');
     try {
+      // Use FileType.any on iOS since custom extensions don't work reliably
       final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['db'],
+        type: Platform.isIOS ? FileType.any : FileType.custom,
+        allowedExtensions: Platform.isIOS ? null : ['db'],
         allowMultiple: false,
       );
 
@@ -459,6 +482,16 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final filePath = result.files.first.path;
       if (filePath == null) {
         state = state.copyWith(status: ExportStatus.error, message: 'Could not access file');
+        return;
+      }
+
+      // On iOS, verify file extension manually
+      final extension = filePath.split('.').last.toLowerCase();
+      if (extension != 'db') {
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: 'Please select a .db backup file',
+        );
         return;
       }
 
