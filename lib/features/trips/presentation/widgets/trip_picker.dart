@@ -194,11 +194,8 @@ class TripPickerSheet extends ConsumerWidget {
                     children: [
                       Icon(
                         Icons.flight_takeoff,
-                        size: 64,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurfaceVariant
-                            .withValues(alpha: 0.5),
+                        size: 48,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                       const SizedBox(height: 16),
                       Text(
