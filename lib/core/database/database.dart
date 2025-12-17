@@ -54,7 +54,6 @@ class Dives extends Table {
   // Weight system fields
   RealColumn get weightAmount => real().nullable()(); // kg
   TextColumn get weightType => text().nullable()();
-  BoolColumn get weightBeltUsed => boolean().nullable()();
   // Favorite flag (v1.1)
   BoolColumn get isFavorite => boolean().withDefault(const Constant(false))();
   IntColumn get createdAt => integer()();
@@ -148,6 +147,19 @@ class DiveEquipment extends Table {
 
   @override
   Set<Column> get primaryKey => {diveId, equipmentId};
+}
+
+/// Multiple weight entries per dive (e.g., integrated + trim weights)
+class DiveWeights extends Table {
+  TextColumn get id => text()();
+  TextColumn get diveId => text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  TextColumn get weightType => text()(); // Integrated, Belt, Trim, Ankle, Backplate, Other
+  RealColumn get amountKg => real()(); // kg
+  TextColumn get notes => text().withDefault(const Constant(''))();
+  IntColumn get createdAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
 }
 
 /// Equipment sets (named collections of equipment items)
@@ -347,6 +359,7 @@ class DiveTags extends Table {
     DiveTanks,
     Equipment,
     DiveEquipment,
+    DiveWeights,
     EquipmentSets,
     EquipmentSetItems,
     Species,
@@ -366,7 +379,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration {
@@ -540,7 +553,6 @@ class AppDatabase extends _$AppDatabase {
           await customStatement('ALTER TABLE dives ADD COLUMN water_type TEXT');
           await customStatement('ALTER TABLE dives ADD COLUMN weight_amount REAL');
           await customStatement('ALTER TABLE dives ADD COLUMN weight_type TEXT');
-          await customStatement('ALTER TABLE dives ADD COLUMN weight_belt_used INTEGER');
 
           // Add new columns to equipment table
           await customStatement('ALTER TABLE equipment ADD COLUMN size TEXT');
@@ -618,6 +630,36 @@ class AppDatabase extends _$AppDatabase {
           ''');
           await customStatement('''
             CREATE UNIQUE INDEX IF NOT EXISTS idx_tags_name ON tags(name)
+          ''');
+        }
+        if (from < 9) {
+          // Migration v8 -> v9: Add dive_weights table for multiple weight entries per dive
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS dive_weights (
+              id TEXT NOT NULL PRIMARY KEY,
+              dive_id TEXT NOT NULL REFERENCES dives(id) ON DELETE CASCADE,
+              weight_type TEXT NOT NULL,
+              amount_kg REAL NOT NULL,
+              notes TEXT NOT NULL DEFAULT '',
+              created_at INTEGER NOT NULL
+            )
+          ''');
+          // Create index for faster weight lookups
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dive_weights_dive_id ON dive_weights(dive_id)
+          ''');
+          // Migrate existing weight data from dives table to dive_weights
+          await customStatement('''
+            INSERT INTO dive_weights (id, dive_id, weight_type, amount_kg, notes, created_at)
+            SELECT 
+              'migrated_' || id,
+              id,
+              COALESCE(weight_type, 'belt'),
+              COALESCE(weight_amount, 0),
+              '',
+              strftime('%s', 'now') * 1000
+            FROM dives
+            WHERE weight_amount IS NOT NULL AND weight_amount > 0
           ''');
         }
       },

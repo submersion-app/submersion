@@ -6,6 +6,7 @@ import '../../../dive_sites/domain/entities/dive_site.dart';
 import '../../../equipment/domain/entities/equipment_item.dart';
 import '../../../tags/domain/entities/tag.dart';
 import '../../../trips/domain/entities/trip.dart';
+import 'dive_weight.dart';
 
 /// Core dive log entry entity
 class Dive extends Equatable {
@@ -39,10 +40,11 @@ class Dive extends Equatable {
   final EntryMethod? entryMethod;
   final EntryMethod? exitMethod;
   final WaterType? waterType;
-  // Weight system fields
+  // Weight system fields (legacy single weight - kept for backward compatibility)
   final double? weightAmount; // kg
   final WeightType? weightType;
-  final bool? weightBeltUsed;
+  // Multiple weight entries per dive (v1.0)
+  final List<DiveWeight> weights;
   // Favorites and tags (v1.1/v1.5)
   final bool isFavorite;
   final List<Tag> tags;
@@ -79,10 +81,13 @@ class Dive extends Equatable {
     this.waterType,
     this.weightAmount,
     this.weightType,
-    this.weightBeltUsed,
+    this.weights = const [],
     this.isFavorite = false,
     this.tags = const [],
   });
+
+  /// Total weight from all weight entries
+  double get totalWeight => weights.fold(0.0, (sum, w) => sum + w.amountKg);
 
   /// Air consumption rate in bar/min (Surface Air Consumption)
   double? get sac {
@@ -129,7 +134,7 @@ class Dive extends Equatable {
     WaterType? waterType,
     double? weightAmount,
     WeightType? weightType,
-    bool? weightBeltUsed,
+    List<DiveWeight>? weights,
     bool? isFavorite,
     List<Tag>? tags,
   }) {
@@ -165,7 +170,7 @@ class Dive extends Equatable {
       waterType: waterType ?? this.waterType,
       weightAmount: weightAmount ?? this.weightAmount,
       weightType: weightType ?? this.weightType,
-      weightBeltUsed: weightBeltUsed ?? this.weightBeltUsed,
+      weights: weights ?? this.weights,
       isFavorite: isFavorite ?? this.isFavorite,
       tags: tags ?? this.tags,
     );
@@ -204,7 +209,7 @@ class Dive extends Equatable {
         waterType,
         weightAmount,
         weightType,
-        weightBeltUsed,
+        weights,
         isFavorite,
         tags,
       ];
