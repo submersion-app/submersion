@@ -863,9 +863,6 @@ class ExportService {
                       if (dive.weightType != null) {
                         builder.element('type', nest: dive.weightType!.name);
                       }
-                      if (dive.weightBeltUsed != null) {
-                        builder.element('beltused', nest: dive.weightBeltUsed.toString());
-                      }
                     });
                   }
                   // Sightings
@@ -1234,9 +1231,6 @@ class ExportService {
             builder.element('amount', nest: dive.weightAmount.toString());
             if (dive.weightType != null) {
               builder.element('type', nest: dive.weightType!.name);
-            }
-            if (dive.weightBeltUsed != null) {
-              builder.element('beltused', nest: dive.weightBeltUsed.toString());
             }
           });
         }
@@ -2148,10 +2142,6 @@ class ExportService {
         final weightType = _getElementText(weightElement, 'type');
         if (weightType != null) {
           diveData['weightType'] = _parseEnumValue(weightType, enums.WeightType.values);
-        }
-        final beltUsed = _getElementText(weightElement, 'beltused');
-        if (beltUsed != null) {
-          diveData['weightBeltUsed'] = beltUsed.toLowerCase() == 'true';
         }
       }
 

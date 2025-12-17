@@ -9,7 +9,6 @@ import '../../../buddies/presentation/providers/buddy_providers.dart';
 import '../../../marine_life/domain/entities/species.dart';
 import '../../../marine_life/presentation/providers/species_providers.dart';
 import '../../../settings/presentation/providers/export_providers.dart';
-import '../../../tags/presentation/widgets/tag_input_widget.dart';
 import '../../domain/entities/dive.dart';
 import '../providers/dive_providers.dart';
 import '../widgets/dive_profile_chart.dart';
@@ -347,11 +346,32 @@ class DiveDetailPage extends ConsumerWidget {
   }
 
   Widget _buildWeightSection(BuildContext context, Dive dive) {
-    final hasWeight = dive.weightAmount != null ||
-        dive.weightType != null ||
-        dive.weightBeltUsed == true;
+    // Combine new weights with legacy single weight for unified display
+    final hasWeights = dive.weights.isNotEmpty;
+    final hasLegacyWeight = dive.weightAmount != null && dive.weightAmount! > 0;
 
-    if (!hasWeight) return const SizedBox.shrink();
+    if (!hasWeights && !hasLegacyWeight) return const SizedBox.shrink();
+
+    // Build list of weights to display (new format + legacy if present)
+    final displayWeights = <_WeightDisplay>[];
+    
+    // Add new weights
+    for (final weight in dive.weights) {
+      displayWeights.add(_WeightDisplay(
+        type: weight.weightType.displayName,
+        amount: weight.amountKg,
+      ));
+    }
+    
+    // Add legacy weight in same format if no new weights exist
+    if (!hasWeights && hasLegacyWeight) {
+      displayWeights.add(_WeightDisplay(
+        type: dive.weightType?.displayName ?? 'Weight',
+        amount: dive.weightAmount!,
+      ));
+    }
+
+    final totalWeight = displayWeights.fold(0.0, (sum, w) => sum + w.amount);
 
     return Card(
       child: Padding(
@@ -359,17 +379,32 @@ class DiveDetailPage extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Weight',
-              style: Theme.of(context).textTheme.titleMedium,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Weight',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                Text(
+                  'Total: ${totalWeight.toStringAsFixed(1)} kg',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
             const Divider(),
-            if (dive.weightAmount != null)
-              _buildDetailRow(context, 'Weight Amount', '${dive.weightAmount!.toStringAsFixed(1)} kg'),
-            if (dive.weightType != null)
-              _buildDetailRow(context, 'Weight Type', dive.weightType!.displayName),
-            if (dive.weightBeltUsed != null)
-              _buildDetailRow(context, 'Weight Belt Used', dive.weightBeltUsed! ? 'Yes' : 'No'),
+            ...displayWeights.map((weight) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(weight.type),
+                  Text('${weight.amount.toStringAsFixed(1)} kg'),
+                ],
+              ),
+            )),
           ],
         ),
       ),
@@ -888,4 +923,12 @@ class DiveDetailPage extends ConsumerWidget {
       }
     }
   }
+}
+
+/// Helper class for unified weight display
+class _WeightDisplay {
+  final String type;
+  final double amount;
+
+  const _WeightDisplay({required this.type, required this.amount});
 }

@@ -6,6 +6,7 @@ import '../../../../core/database/database.dart';
 import '../../../../core/services/database_service.dart';
 import '../../../../core/services/logger_service.dart';
 import '../../domain/entities/dive.dart' as domain;
+import '../../domain/entities/dive_weight.dart' as domain;
 import '../../../dive_centers/domain/entities/dive_center.dart' as domain;
 import '../../../dive_sites/domain/entities/dive_site.dart' as domain;
 import '../../../equipment/domain/entities/equipment_item.dart';
@@ -169,7 +170,6 @@ class DiveRepository {
       // Weight system fields
       weightAmount: Value(dive.weightAmount),
       weightType: Value(dive.weightType?.name),
-      weightBeltUsed: Value(dive.weightBeltUsed),
       // Favorite flag
       isFavorite: Value(dive.isFavorite),
       createdAt: Value(now),
@@ -191,6 +191,18 @@ class DiveRepository {
         tankRole: Value(tank.role.name),
         tankMaterial: Value(tank.material?.name),
         tankName: Value(tank.name),
+      ));
+    }
+
+    // Insert weights
+    for (final weight in dive.weights) {
+      await _db.into(_db.diveWeights).insert(DiveWeightsCompanion(
+        id: Value(weight.id.isNotEmpty ? weight.id : _uuid.v4()),
+        diveId: Value(id),
+        weightType: Value(weight.weightType.name),
+        amountKg: Value(weight.amountKg),
+        notes: Value(weight.notes),
+        createdAt: Value(now),
       ));
     }
 
@@ -262,7 +274,6 @@ class DiveRepository {
         // Weight system fields
         weightAmount: Value(dive.weightAmount),
         weightType: Value(dive.weightType?.name),
-        weightBeltUsed: Value(dive.weightBeltUsed),
         // Favorite flag
         isFavorite: Value(dive.isFavorite),
         updatedAt: Value(now),
@@ -287,6 +298,19 @@ class DiveRepository {
         tankName: Value(tank.name),
       ));
     }
+
+      // Update weights: delete and re-insert
+      await (_db.delete(_db.diveWeights)..where((t) => t.diveId.equals(dive.id))).go();
+      for (final weight in dive.weights) {
+        await _db.into(_db.diveWeights).insert(DiveWeightsCompanion(
+          id: Value(weight.id.isNotEmpty ? weight.id : _uuid.v4()),
+          diveId: Value(dive.id),
+          weightType: Value(weight.weightType.name),
+          amountKg: Value(weight.amountKg),
+          notes: Value(weight.notes),
+          createdAt: Value(DateTime.now().millisecondsSinceEpoch),
+        ));
+      }
 
       // Update equipment: delete and re-insert
       await (_db.delete(_db.diveEquipment)..where((t) => t.diveId.equals(dive.id))).go();
@@ -747,7 +771,6 @@ class DiveRepository {
               orElse: () => WeightType.belt,
             )
           : null,
-      weightBeltUsed: row.weightBeltUsed,
       tanks: tanks.map((t) => domain.DiveTank(
         id: t.id,
         name: t.tankName,
@@ -770,6 +793,7 @@ class DiveRepository {
       )).toList(),
       profile: const [], // Profile not loaded for list views
       equipment: equipment,
+      weights: const [], // Weights not loaded for list views (use detail view)
       isFavorite: row.isFavorite,
       tags: tags,
     );
@@ -824,6 +848,9 @@ class DiveRepository {
         isActive: e.isActive,
       );
     }).toList();
+
+    // Get weights for this dive
+    final weights = await _loadWeightsForDive(row.id);
 
     // Get site if exists
     domain.DiveSite? site;
@@ -942,7 +969,6 @@ class DiveRepository {
               orElse: () => WeightType.belt,
             )
           : null,
-      weightBeltUsed: row.weightBeltUsed,
       tanks: tankRows.map((t) => domain.DiveTank(
         id: t.id,
         name: t.tankName,
@@ -971,6 +997,7 @@ class DiveRepository {
         heartRate: p.heartRate,
       )).toList(),
       equipment: equipmentItems,
+      weights: weights,
       isFavorite: row.isFavorite,
       tags: tags,
     );
@@ -1024,6 +1051,28 @@ class DiveRepository {
     } catch (e, stackTrace) {
       _log.error('Failed to get favorite dives', e, stackTrace);
       rethrow;
+    }
+  }
+
+  /// Load weights for a dive
+  Future<List<domain.DiveWeight>> _loadWeightsForDive(String diveId) async {
+    try {
+      final query = _db.select(_db.diveWeights)
+        ..where((w) => w.diveId.equals(diveId));
+      final rows = await query.get();
+      return rows.map((row) => domain.DiveWeight(
+        id: row.id,
+        diveId: row.diveId,
+        weightType: WeightType.values.firstWhere(
+          (w) => w.name == row.weightType,
+          orElse: () => WeightType.belt,
+        ),
+        amountKg: row.amountKg,
+        notes: row.notes,
+      )).toList();
+    } catch (e, stackTrace) {
+      _log.error('Failed to load weights for dive: $diveId', e, stackTrace);
+      return [];
     }
   }
 }

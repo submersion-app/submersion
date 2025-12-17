@@ -30,6 +30,7 @@ import '../../features/trips/presentation/pages/trip_edit_page.dart';
 import '../../features/statistics/presentation/pages/statistics_page.dart';
 import '../../features/statistics/presentation/pages/records_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
+import '../../features/tools/presentation/pages/weight_calculator_page.dart';
 import '../../shared/widgets/main_scaffold.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -328,6 +329,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) => const NoTransitionPage(
               child: SettingsPage(),
             ),
+          ),
+
+          // Tools
+          GoRoute(
+            path: '/tools/weight-calculator',
+            name: 'weightCalculator',
+            builder: (context, state) => const WeightCalculatorPage(),
           ),
         ],
       ),

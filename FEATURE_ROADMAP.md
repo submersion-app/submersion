@@ -563,11 +563,10 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 **v1.0 Tasks:**
 - [x] Weight type field on dive (Integrated, Belt, Trim, Ankle, Backplate, Other)
 - [x] Weight amount field on dive
-- [x] Weight belt used boolean on dive
 - [x] Display weight on dive detail page
-- [ ] Support multiple weight entries per dive (e.g., integrated + trim weights) - deferred to v1.1
-- [ ] Create `dive_weights` table (dive_id, weight_type, amount_kg) - deferred to v1.1
-- [ ] Weight calculator based on exposure suit, tank type, water type - deferred to v1.1
+- [x] Support multiple weight entries per dive (e.g., integrated + trim weights)
+- [x] Create `dive_weights` table (dive_id, weight_type, amount_kg)
+- [x] Weight calculator based on exposure suit, tank type, water type
 
 ---
 

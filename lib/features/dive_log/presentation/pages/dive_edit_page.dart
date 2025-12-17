@@ -24,6 +24,7 @@ import '../../../trips/domain/entities/trip.dart';
 import '../../../trips/presentation/providers/trip_providers.dart';
 import '../../../trips/presentation/widgets/trip_picker.dart';
 import '../../domain/entities/dive.dart';
+import '../../domain/entities/dive_weight.dart';
 import '../providers/dive_providers.dart';
 import '../widgets/tank_editor.dart';
 
@@ -74,10 +75,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   WaterType? _waterType;
   final _swellHeightController = TextEditingController();
 
-  // Weight fields
-  final _weightAmountController = TextEditingController();
-  WeightType? _weightType;
-  bool _weightBeltUsed = false;
+  // Weight fields - multiple weight entries per dive
+  List<DiveWeight> _weights = [];
 
   // Tank data - list of tanks with multi-tank support
   List<DiveTank> _tanks = [];
@@ -152,10 +151,17 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _waterType = dive.waterType;
           _swellHeightController.text = dive.swellHeight?.toString() ?? '';
 
-          // Load weight fields
-          _weightAmountController.text = dive.weightAmount?.toString() ?? '';
-          _weightType = dive.weightType;
-          _weightBeltUsed = dive.weightBeltUsed ?? false;
+          // Load weight entries
+          _weights = List.from(dive.weights);
+          // Migrate legacy single weight to weights list if needed
+          if (_weights.isEmpty && dive.weightAmount != null && dive.weightAmount! > 0) {
+            _weights.add(DiveWeight(
+              id: _uuid.v4(),
+              diveId: dive.id,
+              weightType: dive.weightType ?? WeightType.belt,
+              amountKg: dive.weightAmount!,
+            ));
+          }
 
           // Load tags
           _selectedTags = List.from(dive.tags);
@@ -198,7 +204,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     _airTempController.dispose();
     _notesController.dispose();
     _swellHeightController.dispose();
-    _weightAmountController.dispose();
     super.dispose();
   }
 
@@ -1114,57 +1119,101 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Weight', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 16),
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _weightAmountController,
-                    decoration: const InputDecoration(
-                      labelText: 'Weight Amount',
-                      suffixText: 'kg',
+                Text('Weight', style: Theme.of(context).textTheme.titleMedium),
+                if (_weights.isNotEmpty)
+                  Text(
+                    'Total: ${_weights.fold(0.0, (sum, w) => sum + w.amountKg).toStringAsFixed(1)} kg',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
                     ),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: DropdownButtonFormField<WeightType>(
-                    value: _weightType,
-                    decoration: const InputDecoration(labelText: 'Weight Type'),
-                    isExpanded: true,
-                    items: [
-                      const DropdownMenuItem<WeightType>(
-                        value: null,
-                        child: Text('Not specified'),
-                      ),
-                      ...WeightType.values.map((type) {
-                        return DropdownMenuItem(
-                          value: type,
-                          child: Text(type.displayName),
-                        );
-                      }),
-                    ],
-                    onChanged: (value) {
-                      setState(() => _weightType = value);
-                    },
-                  ),
-                ),
               ],
             ),
+            const SizedBox(height: 16),
+            ..._weights.asMap().entries.map((entry) {
+              final index = entry.key;
+              final weight = entry.value;
+              return _buildWeightEntryRow(index, weight);
+            }),
             const SizedBox(height: 8),
-            SwitchListTile(
-              title: const Text('Weight Belt Used'),
-              subtitle: const Text('Did you use a weight belt for this dive?'),
-              value: _weightBeltUsed,
-              onChanged: (value) {
-                setState(() => _weightBeltUsed = value);
+            OutlinedButton.icon(
+              onPressed: () {
+                setState(() {
+                  _weights.add(DiveWeight(
+                    id: _uuid.v4(),
+                    diveId: widget.diveId ?? '',
+                    weightType: WeightType.integrated,
+                    amountKg: 0,
+                  ));
+                });
               },
-              contentPadding: EdgeInsets.zero,
+              icon: const Icon(Icons.add),
+              label: const Text('Add Weight Entry'),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildWeightEntryRow(int index, DiveWeight weight) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: DropdownButtonFormField<WeightType>(
+              value: weight.weightType,
+              decoration: const InputDecoration(
+                labelText: 'Type',
+                isDense: true,
+              ),
+              isExpanded: true,
+              items: WeightType.values.map((type) {
+                return DropdownMenuItem(
+                  value: type,
+                  child: Text(type.displayName),
+                );
+              }).toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    _weights[index] = weight.copyWith(weightType: value);
+                  });
+                }
+              },
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 1,
+            child: TextFormField(
+              initialValue: weight.amountKg > 0 ? weight.amountKg.toString() : '',
+              decoration: const InputDecoration(
+                labelText: 'kg',
+                isDense: true,
+              ),
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              onChanged: (value) {
+                final amount = double.tryParse(value) ?? 0;
+                _weights[index] = weight.copyWith(amountKg: amount);
+              },
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            onPressed: () {
+              setState(() {
+                _weights.removeAt(index);
+              });
+            },
+            tooltip: 'Remove',
+          ),
+        ],
       ),
     );
   }
@@ -1496,12 +1545,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           ? double.parse(_airTempController.text)
           : null;
 
-      // Parse conditions and weight values
+      // Parse conditions values
       final swellHeight = _swellHeightController.text.isNotEmpty
           ? double.parse(_swellHeightController.text)
-          : null;
-      final weightAmount = _weightAmountController.text.isNotEmpty
-          ? double.parse(_weightAmountController.text)
           : null;
 
       // Create dive entity
@@ -1530,10 +1576,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         entryMethod: _entryMethod,
         exitMethod: _exitMethod,
         waterType: _waterType,
-        // Weight fields
-        weightAmount: weightAmount,
-        weightType: _weightType,
-        weightBeltUsed: _weightBeltUsed,
+        // Weight entries (multiple)
+        weights: _weights,
         // Tags
         tags: _selectedTags,
         // Preserve favorite status when editing
