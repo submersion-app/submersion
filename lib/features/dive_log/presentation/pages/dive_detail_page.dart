@@ -608,7 +608,9 @@ class DiveDetailPage extends ConsumerWidget {
                 subtitle: Text(
                   '$startP ${units.pressureSymbol} → $endP ${units.pressureSymbol}$used',
                 ),
-                trailing: tank.volume != null ? Text(units.formatVolume(tank.volume)) : null,
+                trailing: tank.volume != null 
+                    ? Text(units.formatTankVolume(tank.volume, tank.workingPressure, decimals: 1)) 
+                    : null,
               );
             }),
           ],

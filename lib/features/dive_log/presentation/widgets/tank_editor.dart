@@ -59,9 +59,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       if (settings.volumeUnit == VolumeUnit.cubicFeet && widget.tank.workingPressure != null) {
         // Calculate cuft from liters and working pressure
         final cuft = (widget.tank.volume! * widget.tank.workingPressure!) / 28.3168;
-        volumeText = cuft.toStringAsFixed(0);
+        volumeText = cuft.toStringAsFixed(1);
       } else {
-        volumeText = widget.tank.volume!.toStringAsFixed(0);
+        volumeText = widget.tank.volume!.toStringAsFixed(1);
       }
     }
     
@@ -519,9 +519,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       // This is because "tank size" in imperial is rated by gas capacity (e.g., AL80 = 80 cuft),
       // while metric uses physical water volume (e.g., 11.1L)
       if (settings.volumeUnit == VolumeUnit.cubicFeet) {
-        _volumeController.text = preset.volumeCuft.toStringAsFixed(0);
+        _volumeController.text = preset.volumeCuft.toStringAsFixed(1);
       } else {
-        _volumeController.text = preset.volumeLiters.toStringAsFixed(0);
+        _volumeController.text = preset.volumeLiters.toStringAsFixed(1);
       }
       _workingPressureController.text = units.convertPressure(preset.workingPressureBar.toDouble()).toStringAsFixed(0);
       _startPressureController.text = units.convertPressure(preset.workingPressureBar.toDouble()).toStringAsFixed(0);

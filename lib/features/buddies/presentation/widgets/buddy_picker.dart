@@ -107,39 +107,19 @@ class BuddyPicker extends ConsumerWidget {
     );
   }
 
-  void _showBuddySelectionSheet(BuildContext context, WidgetRef ref) {
-    showModalBottomSheet(
+  void _showBuddySelectionSheet(BuildContext context, WidgetRef ref) async {
+    final result = await showModalBottomSheet<List<BuddyWithRole>>(
       context: context,
       isScrollControlled: true,
       builder: (context) => _BuddySelectionSheet(
         selectedBuddies: selectedBuddies,
-        onBuddySelected: (buddy, role) {
-          // Check if already selected
-          final existing =
-              selectedBuddies.indexWhere((b) => b.buddy.id == buddy.id);
-          List<BuddyWithRole> updated;
-          if (existing >= 0) {
-            // Update role
-            updated = [
-              ...selectedBuddies.sublist(0, existing),
-              BuddyWithRole(buddy: buddy, role: role),
-              ...selectedBuddies.sublist(existing + 1),
-            ];
-          } else {
-            updated = [
-              ...selectedBuddies,
-              BuddyWithRole(buddy: buddy, role: role)
-            ];
-          }
-          onChanged(updated);
-        },
-        onBuddyRemoved: (buddyId) {
-          final updated =
-              selectedBuddies.where((b) => b.buddy.id != buddyId).toList();
-          onChanged(updated);
-        },
       ),
     );
+    
+    // Update parent with the final list when sheet closes
+    if (result != null) {
+      onChanged(result);
+    }
   }
 }
 
@@ -231,13 +211,9 @@ class _BuddyChip extends StatelessWidget {
 
 class _BuddySelectionSheet extends ConsumerStatefulWidget {
   final List<BuddyWithRole> selectedBuddies;
-  final void Function(Buddy buddy, BuddyRole role) onBuddySelected;
-  final void Function(String buddyId) onBuddyRemoved;
 
   const _BuddySelectionSheet({
     required this.selectedBuddies,
-    required this.onBuddySelected,
-    required this.onBuddyRemoved,
   });
 
   @override
@@ -248,6 +224,13 @@ class _BuddySelectionSheet extends ConsumerStatefulWidget {
 class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
   final _searchController = TextEditingController();
   String _searchQuery = '';
+  late List<BuddyWithRole> _localSelectedBuddies;
+
+  @override
+  void initState() {
+    super.initState();
+    _localSelectedBuddies = List.from(widget.selectedBuddies);
+  }
 
   @override
   void dispose() {
@@ -279,9 +262,9 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
                     'Select Buddies',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, _localSelectedBuddies),
+                    child: const Text('Done'),
                   ),
                 ],
               ),
@@ -320,8 +303,12 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: OutlinedButton.icon(
                 onPressed: () async {
-                  Navigator.pop(context);
-                  context.push('/buddies/new');
+                  // Push to create new buddy and wait for result
+                  final result = await context.push<Buddy>('/buddies/new');
+                  if (result != null) {
+                    // New buddy was created, refresh the list so they can select it
+                    ref.invalidate(allBuddiesProvider);
+                  }
                 },
                 icon: const Icon(Icons.person_add),
                 label: const Text('Add New Buddy'),
@@ -366,9 +353,9 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
                     itemCount: buddies.length,
                     itemBuilder: (context, index) {
                       final buddy = buddies[index];
-                      final isSelected = widget.selectedBuddies
+                      final isSelected = _localSelectedBuddies
                           .any((b) => b.buddy.id == buddy.id);
-                      final selectedRole = widget.selectedBuddies
+                      final selectedRole = _localSelectedBuddies
                           .where((b) => b.buddy.id == buddy.id)
                           .map((b) => b.role)
                           .firstOrNull;
@@ -407,7 +394,7 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
                             : null,
                         onTap: () {
                           if (isSelected) {
-                            widget.onBuddyRemoved(buddy.id);
+                            _removeBuddy(buddy.id);
                           } else {
                             _showRoleSelectorForBuddy(context, buddy);
                           }
@@ -427,6 +414,33 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
         );
       },
     );
+  }
+
+  void _removeBuddy(String buddyId) {
+    setState(() {
+      _localSelectedBuddies = _localSelectedBuddies
+          .where((b) => b.buddy.id != buddyId)
+          .toList();
+    });
+  }
+
+  void _addBuddy(Buddy buddy, BuddyRole role) {
+    final existing = _localSelectedBuddies.indexWhere((b) => b.buddy.id == buddy.id);
+    setState(() {
+      if (existing >= 0) {
+        // Update role
+        _localSelectedBuddies = [
+          ..._localSelectedBuddies.sublist(0, existing),
+          BuddyWithRole(buddy: buddy, role: role),
+          ..._localSelectedBuddies.sublist(existing + 1),
+        ];
+      } else {
+        _localSelectedBuddies = [
+          ..._localSelectedBuddies,
+          BuddyWithRole(buddy: buddy, role: role),
+        ];
+      }
+    });
   }
 
   void _showRoleSelectorForBuddy(BuildContext context, Buddy buddy) {
@@ -450,7 +464,7 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
                 title: Text(role.displayName),
                 onTap: () {
                   Navigator.pop(ctx);
-                  widget.onBuddySelected(buddy, role);
+                  _addBuddy(buddy, role);
                 },
               );
             }),

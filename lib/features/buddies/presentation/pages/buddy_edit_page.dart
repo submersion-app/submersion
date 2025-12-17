@@ -432,10 +432,12 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
         updatedAt: now,
       );
 
+      Buddy savedBuddy;
       if (isEditing) {
         await ref.read(buddyListNotifierProvider.notifier).updateBuddy(buddy);
+        savedBuddy = buddy;
       } else {
-        await ref.read(buddyListNotifierProvider.notifier).addBuddy(buddy);
+        savedBuddy = await ref.read(buddyListNotifierProvider.notifier).addBuddy(buddy);
       }
 
       if (mounted) {
@@ -446,7 +448,8 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                 : 'Buddy added successfully'),
           ),
         );
-        context.pop();
+        // Return the saved buddy so callers can use it
+        context.pop(savedBuddy);
       }
     } catch (e) {
       if (mounted) {

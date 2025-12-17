@@ -202,6 +202,7 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
     await _repository.updateDive(dive);
     await _loadDives();
     _ref.invalidate(diveStatisticsProvider);
+    _ref.invalidate(diveProvider(dive.id));
   }
 
   Future<void> deleteDive(String id) async {
