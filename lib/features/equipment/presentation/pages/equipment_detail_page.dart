@@ -759,7 +759,6 @@ class _ServiceRecordTile extends StatelessWidget {
       case ServiceType.recall:
         return Icons.warning;
       case ServiceType.other:
-      default:
         return Icons.handyman;
     }
   }

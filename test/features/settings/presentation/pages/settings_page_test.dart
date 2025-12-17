@@ -82,6 +82,13 @@ void main() {
 
       expect(find.text('Manage'), findsOneWidget);
       expect(find.text('Buddies'), findsOneWidget);
+      
+      // Scroll to find Certifications which may be off screen
+      await tester.scrollUntilVisible(
+        find.text('Certifications'),
+        50.0,
+        scrollable: find.byType(Scrollable).first,
+      );
       expect(find.text('Certifications'), findsOneWidget);
 
       // Scroll to find Dive Centers which may be off screen
