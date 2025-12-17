@@ -195,6 +195,12 @@ class TagRepository {
     try {
       _log.info('Setting ${tags.length} tags for dive: $diveId');
 
+      // Get existing tag IDs before deletion to check for cleanup later
+      final existingTags = await getTagsForDive(diveId);
+      final existingTagIds = existingTags.map((t) => t.id).toSet();
+      final newTagIds = tags.map((t) => t.id).toSet();
+      final removedTagIds = existingTagIds.difference(newTagIds);
+
       // Delete existing tags for this dive
       await (_db.delete(_db.diveTags)..where((t) => t.diveId.equals(diveId))).go();
 
@@ -207,6 +213,11 @@ class TagRepository {
           tagId: Value(tag.id),
           createdAt: Value(now),
         ));
+      }
+
+      // Clean up any tags that are no longer used
+      for (final tagId in removedTagIds) {
+        await _deleteTagIfUnused(tagId);
       }
 
       _log.info('Set ${tags.length} tags for dive: $diveId');
@@ -243,9 +254,55 @@ class TagRepository {
       await (_db.delete(_db.diveTags)
             ..where((t) => t.diveId.equals(diveId) & t.tagId.equals(tagId)))
           .go();
+      
+      // Clean up the tag if it's no longer used
+      await _deleteTagIfUnused(tagId);
+      
       _log.info('Removed tag $tagId from dive: $diveId');
     } catch (e, stackTrace) {
       _log.error('Failed to remove tag from dive', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  // ============================================================================
+  // Cleanup
+  // ============================================================================
+
+  /// Delete a tag if it's no longer used by any dive
+  Future<void> _deleteTagIfUnused(String tagId) async {
+    try {
+      final usageCount = await _getTagUsageCount(tagId);
+      if (usageCount == 0) {
+        _log.info('Deleting unused tag: $tagId');
+        await deleteTag(tagId);
+      }
+    } catch (e, stackTrace) {
+      _log.error('Failed to check/delete unused tag: $tagId', e, stackTrace);
+      // Don't rethrow - cleanup failure shouldn't break the main operation
+    }
+  }
+
+  /// Get the number of dives using a specific tag
+  Future<int> _getTagUsageCount(String tagId) async {
+    final result = await _db.customSelect('''
+      SELECT COUNT(*) as count FROM dive_tags WHERE tag_id = ?
+    ''', variables: [Variable.withString(tagId)]).getSingle();
+    return result.data['count'] as int;
+  }
+
+  /// Delete all tags that are not used by any dive
+  Future<void> deleteUnusedTags() async {
+    try {
+      _log.info('Cleaning up unused tags');
+      await _db.customStatement('''
+        DELETE FROM tags WHERE id NOT IN (
+          SELECT DISTINCT tag_id FROM dive_tags
+        )
+      ''');
+      _log.info('Deleted unused tags');
+    } catch (e, stackTrace) {
+      _log.error('Failed to delete unused tags', e, stackTrace);
       rethrow;
     }
   }

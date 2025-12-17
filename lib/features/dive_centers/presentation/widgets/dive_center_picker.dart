@@ -51,7 +51,7 @@ class DiveCenterPickerSheet extends ConsumerWidget {
                   context.push('/dive-centers/new');
                 },
                 icon: const Icon(Icons.add),
-                label: const Text('New'),
+                label: const Text('New Dive Center'),
               ),
             ],
           ),
