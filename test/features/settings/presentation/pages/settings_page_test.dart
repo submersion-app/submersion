@@ -80,7 +80,20 @@ void main() {
         ),
       );
 
+      // Scroll to find Manage section which may be off screen due to unit tiles
+      await tester.scrollUntilVisible(
+        find.text('Manage'),
+        50.0,
+        scrollable: find.byType(Scrollable).first,
+      );
       expect(find.text('Manage'), findsOneWidget);
+      
+      // Scroll to find Buddies which may be off screen
+      await tester.scrollUntilVisible(
+        find.text('Buddies'),
+        50.0,
+        scrollable: find.byType(Scrollable).first,
+      );
       expect(find.text('Buddies'), findsOneWidget);
       
       // Scroll to find Certifications which may be off screen

@@ -17,6 +17,11 @@ class TankPreset {
     required this.material,
     this.description,
   });
+
+  /// Calculate the gas capacity in cubic feet at surface pressure.
+  /// Formula: (water_volume_liters * working_pressure_bar) / 28.3168
+  /// This is the imperial "tank size" rating (e.g., AL80 = 80 cuft)
+  double get volumeCuft => (volumeLiters * workingPressureBar) / 28.3168;
 }
 
 /// Built-in tank presets (common configurations)

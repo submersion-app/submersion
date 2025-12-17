@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/enums.dart';
 import '../../../../core/constants/gas_templates.dart';
 import '../../../../core/constants/tank_presets.dart';
+import '../../../../core/constants/units.dart';
+import '../../../../core/utils/unit_formatter.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../../domain/entities/dive.dart';
 
 /// Callback when tank data changes
 typedef TankChangeCallback = void Function(DiveTank tank);
 
 /// Widget for editing a single tank's configuration
-class TankEditor extends StatefulWidget {
+class TankEditor extends ConsumerStatefulWidget {
   final DiveTank tank;
   final int tankNumber;
   final TankChangeCallback onChanged;
@@ -26,10 +30,10 @@ class TankEditor extends StatefulWidget {
   });
 
   @override
-  State<TankEditor> createState() => _TankEditorState();
+  ConsumerState<TankEditor> createState() => _TankEditorState();
 }
 
-class _TankEditorState extends State<TankEditor> {
+class _TankEditorState extends ConsumerState<TankEditor> {
   late TextEditingController _volumeController;
   late TextEditingController _workingPressureController;
   late TextEditingController _startPressureController;
@@ -46,17 +50,36 @@ class _TankEditorState extends State<TankEditor> {
   }
 
   void _initializeControllers() {
-    _volumeController = TextEditingController(
-      text: widget.tank.volume?.toString() ?? '',
-    );
+    final settings = ref.read(settingsProvider);
+    final units = UnitFormatter(settings);
+    
+    // For tank volume: imperial uses gas capacity (cuft), metric uses water volume (liters)
+    String volumeText = '';
+    if (widget.tank.volume != null) {
+      if (settings.volumeUnit == VolumeUnit.cubicFeet && widget.tank.workingPressure != null) {
+        // Calculate cuft from liters and working pressure
+        final cuft = (widget.tank.volume! * widget.tank.workingPressure!) / 28.3168;
+        volumeText = cuft.toStringAsFixed(0);
+      } else {
+        volumeText = widget.tank.volume!.toStringAsFixed(0);
+      }
+    }
+    
+    _volumeController = TextEditingController(text: volumeText);
     _workingPressureController = TextEditingController(
-      text: widget.tank.workingPressure?.toString() ?? '',
+      text: widget.tank.workingPressure != null
+          ? units.convertPressure(widget.tank.workingPressure!.toDouble()).toStringAsFixed(0)
+          : '',
     );
     _startPressureController = TextEditingController(
-      text: widget.tank.startPressure?.toString() ?? '',
+      text: widget.tank.startPressure != null
+          ? units.convertPressure(widget.tank.startPressure!.toDouble()).toStringAsFixed(0)
+          : '',
     );
     _endPressureController = TextEditingController(
-      text: widget.tank.endPressure?.toString() ?? '',
+      text: widget.tank.endPressure != null
+          ? units.convertPressure(widget.tank.endPressure!.toDouble()).toStringAsFixed(0)
+          : '',
     );
     _o2Controller = TextEditingController(
       text: widget.tank.gasMix.o2.toString(),
@@ -88,13 +111,43 @@ class _TankEditorState extends State<TankEditor> {
   }
 
   void _notifyChange() {
+    final settings = ref.read(settingsProvider);
+    final units = UnitFormatter(settings);
+    
+    // Convert from user's preferred units back to metric for storage
+    final volumeDisplay = double.tryParse(_volumeController.text);
+    final workingPressureDisplay = double.tryParse(_workingPressureController.text);
+    final startPressureDisplay = double.tryParse(_startPressureController.text);
+    final endPressureDisplay = double.tryParse(_endPressureController.text);
+    
+    // Convert working pressure to bar first (needed for cuft->liters conversion)
+    final workingPressureBar = workingPressureDisplay != null
+        ? units.pressureToBar(workingPressureDisplay).round()
+        : null;
+    
+    // For tank volume: convert cuft (gas capacity) back to liters (water volume)
+    // Formula: liters = (cuft * 28.3168) / working_pressure_bar
+    double? volumeLiters;
+    if (volumeDisplay != null) {
+      if (settings.volumeUnit == VolumeUnit.cubicFeet && workingPressureBar != null && workingPressureBar > 0) {
+        volumeLiters = (volumeDisplay * 28.3168) / workingPressureBar;
+      } else {
+        // Metric: value is already in liters
+        volumeLiters = volumeDisplay;
+      }
+    }
+    
     widget.onChanged(DiveTank(
       id: widget.tank.id,
       name: widget.tank.name,
-      volume: double.tryParse(_volumeController.text),
-      workingPressure: int.tryParse(_workingPressureController.text),
-      startPressure: int.tryParse(_startPressureController.text),
-      endPressure: int.tryParse(_endPressureController.text),
+      volume: volumeLiters,
+      workingPressure: workingPressureBar,
+      startPressure: startPressureDisplay != null
+          ? units.pressureToBar(startPressureDisplay).round()
+          : null,
+      endPressure: endPressureDisplay != null
+          ? units.pressureToBar(endPressureDisplay).round()
+          : null,
       gasMix: GasMix(
         o2: double.tryParse(_o2Controller.text) ?? 21.0,
         he: double.tryParse(_heController.text) ?? 0.0,
@@ -107,6 +160,9 @@ class _TankEditorState extends State<TankEditor> {
 
   @override
   Widget build(BuildContext context) {
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
+    
     final gasMix = GasMix(
       o2: double.tryParse(_o2Controller.text) ?? 21.0,
       he: double.tryParse(_heController.text) ?? 0.0,
@@ -123,11 +179,11 @@ class _TankEditorState extends State<TankEditor> {
             const SizedBox(height: 16),
 
             // Tank preset and role
-            _buildPresetAndRoleRow(),
+            _buildPresetAndRoleRow(units),
             const SizedBox(height: 16),
 
             // Volume, material, working pressure
-            _buildTankSpecsRow(),
+            _buildTankSpecsRow(units),
             const SizedBox(height: 16),
 
             // Gas mix with templates
@@ -135,10 +191,10 @@ class _TankEditorState extends State<TankEditor> {
             const SizedBox(height: 16),
 
             // Start/end pressure
-            _buildPressureRow(),
+            _buildPressureRow(units),
 
             // MOD display if not air
-            if (!gasMix.isAir) _buildModInfo(gasMix),
+            if (!gasMix.isAir) _buildModInfo(gasMix, units),
           ],
         ),
       ),
@@ -188,7 +244,7 @@ class _TankEditorState extends State<TankEditor> {
     );
   }
 
-  Widget _buildPresetAndRoleRow() {
+  Widget _buildPresetAndRoleRow(UnitFormatter units) {
     return Row(
       children: [
         // Tank preset dropdown
@@ -247,16 +303,16 @@ class _TankEditorState extends State<TankEditor> {
     );
   }
 
-  Widget _buildTankSpecsRow() {
+  Widget _buildTankSpecsRow(UnitFormatter units) {
     return Row(
       children: [
         // Volume
         Expanded(
           child: TextFormField(
             controller: _volumeController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Volume',
-              suffixText: 'L',
+              suffixText: units.volumeSymbol,
               isDense: true,
             ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -295,9 +351,9 @@ class _TankEditorState extends State<TankEditor> {
         Expanded(
           child: TextFormField(
             controller: _workingPressureController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Working P',
-              suffixText: 'bar',
+              suffixText: units.pressureSymbol,
               isDense: true,
             ),
             keyboardType: TextInputType.number,
@@ -399,15 +455,15 @@ class _TankEditorState extends State<TankEditor> {
     );
   }
 
-  Widget _buildPressureRow() {
+  Widget _buildPressureRow(UnitFormatter units) {
     return Row(
       children: [
         Expanded(
           child: TextFormField(
             controller: _startPressureController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Start Pressure',
-              suffixText: 'bar',
+              suffixText: units.pressureSymbol,
               isDense: true,
             ),
             keyboardType: TextInputType.number,
@@ -418,9 +474,9 @@ class _TankEditorState extends State<TankEditor> {
         Expanded(
           child: TextFormField(
             controller: _endPressureController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'End Pressure',
-              suffixText: 'bar',
+              suffixText: units.pressureSymbol,
               isDense: true,
             ),
             keyboardType: TextInputType.number,
@@ -431,7 +487,8 @@ class _TankEditorState extends State<TankEditor> {
     );
   }
 
-  Widget _buildModInfo(GasMix gasMix) {
+  Widget _buildModInfo(GasMix gasMix, UnitFormatter units) {
+    final modDepth = units.formatDepth(gasMix.mod(), decimals: 0);
     return Padding(
       padding: const EdgeInsets.only(top: 12),
       child: Row(
@@ -443,7 +500,7 @@ class _TankEditorState extends State<TankEditor> {
           ),
           const SizedBox(width: 8),
           Text(
-            'MOD: ${gasMix.mod().toStringAsFixed(0)}m (ppO2 1.4)',
+            'MOD: $modDepth (ppO2 1.4)',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.tertiary,
                 ),
@@ -454,10 +511,20 @@ class _TankEditorState extends State<TankEditor> {
   }
 
   void _applyPreset(TankPreset preset) {
+    final settings = ref.read(settingsProvider);
+    final units = UnitFormatter(settings);
+    
     setState(() {
-      _volumeController.text = preset.volumeLiters.toString();
-      _workingPressureController.text = preset.workingPressureBar.toString();
-      _startPressureController.text = preset.workingPressureBar.toString();
+      // For volume: use cuft (gas capacity) for imperial, liters (water volume) for metric
+      // This is because "tank size" in imperial is rated by gas capacity (e.g., AL80 = 80 cuft),
+      // while metric uses physical water volume (e.g., 11.1L)
+      if (settings.volumeUnit == VolumeUnit.cubicFeet) {
+        _volumeController.text = preset.volumeCuft.toStringAsFixed(0);
+      } else {
+        _volumeController.text = preset.volumeLiters.toStringAsFixed(0);
+      }
+      _workingPressureController.text = units.convertPressure(preset.workingPressureBar.toDouble()).toStringAsFixed(0);
+      _startPressureController.text = units.convertPressure(preset.workingPressureBar.toDouble()).toStringAsFixed(0);
       _material = preset.material;
     });
     _notifyChange();

@@ -20,7 +20,7 @@ class SettingsPage extends ConsumerWidget {
       body: ListView(
         children: [
           _buildSectionHeader(context, 'Units'),
-          _buildQuickUnitToggle(context, ref, settings),
+          _buildUnitPresetSelector(context, ref, settings),
           _buildUnitTile(
             context,
             title: 'Depth',
@@ -38,6 +38,18 @@ class SettingsPage extends ConsumerWidget {
             title: 'Pressure',
             value: settings.pressureUnit.symbol,
             onTap: () => _showPressureUnitPicker(context, ref, settings.pressureUnit),
+          ),
+          _buildUnitTile(
+            context,
+            title: 'Volume',
+            value: settings.volumeUnit.symbol,
+            onTap: () => _showVolumeUnitPicker(context, ref, settings.volumeUnit),
+          ),
+          _buildUnitTile(
+            context,
+            title: 'Weight',
+            value: settings.weightUnit.symbol,
+            onTap: () => _showWeightUnitPicker(context, ref, settings.weightUnit),
           ),
           const Divider(),
 
@@ -181,29 +193,38 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildQuickUnitToggle(BuildContext context, WidgetRef ref, AppSettings settings) {
+  Widget _buildUnitPresetSelector(BuildContext context, WidgetRef ref, AppSettings settings) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: SegmentedButton<bool>(
+      child: SegmentedButton<UnitPreset>(
         segments: const [
           ButtonSegment(
-            value: true,
+            value: UnitPreset.metric,
             label: Text('Metric'),
-            icon: Icon(Icons.straighten),
           ),
           ButtonSegment(
-            value: false,
+            value: UnitPreset.imperial,
             label: Text('Imperial'),
-            icon: Icon(Icons.square_foot),
+          ),
+          ButtonSegment(
+            value: UnitPreset.custom,
+            label: Text('Custom'),
           ),
         ],
-        selected: {settings.isMetric},
+        selected: {settings.unitPreset},
         onSelectionChanged: (selected) {
-          final isMetric = selected.first;
-          if (isMetric) {
-            ref.read(settingsProvider.notifier).setMetric();
-          } else {
-            ref.read(settingsProvider.notifier).setImperial();
+          final preset = selected.first;
+          switch (preset) {
+            case UnitPreset.metric:
+              ref.read(settingsProvider.notifier).setMetric();
+              break;
+            case UnitPreset.imperial:
+              ref.read(settingsProvider.notifier).setImperial();
+              break;
+            case UnitPreset.custom:
+              // Custom is already selected when units are mixed
+              // No action needed - user can adjust individual units
+              break;
           }
         },
       ),
@@ -358,6 +379,56 @@ class SettingsPage extends ConsumerWidget {
               onChanged: (value) {
                 if (value != null) {
                   ref.read(settingsProvider.notifier).setPressureUnit(value);
+                  Navigator.of(dialogContext).pop();
+                }
+              },
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  void _showVolumeUnitPicker(BuildContext context, WidgetRef ref, VolumeUnit currentUnit) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Volume Unit'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: VolumeUnit.values.map((unit) {
+            return RadioListTile<VolumeUnit>(
+              title: Text(unit == VolumeUnit.liters ? 'Liters (L)' : 'Cubic Feet (cuft)'),
+              value: unit,
+              groupValue: currentUnit,
+              onChanged: (value) {
+                if (value != null) {
+                  ref.read(settingsProvider.notifier).setVolumeUnit(value);
+                  Navigator.of(dialogContext).pop();
+                }
+              },
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  void _showWeightUnitPicker(BuildContext context, WidgetRef ref, WeightUnit currentUnit) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Weight Unit'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: WeightUnit.values.map((unit) {
+            return RadioListTile<WeightUnit>(
+              title: Text(unit == WeightUnit.kilograms ? 'Kilograms (kg)' : 'Pounds (lbs)'),
+              value: unit,
+              groupValue: currentUnit,
+              onChanged: (value) {
+                if (value != null) {
+                  ref.read(settingsProvider.notifier).setWeightUnit(value);
                   Navigator.of(dialogContext).pop();
                 }
               },

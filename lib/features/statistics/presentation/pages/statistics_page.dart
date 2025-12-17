@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/utils/unit_formatter.dart';
 import '../../../dive_log/data/repositories/dive_repository_impl.dart';
 import '../../../dive_log/presentation/providers/dive_providers.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../../../tags/presentation/providers/tag_providers.dart';
 
 class StatisticsPage extends ConsumerWidget {
@@ -30,7 +32,7 @@ class StatisticsPage extends ConsumerWidget {
         ],
       ),
       body: statsAsync.when(
-        data: (stats) => _buildContent(context, stats),
+        data: (stats) => _buildContent(context, ref, stats),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(
           child: Column(
@@ -51,17 +53,20 @@ class StatisticsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildContent(BuildContext context, DiveStatistics stats) {
+  Widget _buildContent(BuildContext context, WidgetRef ref, DiveStatistics stats) {
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
+    
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildOverviewCards(context, stats),
+          _buildOverviewCards(context, stats, units),
           const SizedBox(height: 24),
           _buildDivesByMonthChart(context, stats),
           const SizedBox(height: 24),
-          _buildDepthDistribution(context, stats),
+          _buildDepthDistribution(context, stats, units),
           const SizedBox(height: 24),
           _buildTopSites(context, stats),
           const SizedBox(height: 24),
@@ -71,7 +76,7 @@ class StatisticsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildOverviewCards(BuildContext context, DiveStatistics stats) {
+  Widget _buildOverviewCards(BuildContext context, DiveStatistics stats, UnitFormatter units) {
     return GridView.count(
       crossAxisCount: MediaQuery.of(context).size.width > 600 ? 4 : 2,
       shrinkWrap: true,
@@ -98,7 +103,7 @@ class StatisticsPage extends ConsumerWidget {
           context,
           icon: Icons.arrow_downward,
           label: 'Max Depth',
-          value: stats.maxDepth > 0 ? '${stats.maxDepth.toStringAsFixed(1)}m' : '--',
+          value: stats.maxDepth > 0 ? units.formatDepth(stats.maxDepth) : '--',
           color: Theme.of(context).colorScheme.tertiary,
         ),
         _buildStatCard(
@@ -282,7 +287,7 @@ class StatisticsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildDepthDistribution(BuildContext context, DiveStatistics stats) {
+  Widget _buildDepthDistribution(BuildContext context, DiveStatistics stats, UnitFormatter units) {
     final hasData = stats.depthDistribution.any((d) => d.count > 0);
     final colors = [
       Colors.lightBlue.shade300,
@@ -345,6 +350,12 @@ class StatisticsPage extends ConsumerWidget {
                               stats.depthDistribution.length,
                               (index) {
                                 final data = stats.depthDistribution[index];
+                                // Convert depth range labels to user's preferred unit
+                                final minDisplay = units.convertDepth(data.minDepth.toDouble()).round();
+                                final maxDisplay = units.convertDepth(data.maxDepth.toDouble()).round();
+                                final label = data.maxDepth >= 100
+                                    ? '$minDisplay${units.depthSymbol}+'
+                                    : '$minDisplay-$maxDisplay${units.depthSymbol}';
                                 return Padding(
                                   padding: const EdgeInsets.symmetric(vertical: 2),
                                   child: Row(
@@ -360,7 +371,7 @@ class StatisticsPage extends ConsumerWidget {
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
-                                          data.label,
+                                          label,
                                           style: Theme.of(context).textTheme.bodySmall,
                                         ),
                                       ),
@@ -398,9 +409,9 @@ class StatisticsPage extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildMiniStat(context, 'Avg Depth', '${stats.avgMaxDepth.toStringAsFixed(1)}m'),
+                  _buildMiniStat(context, 'Avg Depth', units.formatDepth(stats.avgMaxDepth)),
                   if (stats.avgTemperature != null)
-                    _buildMiniStat(context, 'Avg Temp', '${stats.avgTemperature!.toStringAsFixed(1)}°C'),
+                    _buildMiniStat(context, 'Avg Temp', units.formatTemperature(stats.avgTemperature)),
                 ],
               ),
             ],

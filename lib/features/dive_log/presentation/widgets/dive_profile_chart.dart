@@ -3,11 +3,14 @@ import 'dart:math' as math;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/utils/unit_formatter.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../../domain/entities/dive.dart';
 
 /// Interactive dive profile chart showing depth over time with zoom/pan support
-class DiveProfileChart extends StatefulWidget {
+class DiveProfileChart extends ConsumerStatefulWidget {
   final List<DiveProfilePoint> profile;
   final Duration? diveDuration;
   final double? maxDepth;
@@ -24,10 +27,10 @@ class DiveProfileChart extends StatefulWidget {
   });
 
   @override
-  State<DiveProfileChart> createState() => _DiveProfileChartState();
+  ConsumerState<DiveProfileChart> createState() => _DiveProfileChartState();
 }
 
-class _DiveProfileChartState extends State<DiveProfileChart> {
+class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   bool _showTemperature = true;
 
   // Zoom/pan state
@@ -85,6 +88,8 @@ class _DiveProfileChartState extends State<DiveProfileChart> {
       return _buildEmptyState(context);
     }
 
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
     final hasTemperatureData = widget.profile.any((p) => p.temperature != null);
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -133,7 +138,7 @@ class _DiveProfileChartState extends State<DiveProfileChart> {
         // The chart with gesture handling
         SizedBox(
           height: 200,
-          child: _buildInteractiveChart(context, hasTemperatureData),
+          child: _buildInteractiveChart(context, hasTemperatureData, units),
         ),
 
         // Zoom hint
@@ -203,7 +208,7 @@ class _DiveProfileChartState extends State<DiveProfileChart> {
     );
   }
 
-  Widget _buildInteractiveChart(BuildContext context, bool hasTemperatureData) {
+  Widget _buildInteractiveChart(BuildContext context, bool hasTemperatureData, UnitFormatter units) {
     return LayoutBuilder(
       builder: (context, constraints) {
         return GestureDetector(
@@ -265,7 +270,7 @@ class _DiveProfileChartState extends State<DiveProfileChart> {
                 });
               }
             },
-            child: _buildChart(context, hasTemperatureData),
+            child: _buildChart(context, hasTemperatureData, units),
           ),
         );
       },
@@ -322,13 +327,15 @@ class _DiveProfileChartState extends State<DiveProfileChart> {
     );
   }
 
-  Widget _buildChart(BuildContext context, bool hasTemperatureData) {
+  Widget _buildChart(BuildContext context, bool hasTemperatureData, UnitFormatter units) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    // Calculate full data bounds
+    // Calculate full data bounds (all values stored in meters, convert for display)
     final totalMaxTime = widget.profile.map((p) => p.timestamp).reduce(math.max).toDouble();
-    final maxDepthValue = widget.profile.map((p) => p.depth).reduce(math.max);
-    final totalMaxDepth = (widget.maxDepth ?? maxDepthValue) * 1.1; // Add 10% padding
+    final maxDepthValueMeters = widget.profile.map((p) => p.depth).reduce(math.max);
+    // Convert to user's preferred depth unit for chart calculations
+    final maxDepthValueDisplay = units.convertDepth(widget.maxDepth ?? maxDepthValueMeters);
+    final totalMaxDepth = maxDepthValueDisplay * 1.1; // Add 10% padding
 
     // Apply zoom and pan to calculate visible bounds
     final visibleRangeX = totalMaxTime / _zoomLevel;
@@ -340,10 +347,10 @@ class _DiveProfileChartState extends State<DiveProfileChart> {
     final visibleMinDepth = _panOffsetY * totalMaxDepth;
     final visibleMaxDepth = visibleMinDepth + visibleRangeY;
 
-    // Temperature bounds (if showing)
+    // Temperature bounds (if showing) - convert to user's preferred unit
     double? minTemp, maxTemp;
     if (_showTemperature && hasTemperatureData) {
-      final temps = widget.profile.where((p) => p.temperature != null).map((p) => p.temperature!);
+      final temps = widget.profile.where((p) => p.temperature != null).map((p) => units.convertTemperature(p.temperature!));
       if (temps.isNotEmpty) {
         minTemp = temps.reduce(math.min) - 1;
         maxTemp = temps.reduce(math.max) + 1;
@@ -374,7 +381,7 @@ class _DiveProfileChartState extends State<DiveProfileChart> {
         titlesData: FlTitlesData(
           leftTitles: AxisTitles(
             axisNameWidget: Text(
-              'Depth (m)',
+              'Depth (${units.depthSymbol})',
               style: Theme.of(context).textTheme.labelSmall,
             ),
             sideTitles: SideTitles(
@@ -414,11 +421,11 @@ class _DiveProfileChartState extends State<DiveProfileChart> {
               reservedSize: 40,
               getTitlesWidget: (value, meta) {
                 if (minTemp == null || maxTemp == null) return const SizedBox();
-                // Map from inverted depth axis to temperature
+                // Map from inverted depth axis to temperature (already in user's preferred unit)
                 final temp = _mapDepthToTemp(-value, totalMaxDepth, minTemp, maxTemp);
                 if (temp < minTemp || temp > maxTemp) return const SizedBox();
                 return Text(
-                  '${temp.toStringAsFixed(0)}°',
+                  '${temp.toStringAsFixed(0)}${units.temperatureSymbol}',
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: colorScheme.tertiary,
                       ),
@@ -433,12 +440,12 @@ class _DiveProfileChartState extends State<DiveProfileChart> {
           border: Border.all(color: colorScheme.outlineVariant),
         ),
         lineBarsData: [
-          // Depth line
-          _buildDepthLine(colorScheme),
+          // Depth line (convert to user's preferred unit)
+          _buildDepthLine(colorScheme, units),
 
           // Temperature line (if showing)
           if (_showTemperature && hasTemperatureData && minTemp != null && maxTemp != null)
-            _buildTemperatureLine(colorScheme, totalMaxDepth, minTemp, maxTemp),
+            _buildTemperatureLine(colorScheme, totalMaxDepth, minTemp, maxTemp, units),
         ],
         lineTouchData: LineTouchData(
           enabled: true,
@@ -453,16 +460,20 @@ class _DiveProfileChartState extends State<DiveProfileChart> {
                 if (isDepth) {
                   final minutes = point.timestamp ~/ 60;
                   final seconds = point.timestamp % 60;
+                  // Convert depth from stored meters to user's preferred unit
+                  final depthDisplay = units.formatDepth(point.depth);
                   return LineTooltipItem(
-                    '${point.depth.toStringAsFixed(1)}m\n$minutes:${seconds.toString().padLeft(2, '0')}',
+                    '$depthDisplay\n$minutes:${seconds.toString().padLeft(2, '0')}',
                     TextStyle(
                       color: colorScheme.onInverseSurface,
                       fontWeight: FontWeight.bold,
                     ),
                   );
                 } else {
+                  // Convert temperature from stored Celsius to user's preferred unit
+                  final tempDisplay = units.formatTemperature(point.temperature);
                   return LineTooltipItem(
-                    '${point.temperature?.toStringAsFixed(1)}°C',
+                    tempDisplay,
                     TextStyle(
                       color: colorScheme.tertiary,
                       fontWeight: FontWeight.bold,
@@ -477,10 +488,13 @@ class _DiveProfileChartState extends State<DiveProfileChart> {
     );
   }
 
-  LineChartBarData _buildDepthLine(ColorScheme colorScheme) {
+  LineChartBarData _buildDepthLine(ColorScheme colorScheme, UnitFormatter units) {
     return LineChartBarData(
       spots: widget.profile
-          .map((p) => FlSpot(p.timestamp.toDouble(), -p.depth)) // Negate depth for inverted axis
+          .map((p) => FlSpot(
+            p.timestamp.toDouble(),
+            -units.convertDepth(p.depth), // Convert to user's unit and negate for inverted axis
+          ))
           .toList(),
       isCurved: true,
       curveSmoothness: 0.2,
@@ -507,13 +521,15 @@ class _DiveProfileChartState extends State<DiveProfileChart> {
     double chartMaxDepth,
     double minTemp,
     double maxTemp,
+    UnitFormatter units,
   ) {
     return LineChartBarData(
       spots: widget.profile
           .where((p) => p.temperature != null)
           .map((p) => FlSpot(
                 p.timestamp.toDouble(),
-                -_mapTempToDepth(p.temperature!, chartMaxDepth, minTemp, maxTemp), // Negate for inverted axis
+                // Convert temp to user's unit, then map to depth axis
+                -_mapTempToDepth(units.convertTemperature(p.temperature!), chartMaxDepth, minTemp, maxTemp),
               ))
           .toList(),
       isCurved: true,

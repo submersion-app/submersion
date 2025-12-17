@@ -1,17 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/presentation/pages/records_page.dart';
 
 void main() {
   group('RecordsPage', () {
+    late SharedPreferences prefs;
+
+    setUpAll(() async {
+      SharedPreferences.setMockInitialValues({});
+      prefs = await SharedPreferences.getInstance();
+    });
+
     testWidgets('should display Dive Records title in app bar', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
             diveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+            sharedPreferencesProvider.overrideWithValue(prefs),
           ],
           child: const MaterialApp(
             home: RecordsPage(),
@@ -27,6 +37,7 @@ void main() {
         ProviderScope(
           overrides: [
             diveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+            sharedPreferencesProvider.overrideWithValue(prefs),
           ],
           child: const MaterialApp(
             home: RecordsPage(),
@@ -44,6 +55,7 @@ void main() {
         ProviderScope(
           overrides: [
             diveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+            sharedPreferencesProvider.overrideWithValue(prefs),
           ],
           child: const MaterialApp(
             home: RecordsPage(),
@@ -77,6 +89,7 @@ void main() {
         ProviderScope(
           overrides: [
             diveRecordsProvider.overrideWith((ref) async => records),
+            sharedPreferencesProvider.overrideWithValue(prefs),
           ],
           child: const MaterialApp(
             home: RecordsPage(),
@@ -97,6 +110,7 @@ void main() {
             diveRecordsProvider.overrideWith((ref) async {
               throw Exception('Failed to load records');
             }),
+            sharedPreferencesProvider.overrideWithValue(prefs),
           ],
           child: const MaterialApp(
             home: RecordsPage(),
