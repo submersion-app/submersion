@@ -2,8 +2,8 @@
 ## Comprehensive Development Plan
 
 > **Last Updated:** 2025-12-16
-> **Current Version:** 1.0.0 (v1.0 Complete)
-> **Status:** v1.0 COMPLETE - Ready for release
+> **Current Version:** 1.1.0 (v1.1 Notes & Tags Complete)
+> **Status:** v1.0 COMPLETE, v1.1/v1.5 Notes & Tags COMPLETE
 
 ---
 
@@ -135,20 +135,20 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 |---------|--------|-------|----------|-------|
 | Free-text notes | ✅ Implemented | MVP | - | Rich text field |
 | Star rating (1-5) | ✅ Implemented | MVP | - | |
-| Favorite flag | 📋 Planned | v1.1 | Low | Boolean flag - deferred |
-| Arbitrary tags | 📋 Planned | v1.5 | Medium | Many-to-many tags |
+| Favorite flag | ✅ Implemented | v1.1 | - | Boolean flag with toggle in list/detail |
+| Arbitrary tags | ✅ Implemented | v1.5 | - | Many-to-many tags with colors |
 | Smart collections based on tags | 📋 Planned | v2.0 | Low | Saved filters |
 
-**v1.1 Tasks:** (deferred from v1.0)
-- [ ] Add `is_favorite` boolean to dives table
-- [ ] Favorite icon in dive list and detail
-- [ ] Filter by favorites
+**v1.1 Tasks:** ✅ COMPLETE
+- [x] Add `is_favorite` boolean to dives table
+- [x] Favorite icon in dive list and detail
+- [x] Filter by favorites
 
-**v1.5 Tasks:**
-- [ ] Tags entity with many-to-many relationship
-- [ ] Tag input widget (chip selector)
-- [ ] Tag-based filtering and search
-- [ ] Tag statistics (most used, tag clouds)
+**v1.5 Tasks:** ✅ COMPLETE
+- [x] Tags entity with many-to-many relationship
+- [x] Tag input widget (chip selector with autocomplete)
+- [x] Tag-based filtering and search
+- [x] Tag statistics (usage counts with progress bars)
 
 ---
 
@@ -1373,8 +1373,8 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 - [ ] MOD/END/Best-Mix calculators page
 
 ### Advanced Features
-- [ ] Tags system (many-to-many)
-- [ ] Tag-based filtering
+- [x] Tags system (many-to-many) ✅ COMPLETE
+- [x] Tag-based filtering ✅ COMPLETE
 - [ ] Offline map tile caching
 - [ ] Map region download for offline
 - [ ] Species detail pages with photos
@@ -1636,22 +1636,30 @@ ALTER TABLE dive_sites ADD COLUMN parking_info TEXT;
 ## New Tables for v1.5
 
 ```sql
--- Tags
+-- Tags ✅ IMPLEMENTED (Schema v8)
 CREATE TABLE tags (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL UNIQUE,
   color TEXT,
-  created_at INTEGER NOT NULL
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL
 );
 
--- Dive Tags (many-to-many)
+-- Dive Tags (many-to-many) ✅ IMPLEMENTED (Schema v8)
 CREATE TABLE dive_tags (
   id TEXT PRIMARY KEY,
   dive_id TEXT NOT NULL REFERENCES dives(id) ON DELETE CASCADE,
   tag_id TEXT NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
-  created_at INTEGER NOT NULL,
-  UNIQUE(dive_id, tag_id)
+  created_at INTEGER NOT NULL
 );
+
+-- Indexes for tags ✅ IMPLEMENTED
+CREATE UNIQUE INDEX idx_tags_name ON tags(name);
+CREATE INDEX idx_dive_tags_dive_id ON dive_tags(dive_id);
+CREATE INDEX idx_dive_tags_tag_id ON dive_tags(tag_id);
+
+-- is_favorite on dives ✅ IMPLEMENTED (Schema v8)
+ALTER TABLE dives ADD COLUMN is_favorite INTEGER DEFAULT 0;
 
 -- Trips
 CREATE TABLE trips (
@@ -2004,8 +2012,8 @@ The local-first, privacy-focused architecture differentiates Submersion from clo
 ---
 
 **Document Metadata:**
-- **Version:** 1.2
+- **Version:** 1.3
 - **Last Updated:** 2025-12-16
 - **Author:** Development Team
-- **Status:** v1.0 Complete - Ready for Release
-- **Next Review:** After v1.0 Release
+- **Status:** v1.0 Complete, v1.1/v1.5 Notes & Tags Complete
+- **Next Review:** After v1.5 Release

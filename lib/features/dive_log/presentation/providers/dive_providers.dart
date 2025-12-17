@@ -12,6 +12,8 @@ class DiveFilterState {
   final String? siteId;
   final double? minDepth;
   final double? maxDepth;
+  final bool? favoritesOnly;
+  final List<String> tagIds;
 
   const DiveFilterState({
     this.startDate,
@@ -20,6 +22,8 @@ class DiveFilterState {
     this.siteId,
     this.minDepth,
     this.maxDepth,
+    this.favoritesOnly,
+    this.tagIds = const [],
   });
 
   bool get hasActiveFilters =>
@@ -28,7 +32,9 @@ class DiveFilterState {
       diveType != null ||
       siteId != null ||
       minDepth != null ||
-      maxDepth != null;
+      maxDepth != null ||
+      favoritesOnly == true ||
+      tagIds.isNotEmpty;
 
   DiveFilterState copyWith({
     DateTime? startDate,
@@ -37,12 +43,16 @@ class DiveFilterState {
     String? siteId,
     double? minDepth,
     double? maxDepth,
+    bool? favoritesOnly,
+    List<String>? tagIds,
     bool clearStartDate = false,
     bool clearEndDate = false,
     bool clearDiveType = false,
     bool clearSiteId = false,
     bool clearMinDepth = false,
     bool clearMaxDepth = false,
+    bool clearFavoritesOnly = false,
+    bool clearTagIds = false,
   }) {
     return DiveFilterState(
       startDate: clearStartDate ? null : (startDate ?? this.startDate),
@@ -51,6 +61,8 @@ class DiveFilterState {
       siteId: clearSiteId ? null : (siteId ?? this.siteId),
       minDepth: clearMinDepth ? null : (minDepth ?? this.minDepth),
       maxDepth: clearMaxDepth ? null : (maxDepth ?? this.maxDepth),
+      favoritesOnly: clearFavoritesOnly ? null : (favoritesOnly ?? this.favoritesOnly),
+      tagIds: clearTagIds ? const [] : (tagIds ?? this.tagIds),
     );
   }
 
@@ -81,6 +93,19 @@ class DiveFilterState {
       }
       if (maxDepth != null && (dive.maxDepth == null || dive.maxDepth! > maxDepth!)) {
         return false;
+      }
+
+      // Favorites filter
+      if (favoritesOnly == true && !dive.isFavorite) {
+        return false;
+      }
+
+      // Tags filter (match any tag)
+      if (tagIds.isNotEmpty) {
+        final diveTagIds = dive.tags.map((t) => t.id).toSet();
+        if (!tagIds.any((tagId) => diveTagIds.contains(tagId))) {
+          return false;
+        }
       }
 
       return true;
@@ -203,6 +228,20 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
     }
     await _loadDives();
     _ref.invalidate(diveStatisticsProvider);
+  }
+
+  /// Toggle favorite status for a dive
+  Future<void> toggleFavorite(String diveId) async {
+    await _repository.toggleFavorite(diveId);
+    await _loadDives();
+    _ref.invalidate(diveProvider(diveId));
+  }
+
+  /// Set favorite status for a dive
+  Future<void> setFavorite(String diveId, bool isFavorite) async {
+    await _repository.setFavorite(diveId, isFavorite);
+    await _loadDives();
+    _ref.invalidate(diveProvider(diveId));
   }
 }
 

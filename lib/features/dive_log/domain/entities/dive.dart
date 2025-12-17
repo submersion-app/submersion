@@ -4,6 +4,7 @@ import '../../../../core/constants/enums.dart';
 import '../../../dive_centers/domain/entities/dive_center.dart';
 import '../../../dive_sites/domain/entities/dive_site.dart';
 import '../../../equipment/domain/entities/equipment_item.dart';
+import '../../../tags/domain/entities/tag.dart';
 import '../../../trips/domain/entities/trip.dart';
 
 /// Core dive log entry entity
@@ -42,6 +43,9 @@ class Dive extends Equatable {
   final double? weightAmount; // kg
   final WeightType? weightType;
   final bool? weightBeltUsed;
+  // Favorites and tags (v1.1/v1.5)
+  final bool isFavorite;
+  final List<Tag> tags;
 
   const Dive({
     required this.id,
@@ -76,6 +80,8 @@ class Dive extends Equatable {
     this.weightAmount,
     this.weightType,
     this.weightBeltUsed,
+    this.isFavorite = false,
+    this.tags = const [],
   });
 
   /// Air consumption rate in bar/min (Surface Air Consumption)
@@ -124,6 +130,8 @@ class Dive extends Equatable {
     double? weightAmount,
     WeightType? weightType,
     bool? weightBeltUsed,
+    bool? isFavorite,
+    List<Tag>? tags,
   }) {
     return Dive(
       id: id ?? this.id,
@@ -158,6 +166,8 @@ class Dive extends Equatable {
       weightAmount: weightAmount ?? this.weightAmount,
       weightType: weightType ?? this.weightType,
       weightBeltUsed: weightBeltUsed ?? this.weightBeltUsed,
+      isFavorite: isFavorite ?? this.isFavorite,
+      tags: tags ?? this.tags,
     );
   }
 
@@ -195,6 +205,8 @@ class Dive extends Equatable {
         weightAmount,
         weightType,
         weightBeltUsed,
+        isFavorite,
+        tags,
       ];
 }
 

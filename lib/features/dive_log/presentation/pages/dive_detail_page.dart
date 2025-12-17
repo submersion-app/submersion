@@ -9,6 +9,7 @@ import '../../../buddies/presentation/providers/buddy_providers.dart';
 import '../../../marine_life/domain/entities/species.dart';
 import '../../../marine_life/presentation/providers/species_providers.dart';
 import '../../../settings/presentation/providers/export_providers.dart';
+import '../../../tags/presentation/widgets/tag_input_widget.dart';
 import '../../domain/entities/dive.dart';
 import '../providers/dive_providers.dart';
 import '../widgets/dive_profile_chart.dart';
@@ -63,6 +64,16 @@ class DiveDetailPage extends ConsumerWidget {
         title: const Text('Dive Details'),
         actions: [
           IconButton(
+            icon: Icon(
+              dive.isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: dive.isFavorite ? Colors.red : null,
+            ),
+            tooltip: dive.isFavorite ? 'Remove from favorites' : 'Add to favorites',
+            onPressed: () {
+              ref.read(diveListNotifierProvider.notifier).toggleFavorite(diveId);
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () => context.go('/dives/$diveId/edit'),
           ),
@@ -114,6 +125,8 @@ class DiveDetailPage extends ConsumerWidget {
             _buildConditionsSection(context, dive),
             const SizedBox(height: 24),
             _buildWeightSection(context, dive),
+            const SizedBox(height: 24),
+            _buildTagsSection(context, dive),
             const SizedBox(height: 24),
             _buildBuddiesSection(context, ref),
             const SizedBox(height: 24),
@@ -357,6 +370,48 @@ class DiveDetailPage extends ConsumerWidget {
               _buildDetailRow(context, 'Weight Type', dive.weightType!.displayName),
             if (dive.weightBeltUsed != null)
               _buildDetailRow(context, 'Weight Belt Used', dive.weightBeltUsed! ? 'Yes' : 'No'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTagsSection(BuildContext context, Dive dive) {
+    if (dive.tags.isEmpty) return const SizedBox.shrink();
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Tags',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                Text(
+                  '${dive.tags.length} ${dive.tags.length == 1 ? 'tag' : 'tags'}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ],
+            ),
+            const Divider(),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: dive.tags.map((tag) => Chip(
+                    label: Text(tag.name),
+                    backgroundColor: tag.color.withValues(alpha: 0.2),
+                    side: BorderSide(color: tag.color),
+                    labelStyle: TextStyle(color: tag.color),
+                    visualDensity: VisualDensity.compact,
+                  )).toList(),
+            ),
           ],
         ),
       ),

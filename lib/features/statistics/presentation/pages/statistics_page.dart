@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../dive_log/data/repositories/dive_repository_impl.dart';
 import '../../../dive_log/presentation/providers/dive_providers.dart';
+import '../../../tags/presentation/providers/tag_providers.dart';
 
 class StatisticsPage extends ConsumerWidget {
   const StatisticsPage({super.key});
@@ -63,6 +64,8 @@ class StatisticsPage extends ConsumerWidget {
           _buildDepthDistribution(context, stats),
           const SizedBox(height: 24),
           _buildTopSites(context, stats),
+          const SizedBox(height: 24),
+          _buildTagStatistics(context),
         ],
       ),
     );
@@ -536,6 +539,177 @@ class StatisticsPage extends ConsumerWidget {
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTagStatistics(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final tagStatsAsync = ref.watch(tagStatisticsProvider);
+
+        return tagStatsAsync.when(
+          data: (tagStats) {
+            if (tagStats.isEmpty) {
+              return Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Tag Usage',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const Divider(),
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            children: [
+                              Icon(
+                                Icons.label_outline,
+                                size: 48,
+                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'No tags created yet',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Add tags to dives to see statistics',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            final maxCount = tagStats.map((s) => s.diveCount).reduce((a, b) => a > b ? a : b);
+
+            return Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Tag Usage',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        Text(
+                          '${tagStats.length} tags',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                        ),
+                      ],
+                    ),
+                    const Divider(),
+                    ...tagStats.take(10).map((stat) => _buildTagStatTile(
+                          context,
+                          stat.tag.name,
+                          stat.diveCount,
+                          stat.tag.color,
+                          maxCount,
+                        )),
+                    if (tagStats.length > 10) ...[
+                      const SizedBox(height: 8),
+                      Center(
+                        child: Text(
+                          'and ${tagStats.length - 10} more tags',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            );
+          },
+          loading: () => const Card(
+            child: Padding(
+              padding: EdgeInsets.all(32),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          ),
+          error: (_, __) => const SizedBox.shrink(),
+        );
+      },
+    );
+  }
+
+  Widget _buildTagStatTile(
+    BuildContext context,
+    String tagName,
+    int diveCount,
+    Color color,
+    int maxCount,
+  ) {
+    final percentage = maxCount > 0 ? diveCount / maxCount : 0.0;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(3),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      tagName,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    Text(
+                      '$diveCount ${diveCount == 1 ? 'dive' : 'dives'}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(2),
+                  child: LinearProgressIndicator(
+                    value: percentage,
+                    backgroundColor: color.withValues(alpha: 0.2),
+                    valueColor: AlwaysStoppedAnimation(color),
+                    minHeight: 6,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

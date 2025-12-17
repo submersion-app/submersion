@@ -1,10 +1,10 @@
-# Current Sprint - v1.0 Development
+# Current Sprint - v1.1 Development
 
-> **Current Phase:** v1.0 Development - COMPLETE
+> **Current Phase:** v1.1/v1.5 Notes & Tags - COMPLETE
 > **Last Updated:** 2025-12-16
-> **Sprint:** Sprint 5 - Trips & Bulk Operations (COMPLETE)
+> **Sprint:** Sprint 6 - Notes & Tags (COMPLETE)
 > **Reference:** See [FEATURE_ROADMAP.md](../FEATURE_ROADMAP.md) for full roadmap
-> **Status:** All sprints completed. v1.0 ready for release.
+> **Status:** v1.0 complete. v1.1/v1.5 Notes & Tags complete.
 
 ---
 
@@ -468,3 +468,174 @@ git push -u origin feature/buddy-schema
 **v1.0 Total Estimate:** ~60 tasks, ~192 hours, 11 weeks
 
 **Status:** v1.0 COMPLETE. All sprints finished, 185+ tests passing. Ready for release.
+
+---
+
+# Sprint 6: Notes & Tags (v1.1/v1.5) - COMPLETE
+
+## 6.1: Favorites Feature (v1.1) - COMPLETE
+**Estimated:** 4 hours | **Dependencies:** None
+
+- [x] Add `is_favorite` boolean to dives table (schema v8)
+- [x] Update Dive entity with `isFavorite` field
+- [x] Update DiveRepository with toggle/set favorite methods
+- [x] Add favorite icon to dive list (heart icon, tap to toggle)
+- [x] Add favorite button to dive detail page app bar
+- [x] Add "Favorites Only" filter in filter sheet
+- [x] Add favorites filter chip display
+
+**Files modified:**
+- `lib/core/database/database.dart`
+- `lib/features/dive_log/domain/entities/dive.dart`
+- `lib/features/dive_log/data/repositories/dive_repository_impl.dart`
+- `lib/features/dive_log/presentation/providers/dive_providers.dart`
+- `lib/features/dive_log/presentation/pages/dive_list_page.dart`
+- `lib/features/dive_log/presentation/pages/dive_detail_page.dart`
+
+---
+
+## 6.2: Tags Database Schema (v1.5) - COMPLETE
+**Estimated:** 2 hours | **Dependencies:** 6.1
+
+- [x] Add `tags` table (id, name, color, timestamps)
+- [x] Add `dive_tags` junction table (many-to-many)
+- [x] Add indexes for efficient lookups
+- [x] Run code generation
+
+**Schema:**
+```sql
+CREATE TABLE tags (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  color TEXT,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL
+);
+
+CREATE TABLE dive_tags (
+  id TEXT PRIMARY KEY,
+  dive_id TEXT NOT NULL REFERENCES dives(id) ON DELETE CASCADE,
+  tag_id TEXT NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
+  created_at INTEGER NOT NULL
+);
+
+CREATE UNIQUE INDEX idx_tags_name ON tags(name);
+CREATE INDEX idx_dive_tags_dive_id ON dive_tags(dive_id);
+CREATE INDEX idx_dive_tags_tag_id ON dive_tags(tag_id);
+```
+
+---
+
+## 6.3: Tag Entity & Repository (v1.5) - COMPLETE
+**Estimated:** 4 hours | **Dependencies:** 6.2
+
+- [x] Create Tag entity with color support
+- [x] Create TagRepository with CRUD operations
+- [x] Batch loading for dive tags (getTagsForDives)
+- [x] Tag statistics query (usage counts)
+- [x] Get or create tag by name
+- [x] Search tags
+
+**Files created:**
+- `lib/features/tags/domain/entities/tag.dart`
+- `lib/features/tags/data/repositories/tag_repository.dart`
+
+---
+
+## 6.4: Tag Providers (v1.5) - COMPLETE
+**Estimated:** 2 hours | **Dependencies:** 6.3
+
+- [x] tagRepositoryProvider
+- [x] tagsProvider (all tags)
+- [x] tagProvider (by ID)
+- [x] tagStatisticsProvider
+- [x] tagsForDiveProvider
+- [x] tagSearchProvider
+- [x] tagListNotifierProvider (with mutations)
+
+**Files created:**
+- `lib/features/tags/presentation/providers/tag_providers.dart`
+
+---
+
+## 6.5: Tag Input Widget (v1.5) - COMPLETE
+**Estimated:** 4 hours | **Dependencies:** 6.4
+
+- [x] TagInputWidget with chip selector
+- [x] Autocomplete suggestions
+- [x] Create new tag inline
+- [x] 20 predefined colors
+- [x] TagChips compact display for list views
+- [x] TagManagementDialog for editing/deleting tags
+- [x] TagColorPicker widget
+
+**Files created:**
+- `lib/features/tags/presentation/widgets/tag_input_widget.dart`
+
+---
+
+## 6.6: Tags in Dive Edit/Detail (v1.5) - COMPLETE
+**Estimated:** 3 hours | **Dependencies:** 6.5
+
+- [x] Add TagInputWidget to dive edit page
+- [x] Load existing tags when editing dive
+- [x] Save tags with dive (create/update)
+- [x] Display tags on dive detail page
+- [x] Display tag chips in dive list
+
+**Files modified:**
+- `lib/features/dive_log/presentation/pages/dive_edit_page.dart`
+- `lib/features/dive_log/presentation/pages/dive_detail_page.dart`
+- `lib/features/dive_log/presentation/pages/dive_list_page.dart`
+
+---
+
+## 6.7: Tag Filtering (v1.5) - COMPLETE
+**Estimated:** 2 hours | **Dependencies:** 6.6
+
+- [x] Add tagIds to DiveFilterState
+- [x] Tag filter chips in filter sheet
+- [x] Filter dives by selected tags (match any)
+- [x] Display tag filter count in active filters bar
+
+**Files modified:**
+- `lib/features/dive_log/presentation/providers/dive_providers.dart`
+- `lib/features/dive_log/presentation/pages/dive_list_page.dart`
+
+---
+
+## 6.8: Tag Statistics (v1.5) - COMPLETE
+**Estimated:** 2 hours | **Dependencies:** 6.7
+
+- [x] Add Tag Usage section to statistics page
+- [x] Show tag name, color, dive count
+- [x] Progress bars showing relative usage
+- [x] Empty state when no tags exist
+
+**Files modified:**
+- `lib/features/statistics/presentation/pages/statistics_page.dart`
+
+---
+
+## Sprint 6 Summary
+
+**Total Tasks:** 8
+**Estimated Hours:** 23
+**Features Implemented:**
+- Favorites system (v1.1)
+- Tags system with colors (v1.5)
+- Tag input widget with autocomplete
+- Tag-based filtering
+- Tag statistics
+
+**New Files Created:**
+- `lib/features/tags/domain/entities/tag.dart`
+- `lib/features/tags/data/repositories/tag_repository.dart`
+- `lib/features/tags/presentation/providers/tag_providers.dart`
+- `lib/features/tags/presentation/widgets/tag_input_widget.dart`
+
+**Database Changes:**
+- Schema version 7 → 8
+- Added `is_favorite` column to dives
+- Added `tags` table
+- Added `dive_tags` junction table
