@@ -97,6 +97,29 @@ class UnitFormatter {
     return '${converted.toStringAsFixed(decimals)} ${settings.volumeUnit.symbol}';
   }
 
+  /// Format tank volume - handles gas capacity conversion for imperial units
+  /// For cuft, calculates gas capacity from physical volume and working pressure
+  String formatTankVolume(double? volumeLiters, int? workingPressureBar, {int decimals = 0}) {
+    if (volumeLiters == null) return '--';
+    
+    if (settings.volumeUnit == VolumeUnit.cubicFeet) {
+      if (workingPressureBar != null && workingPressureBar > 0) {
+        // Calculate gas capacity in cubic feet
+        // cuft = (liters * working_pressure_bar) / 28.3168
+        final cuft = (volumeLiters * workingPressureBar) / 28.3168;
+        return '${cuft.toStringAsFixed(decimals)} ${settings.volumeUnit.symbol}';
+      } else {
+        // No working pressure - use approximate conversion assuming 200 bar
+        // This is a reasonable default for most tanks
+        final cuft = (volumeLiters * 200) / 28.3168;
+        return '~${cuft.toStringAsFixed(decimals)} ${settings.volumeUnit.symbol}';
+      }
+    }
+    
+    // For liters, just show physical volume
+    return '${volumeLiters.toStringAsFixed(decimals)} ${settings.volumeUnit.symbol}';
+  }
+
   /// Get volume unit symbol
   String get volumeSymbol => settings.volumeUnit.symbol;
 

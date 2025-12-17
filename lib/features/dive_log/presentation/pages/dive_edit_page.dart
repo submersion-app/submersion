@@ -1640,6 +1640,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       if (savedDiveId != null) {
         final buddyRepository = ref.read(buddyRepositoryProvider);
         await buddyRepository.setBuddiesForDive(savedDiveId, _selectedBuddies);
+        // Invalidate the buddies provider so the detail page shows updated data
+        ref.invalidate(buddiesForDiveProvider(savedDiveId));
       }
 
       if (mounted && savedDiveId != null) {
