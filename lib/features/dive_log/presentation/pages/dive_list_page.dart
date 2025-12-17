@@ -5,6 +5,9 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/constants/enums.dart';
 import '../../../dive_sites/presentation/providers/site_providers.dart';
+import '../../../tags/domain/entities/tag.dart';
+import '../../../tags/presentation/providers/tag_providers.dart';
+import '../../../tags/presentation/widgets/tag_input_widget.dart';
 import '../../domain/entities/dive.dart';
 import '../providers/dive_providers.dart';
 
@@ -267,6 +270,8 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
                   maxDepth: dive.maxDepth,
                   duration: dive.duration,
                   rating: dive.rating,
+                  isFavorite: dive.isFavorite,
+                  tags: dive.tags,
                   isSelectionMode: _isSelectionMode,
                   isSelected: isSelected,
                   onTap: _isSelectionMode
@@ -332,6 +337,19 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
           clearMinDepth: true,
           clearMaxDepth: true,
         );
+      }));
+    }
+
+    if (filter.favoritesOnly == true) {
+      chips.add(_buildFilterChip(context, 'Favorites', () {
+        ref.read(diveFilterProvider.notifier).state = filter.copyWith(clearFavoritesOnly: true);
+      }));
+    }
+
+    if (filter.tagIds.isNotEmpty) {
+      final tagCount = filter.tagIds.length;
+      chips.add(_buildFilterChip(context, '$tagCount tag${tagCount > 1 ? 's' : ''}', () {
+        ref.read(diveFilterProvider.notifier).state = filter.copyWith(clearTagIds: true);
       }));
     }
 
@@ -535,6 +553,8 @@ class DiveSearchDelegate extends SearchDelegate<Dive?> {
               maxDepth: dive.maxDepth,
               duration: dive.duration,
               rating: dive.rating,
+              isFavorite: dive.isFavorite,
+              tags: dive.tags,
               onTap: () {
                 close(context, dive);
                 context.go('/dives/${dive.id}');
@@ -559,6 +579,8 @@ class DiveListTile extends StatelessWidget {
   final double? maxDepth;
   final Duration? duration;
   final int? rating;
+  final bool isFavorite;
+  final List<Tag> tags;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
   final bool isSelectionMode;
@@ -572,6 +594,8 @@ class DiveListTile extends StatelessWidget {
     this.maxDepth,
     this.duration,
     this.rating,
+    this.isFavorite = false,
+    this.tags = const [],
     this.onTap,
     this.onLongPress,
     this.isSelectionMode = false,
@@ -619,7 +643,7 @@ class DiveListTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Site name with optional rating
+                    // Site name with favorite and rating
                     Row(
                       children: [
                         Expanded(
@@ -631,6 +655,14 @@ class DiveListTile extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                        if (isFavorite) ...[
+                          const SizedBox(width: 4),
+                          Icon(
+                            Icons.favorite,
+                            size: 18,
+                            color: Colors.red.shade400,
+                          ),
+                        ],
                         if (rating != null) ...[
                           const SizedBox(width: 8),
                           Icon(
@@ -697,6 +729,11 @@ class DiveListTile extends StatelessWidget {
                         ),
                       ],
                     ),
+                    // Tags
+                    if (tags.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      TagChips(tags: tags, maxTags: 3),
+                    ],
                   ],
                 ),
               ),
@@ -739,6 +776,8 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
   late String? _siteId;
   late double? _minDepth;
   late double? _maxDepth;
+  late bool _favoritesOnly;
+  late List<String> _selectedTagIds;
 
   final _minDepthController = TextEditingController();
   final _maxDepthController = TextEditingController();
@@ -753,6 +792,8 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
     _siteId = filter.siteId;
     _minDepth = filter.minDepth;
     _maxDepth = filter.maxDepth;
+    _favoritesOnly = filter.favoritesOnly ?? false;
+    _selectedTagIds = List.from(filter.tagIds);
     _minDepthController.text = _minDepth?.toStringAsFixed(0) ?? '';
     _maxDepthController.text = _maxDepth?.toStringAsFixed(0) ?? '';
   }
@@ -938,6 +979,63 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                   ),
                 ],
               ),
+              const SizedBox(height: 24),
+
+              // Favorites Section
+              SwitchListTile(
+                title: const Text('Favorites Only'),
+                subtitle: const Text('Show only favorite dives'),
+                secondary: Icon(
+                  Icons.favorite,
+                  color: _favoritesOnly ? Colors.red : null,
+                ),
+                value: _favoritesOnly,
+                onChanged: (value) {
+                  setState(() => _favoritesOnly = value);
+                },
+              ),
+              const SizedBox(height: 24),
+
+              // Tags Section
+              Text('Tags', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 8),
+              ref.watch(tagListNotifierProvider).when(
+                data: (allTags) {
+                  if (allTags.isEmpty) {
+                    return const Text(
+                      'No tags created yet',
+                      style: TextStyle(fontStyle: FontStyle.italic),
+                    );
+                  }
+                  return Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: allTags.map((tag) {
+                      final isSelected = _selectedTagIds.contains(tag.id);
+                      return FilterChip(
+                        label: Text(tag.name),
+                        selected: isSelected,
+                        selectedColor: tag.color.withValues(alpha: 0.3),
+                        checkmarkColor: tag.color,
+                        side: BorderSide(
+                          color: isSelected ? tag.color : Colors.grey.shade300,
+                        ),
+                        onSelected: (selected) {
+                          setState(() {
+                            if (selected) {
+                              _selectedTagIds.add(tag.id);
+                            } else {
+                              _selectedTagIds.remove(tag.id);
+                            }
+                          });
+                        },
+                      );
+                    }).toList(),
+                  );
+                },
+                loading: () => const CircularProgressIndicator(),
+                error: (_, __) => const Text('Error loading tags'),
+              ),
               const SizedBox(height: 32),
 
               // Action Buttons
@@ -1000,6 +1098,8 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
       siteId: _siteId,
       minDepth: _minDepth,
       maxDepth: _maxDepth,
+      favoritesOnly: _favoritesOnly ? true : null,
+      tagIds: _selectedTagIds,
     );
     Navigator.of(context).pop();
   }

@@ -9,11 +9,14 @@ import '../../domain/entities/dive.dart' as domain;
 import '../../../dive_centers/domain/entities/dive_center.dart' as domain;
 import '../../../dive_sites/domain/entities/dive_site.dart' as domain;
 import '../../../equipment/domain/entities/equipment_item.dart';
+import '../../../tags/domain/entities/tag.dart' as domain;
+import '../../../tags/data/repositories/tag_repository.dart';
 
 class DiveRepository {
   final AppDatabase _db = DatabaseService.instance.database;
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(DiveRepository);
+  final TagRepository _tagRepository = TagRepository();
 
   // ============================================================================
   // CRUD Operations
@@ -98,12 +101,16 @@ class DiveRepository {
     // Note: Profile data is NOT loaded for list views to improve performance
     // Profile data should only be loaded for individual dive detail views
 
+    // Load all tags for these dives in one query
+    final tagsByDive = await _tagRepository.getTagsForDives(diveIds);
+
       return rows.map((row) => _mapRowToDiveWithPreloadedData(
             row,
             tanks: tanksByDive[row.id] ?? [],
             equipment: equipmentByDive[row.id] ?? [],
             site: row.siteId != null ? sitesById[row.siteId] : null,
             center: row.diveCenterId != null ? centersById[row.diveCenterId] : null,
+            tags: tagsByDive[row.id] ?? [],
           )).toList();
     } catch (e, stackTrace) {
       _log.error('Failed to get all dives', e, stackTrace);
@@ -163,6 +170,8 @@ class DiveRepository {
       weightAmount: Value(dive.weightAmount),
       weightType: Value(dive.weightType?.name),
       weightBeltUsed: Value(dive.weightBeltUsed),
+      // Favorite flag
+      isFavorite: Value(dive.isFavorite),
       createdAt: Value(now),
       updatedAt: Value(now),
     ));
@@ -204,6 +213,11 @@ class DiveRepository {
           diveId: Value(id),
           equipmentId: Value(item.id),
         ));
+      }
+
+      // Insert tag associations
+      if (dive.tags.isNotEmpty) {
+        await _tagRepository.setTagsForDive(id, dive.tags);
       }
 
       _log.info('Created dive with id: $id');
@@ -249,6 +263,8 @@ class DiveRepository {
         weightAmount: Value(dive.weightAmount),
         weightType: Value(dive.weightType?.name),
         weightBeltUsed: Value(dive.weightBeltUsed),
+        // Favorite flag
+        isFavorite: Value(dive.isFavorite),
         updatedAt: Value(now),
       ),
     );
@@ -280,6 +296,10 @@ class DiveRepository {
           equipmentId: Value(item.id),
         ));
       }
+
+      // Update tags
+      await _tagRepository.setTagsForDive(dive.id, dive.tags);
+
       _log.info('Updated dive: ${dive.id}');
     } catch (e, stackTrace) {
       _log.error('Failed to update dive: ${dive.id}', e, stackTrace);
@@ -623,6 +643,7 @@ class DiveRepository {
     required List<EquipmentItem> equipment,
     DiveSite? site,
     DiveCenter? center,
+    List<domain.Tag> tags = const [],
   }) {
     // Map site if exists
     domain.DiveSite? domainSite;
@@ -749,6 +770,8 @@ class DiveRepository {
       )).toList(),
       profile: const [], // Profile not loaded for list views
       equipment: equipment,
+      isFavorite: row.isFavorite,
+      tags: tags,
     );
   }
 
@@ -851,6 +874,9 @@ class DiveRepository {
       }
     }
 
+    // Get tags for this dive
+    final tags = await _tagRepository.getTagsForDive(row.id);
+
     return domain.Dive(
       id: row.id,
       diveNumber: row.diveNumber,
@@ -945,7 +971,60 @@ class DiveRepository {
         heartRate: p.heartRate,
       )).toList(),
       equipment: equipmentItems,
+      isFavorite: row.isFavorite,
+      tags: tags,
     );
+  }
+
+  // ============================================================================
+  // Favorite Operations
+  // ============================================================================
+
+  /// Toggle favorite status for a dive
+  Future<void> toggleFavorite(String diveId) async {
+    try {
+      _log.info('Toggling favorite for dive: $diveId');
+      await _db.customStatement('''
+        UPDATE dives SET is_favorite = NOT is_favorite, updated_at = ?
+        WHERE id = ?
+      ''', [DateTime.now().millisecondsSinceEpoch, diveId]);
+      _log.info('Toggled favorite for dive: $diveId');
+    } catch (e, stackTrace) {
+      _log.error('Failed to toggle favorite for dive: $diveId', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Set favorite status for a dive
+  Future<void> setFavorite(String diveId, bool isFavorite) async {
+    try {
+      _log.info('Setting favorite=$isFavorite for dive: $diveId');
+      await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+        DivesCompanion(
+          isFavorite: Value(isFavorite),
+          updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+        ),
+      );
+      _log.info('Set favorite=$isFavorite for dive: $diveId');
+    } catch (e, stackTrace) {
+      _log.error('Failed to set favorite for dive: $diveId', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Get all favorite dives
+  Future<List<domain.Dive>> getFavoriteDives() async {
+    try {
+      final query = _db.select(_db.dives)
+        ..where((t) => t.isFavorite.equals(true))
+        ..orderBy([(t) => OrderingTerm.desc(t.diveDateTime)]);
+
+      final rows = await query.get();
+      return Future.wait(rows.map(_mapRowToDive));
+    } catch (e, stackTrace) {
+      _log.error('Failed to get favorite dives', e, stackTrace);
+      rethrow;
+    }
   }
 }
 

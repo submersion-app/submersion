@@ -18,6 +18,8 @@ import '../../../marine_life/domain/entities/species.dart';
 import '../../../marine_life/presentation/providers/species_providers.dart';
 import '../../../dive_centers/domain/entities/dive_center.dart';
 import '../../../dive_centers/presentation/widgets/dive_center_picker.dart';
+import '../../../tags/domain/entities/tag.dart';
+import '../../../tags/presentation/widgets/tag_input_widget.dart';
 import '../../../trips/domain/entities/trip.dart';
 import '../../../trips/presentation/providers/trip_providers.dart';
 import '../../../trips/presentation/widgets/trip_picker.dart';
@@ -80,6 +82,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   // Tank data - list of tanks with multi-tank support
   List<DiveTank> _tanks = [];
   final _uuid = const Uuid();
+
+  // Tags
+  List<Tag> _selectedTags = [];
 
   // Existing dive for editing
   Dive? _existingDive;
@@ -151,6 +156,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _weightAmountController.text = dive.weightAmount?.toString() ?? '';
           _weightType = dive.weightType;
           _weightBeltUsed = dive.weightBeltUsed ?? false;
+
+          // Load tags
+          _selectedTags = List.from(dive.tags);
         });
         // Load existing sightings and buddies
         _loadSightings();
@@ -254,7 +262,30 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             _buildSightingsSection(),
             const SizedBox(height: 16),
             _buildNotesSection(),
+            const SizedBox(height: 16),
+            _buildTagsSection(),
             const SizedBox(height: 32),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTagsSection() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Tags', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 16),
+            TagInputWidget(
+              selectedTags: _selectedTags,
+              onTagsChanged: (tags) {
+                setState(() => _selectedTags = tags);
+              },
+            ),
           ],
         ),
       ),
@@ -1503,6 +1534,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         weightAmount: weightAmount,
         weightType: _weightType,
         weightBeltUsed: _weightBeltUsed,
+        // Tags
+        tags: _selectedTags,
+        // Preserve favorite status when editing
+        isFavorite: _existingDive?.isFavorite ?? false,
       );
 
       // Save using the notifier
@@ -1538,8 +1573,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         await buddyRepository.setBuddiesForDive(savedDiveId, _selectedBuddies);
       }
 
-      if (mounted) {
-        context.go('/dives');
+      if (mounted && savedDiveId != null) {
+        context.go('/dives/$savedDiveId');
       }
     } catch (e) {
       if (mounted) {

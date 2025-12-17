@@ -55,6 +55,8 @@ class Dives extends Table {
   RealColumn get weightAmount => real().nullable()(); // kg
   TextColumn get weightType => text().nullable()();
   BoolColumn get weightBeltUsed => boolean().nullable()();
+  // Favorite flag (v1.1)
+  BoolColumn get isFavorite => boolean().withDefault(const Constant(false))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -309,6 +311,29 @@ class DiveCenters extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Tags for organizing dives (v1.5)
+class Tags extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  TextColumn get color => text().nullable()(); // Hex color code for UI
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Junction table for dive tags (many-to-many)
+class DiveTags extends Table {
+  TextColumn get id => text()();
+  TextColumn get diveId => text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  TextColumn get tagId => text().references(Tags, #id, onDelete: KeyAction.cascade)();
+  IntColumn get createdAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 // ============================================================================
 // Database Class
 // ============================================================================
@@ -333,13 +358,15 @@ class DiveCenters extends Table {
     Certifications,
     ServiceRecords,
     DiveCenters,
+    Tags,
+    DiveTags,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration {
@@ -554,6 +581,44 @@ class AppDatabase extends _$AppDatabase {
           await customStatement("ALTER TABLE dive_tanks ADD COLUMN tank_role TEXT NOT NULL DEFAULT 'backGas'");
           await customStatement('ALTER TABLE dive_tanks ADD COLUMN tank_material TEXT');
           await customStatement('ALTER TABLE dive_tanks ADD COLUMN tank_name TEXT');
+        }
+        if (from < 8) {
+          // Migration v7 -> v8: Add favorites (v1.1) and tags (v1.5)
+
+          // Add is_favorite column to dives table
+          await customStatement('ALTER TABLE dives ADD COLUMN is_favorite INTEGER NOT NULL DEFAULT 0');
+
+          // Create tags table
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS tags (
+              id TEXT NOT NULL PRIMARY KEY,
+              name TEXT NOT NULL,
+              color TEXT,
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL
+            )
+          ''');
+
+          // Create dive_tags junction table
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS dive_tags (
+              id TEXT NOT NULL PRIMARY KEY,
+              dive_id TEXT NOT NULL REFERENCES dives(id) ON DELETE CASCADE,
+              tag_id TEXT NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
+              created_at INTEGER NOT NULL
+            )
+          ''');
+
+          // Create indexes for faster tag lookups
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dive_tags_dive_id ON dive_tags(dive_id)
+          ''');
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dive_tags_tag_id ON dive_tags(tag_id)
+          ''');
+          await customStatement('''
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_tags_name ON tags(name)
+          ''');
         }
       },
       beforeOpen: (details) async {
