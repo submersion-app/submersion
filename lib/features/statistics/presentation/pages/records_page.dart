@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/utils/unit_formatter.dart';
 import '../../../dive_log/data/repositories/dive_repository_impl.dart';
 import '../../../dive_log/presentation/providers/dive_providers.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 
 class RecordsPage extends ConsumerWidget {
   const RecordsPage({super.key});
@@ -24,7 +26,7 @@ class RecordsPage extends ConsumerWidget {
         ],
       ),
       body: recordsAsync.when(
-        data: (records) => _buildContent(context, records),
+        data: (records) => _buildContent(context, ref, records),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(
           child: Column(
@@ -45,7 +47,10 @@ class RecordsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildContent(BuildContext context, DiveRecords records) {
+  Widget _buildContent(BuildContext context, WidgetRef ref, DiveRecords records) {
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
+    
     final hasRecords = records.deepestDive != null ||
         records.longestDive != null ||
         records.coldestDive != null ||
@@ -88,7 +93,7 @@ class RecordsPage extends ConsumerWidget {
             icon: Icons.arrow_downward,
             color: Colors.blue,
             record: records.deepestDive!,
-            value: '${records.deepestDive!.maxDepth?.toStringAsFixed(1)}m',
+            value: units.formatDepth(records.deepestDive!.maxDepth),
           ),
         if (records.longestDive != null)
           _buildRecordCard(
@@ -106,7 +111,7 @@ class RecordsPage extends ConsumerWidget {
             icon: Icons.ac_unit,
             color: Colors.cyan,
             record: records.coldestDive!,
-            value: '${records.coldestDive!.waterTemp?.toStringAsFixed(1)}°C',
+            value: units.formatTemperature(records.coldestDive!.waterTemp),
           ),
         if (records.warmestDive != null)
           _buildRecordCard(
@@ -115,7 +120,7 @@ class RecordsPage extends ConsumerWidget {
             icon: Icons.whatshot,
             color: Colors.orange,
             record: records.warmestDive!,
-            value: '${records.warmestDive!.waterTemp?.toStringAsFixed(1)}°C',
+            value: units.formatTemperature(records.warmestDive!.waterTemp),
           ),
         if (records.shallowestDive != null)
           _buildRecordCard(
@@ -124,7 +129,7 @@ class RecordsPage extends ConsumerWidget {
             icon: Icons.arrow_upward,
             color: Colors.teal,
             record: records.shallowestDive!,
-            value: '${records.shallowestDive!.maxDepth?.toStringAsFixed(1)}m',
+            value: units.formatDepth(records.shallowestDive!.maxDepth),
           ),
         const SizedBox(height: 24),
         Text(

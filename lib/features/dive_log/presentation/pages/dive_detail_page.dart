@@ -4,11 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/enums.dart';
+import '../../../../core/utils/unit_formatter.dart';
 import '../../../buddies/domain/entities/buddy.dart';
 import '../../../buddies/presentation/providers/buddy_providers.dart';
 import '../../../marine_life/domain/entities/species.dart';
 import '../../../marine_life/presentation/providers/species_providers.dart';
 import '../../../settings/presentation/providers/export_providers.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../../domain/entities/dive.dart';
 import '../providers/dive_providers.dart';
 import '../widgets/dive_profile_chart.dart';
@@ -58,6 +60,9 @@ class DiveDetailPage extends ConsumerWidget {
   }
 
   Widget _buildContent(BuildContext context, WidgetRef ref, Dive dive) {
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dive Details'),
@@ -113,24 +118,24 @@ class DiveDetailPage extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeaderSection(context, dive),
+            _buildHeaderSection(context, dive, units),
             const SizedBox(height: 24),
             if (dive.profile.isNotEmpty) ...[
               _buildProfileSection(context, dive),
               const SizedBox(height: 24),
             ],
-            _buildDetailsSection(context, dive),
+            _buildDetailsSection(context, dive, units),
             const SizedBox(height: 24),
             _buildConditionsSection(context, dive),
             const SizedBox(height: 24),
-            _buildWeightSection(context, dive),
+            _buildWeightSection(context, dive, units),
             const SizedBox(height: 24),
             _buildTagsSection(context, dive),
             const SizedBox(height: 24),
             _buildBuddiesSection(context, ref),
             const SizedBox(height: 24),
             if (dive.tanks.isNotEmpty) ...[
-              _buildTanksSection(context, dive),
+              _buildTanksSection(context, dive, units),
               const SizedBox(height: 24),
             ],
             _buildSightingsSection(context, ref),
@@ -143,7 +148,7 @@ class DiveDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeaderSection(BuildContext context, Dive dive) {
+  Widget _buildHeaderSection(BuildContext context, Dive dive, UnitFormatter units) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -201,7 +206,7 @@ class DiveDetailPage extends ConsumerWidget {
                 _buildStatItem(
                   context,
                   Icons.arrow_downward,
-                  dive.maxDepth != null ? '${dive.maxDepth!.toStringAsFixed(1)}m' : '--',
+                  units.formatDepth(dive.maxDepth),
                   'Max Depth',
                 ),
                 _buildStatItem(
@@ -213,7 +218,7 @@ class DiveDetailPage extends ConsumerWidget {
                 _buildStatItem(
                   context,
                   Icons.thermostat,
-                  dive.waterTemp != null ? '${dive.waterTemp!.toStringAsFixed(0)}°C' : '--',
+                  units.formatTemperature(dive.waterTemp),
                   'Temp',
                 ),
               ],
@@ -274,7 +279,7 @@ class DiveDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildDetailsSection(BuildContext context, Dive dive) {
+  Widget _buildDetailsSection(BuildContext context, Dive dive, UnitFormatter units) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -292,9 +297,9 @@ class DiveDetailPage extends ConsumerWidget {
             if (dive.visibility != null)
               _buildDetailRow(context, 'Visibility', dive.visibility!.displayName),
             if (dive.avgDepth != null)
-              _buildDetailRow(context, 'Avg Depth', '${dive.avgDepth!.toStringAsFixed(1)}m'),
+              _buildDetailRow(context, 'Avg Depth', units.formatDepth(dive.avgDepth)),
             if (dive.airTemp != null)
-              _buildDetailRow(context, 'Air Temp', '${dive.airTemp!.toStringAsFixed(0)}°C'),
+              _buildDetailRow(context, 'Air Temp', units.formatTemperature(dive.airTemp)),
             if (dive.waterType != null)
               _buildDetailRow(context, 'Water Type', dive.waterType!.displayName),
             if (dive.buddy != null && dive.buddy!.isNotEmpty)
@@ -302,7 +307,7 @@ class DiveDetailPage extends ConsumerWidget {
             if (dive.diveMaster != null && dive.diveMaster!.isNotEmpty)
               _buildDetailRow(context, 'Dive Master', dive.diveMaster!),
             if (dive.sac != null)
-              _buildDetailRow(context, 'SAC Rate', '${dive.sac!.toStringAsFixed(1)} bar/min'),
+              _buildDetailRow(context, 'SAC Rate', '${units.convertPressure(dive.sac!).toStringAsFixed(1)} ${units.pressureSymbol}/min'),
           ],
         ),
       ),
@@ -345,7 +350,7 @@ class DiveDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildWeightSection(BuildContext context, Dive dive) {
+  Widget _buildWeightSection(BuildContext context, Dive dive, UnitFormatter units) {
     // Combine new weights with legacy single weight for unified display
     final hasWeights = dive.weights.isNotEmpty;
     final hasLegacyWeight = dive.weightAmount != null && dive.weightAmount! > 0;
@@ -387,7 +392,7 @@ class DiveDetailPage extends ConsumerWidget {
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 Text(
-                  'Total: ${totalWeight.toStringAsFixed(1)} kg',
+                  'Total: ${units.formatWeight(totalWeight)}',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -401,7 +406,7 @@ class DiveDetailPage extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(weight.type),
-                  Text('${weight.amount.toStringAsFixed(1)} kg'),
+                  Text(units.formatWeight(weight.amount)),
                 ],
               ),
             )),
@@ -578,7 +583,7 @@ class DiveDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildTanksSection(BuildContext context, Dive dive) {
+  Widget _buildTanksSection(BuildContext context, Dive dive, UnitFormatter units) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -590,16 +595,22 @@ class DiveDetailPage extends ConsumerWidget {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const Divider(),
-            ...dive.tanks.map((tank) => ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.propane_tank),
-                  title: Text(tank.gasMix.name),
-                  subtitle: Text(
-                    '${tank.startPressure ?? '--'} bar → ${tank.endPressure ?? '--'} bar'
-                    '${tank.pressureUsed != null ? ' (${tank.pressureUsed} bar used)' : ''}',
-                  ),
-                  trailing: tank.volume != null ? Text('${tank.volume!.toStringAsFixed(0)} L') : null,
-                )),
+            ...dive.tanks.map((tank) {
+              final startP = units.formatPressureValue(tank.startPressure?.toDouble());
+              final endP = units.formatPressureValue(tank.endPressure?.toDouble());
+              final used = tank.pressureUsed != null
+                  ? ' (${units.formatPressure(tank.pressureUsed!.toDouble())} used)'
+                  : '';
+              return ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.propane_tank),
+                title: Text(tank.gasMix.name),
+                subtitle: Text(
+                  '$startP ${units.pressureSymbol} → $endP ${units.pressureSymbol}$used',
+                ),
+                trailing: tank.volume != null ? Text(units.formatVolume(tank.volume)) : null,
+              );
+            }),
           ],
         ),
       ),

@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/constants/enums.dart';
+import '../../../../core/utils/unit_formatter.dart';
 import '../../../buddies/domain/entities/buddy.dart';
 import '../../../buddies/presentation/providers/buddy_providers.dart';
 import '../../../buddies/presentation/widgets/buddy_picker.dart';
@@ -22,6 +23,7 @@ import '../../../tags/domain/entities/tag.dart';
 import '../../../tags/presentation/widgets/tag_input_widget.dart';
 import '../../../trips/domain/entities/trip.dart';
 import '../../../trips/presentation/providers/trip_providers.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../../../trips/presentation/widgets/trip_picker.dart';
 import '../../domain/entities/dive.dart';
 import '../../domain/entities/dive_weight.dart';
@@ -118,15 +120,28 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       final repository = ref.read(diveRepositoryProvider);
       final dive = await repository.getDiveById(widget.diveId!);
       if (dive != null && mounted) {
+        // Get unit formatter to convert from stored metric to user's preferred units
+        final settings = ref.read(settingsProvider);
+        final units = UnitFormatter(settings);
+        
         setState(() {
           _existingDive = dive;
           _selectedDate = dive.dateTime;
           _selectedTime = TimeOfDay.fromDateTime(dive.dateTime);
           _durationController.text = dive.duration?.inMinutes.toString() ?? '';
-          _maxDepthController.text = dive.maxDepth?.toString() ?? '';
-          _avgDepthController.text = dive.avgDepth?.toString() ?? '';
-          _waterTempController.text = dive.waterTemp?.toString() ?? '';
-          _airTempController.text = dive.airTemp?.toString() ?? '';
+          // Convert stored metric values to user's preferred units
+          _maxDepthController.text = dive.maxDepth != null
+              ? units.convertDepth(dive.maxDepth!).toStringAsFixed(1)
+              : '';
+          _avgDepthController.text = dive.avgDepth != null
+              ? units.convertDepth(dive.avgDepth!).toStringAsFixed(1)
+              : '';
+          _waterTempController.text = dive.waterTemp != null
+              ? units.convertTemperature(dive.waterTemp!).toStringAsFixed(0)
+              : '';
+          _airTempController.text = dive.airTemp != null
+              ? units.convertTemperature(dive.airTemp!).toStringAsFixed(0)
+              : '';
           _notesController.text = dive.notes;
           _selectedDiveType = dive.diveType;
           _selectedVisibility = dive.visibility ?? Visibility.unknown;
@@ -149,9 +164,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _entryMethod = dive.entryMethod;
           _exitMethod = dive.exitMethod;
           _waterType = dive.waterType;
-          _swellHeightController.text = dive.swellHeight?.toString() ?? '';
+          _swellHeightController.text = dive.swellHeight != null
+              ? units.convertDepth(dive.swellHeight!).toStringAsFixed(1)
+              : '';
 
-          // Load weight entries
+          // Load weight entries (weights already stored in kg, conversion happens in display)
           _weights = List.from(dive.weights);
           // Migrate legacy single weight to weights list if needed
           if (_weights.isEmpty && dive.weightAmount != null && dive.weightAmount! > 0) {
@@ -218,6 +235,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       );
     }
 
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.isEditing ? 'Edit Dive' : 'Log Dive'),
@@ -232,7 +252,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   ),
                 )
               : TextButton(
-                  onPressed: _saveDive,
+                  onPressed: () => _saveDive(units),
                   child: const Text('Save'),
                 ),
         ],
@@ -250,15 +270,15 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             const SizedBox(height: 16),
             _buildDiveCenterSection(),
             const SizedBox(height: 16),
-            _buildDepthDurationSection(),
+            _buildDepthDurationSection(units),
             const SizedBox(height: 16),
             _buildTankSection(),
             const SizedBox(height: 16),
             _buildEquipmentSection(),
             const SizedBox(height: 16),
-            _buildConditionsSection(),
+            _buildConditionsSection(units),
             const SizedBox(height: 16),
-            _buildWeightSection(),
+            _buildWeightSection(units),
             const SizedBox(height: 16),
             _buildBuddySection(),
             const SizedBox(height: 16),
@@ -595,7 +615,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     );
   }
 
-  Widget _buildDepthDurationSection() {
+  Widget _buildDepthDurationSection(UnitFormatter units) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -609,9 +629,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 Expanded(
                   child: TextFormField(
                     controller: _maxDepthController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Max Depth',
-                      suffixText: 'm',
+                      suffixText: units.depthSymbol,
                     ),
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   ),
@@ -620,9 +640,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 Expanded(
                   child: TextFormField(
                     controller: _avgDepthController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Avg Depth',
-                      suffixText: 'm',
+                      suffixText: units.depthSymbol,
                     ),
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   ),
@@ -911,7 +931,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     );
   }
 
-  Widget _buildConditionsSection() {
+  Widget _buildConditionsSection(UnitFormatter units) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -957,9 +977,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 Expanded(
                   child: TextFormField(
                     controller: _waterTempController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Water Temp',
-                      suffixText: '°C',
+                      suffixText: units.temperatureSymbol,
                     ),
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   ),
@@ -968,9 +988,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 Expanded(
                   child: TextFormField(
                     controller: _airTempController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Air Temp',
-                      suffixText: '°C',
+                      suffixText: units.temperatureSymbol,
                     ),
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   ),
@@ -1050,9 +1070,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _swellHeightController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Swell Height',
-                suffixText: 'm',
+                suffixText: units.depthSymbol,
               ),
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
             ),
@@ -1112,7 +1132,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     );
   }
 
-  Widget _buildWeightSection() {
+  Widget _buildWeightSection(UnitFormatter units) {
+    final totalWeight = _weights.fold(0.0, (sum, w) => sum + w.amountKg);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -1125,7 +1146,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 Text('Weight', style: Theme.of(context).textTheme.titleMedium),
                 if (_weights.isNotEmpty)
                   Text(
-                    'Total: ${_weights.fold(0.0, (sum, w) => sum + w.amountKg).toStringAsFixed(1)} kg',
+                    'Total: ${units.formatWeight(totalWeight)}',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -1136,7 +1157,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             ..._weights.asMap().entries.map((entry) {
               final index = entry.key;
               final weight = entry.value;
-              return _buildWeightEntryRow(index, weight);
+              return _buildWeightEntryRow(index, weight, units);
             }),
             const SizedBox(height: 8),
             OutlinedButton.icon(
@@ -1159,7 +1180,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     );
   }
 
-  Widget _buildWeightEntryRow(int index, DiveWeight weight) {
+  Widget _buildWeightEntryRow(int index, DiveWeight weight, UnitFormatter units) {
+    // Display in user's preferred unit
+    final displayAmount = units.convertWeight(weight.amountKg);
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -1192,15 +1215,17 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           Expanded(
             flex: 1,
             child: TextFormField(
-              initialValue: weight.amountKg > 0 ? weight.amountKg.toString() : '',
-              decoration: const InputDecoration(
-                labelText: 'kg',
+              initialValue: displayAmount > 0 ? displayAmount.toStringAsFixed(1) : '',
+              decoration: InputDecoration(
+                labelText: units.weightSymbol,
                 isDense: true,
               ),
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               onChanged: (value) {
-                final amount = double.tryParse(value) ?? 0;
-                _weights[index] = weight.copyWith(amountKg: amount);
+                final displayValue = double.tryParse(value) ?? 0;
+                // Convert back to kg for storage
+                final amountKg = units.weightToKg(displayValue);
+                _weights[index] = weight.copyWith(amountKg: amountKg);
               },
             ),
           ),
@@ -1513,7 +1538,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     }
   }
 
-  Future<void> _saveDive() async {
+  Future<void> _saveDive(UnitFormatter units) async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSaving = true);
@@ -1528,26 +1553,26 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         _selectedTime.minute,
       );
 
-      // Parse form values
+      // Parse form values and convert to metric for storage
       final duration = _durationController.text.isNotEmpty
           ? Duration(minutes: int.parse(_durationController.text))
           : null;
       final maxDepth = _maxDepthController.text.isNotEmpty
-          ? double.parse(_maxDepthController.text)
+          ? units.depthToMeters(double.parse(_maxDepthController.text))
           : null;
       final avgDepth = _avgDepthController.text.isNotEmpty
-          ? double.parse(_avgDepthController.text)
+          ? units.depthToMeters(double.parse(_avgDepthController.text))
           : null;
       final waterTemp = _waterTempController.text.isNotEmpty
-          ? double.parse(_waterTempController.text)
+          ? units.temperatureToCelsius(double.parse(_waterTempController.text))
           : null;
       final airTemp = _airTempController.text.isNotEmpty
-          ? double.parse(_airTempController.text)
+          ? units.temperatureToCelsius(double.parse(_airTempController.text))
           : null;
 
-      // Parse conditions values
+      // Parse conditions values (convert to metric)
       final swellHeight = _swellHeightController.text.isNotEmpty
-          ? double.parse(_swellHeightController.text)
+          ? units.depthToMeters(double.parse(_swellHeightController.text))
           : null;
 
       // Create dive entity

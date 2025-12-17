@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/enums.dart';
+import '../../../../core/utils/unit_formatter.dart';
 import '../../../dive_sites/presentation/providers/site_providers.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../../../tags/domain/entities/tag.dart';
 import '../../../tags/presentation/providers/tag_providers.dart';
 import '../../../tags/presentation/widgets/tag_input_widget.dart';
@@ -572,7 +574,7 @@ class DiveSearchDelegate extends SearchDelegate<Dive?> {
 }
 
 /// List item widget for displaying a dive summary
-class DiveListTile extends StatelessWidget {
+class DiveListTile extends ConsumerWidget {
   final int diveNumber;
   final DateTime dateTime;
   final String? siteName;
@@ -603,8 +605,10 @@ class DiveListTile extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -701,7 +705,7 @@ class DiveListTile extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          maxDepth != null ? '${maxDepth!.toStringAsFixed(1)}m' : '--',
+                          units.formatDepth(maxDepth),
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 fontWeight: FontWeight.w600,
                                 color: maxDepth != null

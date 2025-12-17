@@ -4,6 +4,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/constants/units.dart';
 
+/// Unit system preset
+enum UnitPreset {
+  metric('Metric'),
+  imperial('Imperial'),
+  custom('Custom');
+
+  final String displayName;
+  const UnitPreset(this.displayName);
+}
+
 /// Keys for SharedPreferences
 class SettingsKeys {
   static const String depthUnit = 'depth_unit';
@@ -11,6 +21,7 @@ class SettingsKeys {
   static const String pressureUnit = 'pressure_unit';
   static const String volumeUnit = 'volume_unit';
   static const String weightUnit = 'weight_unit';
+  static const String unitPreset = 'unit_preset';
   static const String themeMode = 'theme_mode';
   static const String defaultDiveType = 'default_dive_type';
   static const String defaultTankVolume = 'default_tank_volume';
@@ -41,8 +52,27 @@ class AppSettings {
     this.defaultStartPressure = 200,
   });
 
-  /// Whether using metric units
-  bool get isMetric => depthUnit == DepthUnit.meters;
+  /// Compute the current unit preset based on actual unit values
+  UnitPreset get unitPreset {
+    final isAllMetric = depthUnit == DepthUnit.meters &&
+        temperatureUnit == TemperatureUnit.celsius &&
+        pressureUnit == PressureUnit.bar &&
+        volumeUnit == VolumeUnit.liters &&
+        weightUnit == WeightUnit.kilograms;
+
+    final isAllImperial = depthUnit == DepthUnit.feet &&
+        temperatureUnit == TemperatureUnit.fahrenheit &&
+        pressureUnit == PressureUnit.psi &&
+        volumeUnit == VolumeUnit.cubicFeet &&
+        weightUnit == WeightUnit.pounds;
+
+    if (isAllMetric) return UnitPreset.metric;
+    if (isAllImperial) return UnitPreset.imperial;
+    return UnitPreset.custom;
+  }
+
+  /// Whether using metric units (convenience getter)
+  bool get isMetric => unitPreset == UnitPreset.metric;
 
   AppSettings copyWith({
     DepthUnit? depthUnit,
