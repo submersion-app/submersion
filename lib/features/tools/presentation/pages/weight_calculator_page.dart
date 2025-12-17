@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/enums.dart';
+import '../../../../core/constants/units.dart';
+import '../../../../core/utils/unit_formatter.dart';
 import '../../../../core/utils/weight_calculator.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 
-class WeightCalculatorPage extends StatefulWidget {
+class WeightCalculatorPage extends ConsumerStatefulWidget {
   const WeightCalculatorPage({super.key});
 
   @override
-  State<WeightCalculatorPage> createState() => _WeightCalculatorPageState();
+  ConsumerState<WeightCalculatorPage> createState() => _WeightCalculatorPageState();
 }
 
-class _WeightCalculatorPageState extends State<WeightCalculatorPage> {
+class _WeightCalculatorPageState extends ConsumerState<WeightCalculatorPage> {
   String _selectedSuit = 'wetsuit_5mm';
   TankMaterial? _selectedTank = TankMaterial.aluminum;
   WaterType? _selectedWater = WaterType.salt;
@@ -22,19 +26,40 @@ class _WeightCalculatorPageState extends State<WeightCalculatorPage> {
     super.dispose();
   }
 
-  double get _calculatedWeight {
-    final bodyWeight = double.tryParse(_bodyWeightController.text);
+  double _getCalculatedWeightKg() {
+    final settings = ref.read(settingsProvider);
+    final units = UnitFormatter(settings);
+    
+    // Convert body weight input from display unit to kg
+    final bodyWeightInput = double.tryParse(_bodyWeightController.text);
+    final bodyWeightKg = bodyWeightInput != null ? units.weightToKg(bodyWeightInput) : null;
+    
     return WeightCalculator.calculateRecommendedWeight(
       suitType: _selectedSuit,
       tankMaterial: _selectedTank,
       waterType: _selectedWater,
-      bodyWeightKg: bodyWeight,
+      bodyWeightKg: bodyWeightKg,
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
+    final isMetric = settings.weightUnit == WeightUnit.kilograms;
+    
+    final calculatedWeightKg = _getCalculatedWeightKg();
+    
+    // Primary display in user's preferred unit
+    final primaryWeight = units.convertWeight(calculatedWeightKg);
+    final primaryUnit = units.weightSymbol;
+    
+    // Secondary display in the other unit
+    final secondaryWeight = isMetric 
+        ? calculatedWeightKg * 2.205  // kg to lbs
+        : calculatedWeightKg;          // show kg
+    final secondaryUnit = isMetric ? 'lbs' : 'kg';
 
     return Scaffold(
       appBar: AppBar(
@@ -58,7 +83,7 @@ class _WeightCalculatorPageState extends State<WeightCalculatorPage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '${_calculatedWeight.toStringAsFixed(1)} kg',
+                    '${primaryWeight.toStringAsFixed(1)} $primaryUnit',
                     style: theme.textTheme.displayMedium?.copyWith(
                       color: theme.colorScheme.onPrimaryContainer,
                       fontWeight: FontWeight.bold,
@@ -66,7 +91,7 @@ class _WeightCalculatorPageState extends State<WeightCalculatorPage> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '(${(_calculatedWeight * 2.205).toStringAsFixed(1)} lbs)',
+                    '(${secondaryWeight.toStringAsFixed(1)} $secondaryUnit)',
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: theme.colorScheme.onPrimaryContainer.withOpacity(0.7),
                     ),
@@ -115,7 +140,7 @@ class _WeightCalculatorPageState extends State<WeightCalculatorPage> {
                 ...TankMaterial.values.map((material) {
                   return RadioListTile<TankMaterial?>(
                     title: Text(material.displayName),
-                    subtitle: Text(_getTankDescription(material)),
+                    subtitle: Text(_getTankDescription(material, isMetric)),
                     value: material,
                     groupValue: _selectedTank,
                     onChanged: (value) {
@@ -165,10 +190,12 @@ class _WeightCalculatorPageState extends State<WeightCalculatorPage> {
               padding: const EdgeInsets.all(16),
               child: TextField(
                 controller: _bodyWeightController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Your weight',
-                  suffixText: 'kg',
-                  helperText: 'Adds ~1 kg per 10 kg over 70 kg',
+                  suffixText: primaryUnit,
+                  helperText: isMetric 
+                      ? 'Adds ~1 kg per 10 kg over 70 kg'
+                      : 'Adds ~2 lbs per 22 lbs over 154 lbs',
                 ),
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 onChanged: (_) => setState(() {}),
@@ -208,15 +235,20 @@ class _WeightCalculatorPageState extends State<WeightCalculatorPage> {
     );
   }
 
-  String _getTankDescription(TankMaterial material) {
+  String _getTankDescription(TankMaterial material, bool isMetric) {
     switch (material) {
       case TankMaterial.aluminum:
-        return 'More buoyant when empty (+2 kg)';
+        return isMetric 
+            ? 'More buoyant when empty (+2 kg)'
+            : 'More buoyant when empty (+4 lbs)';
       case TankMaterial.steel:
-        return 'Negatively buoyant (-2 kg)';
+        return isMetric
+            ? 'Negatively buoyant (-2 kg)'
+            : 'Negatively buoyant (-4 lbs)';
       case TankMaterial.carbonFiber:
-        return 'Very buoyant (+3 kg)';
+        return isMetric
+            ? 'Very buoyant (+3 kg)'
+            : 'Very buoyant (+7 lbs)';
     }
   }
 }
-

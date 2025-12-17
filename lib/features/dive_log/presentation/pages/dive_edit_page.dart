@@ -1689,9 +1689,13 @@ class _SitePickerSheet extends ConsumerWidget {
                 'Select Dive Site',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.of(context).pop(),
+              TextButton.icon(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  context.push('/sites/new');
+                },
+                icon: const Icon(Icons.add),
+                label: const Text('New Dive Site'),
               ),
             ],
           ),
@@ -1716,11 +1720,13 @@ class _SitePickerSheet extends ConsumerWidget {
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        'Add sites from the Sites tab',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
+                      TextButton.icon(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          context.push('/sites/new');
+                        },
+                        icon: const Icon(Icons.add),
+                        label: const Text('Add Dive Site'),
                       ),
                     ],
                   ),
