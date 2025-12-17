@@ -4,7 +4,6 @@ import 'package:uuid/uuid.dart';
 import '../../../../core/database/database.dart';
 import '../../../../core/services/database_service.dart';
 import '../../domain/entities/equipment_set.dart' as domain;
-import '../../domain/entities/equipment_item.dart';
 import 'equipment_repository_impl.dart';
 
 class EquipmentSetRepository {

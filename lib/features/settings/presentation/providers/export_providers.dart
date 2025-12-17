@@ -16,7 +16,6 @@ import '../../../dive_sites/domain/entities/dive_site.dart';
 import '../../../dive_sites/presentation/providers/site_providers.dart';
 import '../../../equipment/presentation/providers/equipment_providers.dart';
 import '../../../buddies/presentation/providers/buddy_providers.dart';
-import '../../../buddies/data/repositories/buddy_repository.dart';
 import '../../../buddies/domain/entities/buddy.dart';
 import '../../../certifications/presentation/providers/certification_providers.dart';
 import '../../../dive_centers/presentation/providers/dive_center_providers.dart';
