@@ -152,8 +152,16 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             _exitDate = exitDateTime;
             _exitTime = TimeOfDay.fromDateTime(exitDateTime);
           }
-          // Bottom time (stored duration)
-          _durationController.text = dive.duration?.inMinutes.toString() ?? '';
+          // Bottom time (stored duration, or auto-calculated from profile)
+          if (dive.duration != null) {
+            _durationController.text = dive.duration!.inMinutes.toString();
+          } else if (dive.profile.isNotEmpty) {
+            // Auto-calculate from profile if no stored duration
+            final calculatedDuration = dive.calculateBottomTimeFromProfile();
+            if (calculatedDuration != null) {
+              _durationController.text = calculatedDuration.inMinutes.toString();
+            }
+          }
           // Runtime: use stored value, or calculate from entry/exit times
           if (dive.runtime != null) {
             _runtimeController.text = dive.runtime!.inMinutes.toString();
@@ -866,9 +874,16 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 Expanded(
                   child: TextFormField(
                     controller: _durationController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Bottom Time',
                       suffixText: 'min',
+                      suffixIcon: _existingDive?.profile.isNotEmpty == true
+                          ? IconButton(
+                              icon: const Icon(Icons.calculate_outlined),
+                              tooltip: 'Calculate from dive profile',
+                              onPressed: _calculateBottomTimeFromProfile,
+                            )
+                          : null,
                     ),
                     keyboardType: TextInputType.number,
                   ),
@@ -934,6 +949,39 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           );
         }),
       ],
+    );
+  }
+
+  /// Calculate bottom time from dive profile data and update the field
+  void _calculateBottomTimeFromProfile() {
+    if (_existingDive == null || _existingDive!.profile.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No dive profile data available')),
+      );
+      return;
+    }
+
+    final calculatedDuration = _existingDive!.calculateBottomTimeFromProfile();
+
+    if (calculatedDuration == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to calculate bottom time from profile'),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _durationController.text = calculatedDuration.inMinutes.toString();
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Bottom time calculated: ${calculatedDuration.inMinutes} min',
+        ),
+      ),
     );
   }
 

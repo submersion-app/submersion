@@ -530,7 +530,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
         final entryTime = dateTime;
         final exitTime = runtime != null ? dateTime.add(runtime) : null;
 
-        final dive = Dive(
+        // Create initial dive object
+        var dive = Dive(
           id: diveId,
           diveNumber: diveData['diveNumber'] as int?,
           dateTime: dateTime,
@@ -552,6 +553,14 @@ class ExportNotifier extends StateNotifier<ExportState> {
           tanks: tanks,
           site: linkedSite,
         );
+
+        // Auto-calculate bottom time from profile if not set and profile exists
+        if (dive.duration == null && dive.profile.isNotEmpty) {
+          final calculatedDuration = dive.calculateBottomTimeFromProfile();
+          if (calculatedDuration != null) {
+            dive = dive.copyWith(duration: calculatedDuration);
+          }
+        }
 
         await diveNotifier.addDive(dive);
         

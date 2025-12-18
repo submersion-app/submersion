@@ -132,6 +132,62 @@ class Dive extends Equatable {
     return pressureUsed / minutes / avgPressureAtm;
   }
 
+  /// Calculate bottom time from dive profile data.
+  ///
+  /// Bottom time is defined as the time spent at depth, excluding descent and ascent.
+  /// This method analyzes the profile to find:
+  /// - Descent end: when the diver first reaches the bottom (within threshold of max depth)
+  /// - Ascent start: when the diver starts ascending from the bottom
+  ///
+  /// Returns null if profile data is insufficient for calculation.
+  Duration? calculateBottomTimeFromProfile({double depthThresholdPercent = 0.85}) {
+    if (profile.isEmpty || profile.length < 3) return null;
+
+    // Sort profile by timestamp to ensure correct order
+    final sortedProfile = List<DiveProfilePoint>.from(profile)
+      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+    // Find maximum depth
+    double maxProfileDepth = 0;
+    for (final point in sortedProfile) {
+      if (point.depth > maxProfileDepth) {
+        maxProfileDepth = point.depth;
+      }
+    }
+
+    if (maxProfileDepth <= 0) return null;
+
+    // Threshold depth for considering the diver "at the bottom"
+    final bottomThreshold = maxProfileDepth * depthThresholdPercent;
+
+    // Find descent end: first point where depth >= threshold
+    int? descentEndTimestamp;
+    for (final point in sortedProfile) {
+      if (point.depth >= bottomThreshold) {
+        descentEndTimestamp = point.timestamp;
+        break;
+      }
+    }
+
+    // Find ascent start: last point where depth >= threshold
+    int? ascentStartTimestamp;
+    for (int i = sortedProfile.length - 1; i >= 0; i--) {
+      if (sortedProfile[i].depth >= bottomThreshold) {
+        ascentStartTimestamp = sortedProfile[i].timestamp;
+        break;
+      }
+    }
+
+    // Validate we found both points
+    if (descentEndTimestamp == null || ascentStartTimestamp == null) return null;
+
+    // Ensure ascent start is after descent end
+    if (ascentStartTimestamp <= descentEndTimestamp) return null;
+
+    final bottomTimeSeconds = ascentStartTimestamp - descentEndTimestamp;
+    return Duration(seconds: bottomTimeSeconds);
+  }
+
   Dive copyWith({
     String? id,
     int? diveNumber,
