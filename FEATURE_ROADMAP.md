@@ -444,13 +444,14 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 | Feature | Status | Phase | Priority | Notes |
 |---------|--------|-------|----------|-------|
 | Manual GPS entry | ✅ Implemented | MVP | - | Lat/long fields |
-| Capture GPS from phone | 📋 Planned | v1.1 | Medium | Auto-populate on mobile - deferred |
+| Capture GPS from phone | ✅ Implemented | v1.1 | Medium | "Use My Location" + nearby site suggestions |
+| Reverse geocoding | ✅ Implemented | v1.1 | Medium | Auto-populate country/region from GPS |
 | GPS from photo EXIF | 📋 Planned | v1.5 | Medium | Extract and suggest site |
 
-**v1.1 Tasks:** (deferred from v1.0)
-- [ ] On dive create (mobile), capture device GPS and suggest nearby sites
-- [ ] "Use My Location" button in site edit form
-- [ ] Reverse geocoding to populate country/region from GPS (use geocoding service)
+**v1.1 Tasks:** ✅ COMPLETE
+- [x] On dive create (mobile), capture device GPS and suggest nearby sites ✅ Implemented
+- [x] "Use My Location" button in site edit form ✅ Implemented
+- [x] Reverse geocoding to populate country/region from GPS ✅ Implemented
 
 **v1.5 Tasks:**
 - [ ] EXIF parsing from photo attachments
@@ -1305,10 +1306,10 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 - [x] Weight system and amount fields
 
 ### UX Improvements
-- [ ] Zoom/pan on profile charts - deferred to v1.1
-- [ ] Touch markers on profiles - deferred to v1.1
-- [ ] Auto-capture GPS on mobile (dive creation) - deferred to v1.1
-- [ ] Reverse geocoding for sites - deferred to v1.1
+- [x] Zoom/pan on profile charts ✅ v1.1
+- [x] Touch markers on profiles ✅ v1.1
+- [x] Auto-capture GPS on mobile (dive creation) ✅ v1.1
+- [x] Reverse geocoding for sites ✅ v1.1
 - [ ] Map marker clustering - deferred to v1.1
 - [x] "Records" page (deepest, longest, coldest, warmest, first, last)
 
