@@ -56,6 +56,21 @@ class EquipmentRepository {
     }
   }
 
+  /// Get equipment by status
+  Future<List<EquipmentItem>> getEquipmentByStatus(EquipmentStatus status) async {
+    try {
+      final query = _db.select(_db.equipment)
+        ..where((t) => t.status.equals(status.name))
+        ..orderBy([(t) => OrderingTerm.asc(t.type), (t) => OrderingTerm.asc(t.name)]);
+
+      final rows = await query.get();
+      return rows.map(_mapRowToEquipment).toList();
+    } catch (e, stackTrace) {
+      _log.error('Failed to get equipment by status: ${status.name}', e, stackTrace);
+      rethrow;
+    }
+  }
+
   /// Get equipment by ID
   Future<EquipmentItem?> getEquipmentById(String id) async {
     try {

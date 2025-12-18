@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/constants/enums.dart';
 import '../../data/repositories/equipment_repository_impl.dart';
 import '../../data/repositories/service_record_repository.dart';
 import '../../domain/entities/equipment_item.dart';
@@ -20,6 +21,15 @@ final activeEquipmentProvider = FutureProvider<List<EquipmentItem>>((ref) async 
 final retiredEquipmentProvider = FutureProvider<List<EquipmentItem>>((ref) async {
   final repository = ref.watch(equipmentRepositoryProvider);
   return repository.getRetiredEquipment();
+});
+
+/// Equipment by status provider
+final equipmentByStatusProvider = FutureProvider.family<List<EquipmentItem>, EquipmentStatus?>((ref, status) async {
+  final repository = ref.watch(equipmentRepositoryProvider);
+  if (status == null) {
+    return repository.getAllEquipment();
+  }
+  return repository.getEquipmentByStatus(status);
 });
 
 /// All equipment provider
