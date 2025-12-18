@@ -1312,16 +1312,26 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 - [x] Touch markers on profiles ✅ v1.1
 - [x] Auto-capture GPS on mobile (dive creation) ✅ v1.1
 - [x] Reverse geocoding for sites ✅ v1.1
-- [ ] Map marker clustering - deferred to v1.1
+- [x] Map marker clustering ✅ v1.1
 - [x] "Records" page (deepest, longest, coldest, warmest, first, last)
 
 ### Testing & Quality ✅ COMPLETE
 - [x] Unit tests for repositories (165 tests, 80%+ coverage)
 - [x] Widget tests for key flows (48 tests)
-- [ ] Integration tests - deferred to v1.1
-- [ ] Performance testing (1000+ dives) - deferred to v1.1
+- [x] Integration tests ✅ v1.1
+- [x] Performance testing (1000+ dives) ✅ v1.1
 - [x] Error handling improvements (try-catch with logging)
 - [x] Fix N+1 query issues in dive repository
+
+**v1.1 Testing Additions:** ✅ COMPLETE
+- [x] Integration tests for complete dive logging workflow
+- [x] Integration tests for trip management workflow
+- [x] Performance test: Creating and querying 1000+ dives
+- [x] Performance test: Query performance with large datasets
+- [x] Performance test: Pagination with 2000+ dives
+- [x] Performance test: Equipment usage tracking with extensive data
+- [x] Performance test: Complex statistics calculations
+- [x] Stress test: Concurrent operations
 
 **Completed Sprint Effort:**
 - Sprint 1 (Buddies): 2 weeks ✅
