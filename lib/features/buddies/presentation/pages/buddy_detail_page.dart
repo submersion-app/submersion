@@ -228,7 +228,7 @@ class _BuddyDetailContent extends ConsumerWidget {
   }
 
   Widget _buildStatsSection(
-      BuildContext context, AsyncValue<BuddyStats> statsAsync) {
+      BuildContext context, AsyncValue<BuddyStats> statsAsync,) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -272,7 +272,7 @@ class _BuddyDetailContent extends ConsumerWidget {
               ),
               loading: () =>
                   const Center(child: CircularProgressIndicator.adaptive()),
-              error: (error, _) => Text('Unable to load stats'),
+              error: (error, _) => const Text('Unable to load stats'),
             ),
           ],
         ),
@@ -350,7 +350,7 @@ class _BuddyDetailContent extends ConsumerWidget {
                   children: displayIds.map((diveId) {
                     return ListTile(
                       leading: const Icon(Icons.scuba_diving),
-                      title: Text('Dive'),
+                      title: const Text('Dive'),
                       subtitle: Text(diveId.substring(0, 8)),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () => context.push('/dives/$diveId'),
@@ -379,7 +379,7 @@ class _BuddyDetailContent extends ConsumerWidget {
           builder: (context) => AlertDialog(
             title: const Text('Delete Buddy?'),
             content: Text(
-                'Are you sure you want to delete ${buddy.name}? This will also remove them from all dives.'),
+                'Are you sure you want to delete ${buddy.name}? This will also remove them from all dives.',),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),

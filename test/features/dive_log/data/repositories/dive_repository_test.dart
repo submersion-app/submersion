@@ -134,7 +134,7 @@ void main() {
         final site = await siteRepository.createSite(const DiveSite(
           id: '',
           name: 'Test Site',
-        ));
+        ),);
 
         final dive = createTestDive(site: site);
 
@@ -152,7 +152,7 @@ void main() {
         final dive = await repository.createDive(createTestDive(
           diveNumber: 42,
           maxDepth: 30.0,
-        ));
+        ),);
 
         final result = await repository.getDiveById(dive.id);
 
@@ -179,15 +179,15 @@ void main() {
         await repository.createDive(createTestDive(
           diveNumber: 1,
           dateTime: DateTime(2024, 1, 1),
-        ));
+        ),);
         await repository.createDive(createTestDive(
           diveNumber: 3,
           dateTime: DateTime(2024, 3, 1),
-        ));
+        ),);
         await repository.createDive(createTestDive(
           diveNumber: 2,
           dateTime: DateTime(2024, 2, 1),
-        ));
+        ),);
 
         final result = await repository.getAllDives();
 
@@ -204,7 +204,7 @@ void main() {
           diveNumber: 1,
           maxDepth: 20.0,
           notes: 'Original notes',
-        ));
+        ),);
 
         final updatedDive = dive.copyWith(
           maxDepth: 25.0,
@@ -231,7 +231,7 @@ void main() {
               endPressure: 50,
             ),
           ],
-        ));
+        ),);
 
         final updatedDive = dive.copyWith(
           tanks: [
@@ -257,7 +257,7 @@ void main() {
       test('should delete existing dive', () async {
         final dive = await repository.createDive(createTestDive(
           diveNumber: 1,
-        ));
+        ),);
 
         await repository.deleteDive(dive.id);
         final result = await repository.getDiveById(dive.id);
@@ -282,7 +282,7 @@ void main() {
               endPressure: 50,
             ),
           ],
-        ));
+        ),);
 
         await repository.deleteDive(dive.id);
         final result = await repository.getDiveById(dive.id);
@@ -297,24 +297,24 @@ void main() {
         final site = await siteRepository.createSite(const DiveSite(
           id: '',
           name: 'Site A',
-        ));
+        ),);
         final otherSite = await siteRepository.createSite(const DiveSite(
           id: '',
           name: 'Site B',
-        ));
+        ),);
 
         await repository.createDive(createTestDive(
           diveNumber: 1,
           site: site,
-        ));
+        ),);
         await repository.createDive(createTestDive(
           diveNumber: 2,
           site: site,
-        ));
+        ),);
         await repository.createDive(createTestDive(
           diveNumber: 3,
           site: otherSite,
-        ));
+        ),);
 
         final result = await repository.getDivesForSite(site.id);
 
@@ -326,7 +326,7 @@ void main() {
         final site = await siteRepository.createSite(const DiveSite(
           id: '',
           name: 'Empty Site',
-        ));
+        ),);
 
         final result = await repository.getDivesForSite(site.id);
 
@@ -339,15 +339,15 @@ void main() {
         await repository.createDive(createTestDive(
           diveNumber: 1,
           dateTime: DateTime(2024, 1, 15),
-        ));
+        ),);
         await repository.createDive(createTestDive(
           diveNumber: 2,
           dateTime: DateTime(2024, 2, 15),
-        ));
+        ),);
         await repository.createDive(createTestDive(
           diveNumber: 3,
           dateTime: DateTime(2024, 3, 15),
-        ));
+        ),);
 
         final result = await repository.getDivesInRange(
           DateTime(2024, 2, 1),
@@ -362,7 +362,7 @@ void main() {
         await repository.createDive(createTestDive(
           diveNumber: 1,
           dateTime: DateTime(2024, 1, 15),
-        ));
+        ),);
 
         final result = await repository.getDivesInRange(
           DateTime(2024, 6, 1),
@@ -397,17 +397,17 @@ void main() {
           diveNumber: 1,
           notes: 'Saw amazing coral reef',
           buddy: 'Alice',
-        ));
+        ),);
         await repository.createDive(createTestDive(
           diveNumber: 2,
           notes: 'Night dive with turtle',
           buddy: 'Bob',
-        ));
+        ),);
         await repository.createDive(createTestDive(
           diveNumber: 3,
           notes: 'Deep dive on wreck',
           buddy: 'Charlie',
-        ));
+        ),);
       });
 
       test('should find dives by notes', () async {
@@ -445,13 +445,13 @@ void main() {
           duration: const Duration(minutes: 30),
           maxDepth: 20.0,
           waterTemp: 25.0,
-        ));
+        ),);
         await repository.createDive(createTestDive(
           diveNumber: 2,
           duration: const Duration(minutes: 45),
           maxDepth: 30.0,
           waterTemp: 23.0,
-        ));
+        ),);
 
         final stats = await repository.getStatistics();
 
@@ -476,21 +476,21 @@ void main() {
           maxDepth: 20.0,
           waterTemp: 25.0,
           dateTime: DateTime(2024, 1, 15),
-        ));
+        ),);
         await repository.createDive(createTestDive(
           diveNumber: 2,
           duration: const Duration(minutes: 60),
           maxDepth: 35.0,
           waterTemp: 28.0,
           dateTime: DateTime(2024, 2, 15),
-        ));
+        ),);
         await repository.createDive(createTestDive(
           diveNumber: 3,
           duration: const Duration(minutes: 45),
           maxDepth: 25.0,
           waterTemp: 18.0,
           dateTime: DateTime(2024, 3, 15),
-        ));
+        ),);
 
         final records = await repository.getRecords();
 

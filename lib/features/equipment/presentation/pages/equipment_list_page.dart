@@ -87,9 +87,9 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
               underline: const SizedBox(),
               focusColor: Colors.transparent,
               items: [
-                DropdownMenuItem<EquipmentStatus?>(
+                const DropdownMenuItem<EquipmentStatus?>(
                   value: null,
-                  child: const Text('All Equipment'),
+                  child: Text('All Equipment'),
                 ),
                 ...EquipmentStatus.values.map((status) {
                   return DropdownMenuItem<EquipmentStatus?>(
@@ -285,7 +285,7 @@ class _AddEquipmentSheetState extends ConsumerState<AddEquipmentSheet> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<EquipmentType>(
-                  value: _selectedType,
+                  initialValue: _selectedType,
                   decoration: const InputDecoration(
                     labelText: 'Type',
                     prefixIcon: Icon(Icons.category),

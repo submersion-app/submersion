@@ -159,7 +159,7 @@ class BuddyListPage extends ConsumerWidget {
   }
 
   Widget _buildBuddyList(
-      BuildContext context, WidgetRef ref, List<Buddy> buddies) {
+      BuildContext context, WidgetRef ref, List<Buddy> buddies,) {
     return RefreshIndicator(
       onRefresh: () async {
         await ref.read(buddyListNotifierProvider.notifier).refresh();

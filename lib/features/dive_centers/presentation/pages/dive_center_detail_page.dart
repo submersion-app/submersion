@@ -49,7 +49,7 @@ class DiveCenterDetailPage extends ConsumerWidget {
                       builder: (context) => AlertDialog(
                         title: const Text('Delete Dive Center'),
                         content: Text(
-                            'Are you sure you want to delete "${center.name}"?'),
+                            'Are you sure you want to delete "${center.name}"?',),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(context, false),
@@ -83,11 +83,11 @@ class DiveCenterDetailPage extends ConsumerWidget {
                     child: Row(
                       children: [
                         Icon(Icons.delete_outline,
-                            color: Theme.of(context).colorScheme.error),
+                            color: Theme.of(context).colorScheme.error,),
                         const SizedBox(width: 8),
                         Text('Delete',
                             style: TextStyle(
-                                color: Theme.of(context).colorScheme.error)),
+                                color: Theme.of(context).colorScheme.error,),),
                       ],
                     ),
                   ),

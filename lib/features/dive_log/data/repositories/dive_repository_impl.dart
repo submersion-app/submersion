@@ -96,7 +96,7 @@ class DiveRepository {
         serviceIntervalDays: e.serviceIntervalDays,
         notes: e.notes,
         isActive: e.isActive,
-      ));
+      ),);
     }
 
     // Note: Profile data is NOT loaded for list views to improve performance
@@ -112,7 +112,7 @@ class DiveRepository {
             site: row.siteId != null ? sitesById[row.siteId] : null,
             center: row.diveCenterId != null ? centersById[row.diveCenterId] : null,
             tags: tagsByDive[row.id] ?? [],
-          )).toList();
+          ),).toList();
     } catch (e, stackTrace) {
       _log.error('Failed to get all dives', e, stackTrace);
       rethrow;
@@ -176,7 +176,7 @@ class DiveRepository {
       isFavorite: Value(dive.isFavorite),
       createdAt: Value(now),
       updatedAt: Value(now),
-    ));
+    ),);
 
     // Insert tanks
     for (final tank in dive.tanks) {
@@ -193,7 +193,7 @@ class DiveRepository {
         tankRole: Value(tank.role.name),
         tankMaterial: Value(tank.material?.name),
         tankName: Value(tank.name),
-      ));
+      ),);
     }
 
     // Insert weights
@@ -205,7 +205,7 @@ class DiveRepository {
         amountKg: Value(weight.amountKg),
         notes: Value(weight.notes),
         createdAt: Value(now),
-      ));
+      ),);
     }
 
     // Insert profile points
@@ -218,7 +218,7 @@ class DiveRepository {
         pressure: Value(point.pressure),
         temperature: Value(point.temperature),
         heartRate: Value(point.heartRate),
-      ));
+      ),);
     }
 
       // Insert equipment associations
@@ -226,7 +226,7 @@ class DiveRepository {
         await _db.into(_db.diveEquipment).insert(DiveEquipmentCompanion(
           diveId: Value(id),
           equipmentId: Value(item.id),
-        ));
+        ),);
       }
 
       // Insert tag associations
@@ -300,7 +300,7 @@ class DiveRepository {
         tankRole: Value(tank.role.name),
         tankMaterial: Value(tank.material?.name),
         tankName: Value(tank.name),
-      ));
+      ),);
     }
 
       // Update weights: delete and re-insert
@@ -313,7 +313,7 @@ class DiveRepository {
           amountKg: Value(weight.amountKg),
           notes: Value(weight.notes),
           createdAt: Value(DateTime.now().millisecondsSinceEpoch),
-        ));
+        ),);
       }
 
       // Update equipment: delete and re-insert
@@ -322,7 +322,7 @@ class DiveRepository {
         await _db.into(_db.diveEquipment).insert(DiveEquipmentCompanion(
           diveId: Value(dive.id),
           equipmentId: Value(item.id),
-        ));
+        ),);
       }
 
       // Update tags
@@ -437,7 +437,7 @@ class DiveRepository {
         ..where((t) =>
             t.notes.contains(query) |
             t.buddy.contains(query) |
-            t.diveMaster.contains(query))
+            t.diveMaster.contains(query),)
         ..orderBy([(t) => OrderingTerm.desc(t.diveDateTime)]);
 
       final rows = await searchQuery.get();
@@ -482,7 +482,7 @@ class DiveRepository {
       year: int.parse(row.data['year'] as String),
       month: int.parse(row.data['month'] as String),
       count: row.data['count'] as int,
-    )).toList();
+    ),).toList();
 
     // Depth distribution
     final depthStats = await _db.customSelect('''
@@ -541,7 +541,7 @@ class DiveRepository {
     final topSites = siteStats.map((row) => TopSiteStat(
       siteName: row.data['site_name'] as String,
       diveCount: row.data['dive_count'] as int,
-    )).toList();
+    ),).toList();
 
       return DiveStatistics(
         totalDives: stats.data['total_dives'] as int? ?? 0,
@@ -800,7 +800,7 @@ class DiveRepository {
               )
             : null,
         order: t.tankOrder,
-      )).toList(),
+      ),).toList(),
       profile: const [], // Profile not loaded for list views
       equipment: equipment,
       weights: const [], // Weights not loaded for list views (use detail view)
@@ -1004,14 +1004,14 @@ class DiveRepository {
               )
             : null,
         order: t.tankOrder,
-      )).toList(),
+      ),).toList(),
       profile: profileRows.map((p) => domain.DiveProfilePoint(
         timestamp: p.timestamp,
         depth: p.depth,
         pressure: p.pressure,
         temperature: p.temperature,
         heartRate: p.heartRate,
-      )).toList(),
+      ),).toList(),
       equipment: equipmentItems,
       weights: weights,
       isFavorite: row.isFavorite,
@@ -1030,7 +1030,7 @@ class DiveRepository {
       await _db.customStatement('''
         UPDATE dives SET is_favorite = NOT is_favorite, updated_at = ?
         WHERE id = ?
-      ''', [DateTime.now().millisecondsSinceEpoch, diveId]);
+      ''', [DateTime.now().millisecondsSinceEpoch, diveId],);
       _log.info('Toggled favorite for dive: $diveId');
     } catch (e, stackTrace) {
       _log.error('Failed to toggle favorite for dive: $diveId', e, stackTrace);
@@ -1085,7 +1085,7 @@ class DiveRepository {
         ),
         amountKg: row.amountKg,
         notes: row.notes,
-      )).toList();
+      ),).toList();
     } catch (e, stackTrace) {
       _log.error('Failed to load weights for dive: $diveId', e, stackTrace);
       return [];
@@ -1110,7 +1110,7 @@ class DiveRepository {
       final query = _db.select(_db.dives)
         ..where((t) => t.id.isNotValue(diveId))
         ..where((t) => t.entryTime.isSmallerThanValue(entryTime.millisecondsSinceEpoch) | 
-                       (t.entryTime.isNull() & t.diveDateTime.isSmallerThanValue(entryTime.millisecondsSinceEpoch)))
+                       (t.entryTime.isNull() & t.diveDateTime.isSmallerThanValue(entryTime.millisecondsSinceEpoch)),)
         ..orderBy([(t) => OrderingTerm.desc(t.entryTime), (t) => OrderingTerm.desc(t.diveDateTime)])
         ..limit(1);
 
@@ -1173,7 +1173,7 @@ class DiveRepository {
           diveId: row.id,
           currentNumber: row.diveNumber,
           entryTime: entryTime,
-        ));
+        ),);
         
         // Check for gaps
         if (row.diveNumber != null && lastNumber != null) {
@@ -1183,7 +1183,7 @@ class DiveRepository {
               afterDiveId: dives.length > 1 ? dives[dives.length - 2].diveId : null,
               missingStart: expected,
               missingEnd: row.diveNumber! - 1,
-            ));
+            ),);
           }
         }
         lastNumber = row.diveNumber;

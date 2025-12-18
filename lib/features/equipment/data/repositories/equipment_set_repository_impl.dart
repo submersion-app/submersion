@@ -61,7 +61,7 @@ class EquipmentSetRepository {
       description: Value(set.description),
       createdAt: Value(now),
       updatedAt: Value(now),
-    ));
+    ),);
 
     // Add equipment items to set
     for (final equipmentId in set.equipmentIds) {
@@ -89,7 +89,7 @@ class EquipmentSetRepository {
       name: Value(set.name),
       description: Value(set.description),
       updatedAt: Value(now),
-    ));
+    ),);
 
     // Update equipment items: delete and re-insert
     await (_db.delete(_db.equipmentSetItems)

@@ -202,17 +202,17 @@ void main() {
           name: 'Ocean Blue Diving',
           location: 'Miami Beach',
           country: 'USA',
-        ));
+        ),);
         await repository.createDiveCenter(createTestCenter(
           name: 'Coral Reef Adventures',
           location: 'Key Largo',
           country: 'USA',
-        ));
+        ),);
         await repository.createDiveCenter(createTestCenter(
           name: 'Pacific Explorers',
           location: 'Sydney Harbor',
           country: 'Australia',
-        ));
+        ),);
       });
 
       test('should find centers by name', () async {
@@ -255,15 +255,15 @@ void main() {
         await repository.createDiveCenter(createTestCenter(
           name: 'USA Center 1',
           country: 'USA',
-        ));
+        ),);
         await repository.createDiveCenter(createTestCenter(
           name: 'USA Center 2',
           country: 'USA',
-        ));
+        ),);
         await repository.createDiveCenter(createTestCenter(
           name: 'Australia Center',
           country: 'Australia',
-        ));
+        ),);
       });
 
       test('should return centers for specified country', () async {
@@ -286,10 +286,10 @@ void main() {
           name: 'With Coords',
           latitude: 25.0,
           longitude: -80.0,
-        ));
+        ),);
         await repository.createDiveCenter(createTestCenter(
           name: 'Without Coords',
-        ));
+        ),);
       });
 
       test('should return only centers with coordinates', () async {
@@ -324,19 +324,19 @@ void main() {
         await repository.createDiveCenter(createTestCenter(
           name: 'Center 1',
           country: 'USA',
-        ));
+        ),);
         await repository.createDiveCenter(createTestCenter(
           name: 'Center 2',
           country: 'Australia',
-        ));
+        ),);
         await repository.createDiveCenter(createTestCenter(
           name: 'Center 3',
           country: 'USA', // duplicate
-        ));
+        ),);
         await repository.createDiveCenter(createTestCenter(
           name: 'Center 4',
           country: 'Mexico',
-        ));
+        ),);
 
         final countries = await repository.getCountries();
 
@@ -347,11 +347,11 @@ void main() {
         await repository.createDiveCenter(createTestCenter(
           name: 'With Country',
           country: 'USA',
-        ));
+        ),);
         await repository.createDiveCenter(createTestCenter(
           name: 'No Country',
           country: null,
-        ));
+        ),);
 
         final countries = await repository.getCountries();
 

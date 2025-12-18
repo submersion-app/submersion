@@ -329,20 +329,20 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
           clearStartDate: true,
           clearEndDate: true,
         );
-      }));
+      }),);
     }
 
     if (filter.diveType != null) {
       chips.add(_buildFilterChip(context, filter.diveType!.displayName, () {
         ref.read(diveFilterProvider.notifier).state = filter.copyWith(clearDiveType: true);
-      }));
+      }),);
     }
 
     if (filter.siteId != null) {
       final siteName = ref.watch(siteProvider(filter.siteId!)).value?.name ?? 'Site';
       chips.add(_buildFilterChip(context, siteName, () {
         ref.read(diveFilterProvider.notifier).state = filter.copyWith(clearSiteId: true);
-      }));
+      }),);
     }
 
     if (filter.minDepth != null || filter.maxDepth != null) {
@@ -359,20 +359,20 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
           clearMinDepth: true,
           clearMaxDepth: true,
         );
-      }));
+      }),);
     }
 
     if (filter.favoritesOnly == true) {
       chips.add(_buildFilterChip(context, 'Favorites', () {
         ref.read(diveFilterProvider.notifier).state = filter.copyWith(clearFavoritesOnly: true);
-      }));
+      }),);
     }
 
     if (filter.tagIds.isNotEmpty) {
       final tagCount = filter.tagIds.length;
       chips.add(_buildFilterChip(context, '$tagCount tag${tagCount > 1 ? 's' : ''}', () {
         ref.read(diveFilterProvider.notifier).state = filter.copyWith(clearTagIds: true);
-      }));
+      }),);
     }
 
     return Container(
@@ -913,7 +913,7 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
               Text('Dive Type', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
               DropdownButtonFormField<DiveType?>(
-                value: _diveType,
+                initialValue: _diveType,
                 decoration: const InputDecoration(
                   hintText: 'All types',
                   prefixIcon: Icon(Icons.category),
@@ -941,7 +941,7 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
               const SizedBox(height: 8),
               sites.when(
                 data: (siteList) => DropdownButtonFormField<String?>(
-                  value: _siteId,
+                  initialValue: _siteId,
                   decoration: const InputDecoration(
                     hintText: 'All sites',
                     prefixIcon: Icon(Icons.location_on),

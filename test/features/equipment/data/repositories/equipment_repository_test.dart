@@ -139,15 +139,15 @@ void main() {
         await repository.createEquipment(createTestEquipment(
           name: 'Zebra Reg',
           type: EquipmentType.regulator,
-        ));
+        ),);
         await repository.createEquipment(createTestEquipment(
           name: 'Alpha BCD',
           type: EquipmentType.bcd,
-        ));
+        ),);
         await repository.createEquipment(createTestEquipment(
           name: 'Alpha Reg',
           type: EquipmentType.regulator,
-        ));
+        ),);
 
         final result = await repository.getAllEquipment();
 
@@ -164,11 +164,11 @@ void main() {
         await repository.createEquipment(createTestEquipment(
           name: 'Active Reg',
           isActive: true,
-        ));
+        ),);
         await repository.createEquipment(createTestEquipment(
           name: 'Retired Reg',
           isActive: false,
-        ));
+        ),);
 
         final result = await repository.getActiveEquipment();
 
@@ -182,11 +182,11 @@ void main() {
         await repository.createEquipment(createTestEquipment(
           name: 'Active Reg',
           isActive: true,
-        ));
+        ),);
         await repository.createEquipment(createTestEquipment(
           name: 'Retired Reg',
           isActive: false,
-        ));
+        ),);
 
         final result = await repository.getRetiredEquipment();
 
@@ -300,20 +300,20 @@ void main() {
           brand: 'Scubapro',
           model: 'MK25 EVO',
           serialNumber: 'SP-001',
-        ));
+        ),);
         await repository.createEquipment(createTestEquipment(
           name: 'Hydros BCD',
           type: EquipmentType.bcd,
           brand: 'Scubapro',
           model: 'Hydros Pro',
           serialNumber: 'SP-002',
-        ));
+        ),);
         await repository.createEquipment(createTestEquipment(
           name: 'Atomic B2',
           brand: 'Atomic',
           model: 'B2',
           serialNumber: 'AT-001',
-        ));
+        ),);
       });
 
       test('should find equipment by name', () async {
@@ -401,19 +401,19 @@ void main() {
           name: 'Overdue Reg',
           lastServiceDate: DateTime.now().subtract(const Duration(days: 400)),
           serviceIntervalDays: 365,
-        ));
+        ),);
 
         // Equipment not due
         await repository.createEquipment(createTestEquipment(
           name: 'Fresh Reg',
           lastServiceDate: DateTime.now().subtract(const Duration(days: 30)),
           serviceIntervalDays: 365,
-        ));
+        ),);
 
         // Equipment with no service date
         await repository.createEquipment(createTestEquipment(
           name: 'No Service Date',
-        ));
+        ),);
 
         final results = await repository.getEquipmentWithServiceDue();
 

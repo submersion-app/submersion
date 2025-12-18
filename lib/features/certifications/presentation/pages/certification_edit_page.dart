@@ -160,7 +160,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
 
                       // Agency dropdown
                       DropdownButtonFormField<CertificationAgency>(
-                        value: _agency,
+                        initialValue: _agency,
                         decoration: const InputDecoration(
                           labelText: 'Agency *',
                           prefixIcon: Icon(Icons.business),
@@ -184,7 +184,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
 
                       // Level dropdown
                       DropdownButtonFormField<CertificationLevel>(
-                        value: _level,
+                        initialValue: _level,
                         decoration: const InputDecoration(
                           labelText: 'Level',
                           prefixIcon: Icon(Icons.stairs),
@@ -360,7 +360,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                               )
                             : Text(isEditing
                                 ? 'Update Certification'
-                                : 'Add Certification'),
+                                : 'Add Certification',),
                       ),
 
                       // Cancel button
@@ -394,7 +394,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
       builder: (context) => AlertDialog(
         title: const Text('Discard Changes?'),
         content: const Text(
-            'You have unsaved changes. Are you sure you want to leave?'),
+            'You have unsaved changes. Are you sure you want to leave?',),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -454,7 +454,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
           SnackBar(
             content: Text(isEditing
                 ? 'Certification updated successfully'
-                : 'Certification added successfully'),
+                : 'Certification added successfully',),
           ),
         );
         context.pop();

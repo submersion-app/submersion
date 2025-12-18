@@ -65,7 +65,7 @@ class SiteRepository {
         parkingInfo: Value(site.parkingInfo),
         createdAt: Value(now),
         updatedAt: Value(now),
-      ));
+      ),);
 
       _log.info('Created site with id: $id');
       return site.copyWith(id: id);
@@ -127,7 +127,7 @@ class SiteRepository {
         ..where((t) =>
             t.name.contains(query) |
             t.country.contains(query) |
-            t.region.contains(query))
+            t.region.contains(query),)
         ..orderBy([(t) => OrderingTerm.asc(t.name)]);
 
       final rows = await searchQuery.get();
@@ -167,7 +167,7 @@ class SiteRepository {
       return sites.map((site) => SiteWithDiveCount(
         site: site,
         diveCount: counts[site.id] ?? 0,
-      )).toList()
+      ),).toList()
         ..sort((a, b) => b.diveCount.compareTo(a.diveCount));
     } catch (e, stackTrace) {
       _log.error('Failed to get sites with dive counts', e, stackTrace);

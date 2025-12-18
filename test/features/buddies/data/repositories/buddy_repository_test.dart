@@ -125,7 +125,7 @@ void main() {
         final buddy = await repository.createBuddy(createTestBuddy(
           name: 'Original Name',
           email: 'old@example.com',
-        ));
+        ),);
 
         final updatedBuddy = buddy.copyWith(
           name: 'Updated Name',
@@ -182,17 +182,17 @@ void main() {
           name: 'John Smith',
           email: 'john@dive.com',
           phone: '+1-555-1111',
-        ));
+        ),);
         await repository.createBuddy(createTestBuddy(
           name: 'Jane Doe',
           email: 'jane@ocean.com',
           phone: '+1-555-2222',
-        ));
+        ),);
         await repository.createBuddy(createTestBuddy(
           name: 'Bob Johnson',
           email: 'bob@reef.com',
           phone: '+1-555-3333',
-        ));
+        ),);
       });
 
       test('should find buddies by name', () async {

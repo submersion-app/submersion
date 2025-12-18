@@ -539,7 +539,7 @@ class ExportService {
                 pw.SizedBox(height: 16),
                 pw.Divider(),
                 pw.SizedBox(height: 16),
-              ]).toList(),
+              ],),
             ],
           ),
         ),
@@ -660,8 +660,8 @@ class ExportService {
         builder.element('datetime', nest: DateTime.now().toIso8601String());
         builder.element('manufacturer', nest: () {
           builder.element('name', nest: 'Submersion App');
-        });
-      });
+        },);
+      },);
 
       // Dive sites
       if (sites != null || dives.any((d) => d.site != null)) {
@@ -674,7 +674,7 @@ class ExportService {
                 builder.element('geography', nest: () {
                   builder.element('latitude', nest: site.location!.latitude.toString());
                   builder.element('longitude', nest: site.location!.longitude.toString());
-                });
+                },);
               }
               if (site.country != null) {
                 builder.element('country', nest: site.country);
@@ -694,9 +694,9 @@ class ExportService {
               if (site.notes.isNotEmpty && site.notes != site.description) {
                 builder.element('sitenotesadditional', nest: site.notes);
               }
-            });
+            },);
           }
-        });
+        },);
       }
 
       // Gas definitions
@@ -718,9 +718,9 @@ class ExportService {
             builder.element('o2', nest: (entry.value.o2 / 100).toString());
             builder.element('n2', nest: (entry.value.n2 / 100).toString());
             builder.element('he', nest: (entry.value.he / 100).toString());
-          });
+          },);
         }
-      });
+      },);
 
       // Profile data (repetition groups and dives)
       builder.element('profiledata', nest: () {
@@ -759,7 +759,7 @@ class ExportService {
                   if (dive.entryMethod != null) {
                     builder.element('entrytype', nest: dive.entryMethod!.name);
                   }
-                });
+                },);
 
                 // Samples (dive profile)
                 builder.element('samples', nest: () {
@@ -773,7 +773,7 @@ class ExportService {
                     builder.element('divetime', nest: '0');
                     builder.element('depth', nest: '0');
                     builder.element('switchmix', attributes: {'ref': mixId});
-                  });
+                  },);
 
                   if (dive.profile.isNotEmpty) {
                     // Use actual profile data
@@ -787,7 +787,7 @@ class ExportService {
                         if (point.pressure != null) {
                           builder.element('tankpressure', nest: (point.pressure! * 100000).toString()); // Pascal
                         }
-                      });
+                      },);
                     }
                   } else {
                     // Generate basic profile from dive data
@@ -801,23 +801,23 @@ class ExportService {
                         if (dive.waterTemp != null) {
                           builder.element('temperature', nest: (dive.waterTemp! + 273.15).toString());
                         }
-                      });
+                      },);
 
                       // Bottom time at avg depth (3/5 of dive)
                       final bottomTime = (durationSecs * 0.8).toInt();
                       builder.element('waypoint', nest: () {
                         builder.element('divetime', nest: bottomTime.toString());
                         builder.element('depth', nest: (dive.avgDepth ?? dive.maxDepth! * 0.7).toString());
-                      });
+                      },);
 
                       // Ascent to surface
                       builder.element('waypoint', nest: () {
                         builder.element('divetime', nest: durationSecs.toString());
                         builder.element('depth', nest: '0');
-                      });
+                      },);
                     }
                   }
-                });
+                },);
 
                 builder.element('informationafterdive', nest: () {
                   if (dive.maxDepth != null) {
@@ -838,7 +838,7 @@ class ExportService {
                   if (dive.rating != null) {
                     builder.element('rating', nest: () {
                       builder.element('ratingvalue', nest: dive.rating.toString());
-                    });
+                    },);
                   }
                   // Conditions
                   if (dive.waterType != null) {
@@ -863,7 +863,7 @@ class ExportService {
                       if (dive.weightType != null) {
                         builder.element('type', nest: dive.weightType!.name);
                       }
-                    });
+                    },);
                   }
                   // Sightings
                   if (dive.sightings.isNotEmpty) {
@@ -876,29 +876,29 @@ class ExportService {
                           if (sighting.notes.isNotEmpty) {
                             builder.element('notes', nest: sighting.notes);
                           }
-                        });
+                        },);
                       }
-                    });
+                    },);
                   }
                   if (dive.notes.isNotEmpty) {
                     builder.element('notes', nest: () {
                       builder.element('para', nest: dive.notes);
-                    });
+                    },);
                   }
                   if (dive.buddy != null && dive.buddy!.isNotEmpty) {
                     builder.element('buddy', nest: () {
                       builder.element('personal', nest: () {
                         builder.element('firstname', nest: dive.buddy);
-                      });
-                    });
+                      },);
+                    },);
                   }
-                });
-              });
+                },);
+              },);
             }
-          });
+          },);
         }
-      });
-    });
+      },);
+    },);
 
     final xmlDoc = builder.buildDocument();
     final xmlString = xmlDoc.toXmlString(pretty: true, indent: '  ');
@@ -952,8 +952,8 @@ class ExportService {
         builder.element('datetime', nest: DateTime.now().toIso8601String());
         builder.element('manufacturer', nest: () {
           builder.element('name', nest: 'Submersion App');
-        });
-      });
+        },);
+      },);
 
       // Diver section with full buddy records
       if (buddies != null && buddies.isNotEmpty) {
@@ -973,7 +973,7 @@ class ExportService {
                 if (buddy.phone != null && buddy.phone!.isNotEmpty) {
                   builder.element('phone', nest: buddy.phone);
                 }
-              });
+              },);
               if (buddy.certificationLevel != null || buddy.certificationAgency != null) {
                 builder.element('certification', nest: () {
                   if (buddy.certificationLevel != null) {
@@ -982,14 +982,14 @@ class ExportService {
                   if (buddy.certificationAgency != null) {
                     builder.element('agency', nest: buddy.certificationAgency!.name);
                   }
-                });
+                },);
               }
               if (buddy.notes.isNotEmpty) {
                 builder.element('notes', nest: buddy.notes);
               }
-            });
+            },);
           }
-        });
+        },);
       }
 
       // Dive sites
@@ -999,7 +999,7 @@ class ExportService {
           for (final site in allSites) {
             _buildSiteElement(builder, site);
           }
-        });
+        },);
       }
 
       // Gas definitions
@@ -1019,9 +1019,9 @@ class ExportService {
             builder.element('o2', nest: (entry.value.o2 / 100).toString());
             builder.element('n2', nest: (entry.value.n2 / 100).toString());
             builder.element('he', nest: (entry.value.he / 100).toString());
-          });
+          },);
         }
-      });
+      },);
 
       // Profile data (dives)
       if (dives.isNotEmpty) {
@@ -1039,9 +1039,9 @@ class ExportService {
                 final diveBuddyList = diveBuddies?[dive.id] ?? [];
                 _buildDiveElement(builder, dive, buddies, diveBuddyList);
               }
-            });
+            },);
           }
-        });
+        },);
       }
 
       // Application data section for all non-standard data
@@ -1054,7 +1054,7 @@ class ExportService {
         serviceRecords: serviceRecords,
         settings: settings,
       );
-    });
+    },);
 
     final xmlDoc = builder.buildDocument();
     final xmlString = xmlDoc.toXmlString(pretty: true, indent: '  ');
@@ -1069,7 +1069,7 @@ class ExportService {
         builder.element('geography', nest: () {
           builder.element('latitude', nest: site.location!.latitude.toString());
           builder.element('longitude', nest: site.location!.longitude.toString());
-        });
+        },);
       }
       if (site.country != null) {
         builder.element('country', nest: site.country);
@@ -1089,7 +1089,7 @@ class ExportService {
       if (site.notes.isNotEmpty && site.notes != site.description) {
         builder.element('sitenotesadditional', nest: site.notes);
       }
-    });
+    },);
   }
 
   void _buildDiveElement(XmlBuilder builder, Dive dive, List<Buddy>? buddies, List<BuddyWithRole> diveBuddyList) {
@@ -1098,7 +1098,7 @@ class ExportService {
     final guidesAndDivemasters = diveBuddyList.where((b) => 
       b.role == BuddyRole.diveGuide || 
       b.role == BuddyRole.diveMaster || 
-      b.role == BuddyRole.instructor
+      b.role == BuddyRole.instructor,
     ).toList();
 
     builder.element('dive', attributes: {'id': 'dive_${dive.id}'}, nest: () {
@@ -1133,7 +1133,7 @@ class ExportService {
         for (final buddyWithRole in diveBuddyList) {
           builder.element('link', attributes: {'ref': 'buddy_${buddyWithRole.buddy.id}'});
         }
-      });
+      },);
 
       // Samples (dive profile)
       builder.element('samples', nest: () {
@@ -1146,7 +1146,7 @@ class ExportService {
           builder.element('divetime', nest: '0');
           builder.element('depth', nest: '0');
           builder.element('switchmix', attributes: {'ref': mixId});
-        });
+        },);
 
         if (dive.profile.isNotEmpty) {
           for (final point in dive.profile) {
@@ -1159,7 +1159,7 @@ class ExportService {
               if (point.pressure != null) {
                 builder.element('tankpressure', nest: (point.pressure! * 100000).toString());
               }
-            });
+            },);
           }
         } else {
           final durationSecs = dive.duration?.inSeconds ?? 0;
@@ -1171,21 +1171,21 @@ class ExportService {
               if (dive.waterTemp != null) {
                 builder.element('temperature', nest: (dive.waterTemp! + 273.15).toString());
               }
-            });
+            },);
 
             final bottomTime = (durationSecs * 0.8).toInt();
             builder.element('waypoint', nest: () {
               builder.element('divetime', nest: bottomTime.toString());
               builder.element('depth', nest: (dive.avgDepth ?? dive.maxDepth! * 0.7).toString());
-            });
+            },);
 
             builder.element('waypoint', nest: () {
               builder.element('divetime', nest: durationSecs.toString());
               builder.element('depth', nest: '0');
-            });
+            },);
           }
         }
-      });
+      },);
 
       // Information after dive
       builder.element('informationafterdive', nest: () {
@@ -1207,7 +1207,7 @@ class ExportService {
         if (dive.rating != null) {
           builder.element('rating', nest: () {
             builder.element('ratingvalue', nest: dive.rating.toString());
-          });
+          },);
         }
         // Conditions
         if (dive.waterType != null) {
@@ -1232,7 +1232,7 @@ class ExportService {
             if (dive.weightType != null) {
               builder.element('type', nest: dive.weightType!.name);
             }
-          });
+          },);
         }
         // Sightings
         if (dive.sightings.isNotEmpty) {
@@ -1245,14 +1245,14 @@ class ExportService {
                 if (sighting.notes.isNotEmpty) {
                   builder.element('notes', nest: sighting.notes);
                 }
-              });
+              },);
             }
-          });
+          },);
         }
         if (dive.notes.isNotEmpty) {
           builder.element('notes', nest: () {
             builder.element('para', nest: dive.notes);
-          });
+          },);
         }
         // Export regular buddies in the buddy field for compatibility
         if (regularBuddies.isNotEmpty) {
@@ -1264,19 +1264,19 @@ class ExportService {
                 if (nameParts.length > 1) {
                   builder.element('lastname', nest: nameParts.sublist(1).join(' '));
                 }
-              });
-            });
+              },);
+            },);
           }
         } else if (dive.buddy != null && dive.buddy!.isNotEmpty) {
           // Fallback to legacy field if no linked buddies
           builder.element('buddy', nest: () {
             builder.element('personal', nest: () {
               builder.element('firstname', nest: dive.buddy);
-            });
-          });
+            },);
+          },);
         }
-      });
-    });
+      },);
+    },);
   }
 
   void _buildApplicationData(
@@ -1336,9 +1336,9 @@ class ExportService {
                 if (item.notes.isNotEmpty) {
                   builder.element('notes', nest: item.notes);
                 }
-              });
+              },);
             }
-          });
+          },);
         }
 
         // Certifications
@@ -1369,9 +1369,9 @@ class ExportService {
                 if (cert.notes.isNotEmpty) {
                   builder.element('notes', nest: cert.notes);
                 }
-              });
+              },);
             }
-          });
+          },);
         }
 
         // Dive Centers
@@ -1408,9 +1408,9 @@ class ExportService {
                 if (center.notes.isNotEmpty) {
                   builder.element('notes', nest: center.notes);
                 }
-              });
+              },);
             }
-          });
+          },);
         }
 
         // Species
@@ -1426,9 +1426,9 @@ class ExportService {
                 if (spec.description != null) {
                   builder.element('description', nest: spec.description);
                 }
-              });
+              },);
             }
-          });
+          },);
         }
 
         // Service Records
@@ -1452,9 +1452,9 @@ class ExportService {
                 if (record.notes.isNotEmpty) {
                   builder.element('notes', nest: record.notes);
                 }
-              });
+              },);
             }
-          });
+          },);
         }
 
         // Settings
@@ -1463,10 +1463,10 @@ class ExportService {
             for (final entry in settings.entries) {
               builder.element('setting', attributes: {'key': entry.key}, nest: entry.value);
             }
-          });
+          },);
         }
-      });
-    });
+      },);
+    },);
   }
 
   // ==================== UDDF IMPORT ====================
@@ -2372,7 +2372,7 @@ class ExportService {
   Future<List<Map<String, dynamic>>> importDivesFromCsv(String csvContent) async {
     final rows = const CsvToListConverter().convert(csvContent);
     if (rows.isEmpty) {
-      throw FormatException('CSV file is empty');
+      throw const FormatException('CSV file is empty');
     }
 
     final headers = rows.first.map((e) => e.toString().toLowerCase().trim()).toList();

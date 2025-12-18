@@ -110,7 +110,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           children: [
             // Type
             DropdownButtonFormField<EquipmentType>(
-              value: _selectedType,
+              initialValue: _selectedType,
               decoration: const InputDecoration(
                 labelText: 'Type *',
                 prefixIcon: Icon(Icons.category),
@@ -131,7 +131,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
 
             // Status
             DropdownButtonFormField<EquipmentStatus>(
-              value: _selectedStatus,
+              initialValue: _selectedStatus,
               decoration: const InputDecoration(
                 labelText: 'Status',
                 prefixIcon: Icon(Icons.flag),

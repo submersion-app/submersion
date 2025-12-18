@@ -223,7 +223,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                         validator: (value) {
                           if (value != null && value.isNotEmpty) {
                             final emailRegex = RegExp(
-                                r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+                                r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',);
                             if (!emailRegex.hasMatch(value)) {
                               return 'Please enter a valid email';
                             }
@@ -257,7 +257,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
 
                       // Certification level dropdown
                       DropdownButtonFormField<CertificationLevel>(
-                        value: _certLevel,
+                        initialValue: _certLevel,
                         decoration: const InputDecoration(
                           labelText: 'Certification Level',
                           prefixIcon: Icon(Icons.card_membership),
@@ -285,7 +285,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
 
                       // Certification agency dropdown
                       DropdownButtonFormField<CertificationAgency>(
-                        value: _certAgency,
+                        initialValue: _certAgency,
                         decoration: const InputDecoration(
                           labelText: 'Certification Agency',
                           prefixIcon: Icon(Icons.business),
@@ -445,7 +445,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
           SnackBar(
             content: Text(isEditing
                 ? 'Buddy updated successfully'
-                : 'Buddy added successfully'),
+                : 'Buddy added successfully',),
           ),
         );
         // Return the saved buddy so callers can use it

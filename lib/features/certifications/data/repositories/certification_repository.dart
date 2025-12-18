@@ -57,7 +57,7 @@ class CertificationRepository {
       Variable.withString(searchTerm),
       Variable.withString(searchTerm),
       Variable.withString(searchTerm),
-    ]).get();
+    ],).get();
 
     return results.map((row) {
       return domain.Certification(
@@ -83,7 +83,7 @@ class CertificationRepository {
 
   /// Create a new certification
   Future<domain.Certification> createCertification(
-      domain.Certification cert) async {
+      domain.Certification cert,) async {
     try {
       _log.info('Creating certification: ${cert.name}');
       final id = cert.id.isEmpty ? _uuid.v4() : cert.id;
@@ -104,7 +104,7 @@ class CertificationRepository {
             notes: Value(cert.notes),
             createdAt: Value(now.millisecondsSinceEpoch),
             updatedAt: Value(now.millisecondsSinceEpoch),
-          ));
+          ),);
 
       _log.info('Created certification with id: $id');
       return cert.copyWith(id: id, createdAt: now, updatedAt: now);
@@ -158,7 +158,7 @@ class CertificationRepository {
 
   /// Get certifications expiring within days
   Future<List<domain.Certification>> getExpiringCertifications(
-      int withinDays) async {
+      int withinDays,) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     final threshold =
         DateTime.now().add(Duration(days: withinDays)).millisecondsSinceEpoch;
@@ -172,7 +172,7 @@ class CertificationRepository {
     ''', variables: [
       Variable.withInt(now),
       Variable.withInt(threshold),
-    ]).get();
+    ],).get();
 
     return results.map((row) {
       return domain.Certification(
@@ -207,7 +207,7 @@ class CertificationRepository {
       ORDER BY expiry_date DESC
     ''', variables: [
       Variable.withInt(now),
-    ]).get();
+    ],).get();
 
     return results.map((row) {
       return domain.Certification(
@@ -233,7 +233,7 @@ class CertificationRepository {
 
   /// Get certifications by agency
   Future<List<domain.Certification>> getCertificationsByAgency(
-      CertificationAgency agency) async {
+      CertificationAgency agency,) async {
     final query = _db.select(_db.certifications)
       ..where((t) => t.agency.equals(agency.name))
       ..orderBy([(t) => OrderingTerm.desc(t.issueDate)]);

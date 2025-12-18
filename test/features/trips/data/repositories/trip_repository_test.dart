@@ -160,7 +160,7 @@ void main() {
         final trip = await repository.createTrip(createTestTrip(
           name: 'Original Name',
           location: 'Original Location',
-        ));
+        ),);
 
         final updatedTrip = trip.copyWith(
           name: 'Updated Name',
@@ -182,7 +182,7 @@ void main() {
           name: 'Date Update Trip',
           startDate: DateTime(2024, 1, 1),
           endDate: DateTime(2024, 1, 7),
-        ));
+        ),);
 
         final newStartDate = DateTime(2024, 2, 1);
         final newEndDate = DateTime(2024, 2, 14);
@@ -225,17 +225,17 @@ void main() {
           name: 'Maldives Adventure',
           location: 'Maldives',
           resortName: 'Ocean Paradise Resort',
-        ));
+        ),);
         await repository.createTrip(createTestTrip(
           name: 'Red Sea Expedition',
           location: 'Egypt',
           liveaboardName: 'MY Red Sea Explorer',
-        ));
+        ),);
         await repository.createTrip(createTestTrip(
           name: 'Caribbean Dive Trip',
           location: 'Bonaire',
           resortName: 'Caribbean Divers',
-        ));
+        ),);
       });
 
       test('should find trips by name', () async {
@@ -286,7 +286,7 @@ void main() {
           name: 'June Trip',
           startDate: DateTime(2024, 6, 1),
           endDate: DateTime(2024, 6, 15),
-        ));
+        ),);
 
         final result = await repository.findTripForDate(DateTime(2024, 6, 10));
 
@@ -299,7 +299,7 @@ void main() {
           name: 'June Trip',
           startDate: DateTime(2024, 6, 1),
           endDate: DateTime(2024, 6, 15),
-        ));
+        ),);
 
         final result = await repository.findTripForDate(DateTime(2024, 7, 10));
 
@@ -311,7 +311,7 @@ void main() {
           name: 'June Trip',
           startDate: DateTime(2024, 6, 1),
           endDate: DateTime(2024, 6, 15),
-        ));
+        ),);
 
         final result = await repository.findTripForDate(DateTime(2024, 6, 1));
 
@@ -324,7 +324,7 @@ void main() {
           name: 'June Trip',
           startDate: DateTime(2024, 6, 1),
           endDate: DateTime(2024, 6, 15),
-        ));
+        ),);
 
         final result = await repository.findTripForDate(DateTime(2024, 6, 15));
 

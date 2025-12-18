@@ -592,7 +592,7 @@ class _ServiceHistorySection extends ConsumerWidget {
                           record: record,
                           onTap: () => _showEditServiceDialog(context, ref, record),
                           onDelete: () => _confirmDeleteRecord(context, ref, record),
-                        )),
+                        ),),
                   ],
                 );
               },
@@ -832,7 +832,7 @@ class _ServiceRecordDialogState extends State<ServiceRecordDialog> {
               children: [
                 // Service type dropdown
                 DropdownButtonFormField<ServiceType>(
-                  value: _serviceType,
+                  initialValue: _serviceType,
                   decoration: const InputDecoration(
                     labelText: 'Service Type',
                     prefixIcon: Icon(Icons.build),

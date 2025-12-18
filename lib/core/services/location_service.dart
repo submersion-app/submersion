@@ -99,7 +99,7 @@ class LocationService {
       );
 
       _log.info(
-          'Got position: ${position.latitude}, ${position.longitude} (accuracy: ${position.accuracy}m)');
+          'Got position: ${position.latitude}, ${position.longitude} (accuracy: ${position.accuracy}m)',);
 
       String? country;
       String? region;

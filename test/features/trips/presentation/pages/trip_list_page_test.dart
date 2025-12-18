@@ -60,7 +60,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('No trips added yet'), findsOneWidget);
       expect(find.text('Create trips to group your dives by destination'),
-          findsOneWidget);
+          findsOneWidget,);
       expect(find.text('Add Your First Trip'), findsOneWidget);
     });
 

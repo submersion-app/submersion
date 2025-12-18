@@ -494,7 +494,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           .map((p) => FlSpot(
             p.timestamp.toDouble(),
             -units.convertDepth(p.depth), // Convert to user's unit and negate for inverted axis
-          ))
+          ),)
           .toList(),
       isCurved: true,
       curveSmoothness: 0.2,
@@ -530,7 +530,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 p.timestamp.toDouble(),
                 // Convert temp to user's unit, then map to depth axis
                 -_mapTempToDepth(units.convertTemperature(p.temperature!), chartMaxDepth, minTemp, maxTemp),
-              ))
+              ),)
           .toList(),
       isCurved: true,
       curveSmoothness: 0.2,

@@ -53,7 +53,7 @@ class BuddyRepository {
       Variable.withString(searchTerm),
       Variable.withString(searchTerm),
       Variable.withString(searchTerm),
-    ]).get();
+    ],).get();
 
     return results.map((row) {
       return domain.Buddy(
@@ -62,9 +62,9 @@ class BuddyRepository {
         email: row.data['email'] as String?,
         phone: row.data['phone'] as String?,
         certificationLevel: _parseCertificationLevel(
-            row.data['certification_level'] as String?),
+            row.data['certification_level'] as String?,),
         certificationAgency: _parseCertificationAgency(
-            row.data['certification_agency'] as String?),
+            row.data['certification_agency'] as String?,),
         photoPath: row.data['photo_path'] as String?,
         notes: (row.data['notes'] as String?) ?? '',
         createdAt:
@@ -93,7 +93,7 @@ class BuddyRepository {
             notes: Value(buddy.notes),
             createdAt: Value(now.millisecondsSinceEpoch),
             updatedAt: Value(now.millisecondsSinceEpoch),
-          ));
+          ),);
 
       _log.info('Created buddy with id: $id');
       return buddy.copyWith(id: id, createdAt: now, updatedAt: now);
@@ -117,7 +117,7 @@ class BuddyRepository {
         SELECT * FROM buddies
         WHERE LOWER(name) = LOWER(?)
         LIMIT 1
-      ''', variables: [Variable.withString(trimmedName)]).get();
+      ''', variables: [Variable.withString(trimmedName)],).get();
 
       if (results.isNotEmpty) {
         final row = results.first;
@@ -128,9 +128,9 @@ class BuddyRepository {
           email: row.data['email'] as String?,
           phone: row.data['phone'] as String?,
           certificationLevel: _parseCertificationLevel(
-              row.data['certification_level'] as String?),
+              row.data['certification_level'] as String?,),
           certificationAgency: _parseCertificationAgency(
-              row.data['certification_agency'] as String?),
+              row.data['certification_agency'] as String?,),
           photoPath: row.data['photo_path'] as String?,
           notes: (row.data['notes'] as String?) ?? '',
           createdAt:
@@ -203,7 +203,7 @@ class BuddyRepository {
       INNER JOIN dive_buddies db ON b.id = db.buddy_id
       WHERE db.dive_id = ?
       ORDER BY b.name ASC
-    ''', variables: [Variable.withString(diveId)]).get();
+    ''', variables: [Variable.withString(diveId)],).get();
 
     return results.map((row) {
       final buddy = domain.Buddy(
@@ -212,9 +212,9 @@ class BuddyRepository {
         email: row.data['email'] as String?,
         phone: row.data['phone'] as String?,
         certificationLevel: _parseCertificationLevel(
-            row.data['certification_level'] as String?),
+            row.data['certification_level'] as String?,),
         certificationAgency: _parseCertificationAgency(
-            row.data['certification_agency'] as String?),
+            row.data['certification_agency'] as String?,),
         photoPath: row.data['photo_path'] as String?,
         notes: (row.data['notes'] as String?) ?? '',
         createdAt:
@@ -232,7 +232,7 @@ class BuddyRepository {
 
   /// Set buddies for a dive (replaces existing)
   Future<void> setBuddiesForDive(
-      String diveId, List<domain.BuddyWithRole> buddies) async {
+      String diveId, List<domain.BuddyWithRole> buddies,) async {
     // Delete existing dive buddies
     await (_db.delete(_db.diveBuddies)..where((t) => t.diveId.equals(diveId)))
         .go();
@@ -246,13 +246,13 @@ class BuddyRepository {
             buddyId: Value(buddyWithRole.buddy.id),
             role: Value(buddyWithRole.role.name),
             createdAt: Value(now),
-          ));
+          ),);
     }
   }
 
   /// Add a buddy to a dive
   Future<void> addBuddyToDive(
-      String diveId, String buddyId, BuddyRole role) async {
+      String diveId, String buddyId, BuddyRole role,) async {
     final now = DateTime.now().millisecondsSinceEpoch;
 
     // Check if already exists
@@ -273,7 +273,7 @@ class BuddyRepository {
             buddyId: Value(buddyId),
             role: Value(role.name),
             createdAt: Value(now),
-          ));
+          ),);
     }
   }
 
@@ -290,7 +290,7 @@ class BuddyRepository {
       SELECT COUNT(*) as count
       FROM dive_buddies
       WHERE buddy_id = ?
-    ''', variables: [Variable.withString(buddyId)]).getSingle();
+    ''', variables: [Variable.withString(buddyId)],).getSingle();
 
     return result.data['count'] as int? ?? 0;
   }
@@ -302,7 +302,7 @@ class BuddyRepository {
       FROM dive_buddies
       WHERE buddy_id = ?
       ORDER BY created_at DESC
-    ''', variables: [Variable.withString(buddyId)]).get();
+    ''', variables: [Variable.withString(buddyId)],).get();
 
     return results.map((row) => row.data['dive_id'] as String).toList();
   }
@@ -320,7 +320,7 @@ class BuddyRepository {
       FROM dives d
       INNER JOIN dive_buddies db ON d.id = db.dive_id
       WHERE db.buddy_id = ?
-    ''', variables: [Variable.withString(buddyId)]).getSingleOrNull();
+    ''', variables: [Variable.withString(buddyId)],).getSingleOrNull();
 
     DateTime? firstDive;
     DateTime? lastDive;
@@ -346,7 +346,7 @@ class BuddyRepository {
       GROUP BY d.site_id
       ORDER BY count DESC
       LIMIT 1
-    ''', variables: [Variable.withString(buddyId)]).getSingleOrNull();
+    ''', variables: [Variable.withString(buddyId)],).getSingleOrNull();
 
     String? favoriteSite;
     if (favoriteSiteResult != null) {
