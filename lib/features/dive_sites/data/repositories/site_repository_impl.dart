@@ -52,11 +52,17 @@ class SiteRepository {
         description: Value(site.description),
         latitude: Value(site.location?.latitude),
         longitude: Value(site.location?.longitude),
+        minDepth: Value(site.minDepth),
         maxDepth: Value(site.maxDepth),
+        difficulty: Value(site.difficulty?.name),
         country: Value(site.country),
         region: Value(site.region),
         rating: Value(site.rating),
         notes: Value(site.notes),
+        hazards: Value(site.hazards),
+        accessNotes: Value(site.accessNotes),
+        mooringNumber: Value(site.mooringNumber),
+        parkingInfo: Value(site.parkingInfo),
         createdAt: Value(now),
         updatedAt: Value(now),
       ));
@@ -81,11 +87,17 @@ class SiteRepository {
           description: Value(site.description),
           latitude: Value(site.location?.latitude),
           longitude: Value(site.location?.longitude),
+          minDepth: Value(site.minDepth),
           maxDepth: Value(site.maxDepth),
+          difficulty: Value(site.difficulty?.name),
           country: Value(site.country),
           region: Value(site.region),
           rating: Value(site.rating),
           notes: Value(site.notes),
+          hazards: Value(site.hazards),
+          accessNotes: Value(site.accessNotes),
+          mooringNumber: Value(site.mooringNumber),
+          parkingInfo: Value(site.parkingInfo),
           updatedAt: Value(now),
         ),
       );
@@ -171,11 +183,17 @@ class SiteRepository {
       location: row.latitude != null && row.longitude != null
           ? domain.GeoPoint(row.latitude!, row.longitude!)
           : null,
+      minDepth: row.minDepth,
       maxDepth: row.maxDepth,
+      difficulty: domain.SiteDifficulty.fromString(row.difficulty),
       country: row.country,
       region: row.region,
       rating: row.rating,
       notes: row.notes,
+      hazards: row.hazards,
+      accessNotes: row.accessNotes,
+      mooringNumber: row.mooringNumber,
+      parkingInfo: row.parkingInfo,
     );
   }
 }

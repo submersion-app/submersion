@@ -159,19 +159,20 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 | Feature | Status | Phase | Priority | Notes |
 |---------|--------|-------|----------|-------|
 | Time-depth profile chart | ✅ Implemented | MVP | - | Using fl_chart |
-| Zoom and pan controls | 📋 Planned | v1.1 | Medium | fl_chart supports this - deferred |
+| Zoom and pan controls | ✅ Implemented | v1.1 | - | Pinch/scroll zoom, pan when zoomed |
+| Touch markers/tooltips | ✅ Implemented | v1.1 | - | Shows depth, time, temp at touch point |
 | Profile markers/events | 📋 Planned | v1.5 | High | Descent, safety stop, gas switch, alerts |
 | Temperature overlay | ✅ Implemented | MVP | - | Toggle on/off |
 | Ascent rate indicators | 📋 Planned | v1.5 | High | Color-code dangerous ascents |
 | Ceiling / NDL curve | 📋 Planned | v1.5 | 🎯 High | Requires deco algorithm |
 | ppO₂ curve, CNS/OTU | 📋 Planned | v1.5 | Medium | Technical diving |
 | SAC/RMV overlay | 📋 Planned | v1.5 | Medium | Instantaneous gas consumption |
+| Profile export as PNG | 📋 Planned | v2.0 | Low | Export chart image for sharing |
 
-**v1.1 Tasks:** (deferred from v1.0)
-- [ ] Implement InteractiveChart with pan/zoom gestures
-- [ ] Add touch markers showing exact depth/time/temp at touch point
-- [ ] Pinch-to-zoom on mobile, scroll-to-zoom on desktop
-- [ ] Profile export as PNG image for sharing
+**v1.1 Tasks:** ✅ COMPLETE
+- [x] Implement InteractiveChart with pan/zoom gestures
+- [x] Add touch markers showing exact depth/time/temp at touch point
+- [x] Pinch-to-zoom on mobile, scroll-to-zoom on desktop
 
 **v1.5 Tasks:**
 - [ ] Profile event markers (table: `dive_profile_events` with type, timestamp, description)
@@ -215,6 +216,7 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 - [ ] Smoothing algorithm (moving average)
 - [ ] Manual profile editor with touch/mouse drawing
 - [ ] Segment selection and adjustment UI
+- [ ] Profile export as PNG image for sharing
 
 ---
 
@@ -420,16 +422,16 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 | Feature | Status | Phase | Priority | Notes |
 |---------|--------|-------|----------|-------|
 | Manage sites, regions, countries | ✅ Implemented | MVP | - | Full CRUD |
-| Typical depth, difficulty | 📋 Planned | v1.1 | Medium | Add fields |
+| Depth range, difficulty | ✅ Implemented | v1.1 | Medium | Min/max depth & difficulty levels |
 | Common marine life | 📋 Planned | v1.5 | Low | Link species to sites |
-| Hazards, access notes | 📋 Planned | v1.1 | Medium | Free-text fields |
-| Mooring numbers | 📋 Planned | v1.1 | Low | For boat diving |
+| Hazards, access notes | ✅ Implemented | v1.1 | Medium | Free-text fields |
+| Mooring numbers, parking | ✅ Implemented | v1.1 | Low | For boat/shore diving |
 
 **v1.1 Tasks:** (deferred from v1.0)
-- [ ] Add `typical_depth_min`, `typical_depth_max`, `difficulty` (Beginner/Intermediate/Advanced/Technical) to sites table
-- [ ] Add `hazards`, `access_notes`, `mooring_number`, `parking_info` text fields
-- [ ] Expand site detail page with new fields
-- [ ] Site editing form with all fields
+- [x] Add `min_depth`, `max_depth`, `difficulty` (Beginner/Intermediate/Advanced/Technical) to sites table ✅ Implemented
+- [x] Add `hazards`, `access_notes`, `mooring_number`, `parking_info` text fields ✅ Implemented
+- [x] Expand site detail page with new fields ✅ Implemented
+- [x] Site editing form with all fields ✅ Implemented
 
 **v1.5 Tasks:**
 - [ ] Many-to-many relationship between sites and species (common sightings)
@@ -519,13 +521,12 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 | Feature | Status | Phase | Priority | Notes |
 |---------|--------|-------|----------|-------|
 | Equipment sets | ✅ Implemented | MVP | - | Named collections |
-| Predefined configs | 📋 Planned | v1.1 | Medium | Templates for dive types |
-| Quick-select sets per dive | 📋 Planned | v1.1 | Medium | One-click apply |
+| Quick-select sets per dive | ✅ Implemented | v1.1 | - | Apply set from dive edit |
+| Save equipment as set | ✅ Implemented | v1.1 | - | Create set from current dive |
 
-**v1.1 Tasks:** (deferred from v1.0)
-- [ ] Equipment set templates (Tropical Single Tank, Cold Water Drysuit, Technical Twinset, Sidemount, Photography)
-- [ ] "Apply Equipment Set" button in dive edit form (auto-populate dive_equipment)
-- [ ] Save current dive's equipment as new set
+**v1.1 Tasks:** ✅ COMPLETE
+- [x] "Apply Equipment Set" button in dive edit form (auto-populate dive_equipment)
+- [x] Save current dive's equipment as new set
 
 ---
 

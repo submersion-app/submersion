@@ -86,11 +86,17 @@ class DiveSites extends Table {
   TextColumn get description => text().withDefault(const Constant(''))();
   RealColumn get latitude => real().nullable()();
   RealColumn get longitude => real().nullable()();
-  RealColumn get maxDepth => real().nullable()();
+  RealColumn get minDepth => real().nullable()(); // Shallowest point
+  RealColumn get maxDepth => real().nullable()(); // Deepest point
+  TextColumn get difficulty => text().nullable()(); // Beginner, Intermediate, Advanced, Technical
   TextColumn get country => text().nullable()();
   TextColumn get region => text().nullable()();
   RealColumn get rating => real().nullable()();
   TextColumn get notes => text().withDefault(const Constant(''))();
+  TextColumn get hazards => text().nullable()(); // Currents, boats, marine life, etc.
+  TextColumn get accessNotes => text().nullable()(); // How to get there, entry points
+  TextColumn get mooringNumber => text().nullable()(); // Mooring buoy number for boats
+  TextColumn get parkingInfo => text().nullable()(); // Parking availability and tips
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -381,7 +387,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration {
@@ -678,6 +684,15 @@ class AppDatabase extends _$AppDatabase {
                   ELSE NULL
                 END
           ''');
+        }
+        if (from < 11) {
+          // Migration v10 -> v11: Add enhanced dive site fields
+          await customStatement('ALTER TABLE dive_sites ADD COLUMN min_depth REAL');
+          await customStatement('ALTER TABLE dive_sites ADD COLUMN difficulty TEXT');
+          await customStatement('ALTER TABLE dive_sites ADD COLUMN hazards TEXT');
+          await customStatement('ALTER TABLE dive_sites ADD COLUMN access_notes TEXT');
+          await customStatement('ALTER TABLE dive_sites ADD COLUMN mooring_number TEXT');
+          await customStatement('ALTER TABLE dive_sites ADD COLUMN parking_info TEXT');
         }
       },
       beforeOpen: (details) async {
