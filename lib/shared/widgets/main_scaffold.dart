@@ -15,7 +15,6 @@ class MainScaffold extends StatelessWidget {
     '/buddies',
     '/dive-centers',
     '/certifications',
-    '/tools/weight-calculator',
     '/settings',
   ];
 
@@ -32,8 +31,7 @@ class MainScaffold extends StatelessWidget {
       if (location.startsWith('/buddies')) return 5;
       if (location.startsWith('/dive-centers')) return 6;
       if (location.startsWith('/certifications')) return 7;
-      if (location.startsWith('/tools')) return 8;
-      if (location.startsWith('/settings')) return 9;
+      if (location.startsWith('/settings')) return 8;
       return 0;
     } else {
       // Mobile: Dives, Trips, Sites, Equipment, More
@@ -77,9 +75,6 @@ class MainScaffold extends StatelessWidget {
           context.go('/certifications');
           break;
         case 8:
-          context.go('/tools/weight-calculator');
-          break;
-        case 9:
           context.go('/settings');
           break;
       }
@@ -162,14 +157,6 @@ class MainScaffold extends StatelessWidget {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.fitness_center),
-              title: const Text('Weight Calculator'),
-              onTap: () {
-                Navigator.pop(context);
-                context.go('/tools/weight-calculator');
-              },
-            ),
-            ListTile(
               leading: const Icon(Icons.settings),
               title: const Text('Settings'),
               onTap: () {
@@ -247,11 +234,6 @@ class MainScaffold extends StatelessWidget {
                   icon: Icon(Icons.card_membership_outlined),
                   selectedIcon: Icon(Icons.card_membership),
                   label: Text('Certifications'),
-                ),
-                NavigationRailDestination(
-                  icon: Icon(Icons.fitness_center_outlined),
-                  selectedIcon: Icon(Icons.fitness_center),
-                  label: Text('Weight Calc'),
                 ),
                 NavigationRailDestination(
                   icon: Icon(Icons.settings_outlined),
