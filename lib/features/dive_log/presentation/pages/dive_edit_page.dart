@@ -955,16 +955,24 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               }),
               if (_selectedEquipment.isNotEmpty) ...[
                 const SizedBox(height: 8),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _selectedEquipment.clear();
-                      });
-                    },
-                    child: const Text('Clear All'),
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton.icon(
+                      onPressed: _saveEquipmentAsSet,
+                      icon: const Icon(Icons.save_alt, size: 18),
+                      label: const Text('Save as Set'),
+                    ),
+                    const SizedBox(width: 8),
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          _selectedEquipment.clear();
+                        });
+                      },
+                      child: const Text('Clear All'),
+                    ),
+                  ],
                 ),
               ],
             ],
@@ -1064,6 +1072,99 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             Navigator.of(context).pop();
           },
         ),
+      ),
+    );
+  }
+
+  void _saveEquipmentAsSet() {
+    if (_selectedEquipment.isEmpty) return;
+
+    final nameController = TextEditingController();
+    final descriptionController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Save as Equipment Set'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Save ${_selectedEquipment.length} item(s) as a new equipment set.',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                labelText: 'Set Name',
+                hintText: 'e.g., Tropical Diving',
+                border: OutlineInputBorder(),
+              ),
+              autofocus: true,
+              textCapitalization: TextCapitalization.words,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: descriptionController,
+              decoration: const InputDecoration(
+                labelText: 'Description (optional)',
+                hintText: 'e.g., Light gear for warm water',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 2,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              final name = nameController.text.trim();
+              if (name.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please enter a set name')),
+                );
+                return;
+              }
+
+              try {
+                final set = EquipmentSet(
+                  id: '',
+                  name: name,
+                  description: descriptionController.text.trim(),
+                  equipmentIds: _selectedEquipment.map((e) => e.id).toList(),
+                  createdAt: DateTime.now(),
+                  updatedAt: DateTime.now(),
+                );
+
+                final repository = ref.read(equipmentSetRepositoryProvider);
+                await repository.createSet(set);
+
+                // Invalidate the sets provider to refresh the list
+                ref.invalidate(equipmentSetsProvider);
+
+                if (mounted) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Equipment set "$name" created')),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error creating set: $e')),
+                  );
+                }
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
       ),
     );
   }

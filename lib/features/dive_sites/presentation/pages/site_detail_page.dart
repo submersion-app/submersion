@@ -80,13 +80,31 @@ class SiteDetailPage extends ConsumerWidget {
             _buildLocationSection(context, site),
             const SizedBox(height: 16),
 
-            // Max Depth Section
-            _buildMaxDepthSection(context, site),
+            // Depth Information Section
+            _buildDepthSection(context, site),
             const SizedBox(height: 16),
+
+            // Difficulty Section
+            if (site.difficulty != null) ...[
+              _buildDifficultySection(context, site),
+              const SizedBox(height: 16),
+            ],
 
             // Rating Section
             _buildRatingSection(context, site),
             const SizedBox(height: 16),
+
+            // Hazards Section
+            if (site.hazards != null && site.hazards!.isNotEmpty) ...[
+              _buildHazardsSection(context, site),
+              const SizedBox(height: 16),
+            ],
+
+            // Access & Logistics Section
+            if (_hasAccessInfo(site)) ...[
+              _buildAccessSection(context, site),
+              const SizedBox(height: 16),
+            ],
 
             // Notes Section
             _buildNotesSection(context, site),
@@ -452,9 +470,17 @@ class SiteDetailPage extends ConsumerWidget {
     return content;
   }
 
-  Widget _buildMaxDepthSection(BuildContext context, DiveSite site) {
+  bool _hasAccessInfo(DiveSite site) {
+    return (site.accessNotes != null && site.accessNotes!.isNotEmpty) ||
+        (site.mooringNumber != null && site.mooringNumber!.isNotEmpty) ||
+        (site.parkingInfo != null && site.parkingInfo!.isNotEmpty);
+  }
+
+  Widget _buildDepthSection(BuildContext context, DiveSite site) {
     final colorScheme = Theme.of(context).colorScheme;
+    final hasMinDepth = site.minDepth != null;
     final hasMaxDepth = site.maxDepth != null;
+    final hasDepthInfo = hasMinDepth || hasMaxDepth;
 
     return Card(
       child: Padding(
@@ -471,37 +497,265 @@ class SiteDetailPage extends ConsumerWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Max Depth',
+                  'Depth Range',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (!hasDepthInfo)
+              Center(
+                child: Text(
+                  'No depth information',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        fontStyle: FontStyle.italic,
+                      ),
+                ),
+              )
+            else
+              Row(
+                children: [
+                  if (hasMinDepth)
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Text(
+                            'Minimum',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${site.minDepth!.toStringAsFixed(1)} m',
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.secondary,
+                                ),
+                          ),
+                          Text(
+                            '${(site.minDepth! * 3.28084).toStringAsFixed(0)} ft',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  if (hasMinDepth && hasMaxDepth)
+                    Container(
+                      height: 60,
+                      width: 1,
+                      color: colorScheme.outlineVariant,
+                    ),
+                  if (hasMaxDepth)
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Text(
+                            'Maximum',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${site.maxDepth!.toStringAsFixed(1)} m',
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.primary,
+                                ),
+                          ),
+                          Text(
+                            '${(site.maxDepth! * 3.28084).toStringAsFixed(0)} ft',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDifficultySection(BuildContext context, DiveSite site) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    Color getDifficultyColor(SiteDifficulty difficulty) {
+      switch (difficulty) {
+        case SiteDifficulty.beginner:
+          return Colors.green;
+        case SiteDifficulty.intermediate:
+          return Colors.blue;
+        case SiteDifficulty.advanced:
+          return Colors.orange;
+        case SiteDifficulty.technical:
+          return Colors.red;
+      }
+    }
+
+    IconData getDifficultyIcon(SiteDifficulty difficulty) {
+      switch (difficulty) {
+        case SiteDifficulty.beginner:
+          return Icons.pool;
+        case SiteDifficulty.intermediate:
+          return Icons.scuba_diving;
+        case SiteDifficulty.advanced:
+          return Icons.waves;
+        case SiteDifficulty.technical:
+          return Icons.warning;
+      }
+    }
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.fitness_center,
+                  size: 20,
+                  color: colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Difficulty Level',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ],
             ),
             const SizedBox(height: 12),
             Center(
-              child: Column(
-                children: [
-                  Text(
-                    hasMaxDepth ? '${site.maxDepth!.toStringAsFixed(1)} m' : 'Not set',
-                    style: hasMaxDepth
-                        ? Theme.of(context).textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.primary,
-                            )
-                        : Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                              fontStyle: FontStyle.italic,
-                            ),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                decoration: BoxDecoration(
+                  color: getDifficultyColor(site.difficulty!).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: getDifficultyColor(site.difficulty!),
+                    width: 2,
                   ),
-                  if (hasMaxDepth)
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      getDifficultyIcon(site.difficulty!),
+                      color: getDifficultyColor(site.difficulty!),
+                      size: 24,
+                    ),
+                    const SizedBox(width: 8),
                     Text(
-                      '${(site.maxDepth! * 3.28084).toStringAsFixed(0)} ft',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
+                      site.difficulty!.displayName,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: getDifficultyColor(site.difficulty!),
                           ),
                     ),
-                ],
+                  ],
+                ),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHazardsSection(BuildContext context, DiveSite site) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Card(
+      color: colorScheme.errorContainer.withValues(alpha: 0.3),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.warning_amber,
+                  size: 20,
+                  color: colorScheme.error,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Hazards & Safety',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: colorScheme.error,
+                      ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              site.hazards!,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAccessSection(BuildContext context, DiveSite site) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.directions,
+                  size: 20,
+                  color: colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Access & Logistics',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (site.accessNotes != null && site.accessNotes!.isNotEmpty) ...[
+              _buildDetailRow(
+                context,
+                Icons.info_outline,
+                'Access Notes',
+                site.accessNotes!,
+              ),
+            ],
+            if (site.mooringNumber != null && site.mooringNumber!.isNotEmpty) ...[
+              _buildDetailRow(
+                context,
+                Icons.anchor,
+                'Mooring',
+                site.mooringNumber!,
+              ),
+            ],
+            if (site.parkingInfo != null && site.parkingInfo!.isNotEmpty) ...[
+              _buildDetailRow(
+                context,
+                Icons.local_parking,
+                'Parking',
+                site.parkingInfo!,
+              ),
+            ],
           ],
         ),
       ),

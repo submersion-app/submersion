@@ -22,12 +22,18 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
   final _descriptionController = TextEditingController();
   final _countryController = TextEditingController();
   final _regionController = TextEditingController();
+  final _minDepthController = TextEditingController();
   final _maxDepthController = TextEditingController();
   final _latitudeController = TextEditingController();
   final _longitudeController = TextEditingController();
   final _notesController = TextEditingController();
+  final _hazardsController = TextEditingController();
+  final _accessNotesController = TextEditingController();
+  final _mooringNumberController = TextEditingController();
+  final _parkingInfoController = TextEditingController();
 
   double _rating = 0;
+  SiteDifficulty? _difficulty;
   bool _isLoading = false;
   bool _isInitialized = false;
 
@@ -37,10 +43,15 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     _descriptionController.dispose();
     _countryController.dispose();
     _regionController.dispose();
+    _minDepthController.dispose();
     _maxDepthController.dispose();
     _latitudeController.dispose();
     _longitudeController.dispose();
     _notesController.dispose();
+    _hazardsController.dispose();
+    _accessNotesController.dispose();
+    _mooringNumberController.dispose();
+    _parkingInfoController.dispose();
     super.dispose();
   }
 
@@ -52,11 +63,17 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     _descriptionController.text = site.description;
     _countryController.text = site.country ?? '';
     _regionController.text = site.region ?? '';
+    _minDepthController.text = site.minDepth?.toString() ?? '';
     _maxDepthController.text = site.maxDepth?.toString() ?? '';
     _latitudeController.text = site.location?.latitude.toString() ?? '';
     _longitudeController.text = site.location?.longitude.toString() ?? '';
     _notesController.text = site.notes;
+    _hazardsController.text = site.hazards ?? '';
+    _accessNotesController.text = site.accessNotes ?? '';
+    _mooringNumberController.text = site.mooringNumber ?? '';
+    _parkingInfoController.text = site.parkingInfo ?? '';
     _rating = site.rating ?? 0;
+    _difficulty = site.difficulty;
   }
 
   @override
@@ -160,15 +177,12 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             ),
             const SizedBox(height: 16),
 
-            // Max Depth
-            TextFormField(
-              controller: _maxDepthController,
-              decoration: const InputDecoration(
-                labelText: 'Max Depth (m)',
-                prefixIcon: Icon(Icons.arrow_downward),
-              ),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            ),
+            // Depth Section
+            _buildDepthSection(context),
+            const SizedBox(height: 16),
+
+            // Difficulty
+            _buildDifficultySection(context),
             const SizedBox(height: 16),
 
             // Rating
@@ -179,13 +193,21 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             _buildGpsSection(context),
             const SizedBox(height: 16),
 
+            // Access & Logistics Section
+            _buildAccessSection(context),
+            const SizedBox(height: 16),
+
+            // Safety Section
+            _buildSafetySection(context),
+            const SizedBox(height: 16),
+
             // Notes
             TextFormField(
               controller: _notesController,
               decoration: const InputDecoration(
-                labelText: 'Notes',
+                labelText: 'General Notes',
                 prefixIcon: Icon(Icons.notes),
-                hintText: 'Access instructions, tips, etc.',
+                hintText: 'Any other information about this site',
               ),
               maxLines: 4,
             ),
@@ -244,6 +266,104 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                   child: const Text('Clear Rating'),
                 ),
               ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDepthSection(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.arrow_downward),
+                const SizedBox(width: 8),
+                Text(
+                  'Depth Range',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'From the shallowest to the deepest point',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _minDepthController,
+                    decoration: const InputDecoration(
+                      labelText: 'Minimum Depth (m)',
+                      hintText: 'e.g., 5',
+                    ),
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 12),
+                  child: Text('to'),
+                ),
+                Expanded(
+                  child: TextFormField(
+                    controller: _maxDepthController,
+                    decoration: const InputDecoration(
+                      labelText: 'Maximum Depth (m)',
+                      hintText: 'e.g., 30',
+                    ),
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDifficultySection(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.fitness_center),
+                const SizedBox(width: 8),
+                Text(
+                  'Difficulty Level',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: SiteDifficulty.values.map((difficulty) {
+                final isSelected = _difficulty == difficulty;
+                return ChoiceChip(
+                  label: Text(difficulty.displayName),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    setState(() {
+                      _difficulty = selected ? difficulty : null;
+                    });
+                  },
+                );
+              }).toList(),
+            ),
           ],
         ),
       ),
@@ -330,6 +450,102 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     );
   }
 
+  Widget _buildAccessSection(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.directions),
+                const SizedBox(width: 8),
+                Text(
+                  'Access & Logistics',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _accessNotesController,
+              decoration: const InputDecoration(
+                labelText: 'Access Notes',
+                hintText: 'How to get to the site, entry/exit points, shore/boat access',
+              ),
+              maxLines: 3,
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _mooringNumberController,
+                    decoration: const InputDecoration(
+                      labelText: 'Mooring Number',
+                      hintText: 'e.g., Buoy #12',
+                      prefixIcon: Icon(Icons.anchor),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _parkingInfoController,
+              decoration: const InputDecoration(
+                labelText: 'Parking Information',
+                hintText: 'Parking availability, fees, tips',
+                prefixIcon: Icon(Icons.local_parking),
+              ),
+              maxLines: 2,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSafetySection(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.warning_amber, color: Theme.of(context).colorScheme.error),
+                const SizedBox(width: 8),
+                Text(
+                  'Hazards & Safety',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'List any hazards or safety considerations',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _hazardsController,
+              decoration: const InputDecoration(
+                labelText: 'Hazards',
+                hintText: 'e.g., Strong currents, boat traffic, jellyfish, sharp coral',
+              ),
+              maxLines: 3,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _saveSite() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -351,10 +567,16 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
         description: _descriptionController.text.trim(),
         country: _countryController.text.trim().isEmpty ? null : _countryController.text.trim(),
         region: _regionController.text.trim().isEmpty ? null : _regionController.text.trim(),
+        minDepth: double.tryParse(_minDepthController.text),
         maxDepth: double.tryParse(_maxDepthController.text),
+        difficulty: _difficulty,
         location: location,
         rating: _rating > 0 ? _rating : null,
         notes: _notesController.text.trim(),
+        hazards: _hazardsController.text.trim().isEmpty ? null : _hazardsController.text.trim(),
+        accessNotes: _accessNotesController.text.trim().isEmpty ? null : _accessNotesController.text.trim(),
+        mooringNumber: _mooringNumberController.text.trim().isEmpty ? null : _mooringNumberController.text.trim(),
+        parkingInfo: _parkingInfoController.text.trim().isEmpty ? null : _parkingInfoController.text.trim(),
       );
 
       final notifier = ref.read(siteListNotifierProvider.notifier);
