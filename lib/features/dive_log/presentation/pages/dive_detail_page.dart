@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../../../core/constants/enums.dart';
 import '../../../../core/utils/unit_formatter.dart';
@@ -120,6 +122,10 @@ class DiveDetailPage extends ConsumerWidget {
           children: [
             _buildHeaderSection(context, ref, dive, units),
             const SizedBox(height: 24),
+            if (dive.site?.location != null) ...[
+              _buildLocationMapSection(context, dive),
+              const SizedBox(height: 24),
+            ],
             if (dive.profile.isNotEmpty) ...[
               _buildProfileSection(context, dive),
               const SizedBox(height: 24),
@@ -235,6 +241,104 @@ class DiveDetailPage extends ConsumerWidget {
             // Surface interval row
             _buildSurfaceIntervalRow(context, ref, diveId),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLocationMapSection(BuildContext context, Dive dive) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final site = dive.site!;
+    final siteLocation = LatLng(site.location!.latitude, site.location!.longitude);
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => context.push('/sites/${site.id}'),
+        child: SizedBox(
+          height: 150,
+          child: Stack(
+            children: [
+              FlutterMap(
+                options: MapOptions(
+                  initialCenter: siteLocation,
+                  initialZoom: 13.0,
+                  interactionOptions: const InteractionOptions(
+                    flags: InteractiveFlag.none,
+                  ),
+                ),
+                children: [
+                  TileLayer(
+                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    userAgentPackageName: 'com.submersion.app',
+                    maxZoom: 19,
+                  ),
+                  MarkerLayer(
+                    markers: [
+                      Marker(
+                        point: siteLocation,
+                        width: 40,
+                        height: 40,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: colorScheme.onPrimary,
+                              width: 2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.3),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Icon(
+                              Icons.scuba_diving,
+                              size: 20,
+                              color: colorScheme.onPrimary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              // Tap hint overlay
+              Positioned(
+                right: 8,
+                bottom: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface.withValues(alpha: 0.9),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.open_in_new,
+                        size: 14,
+                        color: colorScheme.primary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'View Site',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: colorScheme.primary,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
