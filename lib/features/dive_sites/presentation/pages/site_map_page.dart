@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../../data/repositories/site_repository_impl.dart';
 import '../../domain/entities/dive_site.dart';
 import '../providers/site_providers.dart';
 
@@ -14,7 +16,7 @@ class SiteMapPage extends ConsumerStatefulWidget {
   ConsumerState<SiteMapPage> createState() => _SiteMapPageState();
 }
 
-class _SiteMapPageState extends ConsumerState<SiteMapPage> {
+class _SiteMapPageState extends ConsumerState<SiteMapPage> with TickerProviderStateMixin {
   final MapController _mapController = MapController();
   DiveSite? _selectedSite;
 
@@ -24,7 +26,7 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage> {
 
   @override
   Widget build(BuildContext context) {
-    final sitesAsync = ref.watch(sitesProvider);
+    final sitesAsync = ref.watch(sitesWithCountsProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -38,12 +40,12 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage> {
           IconButton(
             icon: const Icon(Icons.my_location),
             tooltip: 'Fit All Sites',
-            onPressed: () => _fitAllSites(sitesAsync.value ?? []),
+            onPressed: () => _fitAllSites(sitesAsync.value?.map((s) => s.site).toList() ?? []),
           ),
         ],
       ),
       body: sitesAsync.when(
-        data: (sites) => _buildMap(context, sites),
+        data: (sitesWithCounts) => _buildMap(context, sitesWithCounts),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(
           child: Column(
@@ -54,7 +56,7 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage> {
               Text('Error loading sites: $error'),
               const SizedBox(height: 16),
               FilledButton(
-                onPressed: () => ref.invalidate(sitesProvider),
+                onPressed: () => ref.invalidate(sitesWithCountsProvider),
                 child: const Text('Retry'),
               ),
             ],
@@ -69,8 +71,14 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage> {
     );
   }
 
-  Widget _buildMap(BuildContext context, List<DiveSite> sites) {
-    final sitesWithLocation = sites.where((s) => s.hasCoordinates).toList();
+  Widget _buildMap(BuildContext context, List<SiteWithDiveCount> sitesWithCounts) {
+    // Filter sites with valid coordinates (lat: -90 to 90, lng: -180 to 180)
+    final sitesWithLocation = sitesWithCounts.where((s) {
+      if (!s.site.hasCoordinates) return false;
+      final lat = s.site.location!.latitude;
+      final lng = s.site.location!.longitude;
+      return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+    }).toList();
     final colorScheme = Theme.of(context).colorScheme;
 
     // Calculate initial bounds if we have sites
@@ -78,7 +86,7 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage> {
     double zoom = _defaultZoom;
 
     if (sitesWithLocation.isNotEmpty) {
-      final bounds = _calculateBounds(sitesWithLocation);
+      final bounds = _calculateBounds(sitesWithLocation.map((s) => s.site).toList());
       center = LatLng(
         (bounds.north + bounds.south) / 2,
         (bounds.east + bounds.west) / 2,
@@ -99,6 +107,12 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage> {
             onTap: (_, __) {
               setState(() => _selectedSite = null);
             },
+            cameraConstraint: CameraConstraint.contain(
+              bounds: LatLngBounds(
+                const LatLng(-90, -180),
+                const LatLng(90, 180),
+              ),
+            ),
           ),
           children: [
             TileLayer(
@@ -106,19 +120,33 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage> {
               userAgentPackageName: 'com.submersion.app',
               maxZoom: 19,
             ),
-            MarkerLayer(
-              markers: sitesWithLocation.map((site) {
-                final isSelected = _selectedSite?.id == site.id;
-                return Marker(
-                  point: LatLng(site.location!.latitude, site.location!.longitude),
-                  width: isSelected ? 50 : 40,
-                  height: isSelected ? 50 : 40,
-                  child: GestureDetector(
-                    onTap: () => _onMarkerTapped(site),
-                    child: _buildMarker(context, site, isSelected),
-                  ),
-                );
-              }).toList(),
+            MarkerClusterLayerWidget(
+              options: MarkerClusterLayerOptions(
+                maxClusterRadius: 80,
+                size: const Size(50, 50),
+                markers: sitesWithLocation.map((siteWithCount) {
+                  final site = siteWithCount.site;
+                  final diveCount = siteWithCount.diveCount;
+                  final isSelected = _selectedSite?.id == site.id;
+                  return Marker(
+                    point: LatLng(site.location!.latitude, site.location!.longitude),
+                    width: isSelected ? 50 : 40,
+                    height: isSelected ? 50 : 40,
+                    child: GestureDetector(
+                      onTap: () => _onMarkerTapped(site),
+                      child: _buildMarker(context, site, diveCount, isSelected),
+                    ),
+                  );
+                }).toList(),
+                builder: (context, markers) {
+                  return _buildClusterMarker(context, markers.length);
+                },
+                zoomToBoundsOnClick: false,
+                onClusterTap: (node) {
+                  // Animate to cluster bounds with generous padding
+                  _animateToCluster(node.bounds);
+                },
+              ),
             ),
           ],
         ),
@@ -169,16 +197,17 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage> {
     );
   }
 
-  Widget _buildMarker(BuildContext context, DiveSite site, bool isSelected) {
+  Widget _buildMarker(BuildContext context, DiveSite site, int diveCount, bool isSelected) {
     final colorScheme = Theme.of(context).colorScheme;
+    final markerColor = _getMarkerColor(context, diveCount, site.rating);
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       decoration: BoxDecoration(
-        color: isSelected ? colorScheme.primary : colorScheme.primaryContainer,
+        color: isSelected ? colorScheme.primary : markerColor,
         shape: BoxShape.circle,
         border: Border.all(
-          color: isSelected ? colorScheme.onPrimary : colorScheme.primary,
+          color: isSelected ? colorScheme.onPrimary : Colors.white,
           width: 2,
         ),
         boxShadow: [
@@ -193,10 +222,61 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage> {
         child: Icon(
           Icons.scuba_diving,
           size: isSelected ? 24 : 20,
-          color: isSelected ? colorScheme.onPrimary : colorScheme.primary,
+          color: Colors.white,
         ),
       ),
     );
+  }
+
+  Widget _buildClusterMarker(BuildContext context, int count) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.secondary,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: Colors.white,
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.3),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Center(
+        child: Text(
+          count.toString(),
+          style: TextStyle(
+            color: colorScheme.onSecondary,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Color _getMarkerColor(BuildContext context, int diveCount, double? rating) {
+    // Priority: Use rating if available, otherwise use dive count
+    if (rating != null) {
+      // Color based on rating (1-5 stars)
+      if (rating >= 4.5) return Colors.green.shade700;
+      if (rating >= 4.0) return Colors.green.shade500;
+      if (rating >= 3.0) return Colors.blue.shade500;
+      if (rating >= 2.0) return Colors.orange.shade500;
+      return Colors.red.shade500;
+    }
+
+    // Color based on dive count
+    if (diveCount == 0) return Colors.grey.shade500;
+    if (diveCount >= 10) return Colors.purple.shade700;
+    if (diveCount >= 5) return Colors.blue.shade700;
+    if (diveCount >= 3) return Colors.blue.shade500;
+    return Colors.blue.shade300;
   }
 
   Widget _buildSiteInfoCard(BuildContext context, DiveSite site) {
@@ -304,8 +384,49 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage> {
     }
   }
 
+  Future<void> _animateToCluster(LatLngBounds bounds) async {
+    // Calculate target camera position
+    final targetCamera = CameraFit.bounds(
+      bounds: bounds,
+      padding: const EdgeInsets.all(120),
+      maxZoom: 14.0,
+    ).fit(_mapController.camera);
+
+    final startCamera = _mapController.camera;
+    final animationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    final animation = CurvedAnimation(
+      parent: animationController,
+      curve: Curves.easeInOut,
+    );
+
+    animation.addListener(() {
+      final t = animation.value;
+      final lat = startCamera.center.latitude + 
+                  (targetCamera.center.latitude - startCamera.center.latitude) * t;
+      final lng = startCamera.center.longitude + 
+                  (targetCamera.center.longitude - startCamera.center.longitude) * t;
+      final zoom = startCamera.zoom + (targetCamera.zoom - startCamera.zoom) * t;
+
+      _mapController.move(LatLng(lat, lng), zoom);
+    });
+
+    await animationController.forward();
+    animationController.dispose();
+  }
+
   void _fitAllSites(List<DiveSite> sites) {
-    final sitesWithLocation = sites.where((s) => s.hasCoordinates).toList();
+    // Filter sites with valid coordinates
+    final sitesWithLocation = sites.where((s) {
+      if (!s.hasCoordinates) return false;
+      final lat = s.location!.latitude;
+      final lng = s.location!.longitude;
+      return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+    }).toList();
+    
     if (sitesWithLocation.isEmpty) return;
 
     if (sitesWithLocation.length == 1) {
@@ -334,6 +455,12 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage> {
       if (site.location != null) {
         final lat = site.location!.latitude;
         final lng = site.location!.longitude;
+        
+        // Skip invalid coordinates
+        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+          continue;
+        }
+        
         if (lat < minLat) minLat = lat;
         if (lat > maxLat) maxLat = lat;
         if (lng < minLng) minLng = lng;
@@ -345,9 +472,15 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage> {
     final latPadding = (maxLat - minLat) * 0.1;
     final lngPadding = (maxLng - minLng) * 0.1;
 
+    // Clamp bounds to valid coordinate ranges
+    final south = (minLat - latPadding).clamp(-90.0, 90.0);
+    final north = (maxLat + latPadding).clamp(-90.0, 90.0);
+    final west = (minLng - lngPadding).clamp(-180.0, 180.0);
+    final east = (maxLng + lngPadding).clamp(-180.0, 180.0);
+
     return LatLngBounds(
-      LatLng(minLat - latPadding, minLng - lngPadding),
-      LatLng(maxLat + latPadding, maxLng + lngPadding),
+      LatLng(south, west),
+      LatLng(north, east),
     );
   }
 }
