@@ -146,6 +146,8 @@ class DiveRepository {
       id: Value(id),
       diveNumber: Value(dive.diveNumber),
       diveDateTime: Value(dive.dateTime.millisecondsSinceEpoch),
+      entryTime: Value(dive.entryTime?.millisecondsSinceEpoch),
+      exitTime: Value(dive.exitTime?.millisecondsSinceEpoch),
       duration: Value(dive.duration?.inSeconds),
       maxDepth: Value(dive.maxDepth),
       avgDepth: Value(dive.avgDepth),
@@ -250,6 +252,8 @@ class DiveRepository {
       DivesCompanion(
         diveNumber: Value(dive.diveNumber),
         diveDateTime: Value(dive.dateTime.millisecondsSinceEpoch),
+        entryTime: Value(dive.entryTime?.millisecondsSinceEpoch),
+        exitTime: Value(dive.exitTime?.millisecondsSinceEpoch),
         duration: Value(dive.duration?.inSeconds),
         maxDepth: Value(dive.maxDepth),
         avgDepth: Value(dive.avgDepth),
@@ -712,6 +716,12 @@ class DiveRepository {
       id: row.id,
       diveNumber: row.diveNumber,
       dateTime: DateTime.fromMillisecondsSinceEpoch(row.diveDateTime),
+      entryTime: row.entryTime != null
+          ? DateTime.fromMillisecondsSinceEpoch(row.entryTime!)
+          : null,
+      exitTime: row.exitTime != null
+          ? DateTime.fromMillisecondsSinceEpoch(row.exitTime!)
+          : null,
       duration: row.duration != null ? Duration(seconds: row.duration!) : null,
       maxDepth: row.maxDepth,
       avgDepth: row.avgDepth,
@@ -908,6 +918,12 @@ class DiveRepository {
       id: row.id,
       diveNumber: row.diveNumber,
       dateTime: DateTime.fromMillisecondsSinceEpoch(row.diveDateTime),
+      entryTime: row.entryTime != null
+          ? DateTime.fromMillisecondsSinceEpoch(row.entryTime!)
+          : null,
+      exitTime: row.exitTime != null
+          ? DateTime.fromMillisecondsSinceEpoch(row.exitTime!)
+          : null,
       duration: row.duration != null ? Duration(seconds: row.duration!) : null,
       maxDepth: row.maxDepth,
       avgDepth: row.avgDepth,
@@ -1075,6 +1091,185 @@ class DiveRepository {
       return [];
     }
   }
+
+  // ============================================================================
+  // Surface Interval Operations
+  // ============================================================================
+
+  /// Get the previous dive (by entry time) for surface interval calculation
+  /// Returns null if this is the first dive
+  Future<domain.Dive?> getPreviousDive(String diveId) async {
+    try {
+      // First get the current dive's entry time
+      final currentDive = await getDiveById(diveId);
+      if (currentDive == null) return null;
+
+      final entryTime = currentDive.entryTime ?? currentDive.dateTime;
+
+      // Find the most recent dive that ended before this one started
+      final query = _db.select(_db.dives)
+        ..where((t) => t.id.isNotValue(diveId))
+        ..where((t) => t.entryTime.isSmallerThanValue(entryTime.millisecondsSinceEpoch) | 
+                       (t.entryTime.isNull() & t.diveDateTime.isSmallerThanValue(entryTime.millisecondsSinceEpoch)))
+        ..orderBy([(t) => OrderingTerm.desc(t.entryTime), (t) => OrderingTerm.desc(t.diveDateTime)])
+        ..limit(1);
+
+      final rows = await query.get();
+      if (rows.isEmpty) return null;
+
+      return _mapRowToDive(rows.first);
+    } catch (e, stackTrace) {
+      _log.error('Failed to get previous dive for: $diveId', e, stackTrace);
+      return null;
+    }
+  }
+
+  /// Calculate surface interval between this dive and the previous dive
+  /// Returns null if there is no previous dive
+  Future<Duration?> getSurfaceInterval(String diveId) async {
+    try {
+      final currentDive = await getDiveById(diveId);
+      if (currentDive == null) return null;
+
+      final previousDive = await getPreviousDive(diveId);
+      if (previousDive == null) return null;
+
+      // Calculate interval: from previous dive exit to current dive entry
+      final previousExitTime = previousDive.exitTime ?? 
+          (previousDive.entryTime ?? previousDive.dateTime).add(previousDive.calculatedDuration ?? Duration.zero);
+      final currentEntryTime = currentDive.entryTime ?? currentDive.dateTime;
+
+      final interval = currentEntryTime.difference(previousExitTime);
+      return interval.isNegative ? Duration.zero : interval;
+    } catch (e, stackTrace) {
+      _log.error('Failed to calculate surface interval for: $diveId', e, stackTrace);
+      return null;
+    }
+  }
+
+  // ============================================================================
+  // Dive Numbering Operations
+  // ============================================================================
+
+  /// Get all dive numbers with gaps detected
+  /// Returns a list of DiveNumberInfo including gaps
+  Future<DiveNumberingInfo> getDiveNumberingInfo() async {
+    try {
+      final query = _db.select(_db.dives)
+        ..orderBy([(t) => OrderingTerm.asc(t.entryTime), (t) => OrderingTerm.asc(t.diveDateTime)]);
+
+      final rows = await query.get();
+      
+      final dives = <DiveNumberEntry>[];
+      final gaps = <DiveNumberGap>[];
+      
+      int? lastNumber;
+      for (final row in rows) {
+        final entryTime = row.entryTime != null 
+            ? DateTime.fromMillisecondsSinceEpoch(row.entryTime!)
+            : DateTime.fromMillisecondsSinceEpoch(row.diveDateTime);
+        
+        dives.add(DiveNumberEntry(
+          diveId: row.id,
+          currentNumber: row.diveNumber,
+          entryTime: entryTime,
+        ));
+        
+        // Check for gaps
+        if (row.diveNumber != null && lastNumber != null) {
+          final expected = lastNumber + 1;
+          if (row.diveNumber! > expected) {
+            gaps.add(DiveNumberGap(
+              afterDiveId: dives.length > 1 ? dives[dives.length - 2].diveId : null,
+              missingStart: expected,
+              missingEnd: row.diveNumber! - 1,
+            ));
+          }
+        }
+        lastNumber = row.diveNumber;
+      }
+      
+      return DiveNumberingInfo(
+        dives: dives,
+        gaps: gaps,
+        hasGaps: gaps.isNotEmpty,
+        hasUnnumbered: dives.any((d) => d.currentNumber == null),
+      );
+    } catch (e, stackTrace) {
+      _log.error('Failed to get dive numbering info', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Renumber all dives sequentially based on entry time
+  /// [startFrom] - The starting dive number (default 1)
+  Future<void> renumberAllDives({int startFrom = 1}) async {
+    try {
+      _log.info('Renumbering all dives starting from $startFrom');
+      
+      final query = _db.select(_db.dives)
+        ..orderBy([(t) => OrderingTerm.asc(t.entryTime), (t) => OrderingTerm.asc(t.diveDateTime)]);
+
+      final rows = await query.get();
+      
+      int number = startFrom;
+      for (final row in rows) {
+        await (_db.update(_db.dives)..where((t) => t.id.equals(row.id))).write(
+          DivesCompanion(
+            diveNumber: Value(number),
+            updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+          ),
+        );
+        number++;
+      }
+      
+      _log.info('Renumbered ${rows.length} dives');
+    } catch (e, stackTrace) {
+      _log.error('Failed to renumber dives', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Fill gaps in dive numbers without changing existing numbers
+  /// This assigns numbers to dives that have null dive numbers
+  Future<void> assignMissingDiveNumbers() async {
+    try {
+      _log.info('Assigning missing dive numbers');
+      
+      // Get all dives ordered by entry time
+      final query = _db.select(_db.dives)
+        ..orderBy([(t) => OrderingTerm.asc(t.entryTime), (t) => OrderingTerm.asc(t.diveDateTime)]);
+
+      final rows = await query.get();
+      
+      // Find the highest existing number
+      int maxNumber = 0;
+      for (final row in rows) {
+        if (row.diveNumber != null && row.diveNumber! > maxNumber) {
+          maxNumber = row.diveNumber!;
+        }
+      }
+      
+      // Assign numbers to unnumbered dives
+      int nextNumber = maxNumber + 1;
+      for (final row in rows) {
+        if (row.diveNumber == null) {
+          await (_db.update(_db.dives)..where((t) => t.id.equals(row.id))).write(
+            DivesCompanion(
+              diveNumber: Value(nextNumber),
+              updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+            ),
+          );
+          nextNumber++;
+        }
+      }
+      
+      _log.info('Assigned numbers to ${nextNumber - maxNumber - 1} dives');
+    } catch (e, stackTrace) {
+      _log.error('Failed to assign missing dive numbers', e, stackTrace);
+      rethrow;
+    }
+  }
 }
 
 /// Statistics summary for dives
@@ -1189,4 +1384,65 @@ class DiveRecord {
     this.duration,
     this.waterTemp,
   });
+}
+
+/// Information about dive numbering, including gaps
+class DiveNumberingInfo {
+  final List<DiveNumberEntry> dives;
+  final List<DiveNumberGap> gaps;
+  final bool hasGaps;
+  final bool hasUnnumbered;
+
+  DiveNumberingInfo({
+    required this.dives,
+    required this.gaps,
+    required this.hasGaps,
+    required this.hasUnnumbered,
+  });
+
+  /// Total number of dives
+  int get totalDives => dives.length;
+
+  /// Number of numbered dives
+  int get numberedDives => dives.where((d) => d.currentNumber != null).length;
+
+  /// Number of unnumbered dives
+  int get unnumberedDives => dives.where((d) => d.currentNumber == null).length;
+}
+
+/// Entry for dive number info
+class DiveNumberEntry {
+  final String diveId;
+  final int? currentNumber;
+  final DateTime entryTime;
+
+  DiveNumberEntry({
+    required this.diveId,
+    this.currentNumber,
+    required this.entryTime,
+  });
+}
+
+/// A gap in dive numbers
+class DiveNumberGap {
+  final String? afterDiveId;
+  final int missingStart;
+  final int missingEnd;
+
+  DiveNumberGap({
+    this.afterDiveId,
+    required this.missingStart,
+    required this.missingEnd,
+  });
+
+  /// Number of missing dive numbers in this gap
+  int get count => missingEnd - missingStart + 1;
+
+  /// Human-readable description of the gap
+  String get description {
+    if (missingStart == missingEnd) {
+      return 'Missing dive #$missingStart';
+    }
+    return 'Missing dives #$missingStart-$missingEnd';
+  }
 }

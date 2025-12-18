@@ -66,10 +66,10 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 | Min/max temperature | ✅ Implemented | MVP | - | From profile data |
 | Dive type (20+ types) | ✅ Implemented | MVP | - | Recreational, tech, wreck, cave, night, etc. |
 
-**v1.1 Enhancements:** (deferred from v1.0)
-- [ ] Separate entry/exit time fields (currently single timestamp)
-- [ ] Auto-calculate surface interval from previous dive
-- [ ] Dive numbering with gap detection and re-numbering utility
+**v1.1 Enhancements:** ✅ COMPLETE
+- [x] Separate entry/exit time fields (currently single timestamp)
+- [x] Auto-calculate surface interval from previous dive
+- [x] Dive numbering with gap detection and re-numbering utility
 
 **v1.5 Enhancements:**
 - [ ] Custom dive types (user-defined)

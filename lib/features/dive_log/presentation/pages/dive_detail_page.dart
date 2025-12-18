@@ -118,7 +118,7 @@ class DiveDetailPage extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeaderSection(context, dive, units),
+            _buildHeaderSection(context, ref, dive, units),
             const SizedBox(height: 24),
             if (dive.profile.isNotEmpty) ...[
               _buildProfileSection(context, dive),
@@ -148,7 +148,7 @@ class DiveDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeaderSection(BuildContext context, Dive dive, UnitFormatter units) {
+  Widget _buildHeaderSection(BuildContext context, WidgetRef ref, Dive dive, UnitFormatter units) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -177,12 +177,21 @@ class DiveDetailPage extends ConsumerWidget {
                         dive.site?.name ?? 'Unknown Site',
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
+                      // Show entry time
                       Text(
-                        DateFormat('EEEE, MMM d, y • h:mm a').format(dive.dateTime),
+                        'Entry: ${DateFormat('MMM d, y • h:mm a').format(dive.effectiveEntryTime)}',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
                       ),
+                      // Show exit time if available
+                      if (dive.exitTime != null)
+                        Text(
+                          'Exit: ${DateFormat('h:mm a').format(dive.exitTime!)}',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                        ),
                     ],
                   ),
                 ),
@@ -212,7 +221,7 @@ class DiveDetailPage extends ConsumerWidget {
                 _buildStatItem(
                   context,
                   Icons.timer,
-                  dive.duration != null ? '${dive.duration!.inMinutes} min' : '--',
+                  dive.calculatedDuration != null ? '${dive.calculatedDuration!.inMinutes} min' : '--',
                   'Duration',
                 ),
                 _buildStatItem(
@@ -223,6 +232,8 @@ class DiveDetailPage extends ConsumerWidget {
                 ),
               ],
             ),
+            // Surface interval row
+            _buildSurfaceIntervalRow(context, ref, diveId),
           ],
         ),
       ),
@@ -242,6 +253,52 @@ class DiveDetailPage extends ConsumerWidget {
               ),
         ),
       ],
+    );
+  }
+
+  Widget _buildSurfaceIntervalRow(BuildContext context, WidgetRef ref, String diveId) {
+    final surfaceIntervalAsync = ref.watch(surfaceIntervalProvider(diveId));
+
+    return surfaceIntervalAsync.when(
+      data: (interval) {
+        if (interval == null) return const SizedBox.shrink();
+
+        final hours = interval.inHours;
+        final minutes = interval.inMinutes % 60;
+        final intervalText = hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m';
+
+        return Padding(
+          padding: const EdgeInsets.only(top: 12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.secondaryContainer,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.waves,
+                  size: 20,
+                  color: Theme.of(context).colorScheme.onSecondaryContainer,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Surface Interval: $intervalText',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSecondaryContainer,
+                      ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 
@@ -270,7 +327,7 @@ class DiveDetailPage extends ConsumerWidget {
             const SizedBox(height: 16),
             DiveProfileChart(
               profile: dive.profile,
-              diveDuration: dive.duration,
+              diveDuration: dive.calculatedDuration,
               maxDepth: dive.maxDepth,
             ),
           ],

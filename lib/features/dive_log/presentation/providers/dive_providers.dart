@@ -251,3 +251,15 @@ final diveListNotifierProvider =
   final repository = ref.watch(diveRepositoryProvider);
   return DiveListNotifier(repository, ref);
 });
+
+/// Provider for getting the surface interval to the previous dive
+final surfaceIntervalProvider = FutureProvider.family<Duration?, String>((ref, diveId) async {
+  final repository = ref.watch(diveRepositoryProvider);
+  return repository.getSurfaceInterval(diveId);
+});
+
+/// Provider for dive numbering information (gaps and unnumbered dives)
+final diveNumberingInfoProvider = FutureProvider<DiveNumberingInfo>((ref) async {
+  final repository = ref.watch(diveRepositoryProvider);
+  return repository.getDiveNumberingInfo();
+});

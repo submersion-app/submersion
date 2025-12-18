@@ -12,6 +12,7 @@ import '../../../tags/presentation/providers/tag_providers.dart';
 import '../../../tags/presentation/widgets/tag_input_widget.dart';
 import '../../domain/entities/dive.dart';
 import '../providers/dive_providers.dart';
+import '../widgets/dive_numbering_dialog.dart';
 
 class DiveListPage extends ConsumerStatefulWidget {
   const DiveListPage({super.key});
@@ -166,6 +167,25 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
                       builder: (context) => DiveFilterSheet(ref: ref),
                     );
                   },
+                ),
+                PopupMenuButton<String>(
+                  onSelected: (value) {
+                    if (value == 'numbering') {
+                      showDiveNumberingDialog(context);
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'numbering',
+                      child: Row(
+                        children: [
+                          Icon(Icons.format_list_numbered),
+                          SizedBox(width: 12),
+                          Text('Dive Numbering'),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

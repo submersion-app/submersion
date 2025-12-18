@@ -27,7 +27,9 @@ class Trips extends Table {
 class Dives extends Table {
   TextColumn get id => text()();
   IntColumn get diveNumber => integer().nullable()();
-  IntColumn get diveDateTime => integer()(); // Unix timestamp
+  IntColumn get diveDateTime => integer()(); // Unix timestamp (legacy, kept for compatibility)
+  IntColumn get entryTime => integer().nullable()(); // Unix timestamp - when diver entered water
+  IntColumn get exitTime => integer().nullable()(); // Unix timestamp - when diver exited water
   IntColumn get duration => integer().nullable()(); // seconds
   RealColumn get maxDepth => real().nullable()();
   RealColumn get avgDepth => real().nullable()();
@@ -379,7 +381,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration {
@@ -660,6 +662,21 @@ class AppDatabase extends _$AppDatabase {
               strftime('%s', 'now') * 1000
             FROM dives
             WHERE weight_amount IS NOT NULL AND weight_amount > 0
+          ''');
+        }
+        if (from < 10) {
+          // Migration v9 -> v10: Add entry/exit time fields for separate time tracking
+          await customStatement('ALTER TABLE dives ADD COLUMN entry_time INTEGER');
+          await customStatement('ALTER TABLE dives ADD COLUMN exit_time INTEGER');
+
+          // Migrate existing data: use diveDateTime as entry_time and calculate exit_time from duration
+          await customStatement('''
+            UPDATE dives 
+            SET entry_time = dive_date_time,
+                exit_time = CASE 
+                  WHEN duration IS NOT NULL THEN dive_date_time + (duration * 1000)
+                  ELSE NULL
+                END
           ''');
         }
       },

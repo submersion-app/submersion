@@ -12,7 +12,9 @@ import 'dive_weight.dart';
 class Dive extends Equatable {
   final String id;
   final int? diveNumber;
-  final DateTime dateTime;
+  final DateTime dateTime; // Legacy field, kept for compatibility
+  final DateTime? entryTime; // When diver entered water
+  final DateTime? exitTime; // When diver exited water
   final Duration? duration;
   final double? maxDepth; // meters
   final double? avgDepth; // meters
@@ -53,6 +55,8 @@ class Dive extends Equatable {
     required this.id,
     this.diveNumber,
     required this.dateTime,
+    this.entryTime,
+    this.exitTime,
     this.duration,
     this.maxDepth,
     this.avgDepth,
@@ -86,6 +90,17 @@ class Dive extends Equatable {
     this.tags = const [],
   });
 
+  /// Effective start time of the dive (entryTime if set, otherwise dateTime)
+  DateTime get effectiveEntryTime => entryTime ?? dateTime;
+
+  /// Calculated duration from entry/exit times
+  Duration? get calculatedDuration {
+    if (entryTime != null && exitTime != null) {
+      return exitTime!.difference(entryTime!);
+    }
+    return duration;
+  }
+
   /// Total weight from all weight entries
   double get totalWeight => weights.fold(0.0, (sum, w) => sum + w.amountKg);
 
@@ -106,6 +121,8 @@ class Dive extends Equatable {
     String? id,
     int? diveNumber,
     DateTime? dateTime,
+    DateTime? entryTime,
+    DateTime? exitTime,
     Duration? duration,
     double? maxDepth,
     double? avgDepth,
@@ -142,6 +159,8 @@ class Dive extends Equatable {
       id: id ?? this.id,
       diveNumber: diveNumber ?? this.diveNumber,
       dateTime: dateTime ?? this.dateTime,
+      entryTime: entryTime ?? this.entryTime,
+      exitTime: exitTime ?? this.exitTime,
       duration: duration ?? this.duration,
       maxDepth: maxDepth ?? this.maxDepth,
       avgDepth: avgDepth ?? this.avgDepth,
@@ -181,6 +200,8 @@ class Dive extends Equatable {
         id,
         diveNumber,
         dateTime,
+        entryTime,
+        exitTime,
         duration,
         maxDepth,
         avgDepth,
