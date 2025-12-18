@@ -26,6 +26,7 @@ import '../../../trips/domain/entities/trip.dart';
 import '../../../trips/presentation/providers/trip_providers.dart';
 import '../../../settings/presentation/providers/settings_providers.dart';
 import '../../../trips/presentation/widgets/trip_picker.dart';
+import '../../../dive_types/presentation/providers/dive_type_providers.dart';
 import '../../domain/entities/dive.dart';
 import '../../domain/entities/dive_weight.dart';
 import '../providers/dive_providers.dart';
@@ -62,7 +63,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   final _airTempController = TextEditingController();
   final _notesController = TextEditingController();
 
-  DiveType _selectedDiveType = DiveType.recreational;
+  String _selectedDiveTypeId = 'recreational';
   Visibility _selectedVisibility = Visibility.unknown;
   int _rating = 0;
   DiveSite? _selectedSite;
@@ -165,7 +166,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               ? units.convertTemperature(dive.airTemp!).toStringAsFixed(0)
               : '';
           _notesController.text = dive.notes;
-          _selectedDiveType = dive.diveType;
+          _selectedDiveTypeId = dive.diveTypeId;
           _selectedVisibility = dive.visibility ?? Visibility.unknown;
           _rating = dive.rating ?? 0;
           _selectedSite = dive.site;
@@ -1241,19 +1242,37 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           children: [
             Text('Conditions', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 16),
-            DropdownButtonFormField<DiveType>(
-              initialValue: _selectedDiveType,
-              decoration: const InputDecoration(labelText: 'Dive Type'),
-              items: DiveType.values.map((type) {
-                return DropdownMenuItem(
-                  value: type,
-                  child: Text(type.displayName),
+            Consumer(
+              builder: (context, ref, child) {
+                final diveTypesAsync = ref.watch(diveTypeListNotifierProvider);
+                return diveTypesAsync.when(
+                  loading: () => const LinearProgressIndicator(),
+                  error: (e, st) => Text('Error loading dive types: $e'),
+                  data: (diveTypes) {
+                    // Ensure selected dive type exists in the list
+                    final selectedExists = diveTypes.any((t) => t.id == _selectedDiveTypeId);
+                    final effectiveValue = selectedExists ? _selectedDiveTypeId : 'recreational';
+
+                    return DropdownButtonFormField<String>(
+                      key: ValueKey('dive_type_${diveTypes.length}_$effectiveValue'),
+                      initialValue: effectiveValue,
+                      decoration: const InputDecoration(
+                        labelText: 'Dive Type',
+                      ),
+                      items: diveTypes.map((type) {
+                        return DropdownMenuItem(
+                          value: type.id,
+                          child: Text(type.name),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() => _selectedDiveTypeId = value);
+                        }
+                      },
+                    );
+                  },
                 );
-              }).toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() => _selectedDiveType = value);
-                }
               },
             ),
             const SizedBox(height: 16),
@@ -1939,7 +1958,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         waterTemp: waterTemp,
         airTemp: airTemp,
         visibility: _selectedVisibility != Visibility.unknown ? _selectedVisibility : null,
-        diveType: _selectedDiveType,
+        diveTypeId: _selectedDiveTypeId,
         notes: _notesController.text,
         rating: _rating > 0 ? _rating : null,
         site: _selectedSite,
@@ -2015,6 +2034,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       }
     }
   }
+
 }
 
 /// Site picker bottom sheet with nearby site suggestions

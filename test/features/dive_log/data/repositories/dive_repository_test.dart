@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
@@ -32,7 +31,7 @@ void main() {
     List<DiveTank> tanks = const [],
     String notes = '',
     double? waterTemp,
-    DiveType diveType = DiveType.recreational,
+    String diveTypeId = 'recreational',
     String? buddy,
     int? rating,
   }) {
@@ -47,7 +46,7 @@ void main() {
       tanks: tanks,
       notes: notes,
       waterTemp: waterTemp,
-      diveType: diveType,
+      diveTypeId: diveTypeId,
       buddy: buddy,
       rating: rating,
     );
@@ -85,7 +84,7 @@ void main() {
           avgDepth: 15.0,
           notes: 'Great visibility today',
           waterTemp: 24.0,
-          diveType: DiveType.recreational,
+          diveTypeId: 'recreational',
           buddy: 'John Doe',
           rating: 5,
         );
@@ -100,7 +99,7 @@ void main() {
         expect(fetchedDive.duration?.inMinutes, equals(45));
         expect(fetchedDive.notes, equals('Great visibility today'));
         expect(fetchedDive.waterTemp, equals(24.0));
-        expect(fetchedDive.diveType, equals(DiveType.recreational));
+        expect(fetchedDive.diveTypeId, equals('recreational'));
         expect(fetchedDive.buddy, equals('John Doe'));
         expect(fetchedDive.rating, equals(5));
       });

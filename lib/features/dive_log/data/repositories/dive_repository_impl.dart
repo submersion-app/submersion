@@ -154,7 +154,7 @@ class DiveRepository {
       waterTemp: Value(dive.waterTemp),
       airTemp: Value(dive.airTemp),
       visibility: Value(dive.visibility?.name),
-      diveType: Value(dive.diveType.name),
+      diveType: Value(dive.diveTypeId),
       buddy: Value(dive.buddy),
       diveMaster: Value(dive.diveMaster),
       notes: Value(dive.notes),
@@ -260,7 +260,7 @@ class DiveRepository {
         waterTemp: Value(dive.waterTemp),
         airTemp: Value(dive.airTemp),
         visibility: Value(dive.visibility?.name),
-        diveType: Value(dive.diveType.name),
+        diveType: Value(dive.diveTypeId),
         buddy: Value(dive.buddy),
         diveMaster: Value(dive.diveMaster),
         notes: Value(dive.notes),
@@ -733,10 +733,7 @@ class DiveRepository {
               orElse: () => Visibility.unknown,
             )
           : null,
-      diveType: DiveType.values.firstWhere(
-        (t) => t.name == row.diveType,
-        orElse: () => DiveType.recreational,
-      ),
+      diveTypeId: row.diveType,
       buddy: row.buddy,
       diveMaster: row.diveMaster,
       notes: row.notes,
@@ -935,10 +932,7 @@ class DiveRepository {
               orElse: () => Visibility.unknown,
             )
           : null,
-      diveType: DiveType.values.firstWhere(
-        (t) => t.name == row.diveType,
-        orElse: () => DiveType.recreational,
-      ),
+      diveTypeId: row.diveType,
       buddy: row.buddy,
       diveMaster: row.diveMaster,
       notes: row.notes,

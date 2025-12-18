@@ -86,6 +86,13 @@ class SettingsPage extends ConsumerWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push('/dive-centers'),
           ),
+          ListTile(
+            leading: const Icon(Icons.label),
+            title: const Text('Dive Types'),
+            subtitle: const Text('Manage custom dive types'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/dive-types'),
+          ),
           const Divider(),
 
           _buildSectionHeader(context, 'Data'),

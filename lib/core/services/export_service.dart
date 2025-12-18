@@ -192,7 +192,7 @@ class ExportService {
         dive.waterTemp?.toStringAsFixed(0) ?? '',
         dive.airTemp?.toStringAsFixed(0) ?? '',
         dive.visibility?.displayName ?? '',
-        dive.diveType.displayName,
+        dive.diveTypeName,
         dive.buddy ?? '',
         dive.diveMaster ?? '',
         dive.rating ?? '',
@@ -754,7 +754,7 @@ class ExportService {
                     builder.element('link', attributes: {'ref': 'center_${dive.diveCenter!.id}'});
                   }
                   // Dive type
-                  builder.element('divetype', nest: dive.diveType.name);
+                  builder.element('divetype', nest: dive.diveTypeId);
                   // Entry method
                   if (dive.entryMethod != null) {
                     builder.element('entrytype', nest: dive.entryMethod!.name);
@@ -1125,7 +1125,7 @@ class ExportService {
         if (dive.diveCenter != null) {
           builder.element('link', attributes: {'ref': 'center_${dive.diveCenter!.id}'});
         }
-        builder.element('divetype', nest: dive.diveType.name);
+        builder.element('divetype', nest: dive.diveTypeId);
         if (dive.entryMethod != null) {
           builder.element('entrytype', nest: dive.entryMethod!.name);
         }
@@ -2095,7 +2095,7 @@ class ExportService {
 
       final diveType = _getElementText(beforeElement, 'divetype');
       if (diveType != null) {
-        diveData['diveType'] = _parseEnumValue(diveType, DiveType.values);
+        diveData['diveType'] = _parseDiveType(diveType);
       }
 
       final entryType = _getElementText(beforeElement, 'entrytype');
@@ -2538,36 +2538,36 @@ class ExportService {
     return enums.Visibility.unknown;
   }
 
-  DiveType _parseDiveType(String value) {
+  String _parseDiveType(String value) {
     final lower = value.toLowerCase();
     if (lower.contains('training') || lower.contains('course')) {
-      return DiveType.training;
+      return 'training';
     } else if (lower.contains('night')) {
-      return DiveType.night;
+      return 'night';
     } else if (lower.contains('deep')) {
-      return DiveType.deep;
+      return 'deep';
     } else if (lower.contains('wreck')) {
-      return DiveType.wreck;
+      return 'wreck';
     } else if (lower.contains('drift')) {
-      return DiveType.drift;
+      return 'drift';
     } else if (lower.contains('cave') || lower.contains('cavern')) {
-      return DiveType.cave;
+      return 'cave';
     } else if (lower.contains('tech')) {
-      return DiveType.technical;
+      return 'technical';
     } else if (lower.contains('free')) {
-      return DiveType.freedive;
+      return 'freedive';
     } else if (lower.contains('ice')) {
-      return DiveType.ice;
+      return 'ice';
     } else if (lower.contains('altitude')) {
-      return DiveType.altitude;
+      return 'altitude';
     } else if (lower.contains('shore')) {
-      return DiveType.shore;
+      return 'shore';
     } else if (lower.contains('boat')) {
-      return DiveType.boat;
+      return 'boat';
     } else if (lower.contains('liveaboard')) {
-      return DiveType.liveaboard;
+      return 'liveaboard';
     }
-    return DiveType.recreational;
+    return 'recreational';
   }
 
   // ==================== FILE UTILITIES ====================

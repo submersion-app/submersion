@@ -29,6 +29,7 @@ import '../../features/trips/presentation/pages/trip_edit_page.dart';
 import '../../features/statistics/presentation/pages/statistics_page.dart';
 import '../../features/statistics/presentation/pages/records_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
+import '../../features/dive_types/presentation/pages/dive_types_page.dart';
 import '../../features/tools/presentation/pages/weight_calculator_page.dart';
 import '../../shared/widgets/main_scaffold.dart';
 
@@ -328,6 +329,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) => const NoTransitionPage(
               child: SettingsPage(),
             ),
+          ),
+
+          // Dive Types Management
+          GoRoute(
+            path: '/dive-types',
+            name: 'diveTypes',
+            builder: (context, state) => const DiveTypesPage(),
           ),
 
           // Tools

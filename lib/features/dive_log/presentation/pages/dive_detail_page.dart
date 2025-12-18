@@ -452,7 +452,7 @@ class DiveDetailPage extends ConsumerWidget {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const Divider(),
-            _buildDetailRow(context, 'Dive Type', dive.diveType.displayName),
+            _buildDetailRow(context, 'Dive Type', dive.diveTypeName),
             if (dive.diveCenter != null)
               _buildDiveCenterRow(context, dive),
             if (dive.visibility != null)

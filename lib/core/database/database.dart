@@ -343,6 +343,20 @@ class Tags extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Custom dive types (v1.0)
+class DiveTypes extends Table {
+  TextColumn get id => text()(); // Unique identifier (slug)
+  TextColumn get name => text()(); // Display name
+  BoolColumn get isBuiltIn =>
+      boolean().withDefault(const Constant(false))(); // System vs user-defined
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Junction table for dive tags (many-to-many)
 class DiveTags extends Table {
   TextColumn get id => text()();
@@ -381,13 +395,14 @@ class DiveTags extends Table {
     DiveCenters,
     Tags,
     DiveTags,
+    DiveTypes,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration {
@@ -694,10 +709,86 @@ class AppDatabase extends _$AppDatabase {
           await customStatement('ALTER TABLE dive_sites ADD COLUMN mooring_number TEXT');
           await customStatement('ALTER TABLE dive_sites ADD COLUMN parking_info TEXT');
         }
+        if (from < 12) {
+          // Migration v11 -> v12: Add custom dive types table
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS dive_types (
+              id TEXT NOT NULL PRIMARY KEY,
+              name TEXT NOT NULL,
+              is_built_in INTEGER NOT NULL DEFAULT 0,
+              sort_order INTEGER NOT NULL DEFAULT 0,
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL
+            )
+          ''');
+
+          // Create index for sorting
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dive_types_sort_order ON dive_types(sort_order)
+          ''');
+
+          // Seed built-in dive types from the existing enum values
+          final now = DateTime.now().millisecondsSinceEpoch;
+          final builtInTypes = [
+            ('recreational', 'Recreational', 0),
+            ('technical', 'Technical', 1),
+            ('freedive', 'Freedive', 2),
+            ('training', 'Training', 3),
+            ('wreck', 'Wreck', 4),
+            ('cave', 'Cave', 5),
+            ('ice', 'Ice', 6),
+            ('night', 'Night', 7),
+            ('drift', 'Drift', 8),
+            ('deep', 'Deep', 9),
+            ('altitude', 'Altitude', 10),
+            ('shore', 'Shore', 11),
+            ('boat', 'Boat', 12),
+            ('liveaboard', 'Liveaboard', 13),
+          ];
+
+          for (final type in builtInTypes) {
+            await customStatement('''
+              INSERT OR IGNORE INTO dive_types (id, name, is_built_in, sort_order, created_at, updated_at)
+              VALUES ('${type.$1}', '${type.$2}', 1, ${type.$3}, $now, $now)
+            ''');
+          }
+        }
       },
       beforeOpen: (details) async {
         // Enable foreign keys
         await customStatement('PRAGMA foreign_keys = ON');
+
+        // Seed built-in dive types if table is empty (fresh install)
+        final count = await customSelect(
+          'SELECT COUNT(*) as cnt FROM dive_types',
+        ).getSingleOrNull();
+
+        if (count == null || (count.data['cnt'] as int) == 0) {
+          final now = DateTime.now().millisecondsSinceEpoch;
+          final builtInTypes = [
+            ('recreational', 'Recreational', 0),
+            ('technical', 'Technical', 1),
+            ('freedive', 'Freedive', 2),
+            ('training', 'Training', 3),
+            ('wreck', 'Wreck', 4),
+            ('cave', 'Cave', 5),
+            ('ice', 'Ice', 6),
+            ('night', 'Night', 7),
+            ('drift', 'Drift', 8),
+            ('deep', 'Deep', 9),
+            ('altitude', 'Altitude', 10),
+            ('shore', 'Shore', 11),
+            ('boat', 'Boat', 12),
+            ('liveaboard', 'Liveaboard', 13),
+          ];
+
+          for (final type in builtInTypes) {
+            await customStatement('''
+              INSERT OR IGNORE INTO dive_types (id, name, is_built_in, sort_order, created_at, updated_at)
+              VALUES ('${type.$1}', '${type.$2}', 1, ${type.$3}, $now, $now)
+            ''');
+          }
+        }
       },
     );
   }

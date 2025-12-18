@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/constants/enums.dart';
 import '../../data/repositories/dive_repository_impl.dart';
 import '../../domain/entities/dive.dart' as domain;
 
@@ -8,7 +7,7 @@ import '../../domain/entities/dive.dart' as domain;
 class DiveFilterState {
   final DateTime? startDate;
   final DateTime? endDate;
-  final DiveType? diveType;
+  final String? diveTypeId;
   final String? siteId;
   final double? minDepth;
   final double? maxDepth;
@@ -18,7 +17,7 @@ class DiveFilterState {
   const DiveFilterState({
     this.startDate,
     this.endDate,
-    this.diveType,
+    this.diveTypeId,
     this.siteId,
     this.minDepth,
     this.maxDepth,
@@ -29,7 +28,7 @@ class DiveFilterState {
   bool get hasActiveFilters =>
       startDate != null ||
       endDate != null ||
-      diveType != null ||
+      diveTypeId != null ||
       siteId != null ||
       minDepth != null ||
       maxDepth != null ||
@@ -39,7 +38,7 @@ class DiveFilterState {
   DiveFilterState copyWith({
     DateTime? startDate,
     DateTime? endDate,
-    DiveType? diveType,
+    String? diveTypeId,
     String? siteId,
     double? minDepth,
     double? maxDepth,
@@ -57,7 +56,7 @@ class DiveFilterState {
     return DiveFilterState(
       startDate: clearStartDate ? null : (startDate ?? this.startDate),
       endDate: clearEndDate ? null : (endDate ?? this.endDate),
-      diveType: clearDiveType ? null : (diveType ?? this.diveType),
+      diveTypeId: clearDiveType ? null : (diveTypeId ?? this.diveTypeId),
       siteId: clearSiteId ? null : (siteId ?? this.siteId),
       minDepth: clearMinDepth ? null : (minDepth ?? this.minDepth),
       maxDepth: clearMaxDepth ? null : (maxDepth ?? this.maxDepth),
@@ -78,7 +77,7 @@ class DiveFilterState {
       }
 
       // Dive type filter
-      if (diveType != null && dive.diveType != diveType) {
+      if (diveTypeId != null && dive.diveTypeId != diveTypeId) {
         return false;
       }
 
