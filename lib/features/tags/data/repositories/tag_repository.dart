@@ -65,7 +65,7 @@ class TagRepository {
         color: Value(tag.colorHex),
         createdAt: Value(now),
         updatedAt: Value(now),
-      ));
+      ),);
 
       _log.info('Created tag with id: $id');
       return tag.copyWith(id: id);
@@ -92,7 +92,7 @@ class TagRepository {
         colorHex: colorHex,
         createdAt: now,
         updatedAt: now,
-      ));
+      ),);
     } catch (e, stackTrace) {
       _log.error('Failed to get or create tag: $name', e, stackTrace);
       rethrow;
@@ -143,7 +143,7 @@ class TagRepository {
         INNER JOIN dive_tags dt ON t.id = dt.tag_id
         WHERE dt.dive_id = ?
         ORDER BY t.name
-      ''', variables: [Variable.withString(diveId)]).get();
+      ''', variables: [Variable.withString(diveId)],).get();
 
       return result.map((row) => domain.Tag(
         id: row.data['id'] as String,
@@ -151,7 +151,7 @@ class TagRepository {
         colorHex: row.data['color'] as String?,
         createdAt: DateTime.fromMillisecondsSinceEpoch(row.data['created_at'] as int),
         updatedAt: DateTime.fromMillisecondsSinceEpoch(row.data['updated_at'] as int),
-      )).toList();
+      ),).toList();
     } catch (e, stackTrace) {
       _log.error('Failed to get tags for dive: $diveId', e, stackTrace);
       rethrow;
@@ -169,7 +169,7 @@ class TagRepository {
         INNER JOIN dive_tags dt ON t.id = dt.tag_id
         WHERE dt.dive_id IN ($placeholders)
         ORDER BY t.name
-      ''', variables: diveIds.map((id) => Variable.withString(id)).toList()).get();
+      ''', variables: diveIds.map((id) => Variable.withString(id)).toList(),).get();
 
       final tagsByDive = <String, List<domain.Tag>>{};
       for (final row in result) {
@@ -212,7 +212,7 @@ class TagRepository {
           diveId: Value(diveId),
           tagId: Value(tag.id),
           createdAt: Value(now),
-        ));
+        ),);
       }
 
       // Clean up any tags that are no longer used
@@ -238,7 +238,7 @@ class TagRepository {
         diveId: Value(diveId),
         tagId: Value(tagId),
         createdAt: Value(now),
-      ));
+      ),);
 
       _log.info('Added tag $tagId to dive: $diveId');
     } catch (e, stackTrace) {
@@ -287,7 +287,7 @@ class TagRepository {
   Future<int> _getTagUsageCount(String tagId) async {
     final result = await _db.customSelect('''
       SELECT COUNT(*) as count FROM dive_tags WHERE tag_id = ?
-    ''', variables: [Variable.withString(tagId)]).getSingle();
+    ''', variables: [Variable.withString(tagId)],).getSingle();
     return result.data['count'] as int;
   }
 
@@ -331,7 +331,7 @@ class TagRepository {
           updatedAt: DateTime.fromMillisecondsSinceEpoch(row.data['updated_at'] as int),
         ),
         diveCount: row.data['dive_count'] as int,
-      )).toList();
+      ),).toList();
     } catch (e, stackTrace) {
       _log.error('Failed to get tag statistics', e, stackTrace);
       rethrow;

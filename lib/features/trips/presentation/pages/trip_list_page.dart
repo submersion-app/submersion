@@ -59,7 +59,7 @@ class TripListPage extends ConsumerWidget {
   }
 
   Widget _buildTripList(
-      BuildContext context, WidgetRef ref, List<TripWithStats> trips) {
+      BuildContext context, WidgetRef ref, List<TripWithStats> trips,) {
     return RefreshIndicator(
       onRefresh: () async {
         await ref.read(tripListNotifierProvider.notifier).refresh();

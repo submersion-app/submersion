@@ -53,7 +53,7 @@ class DiveCenterRepository {
       Variable.withString(searchTerm),
       Variable.withString(searchTerm),
       Variable.withString(searchTerm),
-    ]).get();
+    ],).get();
 
     return results.map(_mapCustomRowToDiveCenter).toList();
   }
@@ -100,7 +100,7 @@ class DiveCenterRepository {
             notes: Value(center.notes),
             createdAt: Value(now),
             updatedAt: Value(now),
-          ));
+          ),);
 
       _log.info('Created dive center with id: $id');
       return center.copyWith(id: id);
@@ -158,7 +158,7 @@ class DiveCenterRepository {
       SELECT COUNT(*) as count
       FROM dives
       WHERE dive_center_id = ?
-    ''', variables: [Variable.withString(centerId)]).getSingle();
+    ''', variables: [Variable.withString(centerId)],).getSingle();
 
     return result.data['count'] as int? ?? 0;
   }

@@ -348,7 +348,7 @@ class SettingsPage extends ConsumerWidget {
             return RadioListTile<TemperatureUnit>(
               title: Text(unit == TemperatureUnit.celsius
                   ? 'Celsius (°C)'
-                  : 'Fahrenheit (°F)'),
+                  : 'Fahrenheit (°F)',),
               value: unit,
               groupValue: currentUnit,
               onChanged: (value) {

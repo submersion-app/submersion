@@ -40,7 +40,7 @@ class StatisticsPage extends ConsumerWidget {
             children: [
               Icon(Icons.error_outline, size: 64, color: Theme.of(context).colorScheme.error),
               const SizedBox(height: 16),
-              Text('Error loading statistics'),
+              const Text('Error loading statistics'),
               const SizedBox(height: 8),
               FilledButton(
                 onPressed: () => ref.invalidate(diveStatisticsProvider),
@@ -640,7 +640,7 @@ class StatisticsPage extends ConsumerWidget {
                           stat.diveCount,
                           stat.tag.color,
                           maxCount,
-                        )),
+                        ),),
                     if (tagStats.length > 10) ...[
                       const SizedBox(height: 8),
                       Center(

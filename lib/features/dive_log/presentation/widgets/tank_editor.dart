@@ -155,7 +155,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       role: _role,
       material: _material,
       order: widget.tank.order,
-    ));
+    ),);
   }
 
   @override
@@ -250,7 +250,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         // Tank preset dropdown
         Expanded(
           child: DropdownButtonFormField<TankPreset?>(
-            value: null, // Always show "Select Preset" since preset is one-time fill
+            initialValue: null, // Always show "Select Preset" since preset is one-time fill
             decoration: const InputDecoration(
               labelText: 'Tank Preset',
               isDense: true,
@@ -278,7 +278,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         // Role dropdown
         Expanded(
           child: DropdownButtonFormField<TankRole>(
-            value: _role,
+            initialValue: _role,
             decoration: const InputDecoration(
               labelText: 'Role',
               isDense: true,
@@ -323,7 +323,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         // Material
         Expanded(
           child: DropdownButtonFormField<TankMaterial?>(
-            value: _material,
+            initialValue: _material,
             decoration: const InputDecoration(
               labelText: 'Material',
               isDense: true,

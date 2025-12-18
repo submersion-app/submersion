@@ -214,7 +214,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       }
 
       state = state.copyWith(message: 'Importing ${parsedDives.length} dives...');
-      final uuid = const Uuid();
+      const uuid = Uuid();
       final diveNotifier = _ref.read(diveListNotifierProvider.notifier);
 
       var importedCount = 0;
@@ -407,7 +407,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         return;
       }
 
-      final uuid = const Uuid();
+      const uuid = Uuid();
 
       // Import dive sites first and build a mapping from UDDF ID to new site
       final siteMapping = <String, DiveSite>{}; // UDDF site ID -> created DiveSite
@@ -455,7 +455,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
           depth: p['depth'] as double? ?? 0.0,
           temperature: p['temperature'] as double?,
           pressure: p['pressure'] as double?,
-        )).toList() ?? [];
+        ),).toList() ?? [];
 
         // Build tanks from parsed tank data or fall back to gas mix
         List<DiveTank> tanks = [];

@@ -54,7 +54,7 @@ class TripRepository {
       Variable.withString(searchTerm),
       Variable.withString(searchTerm),
       Variable.withString(searchTerm),
-    ]).get();
+    ],).get();
 
     return results.map((row) {
       return domain.Trip(
@@ -94,7 +94,7 @@ class TripRepository {
             notes: Value(trip.notes),
             createdAt: Value(now.millisecondsSinceEpoch),
             updatedAt: Value(now.millisecondsSinceEpoch),
-          ));
+          ),);
 
       _log.info('Created trip with id: $id');
       return trip.copyWith(id: id, createdAt: now, updatedAt: now);
@@ -156,7 +156,7 @@ class TripRepository {
       SELECT id FROM dives
       WHERE trip_id = ?
       ORDER BY dive_date_time DESC
-    ''', variables: [Variable.withString(tripId)]).get();
+    ''', variables: [Variable.withString(tripId)],).get();
 
     return results.map((row) => row.data['id'] as String).toList();
   }
@@ -167,7 +167,7 @@ class TripRepository {
       SELECT COUNT(*) as count
       FROM dives
       WHERE trip_id = ?
-    ''', variables: [Variable.withString(tripId)]).getSingle();
+    ''', variables: [Variable.withString(tripId)],).getSingle();
 
     return result.data['count'] as int? ?? 0;
   }
@@ -219,7 +219,7 @@ class TripRepository {
         AVG(max_depth) as avg_depth
       FROM dives
       WHERE trip_id = ?
-    ''', variables: [Variable.withString(tripId)]).getSingle();
+    ''', variables: [Variable.withString(tripId)],).getSingle();
 
     return domain.TripWithStats(
       trip: trip,
@@ -242,7 +242,7 @@ class TripRepository {
     ''', variables: [
       Variable.withInt(dateMs),
       Variable.withInt(dateMs),
-    ]).getSingleOrNull();
+    ],).getSingleOrNull();
 
     if (result == null) return null;
 

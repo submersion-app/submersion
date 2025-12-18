@@ -400,7 +400,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
           SnackBar(
             content: Text(isEditing
                 ? 'Trip updated successfully'
-                : 'Trip added successfully'),
+                : 'Trip added successfully',),
           ),
         );
         context.pop();

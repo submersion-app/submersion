@@ -103,7 +103,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
         country: result.country,
         region: result.region,
         locality: result.locality,
-      ));
+      ),);
     }
   }
 

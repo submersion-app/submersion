@@ -199,7 +199,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               diveId: dive.id,
               weightType: dive.weightType ?? WeightType.belt,
               amountKg: dive.weightAmount!,
-            ));
+            ),);
           }
 
           // Load tags
@@ -419,7 +419,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                     icon: const Icon(Icons.calendar_today, size: 18),
                     label: Text(_exitDate != null 
                         ? DateFormat('MMM d, y').format(_exitDate!)
-                        : 'Select'),
+                        : 'Select',),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -918,7 +918,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         gasMix: const GasMix(),
         role: _tanks.isEmpty ? TankRole.backGas : TankRole.stage,
         order: _tanks.length,
-      ));
+      ),);
     });
   }
 
@@ -1242,7 +1242,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             Text('Conditions', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 16),
             DropdownButtonFormField<DiveType>(
-              value: _selectedDiveType,
+              initialValue: _selectedDiveType,
               decoration: const InputDecoration(labelText: 'Dive Type'),
               items: DiveType.values.map((type) {
                 return DropdownMenuItem(
@@ -1258,7 +1258,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<Visibility>(
-              value: _selectedVisibility,
+              initialValue: _selectedVisibility,
               decoration: const InputDecoration(labelText: 'Visibility'),
               items: Visibility.values.map((vis) {
                 return DropdownMenuItem(
@@ -1300,7 +1300,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<WaterType>(
-              value: _waterType,
+              initialValue: _waterType,
               decoration: const InputDecoration(labelText: 'Water Type'),
               items: [
                 const DropdownMenuItem<WaterType>(
@@ -1323,7 +1323,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               children: [
                 Expanded(
                   child: DropdownButtonFormField<CurrentDirection>(
-                    value: _currentDirection,
+                    initialValue: _currentDirection,
                     decoration: const InputDecoration(labelText: 'Current Direction'),
                     isExpanded: true,
                     items: [
@@ -1346,7 +1346,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 const SizedBox(width: 16),
                 Expanded(
                   child: DropdownButtonFormField<CurrentStrength>(
-                    value: _currentStrength,
+                    initialValue: _currentStrength,
                     decoration: const InputDecoration(labelText: 'Current Strength'),
                     isExpanded: true,
                     items: [
@@ -1382,7 +1382,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               children: [
                 Expanded(
                   child: DropdownButtonFormField<EntryMethod>(
-                    value: _entryMethod,
+                    initialValue: _entryMethod,
                     decoration: const InputDecoration(labelText: 'Entry Method'),
                     isExpanded: true,
                     items: [
@@ -1405,7 +1405,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 const SizedBox(width: 16),
                 Expanded(
                   child: DropdownButtonFormField<EntryMethod>(
-                    value: _exitMethod,
+                    initialValue: _exitMethod,
                     decoration: const InputDecoration(labelText: 'Exit Method'),
                     isExpanded: true,
                     items: [
@@ -1469,7 +1469,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                     diveId: widget.diveId ?? '',
                     weightType: WeightType.integrated,
                     amountKg: 0,
-                  ));
+                  ),);
                 });
               },
               icon: const Icon(Icons.add),
@@ -1491,7 +1491,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           Expanded(
             flex: 2,
             child: DropdownButtonFormField<WeightType>(
-              value: weight.weightType,
+              initialValue: weight.weightType,
               decoration: const InputDecoration(
                 labelText: 'Type',
                 isDense: true,
@@ -1762,7 +1762,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 speciesCategory: species.category,
                 count: count,
                 notes: notes,
-              ));
+              ),);
             });
             Navigator.of(context).pop();
           },
@@ -2309,7 +2309,7 @@ class _SpeciesPickerSheetState extends ConsumerState<_SpeciesPickerSheet> {
             children: [
               _buildCategoryChip(null, 'All'),
               ...SpeciesCategory.values.map((category) =>
-                _buildCategoryChip(category, category.displayName)),
+                _buildCategoryChip(category, category.displayName),),
             ],
           ),
         ),
@@ -2664,7 +2664,7 @@ class _EditSightingSheetState extends State<_EditSightingSheet> {
               widget.onSave(widget.sighting.copyWith(
                 count: _count,
                 notes: _notesController.text,
-              ));
+              ),);
             },
             child: const Text('Save Changes'),
           ),

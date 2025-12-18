@@ -422,7 +422,7 @@ class DiveDetailPage extends ConsumerWidget {
       displayWeights.add(_WeightDisplay(
         type: weight.weightType.displayName,
         amount: weight.amountKg,
-      ));
+      ),);
     }
     
     // Add legacy weight in same format if no new weights exist
@@ -430,7 +430,7 @@ class DiveDetailPage extends ConsumerWidget {
       displayWeights.add(_WeightDisplay(
         type: dive.weightType?.displayName ?? 'Weight',
         amount: dive.weightAmount!,
-      ));
+      ),);
     }
 
     final totalWeight = displayWeights.fold(0.0, (sum, w) => sum + w.amount);
@@ -466,7 +466,7 @@ class DiveDetailPage extends ConsumerWidget {
                   Text(units.formatWeight(weight.amount)),
                 ],
               ),
-            )),
+            ),),
           ],
         ),
       ),
@@ -507,7 +507,7 @@ class DiveDetailPage extends ConsumerWidget {
                     side: BorderSide(color: tag.color),
                     labelStyle: TextStyle(color: tag.color),
                     visualDensity: VisualDensity.compact,
-                  )).toList(),
+                  ),).toList(),
             ),
           ],
         ),

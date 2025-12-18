@@ -230,7 +230,7 @@ class _CertificationDetailContent extends ConsumerWidget {
                     0,
                     certification.agency.displayName.length > 4
                         ? 4
-                        : certification.agency.displayName.length),
+                        : certification.agency.displayName.length,),
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onPrimaryContainer,
                   fontWeight: FontWeight.bold,
@@ -331,7 +331,7 @@ class _CertificationDetailContent extends ConsumerWidget {
                         : null,
               ),
             if (certification.expiryDate == null)
-              _InfoRow(
+              const _InfoRow(
                 icon: Icons.all_inclusive,
                 label: 'Validity',
                 value: 'No Expiration',
@@ -470,7 +470,7 @@ class _CertificationDetailContent extends ConsumerWidget {
           builder: (context) => AlertDialog(
             title: const Text('Delete Certification?'),
             content: Text(
-                'Are you sure you want to delete "${certification.name}"?'),
+                'Are you sure you want to delete "${certification.name}"?',),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),

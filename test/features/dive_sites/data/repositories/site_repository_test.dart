@@ -19,7 +19,7 @@ void main() {
   group('SiteRepository', () {
     group('createSite', () {
       test('should create a new site with generated ID when ID is empty', () async {
-        final site = DiveSite(
+        const site = DiveSite(
           id: '',
           name: 'Test Reef',
           description: 'A beautiful reef',
@@ -37,7 +37,7 @@ void main() {
       });
 
       test('should create a site with provided ID', () async {
-        final site = DiveSite(
+        const site = DiveSite(
           id: 'custom-id-123',
           name: 'Custom Site',
         );
@@ -49,7 +49,7 @@ void main() {
       });
 
       test('should create a site with coordinates', () async {
-        final site = DiveSite(
+        const site = DiveSite(
           id: '',
           name: 'GPS Site',
           location: const GeoPoint(-16.9186, 145.7781),
@@ -65,7 +65,7 @@ void main() {
       });
 
       test('should create a site with all fields', () async {
-        final site = DiveSite(
+        const site = DiveSite(
           id: '',
           name: 'Complete Site',
           description: 'Full description',
@@ -96,7 +96,7 @@ void main() {
         final site = await repository.createSite(const DiveSite(
           id: '',
           name: 'Find Me Site',
-        ));
+        ),);
 
         final result = await repository.getSiteById(site.id);
 
@@ -138,7 +138,7 @@ void main() {
           id: '',
           name: 'Original Name',
           description: 'Original description',
-        ));
+        ),);
 
         final updatedSite = site.copyWith(
           name: 'Updated Name',
@@ -159,7 +159,7 @@ void main() {
         final site = await repository.createSite(const DiveSite(
           id: '',
           name: 'Moving Site',
-        ));
+        ),);
 
         final updatedSite = site.copyWith(
           location: const GeoPoint(10.0, 20.0),
@@ -179,7 +179,7 @@ void main() {
         final site = await repository.createSite(const DiveSite(
           id: '',
           name: 'To Be Deleted',
-        ));
+        ),);
 
         await repository.deleteSite(site.id);
         final result = await repository.getSiteById(site.id);
@@ -202,19 +202,19 @@ void main() {
           name: 'Blue Hole',
           country: 'Belize',
           region: 'Lighthouse Reef',
-        ));
+        ),);
         await repository.createSite(const DiveSite(
           id: '',
           name: 'Great White Wall',
           country: 'Fiji',
           region: 'Taveuni',
-        ));
+        ),);
         await repository.createSite(const DiveSite(
           id: '',
           name: 'Coral Garden',
           country: 'Indonesia',
           region: 'Bali',
-        ));
+        ),);
       });
 
       test('should find sites by name', () async {
@@ -257,7 +257,7 @@ void main() {
         await repository.createSite(const DiveSite(
           id: 'site-1',
           name: 'Empty Site',
-        ));
+        ),);
 
         final counts = await repository.getDiveCountsBySite();
 
@@ -270,11 +270,11 @@ void main() {
         await repository.createSite(const DiveSite(
           id: '',
           name: 'Site A',
-        ));
+        ),);
         await repository.createSite(const DiveSite(
           id: '',
           name: 'Site B',
-        ));
+        ),);
 
         final results = await repository.getSitesWithDiveCounts();
 

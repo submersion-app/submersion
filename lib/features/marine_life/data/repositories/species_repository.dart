@@ -42,7 +42,7 @@ class SpeciesRepository {
     ''', variables: [
       Variable.withString(searchTerm),
       Variable.withString(searchTerm),
-    ]).get();
+    ],).get();
 
     return results.map((row) {
       return domain.Species(
@@ -77,7 +77,7 @@ class SpeciesRepository {
       SELECT * FROM species
       WHERE LOWER(common_name) = ?
       LIMIT 1
-    ''', variables: [Variable.withString(commonName.toLowerCase())]).getSingleOrNull();
+    ''', variables: [Variable.withString(commonName.toLowerCase())],).getSingleOrNull();
 
     if (existing != null) {
       return domain.Species(
@@ -100,7 +100,7 @@ class SpeciesRepository {
       commonName: Value(commonName),
       scientificName: Value(scientificName),
       category: Value(category.name),
-    ));
+    ),);
 
     return domain.Species(
       id: id,
@@ -124,7 +124,7 @@ class SpeciesRepository {
       speciesId: Value(speciesId),
       count: Value(count),
       notes: Value(notes),
-    ));
+    ),);
 
     final species = await getSpeciesById(speciesId);
     return domain.Sighting(
@@ -146,7 +146,7 @@ class SpeciesRepository {
       JOIN species sp ON s.species_id = sp.id
       WHERE s.dive_id = ?
       ORDER BY sp.category ASC, sp.common_name ASC
-    ''', variables: [Variable.withString(diveId)]).get();
+    ''', variables: [Variable.withString(diveId)],).get();
 
     return results.map((row) {
       return domain.Sighting(
@@ -250,7 +250,7 @@ class SpeciesRepository {
         commonName: Value(name),
         scientificName: Value(scientificName),
         category: Value(category.name),
-      ));
+      ),);
     }
   }
 

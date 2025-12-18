@@ -126,7 +126,7 @@ class EquipmentRepository {
       isActive: Value(equipment.isActive),
       createdAt: Value(now),
       updatedAt: Value(now),
-    ));
+    ),);
 
       _log.info('Created equipment with id: $id');
       return equipment.copyWith(id: id);
@@ -251,7 +251,7 @@ class EquipmentRepository {
         Variable.withString(searchTerm),
         Variable.withString(searchTerm),
         Variable.withString(searchTerm),
-      ]).get();
+      ],).get();
 
       return results.map((row) {
         return EquipmentItem(
@@ -295,7 +295,7 @@ class EquipmentRepository {
         SELECT COUNT(*) as count
         FROM dive_equipment
         WHERE equipment_id = ?
-      ''', variables: [Variable.withString(equipmentId)]).getSingle();
+      ''', variables: [Variable.withString(equipmentId)],).getSingle();
 
       return result.data['count'] as int? ?? 0;
     } catch (e, stackTrace) {

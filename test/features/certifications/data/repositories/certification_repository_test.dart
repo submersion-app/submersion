@@ -123,15 +123,15 @@ void main() {
         await repository.createCertification(createTestCert(
           name: 'Old Cert',
           issueDate: DateTime(2020, 1, 1),
-        ));
+        ),);
         await repository.createCertification(createTestCert(
           name: 'New Cert',
           issueDate: DateTime(2023, 6, 1),
-        ));
+        ),);
         await repository.createCertification(createTestCert(
           name: 'Middle Cert',
           issueDate: DateTime(2022, 3, 1),
-        ));
+        ),);
 
         final result = await repository.getAllCertifications();
 
@@ -168,7 +168,7 @@ void main() {
           name: 'Level Cert',
           agency: CertificationAgency.padi,
           level: CertificationLevel.openWater,
-        ));
+        ),);
 
         final updatedCert = cert.copyWith(
           agency: CertificationAgency.ssi,
@@ -209,17 +209,17 @@ void main() {
           name: 'Open Water Diver',
           agency: CertificationAgency.padi,
           cardNumber: 'PADI-001',
-        ));
+        ),);
         await repository.createCertification(createTestCert(
           name: 'Advanced Nitrox',
           agency: CertificationAgency.ssi,
           cardNumber: 'SSI-002',
-        ));
+        ),);
         await repository.createCertification(createTestCert(
           name: 'Rescue Diver',
           agency: CertificationAgency.naui,
           cardNumber: 'NAUI-003',
-        ));
+        ),);
       });
 
       test('should find certs by name', () async {
@@ -262,15 +262,15 @@ void main() {
         await repository.createCertification(createTestCert(
           name: 'PADI Cert 1',
           agency: CertificationAgency.padi,
-        ));
+        ),);
         await repository.createCertification(createTestCert(
           name: 'PADI Cert 2',
           agency: CertificationAgency.padi,
-        ));
+        ),);
         await repository.createCertification(createTestCert(
           name: 'SSI Cert',
           agency: CertificationAgency.ssi,
-        ));
+        ),);
       });
 
       test('should return certs for specified agency', () async {
@@ -295,19 +295,19 @@ void main() {
         await repository.createCertification(createTestCert(
           name: 'Expiring Soon',
           expiryDate: now.add(const Duration(days: 15)),
-        ));
+        ),);
 
         // Cert expiring in 60 days
         await repository.createCertification(createTestCert(
           name: 'Expiring Later',
           expiryDate: now.add(const Duration(days: 60)),
-        ));
+        ),);
 
         // Cert with no expiry
         await repository.createCertification(createTestCert(
           name: 'No Expiry',
           expiryDate: null,
-        ));
+        ),);
 
         final results = await repository.getExpiringCertifications(30);
 
@@ -322,13 +322,13 @@ void main() {
         await repository.createCertification(createTestCert(
           name: 'Already Expired',
           expiryDate: now.subtract(const Duration(days: 10)),
-        ));
+        ),);
 
         // Expiring in 15 days
         await repository.createCertification(createTestCert(
           name: 'Expiring Soon',
           expiryDate: now.add(const Duration(days: 15)),
-        ));
+        ),);
 
         final results = await repository.getExpiringCertifications(30);
 
@@ -345,19 +345,19 @@ void main() {
         await repository.createCertification(createTestCert(
           name: 'Expired Cert',
           expiryDate: now.subtract(const Duration(days: 30)),
-        ));
+        ),);
 
         // Valid cert
         await repository.createCertification(createTestCert(
           name: 'Valid Cert',
           expiryDate: now.add(const Duration(days: 30)),
-        ));
+        ),);
 
         // No expiry cert
         await repository.createCertification(createTestCert(
           name: 'No Expiry Cert',
           expiryDate: null,
-        ));
+        ),);
 
         final results = await repository.getExpiredCertifications();
 
@@ -369,7 +369,7 @@ void main() {
         await repository.createCertification(createTestCert(
           name: 'Valid Cert',
           expiryDate: DateTime.now().add(const Duration(days: 365)),
-        ));
+        ),);
 
         final results = await repository.getExpiredCertifications();
 
