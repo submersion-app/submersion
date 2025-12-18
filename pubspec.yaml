@@ -33,6 +33,7 @@ dependencies:
   # UI Components
   fl_chart: ^0.68.0
   flutter_map: ^7.0.2
+  flutter_map_marker_cluster: ^1.3.6
   latlong2: ^0.9.1
   cached_network_image: ^3.4.1
   photo_view: ^0.15.0

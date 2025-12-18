@@ -465,14 +465,14 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 | Feature | Status | Phase | Priority | Notes |
 |---------|--------|-------|----------|-------|
 | Map of all dive sites | ✅ Implemented | MVP | - | Using flutter_map + OpenStreetMap |
+| Marker clustering | ✅ Implemented | v1.1 | Medium | Clusters zoom on tap, color-coded markers |
 | Dive Activity Map | 📋 Planned | v1.5 | Low | Heat map of all dives |
 | Offline maps | 📋 Planned | v1.5 | 🎯 High | For travel to remote areas |
-| Marker clustering | 📋 Planned | v1.1 | Medium | Group nearby sites - deferred |
 
-**v1.1 Tasks:** (deferred from v1.0)
-- [ ] Marker clustering on dive sites map (group when zoomed out)
-- [ ] Tap cluster to zoom in, tap marker to view site detail
-- [ ] Different marker colors based on dive count or rating
+**v1.1 Tasks:** ✅ COMPLETE
+- [x] Marker clustering on dive sites map (group when zoomed out) ✅ Implemented
+- [x] Tap cluster to zoom in, tap marker to view site detail ✅ Implemented
+- [x] Different marker colors based on dive count or rating ✅ Implemented
 
 **v1.5 Tasks:**
 - [ ] Offline map tile caching using flutter_map tile storage
