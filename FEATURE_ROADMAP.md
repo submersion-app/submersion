@@ -1,52 +1,27 @@
 # Submersion Feature Roadmap
 ## Comprehensive Development Plan
 
-> **Last Updated:** 2025-12-16
-> **Current Version:** 1.1.0 (v1.1 Notes & Tags Complete)
-> **Status:** v1.0 COMPLETE, v1.1/v1.5 Notes & Tags COMPLETE
-
----
-
-## Executive Summary
-
-This roadmap represents the path to making Submersion a best-in-class dive logging application by incorporating features from industry leaders (Subsurface, MacDive, Shearwater Cloud, Dive+, Diving Log 6.0, DiveMate, DiverLog+, Garmin Dive, PADI apps).
-
-**Current State:** ✅ MVP Complete
-- Core dive logging, sites, equipment, marine life, statistics
-- CSV/UDDF/PDF import/export
-- Local-first architecture with SQLite storage
-
-**Target State:** Feature-complete professional dive logging platform
-- Multi-platform (iOS, Android, macOS, Windows, Linux, Web)
-- Dive computer connectivity (300+ models)
-- Advanced technical diving support (CCR, trimix, deco planning)
-- Photo/video management with AI species identification
-- Community features and social sharing
-- Optional cloud sync for multi-device users
+> **Last Updated:** 2025-12-17
+> **Current Version:** 1.1.0 (v1.1 Complete)
+> **Status:** v1.0 ✅ COMPLETE | v1.1 ✅ COMPLETE | v1.5 📋 Planned
 
 ---
 
 ## Roadmap Phases
 
-### Phase Definitions
-
 | Phase | Timeline | Focus | Status |
 |-------|----------|-------|--------|
 | **MVP** | Complete | Core dive logging workflow | ✅ Done |
 | **v1.0** | Complete | Production-ready with essential features | ✅ Done |
+| **v1.1** | Complete | UX improvements, GPS, maps, testing | ✅ Done |
 | **v1.5** | 4-6 months | Technical diving & dive computer integration | 📋 Planned |
 | **v2.0** | 8-12 months | Advanced features & social | 📋 Planned |
 | **v3.0** | 12-18 months | Community platform & AI features | 🔮 Future |
 
----
-
-## Feature Status Legend
-
+### Status Legend
 - ✅ **Implemented** - Feature is complete and working
-- 🟡 **In Progress** - Currently being developed
 - 📋 **Planned** - Scheduled for upcoming phase
 - 🔮 **Future** - Long-term roadmap item
-- ⚠️ **Blocked** - Waiting on dependency or decision
 - 🎯 **Priority** - Critical for next release
 
 ---
@@ -55,47 +30,29 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 1.1 Basic Metadata
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Dive number (auto-increment) | ✅ Implemented | MVP | - | Works but could add gap detection |
-| Date and time in/out | ✅ Implemented | MVP | - | Single datetime field currently |
-| Total bottom time | ✅ Implemented | MVP | - | Auto-calculated from profile |
-| Runtime tracking | 📋 Planned | v1.5 | Medium | Add separate field for total runtime |
-| Surface interval calculation | 📋 Planned | v1.5 | High | Between successive dives |
-| Max depth, average depth | ✅ Implemented | MVP | - | |
-| Min/max temperature | ✅ Implemented | MVP | - | From profile data |
-| Dive type (20+ types) | ✅ Implemented | MVP | - | Recreational, tech, wreck, cave, night, etc. |
-
-**v1.1 Enhancements:** ✅ COMPLETE
-- [x] Separate entry/exit time fields (currently single timestamp)
-- [x] Auto-calculate surface interval from previous dive
-- [x] Dive numbering with gap detection and re-numbering utility
-
-**v1.5 Enhancements:**
-- [ ] Custom dive types (user-defined)
-- [ ] Multi-day dive trip grouping
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Dive number (auto-increment) | ✅ Implemented | MVP | With gap detection and renumbering |
+| Separate entry/exit time fields | ✅ Implemented | v1.1 | Auto-calculated duration |
+| Surface interval calculation | ✅ Implemented | v1.1 | Between successive dives |
+| Total bottom time | ✅ Implemented | MVP | Auto-calculated from profile |
+| Max depth, average depth | ✅ Implemented | MVP | |
+| Min/max temperature | ✅ Implemented | MVP | From profile data |
+| Dive type (20+ types) | ✅ Implemented | MVP | Recreational, tech, wreck, cave, night, etc. |
+| Runtime tracking | 📋 Planned | v1.5 | Add separate field for total runtime |
+| Custom dive types (user-defined) | 📋 Planned | v1.5 | |
 
 ---
 
 ## 1.2 Location & Site
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Site name, region, country | ✅ Implemented | MVP | - | Full site database |
-| GPS coordinates | ✅ Implemented | MVP | - | Lat/long with map view |
-| Boat / operator name | ✅ Implemented | v1.0 | - | Fields added to dive entity |
-| Trip grouping | ✅ Implemented | v1.0 | - | Entity, repository, full UI complete |
-| Liveaboard tracking | 📋 Planned | v2.0 | Low | Specialized trip type |
-
-**v1.0 Tasks:**
-- [x] Add `boat_name`, `operator_name`, `dive_center` fields to dives table
-- [x] Create Dive Center/Operator entity with contact info, location
-- [ ] Site picker with "Add New Site" quick action - deferred to v1.1
-- [ ] GPS from device location when creating dive (mobile) - deferred to v1.1
-- [x] Trip entity linking multiple dives
-- [x] Trip summary page (stats, export)
-- [x] Add/edit trips with date ranges and location
-- [x] Assign dives to trips in dive edit form
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Site name, region, country | ✅ Implemented | MVP | Full site database |
+| GPS coordinates | ✅ Implemented | MVP | Lat/long with map view |
+| Boat / operator name | ✅ Implemented | v1.0 | Fields added to dive entity |
+| Trip grouping | ✅ Implemented | v1.0 | Entity, repository, full UI complete |
+| Liveaboard tracking | 📋 Planned | v2.0 | Specialized trip type |
 
 **v1.5 Tasks:**
 - [ ] Trip templates (liveaboard, resort week, local weekend)
@@ -105,22 +62,16 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 1.3 Conditions
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Visibility (numeric + qualitative) | ✅ Implemented | MVP | - | Enum: Poor/Fair/Good/Excellent |
-| Current (direction + strength) | ✅ Implemented | v1.0 | - | Fields added to dive entity |
-| Waves / swell height | ✅ Implemented | v1.0 | - | Field added to dive entity |
-| Weather | 📋 Planned | v1.5 | Low | Free-text or API integration |
-| Air temperature | ✅ Implemented | MVP | - | Separate from water temp |
-| Entry/exit method | ✅ Implemented | v1.0 | - | Fields added to dive entity |
-| Water type | ✅ Implemented | v1.0 | - | Field added to dive entity |
-| Altitude | 📋 Planned | v1.5 | Low | For altitude dive calculations |
-
-**v1.0 Tasks:**
-- [x] Add `current_direction` (enum: N/S/E/W/NE/etc.), `current_strength` (enum: None/Slight/Moderate/Strong)
-- [x] Add `swell_height_meters`, `entry_method`, `exit_method` (enums)
-- [x] Add `water_type` enum (Fresh, Salt, Brackish)
-- [x] Conditions section in dive edit form with icons
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Visibility (numeric + qualitative) | ✅ Implemented | MVP | Enum: Poor/Fair/Good/Excellent |
+| Current (direction + strength) | ✅ Implemented | v1.0 | Enums for direction and strength |
+| Waves / swell height | ✅ Implemented | v1.0 | |
+| Air temperature | ✅ Implemented | MVP | Separate from water temp |
+| Entry/exit method | ✅ Implemented | v1.0 | Enums for methods |
+| Water type | ✅ Implemented | v1.0 | Fresh, Salt, Brackish |
+| Weather | 📋 Planned | v1.5 | Free-text or API integration |
+| Altitude | 📋 Planned | v1.5 | For altitude dive calculations |
 
 **v1.5 Tasks:**
 - [ ] Weather API integration (OpenWeatherMap) with historical data
@@ -131,24 +82,14 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 1.4 Notes & Tags
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Free-text notes | ✅ Implemented | MVP | - | Rich text field |
-| Star rating (1-5) | ✅ Implemented | MVP | - | |
-| Favorite flag | ✅ Implemented | v1.1 | - | Boolean flag with toggle in list/detail |
-| Arbitrary tags | ✅ Implemented | v1.5 | - | Many-to-many tags with colors |
-| Smart collections based on tags | 📋 Planned | v2.0 | Low | Saved filters |
-
-**v1.1 Tasks:** ✅ COMPLETE
-- [x] Add `is_favorite` boolean to dives table
-- [x] Favorite icon in dive list and detail
-- [x] Filter by favorites
-
-**v1.5 Tasks:** ✅ COMPLETE
-- [x] Tags entity with many-to-many relationship
-- [x] Tag input widget (chip selector with autocomplete)
-- [x] Tag-based filtering and search
-- [x] Tag statistics (usage counts with progress bars)
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Free-text notes | ✅ Implemented | MVP | Rich text field |
+| Star rating (1-5) | ✅ Implemented | MVP | |
+| Favorite flag | ✅ Implemented | v1.1 | Boolean flag with toggle in list/detail |
+| Tags (many-to-many with colors) | ✅ Implemented | v1.1 | Chip selector with autocomplete |
+| Tag-based filtering | ✅ Implemented | v1.1 | With tag statistics |
+| Smart collections based on tags | 📋 Planned | v2.0 | Saved filters |
 
 ---
 
@@ -156,23 +97,18 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 2.1 Profile Visualization
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Time-depth profile chart | ✅ Implemented | MVP | - | Using fl_chart |
-| Zoom and pan controls | ✅ Implemented | v1.1 | - | Pinch/scroll zoom, pan when zoomed |
-| Touch markers/tooltips | ✅ Implemented | v1.1 | - | Shows depth, time, temp at touch point |
-| Profile markers/events | 📋 Planned | v1.5 | High | Descent, safety stop, gas switch, alerts |
-| Temperature overlay | ✅ Implemented | MVP | - | Toggle on/off |
-| Ascent rate indicators | 📋 Planned | v1.5 | High | Color-code dangerous ascents |
-| Ceiling / NDL curve | 📋 Planned | v1.5 | 🎯 High | Requires deco algorithm |
-| ppO₂ curve, CNS/OTU | 📋 Planned | v1.5 | Medium | Technical diving |
-| SAC/RMV overlay | 📋 Planned | v1.5 | Medium | Instantaneous gas consumption |
-| Profile export as PNG | 📋 Planned | v2.0 | Low | Export chart image for sharing |
-
-**v1.1 Tasks:** ✅ COMPLETE
-- [x] Implement InteractiveChart with pan/zoom gestures
-- [x] Add touch markers showing exact depth/time/temp at touch point
-- [x] Pinch-to-zoom on mobile, scroll-to-zoom on desktop
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Time-depth profile chart | ✅ Implemented | MVP | Using fl_chart |
+| Temperature overlay | ✅ Implemented | MVP | Toggle on/off |
+| Zoom and pan controls | ✅ Implemented | v1.1 | Pinch/scroll zoom, pan when zoomed |
+| Touch markers/tooltips | ✅ Implemented | v1.1 | Shows depth, time, temp at touch point |
+| Profile markers/events | 📋 Planned | v1.5 | Descent, safety stop, gas switch, alerts |
+| Ascent rate indicators | 📋 Planned | v1.5 | Color-code dangerous ascents |
+| Ceiling / NDL curve | 📋 Planned | v1.5 | Requires deco algorithm |
+| ppO₂ curve, CNS/OTU | 📋 Planned | v1.5 | Technical diving |
+| SAC/RMV overlay | 📋 Planned | v1.5 | Instantaneous gas consumption |
+| Profile export as PNG | 📋 Planned | v2.0 | Export chart image for sharing |
 
 **v1.5 Tasks:**
 - [ ] Profile event markers (table: `dive_profile_events` with type, timestamp, description)
@@ -186,11 +122,11 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 2.2 Multi-Profile Support
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Multiple computers per dive | 📋 Planned | v1.5 | Medium | Backup computer, bottom timer |
-| Profile comparison (buddies) | 📋 Planned | v2.0 | Low | Side-by-side view |
-| Profile merging | 📋 Planned | v2.0 | Low | Combine multiple sources |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Multiple computers per dive | 📋 Planned | v1.5 | Backup computer, bottom timer |
+| Profile comparison (buddies) | 📋 Planned | v2.0 | Side-by-side view |
+| Profile merging | 📋 Planned | v2.0 | Combine multiple sources |
 
 **v1.5 Tasks:**
 - [ ] Add `computer_id` to dive_profiles table
@@ -205,11 +141,11 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 2.3 Profile Editing
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Smoothing / cleaning bad samples | 📋 Planned | v2.0 | Low | Outlier removal |
-| Manual profile drawing | 📋 Planned | v2.0 | Low | For dives without computer |
-| Segment editing | 📋 Planned | v2.0 | Low | Adjust timestamps, depths |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Smoothing / cleaning bad samples | 📋 Planned | v2.0 | Outlier removal |
+| Manual profile drawing | 📋 Planned | v2.0 | For dives without computer |
+| Segment editing | 📋 Planned | v2.0 | Adjust timestamps, depths |
 
 **v2.0 Tasks:**
 - [ ] Profile outlier detection algorithm (sudden depth jumps)
@@ -224,13 +160,13 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 3.1 Connectivity Types
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| USB cable transfers | 📋 Planned | v1.5 | 🎯 High | Via libdivecomputer |
-| Bluetooth Classic | 📋 Planned | v1.5 | 🎯 High | flutter_blue_plus |
-| Bluetooth LE (BLE) | 📋 Planned | v1.5 | 🎯 High | flutter_blue_plus |
-| Infrared (legacy) | 🔮 Future | v3.0 | Low | Limited hardware support |
-| Wi-Fi / cloud devices | 📋 Planned | v2.0 | Medium | Garmin, Shearwater cloud API |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| USB cable transfers | 📋 Planned | v1.5 | Via libdivecomputer |
+| Bluetooth Classic | 📋 Planned | v1.5 | flutter_blue_plus |
+| Bluetooth LE (BLE) | 📋 Planned | v1.5 | flutter_blue_plus |
+| Infrared (legacy) | 🔮 Future | v3.0 | Limited hardware support |
+| Wi-Fi / cloud devices | 📋 Planned | v2.0 | Garmin, Shearwater cloud API |
 
 **v1.5 Tasks (Critical Path):**
 - [ ] Integrate libdivecomputer via FFI (Dart bindings to C library)
@@ -243,11 +179,11 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 3.2 Device Support
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| 300+ dive computer models | 📋 Planned | v1.5 | 🎯 High | Via libdivecomputer |
-| Per-device presets | 📋 Planned | v1.5 | Medium | Save connection settings |
-| Favorite devices | 📋 Planned | v1.5 | Low | Quick-select dropdown |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| 300+ dive computer models | 📋 Planned | v1.5 | Via libdivecomputer |
+| Per-device presets | 📋 Planned | v1.5 | Save connection settings |
+| Favorite devices | 📋 Planned | v1.5 | Quick-select dropdown |
 
 **v1.5 Tasks:**
 - [ ] Create `dive_computers` table (name, manufacturer, model, connection_type, last_used)
@@ -259,12 +195,12 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 3.3 Download Behavior
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Download new dives only | 📋 Planned | v1.5 | 🎯 High | Track last download timestamp |
-| Force download all | 📋 Planned | v1.5 | Medium | Override with checkbox |
-| Auto-download when connected | 📋 Planned | v2.0 | Low | Background sync |
-| Duplicate detection | 📋 Planned | v1.5 | 🎯 High | Match by date+time+depth |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Download new dives only | 📋 Planned | v1.5 | Track last download timestamp |
+| Force download all | 📋 Planned | v1.5 | Override with checkbox |
+| Auto-download when connected | 📋 Planned | v2.0 | Background sync |
+| Duplicate detection | 📋 Planned | v1.5 | Match by date+time+depth |
 
 **v1.5 Tasks:**
 - [ ] Store `last_download_timestamp` per dive computer
@@ -280,12 +216,12 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 3.4 Device Management
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Rename dive computers | 📋 Planned | v1.5 | Low | "Bob's Perdix", "Backup Computer" |
-| Associate dives with computer | 📋 Planned | v1.5 | Medium | Which computer recorded dive |
-| Firmware update via app | 📋 Planned | v2.0 | Low | Shearwater-specific |
-| Remote configuration | 📋 Planned | v2.0 | Low | Set gases, alarms, units |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Rename dive computers | 📋 Planned | v1.5 | "Bob's Perdix", "Backup Computer" |
+| Associate dives with computer | 📋 Planned | v1.5 | Which computer recorded dive |
+| Firmware update via app | 📋 Planned | v2.0 | Shearwater-specific |
+| Remote configuration | 📋 Planned | v2.0 | Set gases, alarms, units |
 
 **v1.5 Tasks:**
 - [ ] Add `computer_id` to dives table (which device imported this dive)
@@ -302,38 +238,25 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 4.1 Multiple Tanks Per Dive
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Multi-tank support | ✅ Implemented | MVP | - | Unlimited tanks with add/remove buttons |
-| Tank volume, pressures | ✅ Implemented | MVP | - | Start/end/working pressure |
-| Tank material | ✅ Implemented | v1.1 | - | Steel, Aluminum, Carbon Fiber |
-| Tank role | ✅ Implemented | v1.1 | - | Back gas, stage, deco, bailout, sidemount, pony |
-| Unlimited tanks | ✅ Implemented | v1.1 | - | Dynamic list with add/remove |
-| Tank presets | ✅ Implemented | v1.1 | - | AL40/63/80, HP80/100/120, LP85, Steel 10/12/15L |
-
-**v1.1 Tasks:** ✅ COMPLETE
-- [x] Remove artificial tank limit in dive edit form
-- [x] Dynamic tank list with Add/Remove buttons
-- [x] Add `tank_role` enum (Back Gas, Stage, Deco, Bailout, Sidemount Left/Right, Pony)
-- [x] Add `tank_material` enum (Steel, Aluminum, Carbon Fiber)
-- [x] Common tank presets dropdown (AL80, HP100, HP120, LP85, Steel 10/12/15L, etc.)
-- [x] TankEditor widget with all tank configuration options
-- [ ] Save custom tank configurations as user presets (deferred to v1.5)
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Multi-tank support | ✅ Implemented | MVP | Unlimited tanks with add/remove buttons |
+| Tank volume, pressures | ✅ Implemented | MVP | Start/end/working pressure |
+| Tank material | ✅ Implemented | v1.1 | Steel, Aluminum, Carbon Fiber |
+| Tank role | ✅ Implemented | v1.1 | Back gas, stage, deco, bailout, sidemount, pony |
+| Tank presets | ✅ Implemented | v1.1 | AL40/63/80, HP80/100/120, LP85, Steel 10/12/15L |
+| Save custom tank presets | 📋 Planned | v1.5 | User-defined configurations |
 
 ---
 
 ## 4.2 Gas Composition
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| O₂ %, He %, N₂ balance | ✅ Implemented | MVP | - | Air, Nitrox, Trimix |
-| Gas changes on profile | 📋 Planned | v1.5 | High | Mark switch points |
-| Gas naming | ✅ Implemented | v1.1 | - | "EAN32", "TMX 18/45" auto-generated |
-| Gas mix templates | ✅ Implemented | v1.1 | - | Air, EAN32/36/40/50, O₂, Trimix blends |
-
-**v1.1 Tasks:** ✅ COMPLETE
-- [x] Add common gas mix templates (Air, EAN32, EAN36, EAN40, EAN50, O₂, TMX 18/45, TMX 21/35, TMX 15/55, Helitrox 25/25)
-- [x] Gas mix name auto-generation based on O₂/He percentages (already in GasMix.name)
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| O₂ %, He %, N₂ balance | ✅ Implemented | MVP | Air, Nitrox, Trimix |
+| Gas naming | ✅ Implemented | v1.1 | "EAN32", "TMX 18/45" auto-generated |
+| Gas mix templates | ✅ Implemented | v1.1 | Air, EAN32/36/40/50, O₂, Trimix blends |
+| Gas changes on profile | 📋 Planned | v1.5 | Mark switch points |
 
 **v1.5 Tasks:**
 - [ ] Gas switch events on profile (table: `gas_switches` with timestamp, tank_id)
@@ -344,14 +267,14 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 4.3 Calculated Metrics
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| SAC / RMV (per dive) | ✅ Implemented | MVP | - | Surface Air Consumption Rate |
-| SAC per segment | 📋 Planned | v1.5 | Medium | Time-based or depth-based segments |
-| SAC per cylinder | 📋 Planned | v1.5 | Low | For multi-tank dives |
-| MOD calculation | ✅ Implemented | MVP | - | Maximum Operating Depth in entity |
-| END calculation | ✅ Implemented | MVP | - | Equivalent Narcotic Depth in entity |
-| CNS / OTU tracking | 📋 Planned | v1.5 | 🎯 High | O₂ toxicity tracking |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| SAC / RMV (per dive) | ✅ Implemented | MVP | Surface Air Consumption Rate |
+| MOD calculation | ✅ Implemented | MVP | Maximum Operating Depth in entity |
+| END calculation | ✅ Implemented | MVP | Equivalent Narcotic Depth in entity |
+| SAC per segment | 📋 Planned | v1.5 | Time-based or depth-based segments |
+| SAC per cylinder | 📋 Planned | v1.5 | For multi-tank dives |
+| CNS / OTU tracking | 📋 Planned | v1.5 | O₂ toxicity tracking |
 
 **v1.5 Tasks:**
 - [ ] Segment SAC calculation (5-minute segments or depth-based)
@@ -364,13 +287,13 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 4.4 Deco & Algorithms
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Bühlmann ZH-L16 with GF | 📋 Planned | v1.5 | 🎯 High | Industry-standard deco algorithm |
-| Calculated vs DC ceiling | 📋 Planned | v1.5 | High | Compare app calc with computer |
-| NDL display | 📋 Planned | v1.5 | 🎯 High | No Decompression Limit |
-| OC/CCR support | 📋 Planned | v1.5 | Medium | Open Circuit / Closed Circuit Rebreather |
-| Setpoints, diluent, bailout | 📋 Planned | v1.5 | Medium | CCR-specific fields |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Bühlmann ZH-L16 with GF | 📋 Planned | v1.5 | Industry-standard deco algorithm |
+| Calculated vs DC ceiling | 📋 Planned | v1.5 | Compare app calc with computer |
+| NDL display | 📋 Planned | v1.5 | No Decompression Limit |
+| OC/CCR support | 📋 Planned | v1.5 | Open Circuit / Closed Circuit Rebreather |
+| Setpoints, diluent, bailout | 📋 Planned | v1.5 | CCR-specific fields |
 
 **v1.5 Tasks (Deco Algorithm Implementation):**
 - [ ] Implement Bühlmann ZH-L16C algorithm in Dart
@@ -382,7 +305,7 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 - [ ] Display NDL/ceiling on profile chart
 - [ ] TTS (Time To Surface) calculation
 
-**CCR Support (v1.5):**
+**v1.5 CCR Support:**
 - [ ] Add `dive_mode` enum (OC, CCR, SCR) to dives table
 - [ ] CCR-specific fields: setpoint(s), diluent, bailout gas
 - [ ] Setpoint changes as profile events
@@ -392,13 +315,13 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 4.5 Planning Utilities
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Dive planner (multi-level) | 📋 Planned | v1.5 | 🎯 High | Plan dives before doing them |
-| Multi-gas planning | 📋 Planned | v1.5 | High | Gas switches, deco gases |
-| Repetitive dive planning | 📋 Planned | v1.5 | Medium | Surface interval, tissue loading |
-| Gas consumption projections | 📋 Planned | v1.5 | Medium | Based on SAC history |
-| What-if scenarios | 📋 Planned | v2.0 | Low | Deeper/longer/different gas |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Dive planner (multi-level) | 📋 Planned | v1.5 | Plan dives before doing them |
+| Multi-gas planning | 📋 Planned | v1.5 | Gas switches, deco gases |
+| Repetitive dive planning | 📋 Planned | v1.5 | Surface interval, tissue loading |
+| Gas consumption projections | 📋 Planned | v1.5 | Based on SAC history |
+| What-if scenarios | 📋 Planned | v2.0 | Deeper/longer/different gas |
 
 **v1.5 Tasks:**
 - [ ] Dive Planner page with depth/time segment editor
@@ -419,19 +342,14 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 5.1 Dive Site Database
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Manage sites, regions, countries | ✅ Implemented | MVP | - | Full CRUD |
-| Depth range, difficulty | ✅ Implemented | v1.1 | Medium | Min/max depth & difficulty levels |
-| Common marine life | 📋 Planned | v1.5 | Low | Link species to sites |
-| Hazards, access notes | ✅ Implemented | v1.1 | Medium | Free-text fields |
-| Mooring numbers, parking | ✅ Implemented | v1.1 | Low | For boat/shore diving |
-
-**v1.1 Tasks:** (deferred from v1.0)
-- [x] Add `min_depth`, `max_depth`, `difficulty` (Beginner/Intermediate/Advanced/Technical) to sites table ✅ Implemented
-- [x] Add `hazards`, `access_notes`, `mooring_number`, `parking_info` text fields ✅ Implemented
-- [x] Expand site detail page with new fields ✅ Implemented
-- [x] Site editing form with all fields ✅ Implemented
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Manage sites, regions, countries | ✅ Implemented | MVP | Full CRUD |
+| Depth range (min/max) | ✅ Implemented | v1.1 | |
+| Difficulty levels | ✅ Implemented | v1.1 | Beginner/Intermediate/Advanced/Technical |
+| Hazards, access notes | ✅ Implemented | v1.1 | Free-text fields |
+| Mooring numbers, parking | ✅ Implemented | v1.1 | For boat/shore diving |
+| Common marine life | 📋 Planned | v1.5 | Link species to sites |
 
 **v1.5 Tasks:**
 - [ ] Many-to-many relationship between sites and species (common sightings)
@@ -441,17 +359,14 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 5.2 GPS Integration
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Manual GPS entry | ✅ Implemented | MVP | - | Lat/long fields |
-| Capture GPS from phone | ✅ Implemented | v1.1 | Medium | "Use My Location" + nearby site suggestions |
-| Reverse geocoding | ✅ Implemented | v1.1 | Medium | Auto-populate country/region from GPS |
-| GPS from photo EXIF | 📋 Planned | v1.5 | Medium | Extract and suggest site |
-
-**v1.1 Tasks:** ✅ COMPLETE
-- [x] On dive create (mobile), capture device GPS and suggest nearby sites ✅ Implemented
-- [x] "Use My Location" button in site edit form ✅ Implemented
-- [x] Reverse geocoding to populate country/region from GPS ✅ Implemented
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Manual GPS entry | ✅ Implemented | MVP | Lat/long fields |
+| Capture GPS from phone | ✅ Implemented | v1.1 | "Use My Location" button |
+| Nearby site suggestions | ✅ Implemented | v1.1 | On dive create |
+| Reverse geocoding | ✅ Implemented | v1.1 | Auto-populate country/region from GPS |
+| Map-based location picker | ✅ Implemented | v1.1 | Pick location from interactive map |
+| GPS from photo EXIF | 📋 Planned | v1.5 | Extract and suggest site |
 
 **v1.5 Tasks:**
 - [ ] EXIF parsing from photo attachments
@@ -462,17 +377,13 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 5.3 Maps & Visualization
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Map of all dive sites | ✅ Implemented | MVP | - | Using flutter_map + OpenStreetMap |
-| Marker clustering | ✅ Implemented | v1.1 | Medium | Clusters zoom on tap, color-coded markers |
-| Dive Activity Map | 📋 Planned | v1.5 | Low | Heat map of all dives |
-| Offline maps | 📋 Planned | v1.5 | 🎯 High | For travel to remote areas |
-
-**v1.1 Tasks:** ✅ COMPLETE
-- [x] Marker clustering on dive sites map (group when zoomed out) ✅ Implemented
-- [x] Tap cluster to zoom in, tap marker to view site detail ✅ Implemented
-- [x] Different marker colors based on dive count or rating ✅ Implemented
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Map of all dive sites | ✅ Implemented | MVP | Using flutter_map + OpenStreetMap |
+| Marker clustering | ✅ Implemented | v1.1 | Smooth animated zoom on cluster tap |
+| Color-coded markers | ✅ Implemented | v1.1 | Based on dive count or rating |
+| Dive Activity Map | 📋 Planned | v1.5 | Heat map of all dives |
+| Offline maps | 📋 Planned | v1.5 | For travel to remote areas |
 
 **v1.5 Tasks:**
 - [ ] Offline map tile caching using flutter_map tile storage
@@ -483,10 +394,10 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 5.4 External Data Sources
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Online dive site database lookup | 📋 Planned | v2.0 | Low | Import from community sources |
-| Dive site reviews | 📋 Planned | v2.0 | Low | User-generated content |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Online dive site database lookup | 📋 Planned | v2.0 | Import from community sources |
+| Dive site reviews | 📋 Planned | v2.0 | User-generated content |
 
 **v2.0 Tasks:**
 - [ ] Integration with public dive site APIs (e.g., Open Dive Sites, PADI Travel)
@@ -499,79 +410,53 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 6.1 Gear Inventory
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Track 20+ equipment types | ✅ Implemented | MVP | - | BCD, reg, fins, suit, computer, etc. |
-| Serial, purchase date, cost | ✅ Implemented | MVP | - | All tracked |
-| Size, notes, status | ✅ Implemented | v1.0 | - | Fields added to entity |
-| Filter equipment by status | ✅ Implemented | v1.1 | - | Filter chips for all statuses |
-| Photos of gear | 📋 Planned | v2.0 | Low | Deferred with photos |
-
-**v1.0 Tasks:** ✅ COMPLETE
-- [x] Add `size` field to equipment (S/M/L/XL or numeric)
-- [x] Add `status` enum (Active, Retired, Sold, Lost, In Service)
-
-**v1.1 Tasks:** ✅ COMPLETE
-- [x] Filter equipment by status (All, Active, Needs Service, In Service, Retired, Loaned Out, Lost) ✅ Implemented
-
-**v1.5 Tasks:**
-- [ ] Attach photos to equipment items
-- [ ] Display photo thumbnails in equipment list
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Track 20+ equipment types | ✅ Implemented | MVP | BCD, reg, fins, suit, computer, etc. |
+| Serial, purchase date, cost | ✅ Implemented | MVP | All tracked |
+| Size, notes, status | ✅ Implemented | v1.0 | S/M/L/XL or numeric |
+| Filter equipment by status | ✅ Implemented | v1.1 | Dropdown for all statuses |
+| Photos of gear | 📋 Planned | v2.0 | Deferred with photos |
 
 ---
 
 ## 6.2 Gear Groupings / "Bags"
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Equipment sets | ✅ Implemented | MVP | - | Named collections |
-| Quick-select sets per dive | ✅ Implemented | v1.1 | - | Apply set from dive edit |
-| Save equipment as set | ✅ Implemented | v1.1 | - | Create set from current dive |
-
-**v1.1 Tasks:** ✅ COMPLETE
-- [x] "Apply Equipment Set" button in dive edit form (auto-populate dive_equipment)
-- [x] Save current dive's equipment as new set
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Equipment sets | ✅ Implemented | MVP | Named collections |
+| Quick-select sets per dive | ✅ Implemented | v1.1 | Apply set from dive edit |
+| Save equipment as set | ✅ Implemented | v1.1 | Create set from current dive's equipment |
 
 ---
 
 ## 6.3 Maintenance
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Service history | ✅ Implemented | MVP | - | Last service date, interval |
-| Service reminders | ✅ Implemented | MVP | - | Visual warnings |
-| Service records detail | ✅ Implemented | v1.0 | - | Full CRUD with UI |
-| Notifications | 📋 Planned | v1.5 | Medium | Push notifications for overdue service |
-
-**v1.0 Tasks (Critical):**
-- [x] Create Service Records feature
-- [x] CRUD operations for service records (date, shop, cost, work performed, next due)
-- [x] Service history list on equipment detail page
-
-**v2.0 Tasks:**
-- [ ] Service log export to PDF (professional format with full history)
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Service history | ✅ Implemented | MVP | Last service date, interval |
+| Service reminders | ✅ Implemented | MVP | Visual warnings |
+| Service records detail | ✅ Implemented | v1.0 | Full CRUD with UI |
+| Push notifications | 📋 Planned | v1.5 | For overdue service |
 
 **v1.5 Tasks:**
 - [ ] Local notifications for service due dates
 - [ ] Configurable reminder advance (7 days, 14 days, 30 days before due)
 
+**v2.0 Tasks:**
+- [ ] Service log export to PDF (professional format with full history)
+
 ---
 
 ## 6.4 Per-Dive Gear Usage
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Gear selected per dive | ✅ Implemented | MVP | - | Many-to-many relationship |
-| Weight system & amount | ✅ Implemented | v1.0 | - | Belt vs integrated, amount tracked |
-| Gas / cylinder config | ✅ Implemented | MVP | - | Per-tank gas mixes |
-
-**v1.0 Tasks:**
-- [x] Weight type field on dive (Integrated, Belt, Trim, Ankle, Backplate, Other)
-- [x] Weight amount field on dive
-- [x] Display weight on dive detail page
-- [x] Support multiple weight entries per dive (e.g., integrated + trim weights)
-- [x] Create `dive_weights` table (dive_id, weight_type, amount_kg)
-- [x] Weight calculator based on exposure suit, tank type, water type
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Gear selected per dive | ✅ Implemented | MVP | Many-to-many relationship |
+| Weight system & amount | ✅ Implemented | v1.0 | Belt, integrated, trim, ankle, backplate |
+| Multiple weight entries | ✅ Implemented | v1.0 | e.g., integrated + trim weights |
+| Weight calculator | ✅ Implemented | v1.0 | Based on exposure suit, tank, water type |
+| Gas / cylinder config | ✅ Implemented | MVP | Per-tank gas mixes |
 
 ---
 
@@ -579,23 +464,13 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 7.1 Buddy Management
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Buddy contact list | ✅ Implemented | v1.0 | - | Full entity with CRUD |
-| Cert levels, agencies | ✅ Implemented | v1.0 | - | Stored on buddy entity |
-| Mark buddies per dive | ✅ Implemented | v1.0 | - | Many-to-many with roles |
-| Roles (buddy/guide/instructor) | ✅ Implemented | v1.0 | - | Enum: Buddy, Guide, Instructor, Student, Solo |
-
-**v1.0 Tasks (Critical Path):**
-- [x] Create Buddy entity (name, email, phone, certification_level, agency, photo, notes)
-- [x] Buddy repository with CRUD operations
-- [x] Buddy list page (search, add, edit, delete)
-- [x] Convert dive `buddy` text field to many-to-many relationship (dive_buddies junction table)
-- [x] Buddy picker in dive edit form (multi-select with roles)
-- [x] Add `role` enum to dive_buddies (Buddy, Dive Guide, Instructor, Student, Solo)
-- [x] Buddy detail page showing all dives together, stats
-- [x] Auto-convert legacy plaintext buddies/divemaster/guide on import to proper Buddy entities
-- [x] Legacy plaintext buddy fields retained for compatibility, UI uses Buddy picker
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Buddy contact list | ✅ Implemented | v1.0 | Full entity with CRUD |
+| Cert levels, agencies | ✅ Implemented | v1.0 | Stored on buddy entity |
+| Mark buddies per dive | ✅ Implemented | v1.0 | Many-to-many with roles |
+| Roles | ✅ Implemented | v1.0 | Buddy, Guide, Instructor, Student, Solo |
+| Buddy detail page | ✅ Implemented | v1.0 | Shared dive history and stats |
 
 **v1.5 Tasks:**
 - [ ] Import buddies from contacts (mobile)
@@ -605,11 +480,11 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 7.2 Digital Signatures
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Buddy signatures | 📋 Planned | v1.5 | Low | For training logs |
-| Instructor signatures | 📋 Planned | v1.5 | Low | Professional logs |
-| Signature capture | 📋 Planned | v1.5 | Low | Touch/stylus drawing |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Buddy signatures | 📋 Planned | v1.5 | For training logs |
+| Instructor signatures | 📋 Planned | v1.5 | Professional logs |
+| Signature capture | 📋 Planned | v1.5 | Touch/stylus drawing |
 
 **v1.5 Tasks:**
 - [ ] Signature widget (canvas drawing with save as PNG)
@@ -621,18 +496,12 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 7.3 Dive Centers / Shops
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Track shops/centers | ✅ Implemented | v1.0 | - | Full entity with CRUD |
-| Link dives to centers | ✅ Implemented | v1.0 | - | FK on dives table |
-| Boat names | ✅ Implemented | v1.0 | - | Field on dive entity |
-
-**v1.0 Tasks:**
-- [x] Create DiveCenter entity (name, location, GPS, phone, email, website, notes)
-- [x] DiveCenter repository and CRUD UI
-- [x] Add `dive_center_id` foreign key to dives table
-- [x] Dive center picker in dive edit form
-- [x] Dive center detail page (all dives at this center, stats)
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Track shops/centers | ✅ Implemented | v1.0 | Full entity with CRUD |
+| Link dives to centers | ✅ Implemented | v1.0 | FK on dives table |
+| Boat names | ✅ Implemented | v1.0 | Field on dive entity |
+| Dive center detail page | ✅ Implemented | v1.0 | All dives at center, stats |
 
 ---
 
@@ -640,30 +509,24 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 8.1 Certifications
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Store cert levels, agencies | ✅ Implemented | v1.0 | - | Full entity with CRUD |
-| Cert numbers, issue dates | ✅ Implemented | v1.0 | - | Stored on entity |
-| Instructor names | ✅ Implemented | v1.0 | - | Field on entity |
-| Scanned card images | 📋 Planned | v2.0 | Medium | Deferred with photos |
-
-**v1.0 Tasks (Critical Path):**
-- [x] Create Certification entity (agency, level, cert_number, issue_date, expiry_date, instructor_name, card_image_path, notes)
-- [x] Certification repository and CRUD UI
-- [x] Certifications page (list all certs, add/edit/delete)
-- [ ] Certification card photo upload and display - deferred to v2.0 with photos
-- [x] Common agencies enum (PADI, SSI, NAUI, SDI, TDI, GUE, RAID, etc.)
-- [x] Common certification levels enum (Open Water, Advanced, Rescue, Divemaster, Instructor, etc.)
-- [x] Expiry date warnings (red badge if expired, yellow if expiring soon)
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Store cert levels, agencies | ✅ Implemented | v1.0 | Full entity with CRUD |
+| Cert numbers, issue dates | ✅ Implemented | v1.0 | |
+| Instructor names | ✅ Implemented | v1.0 | |
+| Expiry warnings | ✅ Implemented | v1.0 | Red/yellow badges |
+| Common agencies enum | ✅ Implemented | v1.0 | PADI, SSI, NAUI, SDI, TDI, GUE, RAID |
+| Common levels enum | ✅ Implemented | v1.0 | Open Water through Instructor |
+| Scanned card images | 📋 Planned | v2.0 | Deferred with photos |
 
 ---
 
 ## 8.2 Digital Cards (eCards)
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| eCard wallet | 📋 Planned | v1.5 | Low | Display certs in wallet format |
-| QR codes | 📋 Planned | v2.0 | Low | Scannable verification |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| eCard wallet | 📋 Planned | v1.5 | Display certs in wallet format |
+| QR codes | 📋 Planned | v2.0 | Scannable verification |
 
 **v1.5 Tasks:**
 - [ ] Certification wallet view (card-style UI)
@@ -677,15 +540,12 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 8.3 Training Dives
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Mark dives as training | 📋 Planned | v1.1 | Medium | Boolean flag or dive type - deferred |
-| Associate with courses | 📋 Planned | v1.5 | Low | Course entity |
-| Instructor comments | 📋 Planned | v1.5 | Low | Rich text field |
-| E-signatures | 📋 Planned | v1.5 | Low | Digital signature |
-
-**v1.1 Tasks:** (deferred from v1.0)
-- [ ] "Training" dive type already exists (no change needed)
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Mark dives as training | ✅ Implemented | MVP | "Training" dive type exists |
+| Associate with courses | 📋 Planned | v1.5 | Course entity |
+| Instructor comments | 📋 Planned | v1.5 | Rich text field |
+| E-signatures | 📋 Planned | v1.5 | Digital signature |
 
 **v1.5 Tasks:**
 - [ ] Course entity (name, agency, start_date, completion_date, instructor, cert_id)
@@ -697,11 +557,11 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 8.4 Personal & Medical Data
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Medical clearance dates | 📋 Planned | v1.5 | Low | For commercial divers |
-| Medical documents | 📋 Planned | v2.0 | Low | PDF storage |
-| Emergency contacts | 📋 Planned | v1.5 | Medium | Critical for safety |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Medical clearance dates | 📋 Planned | v1.5 | For commercial divers |
+| Emergency contacts | 📋 Planned | v1.5 | Critical for safety |
+| Medical documents | 📋 Planned | v2.0 | PDF storage |
 
 **v1.5 Tasks:**
 - [ ] Add Medical/Personal section to Settings
@@ -719,18 +579,12 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 9.1 Environmental Details
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Water type | ✅ Implemented | v1.0 | - | Fresh, salt, brackish |
-| Hazards | ✅ Implemented | v1.1 | Medium | Site-level hazards field |
-| Entry altitude | 📋 Planned | v1.5 | Low | For altitude dive tables |
-| Tides | 📋 Planned | v1.5 | Low | State, height, time |
-
-**v1.0 Tasks:** ✅ COMPLETE
-- [x] Add `water_type` enum to dives table
-
-**v1.1 Tasks:** ✅ COMPLETE
-- [x] Hazards implemented as site-level field
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Water type | ✅ Implemented | v1.0 | Fresh, salt, brackish |
+| Hazards | ✅ Implemented | v1.1 | Site-level hazards field |
+| Entry altitude | 📋 Planned | v1.5 | For altitude dive tables |
+| Tides | 📋 Planned | v1.5 | State, height, time |
 
 **v1.5 Tasks:**
 - [ ] Tide API integration (NOAA, Tides.info)
@@ -741,13 +595,13 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 9.2 Marine Life Tracking
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Species database | ✅ Implemented | MVP | - | 40+ pre-seeded species |
-| Tag species per dive | ✅ Implemented | MVP | - | Sightings with counts |
-| Taxonomy, photos | 📋 Planned | v1.5 | Low | Scientific names, images |
-| Stats per species | 📋 Planned | v1.5 | Low | First/last seen, depth range |
-| Distribution map | 📋 Planned | v2.0 | Low | Map of sightings |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Species database | ✅ Implemented | MVP | 40+ pre-seeded species |
+| Tag species per dive | ✅ Implemented | MVP | Sightings with counts |
+| Taxonomy, photos | 📋 Planned | v1.5 | Scientific names, images |
+| Stats per species | 📋 Planned | v1.5 | First/last seen, depth range |
+| Distribution map | 📋 Planned | v2.0 | Map of sightings |
 
 **v1.5 Tasks:**
 - [ ] Add `scientific_name`, `taxonomy_class`, `image_url` to species table
@@ -764,13 +618,13 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 9.3 Underwater Photography
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Attach photos/videos to dives | 📋 Planned | v2.0 | Medium | Media table exists, needs UI |
-| Auto-match by timestamp | 📋 Planned | v2.0 | Medium | EXIF datetime matching |
-| Tag species in photos | 📋 Planned | v2.0 | Low | Image annotation |
-| Color correction | 📋 Planned | v2.0 | Low | Blue filter removal |
-| Depth/time overlay | 🔮 Future | v3.0 | Low | Requires camera integration |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Attach photos/videos to dives | 📋 Planned | v2.0 | Media table exists, needs UI |
+| Auto-match by timestamp | 📋 Planned | v2.0 | EXIF datetime matching |
+| Tag species in photos | 📋 Planned | v2.0 | Image annotation |
+| Color correction | 📋 Planned | v2.0 | Blue filter removal |
+| Depth/time overlay | 🔮 Future | v3.0 | Requires camera integration |
 
 **v2.0 Tasks:**
 - [ ] Photo/video picker in dive edit form
@@ -789,29 +643,20 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 - [ ] Blue/green color cast removal filter
 - [ ] Underwater white balance correction
 
-**v3.0 Tasks:**
-- [ ] Real-time depth/time overlay for supported camera housings (Weefine, SeaLife)
-
 ---
 
 # Category 10: Search, Filters, Statistics & Reports
 
 ## 10.1 Search & Filtering
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Full-text search | ✅ Implemented | MVP | - | Notes, sites, buddies |
-| Filter by date range | ✅ Implemented | MVP | - | |
-| Filter by location, depth | ✅ Implemented | MVP | - | |
-| Bulk operations (delete) | ✅ Implemented | v1.0 | - | Multi-select and delete dives with undo |
-| Filter by tags, gas, gear | 📋 Planned | v1.5 | Medium | After tags implemented |
-| Saved filters ("Smart Logs") | 📋 Planned | v2.0 | Low | Persistent filter sets |
-
-**v1.0 Tasks:** ✅ COMPLETE
-- [x] Multi-select mode in dive list (long-press or checkbox toggle)
-- [x] Select all / deselect all options
-- [x] Bulk delete with confirmation dialog (showing count)
-- [x] Undo functionality for bulk delete (snackbar with undo for 5 seconds)
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Full-text search | ✅ Implemented | MVP | Notes, sites, buddies |
+| Filter by date range | ✅ Implemented | MVP | |
+| Filter by location, depth | ✅ Implemented | MVP | |
+| Bulk delete with undo | ✅ Implemented | v1.0 | Multi-select mode |
+| Filter by tags, gas, gear | 📋 Planned | v1.5 | |
+| Saved filters ("Smart Logs") | 📋 Planned | v2.0 | Persistent filter sets |
 
 **v1.5 Tasks:**
 - [ ] Expand filter UI with all available criteria (tags, equipment, buddy, gas mix, certification)
@@ -829,18 +674,14 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 10.2 Statistics
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Total dives, bottom time | ✅ Implemented | MVP | - | |
-| Breakdown by year/country/site | ✅ Implemented | MVP | - | Top sites chart |
-| Depth/time histograms | ✅ Implemented | MVP | - | Depth distribution |
-| SAC trends | 📋 Planned | v1.5 | Medium | Line chart over time |
-| Temperature graphs | 📋 Planned | v1.5 | Low | Preferred temp range |
-| Best/worst/deepest/longest | ✅ Implemented | v1.0 | - | Records page complete |
-
-**v1.0 Tasks:**
-- [x] "Records" page with cards for: Deepest Dive, Longest Dive, Coldest Water, Warmest Water, First Dive, Latest Dive
-- [x] Each record card shows dive link
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Total dives, bottom time | ✅ Implemented | MVP | |
+| Breakdown by year/country/site | ✅ Implemented | MVP | Top sites chart |
+| Depth/time histograms | ✅ Implemented | MVP | Depth distribution |
+| Records page | ✅ Implemented | v1.0 | Deepest, longest, coldest, warmest, first, last |
+| SAC trends | 📋 Planned | v1.5 | Line chart over time |
+| Temperature graphs | 📋 Planned | v1.5 | Preferred temp range |
 
 **v1.5 Tasks:**
 - [ ] SAC trend line chart (average SAC per month over last 2 years)
@@ -857,12 +698,12 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 10.3 Reports & Printing
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| PDF logbook export | ✅ Implemented | MVP | - | Basic layout |
-| Custom report designer | 📋 Planned | v2.0 | Low | Drag-drop fields |
-| Pre-made layouts | 📋 Planned | v1.5 | Low | A5, 3-ring, agency style |
-| Professional logs | 📋 Planned | v1.5 | Medium | For instructors, DMs |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| PDF logbook export | ✅ Implemented | MVP | Basic layout |
+| Custom report designer | 📋 Planned | v2.0 | Drag-drop fields |
+| Pre-made layouts | 📋 Planned | v1.5 | A5, 3-ring, agency style |
+| Professional logs | 📋 Planned | v1.5 | For instructors, DMs |
 
 **v1.5 Tasks:**
 - [ ] Multiple PDF templates (Simple, Detailed, Professional, PADI-style, NAUI-style)
@@ -881,24 +722,23 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 11.1 Dive Planner
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Open-circuit planner | 📋 Planned | v1.5 | 🎯 High | Multi-level plans |
-| Multi-gas plans | 📋 Planned | v1.5 | High | With deco stops |
-| Repetitive dive planning | 📋 Planned | v1.5 | Medium | Surface interval, tissue loading |
-| Save planned dives | 📋 Planned | v1.5 | Medium | Mark as "planned" in DB |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Open-circuit planner | 📋 Planned | v1.5 | Multi-level plans |
+| Multi-gas plans | 📋 Planned | v1.5 | With deco stops |
+| Repetitive dive planning | 📋 Planned | v1.5 | Surface interval, tissue loading |
+| Save planned dives | 📋 Planned | v1.5 | Mark as "planned" in DB |
 
-**v1.5 Tasks (Covered in Category 4.5 - Duplicate Reference):**
-- See "4.5 Planning Utilities" for detailed task list
+*See "4.5 Planning Utilities" for detailed task list*
 
 ---
 
 ## 11.2 Deco Calculator
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Real-time simulation | 📋 Planned | v1.5 | High | Interactive depth/time |
-| NDL, ceiling, tissue loading | 📋 Planned | v1.5 | High | Visual display |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Real-time simulation | 📋 Planned | v1.5 | Interactive depth/time |
+| NDL, ceiling, tissue loading | 📋 Planned | v1.5 | Visual display |
 
 **v1.5 Tasks:**
 - [ ] Deco Calculator page (separate from planner)
@@ -910,12 +750,13 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 11.3 Gas Calculators
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| MOD calculator | ✅ Implemented | MVP | - | In GasMix entity |
-| Best-mix calculator | 📋 Planned | v1.5 | Low | Target depth → O₂% |
-| Gas consumption calculator | 📋 Planned | v1.5 | Medium | Based on SAC, depth, time |
-| Rock-bottom calculator | 📋 Planned | v1.5 | Medium | Emergency gas reserve |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| MOD calculator | ✅ Implemented | MVP | In GasMix entity |
+| EAD / END calculator | ✅ Implemented | MVP | In GasMix entity |
+| Best-mix calculator | 📋 Planned | v1.5 | Target depth → O₂% |
+| Gas consumption calculator | 📋 Planned | v1.5 | Based on SAC, depth, time |
+| Rock-bottom calculator | 📋 Planned | v1.5 | Emergency gas reserve |
 
 **v1.5 Tasks:**
 - [ ] Calculators page with tabs: MOD, Best Mix, Gas Consumption, Rock Bottom
@@ -928,11 +769,10 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 11.4 Convenience Tools
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Surface interval planner | 📋 Planned | v1.5 | Low | How long to wait |
-| EAD / END calculator | ✅ Implemented | MVP | - | In GasMix entity |
-| Altitude conversion | 📋 Planned | v2.0 | Low | Altitude dive tables |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Surface interval planner | 📋 Planned | v1.5 | How long to wait |
+| Altitude conversion | 📋 Planned | v2.0 | Altitude dive tables |
 
 **v1.5 Tasks:**
 - [ ] Surface Interval Tool: Input previous dive (depth, time, gas) + desired next dive → Output min surface interval
@@ -944,10 +784,10 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 12.1 Cloud Accounts
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Optional cloud account | 📋 Planned | v2.0 | Medium | Post-MVP as stated in docs |
-| Anonymous usage | ✅ Implemented | MVP | - | Local-first, no account required |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Anonymous usage | ✅ Implemented | MVP | Local-first, no account required |
+| Optional cloud account | 📋 Planned | v2.0 | Opt-in only |
 
 **v2.0 Tasks:**
 - [ ] Backend service (Firebase, Supabase, or custom)
@@ -959,11 +799,11 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 12.2 Synchronization
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Desktop ↔ mobile ↔ web sync | 📋 Planned | v2.0 | Medium | Requires backend |
-| Multi-device support | 📋 Planned | v2.0 | Medium | Login on multiple devices |
-| Conflict resolution | 📋 Planned | v2.0 | Medium | Last-write-wins or manual |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Desktop ↔ mobile ↔ web sync | 📋 Planned | v2.0 | Requires backend |
+| Multi-device support | 📋 Planned | v2.0 | Login on multiple devices |
+| Conflict resolution | 📋 Planned | v2.0 | Last-write-wins or manual |
 
 **v2.0 Tasks:**
 - [ ] Drift schema with `last_modified_at`, `device_id`, `is_deleted` for all tables
@@ -976,11 +816,11 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 12.3 Backup
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Local backup export | ✅ Implemented | MVP | - | Full SQLite export |
-| Online backup servers | 📋 Planned | v2.0 | Low | Automatic cloud backup |
-| Sync via Dropbox | 📋 Planned | v2.0 | Low | 3rd-party storage sync |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Local backup export | ✅ Implemented | MVP | Full SQLite export |
+| Online backup servers | 📋 Planned | v2.0 | Automatic cloud backup |
+| Sync via Dropbox | 📋 Planned | v2.0 | 3rd-party storage sync |
 
 **v2.0 Tasks:**
 - [ ] Automatic daily backup to cloud (if opted in)
@@ -991,10 +831,10 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 12.4 Offline Behavior
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Full offline logging | ✅ Implemented | MVP | - | Local-first design |
-| Deferred sync | 📋 Planned | v2.0 | Medium | Queue changes when offline |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Full offline logging | ✅ Implemented | MVP | Local-first design |
+| Deferred sync | 📋 Planned | v2.0 | Queue changes when offline |
 
 **v2.0 Tasks:**
 - [ ] Offline queue for pending sync operations
@@ -1007,21 +847,16 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 13.1 File Formats
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| CSV import/export | ✅ Implemented | MVP | - | Dives, sites, equipment |
-| UDDF import/export | ✅ Implemented | MVP | - | v3.2.0 compliant |
-| UDDF buddy/guide export | ✅ Implemented | v1.1 | - | Export to both legacy and app-specific fields |
-| DAN DL7 export | 📋 Planned | v1.5 | Low | Research data format |
-| PDF export | ✅ Implemented | MVP | - | Printable logbook |
-| HTML export | 📋 Planned | v2.0 | Low | Web-viewable logbook |
-| Excel export | 📋 Planned | v1.5 | Low | .xlsx format |
-| Google Earth KML export | 📋 Planned | v1.5 | Low | Map all dive sites |
-
-**v1.1 Tasks:** (deferred from v1.0)
-- [x] On UDDF export: write non-legacy Buddy entities to both legacy UDDF fields (buddy, divemaster, guide) and app-specific fields for maximum compatibility
-- [x] On UDDF import: auto-create Buddy entities from legacy plaintext buddy/divemaster/guide fields
-- [x] Remove legacy buddy/divemaster text fields from dive edit screen
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| CSV import/export | ✅ Implemented | MVP | Dives, sites, equipment |
+| UDDF import/export | ✅ Implemented | MVP | v3.2.0 compliant |
+| UDDF buddy/guide export | ✅ Implemented | v1.1 | Export to both legacy and app-specific fields |
+| PDF export | ✅ Implemented | MVP | Printable logbook |
+| DAN DL7 export | 📋 Planned | v1.5 | Research data format |
+| Excel export | 📋 Planned | v1.5 | .xlsx format |
+| Google Earth KML export | 📋 Planned | v1.5 | Map all dive sites |
+| HTML export | 📋 Planned | v2.0 | Web-viewable logbook |
 
 **v1.5 Tasks:**
 - [ ] DAN DL7 export (research format specification)
@@ -1036,13 +871,13 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 13.2 Interoperability
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Import from Subsurface | 📋 Planned | v1.5 | Medium | UDDF or XML |
-| Import from MacDive | 📋 Planned | v1.5 | Low | CSV or proprietary format |
-| Import from other apps | 📋 Planned | v1.5 | Low | Diving Log, DiveMate, etc. |
-| Upload to divelogs.de | 📋 Planned | v2.0 | Low | API integration |
-| Garmin Connect integration | 📋 Planned | v2.0 | Low | Import Garmin watch dives |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Import from Subsurface | 📋 Planned | v1.5 | UDDF or XML |
+| Import from MacDive | 📋 Planned | v1.5 | CSV or proprietary format |
+| Import from other apps | 📋 Planned | v1.5 | Diving Log, DiveMate, etc. |
+| Upload to divelogs.de | 📋 Planned | v2.0 | API integration |
+| Garmin Connect integration | 📋 Planned | v2.0 | Import Garmin watch dives |
 
 **v1.5 Tasks:**
 - [ ] Import wizard with app selection (Subsurface, MacDive, Diving Log, etc.)
@@ -1058,10 +893,10 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 13.3 Universal Import
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Universal CSV import | ✅ Implemented | MVP | - | Configurable column mapping |
-| Format auto-detection | 📋 Planned | v1.5 | Low | Guess format from headers |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Universal CSV import | ✅ Implemented | MVP | Configurable column mapping |
+| Format auto-detection | 📋 Planned | v1.5 | Guess format from headers |
 
 **v1.5 Tasks:**
 - [ ] Smart format detection (analyze CSV headers, suggest mapping)
@@ -1074,11 +909,11 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 14.1 Social Sharing
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Share dives to social media | 📋 Planned | v2.0 | Low | FB, Instagram, Twitter |
-| Generate composite images | 📋 Planned | v2.0 | Low | Profile + photo + stats |
-| Share links | 📋 Planned | v2.0 | Low | Web view of dive (requires backend) |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Share dives to social media | 📋 Planned | v2.0 | FB, Instagram, Twitter |
+| Generate composite images | 📋 Planned | v2.0 | Profile + photo + stats |
+| Share links | 📋 Planned | v2.0 | Web view of dive (requires backend) |
 
 **v2.0 Tasks:**
 - [ ] "Share Dive" action with platform picker
@@ -1090,11 +925,11 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 14.2 Community Maps & Logs
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| View community dive sites | 📋 Planned | v2.0 | Low | Requires backend |
-| Explore nearby sites | 📋 Planned | v2.0 | Low | GPS-based search |
-| User-submitted site photos | 📋 Planned | v2.0 | Low | Photo gallery per site |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| View community dive sites | 📋 Planned | v2.0 | Requires backend |
+| Explore nearby sites | 📋 Planned | v2.0 | GPS-based search |
+| User-submitted site photos | 📋 Planned | v2.0 | Photo gallery per site |
 
 **v2.0 Tasks:**
 - [ ] Community backend (user accounts, public profiles)
@@ -1106,17 +941,11 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 14.3 Booking & Commerce
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Browse/book fun dives | 🔮 Future | v3.0 | Low | PADI Adventures-style |
-| Book courses | 🔮 Future | v3.0 | Low | Integration with dive shops |
-| Pass cert details to bookings | 🔮 Future | v3.0 | Low | Auto-fill diver info |
-
-**v3.0 Tasks (Future):**
-- [ ] Partner with dive operators for booking API
-- [ ] Dive trip search (location, date range, price)
-- [ ] In-app booking with payment
-- [ ] Auto-populate diver profile (certs, medical, emergency contact)
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Browse/book fun dives | 🔮 Future | v3.0 | PADI Adventures-style |
+| Book courses | 🔮 Future | v3.0 | Integration with dive shops |
+| Pass cert details to bookings | 🔮 Future | v3.0 | Auto-fill diver info |
 
 ---
 
@@ -1124,12 +953,12 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 15.1 Layout & Customization
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Customizable logbook columns | 📋 Planned | v2.0 | Low | Show/hide fields |
-| Dark mode | ✅ Implemented | MVP | - | Light/Dark/System |
-| Themes | 📋 Planned | v2.0 | Low | Custom color schemes |
-| Quick actions | 📋 Planned | v1.5 | Low | iOS shortcuts, Android widgets |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Dark mode | ✅ Implemented | MVP | Light/Dark/System |
+| Customizable logbook columns | 📋 Planned | v2.0 | Show/hide fields |
+| Themes | 📋 Planned | v2.0 | Custom color schemes |
+| Quick actions | 📋 Planned | v1.5 | iOS shortcuts, Android widgets |
 
 **v1.5 Tasks:**
 - [ ] iOS 3D Touch shortcuts (Add Dive, View Last Dive)
@@ -1142,25 +971,13 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ---
 
-## 15.2 Tags & Smart Collections
+## 15.2 Multi-User / Family Support
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Per-dive tags | 📋 Planned | v1.5 | Medium | (Covered in Category 1.4) |
-| Smart lists | 📋 Planned | v2.0 | Low | Auto-updating filtered views |
-
-**v2.0 Tasks:**
-- See Category 10.1 "Saved Filters" for Smart Logs implementation
-
----
-
-## 15.3 Multi-User / Family Support
-
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Multiple divers per database | 📋 Planned | v2.0 | Low | DiveMate-style |
-| Account switching | 📋 Planned | v2.0 | Low | Shared devices |
-| Family subscription | 🔮 Future | v3.0 | Low | Monetization strategy |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Multiple divers per database | 📋 Planned | v2.0 | DiveMate-style |
+| Account switching | 📋 Planned | v2.0 | Shared devices |
+| Family subscription | 🔮 Future | v3.0 | Monetization strategy |
 
 **v2.0 Tasks:**
 - [ ] Diver entity (name, certs, profile)
@@ -1170,14 +987,14 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ---
 
-## 15.4 Accessibility & Localization
+## 15.3 Accessibility & Localization
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Multi-language support | 📋 Planned | v2.0 | 🎯 High | i18n with ARB files |
-| Screen reader support | 📋 Planned | v1.5 | Medium | Accessibility testing |
-| Keyboard navigation | 📋 Planned | v1.5 | Low | Desktop accessibility |
-| High contrast themes | 📋 Planned | v2.0 | Low | Accessibility feature |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Multi-language support | 📋 Planned | v2.0 | i18n with ARB files |
+| Screen reader support | 📋 Planned | v1.5 | Accessibility testing |
+| Keyboard navigation | 📋 Planned | v1.5 | Desktop accessibility |
+| High contrast themes | 📋 Planned | v2.0 | Accessibility feature |
 
 **v1.5 Tasks:**
 - [ ] Accessibility audit (screen reader testing on iOS/Android)
@@ -1198,26 +1015,21 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ## 16.1 Advanced Hardware Integration
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Assistant dive computer (smartphone housing) | 🔮 Future | v3.0 | Low | Dive+ + Weefine style |
-| Remote DC configuration | 📋 Planned | v2.0 | Low | Bluetooth settings sync |
-| Firmware updates via app | 📋 Planned | v2.0 | Low | Shearwater-specific |
-
-**v3.0 Tasks:**
-- [ ] Bluetooth depth sensor integration (if hardware available)
-- [ ] Real-time dive tracking mode (display current depth, time, NDL)
-- [ ] Post-dive auto-upload from phone dive computer data
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Assistant dive computer | 🔮 Future | v3.0 | Smartphone in housing |
+| Remote DC configuration | 📋 Planned | v2.0 | Bluetooth settings sync |
+| Firmware updates via app | 📋 Planned | v2.0 | Shearwater-specific |
 
 ---
 
 ## 16.2 Partner Ecosystem Integration
 
-| Feature | Status | Phase | Priority | Notes |
-|---------|--------|-------|----------|-------|
-| Shearwater Cloud sync | 📋 Planned | v2.0 | Low | API integration |
-| Garmin Dive sync | 📋 Planned | v2.0 | Low | Import from Garmin |
-| PADI eCard integration | 📋 Planned | v2.0 | Low | Display PADI certs |
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Shearwater Cloud sync | 📋 Planned | v2.0 | API integration |
+| Garmin Dive sync | 📋 Planned | v2.0 | Import from Garmin |
+| PADI eCard integration | 📋 Planned | v2.0 | Display PADI certs |
 
 **v2.0 Tasks:**
 - [ ] Shearwater Cloud API (import dives from cloud)
@@ -1226,807 +1038,120 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 ---
 
-# Implementation Priorities by Phase
+# Data Model Reference
 
-## ✅ MVP (Complete)
-
-**Completed Features:**
-- Core dive logging (CRUD, detail, list)
-- Dive profiles with charts
-- Multi-tank support with gas mixes
-- Dive sites with map view
-- Equipment management with service tracking
-- Equipment sets
-- Marine life species tracking
-- Basic statistics (total dives, depth distribution, dives by month, top sites)
-- CSV, UDDF, PDF import/export
-- Database backup/restore
-- Settings (units, theme, defaults)
-- Search and filtering
-
-**Lines of Code:** ~14,305 Dart lines across 45 files
-
----
-
-## ✅ v1.0 (Production Release) - COMPLETE
-
-**Goal:** Production-ready app suitable for 80% of recreational divers
-
-**Sprint Progress:**
-- Sprint 1: Buddy System ✅ COMPLETE
-- Sprint 2: Certifications & Service Records ✅ COMPLETE
-- Sprint 3: Dive Centers & Conditions ✅ COMPLETE
-- Sprint 4: Testing & Polish ✅ COMPLETE
-- Sprint 5: Trips & Bulk Operations ✅ COMPLETE
-
-**Critical Path Features:**
-
-### Buddy System ✅ COMPLETE
-- [x] Buddy entity and CRUD
-- [x] Convert dive buddy field to many-to-many relationship
-- [x] Buddy roles (buddy, guide, instructor)
-- [x] Buddy detail page with shared dive history
-
-### Certifications ✅ COMPLETE
-- [x] Certification entity and CRUD
-- [ ] Certification card photo storage - deferred to v2.0
-- [x] Expiry warnings
-- [x] Certifications page
-
-### Service Records ✅ COMPLETE
-- [x] Service record entity and CRUD
-- [x] Service history per equipment item
-- [ ] Service log export - deferred to v2.0
-
-### Trip Grouping ✅ COMPLETE
-- [x] Trip entity linking multiple dives
-- [x] Trip list, detail, and edit pages
-- [x] Assign dives to trips in dive edit form
-- [x] Trip summary with stats and dive count
-- [x] Trip-based export (CSV, PDF)
-
-### Bulk Operations ✅ COMPLETE
-- [x] Multi-select mode in dive list
-- [x] Bulk delete with confirmation
-- [x] Select all / deselect all
-- [x] Undo functionality for bulk operations
-
-### Dive Conditions Enhancements ✅ COMPLETE
-- [x] Current, swell, entry/exit method fields
-- [x] Water type field
-- [x] Boat name, operator, dive center fields
-
-### Dive Center/Operator Management ✅ COMPLETE
-- [x] Dive center entity and CRUD
-- [x] Link dives to dive centers
-- [x] Dive center detail page
-
-### Equipment Enhancements ✅ COMPLETE
-- [x] Equipment size field
-- [x] Equipment status field
-- [x] Equipment set tables (ready)
-- [x] Weight system and amount fields
-
-### UX Improvements
-- [x] Zoom/pan on profile charts ✅ v1.1
-- [x] Touch markers on profiles ✅ v1.1
-- [x] Auto-capture GPS on mobile (dive creation) ✅ v1.1
-- [x] Reverse geocoding for sites ✅ v1.1
-- [x] Map marker clustering ✅ v1.1
-- [x] "Records" page (deepest, longest, coldest, warmest, first, last)
-
-### Testing & Quality ✅ COMPLETE
-- [x] Unit tests for repositories (165 tests, 80%+ coverage)
-- [x] Widget tests for key flows (48 tests)
-- [x] Integration tests ✅ v1.1
-- [x] Performance testing (1000+ dives) ✅ v1.1
-- [x] Error handling improvements (try-catch with logging)
-- [x] Fix N+1 query issues in dive repository
-
-**v1.1 Testing Additions:** ✅ COMPLETE
-- [x] Integration tests for complete dive logging workflow
-- [x] Integration tests for trip management workflow
-- [x] Performance test: Creating and querying 1000+ dives
-- [x] Performance test: Query performance with large datasets
-- [x] Performance test: Pagination with 2000+ dives
-- [x] Performance test: Equipment usage tracking with extensive data
-- [x] Performance test: Complex statistics calculations
-- [x] Stress test: Concurrent operations
-
-**Completed Sprint Effort:**
-- Sprint 1 (Buddies): 2 weeks ✅
-- Sprint 2 (Certifications & Service Records): 2 weeks ✅
-- Sprint 3 (Dive Centers & Conditions): 2 weeks ✅
-- Sprint 4 (Testing & Polish): 3 weeks ✅
-- Sprint 5 (Trips & Bulk Operations): 2 weeks ✅
-- **Total: 11 weeks - COMPLETE**
-
----
-
-## 📋 v1.5 (Technical Diving & DC Integration) - Est. 4-6 Months After v1.0
-
-**Goal:** Advanced features for technical divers and dive computer users
-
-**Major Features:**
-
-### Dive Computer Integration (🎯 CRITICAL)
-- [ ] libdivecomputer FFI integration
-- [ ] Bluetooth connection manager
-- [ ] USB device enumeration
-- [ ] Device detection and pairing UI
-- [ ] Download wizard with progress
-- [ ] 300+ model support
-- [ ] Duplicate detection
-- [ ] Conflict resolution
-- [ ] Dive computer entity and management
-- [ ] Last download timestamp tracking
-
-### Decompression & Dive Planning (🎯 CRITICAL)
-- [ ] Bühlmann ZH-L16C algorithm implementation
-- [ ] Gradient factors configuration
-- [ ] Tissue loading calculations
-- [ ] NDL calculator
-- [ ] Ceiling calculation and display
-- [ ] TTS (Time To Surface)
-- [ ] Deco schedule generation
-- [ ] Dive planner page (multi-level, multi-gas)
-- [ ] Repetitive dive planning
-- [ ] Gas consumption projections
-- [ ] Save/load planned dives
-
-### Technical Diving Support
-- [ ] Profile event markers (gas switches, deco stops, alerts)
-- [ ] Ascent rate warnings
-- [ ] CNS O₂ toxicity tracking
-- [ ] OTU calculations
-- [ ] ppO₂ graph for CCR dives
-- [ ] CCR dive mode (setpoints, diluent, bailout)
-- [ ] Gas switch visualization on profile
-- [ ] SAC/RMV per segment
-- [ ] MOD/END/Best-Mix calculators page
-
-### Advanced Features
-- [x] Tags system (many-to-many) ✅ COMPLETE
-- [x] Tag-based filtering ✅ COMPLETE
-- [ ] Offline map tile caching
-- [ ] Map region download for offline
-- [ ] Species detail pages with photos
-- [ ] Species statistics
-
-### Data Portability
-- [ ] Excel export
-- [ ] KML export (Google Earth)
-- [ ] DAN DL7 export
-- [ ] Import from Subsurface, MacDive, Diving Log
-- [ ] Import wizard with format detection
-
-### UX & Accessibility
-- [ ] iOS shortcuts, Android widgets
-- [ ] Screen reader support
-- [ ] Keyboard navigation (desktop)
-- [ ] Accessibility audit and fixes
-
-**Estimated Effort:**
-- DC Integration: 6-8 weeks
-- Deco Algorithms: 4-6 weeks
-- Dive Planner: 3-4 weeks
-- Technical Diving: 2-3 weeks
-- Other Features: 4-5 weeks
-- Testing: 3-4 weeks
-- **Total: ~22-28 weeks**
-
----
-
-## 📋 v2.0 (Social, Cloud & Community) - Est. 8-12 Months After v1.0
-
-**Goal:** Community platform with optional cloud sync
-
-**Major Features:**
-
-### Cloud Sync & Multi-Device
-- [ ] Backend service (Firebase/Supabase/custom)
-- [ ] User authentication
-- [ ] Opt-in cloud sync
-- [ ] Sync engine (bidirectional, incremental)
-- [ ] Conflict resolution
-- [ ] Multi-device support
-- [ ] Automatic cloud backups
-
-### Photos & Media
-- [ ] Photo/video attachment to dives
-- [ ] Photo gallery view
-- [ ] Caption and metadata
-- [ ] Export dives with photos
-
-### Community Features
-- [ ] Public profiles
-- [ ] Community dive site database
-- [ ] Site photos, reviews, ratings
-- [ ] Discover nearby sites
-- [ ] Share dives to social media
-- [ ] Generate shareable images
-- [ ] Public dive view pages
-
-### Advanced Statistics & Reports
-- [ ] SAC trend charts
-- [ ] Dive frequency charts
-- [ ] Temperature preference charts
-- [ ] Advanced analytics dashboard
-- [ ] Year-in-review auto-generation
-- [ ] Saved filters (Smart Logs)
-- [ ] Custom PDF report templates
-
-### Advanced Customization
-- [ ] Customizable dive list columns
-- [ ] Theme editor
-- [ ] Layout presets
-- [ ] Multi-diver support (family accounts)
-- [ ] Diver switching
-
-### Localization
-- [ ] i18n implementation
-- [ ] 7+ language translations
-- [ ] RTL support
-- [ ] Localized formats
-
-### Partner Integrations
-- [ ] Shearwater Cloud API
-- [ ] Garmin Connect API
-- [ ] PADI eCard integration
-- [ ] divelogs.de API
-
-### Advanced Features
-- [ ] Profile editing (smoothing, outliers)
-- [ ] Manual profile drawing
-- [ ] Profile comparison (buddies)
-- [ ] Species tagging in photos
-- [ ] Color correction filters
-- [ ] HTML export
-- [ ] Digital signatures
-
-**Estimated Effort:**
-- Photos & Media: 2 weeks
-- Backend & Sync: 8-10 weeks
-- Community Features: 6-8 weeks
-- Advanced Stats: 3-4 weeks
-- Localization: 4-5 weeks
-- Integrations: 4-5 weeks
-- Other Features: 4-5 weeks
-- Testing: 4-5 weeks
-- **Total: ~35-44 weeks**
-
----
-
-## 🔮 v3.0 (AI & Advanced Platform) - 12-18+ Months
-
-**Goal:** Next-generation dive logging with AI and advanced hardware integration
-
-**Features:**
-- [ ] Species recognition from photos (ML model)
-- [ ] Assistant dive computer (smartphone in housing)
-- [ ] Real-time dive tracking mode
-- [ ] Dive trip booking & commerce
-- [ ] Course booking integration
-- [ ] Family subscription plans
-- [ ] Advanced profile analytics
-- [ ] Predictive dive planning (AI suggestions)
-- [ ] Social networking features
-- [ ] Buddy finding / matching
-- [ ] Dive group organization
-- [ ] Event planning
-- [ ] Web-based dive planning tools
-
-**Estimated Effort:** Ongoing development post-v2.0
-
----
-
-# Data Model Extensions Required
-
-## New Tables for v1.0
+## v1.0/v1.1 Tables (Implemented)
 
 ```sql
--- Buddies
-CREATE TABLE buddies (
-  id TEXT PRIMARY KEY,
-  name TEXT NOT NULL,
-  email TEXT,
-  phone TEXT,
-  certification_level TEXT,
-  agency TEXT,
-  photo_path TEXT,
-  notes TEXT,
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL
-);
-
--- Dive Buddies (many-to-many with roles)
-CREATE TABLE dive_buddies (
-  id TEXT PRIMARY KEY,
-  dive_id TEXT NOT NULL REFERENCES dives(id) ON DELETE CASCADE,
-  buddy_id TEXT NOT NULL REFERENCES buddies(id) ON DELETE CASCADE,
-  role TEXT NOT NULL, -- Buddy, Guide, Instructor, Student, Solo
-  created_at INTEGER NOT NULL,
-  UNIQUE(dive_id, buddy_id)
-);
-
--- Certifications
-CREATE TABLE certifications (
-  id TEXT PRIMARY KEY,
-  agency TEXT NOT NULL,
-  level TEXT NOT NULL,
-  cert_number TEXT,
-  issue_date INTEGER NOT NULL,
-  expiry_date INTEGER,
-  instructor_name TEXT,
-  card_image_path TEXT,
-  notes TEXT,
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL
-);
-
--- Service Records
-CREATE TABLE service_records (
-  id TEXT PRIMARY KEY,
-  equipment_id TEXT NOT NULL REFERENCES equipment(id) ON DELETE CASCADE,
-  service_date INTEGER NOT NULL,
-  shop_name TEXT,
-  cost_currency TEXT,
-  cost_amount REAL,
-  work_performed TEXT,
-  next_service_due INTEGER,
-  notes TEXT,
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL
-);
-
--- Dive Centers / Operators
-CREATE TABLE dive_centers (
-  id TEXT PRIMARY KEY,
-  name TEXT NOT NULL,
-  location TEXT,
-  country TEXT,
-  gps_latitude REAL,
-  gps_longitude REAL,
-  phone TEXT,
-  email TEXT,
-  website TEXT,
-  notes TEXT,
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL
-);
-
--- Dive Weights (multiple weight entries per dive)
-CREATE TABLE dive_weights (
-  id TEXT PRIMARY KEY,
-  dive_id TEXT NOT NULL REFERENCES dives(id) ON DELETE CASCADE,
-  weight_type TEXT NOT NULL, -- Integrated, Belt, Trim, Ankle, Backplate, Other
-  amount_kg REAL NOT NULL,
-  notes TEXT,
-  created_at INTEGER NOT NULL,
-  UNIQUE(dive_id, weight_type)
-);
-
--- Tank Presets (user-defined common tank configurations)
-CREATE TABLE tank_presets (
-  id TEXT PRIMARY KEY,
-  name TEXT NOT NULL, -- e.g., "AL80", "HP100", "Doubles HP80"
-  volume_liters REAL NOT NULL,
-  working_pressure_bar REAL,
-  material TEXT, -- Steel, Aluminum, Carbon Fiber
-  o2_percent REAL DEFAULT 21,
-  he_percent REAL DEFAULT 0,
-  is_system_preset INTEGER DEFAULT 0, -- true for built-in presets
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL
-);
-
--- Extend dives table
-ALTER TABLE dives ADD COLUMN dive_center_id TEXT REFERENCES dive_centers(id);
-ALTER TABLE dives ADD COLUMN boat_name TEXT;
-ALTER TABLE dives ADD COLUMN operator_name TEXT;
-ALTER TABLE dives ADD COLUMN current_direction TEXT;
-ALTER TABLE dives ADD COLUMN current_strength TEXT;
-ALTER TABLE dives ADD COLUMN swell_height_meters REAL;
-ALTER TABLE dives ADD COLUMN entry_method TEXT;
-ALTER TABLE dives ADD COLUMN exit_method TEXT;
-ALTER TABLE dives ADD COLUMN water_type TEXT;
-ALTER TABLE dives ADD COLUMN is_favorite INTEGER DEFAULT 0;
-
--- Extend equipment table
-ALTER TABLE equipment ADD COLUMN size TEXT;
-ALTER TABLE equipment ADD COLUMN status TEXT DEFAULT 'Active';
-
--- Extend dive_sites table
-ALTER TABLE dive_sites ADD COLUMN typical_depth_min REAL;
-ALTER TABLE dive_sites ADD COLUMN typical_depth_max REAL;
-ALTER TABLE dive_sites ADD COLUMN difficulty TEXT;
-ALTER TABLE dive_sites ADD COLUMN hazards TEXT;
-ALTER TABLE dive_sites ADD COLUMN access_notes TEXT;
-ALTER TABLE dive_sites ADD COLUMN mooring_number TEXT;
-ALTER TABLE dive_sites ADD COLUMN parking_info TEXT;
+-- Core entities: dives, dive_sites, equipment, species, sightings
+-- v1.0 additions: buddies, dive_buddies, certifications, service_records, 
+--                 dive_centers, dive_weights, tank_presets, trips
+-- v1.1 additions: tags, dive_tags, entry_time/exit_time on dives,
+--                 min_depth/max_depth/difficulty/hazards on sites
 ```
 
-## New Tables for v1.5
+## v1.5 Tables (Planned)
 
 ```sql
--- Tags ✅ IMPLEMENTED (Schema v8)
-CREATE TABLE tags (
-  id TEXT PRIMARY KEY,
-  name TEXT NOT NULL UNIQUE,
-  color TEXT,
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL
-);
-
--- Dive Tags (many-to-many) ✅ IMPLEMENTED (Schema v8)
-CREATE TABLE dive_tags (
-  id TEXT PRIMARY KEY,
-  dive_id TEXT NOT NULL REFERENCES dives(id) ON DELETE CASCADE,
-  tag_id TEXT NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
-  created_at INTEGER NOT NULL
-);
-
--- Indexes for tags ✅ IMPLEMENTED
-CREATE UNIQUE INDEX idx_tags_name ON tags(name);
-CREATE INDEX idx_dive_tags_dive_id ON dive_tags(dive_id);
-CREATE INDEX idx_dive_tags_tag_id ON dive_tags(tag_id);
-
--- is_favorite on dives ✅ IMPLEMENTED (Schema v8)
-ALTER TABLE dives ADD COLUMN is_favorite INTEGER DEFAULT 0;
-
--- Trips
-CREATE TABLE trips (
-  id TEXT PRIMARY KEY,
-  name TEXT NOT NULL,
-  start_date INTEGER NOT NULL,
-  end_date INTEGER NOT NULL,
-  location TEXT,
-  resort_name TEXT,
-  liveaboard_name TEXT,
-  notes TEXT,
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL
-);
-
--- Extend dives table
-ALTER TABLE dives ADD COLUMN trip_id TEXT REFERENCES trips(id);
-
--- Dive Computers
-CREATE TABLE dive_computers (
-  id TEXT PRIMARY KEY,
-  name TEXT NOT NULL,
-  manufacturer TEXT NOT NULL,
-  model TEXT NOT NULL,
-  serial_number TEXT,
-  connection_type TEXT, -- USB, BT Classic, BLE
-  connection_address TEXT, -- COM port, BT address
-  last_download_timestamp INTEGER,
-  last_used INTEGER,
-  notes TEXT,
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL
-);
-
--- Extend dives table (track which computer)
-ALTER TABLE dives ADD COLUMN computer_id TEXT REFERENCES dive_computers(id);
-
--- Gas Switches (profile events)
-CREATE TABLE gas_switches (
-  id TEXT PRIMARY KEY,
-  dive_id TEXT NOT NULL REFERENCES dives(id) ON DELETE CASCADE,
-  timestamp INTEGER NOT NULL,
-  tank_id TEXT NOT NULL REFERENCES dive_tanks(id) ON DELETE CASCADE,
-  created_at INTEGER NOT NULL
-);
-
--- Profile Events
-CREATE TABLE profile_events (
-  id TEXT PRIMARY KEY,
-  dive_id TEXT NOT NULL REFERENCES dives(id) ON DELETE CASCADE,
-  timestamp INTEGER NOT NULL,
-  event_type TEXT NOT NULL, -- Descent, Ascent, SafetyStop, DecoStop, Alert, GasSwitch
-  description TEXT,
-  created_at INTEGER NOT NULL
-);
-
--- CCR Support
-ALTER TABLE dives ADD COLUMN dive_mode TEXT DEFAULT 'OC'; -- OC, CCR, SCR
-ALTER TABLE dive_tanks ADD COLUMN tank_role TEXT DEFAULT 'BackGas'; -- BackGas, Stage, Deco, Bailout, Diluent
-
--- Extend species table
-ALTER TABLE species ADD COLUMN scientific_name TEXT;
-ALTER TABLE species ADD COLUMN taxonomy_class TEXT;
-ALTER TABLE species ADD COLUMN image_url TEXT;
-ALTER TABLE species ADD COLUMN description TEXT;
-
--- Extend dive_sites table (altitude)
-ALTER TABLE dive_sites ADD COLUMN altitude_meters REAL;
+-- dive_computers (name, manufacturer, model, connection_type, last_download)
+-- gas_switches (dive_id, timestamp, tank_id)
+-- profile_events (dive_id, timestamp, event_type, description)
+-- CCR fields: dive_mode, tank_role
+-- Species extensions: scientific_name, taxonomy_class, image_url
 ```
 
-## New Tables for v2.0
+## v2.0 Tables (Planned)
 
 ```sql
--- Users (for cloud sync)
-CREATE TABLE users (
-  id TEXT PRIMARY KEY,
-  email TEXT NOT NULL UNIQUE,
-  display_name TEXT,
-  avatar_url TEXT,
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL
-);
-
--- Divers (for multi-user support)
-CREATE TABLE divers (
-  id TEXT PRIMARY KEY,
-  user_id TEXT REFERENCES users(id),
-  name TEXT NOT NULL,
-  date_of_birth INTEGER,
-  blood_type TEXT,
-  allergies TEXT,
-  medications TEXT,
-  medical_clearance_date INTEGER,
-  emergency_contact_name TEXT,
-  emergency_contact_phone TEXT,
-  emergency_contact_relationship TEXT,
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL
-);
-
--- Extend all major tables for sync
-ALTER TABLE dives ADD COLUMN last_modified_at INTEGER;
-ALTER TABLE dives ADD COLUMN device_id TEXT;
-ALTER TABLE dives ADD COLUMN is_deleted INTEGER DEFAULT 0;
-ALTER TABLE dives ADD COLUMN diver_id TEXT REFERENCES divers(id);
-
--- Saved Filters (Smart Logs)
-CREATE TABLE saved_filters (
-  id TEXT PRIMARY KEY,
-  name TEXT NOT NULL,
-  description TEXT,
-  icon TEXT,
-  filter_json TEXT NOT NULL, -- JSON-encoded filter criteria
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL
-);
+-- users (for cloud sync)
+-- divers (for multi-user support)
+-- saved_filters (Smart Logs)
+-- Sync fields: last_modified_at, device_id, is_deleted
 ```
 
 ---
 
-# Dependencies & Prerequisites
+# Dependencies
 
-## Technical Dependencies
+## Current (v1.0/v1.1)
+- **Database:** drift, sqlite3
+- **Charts:** fl_chart
+- **Maps:** flutter_map, latlong2, flutter_map_marker_cluster
+- **GPS:** geolocator, geocoding
+- **Export:** pdf, csv, xml
+- **Testing:** flutter_test, mockito
 
-### For v1.0:
-- **Photos:** image_picker, photo_view (already in pubspec.yaml ✅)
-- **GPS:** geolocator, geocoding (need to add)
-- **Testing:** mockito, flutter_test (mockito already added ✅)
+## v1.5 Requirements
+- **Dive Computers:** libdivecomputer (FFI), flutter_blue_plus, usb_serial
+- **Deco:** Custom Bühlmann implementation
 
-### For v1.5:
-- **Dive Computers:**
-  - libdivecomputer C library (external dependency)
-  - dart:ffi for native bindings
-  - flutter_blue_plus (already in pubspec.yaml ✅)
-  - usb_serial (for USB dive computers - add)
-- **Decompression:**
-  - Custom Dart implementation (no external lib needed)
-  - Complex math library support
-
-### For v2.0:
-- **Backend:** Firebase SDK OR Supabase SDK OR custom REST API
+## v2.0 Requirements
+- **Backend:** Firebase/Supabase SDK
 - **Auth:** firebase_auth or supabase_auth
-- **Storage:** firebase_storage or supabase_storage
-- **i18n:** flutter_localizations, intl (already in pubspec.yaml ✅)
-
-## Feature Dependencies (Blockers)
-
-- **Photos (v2.0)** → blocks: EXIF GPS (v2.0), Species Tagging (v2.0), Photo Color Correction (v2.0)
-- **Buddies (v1.0)** → blocks: Buddy Signatures (v1.5), Profile Sharing (v2.0)
-- **Tags (v1.5)** → blocks: Smart Logs (v2.0), Tag-based Stats (v2.0)
-- **Deco Algorithm (v1.5)** → blocks: Dive Planner (v1.5), NDL Display (v1.5), Deco Calculator (v1.5)
-- **Dive Computers (v1.5)** → blocks: Computer-specific features (v2.0)
-- **Cloud Sync (v2.0)** → blocks: Community Features (v2.0), Social Sharing (v2.0)
+- **i18n:** flutter_localizations, intl
 
 ---
 
-# Non-Functional Requirements
+# Release Criteria
 
-## Performance Targets
+## v1.0 ✅ Complete
+- [x] All critical features implemented
+- [x] 80%+ unit test coverage (165+ tests)
+- [x] 60%+ widget test coverage (48+ tests)
+- [x] Zero critical bugs
+- [ ] App store submissions (iOS, Android)
+- [ ] Documentation (user guide, FAQ)
 
-| Metric | Target | Notes |
-|--------|--------|-------|
-| App launch time | <2 seconds | Cold start to home screen |
-| Dive list load (100 dives) | <500ms | With thumbnails |
-| Dive detail load | <200ms | Including profile chart |
-| Search results | <300ms | Full-text search |
-| Export 100 dives to PDF | <5 seconds | With photos |
-| Database size (1000 dives) | <50MB | Excluding photos |
-| Memory usage | <200MB | On mobile devices |
+## v1.1 ✅ Complete
+- [x] Entry/exit times, surface interval, dive numbering
+- [x] GPS integration, reverse geocoding
+- [x] Map marker clustering with color coding
+- [x] Profile zoom/pan and touch markers
+- [x] Equipment status filtering
+- [x] Tags system
+- [x] Integration and performance tests
 
-## Platform Support
+## v1.5 (Planned)
+- [ ] Dive computer import (50+ models)
+- [ ] Bühlmann algorithm validated
+- [ ] Dive planner with deco schedules
+- [ ] Performance with 5000+ dives
 
-| Platform | v1.0 | v1.5 | v2.0 | Notes |
-|----------|------|------|------|-------|
-| iOS | ✅ | ✅ | ✅ | iOS 13+ |
-| Android | ✅ | ✅ | ✅ | Android 7+ |
-| macOS | ✅ | ✅ | ✅ | macOS 11+ |
-| Windows | ✅ | ✅ | ✅ | Windows 10+ |
-| Linux | ✅ | ✅ | ✅ | Desktop Linux |
-| Web | 🔮 | 🔮 | ✅ | v2.0+ (cloud sync required) |
-
-## Testing Coverage Targets
-
-| Phase | Unit Tests | Widget Tests | Integration Tests |
-|-------|------------|--------------|-------------------|
-| v1.0 | 80% | 60% | Key flows |
-| v1.5 | 85% | 70% | All features |
-| v2.0 | 90% | 80% | Comprehensive |
+## v2.0 (Planned)
+- [ ] Cloud sync at scale
+- [ ] 7+ language translations
+- [ ] Community features beta tested
 
 ---
 
-# Success Metrics
+# Platform Support
 
-## v1.0 Release Criteria
-- [x] All critical v1.0 features implemented
-- [x] 80%+ unit test coverage (165 repository tests)
-- [x] 60%+ widget test coverage (48 widget tests)
-- [x] Zero critical bugs (verified: 226 tests passing, 0 static analysis errors/warnings)
-- [x] <5 known medium-priority bugs (0 known bugs)
-- [ ] Performance targets met
-- [ ] App store submissions approved (iOS, Android)
-- [ ] Documentation complete (user guide, FAQ)
-
-## v1.5 Release Criteria
-- [ ] Dive computer import working for 50+ models
-- [ ] Bühlmann algorithm validated against known tables
-- [ ] Dive planner producing correct deco schedules
-- [ ] Beta testing with 100+ technical divers
-- [ ] Performance with 5000+ dives tested
-
-## v2.0 Release Criteria
-- [ ] Cloud sync tested with 10,000+ users
-- [ ] Localization complete for 7+ languages
-- [ ] Native speakers validate translations
-- [ ] Community features tested with beta users
-- [ ] Privacy policy and GDPR compliance validated
+| Platform | Status | Requirements |
+|----------|--------|--------------|
+| iOS | ✅ | iOS 13+ |
+| Android | ✅ | Android 7+ |
+| macOS | ✅ | macOS 11+ |
+| Windows | ✅ | Windows 10+ |
+| Linux | ✅ | Desktop Linux |
+| Web | v2.0 | Requires cloud sync |
 
 ---
 
-# Risk Assessment
+# Monetization (Future)
 
-## High-Risk Items
-
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| libdivecomputer integration complexity | High | Start early, allocate extra time, consider alternatives |
-| Deco algorithm bugs (safety-critical) | Critical | Extensive testing, validation against known tables, disclaimer |
-| Cloud sync data loss | High | Thorough testing, conflict resolution, backup strategy |
-| Photo storage scaling | Medium | Compression, cloud storage option, local cleanup tools |
-| Performance with large databases | Medium | Early performance testing, optimization, pagination |
-
-## Medium-Risk Items
-
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Third-party API changes (Shearwater, Garmin) | Medium | Abstraction layer, fallback options |
-| Platform-specific bugs (Bluetooth, USB) | Medium | Per-platform testing, community bug reports |
-| Translation quality | Low | Native speaker validation, community contributions |
-
----
-
-# Monetization Strategy (Future Consideration)
-
-## Free Tier (Always Free)
+**Free Forever:**
 - Unlimited local dives
 - All core logging features
 - CSV/UDDF/PDF export
 - No ads, no tracking
 
-## Premium Features (Optional Subscription - v2.0+)
+**Premium (v2.0+):**
 - Cloud sync and backup
 - Multi-device support
-- Advanced statistics
 - Community features
-- Priority support
-- Early access to new features
-
-## Potential Revenue Streams (v3.0+)
-- Premium subscription ($5/month, $50/year)
-- Family plan (5 divers, $10/month)
-- Dive operator partnerships (commission on bookings)
-- Sponsored dive site content
-- Equipment vendor affiliates (Amazon, ScubaPro, etc.)
-
-**Philosophy:** Keep core logging free forever, charge for convenience (cloud) and community features.
+- Advanced statistics
 
 ---
 
-# Development Workflow Recommendations
-
-## Sprint Structure (2-week sprints)
-
-### v1.0 Sprints (11 weeks = 5 sprints) - COMPLETE
-1. **Sprint 1:** Buddy System (2 weeks) ✅ COMPLETE
-2. **Sprint 2:** Certifications + Service Records (2 weeks) ✅ COMPLETE
-3. **Sprint 3:** Dive Centers, Conditions, Equipment (2 weeks) ✅ COMPLETE
-4. **Sprint 4:** Testing & Quality (3 weeks) ✅ COMPLETE
-5. **Sprint 5:** Trips & Bulk Operations (2 weeks) ✅ COMPLETE
-
-**Note:** Photos & Media moved to v2.0 to focus on core features
-
-### v1.5 Sprints (24-30 weeks = 12-15 sprints)
-1. **Sprints 1-4:** Dive Computer Integration (8 weeks)
-2. **Sprints 5-7:** Deco Algorithm + Planner (6 weeks)
-3. **Sprints 8-9:** Technical Diving Features (4 weeks)
-4. **Sprints 10-11:** Photo Enhancements, Trips, Tags (4 weeks)
-5. **Sprints 12-13:** Offline Maps, Species, Import/Export (4 weeks)
-6. **Sprints 14-15:** Testing, Polish, Docs (4 weeks)
-
-## Git Branching Strategy
-- `main` - production-ready code
-- `develop` - integration branch for next release
-- `feature/feature-name` - feature branches
-- `release/v1.0.0` - release candidate branches
-- `hotfix/bug-description` - production hotfixes
-
-## Code Review Requirements
-- All PRs require review
-- Automated CI checks (linting, tests)
-- No direct commits to main/develop
-
----
-
-# Appendix: Competitor Feature Matrix
-
-## Feature Parity Checklist
-
-| Feature Category | Subsurface | MacDive | Shearwater Cloud | Diving Log | Submersion v1.0 | Submersion v1.5 | Submersion v2.0 |
-|------------------|------------|---------|------------------|------------|-----------------|-----------------|-----------------|
-| **Core Logging** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Dive Profiles** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Multi-Tank** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Dive Computers** | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ |
-| **Photos** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Equipment Mgmt** | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
-| **Marine Life** | ❌ | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
-| **Statistics** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Deco Algorithm** | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ | ✅ |
-| **Dive Planner** | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ | ✅ |
-| **CCR Support** | ✅ | Partial | ✅ | ✅ | ❌ | ✅ | ✅ |
-| **Cloud Sync** | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ |
-| **Mobile App** | ✅ | ✅ | ✅ | Partial | ✅ | ✅ | ✅ |
-| **Desktop App** | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
-| **Offline Support** | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
-| **UDDF Support** | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
-| **Buddy Mgmt** | Partial | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
-| **Certifications** | ❌ | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
-| **Maps** | Partial | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Community** | ❌ | ❌ | Partial | ❌ | ❌ | ❌ | ✅ |
-
----
-
-# Conclusion
-
-This roadmap represents a comprehensive plan to build Submersion into a best-in-class dive logging platform. The phased approach ensures:
-
-1. **v1.0** delivers a production-ready app for recreational divers
-2. **v1.5** adds advanced features for technical divers and dive computer users
-3. **v2.0** builds a community platform with optional cloud features
-4. **v3.0** introduces AI and next-generation features
-
-The local-first, privacy-focused architecture differentiates Submersion from cloud-dependent competitors while the open-source GPL-3.0 license ensures long-term community sustainability.
-
-**Next Steps:**
-1. Final testing and bug fixes
-2. Prepare for v1.0 release (app store submissions)
-3. Begin v1.5 planning (Dive Computer Integration)
-4. Gather user feedback for v1.1 priorities
-
----
-
-**Document Metadata:**
-- **Version:** 1.3
-- **Last Updated:** 2025-12-16
-- **Author:** Development Team
-- **Status:** v1.0 Complete, v1.1/v1.5 Notes & Tags Complete
-- **Next Review:** After v1.5 Release
+**Document Version:** 2.0  
+**Last Updated:** 2025-12-17
