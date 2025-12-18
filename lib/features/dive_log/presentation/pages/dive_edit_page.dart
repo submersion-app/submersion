@@ -57,6 +57,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   DateTime? _exitDate;
   TimeOfDay? _exitTime;
   final _durationController = TextEditingController();
+  final _runtimeController = TextEditingController();
   final _maxDepthController = TextEditingController();
   final _avgDepthController = TextEditingController();
   final _waterTempController = TextEditingController();
@@ -151,7 +152,15 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             _exitDate = exitDateTime;
             _exitTime = TimeOfDay.fromDateTime(exitDateTime);
           }
-          _durationController.text = dive.calculatedDuration?.inMinutes.toString() ?? '';
+          // Bottom time (stored duration)
+          _durationController.text = dive.duration?.inMinutes.toString() ?? '';
+          // Runtime: use stored value, or calculate from entry/exit times
+          if (dive.runtime != null) {
+            _runtimeController.text = dive.runtime!.inMinutes.toString();
+          } else if (dive.entryTime != null && dive.exitTime != null) {
+            final calculatedRuntime = dive.exitTime!.difference(dive.entryTime!);
+            _runtimeController.text = calculatedRuntime.inMinutes.toString();
+          }
           // Convert stored metric values to user's preferred units
           _maxDepthController.text = dive.maxDepth != null
               ? units.convertDepth(dive.maxDepth!).toStringAsFixed(1)
@@ -258,6 +267,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   @override
   void dispose() {
     _durationController.dispose();
+    _runtimeController.dispose();
     _maxDepthController.dispose();
     _avgDepthController.dispose();
     _waterTempController.dispose();
@@ -851,13 +861,30 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               ],
             ),
             const SizedBox(height: 16),
-            TextFormField(
-              controller: _durationController,
-              decoration: const InputDecoration(
-                labelText: 'Duration',
-                suffixText: 'min',
-              ),
-              keyboardType: TextInputType.number,
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _durationController,
+                    decoration: const InputDecoration(
+                      labelText: 'Bottom Time',
+                      suffixText: 'min',
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: TextFormField(
+                    controller: _runtimeController,
+                    decoration: const InputDecoration(
+                      labelText: 'Runtime',
+                      suffixText: 'min',
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -1917,12 +1944,18 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         );
       }
 
-      // Calculate duration from entry/exit times, or use manual input
-      Duration? duration;
+      // Calculate runtime from entry/exit times (total dive time)
+      Duration? runtime;
       if (exitDateTime != null) {
-        duration = exitDateTime.difference(entryDateTime);
-        if (duration.isNegative) duration = null;
-      } else if (_durationController.text.isNotEmpty) {
+        runtime = exitDateTime.difference(entryDateTime);
+        if (runtime.isNegative) runtime = null;
+      } else if (_runtimeController.text.isNotEmpty) {
+        runtime = Duration(minutes: int.parse(_runtimeController.text));
+      }
+
+      // Bottom time is manually entered (time at depth, excluding descent/ascent)
+      Duration? duration;
+      if (_durationController.text.isNotEmpty) {
         duration = Duration(minutes: int.parse(_durationController.text));
       }
 
@@ -1953,6 +1986,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         entryTime: entryDateTime,
         exitTime: exitDateTime,
         duration: duration,
+        runtime: runtime,
         maxDepth: maxDepth,
         avgDepth: avgDepth,
         waterTemp: waterTemp,

@@ -39,8 +39,9 @@
 | Max depth, average depth | ✅ Implemented | MVP | |
 | Min/max temperature | ✅ Implemented | MVP | From profile data |
 | Dive type (20+ types) | ✅ Implemented | MVP | Recreational, tech, wreck, cave, night, etc. |
-| Runtime tracking | 📋 Planned | v1.5 | Add separate field for total runtime |
-| Custom dive types (user-defined) | 📋 Planned | v1.5 | |
+| Runtime tracking | ✅ Implemented | v1.5 | Separate field for total runtime (entry→exit) |
+| Custom dive types (user-defined) | ✅ Implemented | v1.5 | Database-backed with management UI |
+| Auto bottom time calculation | 📋 Planned | v1.5 | Calculate from dive profile (descent end → ascent start) |
 
 ---
 
