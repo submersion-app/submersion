@@ -244,7 +244,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
           rating: diveData['rating'] as int?,
           notes: diveData['notes'] as String? ?? '',
           visibility: diveData['visibility'] as Visibility?,
-          diveType: diveData['diveType'] as DiveType? ?? DiveType.recreational,
+          diveTypeId: diveData['diveType'] as String? ?? 'recreational',
           tanks: _buildTanks(diveData, uuid),
         );
 
@@ -529,7 +529,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
           rating: diveData['rating'] as int?,
           notes: notes,
           visibility: diveData['visibility'] as Visibility?,
-          diveType: DiveType.recreational,
+          diveTypeId: 'recreational',
           profile: profile,
           tanks: tanks,
           site: linkedSite,

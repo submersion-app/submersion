@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import '../../../../core/constants/enums.dart';
 import '../../../dive_centers/domain/entities/dive_center.dart';
 import '../../../dive_sites/domain/entities/dive_site.dart';
+import '../../../dive_types/domain/entities/dive_type_entity.dart';
 import '../../../equipment/domain/entities/equipment_item.dart';
 import '../../../tags/domain/entities/tag.dart';
 import '../../../trips/domain/entities/trip.dart';
@@ -31,7 +32,8 @@ class Dive extends Equatable {
   final double? waterTemp; // celsius
   final double? airTemp; // celsius
   final Visibility? visibility;
-  final DiveType diveType;
+  final String diveTypeId; // References dive_types table
+  final DiveTypeEntity? diveType; // Loaded dive type entity (for display)
   final String? buddy;
   final String? diveMaster;
   final int? rating; // 1-5 stars
@@ -73,7 +75,8 @@ class Dive extends Equatable {
     this.waterTemp,
     this.airTemp,
     this.visibility,
-    this.diveType = DiveType.recreational,
+    this.diveTypeId = 'recreational',
+    this.diveType,
     this.buddy,
     this.diveMaster,
     this.rating,
@@ -92,6 +95,16 @@ class Dive extends Equatable {
 
   /// Effective start time of the dive (entryTime if set, otherwise dateTime)
   DateTime get effectiveEntryTime => entryTime ?? dateTime;
+
+  /// Display name for the dive type (uses entity name if loaded, otherwise capitalizes ID)
+  String get diveTypeName {
+    if (diveType != null) {
+      return diveType!.name;
+    }
+    // Fallback: capitalize the ID (e.g., 'recreational' -> 'Recreational')
+    if (diveTypeId.isEmpty) return 'Recreational';
+    return diveTypeId[0].toUpperCase() + diveTypeId.substring(1).replaceAll('_', ' ');
+  }
 
   /// Calculated duration from entry/exit times
   Duration? get calculatedDuration {
@@ -139,7 +152,8 @@ class Dive extends Equatable {
     double? waterTemp,
     double? airTemp,
     Visibility? visibility,
-    DiveType? diveType,
+    String? diveTypeId,
+    DiveTypeEntity? diveType,
     String? buddy,
     String? diveMaster,
     int? rating,
@@ -177,6 +191,7 @@ class Dive extends Equatable {
       waterTemp: waterTemp ?? this.waterTemp,
       airTemp: airTemp ?? this.airTemp,
       visibility: visibility ?? this.visibility,
+      diveTypeId: diveTypeId ?? this.diveTypeId,
       diveType: diveType ?? this.diveType,
       buddy: buddy ?? this.buddy,
       diveMaster: diveMaster ?? this.diveMaster,
@@ -218,6 +233,7 @@ class Dive extends Equatable {
         waterTemp,
         airTemp,
         visibility,
+        diveTypeId,
         diveType,
         buddy,
         diveMaster,

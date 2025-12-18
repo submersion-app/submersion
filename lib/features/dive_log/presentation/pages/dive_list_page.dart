@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/constants/enums.dart';
 import '../../../../core/utils/unit_formatter.dart';
 import '../../../dive_sites/presentation/providers/site_providers.dart';
+import '../../../dive_types/presentation/providers/dive_type_providers.dart';
 import '../../../settings/presentation/providers/settings_providers.dart';
 import '../../../tags/domain/entities/tag.dart';
 import '../../../tags/presentation/providers/tag_providers.dart';
@@ -332,8 +332,9 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
       }),);
     }
 
-    if (filter.diveType != null) {
-      chips.add(_buildFilterChip(context, filter.diveType!.displayName, () {
+    if (filter.diveTypeId != null) {
+      final diveTypeName = ref.watch(diveTypeProvider(filter.diveTypeId!)).value?.name ?? filter.diveTypeId!;
+      chips.add(_buildFilterChip(context, diveTypeName, () {
         ref.read(diveFilterProvider.notifier).state = filter.copyWith(clearDiveType: true);
       }),);
     }
@@ -796,7 +797,7 @@ class DiveFilterSheet extends ConsumerStatefulWidget {
 class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
   late DateTime? _startDate;
   late DateTime? _endDate;
-  late DiveType? _diveType;
+  late String? _diveTypeId;
   late String? _siteId;
   late double? _minDepth;
   late double? _maxDepth;
@@ -812,7 +813,7 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
     final filter = widget.ref.read(diveFilterProvider);
     _startDate = filter.startDate;
     _endDate = filter.endDate;
-    _diveType = filter.diveType;
+    _diveTypeId = filter.diveTypeId;
     _siteId = filter.siteId;
     _minDepth = filter.minDepth;
     _maxDepth = filter.maxDepth;
@@ -912,26 +913,35 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
               // Dive Type Section
               Text('Dive Type', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
-              DropdownButtonFormField<DiveType?>(
-                initialValue: _diveType,
-                decoration: const InputDecoration(
-                  hintText: 'All types',
-                  prefixIcon: Icon(Icons.category),
-                ),
-                items: [
-                  const DropdownMenuItem(
-                    value: null,
-                    child: Text('All types'),
-                  ),
-                  ...DiveType.values.map((type) {
-                    return DropdownMenuItem(
-                      value: type,
-                      child: Text(type.displayName),
-                    );
-                  }),
-                ],
-                onChanged: (value) {
-                  setState(() => _diveType = value);
+              Consumer(
+                builder: (context, ref, child) {
+                  final diveTypesAsync = ref.watch(diveTypesProvider);
+                  return diveTypesAsync.when(
+                    loading: () => const LinearProgressIndicator(),
+                    error: (e, st) => Text('Error: $e'),
+                    data: (diveTypes) => DropdownButtonFormField<String?>(
+                      initialValue: _diveTypeId,
+                      decoration: const InputDecoration(
+                        hintText: 'All types',
+                        prefixIcon: Icon(Icons.category),
+                      ),
+                      items: [
+                        const DropdownMenuItem(
+                          value: null,
+                          child: Text('All types'),
+                        ),
+                        ...diveTypes.map((type) {
+                          return DropdownMenuItem(
+                            value: type.id,
+                            child: Text(type.name),
+                          );
+                        }),
+                      ],
+                      onChanged: (value) {
+                        setState(() => _diveTypeId = value);
+                      },
+                    ),
+                  );
                 },
               ),
               const SizedBox(height: 24),
@@ -1118,7 +1128,7 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
     widget.ref.read(diveFilterProvider.notifier).state = DiveFilterState(
       startDate: _startDate,
       endDate: _endDate,
-      diveType: _diveType,
+      diveTypeId: _diveTypeId,
       siteId: _siteId,
       minDepth: _minDepth,
       maxDepth: _maxDepth,
