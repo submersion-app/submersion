@@ -49,9 +49,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   bool _isLoading = false;
   bool _isSaving = false;
 
-  // Form controllers
-  late DateTime _selectedDate;
-  late TimeOfDay _selectedTime;
+  // Form controllers - Entry/Exit times
+  late DateTime _entryDate;
+  late TimeOfDay _entryTime;
+  DateTime? _exitDate;
+  TimeOfDay? _exitTime;
   final _durationController = TextEditingController();
   final _maxDepthController = TextEditingController();
   final _avgDepthController = TextEditingController();
@@ -93,8 +95,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   @override
   void initState() {
     super.initState();
-    _selectedDate = DateTime.now();
-    _selectedTime = TimeOfDay.now();
+    _entryDate = DateTime.now();
+    _entryTime = TimeOfDay.now();
 
     // Initialize with one default tank
     _tanks = [
@@ -126,9 +128,21 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         
         setState(() {
           _existingDive = dive;
-          _selectedDate = dive.dateTime;
-          _selectedTime = TimeOfDay.fromDateTime(dive.dateTime);
-          _durationController.text = dive.duration?.inMinutes.toString() ?? '';
+          // Use entryTime if available, otherwise fall back to dateTime
+          final entryDateTime = dive.entryTime ?? dive.dateTime;
+          _entryDate = entryDateTime;
+          _entryTime = TimeOfDay.fromDateTime(entryDateTime);
+          // Set exit time if available
+          if (dive.exitTime != null) {
+            _exitDate = dive.exitTime;
+            _exitTime = TimeOfDay.fromDateTime(dive.exitTime!);
+          } else if (dive.duration != null) {
+            // Calculate exit time from entry + duration
+            final exitDateTime = entryDateTime.add(dive.duration!);
+            _exitDate = exitDateTime;
+            _exitTime = TimeOfDay.fromDateTime(exitDateTime);
+          }
+          _durationController.text = dive.calculatedDuration?.inMinutes.toString() ?? '';
           // Convert stored metric values to user's preferred units
           _maxDepthController.text = dive.maxDepth != null
               ? units.convertDepth(dive.maxDepth!).toStringAsFixed(1)
@@ -318,36 +332,159 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   }
 
   Widget _buildDateTimeSection() {
+    // Calculate duration from entry/exit times
+    Duration? calculatedDuration;
+    if (_exitDate != null && _exitTime != null) {
+      final entryDateTime = DateTime(
+        _entryDate.year,
+        _entryDate.month,
+        _entryDate.day,
+        _entryTime.hour,
+        _entryTime.minute,
+      );
+      final exitDateTime = DateTime(
+        _exitDate!.year,
+        _exitDate!.month,
+        _exitDate!.day,
+        _exitTime!.hour,
+        _exitTime!.minute,
+      );
+      calculatedDuration = exitDateTime.difference(entryDateTime);
+      if (calculatedDuration.isNegative) calculatedDuration = null;
+    }
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Date & Time', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 16),
+            Text('Entry Time', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: _selectDate,
-                    icon: const Icon(Icons.calendar_today),
-                    label: Text(DateFormat('MMM d, y').format(_selectedDate)),
+                    onPressed: _selectEntryDate,
+                    icon: const Icon(Icons.calendar_today, size: 18),
+                    label: Text(DateFormat('MMM d, y').format(_entryDate)),
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 8),
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: _selectTime,
-                    icon: const Icon(Icons.access_time),
-                    label: Text(_selectedTime.format(context)),
+                    onPressed: _selectEntryTime,
+                    icon: const Icon(Icons.login, size: 18),
+                    label: Text(_entryTime.format(context)),
                   ),
                 ),
               ],
             ),
+            const SizedBox(height: 16),
+            Text('Exit Time', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _selectExitDate,
+                    icon: const Icon(Icons.calendar_today, size: 18),
+                    label: Text(_exitDate != null 
+                        ? DateFormat('MMM d, y').format(_exitDate!)
+                        : 'Select'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _selectExitTime,
+                    icon: const Icon(Icons.logout, size: 18),
+                    label: Text(_exitTime?.format(context) ?? 'Select'),
+                  ),
+                ),
+              ],
+            ),
+            if (calculatedDuration != null) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.timer,
+                      size: 18,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Duration: ${calculatedDuration.inMinutes} min',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            // Show surface interval for existing dives
+            if (widget.isEditing && widget.diveId != null)
+              _buildSurfaceIntervalDisplay(),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildSurfaceIntervalDisplay() {
+    final surfaceIntervalAsync = ref.watch(surfaceIntervalProvider(widget.diveId!));
+    
+    return surfaceIntervalAsync.when(
+      data: (interval) {
+        if (interval == null) return const SizedBox.shrink();
+        
+        final hours = interval.inHours;
+        final minutes = interval.inMinutes % 60;
+        final intervalText = hours > 0 
+            ? '${hours}h ${minutes}m' 
+            : '${minutes}m';
+        
+        return Padding(
+          padding: const EdgeInsets.only(top: 12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.secondaryContainer,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.waves,
+                  size: 18,
+                  color: Theme.of(context).colorScheme.onSecondaryContainer,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Surface Interval: $intervalText',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSecondaryContainer,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 
@@ -424,11 +561,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   Widget _buildTripSection() {
     final diveDateTime = DateTime(
-      _selectedDate.year,
-      _selectedDate.month,
-      _selectedDate.day,
-      _selectedTime.hour,
-      _selectedTime.minute,
+      _entryDate.year,
+      _entryDate.month,
+      _entryDate.day,
+      _entryTime.hour,
+      _entryTime.minute,
     );
 
     return Card(
@@ -1516,25 +1653,57 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     );
   }
 
-  Future<void> _selectDate() async {
+  Future<void> _selectEntryDate() async {
     final date = await showDatePicker(
       context: context,
-      initialDate: _selectedDate,
+      initialDate: _entryDate,
       firstDate: DateTime(1950),
-      lastDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 1)),
     );
     if (date != null) {
-      setState(() => _selectedDate = date);
+      setState(() {
+        _entryDate = date;
+        // If exit date not set, default it to the same day
+        _exitDate ??= date;
+      });
     }
   }
 
-  Future<void> _selectTime() async {
+  Future<void> _selectEntryTime() async {
     final time = await showTimePicker(
       context: context,
-      initialTime: _selectedTime,
+      initialTime: _entryTime,
     );
     if (time != null) {
-      setState(() => _selectedTime = time);
+      setState(() => _entryTime = time);
+    }
+  }
+
+  Future<void> _selectExitDate() async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: _exitDate ?? _entryDate,
+      firstDate: _entryDate,
+      lastDate: _entryDate.add(const Duration(days: 1)),
+    );
+    if (date != null) {
+      setState(() => _exitDate = date);
+    }
+  }
+
+  Future<void> _selectExitTime() async {
+    final time = await showTimePicker(
+      context: context,
+      initialTime: _exitTime ?? TimeOfDay.fromDateTime(
+        DateTime.now().add(const Duration(hours: 1)),
+      ),
+    );
+    if (time != null) {
+      setState(() {
+        _exitTime = time;
+        // Also set exit date if not set
+        _exitDate ??= _entryDate;
+      });
     }
   }
 
@@ -1544,19 +1713,37 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     setState(() => _isSaving = true);
 
     try {
-      // Build the DateTime from date and time
-      final dateTime = DateTime(
-        _selectedDate.year,
-        _selectedDate.month,
-        _selectedDate.day,
-        _selectedTime.hour,
-        _selectedTime.minute,
+      // Build entry DateTime from date and time
+      final entryDateTime = DateTime(
+        _entryDate.year,
+        _entryDate.month,
+        _entryDate.day,
+        _entryTime.hour,
+        _entryTime.minute,
       );
 
+      // Build exit DateTime if set
+      DateTime? exitDateTime;
+      if (_exitDate != null && _exitTime != null) {
+        exitDateTime = DateTime(
+          _exitDate!.year,
+          _exitDate!.month,
+          _exitDate!.day,
+          _exitTime!.hour,
+          _exitTime!.minute,
+        );
+      }
+
+      // Calculate duration from entry/exit times, or use manual input
+      Duration? duration;
+      if (exitDateTime != null) {
+        duration = exitDateTime.difference(entryDateTime);
+        if (duration.isNegative) duration = null;
+      } else if (_durationController.text.isNotEmpty) {
+        duration = Duration(minutes: int.parse(_durationController.text));
+      }
+
       // Parse form values and convert to metric for storage
-      final duration = _durationController.text.isNotEmpty
-          ? Duration(minutes: int.parse(_durationController.text))
-          : null;
       final maxDepth = _maxDepthController.text.isNotEmpty
           ? units.depthToMeters(double.parse(_maxDepthController.text))
           : null;
@@ -1579,7 +1766,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       final dive = Dive(
         id: widget.diveId ?? '',
         diveNumber: _existingDive?.diveNumber,
-        dateTime: dateTime,
+        dateTime: entryDateTime, // Keep for backward compatibility
+        entryTime: entryDateTime,
+        exitTime: exitDateTime,
         duration: duration,
         maxDepth: maxDepth,
         avgDepth: avgDepth,
