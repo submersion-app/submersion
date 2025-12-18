@@ -504,12 +504,15 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 | Track 20+ equipment types | ✅ Implemented | MVP | - | BCD, reg, fins, suit, computer, etc. |
 | Serial, purchase date, cost | ✅ Implemented | MVP | - | All tracked |
 | Size, notes, status | ✅ Implemented | v1.0 | - | Fields added to entity |
+| Filter equipment by status | ✅ Implemented | v1.1 | - | Filter chips for all statuses |
 | Photos of gear | 📋 Planned | v2.0 | Low | Deferred with photos |
 
-**v1.0 Tasks:**
+**v1.0 Tasks:** ✅ COMPLETE
 - [x] Add `size` field to equipment (S/M/L/XL or numeric)
 - [x] Add `status` enum (Active, Retired, Sold, Lost, In Service)
-- [ ] Filter equipment by status - deferred to v1.1
+
+**v1.1 Tasks:** ✅ COMPLETE
+- [x] Filter equipment by status (All, Active, Needs Service, In Service, Retired, Loaned Out, Lost) ✅ Implemented
 
 **v1.5 Tasks:**
 - [ ] Attach photos to equipment items
@@ -683,7 +686,6 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 
 **v1.1 Tasks:** (deferred from v1.0)
 - [ ] "Training" dive type already exists (no change needed)
-- [ ] Add `training_course` text field to dives (e.g., "Advanced Open Water", "Nitrox")
 
 **v1.5 Tasks:**
 - [ ] Course entity (name, agency, start_date, completion_date, instructor, cert_id)
@@ -720,15 +722,15 @@ This roadmap represents the path to making Submersion a best-in-class dive loggi
 | Feature | Status | Phase | Priority | Notes |
 |---------|--------|-------|----------|-------|
 | Water type | ✅ Implemented | v1.0 | - | Fresh, salt, brackish |
+| Hazards | ✅ Implemented | v1.1 | Medium | Site-level hazards field |
 | Entry altitude | 📋 Planned | v1.5 | Low | For altitude dive tables |
 | Tides | 📋 Planned | v1.5 | Low | State, height, time |
-| Hazards | 📋 Planned | v1.1 | Medium | Per-site or per-dive - deferred |
 
 **v1.0 Tasks:** ✅ COMPLETE
 - [x] Add `water_type` enum to dives table
 
-**v1.1 Tasks:** (deferred from v1.0)
-- [ ] Add `hazards` text field to dives (or use site hazards)
+**v1.1 Tasks:** ✅ COMPLETE
+- [x] Hazards implemented as site-level field
 
 **v1.5 Tasks:**
 - [ ] Tide API integration (NOAA, Tides.info)

@@ -6,74 +6,115 @@ import '../../../../core/constants/enums.dart';
 import '../../domain/entities/equipment_item.dart';
 import '../providers/equipment_providers.dart';
 
-class EquipmentListPage extends ConsumerWidget {
+class EquipmentListPage extends ConsumerStatefulWidget {
   const EquipmentListPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Equipment'),
-          bottom: const TabBar(
-            tabs: [
-              Tab(text: 'Active'),
-              Tab(text: 'Retired'),
-            ],
+  ConsumerState<EquipmentListPage> createState() => _EquipmentListPageState();
+}
+
+class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
+  EquipmentStatus? _selectedStatus;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Equipment'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.folder_outlined),
+            tooltip: 'Equipment Sets',
+            onPressed: () => context.push('/equipment/sets'),
           ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.folder_outlined),
-              tooltip: 'Equipment Sets',
-              onPressed: () => context.push('/equipment/sets'),
-            ),
-            IconButton(
-              icon: const Icon(Icons.search),
-              onPressed: () {
-                showSearch(
-                  context: context,
-                  delegate: EquipmentSearchDelegate(ref),
-                );
-              },
-            ),
-          ],
-        ),
-        body: TabBarView(
-          children: [
-            _ActiveEquipmentTab(),
-            _RetiredEquipmentTab(),
-          ],
-        ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () {
-            _showAddEquipmentDialog(context, ref);
-          },
-          icon: const Icon(Icons.add),
-          label: const Text('Add Equipment'),
-        ),
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () {
+              showSearch(
+                context: context,
+                delegate: EquipmentSearchDelegate(ref),
+              );
+            },
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          _buildFilterChips(),
+          Expanded(
+            child: _buildEquipmentList(),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          _showAddEquipmentDialog(context, ref);
+        },
+        icon: const Icon(Icons.add),
+        label: const Text('Add Equipment'),
       ),
     );
   }
 
-  void _showAddEquipmentDialog(BuildContext context, WidgetRef ref) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => AddEquipmentSheet(ref: ref),
+  Widget _buildFilterChips() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          Icon(
+            Icons.filter_list,
+            size: 20,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'Filter:',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
+              ),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: DropdownButton<EquipmentStatus?>(
+              value: _selectedStatus,
+              underline: const SizedBox(),
+              focusColor: Colors.transparent,
+              items: [
+                DropdownMenuItem<EquipmentStatus?>(
+                  value: null,
+                  child: const Text('All Equipment'),
+                ),
+                ...EquipmentStatus.values.map((status) {
+                  return DropdownMenuItem<EquipmentStatus?>(
+                    value: status,
+                    child: Text(status.displayName),
+                  );
+                }),
+              ],
+              onChanged: (value) {
+                setState(() => _selectedStatus = value);
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
-}
 
-class _ActiveEquipmentTab extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final equipmentAsync = ref.watch(equipmentListNotifierProvider);
+  Widget _buildEquipmentList() {
+    final equipmentAsync = ref.watch(equipmentByStatusProvider(_selectedStatus));
 
     return equipmentAsync.when(
       data: (equipment) => equipment.isEmpty
           ? _buildEmptyState(context, ref)
-          : _buildEquipmentList(context, ref, equipment),
+          : _buildEquipmentListView(context, ref, equipment),
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, stack) => Center(
         child: Column(
@@ -84,7 +125,7 @@ class _ActiveEquipmentTab extends ConsumerWidget {
             Text('Error loading equipment: $error'),
             const SizedBox(height: 16),
             FilledButton(
-              onPressed: () => ref.read(equipmentListNotifierProvider.notifier).refresh(),
+              onPressed: () => ref.invalidate(equipmentByStatusProvider(_selectedStatus)),
               child: const Text('Retry'),
             ),
           ],
@@ -93,10 +134,10 @@ class _ActiveEquipmentTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildEquipmentList(BuildContext context, WidgetRef ref, List<EquipmentItem> equipment) {
+  Widget _buildEquipmentListView(BuildContext context, WidgetRef ref, List<EquipmentItem> equipment) {
     return RefreshIndicator(
       onRefresh: () async {
-        await ref.read(equipmentListNotifierProvider.notifier).refresh();
+        ref.invalidate(equipmentByStatusProvider(_selectedStatus));
       },
       child: ListView.builder(
         padding: const EdgeInsets.only(bottom: 80),
@@ -109,6 +150,7 @@ class _ActiveEquipmentTab extends ConsumerWidget {
             brandModel: item.fullName != item.name ? item.fullName : null,
             isServiceDue: item.isServiceDue,
             daysUntilService: item.daysUntilService,
+            status: item.status,
             onTap: () => context.push('/equipment/${item.id}'),
           );
         },
@@ -117,6 +159,8 @@ class _ActiveEquipmentTab extends ConsumerWidget {
   }
 
   Widget _buildEmptyState(BuildContext context, WidgetRef ref) {
+    final filterText = _selectedStatus == null ? 'equipment' : '${_selectedStatus!.displayName.toLowerCase()} equipment';
+    
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -128,100 +172,43 @@ class _ActiveEquipmentTab extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'No equipment added yet',
+            'No $filterText',
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 8),
           Text(
-            'Add your diving equipment to track usage and service',
+            _selectedStatus == null
+                ? 'Add your diving equipment to track usage and service'
+                : 'No equipment with this status',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
-          FilledButton.icon(
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                builder: (context) => AddEquipmentSheet(ref: ref),
-              );
-            },
-            icon: const Icon(Icons.add),
-            label: const Text('Add Your First Equipment'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _RetiredEquipmentTab extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final retiredAsync = ref.watch(retiredEquipmentProvider);
-
-    return retiredAsync.when(
-      data: (equipment) => equipment.isEmpty
-          ? _buildEmptyState(context)
-          : _buildEquipmentList(context, ref, equipment),
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.red),
-            const SizedBox(height: 16),
-            Text('Error: $error'),
+          if (_selectedStatus == null) ...[
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (context) => AddEquipmentSheet(ref: ref),
+                );
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('Add Your First Equipment'),
+            ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEquipmentList(BuildContext context, WidgetRef ref, List<EquipmentItem> equipment) {
-    return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 80),
-      itemCount: equipment.length,
-      itemBuilder: (context, index) {
-        final item = equipment[index];
-        return EquipmentListTile(
-          name: item.name,
-          type: item.type,
-          brandModel: item.fullName != item.name ? item.fullName : null,
-          isServiceDue: false,
-          onTap: () => context.push('/equipment/${item.id}'),
-        );
-      },
-    );
-  }
-
-  Widget _buildEmptyState(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.inventory_2,
-            size: 80,
-            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No retired equipment',
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Retired equipment will appear here',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-            textAlign: TextAlign.center,
-          ),
         ],
       ),
+    );
+  }
+
+  void _showAddEquipmentDialog(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => AddEquipmentSheet(ref: ref),
     );
   }
 }
@@ -533,6 +520,7 @@ class EquipmentListTile extends StatelessWidget {
   final String? brandModel;
   final bool isServiceDue;
   final int? daysUntilService;
+  final EquipmentStatus? status;
   final VoidCallback? onTap;
 
   const EquipmentListTile({
@@ -542,6 +530,7 @@ class EquipmentListTile extends StatelessWidget {
     this.brandModel,
     this.isServiceDue = false,
     this.daysUntilService,
+    this.status,
     this.onTap,
   });
 
@@ -564,23 +553,43 @@ class EquipmentListTile extends StatelessWidget {
         ),
         title: Text(name),
         subtitle: brandModel != null ? Text(brandModel!) : Text(type.displayName),
-        trailing: isServiceDue
-            ? Chip(
-                label: const Text('Service Due'),
-                backgroundColor: Theme.of(context).colorScheme.errorContainer,
-                labelStyle: TextStyle(
-                  color: Theme.of(context).colorScheme.onErrorContainer,
-                  fontSize: 12,
-                ),
-              )
-            : daysUntilService != null
-                ? Text(
-                    '$daysUntilService days',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  )
-                : null,
+        trailing: _buildTrailing(context),
       ),
     );
+  }
+
+  Widget? _buildTrailing(BuildContext context) {
+    if (isServiceDue) {
+      return Chip(
+        label: const Text('Service Due'),
+        backgroundColor: Theme.of(context).colorScheme.errorContainer,
+        labelStyle: TextStyle(
+          color: Theme.of(context).colorScheme.onErrorContainer,
+          fontSize: 12,
+        ),
+      );
+    }
+    
+    if (daysUntilService != null) {
+      return Text(
+        '$daysUntilService days',
+        style: Theme.of(context).textTheme.bodySmall,
+      );
+    }
+    
+    // Show status badge for non-active statuses
+    if (status != null && status != EquipmentStatus.active) {
+      return Chip(
+        label: Text(status!.displayName),
+        backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+        labelStyle: TextStyle(
+          color: Theme.of(context).colorScheme.onSecondaryContainer,
+          fontSize: 12,
+        ),
+      );
+    }
+    
+    return null;
   }
 
   IconData _getIconForType(EquipmentType type) {
