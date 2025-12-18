@@ -52,7 +52,7 @@ void main() {
         const site = DiveSite(
           id: '',
           name: 'GPS Site',
-          location: const GeoPoint(-16.9186, 145.7781),
+          location: GeoPoint(-16.9186, 145.7781),
         );
 
         final createdSite = await repository.createSite(site);
@@ -69,7 +69,7 @@ void main() {
           id: '',
           name: 'Complete Site',
           description: 'Full description',
-          location: const GeoPoint(25.0, -80.0),
+          location: GeoPoint(25.0, -80.0),
           maxDepth: 30.0,
           country: 'USA',
           region: 'Florida Keys',
