@@ -88,16 +88,6 @@ class SettingsPage extends ConsumerWidget {
           ),
           const Divider(),
 
-          _buildSectionHeader(context, 'Tools'),
-          ListTile(
-            leading: const Icon(Icons.fitness_center),
-            title: const Text('Weight Calculator'),
-            subtitle: const Text('Calculate recommended dive weight'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push('/tools/weight-calculator'),
-          ),
-          const Divider(),
-
           _buildSectionHeader(context, 'Data'),
           ListTile(
             leading: const Icon(Icons.file_download),
