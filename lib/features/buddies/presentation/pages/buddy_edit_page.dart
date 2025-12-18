@@ -108,8 +108,16 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _onWillPop,
+    return PopScope(
+      canPop: !_hasChanges,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (!didPop && _hasChanges) {
+          final shouldPop = await _showDiscardDialog();
+          if (shouldPop == true && context.mounted) {
+            Navigator.of(context).pop();
+          }
+        }
+      },
       child: Scaffold(
         appBar: AppBar(
           title: Text(isEditing ? 'Edit Buddy' : 'Add Buddy'),
@@ -367,13 +375,6 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
       return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
     }
     return name.isNotEmpty ? name[0].toUpperCase() : '?';
-  }
-
-  Future<bool> _onWillPop() async {
-    if (_hasChanges) {
-      return await _showDiscardDialog() ?? false;
-    }
-    return true;
   }
 
   Future<void> _confirmCancel() async {

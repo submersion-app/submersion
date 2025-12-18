@@ -93,7 +93,7 @@ class _WeightCalculatorPageState extends ConsumerState<WeightCalculatorPage> {
                   Text(
                     '(${secondaryWeight.toStringAsFixed(1)} $secondaryUnit)',
                     style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onPrimaryContainer.withOpacity(0.7),
+                      color: theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
                     ),
                   ),
                 ],
@@ -108,15 +108,11 @@ class _WeightCalculatorPageState extends ConsumerState<WeightCalculatorPage> {
           Card(
             child: Column(
               children: WeightCalculator.suitTypes.entries.map((entry) {
-                return RadioListTile<String>(
+                final isSelected = entry.key == _selectedSuit;
+                return ListTile(
                   title: Text(entry.value),
-                  value: entry.key,
-                  groupValue: _selectedSuit,
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() => _selectedSuit = value);
-                    }
-                  },
+                  trailing: isSelected ? Icon(Icons.check, color: theme.colorScheme.primary) : null,
+                  onTap: () => setState(() => _selectedSuit = entry.key),
                 );
               }).toList(),
             ),
@@ -129,23 +125,18 @@ class _WeightCalculatorPageState extends ConsumerState<WeightCalculatorPage> {
           Card(
             child: Column(
               children: [
-                RadioListTile<TankMaterial?>(
+                ListTile(
                   title: const Text('Not specified'),
-                  value: null,
-                  groupValue: _selectedTank,
-                  onChanged: (value) {
-                    setState(() => _selectedTank = value);
-                  },
+                  trailing: _selectedTank == null ? Icon(Icons.check, color: theme.colorScheme.primary) : null,
+                  onTap: () => setState(() => _selectedTank = null),
                 ),
                 ...TankMaterial.values.map((material) {
-                  return RadioListTile<TankMaterial?>(
+                  final isSelected = material == _selectedTank;
+                  return ListTile(
                     title: Text(material.displayName),
                     subtitle: Text(_getTankDescription(material, isMetric)),
-                    value: material,
-                    groupValue: _selectedTank,
-                    onChanged: (value) {
-                      setState(() => _selectedTank = value);
-                    },
+                    trailing: isSelected ? Icon(Icons.check, color: theme.colorScheme.primary) : null,
+                    onTap: () => setState(() => _selectedTank = material),
                   );
                 }),
               ],
@@ -159,22 +150,17 @@ class _WeightCalculatorPageState extends ConsumerState<WeightCalculatorPage> {
           Card(
             child: Column(
               children: [
-                RadioListTile<WaterType?>(
+                ListTile(
                   title: const Text('Not specified'),
-                  value: null,
-                  groupValue: _selectedWater,
-                  onChanged: (value) {
-                    setState(() => _selectedWater = value);
-                  },
+                  trailing: _selectedWater == null ? Icon(Icons.check, color: theme.colorScheme.primary) : null,
+                  onTap: () => setState(() => _selectedWater = null),
                 ),
                 ...WaterType.values.map((water) {
-                  return RadioListTile<WaterType?>(
+                  final isSelected = water == _selectedWater;
+                  return ListTile(
                     title: Text(water.displayName),
-                    value: water,
-                    groupValue: _selectedWater,
-                    onChanged: (value) {
-                      setState(() => _selectedWater = value);
-                    },
+                    trailing: isSelected ? Icon(Icons.check, color: theme.colorScheme.primary) : null,
+                    onTap: () => setState(() => _selectedWater = water),
                   );
                 }),
               ],

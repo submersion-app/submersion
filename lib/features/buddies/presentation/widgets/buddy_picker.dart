@@ -183,16 +183,11 @@ class _BuddyChip extends StatelessWidget {
             ),
             const Divider(),
             ...BuddyRole.values.map((role) {
+              final isSelected = role == buddyWithRole.role;
               return ListTile(
-                leading: Radio<BuddyRole>(
-                  value: role,
-                  groupValue: buddyWithRole.role,
-                  onChanged: (value) {
-                    if (value != null) {
-                      onRoleChanged(value);
-                      Navigator.pop(context);
-                    }
-                  },
+                leading: Icon(
+                  isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                  color: isSelected ? Theme.of(context).colorScheme.primary : null,
                 ),
                 title: Text(role.displayName),
                 onTap: () {

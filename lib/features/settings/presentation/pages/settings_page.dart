@@ -283,16 +283,14 @@ class SettingsPage extends ConsumerWidget {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: ThemeMode.values.map((mode) {
-            return RadioListTile<ThemeMode>(
+            final isSelected = mode == currentMode;
+            return ListTile(
+              leading: Icon(_getThemeModeIcon(mode)),
               title: Text(_getThemeModeName(mode)),
-              secondary: Icon(_getThemeModeIcon(mode)),
-              value: mode,
-              groupValue: currentMode,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(settingsProvider.notifier).setThemeMode(value);
-                  Navigator.of(dialogContext).pop();
-                }
+              trailing: isSelected ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary) : null,
+              onTap: () {
+                ref.read(settingsProvider.notifier).setThemeMode(mode);
+                Navigator.of(dialogContext).pop();
               },
             );
           }).toList(),
@@ -320,15 +318,13 @@ class SettingsPage extends ConsumerWidget {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: DepthUnit.values.map((unit) {
-            return RadioListTile<DepthUnit>(
+            final isSelected = unit == currentUnit;
+            return ListTile(
               title: Text(unit == DepthUnit.meters ? 'Meters (m)' : 'Feet (ft)'),
-              value: unit,
-              groupValue: currentUnit,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(settingsProvider.notifier).setDepthUnit(value);
-                  Navigator.of(dialogContext).pop();
-                }
+              trailing: isSelected ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary) : null,
+              onTap: () {
+                ref.read(settingsProvider.notifier).setDepthUnit(unit);
+                Navigator.of(dialogContext).pop();
               },
             );
           }).toList(),
@@ -345,17 +341,15 @@ class SettingsPage extends ConsumerWidget {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: TemperatureUnit.values.map((unit) {
-            return RadioListTile<TemperatureUnit>(
+            final isSelected = unit == currentUnit;
+            return ListTile(
               title: Text(unit == TemperatureUnit.celsius
                   ? 'Celsius (°C)'
                   : 'Fahrenheit (°F)',),
-              value: unit,
-              groupValue: currentUnit,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(settingsProvider.notifier).setTemperatureUnit(value);
-                  Navigator.of(dialogContext).pop();
-                }
+              trailing: isSelected ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary) : null,
+              onTap: () {
+                ref.read(settingsProvider.notifier).setTemperatureUnit(unit);
+                Navigator.of(dialogContext).pop();
               },
             );
           }).toList(),
@@ -372,15 +366,13 @@ class SettingsPage extends ConsumerWidget {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: PressureUnit.values.map((unit) {
-            return RadioListTile<PressureUnit>(
+            final isSelected = unit == currentUnit;
+            return ListTile(
               title: Text(unit == PressureUnit.bar ? 'Bar' : 'PSI'),
-              value: unit,
-              groupValue: currentUnit,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(settingsProvider.notifier).setPressureUnit(value);
-                  Navigator.of(dialogContext).pop();
-                }
+              trailing: isSelected ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary) : null,
+              onTap: () {
+                ref.read(settingsProvider.notifier).setPressureUnit(unit);
+                Navigator.of(dialogContext).pop();
               },
             );
           }).toList(),
@@ -397,15 +389,13 @@ class SettingsPage extends ConsumerWidget {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: VolumeUnit.values.map((unit) {
-            return RadioListTile<VolumeUnit>(
+            final isSelected = unit == currentUnit;
+            return ListTile(
               title: Text(unit == VolumeUnit.liters ? 'Liters (L)' : 'Cubic Feet (cuft)'),
-              value: unit,
-              groupValue: currentUnit,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(settingsProvider.notifier).setVolumeUnit(value);
-                  Navigator.of(dialogContext).pop();
-                }
+              trailing: isSelected ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary) : null,
+              onTap: () {
+                ref.read(settingsProvider.notifier).setVolumeUnit(unit);
+                Navigator.of(dialogContext).pop();
               },
             );
           }).toList(),
@@ -422,15 +412,13 @@ class SettingsPage extends ConsumerWidget {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: WeightUnit.values.map((unit) {
-            return RadioListTile<WeightUnit>(
+            final isSelected = unit == currentUnit;
+            return ListTile(
               title: Text(unit == WeightUnit.kilograms ? 'Kilograms (kg)' : 'Pounds (lbs)'),
-              value: unit,
-              groupValue: currentUnit,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(settingsProvider.notifier).setWeightUnit(value);
-                  Navigator.of(dialogContext).pop();
-                }
+              trailing: isSelected ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary) : null,
+              onTap: () {
+                ref.read(settingsProvider.notifier).setWeightUnit(unit);
+                Navigator.of(dialogContext).pop();
               },
             );
           }).toList(),
