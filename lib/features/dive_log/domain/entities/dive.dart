@@ -16,7 +16,8 @@ class Dive extends Equatable {
   final DateTime dateTime; // Legacy field, kept for compatibility
   final DateTime? entryTime; // When diver entered water
   final DateTime? exitTime; // When diver exited water
-  final Duration? duration;
+  final Duration? duration; // Bottom time
+  final Duration? runtime; // Total runtime (includes descent/ascent)
   final double? maxDepth; // meters
   final double? avgDepth; // meters
   final DiveSite? site;
@@ -60,6 +61,7 @@ class Dive extends Equatable {
     this.entryTime,
     this.exitTime,
     this.duration,
+    this.runtime,
     this.maxDepth,
     this.avgDepth,
     this.site,
@@ -137,6 +139,7 @@ class Dive extends Equatable {
     DateTime? entryTime,
     DateTime? exitTime,
     Duration? duration,
+    Duration? runtime,
     double? maxDepth,
     double? avgDepth,
     DiveSite? site,
@@ -176,6 +179,7 @@ class Dive extends Equatable {
       entryTime: entryTime ?? this.entryTime,
       exitTime: exitTime ?? this.exitTime,
       duration: duration ?? this.duration,
+      runtime: runtime ?? this.runtime,
       maxDepth: maxDepth ?? this.maxDepth,
       avgDepth: avgDepth ?? this.avgDepth,
       site: site ?? this.site,
@@ -218,6 +222,7 @@ class Dive extends Equatable {
         entryTime,
         exitTime,
         duration,
+        runtime,
         maxDepth,
         avgDepth,
         site,

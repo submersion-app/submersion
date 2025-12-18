@@ -227,8 +227,14 @@ class DiveDetailPage extends ConsumerWidget {
                 _buildStatItem(
                   context,
                   Icons.timer,
-                  dive.calculatedDuration != null ? '${dive.calculatedDuration!.inMinutes} min' : '--',
-                  'Duration',
+                  dive.duration != null ? '${dive.duration!.inMinutes} min' : '--',
+                  'Bottom Time',
+                ),
+                _buildStatItem(
+                  context,
+                  Icons.timelapse,
+                  _formatRuntime(dive),
+                  'Runtime',
                 ),
                 _buildStatItem(
                   context,
@@ -342,6 +348,19 @@ class DiveDetailPage extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// Format runtime: use stored value, or calculate from entry/exit times
+  String _formatRuntime(Dive dive) {
+    if (dive.runtime != null) {
+      return '${dive.runtime!.inMinutes} min';
+    }
+    // Calculate from entry/exit times if available
+    if (dive.entryTime != null && dive.exitTime != null) {
+      final calculated = dive.exitTime!.difference(dive.entryTime!);
+      return '${calculated.inMinutes} min';
+    }
+    return '--';
   }
 
   Widget _buildStatItem(BuildContext context, IconData icon, String value, String label) {

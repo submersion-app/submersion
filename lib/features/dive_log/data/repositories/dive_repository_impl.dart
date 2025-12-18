@@ -149,6 +149,7 @@ class DiveRepository {
       entryTime: Value(dive.entryTime?.millisecondsSinceEpoch),
       exitTime: Value(dive.exitTime?.millisecondsSinceEpoch),
       duration: Value(dive.duration?.inSeconds),
+      runtime: Value(dive.runtime?.inSeconds),
       maxDepth: Value(dive.maxDepth),
       avgDepth: Value(dive.avgDepth),
       waterTemp: Value(dive.waterTemp),
@@ -255,6 +256,7 @@ class DiveRepository {
         entryTime: Value(dive.entryTime?.millisecondsSinceEpoch),
         exitTime: Value(dive.exitTime?.millisecondsSinceEpoch),
         duration: Value(dive.duration?.inSeconds),
+        runtime: Value(dive.runtime?.inSeconds),
         maxDepth: Value(dive.maxDepth),
         avgDepth: Value(dive.avgDepth),
         waterTemp: Value(dive.waterTemp),
@@ -723,6 +725,7 @@ class DiveRepository {
           ? DateTime.fromMillisecondsSinceEpoch(row.exitTime!)
           : null,
       duration: row.duration != null ? Duration(seconds: row.duration!) : null,
+      runtime: row.runtime != null ? Duration(seconds: row.runtime!) : null,
       maxDepth: row.maxDepth,
       avgDepth: row.avgDepth,
       waterTemp: row.waterTemp,
@@ -922,6 +925,7 @@ class DiveRepository {
           ? DateTime.fromMillisecondsSinceEpoch(row.exitTime!)
           : null,
       duration: row.duration != null ? Duration(seconds: row.duration!) : null,
+      runtime: row.runtime != null ? Duration(seconds: row.runtime!) : null,
       maxDepth: row.maxDepth,
       avgDepth: row.avgDepth,
       waterTemp: row.waterTemp,

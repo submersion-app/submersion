@@ -30,7 +30,8 @@ class Dives extends Table {
   IntColumn get diveDateTime => integer()(); // Unix timestamp (legacy, kept for compatibility)
   IntColumn get entryTime => integer().nullable()(); // Unix timestamp - when diver entered water
   IntColumn get exitTime => integer().nullable()(); // Unix timestamp - when diver exited water
-  IntColumn get duration => integer().nullable()(); // seconds
+  IntColumn get duration => integer().nullable()(); // seconds (bottom time)
+  IntColumn get runtime => integer().nullable()(); // seconds (total runtime)
   RealColumn get maxDepth => real().nullable()();
   RealColumn get avgDepth => real().nullable()();
   RealColumn get waterTemp => real().nullable()();
@@ -402,7 +403,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 12;
+  int get schemaVersion => 13;
 
   @override
   MigrationStrategy get migration {
@@ -752,6 +753,10 @@ class AppDatabase extends _$AppDatabase {
               VALUES ('${type.$1}', '${type.$2}', 1, ${type.$3}, $now, $now)
             ''');
           }
+        }
+        if (from < 13) {
+          // Migration v12 -> v13: Add runtime field for total dive runtime tracking
+          await customStatement('ALTER TABLE dives ADD COLUMN runtime INTEGER');
         }
       },
       beforeOpen: (details) async {

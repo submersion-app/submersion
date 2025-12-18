@@ -161,7 +161,8 @@ class ExportService {
       'Location',
       'Max Depth (m)',
       'Avg Depth (m)',
-      'Duration (min)',
+      'Bottom Time (min)',
+      'Runtime (min)',
       'Water Temp (°C)',
       'Air Temp (°C)',
       'Visibility',
@@ -189,6 +190,7 @@ class ExportService {
         dive.maxDepth?.toStringAsFixed(1) ?? '',
         dive.avgDepth?.toStringAsFixed(1) ?? '',
         dive.duration?.inMinutes ?? '',
+        dive.runtime?.inMinutes ?? '',
         dive.waterTemp?.toStringAsFixed(0) ?? '',
         dive.airTemp?.toStringAsFixed(0) ?? '',
         dive.visibility?.displayName ?? '',
@@ -1767,11 +1769,12 @@ class ExportService {
         diveData['avgDepth'] = double.tryParse(avgDepthText);
       }
 
+      // UDDF diveduration is total dive time (runtime), not bottom time
       final durationText = _getElementText(afterElement, 'diveduration');
       if (durationText != null) {
         final seconds = int.tryParse(durationText);
         if (seconds != null) {
-          diveData['duration'] = Duration(seconds: seconds);
+          diveData['runtime'] = Duration(seconds: seconds);
         }
       }
 
@@ -2405,6 +2408,10 @@ class ExportService {
           diveData['maxDepth'] = _parseDouble(value);
         } else if (header.contains('avg') && header.contains('depth')) {
           diveData['avgDepth'] = _parseDouble(value);
+        } else if (header.contains('bottom') && header.contains('time')) {
+          diveData['duration'] = _parseDuration(value);
+        } else if (header.contains('runtime')) {
+          diveData['runtime'] = _parseDuration(value);
         } else if (header.contains('duration') || header.contains('time') && header.contains('min')) {
           diveData['duration'] = _parseDuration(value);
         } else if (header.contains('water') && header.contains('temp')) {

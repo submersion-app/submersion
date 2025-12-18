@@ -229,11 +229,20 @@ class ExportNotifier extends StateNotifier<ExportState> {
         );
 
         final diveId = uuid.v4();
+        final dateTime = diveData['dateTime'] as DateTime? ?? DateTime.now();
+        final runtime = diveData['runtime'] as Duration?;
+        // Entry time is the dive start time, exit time is calculated from runtime
+        final entryTime = dateTime;
+        final exitTime = runtime != null ? dateTime.add(runtime) : null;
+
         final dive = Dive(
           id: diveId,
           diveNumber: diveData['diveNumber'] as int?,
-          dateTime: diveData['dateTime'] as DateTime? ?? DateTime.now(),
+          dateTime: dateTime,
+          entryTime: entryTime,
+          exitTime: exitTime,
           duration: diveData['duration'] as Duration?,
+          runtime: runtime,
           maxDepth: diveData['maxDepth'] as double?,
           avgDepth: diveData['avgDepth'] as double?,
           waterTemp: diveData['waterTemp'] as double?,
@@ -515,11 +524,20 @@ class ExportNotifier extends StateNotifier<ExportState> {
         );
 
         final diveId = uuid.v4();
+        final dateTime = diveData['dateTime'] as DateTime? ?? DateTime.now();
+        final runtime = diveData['runtime'] as Duration?;
+        // Entry time is the dive start time, exit time is calculated from runtime
+        final entryTime = dateTime;
+        final exitTime = runtime != null ? dateTime.add(runtime) : null;
+
         final dive = Dive(
           id: diveId,
           diveNumber: diveData['diveNumber'] as int?,
-          dateTime: diveData['dateTime'] as DateTime? ?? DateTime.now(),
+          dateTime: dateTime,
+          entryTime: entryTime,
+          exitTime: exitTime,
           duration: diveData['duration'] as Duration?,
+          runtime: runtime,
           maxDepth: diveData['maxDepth'] as double?,
           avgDepth: diveData['avgDepth'] as double?,
           waterTemp: diveData['waterTemp'] as double?,
