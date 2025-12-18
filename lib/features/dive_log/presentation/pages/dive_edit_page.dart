@@ -1211,14 +1211,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 // Invalidate the sets provider to refresh the list
                 ref.invalidate(equipmentSetsProvider);
 
-                if (mounted) {
+                if (context.mounted) {
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Equipment set "$name" created')),
                   );
                 }
               } catch (e) {
-                if (mounted) {
+                if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Error creating set: $e')),
                   );

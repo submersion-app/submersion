@@ -135,7 +135,7 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
     return Card(
       color: isHealthy
           ? Theme.of(context).colorScheme.primaryContainer
-          : Theme.of(context).colorScheme.errorContainer.withOpacity(0.3),
+          : Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.3),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
@@ -255,13 +255,13 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
       await repository.assignMissingDiveNumbers();
       ref.invalidate(diveNumberingInfoProvider);
       ref.invalidate(diveListNotifierProvider);
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Missing dive numbers assigned')),
         );
       }
     } catch (e) {
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e')),
         );
@@ -314,7 +314,7 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
       ),
     );
 
-    if (result != null && mounted) {
+    if (result != null && context.mounted) {
       await _renumberAllDives(context, result);
     }
   }
@@ -326,13 +326,13 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
       await repository.renumberAllDives(startFrom: startFrom);
       ref.invalidate(diveNumberingInfoProvider);
       ref.invalidate(diveListNotifierProvider);
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('All dives renumbered starting from #$startFrom')),
         );
       }
     } catch (e) {
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e')),
         );

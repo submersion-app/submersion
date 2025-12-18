@@ -95,11 +95,11 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
     final dateFormat = DateFormat.yMMMd();
 
     return PopScope(
-      canPop: true,
-      onPopInvoked: (didPop) async {
-        if (!didPop) {
+      canPop: !_hasChanges,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (!didPop && _hasChanges) {
           final shouldPop = await _onWillPop();
-          if (shouldPop) {
+          if (shouldPop && context.mounted) {
             Navigator.of(context).pop();
           }
         }
