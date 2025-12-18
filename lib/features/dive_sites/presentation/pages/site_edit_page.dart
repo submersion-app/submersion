@@ -4,10 +4,12 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../../../core/services/location_service.dart';
 import '../../domain/entities/dive_site.dart';
 import '../providers/site_providers.dart';
+import '../widgets/location_picker_map.dart';
 
 class SiteEditPage extends ConsumerStatefulWidget {
   final String? siteId;
@@ -434,6 +436,43 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     }
   }
 
+  Future<void> _pickFromMap() async {
+    // Parse existing coordinates if available
+    LatLng? initialLocation;
+    final lat = double.tryParse(_latitudeController.text);
+    final lng = double.tryParse(_longitudeController.text);
+    if (lat != null && lng != null) {
+      initialLocation = LatLng(lat, lng);
+    }
+
+    final result = await Navigator.of(context).push<PickedLocation>(
+      MaterialPageRoute(
+        builder: (context) => LocationPickerMap(
+          initialLocation: initialLocation,
+        ),
+      ),
+    );
+
+    if (result != null && mounted) {
+      setState(() {
+        _latitudeController.text = result.latitude.toStringAsFixed(6);
+        _longitudeController.text = result.longitude.toStringAsFixed(6);
+
+        // Auto-fill country and region if empty
+        if (_countryController.text.isEmpty && result.country != null) {
+          _countryController.text = result.country!;
+        }
+        if (_regionController.text.isEmpty && result.region != null) {
+          _regionController.text = result.region!;
+        }
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Location selected from map')),
+      );
+    }
+  }
+
   Widget _buildGpsSection(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -447,12 +486,24 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
               children: [
                 const Icon(Icons.gps_fixed),
                 const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'GPS Coordinates',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+                Text(
+                  'GPS Coordinates',
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Choose a location method - coordinates will auto-fill country and region',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
                 FilledButton.tonalIcon(
                   onPressed: _isGettingLocation ? null : _useMyLocation,
                   icon: _isGettingLocation
@@ -467,14 +518,12 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                       : const Icon(Icons.my_location, size: 18),
                   label: Text(_isGettingLocation ? 'Getting...' : 'Use My Location'),
                 ),
+                OutlinedButton.icon(
+                  onPressed: _pickFromMap,
+                  icon: const Icon(Icons.map, size: 18),
+                  label: const Text('Pick from Map'),
+                ),
               ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Coordinates will also auto-fill country and region if empty',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
             ),
             const SizedBox(height: 16),
             Row(
@@ -635,9 +684,12 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
 
     try {
       GeoPoint? location;
-      if (_latitudeController.text.isNotEmpty && _longitudeController.text.isNotEmpty) {
-        final lat = double.tryParse(_latitudeController.text);
-        final lng = double.tryParse(_longitudeController.text);
+      final latText = _latitudeController.text.trim();
+      final lngText = _longitudeController.text.trim();
+      
+      if (latText.isNotEmpty && lngText.isNotEmpty) {
+        final lat = double.tryParse(latText);
+        final lng = double.tryParse(lngText);
         if (lat != null && lng != null) {
           location = GeoPoint(lat, lng);
         }
@@ -672,6 +724,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       // Invalidate providers to refresh data
       ref.invalidate(sitesWithCountsProvider);
       ref.invalidate(sitesProvider);
+      if (widget.isEditing) {
+        ref.invalidate(siteProvider(widget.siteId!));
+      }
 
       if (mounted) {
         context.pop();

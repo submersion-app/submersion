@@ -124,6 +124,8 @@ class SiteDetailPage extends ConsumerWidget {
       child: SizedBox(
         height: 200,
         child: FlutterMap(
+          // Key forces rebuild when coordinates change (e.g., after editing)
+          key: ValueKey('${site.location!.latitude}_${site.location!.longitude}'),
           options: MapOptions(
             initialCenter: siteLocation,
             initialZoom: 14.0,
