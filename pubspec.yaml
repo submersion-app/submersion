@@ -45,6 +45,8 @@ dependencies:
   share_plus: ^10.0.2
   url_launcher: ^6.3.0
   flutter_contacts: ^1.1.9+2
+  geolocator: ^13.0.2
+  geocoding: ^3.0.0
 
   # Storage
   shared_preferences: ^2.3.2

@@ -1,7 +1,11 @@
+import 'dart:io' show Platform;
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/services/location_service.dart';
 import '../../domain/entities/dive_site.dart';
 import '../providers/site_providers.dart';
 
@@ -370,7 +374,69 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     );
   }
 
+  bool _isGettingLocation = false;
+
+  Future<void> _useMyLocation() async {
+    setState(() => _isGettingLocation = true);
+
+    try {
+      final locationService = LocationService.instance;
+      final result = await locationService.getCurrentLocation(includeGeocoding: true);
+
+      if (result == null) {
+        if (mounted) {
+          final isMobile = !kIsWeb && (Platform.isIOS || Platform.isAndroid);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                isMobile
+                    ? 'Unable to get location. Please check permissions.'
+                    : 'Unable to get location. Location services may not be available.',
+              ),
+              action: isMobile
+                  ? SnackBarAction(
+                      label: 'Settings',
+                      onPressed: () => locationService.openAppSettings(),
+                    )
+                  : null,
+            ),
+          );
+        }
+        return;
+      }
+
+      setState(() {
+        _latitudeController.text = result.latitude.toStringAsFixed(6);
+        _longitudeController.text = result.longitude.toStringAsFixed(6);
+
+        // Auto-fill country and region if empty
+        if (_countryController.text.isEmpty && result.country != null) {
+          _countryController.text = result.country!;
+        }
+        if (_regionController.text.isEmpty && result.region != null) {
+          _regionController.text = result.region!;
+        }
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Location captured${result.accuracy != null ? ' (±${result.accuracy!.toStringAsFixed(0)}m)' : ''}',
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isGettingLocation = false);
+      }
+    }
+  }
+
   Widget _buildGpsSection(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -381,15 +447,31 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
               children: [
                 const Icon(Icons.gps_fixed),
                 const SizedBox(width: 8),
-                Text(
-                  'GPS Coordinates',
-                  style: Theme.of(context).textTheme.titleMedium,
+                Expanded(
+                  child: Text(
+                    'GPS Coordinates',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                FilledButton.tonalIcon(
+                  onPressed: _isGettingLocation ? null : _useMyLocation,
+                  icon: _isGettingLocation
+                      ? SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: colorScheme.onSecondaryContainer,
+                          ),
+                        )
+                      : const Icon(Icons.my_location, size: 18),
+                  label: Text(_isGettingLocation ? 'Getting...' : 'Use My Location'),
                 ),
               ],
             ),
             const SizedBox(height: 8),
             Text(
-              'Optional: Add coordinates for map display',
+              'Coordinates will also auto-fill country and region if empty',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
