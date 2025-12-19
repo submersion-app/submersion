@@ -586,7 +586,7 @@
 |---------|--------|-------|-------|
 | Water type | ✅ Implemented | v1.0 | Fresh, salt, brackish |
 | Hazards | ✅ Implemented | v1.1 | Site-level hazards field |
-| Entry altitude | 📋 Planned | v1.5 | For altitude dive tables |
+| Entry altitude | ✅ Implemented | v1.5 | For altitude dive tables |
 | Tides | ✅ Implemented | v1.5 | World Tides API integration |
 
 **v1.5 Tasks:**
@@ -664,7 +664,6 @@
 **v1.5 Tasks:**
 - [ ] Expand filter UI with all available criteria (tags, equipment, buddy, gas mix, certification)
 - [ ] "Advanced Search" page with all filter options
-- [ ] Recent searches history
 - [ ] Bulk export (export selected dives to CSV/UDDF/PDF)
 - [ ] Bulk edit (change trip, add tag to multiple dives)
 
@@ -978,15 +977,15 @@
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Multiple divers per database | 📋 Planned | v2.0 | DiveMate-style |
-| Account switching | 📋 Planned | v2.0 | Shared devices |
+| Multiple divers per database | ✅ Done | v2.0 | DiveMate-style |
+| Account switching | ✅ Done | v2.0 | Shared devices |
 | Family subscription | 🔮 Future | v3.0 | Monetization strategy |
 
 **v2.0 Tasks:**
-- [ ] Diver entity (name, certs, profile)
-- [ ] Add `diver_id` to dives table
-- [ ] Diver switcher in settings or main nav
-- [ ] Per-diver stats and filtering
+- [x] Diver entity (name, certs, profile)
+- [x] Add `diver_id` to dives table
+- [x] Diver switcher in settings or main nav
+- [x] Per-diver stats and filtering
 
 ---
 

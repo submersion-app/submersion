@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/units.dart';
+import '../../../divers/domain/entities/diver.dart';
+import '../../../divers/presentation/providers/diver_providers.dart';
 import '../providers/api_key_providers.dart';
 import '../providers/export_providers.dart';
 import '../providers/settings_providers.dart';
@@ -20,6 +22,10 @@ class SettingsPage extends ConsumerWidget {
       ),
       body: ListView(
         children: [
+          _buildSectionHeader(context, 'Diver Profile'),
+          _buildDiverProfileSection(context, ref),
+          const Divider(),
+
           _buildSectionHeader(context, 'Units'),
           _buildUnitPresetSelector(context, ref, settings),
           _buildUnitTile(
@@ -212,6 +218,172 @@ class SettingsPage extends ConsumerWidget {
               color: Theme.of(context).colorScheme.primary,
               fontWeight: FontWeight.bold,
             ),
+      ),
+    );
+  }
+
+  Widget _buildDiverProfileSection(BuildContext context, WidgetRef ref) {
+    final currentDiverAsync = ref.watch(currentDiverProvider);
+    final allDiversAsync = ref.watch(diverListNotifierProvider);
+
+    return currentDiverAsync.when(
+      data: (diver) {
+        if (diver == null) {
+          return ListTile(
+            leading: CircleAvatar(
+              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+              child: const Icon(Icons.person_add),
+            ),
+            title: const Text('No diver profile'),
+            subtitle: const Text('Tap to create your profile'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/divers/new'),
+          );
+        }
+
+        return Column(
+          children: [
+            // Current diver tile
+            ListTile(
+              leading: CircleAvatar(
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                backgroundImage: diver.photoPath != null
+                    ? AssetImage(diver.photoPath!)
+                    : null,
+                child: diver.photoPath == null
+                    ? Text(
+                        diver.initials,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    : null,
+              ),
+              title: Text(diver.name),
+              subtitle: const Text('Active diver - tap to switch'),
+              trailing: const Icon(Icons.swap_horiz),
+              onTap: () => _showDiverSwitcher(context, ref, allDiversAsync),
+            ),
+            // Manage divers link
+            ListTile(
+              leading: const Icon(Icons.manage_accounts),
+              title: const Text('Manage Divers'),
+              subtitle: const Text('Add or edit diver profiles'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push('/divers'),
+            ),
+          ],
+        );
+      },
+      loading: () => const ListTile(
+        leading: CircleAvatar(
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+        title: Text('Loading...'),
+      ),
+      error: (error, _) => ListTile(
+        leading: const Icon(Icons.error, color: Colors.red),
+        title: const Text('Error loading diver'),
+        subtitle: Text('$error'),
+      ),
+    );
+  }
+
+  void _showDiverSwitcher(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<List<Diver>> diversAsync,
+  ) {
+    final currentDiverId = ref.read(currentDiverIdProvider);
+
+    showModalBottomSheet(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Switch Diver',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+            ),
+            const Divider(height: 1),
+            diversAsync.when(
+              data: (divers) => ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.4,
+                ),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: divers.length,
+                  itemBuilder: (context, index) {
+                    final diver = divers[index];
+                    final isCurrentDiver = diver.id == currentDiverId;
+
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                        backgroundImage: diver.photoPath != null
+                            ? AssetImage(diver.photoPath!)
+                            : null,
+                        child: diver.photoPath == null
+                            ? Text(
+                                diver.initials,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              )
+                            : null,
+                      ),
+                      title: Text(diver.name),
+                      trailing: isCurrentDiver
+                          ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
+                          : null,
+                      onTap: () async {
+                        if (!isCurrentDiver) {
+                          await ref.read(currentDiverIdProvider.notifier).setCurrentDiver(diver.id);
+                        }
+                        if (sheetContext.mounted) {
+                          Navigator.of(sheetContext).pop();
+                        }
+                        if (context.mounted && !isCurrentDiver) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Switched to ${diver.name}')),
+                          );
+                        }
+                      },
+                    );
+                  },
+                ),
+              ),
+              loading: () => const Padding(
+                padding: EdgeInsets.all(32),
+                child: CircularProgressIndicator(),
+              ),
+              error: (error, _) => Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text('Error: $error'),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.of(sheetContext).pop();
+                  context.push('/divers/new');
+                },
+                icon: const Icon(Icons.person_add),
+                label: const Text('Add New Diver'),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
       ),
     );
   }

@@ -6,6 +6,35 @@ part 'database.g.dart';
 // Table Definitions
 // ============================================================================
 
+/// Diver profiles (multi-account support)
+class Divers extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  TextColumn get email => text().nullable()();
+  TextColumn get phone => text().nullable()();
+  TextColumn get photoPath => text().nullable()();
+  // Emergency contact
+  TextColumn get emergencyContactName => text().nullable()();
+  TextColumn get emergencyContactPhone => text().nullable()();
+  TextColumn get emergencyContactRelation => text().nullable()();
+  // Medical info
+  TextColumn get medicalNotes => text().withDefault(const Constant(''))();
+  TextColumn get bloodType => text().nullable()();
+  TextColumn get allergies => text().nullable()();
+  // Insurance
+  TextColumn get insuranceProvider => text().nullable()();
+  TextColumn get insurancePolicyNumber => text().nullable()();
+  IntColumn get insuranceExpiryDate => integer().nullable()(); // Unix timestamp
+  // General
+  TextColumn get notes => text().withDefault(const Constant(''))();
+  BoolColumn get isDefault => boolean().withDefault(const Constant(false))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Dive trips (group of dives at a destination)
 class Trips extends Table {
   TextColumn get id => text()();
@@ -26,6 +55,7 @@ class Trips extends Table {
 /// Dive log entries
 class Dives extends Table {
   TextColumn get id => text()();
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
   IntColumn get diveNumber => integer().nullable()();
   IntColumn get diveDateTime => integer()(); // Unix timestamp (legacy, kept for compatibility)
   IntColumn get entryTime => integer().nullable()(); // Unix timestamp - when diver entered water
@@ -277,6 +307,7 @@ class DiveBuddies extends Table {
 /// Diver certifications
 class Certifications extends Table {
   TextColumn get id => text()();
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
   TextColumn get name => text()(); // e.g., "Open Water Diver"
   TextColumn get agency => text()(); // PADI, SSI, etc.
   TextColumn get level => text().nullable()(); // For more specific level info
@@ -377,6 +408,7 @@ class DiveTags extends Table {
 
 @DriftDatabase(
   tables: [
+    Divers,
     Trips,
     Dives,
     DiveProfiles,
@@ -405,7 +437,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 13;
+  int get schemaVersion => 14;
 
   @override
   MigrationStrategy get migration {
@@ -759,6 +791,66 @@ class AppDatabase extends _$AppDatabase {
         if (from < 13) {
           // Migration v12 -> v13: Add runtime field for total dive runtime tracking
           await customStatement('ALTER TABLE dives ADD COLUMN runtime INTEGER');
+        }
+        if (from < 14) {
+          // Migration v13 -> v14: Add multi-diver support
+
+          // Create divers table
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS divers (
+              id TEXT NOT NULL PRIMARY KEY,
+              name TEXT NOT NULL,
+              email TEXT,
+              phone TEXT,
+              photo_path TEXT,
+              emergency_contact_name TEXT,
+              emergency_contact_phone TEXT,
+              emergency_contact_relation TEXT,
+              medical_notes TEXT NOT NULL DEFAULT '',
+              blood_type TEXT,
+              allergies TEXT,
+              insurance_provider TEXT,
+              insurance_policy_number TEXT,
+              insurance_expiry_date INTEGER,
+              notes TEXT NOT NULL DEFAULT '',
+              is_default INTEGER NOT NULL DEFAULT 0,
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL
+            )
+          ''');
+
+          // Add diver_id to dives table
+          await customStatement(
+              'ALTER TABLE dives ADD COLUMN diver_id TEXT REFERENCES divers(id)');
+
+          // Add diver_id to certifications table
+          await customStatement(
+              'ALTER TABLE certifications ADD COLUMN diver_id TEXT REFERENCES divers(id)');
+
+          // Create indexes for faster diver lookups
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dives_diver_id ON dives(diver_id)
+          ''');
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_certifications_diver_id ON certifications(diver_id)
+          ''');
+
+          // Auto-create "Me" diver and assign all existing data
+          final now = DateTime.now().millisecondsSinceEpoch;
+          const meDiverId = 'me-default-diver';
+
+          await customStatement('''
+            INSERT INTO divers (id, name, is_default, medical_notes, notes, created_at, updated_at)
+            VALUES ('$meDiverId', 'Me', 1, '', '', $now, $now)
+          ''');
+
+          // Assign all existing dives to "Me" diver
+          await customStatement(
+              "UPDATE dives SET diver_id = '$meDiverId'");
+
+          // Assign all existing certifications to "Me" diver
+          await customStatement(
+              "UPDATE certifications SET diver_id = '$meDiverId'");
         }
       },
       beforeOpen: (details) async {
