@@ -212,7 +212,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               ? units.convertDepth(dive.swellHeight!).toStringAsFixed(1)
               : '';
           _altitudeController.text = dive.altitude != null
-              ? dive.altitude!.toStringAsFixed(0)
+              ? units.convertDepth(dive.altitude!).toStringAsFixed(0)
               : '';
 
           // Load weight entries (weights already stored in kg, conversion happens in display)
@@ -1513,10 +1513,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                     controller: _altitudeController,
                     decoration: InputDecoration(
                       labelText: 'Altitude',
-                      suffixText: 'm',
-                      helperText: _getAltitudeWarning(),
+                      suffixText: units.depthSymbol,
+                      helperText: _getAltitudeWarning(units),
                       helperStyle: TextStyle(
-                        color: _isAltitudeDive() ? Colors.orange : null,
+                        color: _isAltitudeDive(units) ? Colors.orange : null,
                       ),
                     ),
                     keyboardType: const TextInputType.numberWithOptions(decimal: false),
@@ -2080,7 +2080,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           ? units.depthToMeters(double.parse(_swellHeightController.text))
           : null;
       final altitude = _altitudeController.text.isNotEmpty
-          ? double.parse(_altitudeController.text)
+          ? units.depthToMeters(double.parse(_altitudeController.text))
           : null;
 
       // Create dive entity
@@ -2176,16 +2176,19 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   }
 
   /// Check if this is an altitude dive (>300m above sea level).
-  bool _isAltitudeDive() {
+  bool _isAltitudeDive(UnitFormatter units) {
     final altitudeText = _altitudeController.text.trim();
     if (altitudeText.isEmpty) return false;
-    final altitude = double.tryParse(altitudeText);
-    return altitude != null && altitude > 300;
+    final altitudeInUserUnits = double.tryParse(altitudeText);
+    if (altitudeInUserUnits == null) return false;
+    // Convert to meters for comparison (300m is the threshold)
+    final altitudeMeters = units.depthToMeters(altitudeInUserUnits);
+    return altitudeMeters > 300;
   }
 
   /// Get warning text for altitude dives.
-  String? _getAltitudeWarning() {
-    if (_isAltitudeDive()) {
+  String? _getAltitudeWarning(UnitFormatter units) {
+    if (_isAltitudeDive(units)) {
       return 'Altitude dive - affects NDL';
     }
     return null;
