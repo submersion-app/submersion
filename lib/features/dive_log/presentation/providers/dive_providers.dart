@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/repositories/dive_repository_impl.dart';
 import '../../domain/entities/dive.dart' as domain;
+import '../../../divers/presentation/providers/diver_providers.dart';
 
 /// Filter state for dive list
 class DiveFilterState {
@@ -128,10 +129,11 @@ final diveRepositoryProvider = Provider<DiveRepository>((ref) {
   return DiveRepository();
 });
 
-/// All dives list provider
+/// All dives list provider (filtered by current diver)
 final divesProvider = FutureProvider<List<domain.Dive>>((ref) async {
   final repository = ref.watch(diveRepositoryProvider);
-  return repository.getAllDives();
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  return repository.getAllDives(diverId: currentDiverId);
 });
 
 /// Single dive provider
@@ -140,22 +142,25 @@ final diveProvider = FutureProvider.family<domain.Dive?, String>((ref, id) async
   return repository.getDiveById(id);
 });
 
-/// Statistics provider
+/// Statistics provider (filtered by current diver)
 final diveStatisticsProvider = FutureProvider<DiveStatistics>((ref) async {
   final repository = ref.watch(diveRepositoryProvider);
-  return repository.getStatistics();
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  return repository.getStatistics(diverId: currentDiverId);
 });
 
-/// Dive records (superlatives) provider
+/// Dive records (superlatives) provider (filtered by current diver)
 final diveRecordsProvider = FutureProvider<DiveRecords>((ref) async {
   final repository = ref.watch(diveRepositoryProvider);
-  return repository.getRecords();
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  return repository.getRecords(diverId: currentDiverId);
 });
 
-/// Next dive number provider
+/// Next dive number provider (filtered by current diver)
 final nextDiveNumberProvider = FutureProvider<int>((ref) async {
   final repository = ref.watch(diveRepositoryProvider);
-  return repository.getNextDiveNumber();
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  return repository.getNextDiveNumber(diverId: currentDiverId);
 });
 
 /// Search results provider
@@ -171,15 +176,24 @@ final diveSearchProvider = FutureProvider.family<List<domain.Dive>, String>((ref
 class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
   final DiveRepository _repository;
   final Ref _ref;
+  String? _currentDiverId;
 
   DiveListNotifier(this._repository, this._ref) : super(const AsyncValue.loading()) {
+    // Watch for changes to current diver
+    _currentDiverId = _ref.read(currentDiverIdProvider);
+    _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
+      if (previous != next) {
+        _currentDiverId = next;
+        _loadDives();
+      }
+    });
     _loadDives();
   }
 
   Future<void> _loadDives() async {
     state = const AsyncValue.loading();
     try {
-      final dives = await _repository.getAllDives();
+      final dives = await _repository.getAllDives(diverId: _currentDiverId);
       state = AsyncValue.data(dives);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -191,7 +205,11 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
   }
 
   Future<domain.Dive> addDive(domain.Dive dive) async {
-    final newDive = await _repository.createDive(dive);
+    // Ensure the dive is assigned to the current diver
+    final diveWithDiver = dive.diverId == null && _currentDiverId != null
+        ? dive.copyWith(diverId: _currentDiverId)
+        : dive;
+    final newDive = await _repository.createDive(diveWithDiver);
     await _loadDives();
     _ref.invalidate(diveStatisticsProvider);
     return newDive;

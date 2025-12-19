@@ -25,10 +25,15 @@ class DiveRepository {
 
   /// Get all dives, ordered by date (newest first)
   /// This method is optimized to avoid N+1 queries by batch loading related data
-  Future<List<domain.Dive>> getAllDives() async {
+  /// Optionally filter by [diverId] for multi-diver support
+  Future<List<domain.Dive>> getAllDives({String? diverId}) async {
     try {
       final query = _db.select(_db.dives)
         ..orderBy([(t) => OrderingTerm.desc(t.diveDateTime)]);
+
+      if (diverId != null) {
+        query.where((t) => t.diverId.equals(diverId));
+      }
 
       final rows = await query.get();
       if (rows.isEmpty) return [];
@@ -144,6 +149,7 @@ class DiveRepository {
 
       await _db.into(_db.dives).insert(DivesCompanion(
       id: Value(id),
+      diverId: Value(dive.diverId),
       diveNumber: Value(dive.diveNumber),
       diveDateTime: Value(dive.dateTime.millisecondsSinceEpoch),
       entryTime: Value(dive.entryTime?.millisecondsSinceEpoch),
@@ -252,6 +258,7 @@ class DiveRepository {
 
     await (_db.update(_db.dives)..where((t) => t.id.equals(dive.id))).write(
       DivesCompanion(
+        diverId: Value(dive.diverId),
         diveNumber: Value(dive.diveNumber),
         diveDateTime: Value(dive.dateTime.millisecondsSinceEpoch),
         entryTime: Value(dive.entryTime?.millisecondsSinceEpoch),
@@ -420,11 +427,21 @@ class DiveRepository {
   }
 
   /// Get the next dive number
-  Future<int> getNextDiveNumber() async {
+  /// Optionally filter by [diverId] for per-diver numbering
+  Future<int> getNextDiveNumber({String? diverId}) async {
     try {
-      final result = await _db.customSelect(
-        'SELECT MAX(dive_number) as max_num FROM dives',
-      ).getSingle();
+      final String sql;
+      final List<Object> args;
+
+      if (diverId != null) {
+        sql = 'SELECT MAX(dive_number) as max_num FROM dives WHERE diver_id = ?';
+        args = [diverId];
+      } else {
+        sql = 'SELECT MAX(dive_number) as max_num FROM dives';
+        args = [];
+      }
+
+      final result = await _db.customSelect(sql, variables: args.map((a) => Variable(a)).toList()).getSingle();
 
       final maxNum = result.data['max_num'] as int?;
       return (maxNum ?? 0) + 1;
@@ -456,8 +473,13 @@ class DiveRepository {
   // Statistics
   // ============================================================================
 
-  Future<DiveStatistics> getStatistics() async {
+  /// Get statistics for dives
+  /// Optionally filter by [diverId] for per-diver statistics
+  Future<DiveStatistics> getStatistics({String? diverId}) async {
     try {
+      final whereClause = diverId != null ? 'WHERE diver_id = ?' : '';
+      final vars = diverId != null ? [Variable<String>(diverId)] : <Variable<Object>>[];
+
       // Basic stats
     final stats = await _db.customSelect('''
       SELECT
@@ -468,19 +490,23 @@ class DiveRepository {
         AVG(water_temp) as avg_temp,
         COUNT(DISTINCT site_id) as total_sites
       FROM dives
-    ''').getSingle();
+      $whereClause
+    ''', variables: vars).getSingle();
 
     // Dives by month (last 12 months)
+    final monthlyWhereClause = diverId != null
+        ? 'WHERE dive_date_time >= strftime(\'%s\', \'now\', \'-12 months\') * 1000 AND diver_id = ?'
+        : 'WHERE dive_date_time >= strftime(\'%s\', \'now\', \'-12 months\') * 1000';
     final monthlyStats = await _db.customSelect('''
       SELECT
         strftime('%Y', dive_date_time / 1000, 'unixepoch') as year,
         strftime('%m', dive_date_time / 1000, 'unixepoch') as month,
         COUNT(*) as count
       FROM dives
-      WHERE dive_date_time >= strftime('%s', 'now', '-12 months') * 1000
+      $monthlyWhereClause
       GROUP BY year, month
       ORDER BY year, month
-    ''').get();
+    ''', variables: vars).get();
 
     final divesByMonth = monthlyStats.map((row) => MonthlyDiveCount(
       year: int.parse(row.data['year'] as String),
@@ -489,6 +515,9 @@ class DiveRepository {
     ),).toList();
 
     // Depth distribution
+    final depthWhereClause = diverId != null
+        ? 'WHERE max_depth IS NOT NULL AND diver_id = ?'
+        : 'WHERE max_depth IS NOT NULL';
     final depthStats = await _db.customSelect('''
       SELECT
         CASE
@@ -500,7 +529,7 @@ class DiveRepository {
         END as depth_range,
         COUNT(*) as count
       FROM dives
-      WHERE max_depth IS NOT NULL
+      $depthWhereClause
       GROUP BY depth_range
       ORDER BY
         CASE depth_range
@@ -510,7 +539,7 @@ class DiveRepository {
           WHEN '30-40m' THEN 4
           ELSE 5
         END
-    ''').get();
+    ''', variables: vars).get();
 
     final depthRanges = [
       DepthRangeStat(label: '0-10m', minDepth: 0, maxDepth: 10, count: 0),
@@ -531,16 +560,18 @@ class DiveRepository {
     }).toList();
 
     // Top sites
+    final siteWhereClause = diverId != null ? 'WHERE d.diver_id = ?' : '';
     final siteStats = await _db.customSelect('''
       SELECT
         s.name as site_name,
         COUNT(*) as dive_count
       FROM dives d
       INNER JOIN dive_sites s ON d.site_id = s.id
+      $siteWhereClause
       GROUP BY d.site_id
       ORDER BY dive_count DESC
       LIMIT 5
-    ''').get();
+    ''', variables: vars).get();
 
     final topSites = siteStats.map((row) => TopSiteStat(
       siteName: row.data['site_name'] as String,
@@ -565,75 +596,82 @@ class DiveRepository {
   }
 
   /// Get dive records (superlatives)
-  Future<DiveRecords> getRecords() async {
+  /// Optionally filter by [diverId] for per-diver records
+  Future<DiveRecords> getRecords({String? diverId}) async {
     try {
+      final vars = diverId != null ? [Variable<String>(diverId)] : <Variable<Object>>[];
+      final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
+      final diverFilterFirst = diverId != null ? 'WHERE d.diver_id = ?' : '';
+
       // Deepest dive
     final deepestResult = await _db.customSelect('''
       SELECT d.*, s.name as site_name
       FROM dives d
       LEFT JOIN dive_sites s ON d.site_id = s.id
-      WHERE d.max_depth IS NOT NULL
+      WHERE d.max_depth IS NOT NULL $diverFilter
       ORDER BY d.max_depth DESC
       LIMIT 1
-    ''').getSingleOrNull();
+    ''', variables: vars).getSingleOrNull();
 
     // Longest dive
     final longestResult = await _db.customSelect('''
       SELECT d.*, s.name as site_name
       FROM dives d
       LEFT JOIN dive_sites s ON d.site_id = s.id
-      WHERE d.duration IS NOT NULL
+      WHERE d.duration IS NOT NULL $diverFilter
       ORDER BY d.duration DESC
       LIMIT 1
-    ''').getSingleOrNull();
+    ''', variables: vars).getSingleOrNull();
 
     // Coldest dive
     final coldestResult = await _db.customSelect('''
       SELECT d.*, s.name as site_name
       FROM dives d
       LEFT JOIN dive_sites s ON d.site_id = s.id
-      WHERE d.water_temp IS NOT NULL
+      WHERE d.water_temp IS NOT NULL $diverFilter
       ORDER BY d.water_temp ASC
       LIMIT 1
-    ''').getSingleOrNull();
+    ''', variables: vars).getSingleOrNull();
 
     // Warmest dive
     final warmestResult = await _db.customSelect('''
       SELECT d.*, s.name as site_name
       FROM dives d
       LEFT JOIN dive_sites s ON d.site_id = s.id
-      WHERE d.water_temp IS NOT NULL
+      WHERE d.water_temp IS NOT NULL $diverFilter
       ORDER BY d.water_temp DESC
       LIMIT 1
-    ''').getSingleOrNull();
+    ''', variables: vars).getSingleOrNull();
 
     // First dive
     final firstResult = await _db.customSelect('''
       SELECT d.*, s.name as site_name
       FROM dives d
       LEFT JOIN dive_sites s ON d.site_id = s.id
+      $diverFilterFirst
       ORDER BY d.dive_date_time ASC
       LIMIT 1
-    ''').getSingleOrNull();
+    ''', variables: vars).getSingleOrNull();
 
     // Most recent dive
     final lastResult = await _db.customSelect('''
       SELECT d.*, s.name as site_name
       FROM dives d
       LEFT JOIN dive_sites s ON d.site_id = s.id
+      $diverFilterFirst
       ORDER BY d.dive_date_time DESC
       LIMIT 1
-    ''').getSingleOrNull();
+    ''', variables: vars).getSingleOrNull();
 
     // Shallowest dive (with max_depth recorded)
     final shallowestResult = await _db.customSelect('''
       SELECT d.*, s.name as site_name
       FROM dives d
       LEFT JOIN dive_sites s ON d.site_id = s.id
-      WHERE d.max_depth IS NOT NULL AND d.max_depth > 0
+      WHERE d.max_depth IS NOT NULL AND d.max_depth > 0 $diverFilter
       ORDER BY d.max_depth ASC
       LIMIT 1
-    ''').getSingleOrNull();
+    ''', variables: vars).getSingleOrNull();
 
       return DiveRecords(
         deepestDive: deepestResult != null ? _mapRecordRow(deepestResult) : null,
@@ -718,6 +756,7 @@ class DiveRepository {
 
     return domain.Dive(
       id: row.id,
+      diverId: row.diverId,
       diveNumber: row.diveNumber,
       dateTime: DateTime.fromMillisecondsSinceEpoch(row.diveDateTime),
       entryTime: row.entryTime != null
@@ -919,6 +958,7 @@ class DiveRepository {
 
     return domain.Dive(
       id: row.id,
+      diverId: row.diverId,
       diveNumber: row.diveNumber,
       dateTime: DateTime.fromMillisecondsSinceEpoch(row.diveDateTime),
       entryTime: row.entryTime != null

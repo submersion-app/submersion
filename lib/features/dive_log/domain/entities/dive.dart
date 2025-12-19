@@ -12,6 +12,7 @@ import 'dive_weight.dart';
 /// Core dive log entry entity
 class Dive extends Equatable {
   final String id;
+  final String? diverId;
   final int? diveNumber;
   final DateTime dateTime; // Legacy field, kept for compatibility
   final DateTime? entryTime; // When diver entered water
@@ -58,6 +59,7 @@ class Dive extends Equatable {
 
   const Dive({
     required this.id,
+    this.diverId,
     this.diveNumber,
     required this.dateTime,
     this.entryTime,
@@ -193,6 +195,7 @@ class Dive extends Equatable {
 
   Dive copyWith({
     String? id,
+    String? diverId,
     int? diveNumber,
     DateTime? dateTime,
     DateTime? entryTime,
@@ -234,6 +237,7 @@ class Dive extends Equatable {
   }) {
     return Dive(
       id: id ?? this.id,
+      diverId: diverId ?? this.diverId,
       diveNumber: diveNumber ?? this.diveNumber,
       dateTime: dateTime ?? this.dateTime,
       entryTime: entryTime ?? this.entryTime,
@@ -278,6 +282,7 @@ class Dive extends Equatable {
   @override
   List<Object?> get props => [
         id,
+        diverId,
         diveNumber,
         dateTime,
         entryTime,

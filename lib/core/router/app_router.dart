@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import '../../features/buddies/presentation/pages/buddy_list_page.dart';
 import '../../features/buddies/presentation/pages/buddy_detail_page.dart';
 import '../../features/buddies/presentation/pages/buddy_edit_page.dart';
+import '../../features/divers/presentation/pages/diver_list_page.dart';
+import '../../features/divers/presentation/pages/diver_detail_page.dart';
+import '../../features/divers/presentation/pages/diver_edit_page.dart';
 import '../../features/certifications/presentation/pages/certification_list_page.dart';
 import '../../features/certifications/presentation/pages/certification_detail_page.dart';
 import '../../features/certifications/presentation/pages/certification_edit_page.dart';
@@ -202,6 +205,38 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     name: 'editBuddy',
                     builder: (context, state) => BuddyEditPage(
                       buddyId: state.pathParameters['buddyId'],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          // Divers
+          GoRoute(
+            path: '/divers',
+            name: 'divers',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: DiverListPage(),
+            ),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'newDiver',
+                builder: (context, state) => const DiverEditPage(),
+              ),
+              GoRoute(
+                path: ':diverId',
+                name: 'diverDetail',
+                builder: (context, state) => DiverDetailPage(
+                  diverId: state.pathParameters['diverId']!,
+                ),
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    name: 'editDiver',
+                    builder: (context, state) => DiverEditPage(
+                      diverId: state.pathParameters['diverId'],
                     ),
                   ),
                 ],
