@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/units.dart';
+import '../providers/api_key_providers.dart';
 import '../providers/export_providers.dart';
 import '../providers/settings_providers.dart';
 
@@ -92,6 +93,31 @@ class SettingsPage extends ConsumerWidget {
             subtitle: const Text('Manage custom dive types'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push('/dive-types'),
+          ),
+          const Divider(),
+
+          _buildSectionHeader(context, 'API Integrations'),
+          ListTile(
+            leading: const Icon(Icons.cloud),
+            title: const Text('Weather & Tide APIs'),
+            subtitle: Consumer(
+              builder: (context, ref, child) {
+                final apiKeys = ref.watch(apiKeyProvider);
+                if (apiKeys.isLoading) {
+                  return const Text('Loading...');
+                }
+                final configured = <String>[];
+                if (apiKeys.hasWeatherKey) configured.add('Weather');
+                if (apiKeys.hasTideKey) configured.add('Tides');
+                return Text(
+                  configured.isEmpty
+                      ? 'Not configured'
+                      : '${configured.join(', ')} configured',
+                );
+              },
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/settings/api-keys'),
           ),
           const Divider(),
 

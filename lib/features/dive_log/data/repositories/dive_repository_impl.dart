@@ -170,6 +170,7 @@ class DiveRepository {
       entryMethod: Value(dive.entryMethod?.name),
       exitMethod: Value(dive.exitMethod?.name),
       waterType: Value(dive.waterType?.name),
+      altitude: Value(dive.altitude),
       // Weight system fields
       weightAmount: Value(dive.weightAmount),
       weightType: Value(dive.weightType?.name),
@@ -277,6 +278,7 @@ class DiveRepository {
         entryMethod: Value(dive.entryMethod?.name),
         exitMethod: Value(dive.exitMethod?.name),
         waterType: Value(dive.waterType?.name),
+        altitude: Value(dive.altitude),
         // Weight system fields
         weightAmount: Value(dive.weightAmount),
         weightType: Value(dive.weightType?.name),
@@ -774,6 +776,7 @@ class DiveRepository {
               orElse: () => WaterType.salt,
             )
           : null,
+      altitude: row.altitude,
       weightAmount: row.weightAmount,
       weightType: row.weightType != null
           ? WeightType.values.firstWhere(
@@ -975,6 +978,7 @@ class DiveRepository {
               orElse: () => WaterType.salt,
             )
           : null,
+      altitude: row.altitude,
       // Weight system fields
       weightAmount: row.weightAmount,
       weightType: row.weightType != null

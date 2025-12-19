@@ -45,6 +45,8 @@ class Dive extends Equatable {
   final EntryMethod? entryMethod;
   final EntryMethod? exitMethod;
   final WaterType? waterType;
+  // Altitude for altitude diving
+  final double? altitude; // meters above sea level
   // Weight system fields (legacy single weight - kept for backward compatibility)
   final double? weightAmount; // kg
   final WeightType? weightType;
@@ -88,6 +90,7 @@ class Dive extends Equatable {
     this.entryMethod,
     this.exitMethod,
     this.waterType,
+    this.altitude,
     this.weightAmount,
     this.weightType,
     this.weights = const [],
@@ -222,6 +225,7 @@ class Dive extends Equatable {
     EntryMethod? entryMethod,
     EntryMethod? exitMethod,
     WaterType? waterType,
+    double? altitude,
     double? weightAmount,
     WeightType? weightType,
     List<DiveWeight>? weights,
@@ -262,6 +266,7 @@ class Dive extends Equatable {
       entryMethod: entryMethod ?? this.entryMethod,
       exitMethod: exitMethod ?? this.exitMethod,
       waterType: waterType ?? this.waterType,
+      altitude: altitude ?? this.altitude,
       weightAmount: weightAmount ?? this.weightAmount,
       weightType: weightType ?? this.weightType,
       weights: weights ?? this.weights,
@@ -305,6 +310,7 @@ class Dive extends Equatable {
         entryMethod,
         exitMethod,
         waterType,
+        altitude,
         weightAmount,
         weightType,
         weights,

@@ -5,7 +5,10 @@ import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/constants/enums.dart';
+import '../../../../core/models/weather_data.dart';
 import '../../../../core/services/location_service.dart';
+import '../../../settings/presentation/providers/api_key_providers.dart';
+import '../providers/conditions_providers.dart';
 import '../../../../core/utils/unit_formatter.dart';
 import '../../../buddies/domain/entities/buddy.dart';
 import '../../../buddies/presentation/providers/buddy_providers.dart';
@@ -81,6 +84,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   EntryMethod? _exitMethod;
   WaterType? _waterType;
   final _swellHeightController = TextEditingController();
+  final _altitudeController = TextEditingController();
 
   // Weight fields - multiple weight entries per dive
   List<DiveWeight> _weights = [];
@@ -207,6 +211,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _swellHeightController.text = dive.swellHeight != null
               ? units.convertDepth(dive.swellHeight!).toStringAsFixed(1)
               : '';
+          _altitudeController.text = dive.altitude != null
+              ? dive.altitude!.toStringAsFixed(0)
+              : '';
 
           // Load weight entries (weights already stored in kg, conversion happens in display)
           _weights = List.from(dive.weights);
@@ -282,6 +289,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     _airTempController.dispose();
     _notesController.dispose();
     _swellHeightController.dispose();
+    _altitudeController.dispose();
     super.dispose();
   }
 
@@ -1315,7 +1323,31 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Conditions', style: Theme.of(context).textTheme.titleMedium),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Conditions', style: Theme.of(context).textTheme.titleMedium),
+                Consumer(
+                  builder: (context, ref, child) {
+                    final conditions = ref.watch(conditionsFetchProvider);
+                    final apiKeys = ref.watch(apiKeyProvider);
+                    return OutlinedButton.icon(
+                      onPressed: conditions.isLoading || !apiKeys.hasAnyKey
+                          ? null
+                          : () => _fetchConditions(ref, units),
+                      icon: conditions.isLoading
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.cloud_download, size: 18),
+                      label: Text(conditions.isLoading ? 'Fetching...' : 'Fetch'),
+                    );
+                  },
+                ),
+              ],
+            ),
             const SizedBox(height: 16),
             Consumer(
               builder: (context, ref, child) {
@@ -1463,13 +1495,35 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               ],
             ),
             const SizedBox(height: 16),
-            TextFormField(
-              controller: _swellHeightController,
-              decoration: InputDecoration(
-                labelText: 'Swell Height',
-                suffixText: units.depthSymbol,
-              ),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _swellHeightController,
+                    decoration: InputDecoration(
+                      labelText: 'Swell Height',
+                      suffixText: units.depthSymbol,
+                    ),
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: TextFormField(
+                    controller: _altitudeController,
+                    decoration: InputDecoration(
+                      labelText: 'Altitude',
+                      suffixText: 'm',
+                      helperText: _getAltitudeWarning(),
+                      helperStyle: TextStyle(
+                        color: _isAltitudeDive() ? Colors.orange : null,
+                      ),
+                    ),
+                    keyboardType: const TextInputType.numberWithOptions(decimal: false),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             Row(
@@ -2025,6 +2079,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       final swellHeight = _swellHeightController.text.isNotEmpty
           ? units.depthToMeters(double.parse(_swellHeightController.text))
           : null;
+      final altitude = _altitudeController.text.isNotEmpty
+          ? double.parse(_altitudeController.text)
+          : null;
 
       // Create dive entity
       final dive = Dive(
@@ -2055,6 +2112,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         entryMethod: _entryMethod,
         exitMethod: _exitMethod,
         waterType: _waterType,
+        altitude: altitude,
         // Weight entries (multiple)
         weights: _weights,
         // Tags
@@ -2117,6 +2175,144 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     }
   }
 
+  /// Check if this is an altitude dive (>300m above sea level).
+  bool _isAltitudeDive() {
+    final altitudeText = _altitudeController.text.trim();
+    if (altitudeText.isEmpty) return false;
+    final altitude = double.tryParse(altitudeText);
+    return altitude != null && altitude > 300;
+  }
+
+  /// Get warning text for altitude dives.
+  String? _getAltitudeWarning() {
+    if (_isAltitudeDive()) {
+      return 'Altitude dive - affects NDL';
+    }
+    return null;
+  }
+
+  /// Fetch weather and tide conditions from APIs.
+  Future<void> _fetchConditions(WidgetRef ref, UnitFormatter units) async {
+    // Check for required data
+    if (_selectedSite == null || _selectedSite!.location == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Select a dive site with coordinates first'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    // Get dive date/time
+    final diveDateTime = DateTime(
+      _entryDate.year,
+      _entryDate.month,
+      _entryDate.day,
+      _entryTime.hour,
+      _entryTime.minute,
+    );
+
+    await ref.read(conditionsFetchProvider.notifier).fetchConditions(
+          latitude: _selectedSite!.location!.latitude,
+          longitude: _selectedSite!.location!.longitude,
+          dateTime: diveDateTime,
+        );
+
+    final result = ref.read(conditionsFetchProvider);
+
+    // Apply fetched data to form fields
+    if (result.weather != null) {
+      _applyWeatherData(result.weather!, units);
+    }
+    if (result.tide != null) {
+      _applyTideData(result.tide!);
+    }
+
+    // Show result message
+    if (mounted) {
+      if (result.errorMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result.errorMessage!),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      } else if (result.hasData) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Conditions fetched successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Apply weather data to form fields.
+  void _applyWeatherData(WeatherData weather, UnitFormatter units) {
+    setState(() {
+      // Air temperature
+      if (weather.airTemp != null) {
+        // Convert from celsius (API) to user's preferred unit
+        final displayTemp = units.convertTemperature(weather.airTemp!);
+        _airTempController.text = displayTemp.toStringAsFixed(1);
+      }
+
+      // Map visibility (API returns meters)
+      if (weather.visibility != null) {
+        final visMeters = weather.visibility!;
+        if (visMeters > 30000) {
+          _selectedVisibility = Visibility.excellent;
+        } else if (visMeters > 15000) {
+          _selectedVisibility = Visibility.good;
+        } else if (visMeters > 5000) {
+          _selectedVisibility = Visibility.moderate;
+        } else {
+          _selectedVisibility = Visibility.poor;
+        }
+      }
+    });
+  }
+
+  /// Apply tide data to form fields.
+  void _applyTideData(TideData tide) {
+    setState(() {
+      // Map current direction from degrees to enum
+      if (tide.currentDirection != null) {
+        _currentDirection = _mapDegreesToDirection(tide.currentDirection!);
+      }
+
+      // Map current speed to strength
+      if (tide.currentSpeed != null) {
+        final knots = tide.currentSpeed!;
+        if (knots < 0.5) {
+          _currentStrength = CurrentStrength.none;
+        } else if (knots < 1.5) {
+          _currentStrength = CurrentStrength.light;
+        } else if (knots < 3.0) {
+          _currentStrength = CurrentStrength.moderate;
+        } else {
+          _currentStrength = CurrentStrength.strong;
+        }
+      }
+    });
+  }
+
+  /// Convert degrees to CurrentDirection enum.
+  CurrentDirection _mapDegreesToDirection(double degrees) {
+    // Normalize to 0-360
+    final normalized = degrees % 360;
+
+    if (normalized >= 337.5 || normalized < 22.5) return CurrentDirection.north;
+    if (normalized >= 22.5 && normalized < 67.5) return CurrentDirection.northEast;
+    if (normalized >= 67.5 && normalized < 112.5) return CurrentDirection.east;
+    if (normalized >= 112.5 && normalized < 157.5) return CurrentDirection.southEast;
+    if (normalized >= 157.5 && normalized < 202.5) return CurrentDirection.south;
+    if (normalized >= 202.5 && normalized < 247.5) return CurrentDirection.southWest;
+    if (normalized >= 247.5 && normalized < 292.5) return CurrentDirection.west;
+    return CurrentDirection.northWest;
+  }
 }
 
 /// Site picker bottom sheet with nearby site suggestions
