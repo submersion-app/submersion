@@ -34,44 +34,21 @@ flutter run -d macos
 
 # Run tests
 flutter test
+
+# Analyze code
+flutter analyze
+
+# Format code
+dart format lib/
+
+# Watch mode for code generation
+dart run build_runner watch
+
+# Clean rebuild
+flutter clean && flutter pub get && dart run build_runner build --delete-conflicting-outputs
 ```
 
 ## Architecture
-
-### Directory Structure
-```
-lib/
-├── main.dart                 # Entry point
-├── app.dart                  # Root app widget with ProviderScope
-├── core/
-│   ├── constants/
-│   │   ├── enums.dart        # DiveType, GearType, Visibility, etc.
-│   │   └── units.dart        # Measurement unit helpers
-│   ├── database/
-│   │   ├── database.dart     # Drift table definitions
-│   │   └── database.g.dart   # Generated Drift code
-│   ├── router/
-│   │   └── app_router.dart   # go_router configuration
-│   ├── services/
-│   │   └── database_service.dart  # Singleton database accessor
-│   └── theme/
-│       ├── app_theme.dart    # Light/dark theme definitions
-│       └── app_colors.dart   # Color palette
-├── features/
-│   ├── dive_log/             # Dive logging feature
-│   │   ├── data/repositories/dive_repository_impl.dart
-│   │   ├── domain/entities/dive.dart
-│   │   └── presentation/
-│   │       ├── pages/        # DiveListPage, DiveDetailPage, DiveEditPage
-│   │       └── providers/dive_providers.dart
-│   ├── dive_sites/           # Dive site management
-│   ├── gear/                 # Gear tracking
-│   ├── marine_life/          # Species and sightings
-│   ├── settings/             # App settings
-│   └── statistics/           # Dive statistics
-└── shared/
-    └── widgets/main_scaffold.dart  # Shell navigation scaffold
-```
 
 ### Key Patterns
 
@@ -108,26 +85,6 @@ Tables defined in `lib/core/database/database.dart`:
 
 **Important:** The `dives` table uses `diveDateTime` (not `dateTime`) as the column name to avoid conflict with Drift's `Table.dateTime` method.
 
-## Current Status
-
-**MVP Complete** - Core dive logging, sites, equipment, marine life, statistics, import/export
-
-**v1.0 In Progress** - Buddy system, certifications, service records, dive centers
-
-See [FEATURE_ROADMAP.md](FEATURE_ROADMAP.md) for complete feature status.
-
-## Known Issues / Technical Debt
-
-1. **Import Conflicts:** Domain entities use `as domain` alias to avoid conflicts with Drift-generated classes. This is intentional.
-
-2. **Flutter Visibility Conflict:** In `dive_edit_page.dart`, Flutter's `Visibility` widget conflicts with the app's `Visibility` enum. Fixed with `hide Visibility` on the material import.
-
-3. **Deprecation Warning:** `withOpacity()` is deprecated. Consider migrating to `Color.withValues()` in theme files.
-
-4. **Missing Error Handling:** Repository methods don't have comprehensive error handling/logging.
-
-5. **N+1 Query Issue:** `_mapRowToDive` makes individual queries for tanks, profile, and site per dive. Consider optimizing with joins for list views.
-
 ## Code Conventions
 
 - **Imports:** Group by: dart, flutter, packages, local (relative)
@@ -136,23 +93,3 @@ See [FEATURE_ROADMAP.md](FEATURE_ROADMAP.md) for complete feature status.
 - **Entity copyWith:** All domain entities should have `copyWith` method
 - **Null safety:** Project uses sound null safety
 
-## Useful Commands
-
-```bash
-# Watch mode for code generation
-dart run build_runner watch
-
-# Clean rebuild
-flutter clean && flutter pub get && dart run build_runner build --delete-conflicting-outputs
-
-# Run specific platform
-flutter run -d macos
-flutter run -d chrome  # Web
-flutter run -d ios
-
-# Analyze code
-flutter analyze
-
-# Format code
-dart format lib/
-```
