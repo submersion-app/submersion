@@ -57,9 +57,12 @@ class Dives extends Table {
   TextColumn get id => text()();
   TextColumn get diverId => text().nullable().references(Divers, #id)();
   IntColumn get diveNumber => integer().nullable()();
-  IntColumn get diveDateTime => integer()(); // Unix timestamp (legacy, kept for compatibility)
-  IntColumn get entryTime => integer().nullable()(); // Unix timestamp - when diver entered water
-  IntColumn get exitTime => integer().nullable()(); // Unix timestamp - when diver exited water
+  IntColumn get diveDateTime =>
+      integer()(); // Unix timestamp (legacy, kept for compatibility)
+  IntColumn get entryTime =>
+      integer().nullable()(); // Unix timestamp - when diver entered water
+  IntColumn get exitTime =>
+      integer().nullable()(); // Unix timestamp - when diver exited water
   IntColumn get duration => integer().nullable()(); // seconds (bottom time)
   IntColumn get runtime => integer().nullable()(); // seconds (total runtime)
   RealColumn get maxDepth => real().nullable()();
@@ -67,14 +70,16 @@ class Dives extends Table {
   RealColumn get waterTemp => real().nullable()();
   RealColumn get airTemp => real().nullable()();
   TextColumn get visibility => text().nullable()();
-  TextColumn get diveType => text().withDefault(const Constant('recreational'))();
+  TextColumn get diveType =>
+      text().withDefault(const Constant('recreational'))();
   TextColumn get buddy => text().nullable()();
   TextColumn get diveMaster => text().nullable()();
   TextColumn get notes => text().withDefault(const Constant(''))();
   TextColumn get siteId => text().nullable().references(DiveSites, #id)();
   IntColumn get rating => integer().nullable()();
   // Dive center reference
-  TextColumn get diveCenterId => text().nullable().references(DiveCenters, #id)();
+  TextColumn get diveCenterId =>
+      text().nullable().references(DiveCenters, #id)();
   // Trip reference
   TextColumn get tripId => text().nullable().references(Trips, #id)();
   // Conditions fields
@@ -101,7 +106,8 @@ class Dives extends Table {
 /// Time-series dive profile data points
 class DiveProfiles extends Table {
   TextColumn get id => text()();
-  TextColumn get diveId => text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
   IntColumn get timestamp => integer()(); // seconds from dive start
   RealColumn get depth => real()();
   RealColumn get pressure => real().nullable()(); // bar
@@ -121,15 +127,20 @@ class DiveSites extends Table {
   RealColumn get longitude => real().nullable()();
   RealColumn get minDepth => real().nullable()(); // Shallowest point
   RealColumn get maxDepth => real().nullable()(); // Deepest point
-  TextColumn get difficulty => text().nullable()(); // Beginner, Intermediate, Advanced, Technical
+  TextColumn get difficulty =>
+      text().nullable()(); // Beginner, Intermediate, Advanced, Technical
   TextColumn get country => text().nullable()();
   TextColumn get region => text().nullable()();
   RealColumn get rating => real().nullable()();
   TextColumn get notes => text().withDefault(const Constant(''))();
-  TextColumn get hazards => text().nullable()(); // Currents, boats, marine life, etc.
-  TextColumn get accessNotes => text().nullable()(); // How to get there, entry points
-  TextColumn get mooringNumber => text().nullable()(); // Mooring buoy number for boats
-  TextColumn get parkingInfo => text().nullable()(); // Parking availability and tips
+  TextColumn get hazards =>
+      text().nullable()(); // Currents, boats, marine life, etc.
+  TextColumn get accessNotes =>
+      text().nullable()(); // How to get there, entry points
+  TextColumn get mooringNumber =>
+      text().nullable()(); // Mooring buoy number for boats
+  TextColumn get parkingInfo =>
+      text().nullable()(); // Parking availability and tips
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -140,18 +151,23 @@ class DiveSites extends Table {
 /// Tanks used during dives
 class DiveTanks extends Table {
   TextColumn get id => text()();
-  TextColumn get diveId => text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
   TextColumn get equipmentId => text().nullable().references(Equipment, #id)();
   RealColumn get volume => real().nullable()(); // liters
-  IntColumn get workingPressure => integer().nullable()(); // bar - rated pressure
+  IntColumn get workingPressure =>
+      integer().nullable()(); // bar - rated pressure
   IntColumn get startPressure => integer().nullable()(); // bar
   IntColumn get endPressure => integer().nullable()(); // bar
   RealColumn get o2Percent => real().withDefault(const Constant(21.0))();
   RealColumn get hePercent => real().withDefault(const Constant(0.0))();
   IntColumn get tankOrder => integer().withDefault(const Constant(0))();
-  TextColumn get tankRole => text().withDefault(const Constant('backGas'))(); // backGas, stage, deco, bailout, etc.
-  TextColumn get tankMaterial => text().nullable()(); // aluminum, steel, carbonFiber
-  TextColumn get tankName => text().nullable()(); // user-friendly name like "Primary AL80"
+  TextColumn get tankRole => text().withDefault(
+      const Constant('backGas'))(); // backGas, stage, deco, bailout, etc.
+  TextColumn get tankMaterial =>
+      text().nullable()(); // aluminum, steel, carbonFiber
+  TextColumn get tankName =>
+      text().nullable()(); // user-friendly name like "Primary AL80"
 
   @override
   Set<Column> get primaryKey => {id};
@@ -166,10 +182,12 @@ class Equipment extends Table {
   TextColumn get model => text().nullable()();
   TextColumn get serialNumber => text().nullable()();
   TextColumn get size => text().nullable()(); // S, M, L, XL, or specific size
-  TextColumn get status => text().withDefault(const Constant('active'))(); // active, needsService, retired, etc.
+  TextColumn get status => text().withDefault(
+      const Constant('active'))(); // active, needsService, retired, etc.
   IntColumn get purchaseDate => integer().nullable()();
   RealColumn get purchasePrice => real().nullable()();
-  TextColumn get purchaseCurrency => text().withDefault(const Constant('USD'))();
+  TextColumn get purchaseCurrency =>
+      text().withDefault(const Constant('USD'))();
   IntColumn get lastServiceDate => integer().nullable()();
   IntColumn get serviceIntervalDays => integer().nullable()();
   TextColumn get notes => text().withDefault(const Constant(''))();
@@ -183,8 +201,10 @@ class Equipment extends Table {
 
 /// Junction table for equipment used per dive
 class DiveEquipment extends Table {
-  TextColumn get diveId => text().references(Dives, #id, onDelete: KeyAction.cascade)();
-  TextColumn get equipmentId => text().references(Equipment, #id, onDelete: KeyAction.cascade)();
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  TextColumn get equipmentId =>
+      text().references(Equipment, #id, onDelete: KeyAction.cascade)();
 
   @override
   Set<Column> get primaryKey => {diveId, equipmentId};
@@ -193,8 +213,10 @@ class DiveEquipment extends Table {
 /// Multiple weight entries per dive (e.g., integrated + trim weights)
 class DiveWeights extends Table {
   TextColumn get id => text()();
-  TextColumn get diveId => text().references(Dives, #id, onDelete: KeyAction.cascade)();
-  TextColumn get weightType => text()(); // Integrated, Belt, Trim, Ankle, Backplate, Other
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  TextColumn get weightType =>
+      text()(); // Integrated, Belt, Trim, Ankle, Backplate, Other
   RealColumn get amountKg => real()(); // kg
   TextColumn get notes => text().withDefault(const Constant(''))();
   IntColumn get createdAt => integer()();
@@ -217,8 +239,10 @@ class EquipmentSets extends Table {
 
 /// Junction table for equipment items in sets
 class EquipmentSetItems extends Table {
-  TextColumn get setId => text().references(EquipmentSets, #id, onDelete: KeyAction.cascade)();
-  TextColumn get equipmentId => text().references(Equipment, #id, onDelete: KeyAction.cascade)();
+  TextColumn get setId =>
+      text().references(EquipmentSets, #id, onDelete: KeyAction.cascade)();
+  TextColumn get equipmentId =>
+      text().references(Equipment, #id, onDelete: KeyAction.cascade)();
 
   @override
   Set<Column> get primaryKey => {setId, equipmentId};
@@ -240,7 +264,8 @@ class Species extends Table {
 /// Marine life sightings per dive
 class Sightings extends Table {
   TextColumn get id => text()();
-  TextColumn get diveId => text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
   TextColumn get speciesId => text().references(Species, #id)();
   IntColumn get count => integer().withDefault(const Constant(1))();
   TextColumn get notes => text().withDefault(const Constant(''))();
@@ -252,8 +277,11 @@ class Sightings extends Table {
 /// Photos and media files
 class Media extends Table {
   TextColumn get id => text()();
-  TextColumn get diveId => text().nullable().references(Dives, #id, onDelete: KeyAction.setNull)();
-  TextColumn get siteId => text().nullable().references(DiveSites, #id, onDelete: KeyAction.setNull)();
+  TextColumn get diveId =>
+      text().nullable().references(Dives, #id, onDelete: KeyAction.setNull)();
+  TextColumn get siteId => text()
+      .nullable()
+      .references(DiveSites, #id, onDelete: KeyAction.setNull)();
   TextColumn get filePath => text()();
   TextColumn get fileType => text().withDefault(const Constant('photo'))();
   RealColumn get latitude => real().nullable()();
@@ -295,8 +323,10 @@ class Buddies extends Table {
 /// Junction table for buddies on each dive (many-to-many with role)
 class DiveBuddies extends Table {
   TextColumn get id => text()();
-  TextColumn get diveId => text().references(Dives, #id, onDelete: KeyAction.cascade)();
-  TextColumn get buddyId => text().references(Buddies, #id, onDelete: KeyAction.cascade)();
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  TextColumn get buddyId =>
+      text().references(Buddies, #id, onDelete: KeyAction.cascade)();
   TextColumn get role => text().withDefault(const Constant('buddy'))();
   IntColumn get createdAt => integer()();
 
@@ -329,7 +359,8 @@ class Certifications extends Table {
 /// Equipment service records
 class ServiceRecords extends Table {
   TextColumn get id => text()();
-  TextColumn get equipmentId => text().references(Equipment, #id, onDelete: KeyAction.cascade)();
+  TextColumn get equipmentId =>
+      text().references(Equipment, #id, onDelete: KeyAction.cascade)();
   TextColumn get serviceType => text()(); // annual, repair, inspection, etc.
   IntColumn get serviceDate => integer()();
   TextColumn get provider => text().nullable()(); // Shop or technician name
@@ -355,7 +386,8 @@ class DiveCenters extends Table {
   TextColumn get phone => text().nullable()();
   TextColumn get email => text().nullable()();
   TextColumn get website => text().nullable()();
-  TextColumn get affiliations => text().nullable()(); // PADI, SSI, etc. comma-separated
+  TextColumn get affiliations =>
+      text().nullable()(); // PADI, SSI, etc. comma-separated
   RealColumn get rating => real().nullable()();
   TextColumn get notes => text().withDefault(const Constant(''))();
   IntColumn get createdAt => integer()();
@@ -394,8 +426,10 @@ class DiveTypes extends Table {
 /// Junction table for dive tags (many-to-many)
 class DiveTags extends Table {
   TextColumn get id => text()();
-  TextColumn get diveId => text().references(Dives, #id, onDelete: KeyAction.cascade)();
-  TextColumn get tagId => text().references(Tags, #id, onDelete: KeyAction.cascade)();
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  TextColumn get tagId =>
+      text().references(Tags, #id, onDelete: KeyAction.cascade)();
   IntColumn get createdAt => integer()();
 
   @override
@@ -451,7 +485,8 @@ class AppDatabase extends _$AppDatabase {
           // Rename gear table to equipment
           await customStatement('ALTER TABLE gear RENAME TO equipment');
           // Rename dive_gear table to dive_equipment and update column name
-          await customStatement('ALTER TABLE dive_gear RENAME TO dive_equipment');
+          await customStatement(
+              'ALTER TABLE dive_gear RENAME TO dive_equipment');
           // Rename gear_id column in dive_equipment to equipment_id
           await customStatement('''
             CREATE TABLE dive_equipment_new (
@@ -465,7 +500,8 @@ class AppDatabase extends _$AppDatabase {
             SELECT dive_id, gear_id FROM dive_equipment
           ''');
           await customStatement('DROP TABLE dive_equipment');
-          await customStatement('ALTER TABLE dive_equipment_new RENAME TO dive_equipment');
+          await customStatement(
+              'ALTER TABLE dive_equipment_new RENAME TO dive_equipment');
           // Rename gear_id column in dive_tanks to equipment_id
           await customStatement('''
             CREATE TABLE dive_tanks_new (
@@ -485,7 +521,8 @@ class AppDatabase extends _$AppDatabase {
             SELECT id, dive_id, gear_id, volume, start_pressure, end_pressure, o2_percent, he_percent, tank_order FROM dive_tanks
           ''');
           await customStatement('DROP TABLE dive_tanks');
-          await customStatement('ALTER TABLE dive_tanks_new RENAME TO dive_tanks');
+          await customStatement(
+              'ALTER TABLE dive_tanks_new RENAME TO dive_tanks');
           // Create new equipment_sets table
           await customStatement('''
             CREATE TABLE equipment_sets (
@@ -602,21 +639,32 @@ class AppDatabase extends _$AppDatabase {
           ''');
 
           // Add new columns to dives table
-          await customStatement('ALTER TABLE dives ADD COLUMN dive_center_id TEXT REFERENCES dive_centers(id)');
-          await customStatement('ALTER TABLE dives ADD COLUMN current_direction TEXT');
-          await customStatement('ALTER TABLE dives ADD COLUMN current_strength TEXT');
-          await customStatement('ALTER TABLE dives ADD COLUMN swell_height REAL');
-          await customStatement('ALTER TABLE dives ADD COLUMN entry_method TEXT');
-          await customStatement('ALTER TABLE dives ADD COLUMN exit_method TEXT');
+          await customStatement(
+              'ALTER TABLE dives ADD COLUMN dive_center_id TEXT REFERENCES dive_centers(id)');
+          await customStatement(
+              'ALTER TABLE dives ADD COLUMN current_direction TEXT');
+          await customStatement(
+              'ALTER TABLE dives ADD COLUMN current_strength TEXT');
+          await customStatement(
+              'ALTER TABLE dives ADD COLUMN swell_height REAL');
+          await customStatement(
+              'ALTER TABLE dives ADD COLUMN entry_method TEXT');
+          await customStatement(
+              'ALTER TABLE dives ADD COLUMN exit_method TEXT');
           await customStatement('ALTER TABLE dives ADD COLUMN water_type TEXT');
-          await customStatement('ALTER TABLE dives ADD COLUMN weight_amount REAL');
-          await customStatement('ALTER TABLE dives ADD COLUMN weight_type TEXT');
+          await customStatement(
+              'ALTER TABLE dives ADD COLUMN weight_amount REAL');
+          await customStatement(
+              'ALTER TABLE dives ADD COLUMN weight_type TEXT');
 
           // Add new columns to equipment table
           await customStatement('ALTER TABLE equipment ADD COLUMN size TEXT');
-          await customStatement('ALTER TABLE equipment ADD COLUMN status TEXT NOT NULL DEFAULT \'active\'');
-          await customStatement('ALTER TABLE equipment ADD COLUMN purchase_price REAL');
-          await customStatement('ALTER TABLE equipment ADD COLUMN purchase_currency TEXT NOT NULL DEFAULT \'USD\'');
+          await customStatement(
+              'ALTER TABLE equipment ADD COLUMN status TEXT NOT NULL DEFAULT \'active\'');
+          await customStatement(
+              'ALTER TABLE equipment ADD COLUMN purchase_price REAL');
+          await customStatement(
+              'ALTER TABLE equipment ADD COLUMN purchase_currency TEXT NOT NULL DEFAULT \'USD\'');
         }
         if (from < 6) {
           // Migration v5 -> v6: Add trips table and trip_id to dives
@@ -638,7 +686,8 @@ class AppDatabase extends _$AppDatabase {
           ''');
 
           // Add trip_id column to dives table
-          await customStatement('ALTER TABLE dives ADD COLUMN trip_id TEXT REFERENCES trips(id)');
+          await customStatement(
+              'ALTER TABLE dives ADD COLUMN trip_id TEXT REFERENCES trips(id)');
 
           // Create index for faster trip lookups
           await customStatement('''
@@ -647,16 +696,21 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 7) {
           // Migration v6 -> v7: Add tank enhancements (role, material, working pressure, name)
-          await customStatement("ALTER TABLE dive_tanks ADD COLUMN working_pressure INTEGER");
-          await customStatement("ALTER TABLE dive_tanks ADD COLUMN tank_role TEXT NOT NULL DEFAULT 'backGas'");
-          await customStatement('ALTER TABLE dive_tanks ADD COLUMN tank_material TEXT');
-          await customStatement('ALTER TABLE dive_tanks ADD COLUMN tank_name TEXT');
+          await customStatement(
+              "ALTER TABLE dive_tanks ADD COLUMN working_pressure INTEGER");
+          await customStatement(
+              "ALTER TABLE dive_tanks ADD COLUMN tank_role TEXT NOT NULL DEFAULT 'backGas'");
+          await customStatement(
+              'ALTER TABLE dive_tanks ADD COLUMN tank_material TEXT');
+          await customStatement(
+              'ALTER TABLE dive_tanks ADD COLUMN tank_name TEXT');
         }
         if (from < 8) {
           // Migration v7 -> v8: Add favorites (v1.1) and tags (v1.5)
 
           // Add is_favorite column to dives table
-          await customStatement('ALTER TABLE dives ADD COLUMN is_favorite INTEGER NOT NULL DEFAULT 0');
+          await customStatement(
+              'ALTER TABLE dives ADD COLUMN is_favorite INTEGER NOT NULL DEFAULT 0');
 
           // Create tags table
           await customStatement('''
@@ -722,8 +776,10 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 10) {
           // Migration v9 -> v10: Add entry/exit time fields for separate time tracking
-          await customStatement('ALTER TABLE dives ADD COLUMN entry_time INTEGER');
-          await customStatement('ALTER TABLE dives ADD COLUMN exit_time INTEGER');
+          await customStatement(
+              'ALTER TABLE dives ADD COLUMN entry_time INTEGER');
+          await customStatement(
+              'ALTER TABLE dives ADD COLUMN exit_time INTEGER');
 
           // Migrate existing data: use diveDateTime as entry_time and calculate exit_time from duration
           await customStatement('''
@@ -737,12 +793,18 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 11) {
           // Migration v10 -> v11: Add enhanced dive site fields
-          await customStatement('ALTER TABLE dive_sites ADD COLUMN min_depth REAL');
-          await customStatement('ALTER TABLE dive_sites ADD COLUMN difficulty TEXT');
-          await customStatement('ALTER TABLE dive_sites ADD COLUMN hazards TEXT');
-          await customStatement('ALTER TABLE dive_sites ADD COLUMN access_notes TEXT');
-          await customStatement('ALTER TABLE dive_sites ADD COLUMN mooring_number TEXT');
-          await customStatement('ALTER TABLE dive_sites ADD COLUMN parking_info TEXT');
+          await customStatement(
+              'ALTER TABLE dive_sites ADD COLUMN min_depth REAL');
+          await customStatement(
+              'ALTER TABLE dive_sites ADD COLUMN difficulty TEXT');
+          await customStatement(
+              'ALTER TABLE dive_sites ADD COLUMN hazards TEXT');
+          await customStatement(
+              'ALTER TABLE dive_sites ADD COLUMN access_notes TEXT');
+          await customStatement(
+              'ALTER TABLE dive_sites ADD COLUMN mooring_number TEXT');
+          await customStatement(
+              'ALTER TABLE dive_sites ADD COLUMN parking_info TEXT');
         }
         if (from < 12) {
           // Migration v11 -> v12: Add custom dive types table
@@ -821,11 +883,13 @@ class AppDatabase extends _$AppDatabase {
 
           // Add diver_id to dives table
           await customStatement(
-              'ALTER TABLE dives ADD COLUMN diver_id TEXT REFERENCES divers(id)');
+            'ALTER TABLE dives ADD COLUMN diver_id TEXT REFERENCES divers(id)',
+          );
 
           // Add diver_id to certifications table
           await customStatement(
-              'ALTER TABLE certifications ADD COLUMN diver_id TEXT REFERENCES divers(id)');
+            'ALTER TABLE certifications ADD COLUMN diver_id TEXT REFERENCES divers(id)',
+          );
 
           // Create indexes for faster diver lookups
           await customStatement('''
@@ -846,11 +910,13 @@ class AppDatabase extends _$AppDatabase {
 
           // Assign all existing dives to "Me" diver
           await customStatement(
-              "UPDATE dives SET diver_id = '$meDiverId'");
+            "UPDATE dives SET diver_id = '$meDiverId'",
+          );
 
           // Assign all existing certifications to "Me" diver
           await customStatement(
-              "UPDATE certifications SET diver_id = '$meDiverId'");
+            "UPDATE certifications SET diver_id = '$meDiverId'",
+          );
         }
       },
       beforeOpen: (details) async {

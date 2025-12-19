@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -126,11 +127,7 @@ class DiveDetailPage extends ConsumerWidget {
               _buildProfileSection(context, dive),
               const SizedBox(height: 24),
             ],
-            if (dive.site?.location != null) ...[
-              _buildLocationMapSection(context, dive),
-              const SizedBox(height: 24),
-            ],
-            _buildDetailsSection(context, dive, units),
+            _buildDetailsSection(context, ref, dive, units),
             const SizedBox(height: 24),
             _buildConditionsSection(context, dive),
             const SizedBox(height: 24),
@@ -155,196 +152,198 @@ class DiveDetailPage extends ConsumerWidget {
   }
 
   Widget _buildHeaderSection(BuildContext context, WidgetRef ref, Dive dive, UnitFormatter units) {
+    final hasLocation = dive.site?.location != null;
+
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (hasLocation) _buildMiniMap(context, dive),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  radius: 24,
-                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                  child: Text(
-                    '#${dive.diveNumber ?? '-'}',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        dive.site?.name ?? 'Unknown Site',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      // Show entry time
-                      Text(
-                        'Entry: ${DateFormat('MMM d, y • h:mm a').format(dive.effectiveEntryTime)}',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
-                      ),
-                      // Show exit time if available
-                      if (dive.exitTime != null)
-                        Text(
-                          'Exit: ${DateFormat('h:mm a').format(dive.exitTime!)}',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                              ),
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                      child: Text(
+                        '#${dive.diveNumber ?? '-'}',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                          fontWeight: FontWeight.bold,
                         ),
-                    ],
-                  ),
-                ),
-                if (dive.rating != null)
-                  Row(
-                    children: [
-                      Icon(Icons.star, color: Colors.amber.shade600, size: 20),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${dive.rating}',
-                        style: Theme.of(context).textTheme.titleMedium,
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            dive.site?.name ?? 'Unknown Site',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          Text(
+                            'Entry: ${DateFormat('MMM d, y • h:mm a').format(dive.effectiveEntryTime)}',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                          if (dive.exitTime != null)
+                            Text(
+                              'Exit: ${DateFormat('h:mm a').format(dive.exitTime!)}',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    if (dive.rating != null)
+                      Row(
+                        children: [
+                          Icon(Icons.star, color: Colors.amber.shade600, size: 20),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${dive.rating}',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildStatItem(
+                      context,
+                      Icons.arrow_downward,
+                      units.formatDepth(dive.maxDepth),
+                      'Max Depth',
+                    ),
+                    _buildStatItem(
+                      context,
+                      Icons.timer,
+                      dive.duration != null ? '${dive.duration!.inMinutes} min' : '--',
+                      'Bottom Time',
+                    ),
+                    _buildStatItem(
+                      context,
+                      Icons.timelapse,
+                      _formatRuntime(dive),
+                      'Runtime',
+                    ),
+                    _buildStatItem(
+                      context,
+                      Icons.thermostat,
+                      units.formatTemperature(dive.waterTemp),
+                      'Temp',
+                    ),
+                  ],
+                ),
               ],
             ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildStatItem(
-                  context,
-                  Icons.arrow_downward,
-                  units.formatDepth(dive.maxDepth),
-                  'Max Depth',
-                ),
-                _buildStatItem(
-                  context,
-                  Icons.timer,
-                  dive.duration != null ? '${dive.duration!.inMinutes} min' : '--',
-                  'Bottom Time',
-                ),
-                _buildStatItem(
-                  context,
-                  Icons.timelapse,
-                  _formatRuntime(dive),
-                  'Runtime',
-                ),
-                _buildStatItem(
-                  context,
-                  Icons.thermostat,
-                  units.formatTemperature(dive.waterTemp),
-                  'Temp',
-                ),
-              ],
-            ),
-            // Surface interval row
-            _buildSurfaceIntervalRow(context, ref, diveId),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildLocationMapSection(BuildContext context, Dive dive) {
+  Widget _buildMiniMap(BuildContext context, Dive dive) {
     final colorScheme = Theme.of(context).colorScheme;
     final site = dive.site!;
     final siteLocation = LatLng(site.location!.latitude, site.location!.longitude);
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => context.push('/sites/${site.id}'),
-        child: SizedBox(
-          height: 150,
-          child: Stack(
-            children: [
-              FlutterMap(
-                options: MapOptions(
-                  initialCenter: siteLocation,
-                  initialZoom: 13.0,
-                  interactionOptions: const InteractionOptions(
-                    flags: InteractiveFlag.none,
-                  ),
+    return InkWell(
+      onTap: () => context.push('/sites/${site.id}'),
+      child: SizedBox(
+        height: 100,
+        child: Stack(
+          children: [
+            FlutterMap(
+              options: MapOptions(
+                initialCenter: siteLocation,
+                initialZoom: 12.0,
+                interactionOptions: const InteractionOptions(
+                  flags: InteractiveFlag.none,
                 ),
-                children: [
-                  TileLayer(
-                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'com.submersion.app',
-                    maxZoom: 19,
-                  ),
-                  MarkerLayer(
-                    markers: [
-                      Marker(
-                        point: siteLocation,
-                        width: 40,
-                        height: 40,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: colorScheme.primary,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: colorScheme.onPrimary,
-                              width: 2,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.3),
-                                blurRadius: 6,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.submersion.app',
+                  maxZoom: 19,
+                ),
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: siteLocation,
+                      width: 32,
+                      height: 32,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: colorScheme.onPrimary,
+                            width: 2,
                           ),
-                          child: Center(
-                            child: Icon(
-                              Icons.scuba_diving,
-                              size: 20,
-                              color: colorScheme.onPrimary,
-                            ),
+                        ),
+                        child: Center(
+                          child: Icon(
+                            Icons.scuba_diving,
+                            size: 16,
+                            color: colorScheme.onPrimary,
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                ],
-              ),
-              // Tap hint overlay
-              Positioned(
-                right: 8,
-                bottom: 8,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surface.withValues(alpha: 0.9),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.open_in_new,
-                        size: 14,
-                        color: colorScheme.primary,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'View Site',
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: colorScheme.primary,
-                            ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            Positioned(
+              right: 8,
+              bottom: 8,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.2),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.open_in_new,
+                      size: 14,
+                      color: colorScheme.onPrimaryContainer,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'View Site',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onPrimaryContainer,
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -379,52 +378,6 @@ class DiveDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildSurfaceIntervalRow(BuildContext context, WidgetRef ref, String diveId) {
-    final surfaceIntervalAsync = ref.watch(surfaceIntervalProvider(diveId));
-
-    return surfaceIntervalAsync.when(
-      data: (interval) {
-        if (interval == null) return const SizedBox.shrink();
-
-        final hours = interval.inHours;
-        final minutes = interval.inMinutes % 60;
-        final intervalText = hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m';
-
-        return Padding(
-          padding: const EdgeInsets.only(top: 12),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.secondaryContainer,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.waves,
-                  size: 20,
-                  color: Theme.of(context).colorScheme.onSecondaryContainer,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Surface Interval: $intervalText',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onSecondaryContainer,
-                      ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-      loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
-    );
-  }
-
   Widget _buildProfileSection(BuildContext context, Dive dive) {
     return Card(
       child: Padding(
@@ -439,11 +392,22 @@ class DiveDetailPage extends ConsumerWidget {
                   'Dive Profile',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
-                Text(
-                  '${dive.profile.length} points',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                Row(
+                  children: [
+                    Text(
+                      '${dive.profile.length} points',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.fullscreen),
+                      tooltip: 'View fullscreen',
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () => _showFullscreenProfile(context, dive),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -459,7 +423,17 @@ class DiveDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildDetailsSection(BuildContext context, Dive dive, UnitFormatter units) {
+  void _showFullscreenProfile(BuildContext context, Dive dive) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => _FullscreenProfilePage(dive: dive),
+      ),
+    );
+  }
+
+  Widget _buildDetailsSection(BuildContext context, WidgetRef ref, Dive dive, UnitFormatter units) {
+    final surfaceIntervalAsync = ref.watch(surfaceIntervalProvider(diveId));
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -488,6 +462,17 @@ class DiveDetailPage extends ConsumerWidget {
               _buildDetailRow(context, 'Dive Master', dive.diveMaster!),
             if (dive.sac != null)
               _buildDetailRow(context, 'SAC Rate', '${units.convertPressure(dive.sac!).toStringAsFixed(1)} ${units.pressureSymbol}/min'),
+            surfaceIntervalAsync.when(
+              data: (interval) {
+                if (interval == null) return const SizedBox.shrink();
+                final hours = interval.inHours;
+                final minutes = interval.inMinutes % 60;
+                final intervalText = hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m';
+                return _buildDetailRow(context, 'Surface Interval', intervalText);
+              },
+              loading: () => const SizedBox.shrink(),
+              error: (_, __) => const SizedBox.shrink(),
+            ),
           ],
         ),
       ),
@@ -1115,6 +1100,295 @@ class DiveDetailPage extends ConsumerWidget {
         );
       }
     }
+  }
+}
+
+/// Fullscreen dive profile page with rotation support
+class _FullscreenProfilePage extends StatefulWidget {
+  final Dive dive;
+
+  const _FullscreenProfilePage({required this.dive});
+
+  @override
+  State<_FullscreenProfilePage> createState() => _FullscreenProfilePageState();
+}
+
+class _FullscreenProfilePageState extends State<_FullscreenProfilePage> {
+  DiveProfilePoint? _selectedPoint;
+
+  @override
+  void initState() {
+    super.initState();
+    // Allow all orientations for fullscreen view
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+  }
+
+  @override
+  void dispose() {
+    // Reset to portrait only when leaving fullscreen
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dive = widget.dive;
+    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      appBar: isLandscape
+          ? null
+          : AppBar(
+              title: Text('Dive #${dive.diveNumber ?? "-"} Profile'),
+              leading: IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+              padding: EdgeInsets.only(
+                left: isLandscape ? 48.0 : 16.0,
+                right: 16.0,
+                top: 16.0,
+                bottom: 16.0,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isLandscape)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        'Dive #${dive.diveNumber ?? "-"} Profile',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                  SizedBox(
+                    height: isLandscape ? 280 : 350,
+                    child: DiveProfileChart(
+                      profile: dive.profile,
+                      diveDuration: dive.calculatedDuration,
+                      maxDepth: dive.maxDepth,
+                      onPointSelected: (point) {
+                        setState(() => _selectedPoint = point);
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildMetricsTable(context, compact: isLandscape),
+                ],
+              ),
+            ),
+            if (isLandscape)
+              Positioned(
+                top: 8,
+                left: 8,
+                child: IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMetricsTable(BuildContext context, {bool compact = false}) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final point = _selectedPoint;
+
+    return Container(
+      padding: EdgeInsets.all(compact ? 12 : 16),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.touch_app,
+                size: compact ? 14 : 16,
+                color: colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  point == null ? 'Touch chart' : 'Sample Data',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        fontSize: compact ? 12 : null,
+                      ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: compact ? 8 : 12),
+          if (point == null)
+            Text(
+              compact
+                  ? 'Tap chart to see sample data'
+                  : 'Tap or drag on the dive profile to see detailed metrics for each sample point.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+            )
+          else if (compact)
+            _buildCompactMetrics(context, point)
+          else
+            Table(
+              columnWidths: const {
+                0: FlexColumnWidth(1),
+                1: FlexColumnWidth(1),
+              },
+              children: [
+                _buildTableRow(
+                  context,
+                  'Time',
+                  _formatTime(point.timestamp),
+                  'Depth',
+                  '${point.depth.toStringAsFixed(1)}m',
+                ),
+                if (point.temperature != null || point.pressure != null)
+                  _buildTableRow(
+                    context,
+                    point.temperature != null ? 'Temperature' : '',
+                    point.temperature != null ? '${point.temperature!.toStringAsFixed(1)}°C' : '',
+                    point.pressure != null ? 'Pressure' : '',
+                    point.pressure != null ? '${point.pressure!.toInt()} bar' : '',
+                  ),
+                if (point.heartRate != null)
+                  _buildTableRow(
+                    context,
+                    'Heart Rate',
+                    '${point.heartRate!} bpm',
+                    '',
+                    '',
+                  ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCompactMetrics(BuildContext context, DiveProfilePoint point) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildCompactMetricRow(context, 'Time', _formatTime(point.timestamp)),
+        _buildCompactMetricRow(context, 'Depth', '${point.depth.toStringAsFixed(1)}m'),
+        if (point.temperature != null)
+          _buildCompactMetricRow(context, 'Temp', '${point.temperature!.toStringAsFixed(1)}°C'),
+        if (point.pressure != null)
+          _buildCompactMetricRow(context, 'Pressure', '${point.pressure!.toInt()} bar'),
+        if (point.heartRate != null)
+          _buildCompactMetricRow(context, 'HR', '${point.heartRate!} bpm'),
+      ],
+    );
+  }
+
+  Widget _buildCompactMetricRow(BuildContext context, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  TableRow _buildTableRow(
+    BuildContext context,
+    String label1,
+    String value1,
+    String label2,
+    String value2,
+  ) {
+    return TableRow(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: label1.isNotEmpty
+              ? Row(
+                  children: [
+                    Text(
+                      '$label1: ',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                    Text(
+                      value1,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                  ],
+                )
+              : const SizedBox.shrink(),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: label2.isNotEmpty
+              ? Row(
+                  children: [
+                    Text(
+                      '$label2: ',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                    Text(
+                      value2,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                  ],
+                )
+              : const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+
+  String _formatTime(int seconds) {
+    final minutes = seconds ~/ 60;
+    final secs = seconds % 60;
+    return '$minutes:${secs.toString().padLeft(2, '0')}';
   }
 }
 
