@@ -1,7 +1,7 @@
 # Submersion Feature Roadmap
 ## Comprehensive Development Plan
 
-> **Last Updated:** 2025-12-17
+> **Last Updated:** 2025-12-19
 > **Current Version:** 1.1.0 (v1.1 Complete)
 > **Status:** v1.0 ✅ COMPLETE | v1.1 ✅ COMPLETE | v1.5 📋 Planned
 
@@ -71,13 +71,15 @@
 | Air temperature | ✅ Implemented | MVP | Separate from water temp |
 | Entry/exit method | ✅ Implemented | v1.0 | Enums for methods |
 | Water type | ✅ Implemented | v1.0 | Fresh, Salt, Brackish |
-| Weather | 📋 Planned | v1.5 | Free-text or API integration |
-| Altitude | 📋 Planned | v1.5 | For altitude dive calculations |
+| Weather API | ✅ Implemented | v1.5 | OpenWeatherMap integration |
+| Tide API | ✅ Implemented | v1.5 | World Tides integration |
+| Auto-populate conditions | ✅ Implemented | v1.5 | From GPS + date/time |
+| Altitude | ✅ Implemented | v1.5 | For altitude dive calculations |
 
 **v1.5 Tasks:**
-- [ ] Weather API integration (OpenWeatherMap) with historical data
-- [ ] Tide information integration
-- [ ] Auto-populate conditions from GPS + date/time
+- [x] Weather API integration (OpenWeatherMap) with historical data
+- [x] Tide information integration
+- [x] Auto-populate conditions from GPS + date/time
 
 ---
 
@@ -585,12 +587,12 @@
 | Water type | ✅ Implemented | v1.0 | Fresh, salt, brackish |
 | Hazards | ✅ Implemented | v1.1 | Site-level hazards field |
 | Entry altitude | 📋 Planned | v1.5 | For altitude dive tables |
-| Tides | 📋 Planned | v1.5 | State, height, time |
+| Tides | ✅ Implemented | v1.5 | World Tides API integration |
 
 **v1.5 Tasks:**
-- [ ] Tide API integration (NOAA, Tides.info)
-- [ ] Display tide state at dive time
-- [ ] Altitude field with warning if >300m (affects NDL)
+- [x] Tide API integration (World Tides)
+- [x] Display tide state at dive time
+- [x] Altitude field with warning if >300m (affects NDL)
 
 ---
 
@@ -1154,5 +1156,5 @@
 
 ---
 
-**Document Version:** 2.0  
-**Last Updated:** 2025-12-17
+**Document Version:** 2.1
+**Last Updated:** 2025-12-19

@@ -54,6 +54,8 @@ class Dives extends Table {
   TextColumn get entryMethod => text().nullable()();
   TextColumn get exitMethod => text().nullable()();
   TextColumn get waterType => text().nullable()();
+  // Altitude for altitude diving
+  RealColumn get altitude => real().nullable()(); // meters above sea level
   // Weight system fields
   RealColumn get weightAmount => real().nullable()(); // kg
   TextColumn get weightType => text().nullable()();
