@@ -38,86 +38,106 @@ class DiveRepository {
       final rows = await query.get();
       if (rows.isEmpty) return [];
 
-    // Batch load all related data to avoid N+1 queries
-    final diveIds = rows.map((r) => r.id).toList();
+      // Batch load all related data to avoid N+1 queries
+      final diveIds = rows.map((r) => r.id).toList();
 
-    // Load all tanks for these dives in one query
-    final allTanks = await (_db.select(_db.diveTanks)
-          ..where((t) => t.diveId.isIn(diveIds))
-          ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]))
-        .get();
-    final tanksByDive = <String, List<DiveTank>>{};
-    for (final tank in allTanks) {
-      tanksByDive.putIfAbsent(tank.diveId, () => []).add(tank);
-    }
+      // Load all tanks for these dives in one query
+      final allTanks = await (_db.select(_db.diveTanks)
+            ..where((t) => t.diveId.isIn(diveIds))
+            ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]))
+          .get();
+      final tanksByDive = <String, List<DiveTank>>{};
+      for (final tank in allTanks) {
+        tanksByDive.putIfAbsent(tank.diveId, () => []).add(tank);
+      }
 
-    // Load all sites for these dives in one query
-    final siteIds = rows.where((r) => r.siteId != null).map((r) => r.siteId!).toSet().toList();
-    final allSites = siteIds.isNotEmpty
-        ? await (_db.select(_db.diveSites)..where((t) => t.id.isIn(siteIds))).get()
-        : <DiveSite>[];
-    final sitesById = {for (final s in allSites) s.id: s};
+      // Load all sites for these dives in one query
+      final siteIds = rows
+          .where((r) => r.siteId != null)
+          .map((r) => r.siteId!)
+          .toSet()
+          .toList();
+      final allSites = siteIds.isNotEmpty
+          ? await (_db.select(_db.diveSites)..where((t) => t.id.isIn(siteIds)))
+              .get()
+          : <DiveSite>[];
+      final sitesById = {for (final s in allSites) s.id: s};
 
-    // Load all dive centers for these dives in one query
-    final centerIds = rows.where((r) => r.diveCenterId != null).map((r) => r.diveCenterId!).toSet().toList();
-    final allCenters = centerIds.isNotEmpty
-        ? await (_db.select(_db.diveCenters)..where((t) => t.id.isIn(centerIds))).get()
-        : <DiveCenter>[];
-    final centersById = {for (final c in allCenters) c.id: c};
+      // Load all dive centers for these dives in one query
+      final centerIds = rows
+          .where((r) => r.diveCenterId != null)
+          .map((r) => r.diveCenterId!)
+          .toSet()
+          .toList();
+      final allCenters = centerIds.isNotEmpty
+          ? await (_db.select(_db.diveCenters)
+                ..where((t) => t.id.isIn(centerIds)))
+              .get()
+          : <DiveCenter>[];
+      final centersById = {for (final c in allCenters) c.id: c};
 
-    // Load all equipment for these dives in one query
-    final allDiveEquipment = await (_db.select(_db.diveEquipment).join([
-      innerJoin(_db.equipment, _db.equipment.id.equalsExp(_db.diveEquipment.equipmentId)),
-    ])
-          ..where(_db.diveEquipment.diveId.isIn(diveIds)))
-        .get();
-    final equipmentByDive = <String, List<EquipmentItem>>{};
-    for (final joinRow in allDiveEquipment) {
-      final diveId = joinRow.readTable(_db.diveEquipment).diveId;
-      final e = joinRow.readTable(_db.equipment);
-      equipmentByDive.putIfAbsent(diveId, () => []).add(EquipmentItem(
-        id: e.id,
-        name: e.name,
-        type: EquipmentType.values.firstWhere(
-          (t) => t.name == e.type,
-          orElse: () => EquipmentType.other,
-        ),
-        brand: e.brand,
-        model: e.model,
-        serialNumber: e.serialNumber,
-        size: e.size,
-        status: EquipmentStatus.values.firstWhere(
-          (s) => s.name == e.status,
-          orElse: () => EquipmentStatus.active,
-        ),
-        purchaseDate: e.purchaseDate != null
-            ? DateTime.fromMillisecondsSinceEpoch(e.purchaseDate!)
-            : null,
-        purchasePrice: e.purchasePrice,
-        purchaseCurrency: e.purchaseCurrency,
-        lastServiceDate: e.lastServiceDate != null
-            ? DateTime.fromMillisecondsSinceEpoch(e.lastServiceDate!)
-            : null,
-        serviceIntervalDays: e.serviceIntervalDays,
-        notes: e.notes,
-        isActive: e.isActive,
-      ),);
-    }
+      // Load all equipment for these dives in one query
+      final allDiveEquipment = await (_db.select(_db.diveEquipment).join([
+        innerJoin(_db.equipment,
+            _db.equipment.id.equalsExp(_db.diveEquipment.equipmentId)),
+      ])
+            ..where(_db.diveEquipment.diveId.isIn(diveIds)))
+          .get();
+      final equipmentByDive = <String, List<EquipmentItem>>{};
+      for (final joinRow in allDiveEquipment) {
+        final diveId = joinRow.readTable(_db.diveEquipment).diveId;
+        final e = joinRow.readTable(_db.equipment);
+        equipmentByDive.putIfAbsent(diveId, () => []).add(
+              EquipmentItem(
+                id: e.id,
+                name: e.name,
+                type: EquipmentType.values.firstWhere(
+                  (t) => t.name == e.type,
+                  orElse: () => EquipmentType.other,
+                ),
+                brand: e.brand,
+                model: e.model,
+                serialNumber: e.serialNumber,
+                size: e.size,
+                status: EquipmentStatus.values.firstWhere(
+                  (s) => s.name == e.status,
+                  orElse: () => EquipmentStatus.active,
+                ),
+                purchaseDate: e.purchaseDate != null
+                    ? DateTime.fromMillisecondsSinceEpoch(e.purchaseDate!)
+                    : null,
+                purchasePrice: e.purchasePrice,
+                purchaseCurrency: e.purchaseCurrency,
+                lastServiceDate: e.lastServiceDate != null
+                    ? DateTime.fromMillisecondsSinceEpoch(e.lastServiceDate!)
+                    : null,
+                serviceIntervalDays: e.serviceIntervalDays,
+                notes: e.notes,
+                isActive: e.isActive,
+              ),
+            );
+      }
 
-    // Note: Profile data is NOT loaded for list views to improve performance
-    // Profile data should only be loaded for individual dive detail views
+      // Note: Profile data is NOT loaded for list views to improve performance
+      // Profile data should only be loaded for individual dive detail views
 
-    // Load all tags for these dives in one query
-    final tagsByDive = await _tagRepository.getTagsForDives(diveIds);
+      // Load all tags for these dives in one query
+      final tagsByDive = await _tagRepository.getTagsForDives(diveIds);
 
-      return rows.map((row) => _mapRowToDiveWithPreloadedData(
-            row,
-            tanks: tanksByDive[row.id] ?? [],
-            equipment: equipmentByDive[row.id] ?? [],
-            site: row.siteId != null ? sitesById[row.siteId] : null,
-            center: row.diveCenterId != null ? centersById[row.diveCenterId] : null,
-            tags: tagsByDive[row.id] ?? [],
-          ),).toList();
+      return rows
+          .map(
+            (row) => _mapRowToDiveWithPreloadedData(
+              row,
+              tanks: tanksByDive[row.id] ?? [],
+              equipment: equipmentByDive[row.id] ?? [],
+              site: row.siteId != null ? sitesById[row.siteId] : null,
+              center: row.diveCenterId != null
+                  ? centersById[row.diveCenterId]
+                  : null,
+              tags: tagsByDive[row.id] ?? [],
+            ),
+          )
+          .toList();
     } catch (e, stackTrace) {
       _log.error('Failed to get all dives', e, stackTrace);
       rethrow;
@@ -127,8 +147,7 @@ class DiveRepository {
   /// Get a single dive by ID
   Future<domain.Dive?> getDiveById(String id) async {
     try {
-      final query = _db.select(_db.dives)
-        ..where((t) => t.id.equals(id));
+      final query = _db.select(_db.dives)..where((t) => t.id.equals(id));
 
       final row = await query.getSingleOrNull();
       if (row == null) return null;
@@ -147,94 +166,104 @@ class DiveRepository {
       final id = dive.id.isEmpty ? _uuid.v4() : dive.id;
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await _db.into(_db.dives).insert(DivesCompanion(
-      id: Value(id),
-      diverId: Value(dive.diverId),
-      diveNumber: Value(dive.diveNumber),
-      diveDateTime: Value(dive.dateTime.millisecondsSinceEpoch),
-      entryTime: Value(dive.entryTime?.millisecondsSinceEpoch),
-      exitTime: Value(dive.exitTime?.millisecondsSinceEpoch),
-      duration: Value(dive.duration?.inSeconds),
-      runtime: Value(dive.runtime?.inSeconds),
-      maxDepth: Value(dive.maxDepth),
-      avgDepth: Value(dive.avgDepth),
-      waterTemp: Value(dive.waterTemp),
-      airTemp: Value(dive.airTemp),
-      visibility: Value(dive.visibility?.name),
-      diveType: Value(dive.diveTypeId),
-      buddy: Value(dive.buddy),
-      diveMaster: Value(dive.diveMaster),
-      notes: Value(dive.notes),
-      siteId: Value(dive.site?.id),
-      diveCenterId: Value(dive.diveCenter?.id),
-      tripId: Value(dive.tripId ?? dive.trip?.id),
-      rating: Value(dive.rating),
-      // Conditions fields
-      currentDirection: Value(dive.currentDirection?.name),
-      currentStrength: Value(dive.currentStrength?.name),
-      swellHeight: Value(dive.swellHeight),
-      entryMethod: Value(dive.entryMethod?.name),
-      exitMethod: Value(dive.exitMethod?.name),
-      waterType: Value(dive.waterType?.name),
-      altitude: Value(dive.altitude),
-      // Weight system fields
-      weightAmount: Value(dive.weightAmount),
-      weightType: Value(dive.weightType?.name),
-      // Favorite flag
-      isFavorite: Value(dive.isFavorite),
-      createdAt: Value(now),
-      updatedAt: Value(now),
-    ),);
+      await _db.into(_db.dives).insert(
+            DivesCompanion(
+              id: Value(id),
+              diverId: Value(dive.diverId),
+              diveNumber: Value(dive.diveNumber),
+              diveDateTime: Value(dive.dateTime.millisecondsSinceEpoch),
+              entryTime: Value(dive.entryTime?.millisecondsSinceEpoch),
+              exitTime: Value(dive.exitTime?.millisecondsSinceEpoch),
+              duration: Value(dive.duration?.inSeconds),
+              runtime: Value(dive.runtime?.inSeconds),
+              maxDepth: Value(dive.maxDepth),
+              avgDepth: Value(dive.avgDepth),
+              waterTemp: Value(dive.waterTemp),
+              airTemp: Value(dive.airTemp),
+              visibility: Value(dive.visibility?.name),
+              diveType: Value(dive.diveTypeId),
+              buddy: Value(dive.buddy),
+              diveMaster: Value(dive.diveMaster),
+              notes: Value(dive.notes),
+              siteId: Value(dive.site?.id),
+              diveCenterId: Value(dive.diveCenter?.id),
+              tripId: Value(dive.tripId ?? dive.trip?.id),
+              rating: Value(dive.rating),
+              // Conditions fields
+              currentDirection: Value(dive.currentDirection?.name),
+              currentStrength: Value(dive.currentStrength?.name),
+              swellHeight: Value(dive.swellHeight),
+              entryMethod: Value(dive.entryMethod?.name),
+              exitMethod: Value(dive.exitMethod?.name),
+              waterType: Value(dive.waterType?.name),
+              altitude: Value(dive.altitude),
+              // Weight system fields
+              weightAmount: Value(dive.weightAmount),
+              weightType: Value(dive.weightType?.name),
+              // Favorite flag
+              isFavorite: Value(dive.isFavorite),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
 
-    // Insert tanks
-    for (final tank in dive.tanks) {
-      await _db.into(_db.diveTanks).insert(DiveTanksCompanion(
-        id: Value(_uuid.v4()),
-        diveId: Value(id),
-        volume: Value(tank.volume),
-        workingPressure: Value(tank.workingPressure),
-        startPressure: Value(tank.startPressure),
-        endPressure: Value(tank.endPressure),
-        o2Percent: Value(tank.gasMix.o2),
-        hePercent: Value(tank.gasMix.he),
-        tankOrder: Value(tank.order),
-        tankRole: Value(tank.role.name),
-        tankMaterial: Value(tank.material?.name),
-        tankName: Value(tank.name),
-      ),);
-    }
+      // Insert tanks
+      for (final tank in dive.tanks) {
+        await _db.into(_db.diveTanks).insert(
+              DiveTanksCompanion(
+                id: Value(_uuid.v4()),
+                diveId: Value(id),
+                volume: Value(tank.volume),
+                workingPressure: Value(tank.workingPressure),
+                startPressure: Value(tank.startPressure),
+                endPressure: Value(tank.endPressure),
+                o2Percent: Value(tank.gasMix.o2),
+                hePercent: Value(tank.gasMix.he),
+                tankOrder: Value(tank.order),
+                tankRole: Value(tank.role.name),
+                tankMaterial: Value(tank.material?.name),
+                tankName: Value(tank.name),
+              ),
+            );
+      }
 
-    // Insert weights
-    for (final weight in dive.weights) {
-      await _db.into(_db.diveWeights).insert(DiveWeightsCompanion(
-        id: Value(weight.id.isNotEmpty ? weight.id : _uuid.v4()),
-        diveId: Value(id),
-        weightType: Value(weight.weightType.name),
-        amountKg: Value(weight.amountKg),
-        notes: Value(weight.notes),
-        createdAt: Value(now),
-      ),);
-    }
+      // Insert weights
+      for (final weight in dive.weights) {
+        await _db.into(_db.diveWeights).insert(
+              DiveWeightsCompanion(
+                id: Value(weight.id.isNotEmpty ? weight.id : _uuid.v4()),
+                diveId: Value(id),
+                weightType: Value(weight.weightType.name),
+                amountKg: Value(weight.amountKg),
+                notes: Value(weight.notes),
+                createdAt: Value(now),
+              ),
+            );
+      }
 
-    // Insert profile points
-    for (final point in dive.profile) {
-      await _db.into(_db.diveProfiles).insert(DiveProfilesCompanion(
-        id: Value(_uuid.v4()),
-        diveId: Value(id),
-        timestamp: Value(point.timestamp),
-        depth: Value(point.depth),
-        pressure: Value(point.pressure),
-        temperature: Value(point.temperature),
-        heartRate: Value(point.heartRate),
-      ),);
-    }
+      // Insert profile points
+      for (final point in dive.profile) {
+        await _db.into(_db.diveProfiles).insert(
+              DiveProfilesCompanion(
+                id: Value(_uuid.v4()),
+                diveId: Value(id),
+                timestamp: Value(point.timestamp),
+                depth: Value(point.depth),
+                pressure: Value(point.pressure),
+                temperature: Value(point.temperature),
+                heartRate: Value(point.heartRate),
+              ),
+            );
+      }
 
       // Insert equipment associations
       for (final item in dive.equipment) {
-        await _db.into(_db.diveEquipment).insert(DiveEquipmentCompanion(
-          diveId: Value(id),
-          equipmentId: Value(item.id),
-        ),);
+        await _db.into(_db.diveEquipment).insert(
+              DiveEquipmentCompanion(
+                diveId: Value(id),
+                equipmentId: Value(item.id),
+              ),
+            );
       }
 
       // Insert tag associations
@@ -256,84 +285,95 @@ class DiveRepository {
       _log.info('Updating dive: ${dive.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
 
-    await (_db.update(_db.dives)..where((t) => t.id.equals(dive.id))).write(
-      DivesCompanion(
-        diverId: Value(dive.diverId),
-        diveNumber: Value(dive.diveNumber),
-        diveDateTime: Value(dive.dateTime.millisecondsSinceEpoch),
-        entryTime: Value(dive.entryTime?.millisecondsSinceEpoch),
-        exitTime: Value(dive.exitTime?.millisecondsSinceEpoch),
-        duration: Value(dive.duration?.inSeconds),
-        runtime: Value(dive.runtime?.inSeconds),
-        maxDepth: Value(dive.maxDepth),
-        avgDepth: Value(dive.avgDepth),
-        waterTemp: Value(dive.waterTemp),
-        airTemp: Value(dive.airTemp),
-        visibility: Value(dive.visibility?.name),
-        diveType: Value(dive.diveTypeId),
-        buddy: Value(dive.buddy),
-        diveMaster: Value(dive.diveMaster),
-        notes: Value(dive.notes),
-        siteId: Value(dive.site?.id),
-        diveCenterId: Value(dive.diveCenter?.id),
-        tripId: Value(dive.tripId ?? dive.trip?.id),
-        rating: Value(dive.rating),
-        // Conditions fields
-        currentDirection: Value(dive.currentDirection?.name),
-        currentStrength: Value(dive.currentStrength?.name),
-        swellHeight: Value(dive.swellHeight),
-        entryMethod: Value(dive.entryMethod?.name),
-        exitMethod: Value(dive.exitMethod?.name),
-        waterType: Value(dive.waterType?.name),
-        altitude: Value(dive.altitude),
-        // Weight system fields
-        weightAmount: Value(dive.weightAmount),
-        weightType: Value(dive.weightType?.name),
-        // Favorite flag
-        isFavorite: Value(dive.isFavorite),
-        updatedAt: Value(now),
-      ),
-    );
+      await (_db.update(_db.dives)..where((t) => t.id.equals(dive.id))).write(
+        DivesCompanion(
+          diverId: Value(dive.diverId),
+          diveNumber: Value(dive.diveNumber),
+          diveDateTime: Value(dive.dateTime.millisecondsSinceEpoch),
+          entryTime: Value(dive.entryTime?.millisecondsSinceEpoch),
+          exitTime: Value(dive.exitTime?.millisecondsSinceEpoch),
+          duration: Value(dive.duration?.inSeconds),
+          runtime: Value(dive.runtime?.inSeconds),
+          maxDepth: Value(dive.maxDepth),
+          avgDepth: Value(dive.avgDepth),
+          waterTemp: Value(dive.waterTemp),
+          airTemp: Value(dive.airTemp),
+          visibility: Value(dive.visibility?.name),
+          diveType: Value(dive.diveTypeId),
+          buddy: Value(dive.buddy),
+          diveMaster: Value(dive.diveMaster),
+          notes: Value(dive.notes),
+          siteId: Value(dive.site?.id),
+          diveCenterId: Value(dive.diveCenter?.id),
+          tripId: Value(dive.tripId ?? dive.trip?.id),
+          rating: Value(dive.rating),
+          // Conditions fields
+          currentDirection: Value(dive.currentDirection?.name),
+          currentStrength: Value(dive.currentStrength?.name),
+          swellHeight: Value(dive.swellHeight),
+          entryMethod: Value(dive.entryMethod?.name),
+          exitMethod: Value(dive.exitMethod?.name),
+          waterType: Value(dive.waterType?.name),
+          altitude: Value(dive.altitude),
+          // Weight system fields
+          weightAmount: Value(dive.weightAmount),
+          weightType: Value(dive.weightType?.name),
+          // Favorite flag
+          isFavorite: Value(dive.isFavorite),
+          updatedAt: Value(now),
+        ),
+      );
 
-    // Update tanks: delete and re-insert
-    await (_db.delete(_db.diveTanks)..where((t) => t.diveId.equals(dive.id))).go();
-    for (final tank in dive.tanks) {
-      await _db.into(_db.diveTanks).insert(DiveTanksCompanion(
-        id: Value(_uuid.v4()),
-        diveId: Value(dive.id),
-        volume: Value(tank.volume),
-        workingPressure: Value(tank.workingPressure),
-        startPressure: Value(tank.startPressure),
-        endPressure: Value(tank.endPressure),
-        o2Percent: Value(tank.gasMix.o2),
-        hePercent: Value(tank.gasMix.he),
-        tankOrder: Value(tank.order),
-        tankRole: Value(tank.role.name),
-        tankMaterial: Value(tank.material?.name),
-        tankName: Value(tank.name),
-      ),);
-    }
+      // Update tanks: delete and re-insert
+      await (_db.delete(_db.diveTanks)..where((t) => t.diveId.equals(dive.id)))
+          .go();
+      for (final tank in dive.tanks) {
+        await _db.into(_db.diveTanks).insert(
+              DiveTanksCompanion(
+                id: Value(_uuid.v4()),
+                diveId: Value(dive.id),
+                volume: Value(tank.volume),
+                workingPressure: Value(tank.workingPressure),
+                startPressure: Value(tank.startPressure),
+                endPressure: Value(tank.endPressure),
+                o2Percent: Value(tank.gasMix.o2),
+                hePercent: Value(tank.gasMix.he),
+                tankOrder: Value(tank.order),
+                tankRole: Value(tank.role.name),
+                tankMaterial: Value(tank.material?.name),
+                tankName: Value(tank.name),
+              ),
+            );
+      }
 
       // Update weights: delete and re-insert
-      await (_db.delete(_db.diveWeights)..where((t) => t.diveId.equals(dive.id))).go();
+      await (_db.delete(_db.diveWeights)
+            ..where((t) => t.diveId.equals(dive.id)))
+          .go();
       for (final weight in dive.weights) {
-        await _db.into(_db.diveWeights).insert(DiveWeightsCompanion(
-          id: Value(weight.id.isNotEmpty ? weight.id : _uuid.v4()),
-          diveId: Value(dive.id),
-          weightType: Value(weight.weightType.name),
-          amountKg: Value(weight.amountKg),
-          notes: Value(weight.notes),
-          createdAt: Value(DateTime.now().millisecondsSinceEpoch),
-        ),);
+        await _db.into(_db.diveWeights).insert(
+              DiveWeightsCompanion(
+                id: Value(weight.id.isNotEmpty ? weight.id : _uuid.v4()),
+                diveId: Value(dive.id),
+                weightType: Value(weight.weightType.name),
+                amountKg: Value(weight.amountKg),
+                notes: Value(weight.notes),
+                createdAt: Value(DateTime.now().millisecondsSinceEpoch),
+              ),
+            );
       }
 
       // Update equipment: delete and re-insert
-      await (_db.delete(_db.diveEquipment)..where((t) => t.diveId.equals(dive.id))).go();
+      await (_db.delete(_db.diveEquipment)
+            ..where((t) => t.diveId.equals(dive.id)))
+          .go();
       for (final item in dive.equipment) {
-        await _db.into(_db.diveEquipment).insert(DiveEquipmentCompanion(
-          diveId: Value(dive.id),
-          equipmentId: Value(item.id),
-        ),);
+        await _db.into(_db.diveEquipment).insert(
+              DiveEquipmentCompanion(
+                diveId: Value(dive.id),
+                equipmentId: Value(item.id),
+              ),
+            );
       }
 
       // Update tags
@@ -411,11 +451,14 @@ class DiveRepository {
   }
 
   /// Get dives within a date range
-  Future<List<domain.Dive>> getDivesInRange(DateTime start, DateTime end) async {
+  Future<List<domain.Dive>> getDivesInRange(
+      DateTime start, DateTime end) async {
     try {
       final query = _db.select(_db.dives)
-        ..where((t) => t.diveDateTime.isBiggerOrEqualValue(start.millisecondsSinceEpoch))
-        ..where((t) => t.diveDateTime.isSmallerOrEqualValue(end.millisecondsSinceEpoch))
+        ..where((t) =>
+            t.diveDateTime.isBiggerOrEqualValue(start.millisecondsSinceEpoch))
+        ..where((t) =>
+            t.diveDateTime.isSmallerOrEqualValue(end.millisecondsSinceEpoch))
         ..orderBy([(t) => OrderingTerm.desc(t.diveDateTime)]);
 
       final rows = await query.get();
@@ -434,14 +477,17 @@ class DiveRepository {
       final List<Object> args;
 
       if (diverId != null) {
-        sql = 'SELECT MAX(dive_number) as max_num FROM dives WHERE diver_id = ?';
+        sql =
+            'SELECT MAX(dive_number) as max_num FROM dives WHERE diver_id = ?';
         args = [diverId];
       } else {
         sql = 'SELECT MAX(dive_number) as max_num FROM dives';
         args = [];
       }
 
-      final result = await _db.customSelect(sql, variables: args.map((a) => Variable(a)).toList()).getSingle();
+      final result = await _db
+          .customSelect(sql, variables: args.map((a) => Variable(a)).toList())
+          .getSingle();
 
       final maxNum = result.data['max_num'] as int?;
       return (maxNum ?? 0) + 1;
@@ -455,10 +501,12 @@ class DiveRepository {
   Future<List<domain.Dive>> searchDives(String query) async {
     try {
       final searchQuery = _db.select(_db.dives)
-        ..where((t) =>
-            t.notes.contains(query) |
-            t.buddy.contains(query) |
-            t.diveMaster.contains(query),)
+        ..where(
+          (t) =>
+              t.notes.contains(query) |
+              t.buddy.contains(query) |
+              t.diveMaster.contains(query),
+        )
         ..orderBy([(t) => OrderingTerm.desc(t.diveDateTime)]);
 
       final rows = await searchQuery.get();
@@ -478,10 +526,12 @@ class DiveRepository {
   Future<DiveStatistics> getStatistics({String? diverId}) async {
     try {
       final whereClause = diverId != null ? 'WHERE diver_id = ?' : '';
-      final vars = diverId != null ? [Variable<String>(diverId)] : <Variable<Object>>[];
+      final vars =
+          diverId != null ? [Variable<String>(diverId)] : <Variable<Object>>[];
 
       // Basic stats
-    final stats = await _db.customSelect('''
+      final stats = await _db.customSelect(
+        '''
       SELECT
         COUNT(*) as total_dives,
         SUM(duration) as total_time,
@@ -491,13 +541,16 @@ class DiveRepository {
         COUNT(DISTINCT site_id) as total_sites
       FROM dives
       $whereClause
-    ''', variables: vars).getSingle();
+    ''',
+        variables: vars,
+      ).getSingle();
 
-    // Dives by month (last 12 months)
-    final monthlyWhereClause = diverId != null
-        ? 'WHERE dive_date_time >= strftime(\'%s\', \'now\', \'-12 months\') * 1000 AND diver_id = ?'
-        : 'WHERE dive_date_time >= strftime(\'%s\', \'now\', \'-12 months\') * 1000';
-    final monthlyStats = await _db.customSelect('''
+      // Dives by month (last 12 months)
+      final monthlyWhereClause = diverId != null
+          ? 'WHERE dive_date_time >= strftime(\'%s\', \'now\', \'-12 months\') * 1000 AND diver_id = ?'
+          : 'WHERE dive_date_time >= strftime(\'%s\', \'now\', \'-12 months\') * 1000';
+      final monthlyStats = await _db.customSelect(
+        '''
       SELECT
         strftime('%Y', dive_date_time / 1000, 'unixepoch') as year,
         strftime('%m', dive_date_time / 1000, 'unixepoch') as month,
@@ -506,19 +559,26 @@ class DiveRepository {
       $monthlyWhereClause
       GROUP BY year, month
       ORDER BY year, month
-    ''', variables: vars).get();
+    ''',
+        variables: vars,
+      ).get();
 
-    final divesByMonth = monthlyStats.map((row) => MonthlyDiveCount(
-      year: int.parse(row.data['year'] as String),
-      month: int.parse(row.data['month'] as String),
-      count: row.data['count'] as int,
-    ),).toList();
+      final divesByMonth = monthlyStats
+          .map(
+            (row) => MonthlyDiveCount(
+              year: int.parse(row.data['year'] as String),
+              month: int.parse(row.data['month'] as String),
+              count: row.data['count'] as int,
+            ),
+          )
+          .toList();
 
-    // Depth distribution
-    final depthWhereClause = diverId != null
-        ? 'WHERE max_depth IS NOT NULL AND diver_id = ?'
-        : 'WHERE max_depth IS NOT NULL';
-    final depthStats = await _db.customSelect('''
+      // Depth distribution
+      final depthWhereClause = diverId != null
+          ? 'WHERE max_depth IS NOT NULL AND diver_id = ?'
+          : 'WHERE max_depth IS NOT NULL';
+      final depthStats = await _db.customSelect(
+        '''
       SELECT
         CASE
           WHEN max_depth < 10 THEN '0-10m'
@@ -539,29 +599,33 @@ class DiveRepository {
           WHEN '30-40m' THEN 4
           ELSE 5
         END
-    ''', variables: vars).get();
+    ''',
+        variables: vars,
+      ).get();
 
-    final depthRanges = [
-      DepthRangeStat(label: '0-10m', minDepth: 0, maxDepth: 10, count: 0),
-      DepthRangeStat(label: '10-20m', minDepth: 10, maxDepth: 20, count: 0),
-      DepthRangeStat(label: '20-30m', minDepth: 20, maxDepth: 30, count: 0),
-      DepthRangeStat(label: '30-40m', minDepth: 30, maxDepth: 40, count: 0),
-      DepthRangeStat(label: '40m+', minDepth: 40, maxDepth: 100, count: 0),
-    ];
+      final depthRanges = [
+        DepthRangeStat(label: '0-10m', minDepth: 0, maxDepth: 10, count: 0),
+        DepthRangeStat(label: '10-20m', minDepth: 10, maxDepth: 20, count: 0),
+        DepthRangeStat(label: '20-30m', minDepth: 20, maxDepth: 30, count: 0),
+        DepthRangeStat(label: '30-40m', minDepth: 30, maxDepth: 40, count: 0),
+        DepthRangeStat(label: '40m+', minDepth: 40, maxDepth: 100, count: 0),
+      ];
 
-    final depthDistribution = depthRanges.map((range) {
-      final found = depthStats.where((row) => row.data['depth_range'] == range.label);
-      return DepthRangeStat(
-        label: range.label,
-        minDepth: range.minDepth,
-        maxDepth: range.maxDepth,
-        count: found.isNotEmpty ? found.first.data['count'] as int : 0,
-      );
-    }).toList();
+      final depthDistribution = depthRanges.map((range) {
+        final found =
+            depthStats.where((row) => row.data['depth_range'] == range.label);
+        return DepthRangeStat(
+          label: range.label,
+          minDepth: range.minDepth,
+          maxDepth: range.maxDepth,
+          count: found.isNotEmpty ? found.first.data['count'] as int : 0,
+        );
+      }).toList();
 
-    // Top sites
-    final siteWhereClause = diverId != null ? 'WHERE d.diver_id = ?' : '';
-    final siteStats = await _db.customSelect('''
+      // Top sites
+      final siteWhereClause = diverId != null ? 'WHERE d.diver_id = ?' : '';
+      final siteStats = await _db.customSelect(
+        '''
       SELECT
         s.name as site_name,
         COUNT(*) as dive_count
@@ -571,12 +635,18 @@ class DiveRepository {
       GROUP BY d.site_id
       ORDER BY dive_count DESC
       LIMIT 5
-    ''', variables: vars).get();
+    ''',
+        variables: vars,
+      ).get();
 
-    final topSites = siteStats.map((row) => TopSiteStat(
-      siteName: row.data['site_name'] as String,
-      diveCount: row.data['dive_count'] as int,
-    ),).toList();
+      final topSites = siteStats
+          .map(
+            (row) => TopSiteStat(
+              siteName: row.data['site_name'] as String,
+              diveCount: row.data['dive_count'] as int,
+            ),
+          )
+          .toList();
 
       return DiveStatistics(
         totalDives: stats.data['total_dives'] as int? ?? 0,
@@ -599,88 +669,115 @@ class DiveRepository {
   /// Optionally filter by [diverId] for per-diver records
   Future<DiveRecords> getRecords({String? diverId}) async {
     try {
-      final vars = diverId != null ? [Variable<String>(diverId)] : <Variable<Object>>[];
+      final vars =
+          diverId != null ? [Variable<String>(diverId)] : <Variable<Object>>[];
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final diverFilterFirst = diverId != null ? 'WHERE d.diver_id = ?' : '';
 
       // Deepest dive
-    final deepestResult = await _db.customSelect('''
+      final deepestResult = await _db.customSelect(
+        '''
       SELECT d.*, s.name as site_name
       FROM dives d
       LEFT JOIN dive_sites s ON d.site_id = s.id
       WHERE d.max_depth IS NOT NULL $diverFilter
       ORDER BY d.max_depth DESC
       LIMIT 1
-    ''', variables: vars).getSingleOrNull();
+    ''',
+        variables: vars,
+      ).getSingleOrNull();
 
-    // Longest dive
-    final longestResult = await _db.customSelect('''
+      // Longest dive
+      final longestResult = await _db.customSelect(
+        '''
       SELECT d.*, s.name as site_name
       FROM dives d
       LEFT JOIN dive_sites s ON d.site_id = s.id
       WHERE d.duration IS NOT NULL $diverFilter
       ORDER BY d.duration DESC
       LIMIT 1
-    ''', variables: vars).getSingleOrNull();
+    ''',
+        variables: vars,
+      ).getSingleOrNull();
 
-    // Coldest dive
-    final coldestResult = await _db.customSelect('''
+      // Coldest dive
+      final coldestResult = await _db.customSelect(
+        '''
       SELECT d.*, s.name as site_name
       FROM dives d
       LEFT JOIN dive_sites s ON d.site_id = s.id
       WHERE d.water_temp IS NOT NULL $diverFilter
       ORDER BY d.water_temp ASC
       LIMIT 1
-    ''', variables: vars).getSingleOrNull();
+    ''',
+        variables: vars,
+      ).getSingleOrNull();
 
-    // Warmest dive
-    final warmestResult = await _db.customSelect('''
+      // Warmest dive
+      final warmestResult = await _db.customSelect(
+        '''
       SELECT d.*, s.name as site_name
       FROM dives d
       LEFT JOIN dive_sites s ON d.site_id = s.id
       WHERE d.water_temp IS NOT NULL $diverFilter
       ORDER BY d.water_temp DESC
       LIMIT 1
-    ''', variables: vars).getSingleOrNull();
+    ''',
+        variables: vars,
+      ).getSingleOrNull();
 
-    // First dive
-    final firstResult = await _db.customSelect('''
+      // First dive
+      final firstResult = await _db.customSelect(
+        '''
       SELECT d.*, s.name as site_name
       FROM dives d
       LEFT JOIN dive_sites s ON d.site_id = s.id
       $diverFilterFirst
       ORDER BY d.dive_date_time ASC
       LIMIT 1
-    ''', variables: vars).getSingleOrNull();
+    ''',
+        variables: vars,
+      ).getSingleOrNull();
 
-    // Most recent dive
-    final lastResult = await _db.customSelect('''
+      // Most recent dive
+      final lastResult = await _db.customSelect(
+        '''
       SELECT d.*, s.name as site_name
       FROM dives d
       LEFT JOIN dive_sites s ON d.site_id = s.id
       $diverFilterFirst
       ORDER BY d.dive_date_time DESC
       LIMIT 1
-    ''', variables: vars).getSingleOrNull();
+    ''',
+        variables: vars,
+      ).getSingleOrNull();
 
-    // Shallowest dive (with max_depth recorded)
-    final shallowestResult = await _db.customSelect('''
+      // Shallowest dive (with max_depth recorded)
+      final shallowestResult = await _db.customSelect(
+        '''
       SELECT d.*, s.name as site_name
       FROM dives d
       LEFT JOIN dive_sites s ON d.site_id = s.id
       WHERE d.max_depth IS NOT NULL AND d.max_depth > 0 $diverFilter
       ORDER BY d.max_depth ASC
       LIMIT 1
-    ''', variables: vars).getSingleOrNull();
+    ''',
+        variables: vars,
+      ).getSingleOrNull();
 
       return DiveRecords(
-        deepestDive: deepestResult != null ? _mapRecordRow(deepestResult) : null,
-        longestDive: longestResult != null ? _mapRecordRow(longestResult) : null,
-        coldestDive: coldestResult != null ? _mapRecordRow(coldestResult) : null,
-        warmestDive: warmestResult != null ? _mapRecordRow(warmestResult) : null,
+        deepestDive:
+            deepestResult != null ? _mapRecordRow(deepestResult) : null,
+        longestDive:
+            longestResult != null ? _mapRecordRow(longestResult) : null,
+        coldestDive:
+            coldestResult != null ? _mapRecordRow(coldestResult) : null,
+        warmestDive:
+            warmestResult != null ? _mapRecordRow(warmestResult) : null,
         firstDive: firstResult != null ? _mapRecordRow(firstResult) : null,
         lastDive: lastResult != null ? _mapRecordRow(lastResult) : null,
-        shallowestDive: shallowestResult != null ? _mapRecordRow(shallowestResult) : null,
+        shallowestDive:
+            shallowestResult != null ? _mapRecordRow(shallowestResult) : null,
       );
     } catch (e, stackTrace) {
       _log.error('Failed to get dive records', e, stackTrace);
@@ -693,7 +790,8 @@ class DiveRepository {
       diveId: row.data['id'] as String,
       diveNumber: row.data['dive_number'] as int?,
       siteName: row.data['site_name'] as String?,
-      dateTime: DateTime.fromMillisecondsSinceEpoch(row.data['dive_date_time'] as int),
+      dateTime: DateTime.fromMillisecondsSinceEpoch(
+          row.data['dive_date_time'] as int),
       maxDepth: row.data['max_depth'] as double?,
       duration: row.data['duration'] != null
           ? Duration(seconds: row.data['duration'] as int)
@@ -746,7 +844,12 @@ class DiveRepository {
         phone: center.phone,
         email: center.email,
         website: center.website,
-        affiliations: center.affiliations?.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList() ?? [],
+        affiliations: center.affiliations
+                ?.split(',')
+                .map((s) => s.trim())
+                .where((s) => s.isNotEmpty)
+                .toList() ??
+            [],
         rating: center.rating,
         notes: center.notes,
         createdAt: DateTime.fromMillisecondsSinceEpoch(center.createdAt),
@@ -823,26 +926,30 @@ class DiveRepository {
               orElse: () => WeightType.belt,
             )
           : null,
-      tanks: tanks.map((t) => domain.DiveTank(
-        id: t.id,
-        name: t.tankName,
-        volume: t.volume,
-        workingPressure: t.workingPressure,
-        startPressure: t.startPressure,
-        endPressure: t.endPressure,
-        gasMix: domain.GasMix(o2: t.o2Percent, he: t.hePercent),
-        role: TankRole.values.firstWhere(
-          (r) => r.name == t.tankRole,
-          orElse: () => TankRole.backGas,
-        ),
-        material: t.tankMaterial != null
-            ? TankMaterial.values.firstWhere(
-                (m) => m.name == t.tankMaterial,
-                orElse: () => TankMaterial.aluminum,
-              )
-            : null,
-        order: t.tankOrder,
-      ),).toList(),
+      tanks: tanks
+          .map(
+            (t) => domain.DiveTank(
+              id: t.id,
+              name: t.tankName,
+              volume: t.volume,
+              workingPressure: t.workingPressure,
+              startPressure: t.startPressure,
+              endPressure: t.endPressure,
+              gasMix: domain.GasMix(o2: t.o2Percent, he: t.hePercent),
+              role: TankRole.values.firstWhere(
+                (r) => r.name == t.tankRole,
+                orElse: () => TankRole.backGas,
+              ),
+              material: t.tankMaterial != null
+                  ? TankMaterial.values.firstWhere(
+                      (m) => m.name == t.tankMaterial,
+                      orElse: () => TankMaterial.aluminum,
+                    )
+                  : null,
+              order: t.tankOrder,
+            ),
+          )
+          .toList(),
       profile: const [], // Profile not loaded for list views
       equipment: equipment,
       weights: const [], // Weights not loaded for list views (use detail view)
@@ -867,8 +974,10 @@ class DiveRepository {
 
     // Get equipment for this dive
     final equipmentQuery = _db.select(_db.diveEquipment).join([
-      innerJoin(_db.equipment, _db.equipment.id.equalsExp(_db.diveEquipment.equipmentId)),
-    ])..where(_db.diveEquipment.diveId.equals(row.id));
+      innerJoin(_db.equipment,
+          _db.equipment.id.equalsExp(_db.diveEquipment.equipmentId)),
+    ])
+      ..where(_db.diveEquipment.diveId.equals(row.id));
     final equipmentRows = await equipmentQuery.get();
     final equipmentItems = equipmentRows.map((joinRow) {
       final e = joinRow.readTable(_db.equipment);
@@ -944,7 +1053,12 @@ class DiveRepository {
           phone: centerRow.phone,
           email: centerRow.email,
           website: centerRow.website,
-          affiliations: centerRow.affiliations?.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList() ?? [],
+          affiliations: centerRow.affiliations
+                  ?.split(',')
+                  .map((s) => s.trim())
+                  .where((s) => s.isNotEmpty)
+                  .toList() ??
+              [],
           rating: centerRow.rating,
           notes: centerRow.notes,
           createdAt: DateTime.fromMillisecondsSinceEpoch(centerRow.createdAt),
@@ -1027,33 +1141,41 @@ class DiveRepository {
               orElse: () => WeightType.belt,
             )
           : null,
-      tanks: tankRows.map((t) => domain.DiveTank(
-        id: t.id,
-        name: t.tankName,
-        volume: t.volume,
-        workingPressure: t.workingPressure,
-        startPressure: t.startPressure,
-        endPressure: t.endPressure,
-        gasMix: domain.GasMix(o2: t.o2Percent, he: t.hePercent),
-        role: TankRole.values.firstWhere(
-          (r) => r.name == t.tankRole,
-          orElse: () => TankRole.backGas,
-        ),
-        material: t.tankMaterial != null
-            ? TankMaterial.values.firstWhere(
-                (m) => m.name == t.tankMaterial,
-                orElse: () => TankMaterial.aluminum,
-              )
-            : null,
-        order: t.tankOrder,
-      ),).toList(),
-      profile: profileRows.map((p) => domain.DiveProfilePoint(
-        timestamp: p.timestamp,
-        depth: p.depth,
-        pressure: p.pressure,
-        temperature: p.temperature,
-        heartRate: p.heartRate,
-      ),).toList(),
+      tanks: tankRows
+          .map(
+            (t) => domain.DiveTank(
+              id: t.id,
+              name: t.tankName,
+              volume: t.volume,
+              workingPressure: t.workingPressure,
+              startPressure: t.startPressure,
+              endPressure: t.endPressure,
+              gasMix: domain.GasMix(o2: t.o2Percent, he: t.hePercent),
+              role: TankRole.values.firstWhere(
+                (r) => r.name == t.tankRole,
+                orElse: () => TankRole.backGas,
+              ),
+              material: t.tankMaterial != null
+                  ? TankMaterial.values.firstWhere(
+                      (m) => m.name == t.tankMaterial,
+                      orElse: () => TankMaterial.aluminum,
+                    )
+                  : null,
+              order: t.tankOrder,
+            ),
+          )
+          .toList(),
+      profile: profileRows
+          .map(
+            (p) => domain.DiveProfilePoint(
+              timestamp: p.timestamp,
+              depth: p.depth,
+              pressure: p.pressure,
+              temperature: p.temperature,
+              heartRate: p.heartRate,
+            ),
+          )
+          .toList(),
       equipment: equipmentItems,
       weights: weights,
       isFavorite: row.isFavorite,
@@ -1069,10 +1191,13 @@ class DiveRepository {
   Future<void> toggleFavorite(String diveId) async {
     try {
       _log.info('Toggling favorite for dive: $diveId');
-      await _db.customStatement('''
+      await _db.customStatement(
+        '''
         UPDATE dives SET is_favorite = NOT is_favorite, updated_at = ?
         WHERE id = ?
-      ''', [DateTime.now().millisecondsSinceEpoch, diveId],);
+      ''',
+        [DateTime.now().millisecondsSinceEpoch, diveId],
+      );
       _log.info('Toggled favorite for dive: $diveId');
     } catch (e, stackTrace) {
       _log.error('Failed to toggle favorite for dive: $diveId', e, stackTrace);
@@ -1118,16 +1243,20 @@ class DiveRepository {
       final query = _db.select(_db.diveWeights)
         ..where((w) => w.diveId.equals(diveId));
       final rows = await query.get();
-      return rows.map((row) => domain.DiveWeight(
-        id: row.id,
-        diveId: row.diveId,
-        weightType: WeightType.values.firstWhere(
-          (w) => w.name == row.weightType,
-          orElse: () => WeightType.belt,
-        ),
-        amountKg: row.amountKg,
-        notes: row.notes,
-      ),).toList();
+      return rows
+          .map(
+            (row) => domain.DiveWeight(
+              id: row.id,
+              diveId: row.diveId,
+              weightType: WeightType.values.firstWhere(
+                (w) => w.name == row.weightType,
+                orElse: () => WeightType.belt,
+              ),
+              amountKg: row.amountKg,
+              notes: row.notes,
+            ),
+          )
+          .toList();
     } catch (e, stackTrace) {
       _log.error('Failed to load weights for dive: $diveId', e, stackTrace);
       return [];
@@ -1151,9 +1280,17 @@ class DiveRepository {
       // Find the most recent dive that ended before this one started
       final query = _db.select(_db.dives)
         ..where((t) => t.id.isNotValue(diveId))
-        ..where((t) => t.entryTime.isSmallerThanValue(entryTime.millisecondsSinceEpoch) | 
-                       (t.entryTime.isNull() & t.diveDateTime.isSmallerThanValue(entryTime.millisecondsSinceEpoch)),)
-        ..orderBy([(t) => OrderingTerm.desc(t.entryTime), (t) => OrderingTerm.desc(t.diveDateTime)])
+        ..where(
+          (t) =>
+              t.entryTime.isSmallerThanValue(entryTime.millisecondsSinceEpoch) |
+              (t.entryTime.isNull() &
+                  t.diveDateTime
+                      .isSmallerThanValue(entryTime.millisecondsSinceEpoch)),
+        )
+        ..orderBy([
+          (t) => OrderingTerm.desc(t.entryTime),
+          (t) => OrderingTerm.desc(t.diveDateTime)
+        ])
         ..limit(1);
 
       final rows = await query.get();
@@ -1177,14 +1314,16 @@ class DiveRepository {
       if (previousDive == null) return null;
 
       // Calculate interval: from previous dive exit to current dive entry
-      final previousExitTime = previousDive.exitTime ?? 
-          (previousDive.entryTime ?? previousDive.dateTime).add(previousDive.calculatedDuration ?? Duration.zero);
+      final previousExitTime = previousDive.exitTime ??
+          (previousDive.entryTime ?? previousDive.dateTime)
+              .add(previousDive.calculatedDuration ?? Duration.zero);
       final currentEntryTime = currentDive.entryTime ?? currentDive.dateTime;
 
       final interval = currentEntryTime.difference(previousExitTime);
       return interval.isNegative ? Duration.zero : interval;
     } catch (e, stackTrace) {
-      _log.error('Failed to calculate surface interval for: $diveId', e, stackTrace);
+      _log.error(
+          'Failed to calculate surface interval for: $diveId', e, stackTrace);
       return null;
     }
   }
@@ -1198,39 +1337,47 @@ class DiveRepository {
   Future<DiveNumberingInfo> getDiveNumberingInfo() async {
     try {
       final query = _db.select(_db.dives)
-        ..orderBy([(t) => OrderingTerm.asc(t.entryTime), (t) => OrderingTerm.asc(t.diveDateTime)]);
+        ..orderBy([
+          (t) => OrderingTerm.asc(t.entryTime),
+          (t) => OrderingTerm.asc(t.diveDateTime)
+        ]);
 
       final rows = await query.get();
-      
+
       final dives = <DiveNumberEntry>[];
       final gaps = <DiveNumberGap>[];
-      
+
       int? lastNumber;
       for (final row in rows) {
-        final entryTime = row.entryTime != null 
+        final entryTime = row.entryTime != null
             ? DateTime.fromMillisecondsSinceEpoch(row.entryTime!)
             : DateTime.fromMillisecondsSinceEpoch(row.diveDateTime);
-        
-        dives.add(DiveNumberEntry(
-          diveId: row.id,
-          currentNumber: row.diveNumber,
-          entryTime: entryTime,
-        ),);
-        
+
+        dives.add(
+          DiveNumberEntry(
+            diveId: row.id,
+            currentNumber: row.diveNumber,
+            entryTime: entryTime,
+          ),
+        );
+
         // Check for gaps
         if (row.diveNumber != null && lastNumber != null) {
           final expected = lastNumber + 1;
           if (row.diveNumber! > expected) {
-            gaps.add(DiveNumberGap(
-              afterDiveId: dives.length > 1 ? dives[dives.length - 2].diveId : null,
-              missingStart: expected,
-              missingEnd: row.diveNumber! - 1,
-            ),);
+            gaps.add(
+              DiveNumberGap(
+                afterDiveId:
+                    dives.length > 1 ? dives[dives.length - 2].diveId : null,
+                missingStart: expected,
+                missingEnd: row.diveNumber! - 1,
+              ),
+            );
           }
         }
         lastNumber = row.diveNumber;
       }
-      
+
       return DiveNumberingInfo(
         dives: dives,
         gaps: gaps,
@@ -1248,12 +1395,15 @@ class DiveRepository {
   Future<void> renumberAllDives({int startFrom = 1}) async {
     try {
       _log.info('Renumbering all dives starting from $startFrom');
-      
+
       final query = _db.select(_db.dives)
-        ..orderBy([(t) => OrderingTerm.asc(t.entryTime), (t) => OrderingTerm.asc(t.diveDateTime)]);
+        ..orderBy([
+          (t) => OrderingTerm.asc(t.entryTime),
+          (t) => OrderingTerm.asc(t.diveDateTime)
+        ]);
 
       final rows = await query.get();
-      
+
       int number = startFrom;
       for (final row in rows) {
         await (_db.update(_db.dives)..where((t) => t.id.equals(row.id))).write(
@@ -1264,7 +1414,7 @@ class DiveRepository {
         );
         number++;
       }
-      
+
       _log.info('Renumbered ${rows.length} dives');
     } catch (e, stackTrace) {
       _log.error('Failed to renumber dives', e, stackTrace);
@@ -1277,13 +1427,16 @@ class DiveRepository {
   Future<void> assignMissingDiveNumbers() async {
     try {
       _log.info('Assigning missing dive numbers');
-      
+
       // Get all dives ordered by entry time
       final query = _db.select(_db.dives)
-        ..orderBy([(t) => OrderingTerm.asc(t.entryTime), (t) => OrderingTerm.asc(t.diveDateTime)]);
+        ..orderBy([
+          (t) => OrderingTerm.asc(t.entryTime),
+          (t) => OrderingTerm.asc(t.diveDateTime)
+        ]);
 
       final rows = await query.get();
-      
+
       // Find the highest existing number
       int maxNumber = 0;
       for (final row in rows) {
@@ -1291,12 +1444,13 @@ class DiveRepository {
           maxNumber = row.diveNumber!;
         }
       }
-      
+
       // Assign numbers to unnumbered dives
       int nextNumber = maxNumber + 1;
       for (final row in rows) {
         if (row.diveNumber == null) {
-          await (_db.update(_db.dives)..where((t) => t.id.equals(row.id))).write(
+          await (_db.update(_db.dives)..where((t) => t.id.equals(row.id)))
+              .write(
             DivesCompanion(
               diveNumber: Value(nextNumber),
               updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
@@ -1305,7 +1459,7 @@ class DiveRepository {
           nextNumber++;
         }
       }
-      
+
       _log.info('Assigned numbers to ${nextNumber - maxNumber - 1} dives');
     } catch (e, stackTrace) {
       _log.error('Failed to assign missing dive numbers', e, stackTrace);
@@ -1353,10 +1507,24 @@ class MonthlyDiveCount {
   final int month;
   final int count;
 
-  MonthlyDiveCount({required this.year, required this.month, required this.count});
+  MonthlyDiveCount(
+      {required this.year, required this.month, required this.count});
 
   String get label {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
     return months[month - 1];
   }
 

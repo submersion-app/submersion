@@ -16,6 +16,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   final double? maxDepth;
   final bool showTemperature;
   final bool showPressure;
+  final void Function(DiveProfilePoint? point)? onPointSelected;
 
   const DiveProfileChart({
     super.key,
@@ -24,6 +25,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.maxDepth,
     this.showTemperature = true,
     this.showPressure = false,
+    this.onPointSelected,
   });
 
   @override
@@ -32,6 +34,8 @@ class DiveProfileChart extends ConsumerStatefulWidget {
 
 class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   bool _showTemperature = true;
+  bool _showPressure = false;
+  bool _showHeartRate = false;
 
   // Zoom/pan state
   double _zoomLevel = 1.0;
@@ -51,6 +55,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   void initState() {
     super.initState();
     _showTemperature = widget.showTemperature;
+    _showPressure = widget.showPressure;
   }
 
   void _resetZoom() {
@@ -91,7 +96,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
     final hasTemperatureData = widget.profile.any((p) => p.temperature != null);
+    final hasPressureData = widget.profile.any((p) => p.pressure != null);
+    final hasHeartRateData = widget.profile.any((p) => p.heartRate != null);
     final colorScheme = Theme.of(context).colorScheme;
+
+    // Define colors for each metric
+    const pressureColor = Colors.orange;
+    const heartRateColor = Colors.red;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -99,37 +110,46 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         // Chart header with toggles and zoom controls
         Padding(
           padding: const EdgeInsets.only(bottom: 8),
-          child: Row(
+          child: Wrap(
+            spacing: 12,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              // Legend items
+              // Depth legend (always shown)
               _buildLegendItem(
                 context,
                 color: colorScheme.primary,
                 label: 'Depth',
               ),
-              if (hasTemperatureData) ...[
-                const SizedBox(width: 16),
-                InkWell(
-                  onTap: () => setState(() => _showTemperature = !_showTemperature),
-                  child: Row(
-                    children: [
-                      Icon(
-                        _showTemperature ? Icons.check_box : Icons.check_box_outline_blank,
-                        size: 18,
-                        color: colorScheme.tertiary,
-                      ),
-                      const SizedBox(width: 4),
-                      _buildLegendItem(
-                        context,
-                        color: colorScheme.tertiary,
-                        label: 'Temperature',
-                      ),
-                    ],
-                  ),
+              // Temperature toggle
+              if (hasTemperatureData)
+                _buildMetricToggle(
+                  context,
+                  color: colorScheme.tertiary,
+                  label: 'Temp',
+                  isEnabled: _showTemperature,
+                  onTap: () =>
+                      setState(() => _showTemperature = !_showTemperature),
                 ),
-              ],
-              const Spacer(),
-              // Zoom controls
+              // Pressure toggle
+              if (hasPressureData)
+                _buildMetricToggle(
+                  context,
+                  color: pressureColor,
+                  label: 'Pressure',
+                  isEnabled: _showPressure,
+                  onTap: () => setState(() => _showPressure = !_showPressure),
+                ),
+              // Heart rate toggle
+              if (hasHeartRateData)
+                _buildMetricToggle(
+                  context,
+                  color: heartRateColor,
+                  label: 'HR',
+                  isEnabled: _showHeartRate,
+                  onTap: () => setState(() => _showHeartRate = !_showHeartRate),
+                ),
+              // Zoom controls (pushed to end)
               _buildZoomControls(context),
             ],
           ),
@@ -138,7 +158,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         // The chart with gesture handling
         SizedBox(
           height: 200,
-          child: _buildInteractiveChart(context, hasTemperatureData, units),
+          child: _buildInteractiveChart(
+            context,
+            units,
+            hasTemperatureData: hasTemperatureData,
+            hasPressureData: hasPressureData,
+            hasHeartRateData: hasHeartRateData,
+          ),
         ),
 
         // Zoom hint
@@ -179,7 +205,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             '${_zoomLevel.toStringAsFixed(1)}x',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   fontWeight: FontWeight.w500,
-                  color: isZoomed ? colorScheme.primary : colorScheme.onSurfaceVariant,
+                  color: isZoomed
+                      ? colorScheme.primary
+                      : colorScheme.onSurfaceVariant,
                 ),
           ),
         ),
@@ -208,7 +236,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     );
   }
 
-  Widget _buildInteractiveChart(BuildContext context, bool hasTemperatureData, UnitFormatter units) {
+  Widget _buildInteractiveChart(
+    BuildContext context,
+    UnitFormatter units, {
+    required bool hasTemperatureData,
+    required bool hasPressureData,
+    required bool hasHeartRateData,
+  }) {
     return LayoutBuilder(
       builder: (context, constraints) {
         return GestureDetector(
@@ -220,7 +254,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           onScaleUpdate: (details) {
             setState(() {
               // Handle zoom
-              final newZoom = (_previousZoom * details.scale).clamp(_minZoom, _maxZoom);
+              final newZoom =
+                  (_previousZoom * details.scale).clamp(_minZoom, _maxZoom);
 
               // Handle pan
               final panDelta = details.localFocalPoint - _startFocalPoint;
@@ -234,8 +269,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 final normalizedDeltaX = -panDelta.dx / chartWidth / newZoom;
                 final normalizedDeltaY = -panDelta.dy / chartHeight / newZoom;
 
-                _panOffsetX = (_previousPan.dx + normalizedDeltaX).clamp(0.0, 1.0 - (1.0 / newZoom));
-                _panOffsetY = (_previousPan.dy + normalizedDeltaY).clamp(0.0, 1.0 - (1.0 / newZoom));
+                _panOffsetX = (_previousPan.dx + normalizedDeltaX)
+                    .clamp(0.0, 1.0 - (1.0 / newZoom));
+                _panOffsetY = (_previousPan.dy + normalizedDeltaY)
+                    .clamp(0.0, 1.0 - (1.0 / newZoom));
               } else {
                 _panOffsetX = 0.0;
                 _panOffsetY = 0.0;
@@ -270,7 +307,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 });
               }
             },
-            child: _buildChart(context, hasTemperatureData, units),
+            child: _buildChart(
+              context,
+              units,
+              hasTemperatureData: hasTemperatureData,
+              hasPressureData: hasPressureData,
+              hasHeartRateData: hasHeartRateData,
+            ),
           ),
         );
       },
@@ -291,7 +334,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             Icon(
               Icons.show_chart,
               size: 48,
-              color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurfaceVariant
+                  .withValues(alpha: 0.5),
             ),
             const SizedBox(height: 8),
             Text(
@@ -306,7 +352,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     );
   }
 
-  Widget _buildLegendItem(BuildContext context, {required Color color, required String label}) {
+  Widget _buildLegendItem(BuildContext context,
+      {required Color color, required String label}) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -327,14 +374,71 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     );
   }
 
-  Widget _buildChart(BuildContext context, bool hasTemperatureData, UnitFormatter units) {
+  Widget _buildMetricToggle(
+    BuildContext context, {
+    required Color color,
+    required String label,
+    required bool isEnabled,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(4),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isEnabled ? Icons.check_box : Icons.check_box_outline_blank,
+              size: 16,
+              color: isEnabled
+                  ? color
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 4),
+            Container(
+              width: 12,
+              height: 3,
+              decoration: BoxDecoration(
+                color: isEnabled ? color : color.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: isEnabled
+                        ? null
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChart(
+    BuildContext context,
+    UnitFormatter units, {
+    required bool hasTemperatureData,
+    required bool hasPressureData,
+    required bool hasHeartRateData,
+  }) {
     final colorScheme = Theme.of(context).colorScheme;
+    const pressureColor = Colors.orange;
+    const heartRateColor = Colors.red;
 
     // Calculate full data bounds (all values stored in meters, convert for display)
-    final totalMaxTime = widget.profile.map((p) => p.timestamp).reduce(math.max).toDouble();
-    final maxDepthValueMeters = widget.profile.map((p) => p.depth).reduce(math.max);
+    final totalMaxTime =
+        widget.profile.map((p) => p.timestamp).reduce(math.max).toDouble();
+    final maxDepthValueMeters =
+        widget.profile.map((p) => p.depth).reduce(math.max);
     // Convert to user's preferred depth unit for chart calculations
-    final maxDepthValueDisplay = units.convertDepth(widget.maxDepth ?? maxDepthValueMeters);
+    final maxDepthValueDisplay =
+        units.convertDepth(widget.maxDepth ?? maxDepthValueMeters);
     final totalMaxDepth = maxDepthValueDisplay * 1.1; // Add 10% padding
 
     // Apply zoom and pan to calculate visible bounds
@@ -350,10 +454,36 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // Temperature bounds (if showing) - convert to user's preferred unit
     double? minTemp, maxTemp;
     if (_showTemperature && hasTemperatureData) {
-      final temps = widget.profile.where((p) => p.temperature != null).map((p) => units.convertTemperature(p.temperature!));
+      final temps = widget.profile
+          .where((p) => p.temperature != null)
+          .map((p) => units.convertTemperature(p.temperature!));
       if (temps.isNotEmpty) {
         minTemp = temps.reduce(math.min) - 1;
         maxTemp = temps.reduce(math.max) + 1;
+      }
+    }
+
+    // Pressure bounds (if showing)
+    double? minPressure, maxPressure;
+    if (_showPressure && hasPressureData) {
+      final pressures = widget.profile
+          .where((p) => p.pressure != null)
+          .map((p) => p.pressure!);
+      if (pressures.isNotEmpty) {
+        minPressure = pressures.reduce(math.min) - 10;
+        maxPressure = pressures.reduce(math.max) + 10;
+      }
+    }
+
+    // Heart rate bounds (if showing)
+    double? minHR, maxHR;
+    if (_showHeartRate && hasHeartRateData) {
+      final hrs = widget.profile
+          .where((p) => p.heartRate != null)
+          .map((p) => p.heartRate!.toDouble());
+      if (hrs.isNotEmpty) {
+        minHR = hrs.reduce(math.min) - 5;
+        maxHR = hrs.reduce(math.max) + 5;
       }
     }
 
@@ -363,7 +493,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         maxX: visibleMaxX,
         minY: -visibleMaxDepth, // Inverted: negative depth at bottom
         maxY: -visibleMinDepth, // Surface area at top (inverted)
-        clipData: const FlClipData.all(), // Clip data points outside visible area
+        clipData:
+            const FlClipData.all(), // Clip data points outside visible area
         gridData: FlGridData(
           show: true,
           drawVerticalLine: true,
@@ -417,12 +548,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           ),
           rightTitles: AxisTitles(
             sideTitles: SideTitles(
-              showTitles: _showTemperature && hasTemperatureData && minTemp != null,
+              showTitles:
+                  _showTemperature && hasTemperatureData && minTemp != null,
               reservedSize: 40,
               getTitlesWidget: (value, meta) {
                 if (minTemp == null || maxTemp == null) return const SizedBox();
                 // Map from inverted depth axis to temperature (already in user's preferred unit)
-                final temp = _mapDepthToTemp(-value, totalMaxDepth, minTemp, maxTemp);
+                final temp =
+                    _mapDepthToTemp(-value, totalMaxDepth, minTemp, maxTemp);
                 if (temp < minTemp || temp > maxTemp) return const SizedBox();
                 return Text(
                   '${temp.toStringAsFixed(0)}${units.temperatureSymbol}',
@@ -433,7 +566,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               },
             ),
           ),
-          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
         ),
         borderData: FlBorderData(
           show: true,
@@ -444,42 +578,139 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           _buildDepthLine(colorScheme, units),
 
           // Temperature line (if showing)
-          if (_showTemperature && hasTemperatureData && minTemp != null && maxTemp != null)
-            _buildTemperatureLine(colorScheme, totalMaxDepth, minTemp, maxTemp, units),
+          if (_showTemperature &&
+              hasTemperatureData &&
+              minTemp != null &&
+              maxTemp != null)
+            _buildTemperatureLine(
+                colorScheme, totalMaxDepth, minTemp, maxTemp, units),
+
+          // Pressure line (if showing)
+          if (_showPressure &&
+              hasPressureData &&
+              minPressure != null &&
+              maxPressure != null)
+            _buildPressureLine(
+                pressureColor, totalMaxDepth, minPressure, maxPressure),
+
+          // Heart rate line (if showing)
+          if (_showHeartRate &&
+              hasHeartRateData &&
+              minHR != null &&
+              maxHR != null)
+            _buildHeartRateLine(heartRateColor, totalMaxDepth, minHR, maxHR),
         ],
         lineTouchData: LineTouchData(
           enabled: true,
+          touchCallback: (event, response) {
+            if (widget.onPointSelected != null) {
+              if (response?.lineBarSpots != null &&
+                  response!.lineBarSpots!.isNotEmpty) {
+                final spot = response.lineBarSpots!.first;
+                if (spot.barIndex == 0 &&
+                    spot.spotIndex < widget.profile.length) {
+                  widget.onPointSelected!(widget.profile[spot.spotIndex]);
+                }
+              } else if (event is FlPointerExitEvent ||
+                  event is FlLongPressEnd) {
+                widget.onPointSelected!(null);
+              }
+            }
+          },
           touchTooltipData: LineTouchTooltipData(
             getTooltipColor: (spot) => colorScheme.inverseSurface,
             tooltipRoundedRadius: 8,
             getTooltipItems: (touchedSpots) {
+              // Build tooltip showing all enabled metrics for the touched point
+              // Only process the depth line (barIndex 0) and build combined tooltip
               return touchedSpots.map((spot) {
                 final isDepth = spot.barIndex == 0;
-                final point = widget.profile[spot.spotIndex];
+                if (!isDepth) {
+                  return null;
+                }
 
-                if (isDepth) {
-                  final minutes = point.timestamp ~/ 60;
-                  final seconds = point.timestamp % 60;
-                  // Convert depth from stored meters to user's preferred unit
-                  final depthDisplay = units.formatDepth(point.depth);
-                  return LineTooltipItem(
-                    '$depthDisplay\n$minutes:${seconds.toString().padLeft(2, '0')}',
-                    TextStyle(
+                final point = widget.profile[spot.spotIndex];
+                final minutes = point.timestamp ~/ 60;
+                final seconds = point.timestamp % 60;
+
+                // Build tooltip with all enabled metrics
+                final lines = <TextSpan>[];
+
+                // Time (always shown)
+                lines.add(TextSpan(
+                  text: '$minutes:${seconds.toString().padLeft(2, '0')}\n',
+                  style: TextStyle(
+                    color: colorScheme.onInverseSurface.withValues(alpha: 0.7),
+                    fontSize: 11,
+                  ),
+                ));
+
+                // Depth (always shown) with color marker
+                final depthDisplay = units.formatDepth(point.depth);
+                lines.add(TextSpan(
+                  text: '● ',
+                  style: TextStyle(color: colorScheme.primary, fontSize: 10),
+                ));
+                lines.add(TextSpan(
+                  text: '$depthDisplay\n',
+                  style: TextStyle(
+                    color: colorScheme.onInverseSurface,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ));
+
+                // Temperature (if enabled and available)
+                if (_showTemperature && point.temperature != null) {
+                  final tempDisplay =
+                      units.formatTemperature(point.temperature);
+                  lines.add(TextSpan(
+                    text: '● ',
+                    style: TextStyle(color: colorScheme.tertiary, fontSize: 10),
+                  ));
+                  lines.add(TextSpan(
+                    text: '$tempDisplay\n',
+                    style: TextStyle(
                       color: colorScheme.onInverseSurface,
                       fontWeight: FontWeight.bold,
                     ),
-                  );
-                } else {
-                  // Convert temperature from stored Celsius to user's preferred unit
-                  final tempDisplay = units.formatTemperature(point.temperature);
-                  return LineTooltipItem(
-                    tempDisplay,
-                    TextStyle(
-                      color: colorScheme.tertiary,
+                  ));
+                }
+
+                // Pressure (if enabled and available)
+                if (_showPressure && point.pressure != null) {
+                  lines.add(const TextSpan(
+                    text: '● ',
+                    style: TextStyle(color: Colors.orange, fontSize: 10),
+                  ));
+                  lines.add(TextSpan(
+                    text: '${point.pressure!.toInt()} bar\n',
+                    style: TextStyle(
+                      color: colorScheme.onInverseSurface,
                       fontWeight: FontWeight.bold,
                     ),
-                  );
+                  ));
                 }
+
+                // Heart rate (if enabled and available)
+                if (_showHeartRate && point.heartRate != null) {
+                  lines.add(const TextSpan(
+                    text: '● ',
+                    style: TextStyle(color: Colors.red, fontSize: 10),
+                  ));
+                  lines.add(TextSpan(
+                    text: '${point.heartRate!} bpm\n',
+                    style: TextStyle(
+                      color: colorScheme.onInverseSurface,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ));
+                }
+
+                return LineTooltipItem(
+                  '', // Empty base text, using children instead
+                  TextStyle(color: colorScheme.onInverseSurface),
+                  children: lines,
+                );
               }).toList();
             },
           ),
@@ -488,13 +719,17 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     );
   }
 
-  LineChartBarData _buildDepthLine(ColorScheme colorScheme, UnitFormatter units) {
+  LineChartBarData _buildDepthLine(
+      ColorScheme colorScheme, UnitFormatter units) {
     return LineChartBarData(
       spots: widget.profile
-          .map((p) => FlSpot(
-            p.timestamp.toDouble(),
-            -units.convertDepth(p.depth), // Convert to user's unit and negate for inverted axis
-          ),)
+          .map(
+            (p) => FlSpot(
+              p.timestamp.toDouble(),
+              -units.convertDepth(p
+                  .depth), // Convert to user's unit and negate for inverted axis
+            ),
+          )
           .toList(),
       isCurved: true,
       curveSmoothness: 0.2,
@@ -526,11 +761,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     return LineChartBarData(
       spots: widget.profile
           .where((p) => p.temperature != null)
-          .map((p) => FlSpot(
-                p.timestamp.toDouble(),
-                // Convert temp to user's unit, then map to depth axis
-                -_mapTempToDepth(units.convertTemperature(p.temperature!), chartMaxDepth, minTemp, maxTemp),
-              ),)
+          .map(
+            (p) => FlSpot(
+              p.timestamp.toDouble(),
+              // Convert temp to user's unit, then map to depth axis
+              -_mapTempToDepth(units.convertTemperature(p.temperature!),
+                  chartMaxDepth, minTemp, maxTemp),
+            ),
+          )
           .toList(),
       isCurved: true,
       curveSmoothness: 0.2,
@@ -542,14 +780,77 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     );
   }
 
+  LineChartBarData _buildPressureLine(
+    Color color,
+    double chartMaxDepth,
+    double minPressure,
+    double maxPressure,
+  ) {
+    return LineChartBarData(
+      spots: widget.profile
+          .where((p) => p.pressure != null)
+          .map(
+            (p) => FlSpot(
+              p.timestamp.toDouble(),
+              -_mapValueToDepth(
+                  p.pressure!, chartMaxDepth, minPressure, maxPressure),
+            ),
+          )
+          .toList(),
+      isCurved: true,
+      curveSmoothness: 0.2,
+      color: color,
+      barWidth: 2,
+      isStrokeCapRound: true,
+      dotData: const FlDotData(show: false),
+      dashArray: [8, 4],
+    );
+  }
+
+  LineChartBarData _buildHeartRateLine(
+    Color color,
+    double chartMaxDepth,
+    double minHR,
+    double maxHR,
+  ) {
+    return LineChartBarData(
+      spots: widget.profile
+          .where((p) => p.heartRate != null)
+          .map(
+            (p) => FlSpot(
+              p.timestamp.toDouble(),
+              -_mapValueToDepth(
+                  p.heartRate!.toDouble(), chartMaxDepth, minHR, maxHR),
+            ),
+          )
+          .toList(),
+      isCurved: true,
+      curveSmoothness: 0.2,
+      color: color,
+      barWidth: 2,
+      isStrokeCapRound: true,
+      dotData: const FlDotData(show: false),
+      dashArray: [3, 2],
+    );
+  }
+
   // Map temperature value to depth axis for overlay
-  double _mapTempToDepth(double temp, double maxDepth, double minTemp, double maxTemp) {
+  double _mapTempToDepth(
+      double temp, double maxDepth, double minTemp, double maxTemp) {
     final normalized = (temp - minTemp) / (maxTemp - minTemp);
     return maxDepth * (1 - normalized); // Higher temp maps to shallower depth
   }
 
+  // Generic value to depth axis mapping
+  double _mapValueToDepth(
+      double value, double maxDepth, double minValue, double maxValue) {
+    final normalized = (value - minValue) / (maxValue - minValue);
+    return maxDepth * (1 - normalized);
+  }
+
   // Map depth axis value back to temperature for right axis labels
-  double _mapDepthToTemp(double depthAxisValue, double maxDepth, double minTemp, double maxTemp) {
+  double _mapDepthToTemp(
+      double depthAxisValue, double maxDepth, double minTemp, double maxTemp) {
     final normalized = 1 - (depthAxisValue / maxDepth);
     return minTemp + (normalized * (maxTemp - minTemp));
   }
@@ -608,7 +909,8 @@ class DiveProfileMiniChart extends StatelessWidget {
           lineBarsData: [
             LineChartBarData(
               spots: profile
-                  .map((p) => FlSpot(p.timestamp.toDouble(), -p.depth)) // Negate for inverted axis
+                  .map((p) => FlSpot(p.timestamp.toDouble(),
+                      -p.depth)) // Negate for inverted axis
                   .toList(),
               isCurved: true,
               curveSmoothness: 0.3,
