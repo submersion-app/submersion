@@ -122,12 +122,12 @@ class DiveDetailPage extends ConsumerWidget {
           children: [
             _buildHeaderSection(context, ref, dive, units),
             const SizedBox(height: 24),
-            if (dive.site?.location != null) ...[
-              _buildLocationMapSection(context, dive),
-              const SizedBox(height: 24),
-            ],
             if (dive.profile.isNotEmpty) ...[
               _buildProfileSection(context, dive),
+              const SizedBox(height: 24),
+            ],
+            if (dive.site?.location != null) ...[
+              _buildLocationMapSection(context, dive),
               const SizedBox(height: 24),
             ],
             _buildDetailsSection(context, dive, units),
