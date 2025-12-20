@@ -272,29 +272,6 @@ class DiveTypeRepository {
   }
 
   // ============================================================================
-  // Cleanup / Migration
-  // ============================================================================
-
-  /// Delete orphaned custom dive types (custom types with no diver ID)
-  /// These are invalid because custom types should always be associated with a diver
-  Future<int> deleteOrphanedCustomDiveTypes() async {
-    try {
-      _log.info('Cleaning up orphaned custom dive types (custom types with null diverId)');
-
-      // Delete custom types (isBuiltIn = false) that have no diverId
-      final result = await (_db.delete(_db.diveTypes)
-            ..where((t) => t.isBuiltIn.equals(false) & t.diverId.isNull()))
-          .go();
-
-      _log.info('Deleted $result orphaned custom dive types');
-      return result;
-    } catch (e, stackTrace) {
-      _log.error('Failed to delete orphaned custom dive types', e, stackTrace);
-      rethrow;
-    }
-  }
-
-  // ============================================================================
   // Helpers
   // ============================================================================
 
