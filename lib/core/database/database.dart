@@ -96,6 +96,17 @@ class Dives extends Table {
   TextColumn get weightType => text().nullable()();
   // Favorite flag (v1.1)
   BoolColumn get isFavorite => boolean().withDefault(const Constant(false))();
+  // Dive mode for CCR/SCR (v1.5)
+  TextColumn get diveMode =>
+      text().withDefault(const Constant('oc'))(); // oc, ccr, scr
+  // O2 toxicity tracking (v1.5)
+  RealColumn get cnsStart =>
+      real().withDefault(const Constant(0))(); // CNS% at dive start
+  RealColumn get cnsEnd => real().nullable()(); // CNS% at dive end
+  RealColumn get otu => real().nullable()(); // OTU accumulated this dive
+  // Primary computer used for this dive
+  TextColumn get computerId =>
+      text().nullable().references(DiveComputers, #id)();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -108,11 +119,19 @@ class DiveProfiles extends Table {
   TextColumn get id => text()();
   TextColumn get diveId =>
       text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  TextColumn get computerId =>
+      text().nullable().references(DiveComputers, #id)();
+  BoolColumn get isPrimary =>
+      boolean().withDefault(const Constant(true))(); // Primary profile for stats
   IntColumn get timestamp => integer()(); // seconds from dive start
   RealColumn get depth => real()();
   RealColumn get pressure => real().nullable()(); // bar
   RealColumn get temperature => real().nullable()();
   IntColumn get heartRate => integer().nullable()();
+  // Computed decompression data (optional, can be calculated on-the-fly)
+  RealColumn get ascentRate => real().nullable()(); // m/min
+  RealColumn get ceiling => real().nullable()(); // deco ceiling in meters
+  IntColumn get ndl => integer().nullable()(); // no-deco limit in seconds
 
   @override
   Set<Column> get primaryKey => {id};
@@ -436,6 +455,63 @@ class DiveTags extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Dive computers (devices that record dive data)
+class DiveComputers extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()(); // User-friendly name e.g., "My Perdix"
+  TextColumn get manufacturer => text().nullable()(); // e.g., "Shearwater"
+  TextColumn get model => text().nullable()(); // e.g., "Perdix AI"
+  TextColumn get serialNumber => text().nullable()();
+  TextColumn get connectionType =>
+      text().nullable()(); // "bluetooth", "usb", "ble"
+  TextColumn get bluetoothAddress => text().nullable()(); // MAC address
+  IntColumn get lastDownloadTimestamp =>
+      integer().nullable()(); // Unix timestamp
+  IntColumn get diveCount => integer().withDefault(const Constant(0))();
+  BoolColumn get isFavorite => boolean().withDefault(const Constant(false))();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Profile events (markers on dive profile)
+class DiveProfileEvents extends Table {
+  TextColumn get id => text()();
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  IntColumn get timestamp => integer()(); // seconds from dive start
+  TextColumn get eventType => text()(); // See ProfileEventType enum
+  TextColumn get severity =>
+      text().withDefault(const Constant('info'))(); // info, warning, alert
+  TextColumn get description => text().nullable()();
+  RealColumn get depth => real().nullable()(); // depth at event (meters)
+  RealColumn get value =>
+      real().nullable()(); // event-specific value (e.g., ascent rate)
+  TextColumn get tankId => text().nullable()(); // for gas switch events
+  IntColumn get createdAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Gas switches during a dive
+class GasSwitches extends Table {
+  TextColumn get id => text()();
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  IntColumn get timestamp => integer()(); // seconds from dive start
+  TextColumn get tankId =>
+      text().references(DiveTanks, #id, onDelete: KeyAction.cascade)();
+  RealColumn get depth => real().nullable()(); // depth at switch (meters)
+  IntColumn get createdAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 // ============================================================================
 // Database Class
 // ============================================================================
@@ -465,13 +541,16 @@ class DiveTags extends Table {
     Tags,
     DiveTags,
     DiveTypes,
+    DiveComputers,
+    DiveProfileEvents,
+    GasSwitches,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 14;
+  int get schemaVersion => 15;
 
   @override
   MigrationStrategy get migration {
@@ -917,6 +996,114 @@ class AppDatabase extends _$AppDatabase {
           await customStatement(
             "UPDATE certifications SET diver_id = '$meDiverId'",
           );
+        }
+        if (from < 15) {
+          // Migration v14 -> v15: Add dive profile & telemetry features
+          // - Dive computers table for multi-computer support
+          // - Profile events table for markers (safety stops, gas switches, etc.)
+          // - Gas switches table for tracking active gas changes
+          // - New columns on dive_profiles (computer_id, is_primary, ascent_rate, ceiling, ndl)
+          // - New columns on dives (dive_mode, cns_start, cns_end, otu, computer_id)
+
+          // Create dive_computers table
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS dive_computers (
+              id TEXT NOT NULL PRIMARY KEY,
+              name TEXT NOT NULL,
+              manufacturer TEXT,
+              model TEXT,
+              serial_number TEXT,
+              connection_type TEXT,
+              bluetooth_address TEXT,
+              last_download_timestamp INTEGER,
+              dive_count INTEGER NOT NULL DEFAULT 0,
+              is_favorite INTEGER NOT NULL DEFAULT 0,
+              notes TEXT NOT NULL DEFAULT '',
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL
+            )
+          ''');
+
+          // Create dive_profile_events table
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS dive_profile_events (
+              id TEXT NOT NULL PRIMARY KEY,
+              dive_id TEXT NOT NULL REFERENCES dives(id) ON DELETE CASCADE,
+              timestamp INTEGER NOT NULL,
+              event_type TEXT NOT NULL,
+              severity TEXT NOT NULL DEFAULT 'info',
+              description TEXT,
+              depth REAL,
+              value REAL,
+              tank_id TEXT,
+              created_at INTEGER NOT NULL
+            )
+          ''');
+
+          // Create gas_switches table
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS gas_switches (
+              id TEXT NOT NULL PRIMARY KEY,
+              dive_id TEXT NOT NULL REFERENCES dives(id) ON DELETE CASCADE,
+              timestamp INTEGER NOT NULL,
+              tank_id TEXT NOT NULL REFERENCES dive_tanks(id) ON DELETE CASCADE,
+              depth REAL,
+              created_at INTEGER NOT NULL
+            )
+          ''');
+
+          // Create indexes for faster lookups
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dive_profile_events_dive_id ON dive_profile_events(dive_id)
+          ''');
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dive_profile_events_timestamp ON dive_profile_events(timestamp)
+          ''');
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_gas_switches_dive_id ON gas_switches(dive_id)
+          ''');
+
+          // Add new columns to dive_profiles table
+          await customStatement(
+            'ALTER TABLE dive_profiles ADD COLUMN computer_id TEXT REFERENCES dive_computers(id)',
+          );
+          await customStatement(
+            'ALTER TABLE dive_profiles ADD COLUMN is_primary INTEGER NOT NULL DEFAULT 1',
+          );
+          await customStatement(
+            'ALTER TABLE dive_profiles ADD COLUMN ascent_rate REAL',
+          );
+          await customStatement(
+            'ALTER TABLE dive_profiles ADD COLUMN ceiling REAL',
+          );
+          await customStatement(
+            'ALTER TABLE dive_profiles ADD COLUMN ndl INTEGER',
+          );
+
+          // Add new columns to dives table
+          await customStatement(
+            "ALTER TABLE dives ADD COLUMN dive_mode TEXT NOT NULL DEFAULT 'oc'",
+          );
+          await customStatement(
+            'ALTER TABLE dives ADD COLUMN cns_start REAL NOT NULL DEFAULT 0',
+          );
+          await customStatement(
+            'ALTER TABLE dives ADD COLUMN cns_end REAL',
+          );
+          await customStatement(
+            'ALTER TABLE dives ADD COLUMN otu REAL',
+          );
+          await customStatement(
+            'ALTER TABLE dives ADD COLUMN computer_id TEXT REFERENCES dive_computers(id)',
+          );
+
+          // Create index for computer lookups
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dives_computer_id ON dives(computer_id)
+          ''');
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dive_profiles_computer_id ON dive_profiles(computer_id)
+          ''');
         }
       },
       beforeOpen: (details) async {
