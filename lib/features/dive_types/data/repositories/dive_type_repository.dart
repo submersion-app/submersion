@@ -16,7 +16,8 @@ class DiveTypeRepository {
   // ============================================================================
 
   /// Get all dive types, ordered by sort order then name
-  /// Returns built-in types (diverId = null) plus custom types for the specified diver
+  /// Returns built-in types plus custom types for the specified diver
+  /// If no diverId is provided, returns only built-in types
   Future<List<domain.DiveTypeEntity>> getAllDiveTypes({String? diverId}) async {
     try {
       final query = _db.select(_db.diveTypes)
@@ -25,9 +26,17 @@ class DiveTypeRepository {
           (t) => OrderingTerm.asc(t.name),
         ]);
 
-      // Show built-in types (diverId is null) plus current diver's custom types
+      // Show built-in types plus current diver's custom types
+      // Built-in types: isBuiltIn = true
+      // Custom types: isBuiltIn = false AND diverId = currentDiverId
       if (diverId != null) {
-        query.where((t) => t.diverId.isNull() | t.diverId.equals(diverId));
+        query.where(
+          (t) => t.isBuiltIn.equals(true) |
+              (t.isBuiltIn.equals(false) & t.diverId.equals(diverId)),
+        );
+      } else {
+        // No diver specified - only show built-in types
+        query.where((t) => t.isBuiltIn.equals(true));
       }
 
       final rows = await query.get();
@@ -56,20 +65,20 @@ class DiveTypeRepository {
   }
 
   /// Get only custom (user-defined) dive types for the specified diver
+  /// Returns empty list if no diverId is provided (custom types require a diver)
   Future<List<domain.DiveTypeEntity>> getCustomDiveTypes({String? diverId}) async {
     try {
+      // Custom types require a diver - return empty list if no diver specified
+      if (diverId == null) {
+        return [];
+      }
+
       final query = _db.select(_db.diveTypes)
+        ..where((t) => t.isBuiltIn.equals(false) & t.diverId.equals(diverId))
         ..orderBy([
           (t) => OrderingTerm.asc(t.sortOrder),
           (t) => OrderingTerm.asc(t.name),
         ]);
-
-      // Filter by non-built-in types for the specified diver
-      if (diverId != null) {
-        query.where((t) => t.isBuiltIn.equals(false) & t.diverId.equals(diverId));
-      } else {
-        query.where((t) => t.isBuiltIn.equals(false));
-      }
 
       final rows = await query.get();
       return rows.map(_mapRowToDiveType).toList();
@@ -105,9 +114,18 @@ class DiveTypeRepository {
   }
 
   /// Create a new custom dive type
+  /// Custom dive types require a diverId to be associated with a diver profile
   Future<domain.DiveTypeEntity> createDiveType(domain.DiveTypeEntity diveType) async {
     try {
-      _log.info('Creating dive type: ${diveType.name}');
+      // Custom dive types must have a diver ID
+      if (diveType.diverId == null) {
+        throw Exception(
+          'Cannot create custom dive type without a diver ID. '
+          'Custom dive types must be associated with a diver profile.',
+        );
+      }
+
+      _log.info('Creating dive type: ${diveType.name} for diver: ${diveType.diverId}');
 
       // Generate slug from name if id is empty
       final id = diveType.id.isEmpty
@@ -123,17 +141,20 @@ class DiveTypeRepository {
       // Get the next sort order
       final maxSortOrder = await _getMaxSortOrder();
 
-      await _db.into(_db.diveTypes).insert(DiveTypesCompanion(
-        id: Value(uniqueId),
-        diverId: Value(diveType.diverId),
-        name: Value(diveType.name),
-        isBuiltIn: const Value(false), // Custom types are never built-in
-        sortOrder: Value(diveType.sortOrder > 0 ? diveType.sortOrder : maxSortOrder + 1),
-        createdAt: Value(now),
-        updatedAt: Value(now),
-      ),);
+      await _db.into(_db.diveTypes).insert(
+        DiveTypesCompanion(
+          id: Value(uniqueId),
+          diverId: Value(diveType.diverId),
+          name: Value(diveType.name),
+          isBuiltIn: const Value(false), // Custom types are never built-in
+          sortOrder:
+              Value(diveType.sortOrder > 0 ? diveType.sortOrder : maxSortOrder + 1),
+          createdAt: Value(now),
+          updatedAt: Value(now),
+        ),
+      );
 
-      _log.info('Created dive type with id: $uniqueId');
+      _log.info('Created dive type with id: $uniqueId for diver: ${diveType.diverId}');
       return diveType.copyWith(
         id: uniqueId,
         sortOrder: diveType.sortOrder > 0 ? diveType.sortOrder : maxSortOrder + 1,
@@ -193,17 +214,20 @@ class DiveTypeRepository {
   // ============================================================================
 
   /// Get dive type usage statistics for the specified diver
-  /// Shows built-in types (diverId is null) plus custom types for the diver
+  /// Shows built-in types plus custom types for the diver
+  /// If no diverId is provided, shows only built-in types
   Future<List<DiveTypeStatistic>> getDiveTypeStatistics({String? diverId}) async {
     try {
       final String whereClause;
       final List<Variable> variables;
 
       if (diverId != null) {
-        whereClause = 'WHERE dt.diver_id IS NULL OR dt.diver_id = ?';
+        // Built-in types OR (custom types for this diver)
+        whereClause = 'WHERE dt.is_built_in = 1 OR (dt.is_built_in = 0 AND dt.diver_id = ?)';
         variables = [Variable.withString(diverId)];
       } else {
-        whereClause = '';
+        // No diver specified - only show built-in types
+        whereClause = 'WHERE dt.is_built_in = 1';
         variables = [];
       }
 
@@ -243,6 +267,29 @@ class DiveTypeRepository {
       return (result.data['count'] as int) > 0;
     } catch (e, stackTrace) {
       _log.error('Failed to check if dive type is in use: $id', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  // ============================================================================
+  // Cleanup / Migration
+  // ============================================================================
+
+  /// Delete orphaned custom dive types (custom types with no diver ID)
+  /// These are invalid because custom types should always be associated with a diver
+  Future<int> deleteOrphanedCustomDiveTypes() async {
+    try {
+      _log.info('Cleaning up orphaned custom dive types (custom types with null diverId)');
+
+      // Delete custom types (isBuiltIn = false) that have no diverId
+      final result = await (_db.delete(_db.diveTypes)
+            ..where((t) => t.isBuiltIn.equals(false) & t.diverId.isNull()))
+          .go();
+
+      _log.info('Deleted $result orphaned custom dive types');
+      return result;
+    } catch (e, stackTrace) {
+      _log.error('Failed to delete orphaned custom dive types', e, stackTrace);
       rethrow;
     }
   }
