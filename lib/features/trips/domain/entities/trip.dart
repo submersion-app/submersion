@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 /// Dive trip entity - represents a group of dives at a destination
 class Trip extends Equatable {
   final String id;
+  final String? diverId;
   final String name;
   final DateTime startDate;
   final DateTime endDate;
@@ -15,6 +16,7 @@ class Trip extends Equatable {
 
   const Trip({
     required this.id,
+    this.diverId,
     required this.name,
     required this.startDate,
     required this.endDate,
@@ -52,6 +54,7 @@ class Trip extends Equatable {
 
   Trip copyWith({
     String? id,
+    String? diverId,
     String? name,
     DateTime? startDate,
     DateTime? endDate,
@@ -64,6 +67,7 @@ class Trip extends Equatable {
   }) {
     return Trip(
       id: id ?? this.id,
+      diverId: diverId ?? this.diverId,
       name: name ?? this.name,
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
@@ -79,6 +83,7 @@ class Trip extends Equatable {
   @override
   List<Object?> get props => [
         id,
+        diverId,
         name,
         startDate,
         endDate,

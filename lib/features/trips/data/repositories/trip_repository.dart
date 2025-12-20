@@ -12,10 +12,14 @@ class TripRepository {
   final _log = LoggerService.forClass(TripRepository);
 
   /// Get all trips ordered by start date (most recent first)
-  Future<List<domain.Trip>> getAllTrips() async {
+  Future<List<domain.Trip>> getAllTrips({String? diverId}) async {
     try {
       final query = _db.select(_db.trips)
         ..orderBy([(t) => OrderingTerm.desc(t.startDate)]);
+
+      if (diverId != null) {
+        query.where((t) => t.diverId.equals(diverId));
+      }
 
       final rows = await query.get();
       return rows.map(_mapRowToTrip).toList();
@@ -39,26 +43,31 @@ class TripRepository {
   }
 
   /// Search trips by name or location
-  Future<List<domain.Trip>> searchTrips(String query) async {
+  Future<List<domain.Trip>> searchTrips(String query, {String? diverId}) async {
     final searchTerm = '%${query.toLowerCase()}%';
+    final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+    final variables = [
+      Variable.withString(searchTerm),
+      Variable.withString(searchTerm),
+      Variable.withString(searchTerm),
+      Variable.withString(searchTerm),
+      if (diverId != null) Variable.withString(diverId),
+    ];
 
     final results = await _db.customSelect('''
       SELECT * FROM trips
-      WHERE LOWER(name) LIKE ?
+      WHERE (LOWER(name) LIKE ?
          OR LOWER(location) LIKE ?
          OR LOWER(resort_name) LIKE ?
-         OR LOWER(liveaboard_name) LIKE ?
+         OR LOWER(liveaboard_name) LIKE ?)
+      $diverFilter
       ORDER BY start_date DESC
-    ''', variables: [
-      Variable.withString(searchTerm),
-      Variable.withString(searchTerm),
-      Variable.withString(searchTerm),
-      Variable.withString(searchTerm),
-    ],).get();
+    ''', variables: variables).get();
 
     return results.map((row) {
       return domain.Trip(
         id: row.data['id'] as String,
+        diverId: row.data['diver_id'] as String?,
         name: row.data['name'] as String,
         startDate:
             DateTime.fromMillisecondsSinceEpoch(row.data['start_date'] as int),
@@ -85,6 +94,7 @@ class TripRepository {
 
       await _db.into(_db.trips).insert(TripsCompanion(
             id: Value(id),
+            diverId: Value(trip.diverId),
             name: Value(trip.name),
             startDate: Value(trip.startDate.millisecondsSinceEpoch),
             endDate: Value(trip.endDate.millisecondsSinceEpoch),
@@ -231,23 +241,28 @@ class TripRepository {
   }
 
   /// Find trip that contains a specific date
-  Future<domain.Trip?> findTripForDate(DateTime date) async {
+  Future<domain.Trip?> findTripForDate(DateTime date, {String? diverId}) async {
     final dateMs = date.millisecondsSinceEpoch;
+    final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+    final variables = [
+      Variable.withInt(dateMs),
+      Variable.withInt(dateMs),
+      if (diverId != null) Variable.withString(diverId),
+    ];
 
     final result = await _db.customSelect('''
       SELECT * FROM trips
       WHERE start_date <= ? AND end_date >= ?
+      $diverFilter
       ORDER BY start_date DESC
       LIMIT 1
-    ''', variables: [
-      Variable.withInt(dateMs),
-      Variable.withInt(dateMs),
-    ],).getSingleOrNull();
+    ''', variables: variables).getSingleOrNull();
 
     if (result == null) return null;
 
     return domain.Trip(
       id: result.data['id'] as String,
+      diverId: result.data['diver_id'] as String?,
       name: result.data['name'] as String,
       startDate:
           DateTime.fromMillisecondsSinceEpoch(result.data['start_date'] as int),
@@ -265,7 +280,10 @@ class TripRepository {
   }
 
   /// Get all trips with their statistics
-  Future<List<domain.TripWithStats>> getAllTripsWithStats() async {
+  Future<List<domain.TripWithStats>> getAllTripsWithStats({String? diverId}) async {
+    final diverFilter = diverId != null ? 'WHERE t.diver_id = ?' : '';
+    final variables = diverId != null ? [Variable.withString(diverId)] : <Variable<Object>>[];
+
     final rows = await _db.customSelect('''
       SELECT
         t.*,
@@ -275,13 +293,15 @@ class TripRepository {
         AVG(d.avg_depth) AS avg_depth
       FROM trips t
       LEFT JOIN dives d ON d.trip_id = t.id
+      $diverFilter
       GROUP BY t.id
       ORDER BY t.start_date DESC
-    ''').get();
+    ''', variables: variables).get();
 
     return rows.map((row) {
       final trip = domain.Trip(
         id: row.data['id'] as String,
+        diverId: row.data['diver_id'] as String?,
         name: row.data['name'] as String,
         startDate: DateTime.fromMillisecondsSinceEpoch(row.data['start_date'] as int),
         endDate: DateTime.fromMillisecondsSinceEpoch(row.data['end_date'] as int),
@@ -305,6 +325,7 @@ class TripRepository {
   domain.Trip _mapRowToTrip(Trip row) {
     return domain.Trip(
       id: row.id,
+      diverId: row.diverId,
       name: row.name,
       startDate: DateTime.fromMillisecondsSinceEpoch(row.startDate),
       endDate: DateTime.fromMillisecondsSinceEpoch(row.endDate),

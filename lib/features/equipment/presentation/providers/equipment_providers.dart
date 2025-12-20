@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/enums.dart';
+import '../../../divers/presentation/providers/diver_providers.dart';
 import '../../data/repositories/equipment_repository_impl.dart';
 import '../../data/repositories/service_record_repository.dart';
 import '../../domain/entities/equipment_item.dart';
@@ -14,20 +15,23 @@ final equipmentRepositoryProvider = Provider<EquipmentRepository>((ref) {
 /// Active equipment provider
 final activeEquipmentProvider = FutureProvider<List<EquipmentItem>>((ref) async {
   final repository = ref.watch(equipmentRepositoryProvider);
-  return repository.getActiveEquipment();
+  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  return repository.getActiveEquipment(diverId: validatedDiverId);
 });
 
 /// Retired equipment provider
 final retiredEquipmentProvider = FutureProvider<List<EquipmentItem>>((ref) async {
   final repository = ref.watch(equipmentRepositoryProvider);
-  return repository.getRetiredEquipment();
+  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  return repository.getRetiredEquipment(diverId: validatedDiverId);
 });
 
 /// Equipment by status provider
 final equipmentByStatusProvider = FutureProvider.family<List<EquipmentItem>, EquipmentStatus?>((ref, status) async {
   final repository = ref.watch(equipmentRepositoryProvider);
+  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
   if (status == null) {
-    return repository.getAllEquipment();
+    return repository.getAllEquipment(diverId: validatedDiverId);
   }
   return repository.getEquipmentByStatus(status);
 });
@@ -35,7 +39,8 @@ final equipmentByStatusProvider = FutureProvider.family<List<EquipmentItem>, Equ
 /// All equipment provider
 final allEquipmentProvider = FutureProvider<List<EquipmentItem>>((ref) async {
   final repository = ref.watch(equipmentRepositoryProvider);
-  return repository.getAllEquipment();
+  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  return repository.getAllEquipment(diverId: validatedDiverId);
 });
 
 /// Single equipment item provider
@@ -63,15 +68,29 @@ final equipmentSearchProvider = FutureProvider.family<List<EquipmentItem>, Strin
 class EquipmentListNotifier extends StateNotifier<AsyncValue<List<EquipmentItem>>> {
   final EquipmentRepository _repository;
   final Ref _ref;
+  String? _validatedDiverId;
 
   EquipmentListNotifier(this._repository, this._ref) : super(const AsyncValue.loading()) {
-    _loadEquipment();
+    _initializeAndLoad();
+
+    // Listen for diver changes and reload
+    _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
+      if (previous != next) {
+        _initializeAndLoad();
+      }
+    });
+  }
+
+  Future<void> _initializeAndLoad() async {
+    final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
+    _validatedDiverId = validatedId;
+    await _loadEquipment();
   }
 
   Future<void> _loadEquipment() async {
     state = const AsyncValue.loading();
     try {
-      final equipment = await _repository.getActiveEquipment();
+      final equipment = await _repository.getActiveEquipment(diverId: _validatedDiverId);
       state = AsyncValue.data(equipment);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -85,7 +104,14 @@ class EquipmentListNotifier extends StateNotifier<AsyncValue<List<EquipmentItem>
   }
 
   Future<EquipmentItem> addEquipment(EquipmentItem equipment) async {
-    final newEquipment = await _repository.createEquipment(equipment);
+    // Get fresh validated diver ID before creating
+    final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
+
+    // Ensure diverId is set on new equipment
+    final equipmentWithDiver = equipment.diverId == null && validatedId != null
+        ? equipment.copyWith(diverId: validatedId)
+        : equipment;
+    final newEquipment = await _repository.createEquipment(equipmentWithDiver);
     await refresh();
     return newEquipment;
   }

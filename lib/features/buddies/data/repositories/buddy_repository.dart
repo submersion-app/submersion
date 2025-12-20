@@ -13,10 +13,14 @@ class BuddyRepository {
   final _log = LoggerService.forClass(BuddyRepository);
 
   /// Get all buddies ordered by name
-  Future<List<domain.Buddy>> getAllBuddies() async {
+  Future<List<domain.Buddy>> getAllBuddies({String? diverId}) async {
     try {
       final query = _db.select(_db.buddies)
         ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+
+      if (diverId != null) {
+        query.where((t) => t.diverId.equals(diverId));
+      }
 
       final rows = await query.get();
       return rows.map(_mapRowToBuddy).toList();
@@ -40,24 +44,29 @@ class BuddyRepository {
   }
 
   /// Search buddies by name, email, or phone
-  Future<List<domain.Buddy>> searchBuddies(String query) async {
+  Future<List<domain.Buddy>> searchBuddies(String query, {String? diverId}) async {
     final searchTerm = '%${query.toLowerCase()}%';
+    final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+    final variables = [
+      Variable.withString(searchTerm),
+      Variable.withString(searchTerm),
+      Variable.withString(searchTerm),
+      if (diverId != null) Variable.withString(diverId),
+    ];
 
     final results = await _db.customSelect('''
       SELECT * FROM buddies
-      WHERE LOWER(name) LIKE ?
+      WHERE (LOWER(name) LIKE ?
          OR LOWER(email) LIKE ?
-         OR phone LIKE ?
+         OR phone LIKE ?)
+      $diverFilter
       ORDER BY name ASC
-    ''', variables: [
-      Variable.withString(searchTerm),
-      Variable.withString(searchTerm),
-      Variable.withString(searchTerm),
-    ],).get();
+    ''', variables: variables).get();
 
     return results.map((row) {
       return domain.Buddy(
         id: row.data['id'] as String,
+        diverId: row.data['diver_id'] as String?,
         name: row.data['name'] as String,
         email: row.data['email'] as String?,
         phone: row.data['phone'] as String?,
@@ -84,6 +93,7 @@ class BuddyRepository {
 
       await _db.into(_db.buddies).insert(BuddiesCompanion(
             id: Value(id),
+            diverId: Value(buddy.diverId),
             name: Value(buddy.name),
             email: Value(buddy.email),
             phone: Value(buddy.phone),
@@ -364,6 +374,7 @@ class BuddyRepository {
   domain.Buddy _mapRowToBuddy(Buddy row) {
     return domain.Buddy(
       id: row.id,
+      diverId: row.diverId,
       name: row.name,
       email: row.email,
       phone: row.phone,

@@ -12,10 +12,14 @@ class SiteRepository {
   final _log = LoggerService.forClass(SiteRepository);
 
   /// Get all sites ordered by name
-  Future<List<domain.DiveSite>> getAllSites() async {
+  Future<List<domain.DiveSite>> getAllSites({String? diverId}) async {
     try {
       final query = _db.select(_db.diveSites)
         ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+
+      if (diverId != null) {
+        query.where((t) => t.diverId.equals(diverId));
+      }
 
       final rows = await query.get();
       return rows.map(_mapRowToSite).toList();
@@ -48,6 +52,7 @@ class SiteRepository {
 
       await _db.into(_db.diveSites).insert(DiveSitesCompanion(
         id: Value(id),
+        diverId: Value(site.diverId),
         name: Value(site.name),
         description: Value(site.description),
         latitude: Value(site.location?.latitude),
@@ -178,6 +183,7 @@ class SiteRepository {
   domain.DiveSite _mapRowToSite(DiveSite row) {
     return domain.DiveSite(
       id: row.id,
+      diverId: row.diverId,
       name: row.name,
       description: row.description,
       location: row.latitude != null && row.longitude != null

@@ -319,13 +319,13 @@ class _MockTripRepository implements TripRepository {
   Future<Trip?> getTripById(String id) async => null;
 
   @override
-  Future<List<Trip>> getAllTrips() async => [];
+  Future<List<Trip>> getAllTrips({String? diverId}) async => [];
 
   @override
-  Future<List<Trip>> searchTrips(String query) async => [];
+  Future<List<Trip>> searchTrips(String query, {String? diverId}) async => [];
 
   @override
-  Future<List<TripWithStats>> getAllTripsWithStats() async => [];
+  Future<List<TripWithStats>> getAllTripsWithStats({String? diverId}) async => [];
 
   @override
   Future<TripWithStats> getTripWithStats(String tripId) async {
@@ -342,7 +342,7 @@ class _MockTripRepository implements TripRepository {
   Future<void> removeDiveFromTrip(String diveId) async {}
 
   @override
-  Future<Trip?> findTripForDate(DateTime date) async => null;
+  Future<Trip?> findTripForDate(DateTime date, {String? diverId}) async => null;
 
   @override
   Future<int> getDiveCountForTrip(String tripId) async => 0;
@@ -373,13 +373,13 @@ class _MockTripRepositoryWithTrip implements TripRepository {
   }
 
   @override
-  Future<List<Trip>> getAllTrips() async => [];
+  Future<List<Trip>> getAllTrips({String? diverId}) async => [];
 
   @override
-  Future<List<Trip>> searchTrips(String query) async => [];
+  Future<List<Trip>> searchTrips(String query, {String? diverId}) async => [];
 
   @override
-  Future<List<TripWithStats>> getAllTripsWithStats() async => [];
+  Future<List<TripWithStats>> getAllTripsWithStats({String? diverId}) async => [];
 
   @override
   Future<TripWithStats> getTripWithStats(String tripId) async {
@@ -396,7 +396,7 @@ class _MockTripRepositoryWithTrip implements TripRepository {
   Future<void> removeDiveFromTrip(String diveId) async {}
 
   @override
-  Future<Trip?> findTripForDate(DateTime date) async => null;
+  Future<Trip?> findTripForDate(DateTime date, {String? diverId}) async => null;
 
   @override
   Future<int> getDiveCountForTrip(String tripId) async => 0;

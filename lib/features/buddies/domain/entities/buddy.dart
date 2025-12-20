@@ -5,6 +5,7 @@ import '../../../../core/constants/enums.dart';
 /// Dive buddy entity
 class Buddy extends Equatable {
   final String id;
+  final String? diverId;
   final String name;
   final String? email;
   final String? phone;
@@ -17,6 +18,7 @@ class Buddy extends Equatable {
 
   const Buddy({
     required this.id,
+    this.diverId,
     required this.name,
     this.email,
     this.phone,
@@ -54,6 +56,7 @@ class Buddy extends Equatable {
 
   Buddy copyWith({
     String? id,
+    String? diverId,
     String? name,
     String? email,
     String? phone,
@@ -66,6 +69,7 @@ class Buddy extends Equatable {
   }) {
     return Buddy(
       id: id ?? this.id,
+      diverId: diverId ?? this.diverId,
       name: name ?? this.name,
       email: email ?? this.email,
       phone: phone ?? this.phone,
@@ -81,6 +85,7 @@ class Buddy extends Equatable {
   @override
   List<Object?> get props => [
         id,
+        diverId,
         name,
         email,
         phone,

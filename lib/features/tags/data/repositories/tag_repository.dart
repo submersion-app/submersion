@@ -16,9 +16,14 @@ class TagRepository {
   // ============================================================================
 
   /// Get all tags, ordered by name
-  Future<List<domain.Tag>> getAllTags() async {
+  Future<List<domain.Tag>> getAllTags({String? diverId}) async {
     try {
       final query = _db.select(_db.tags)..orderBy([(t) => OrderingTerm.asc(t.name)]);
+
+      if (diverId != null) {
+        query.where((t) => t.diverId.equals(diverId));
+      }
+
       final rows = await query.get();
       return rows.map(_mapRowToTag).toList();
     } catch (e, stackTrace) {
@@ -40,10 +45,15 @@ class TagRepository {
   }
 
   /// Get a tag by name (case-insensitive)
-  Future<domain.Tag?> getTagByName(String name) async {
+  Future<domain.Tag?> getTagByName(String name, {String? diverId}) async {
     try {
       final query = _db.select(_db.tags)
         ..where((t) => t.name.lower().equals(name.toLowerCase()));
+
+      if (diverId != null) {
+        query.where((t) => t.diverId.equals(diverId));
+      }
+
       final row = await query.getSingleOrNull();
       return row != null ? _mapRowToTag(row) : null;
     } catch (e, stackTrace) {
@@ -61,6 +71,7 @@ class TagRepository {
 
       await _db.into(_db.tags).insert(TagsCompanion(
         id: Value(id),
+        diverId: Value(tag.diverId),
         name: Value(tag.name),
         color: Value(tag.colorHex),
         createdAt: Value(now),
@@ -76,10 +87,10 @@ class TagRepository {
   }
 
   /// Create a tag or get existing if name already exists
-  Future<domain.Tag> getOrCreateTag(String name, {String? colorHex}) async {
+  Future<domain.Tag> getOrCreateTag(String name, {String? colorHex, String? diverId}) async {
     try {
-      // Check if tag with this name exists
-      final existing = await getTagByName(name);
+      // Check if tag with this name exists for this diver
+      final existing = await getTagByName(name, diverId: diverId);
       if (existing != null) {
         return existing;
       }
@@ -88,6 +99,7 @@ class TagRepository {
       final now = DateTime.now();
       return createTag(domain.Tag(
         id: _uuid.v4(),
+        diverId: diverId,
         name: name.trim(),
         colorHex: colorHex,
         createdAt: now,
@@ -312,19 +324,24 @@ class TagRepository {
   // ============================================================================
 
   /// Get tag statistics (usage counts)
-  Future<List<TagStatistic>> getTagStatistics() async {
+  Future<List<TagStatistic>> getTagStatistics({String? diverId}) async {
     try {
+      final diverFilter = diverId != null ? 'WHERE t.diver_id = ?' : '';
+      final variables = diverId != null ? [Variable.withString(diverId)] : <Variable<Object>>[];
+
       final result = await _db.customSelect('''
         SELECT t.*, COUNT(dt.dive_id) as dive_count
         FROM tags t
         LEFT JOIN dive_tags dt ON t.id = dt.tag_id
+        $diverFilter
         GROUP BY t.id
         ORDER BY dive_count DESC, t.name
-      ''').get();
+      ''', variables: variables).get();
 
       return result.map((row) => TagStatistic(
         tag: domain.Tag(
           id: row.data['id'] as String,
+          diverId: row.data['diver_id'] as String?,
           name: row.data['name'] as String,
           colorHex: row.data['color'] as String?,
           createdAt: DateTime.fromMillisecondsSinceEpoch(row.data['created_at'] as int),
@@ -339,13 +356,17 @@ class TagRepository {
   }
 
   /// Search tags by name (for autocomplete)
-  Future<List<domain.Tag>> searchTags(String query) async {
+  Future<List<domain.Tag>> searchTags(String query, {String? diverId}) async {
     try {
-      if (query.isEmpty) return getAllTags();
+      if (query.isEmpty) return getAllTags(diverId: diverId);
 
       final searchQuery = _db.select(_db.tags)
         ..where((t) => t.name.lower().contains(query.toLowerCase()))
         ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+
+      if (diverId != null) {
+        searchQuery.where((t) => t.diverId.equals(diverId));
+      }
 
       final rows = await searchQuery.get();
       return rows.map(_mapRowToTag).toList();
@@ -362,6 +383,7 @@ class TagRepository {
   domain.Tag _mapRowToTag(Tag row) {
     return domain.Tag(
       id: row.id,
+      diverId: row.diverId,
       name: row.name,
       colorHex: row.color,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),

@@ -13,11 +13,15 @@ class EquipmentRepository {
   final _log = LoggerService.forClass(EquipmentRepository);
 
   /// Get all active equipment
-  Future<List<EquipmentItem>> getActiveEquipment() async {
+  Future<List<EquipmentItem>> getActiveEquipment({String? diverId}) async {
     try {
       final query = _db.select(_db.equipment)
         ..where((t) => t.isActive.equals(true))
         ..orderBy([(t) => OrderingTerm.asc(t.type), (t) => OrderingTerm.asc(t.name)]);
+
+      if (diverId != null) {
+        query.where((t) => t.diverId.equals(diverId));
+      }
 
       final rows = await query.get();
       return rows.map(_mapRowToEquipment).toList();
@@ -28,11 +32,15 @@ class EquipmentRepository {
   }
 
   /// Get all retired equipment
-  Future<List<EquipmentItem>> getRetiredEquipment() async {
+  Future<List<EquipmentItem>> getRetiredEquipment({String? diverId}) async {
     try {
       final query = _db.select(_db.equipment)
         ..where((t) => t.isActive.equals(false))
         ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+
+      if (diverId != null) {
+        query.where((t) => t.diverId.equals(diverId));
+      }
 
       final rows = await query.get();
       return rows.map(_mapRowToEquipment).toList();
@@ -43,10 +51,14 @@ class EquipmentRepository {
   }
 
   /// Get all equipment
-  Future<List<EquipmentItem>> getAllEquipment() async {
+  Future<List<EquipmentItem>> getAllEquipment({String? diverId}) async {
     try {
       final query = _db.select(_db.equipment)
         ..orderBy([(t) => OrderingTerm.asc(t.type), (t) => OrderingTerm.asc(t.name)]);
+
+      if (diverId != null) {
+        query.where((t) => t.diverId.equals(diverId));
+      }
 
       final rows = await query.get();
       return rows.map(_mapRowToEquipment).toList();
@@ -110,6 +122,7 @@ class EquipmentRepository {
 
       await _db.into(_db.equipment).insert(EquipmentCompanion(
       id: Value(id),
+      diverId: Value(equipment.diverId),
       name: Value(equipment.name),
       type: Value(equipment.type.name),
       brand: Value(equipment.brand),
@@ -307,6 +320,7 @@ class EquipmentRepository {
   EquipmentItem _mapRowToEquipment(EquipmentData row) {
     return EquipmentItem(
       id: row.id,
+      diverId: row.diverId,
       name: row.name,
       type: EquipmentType.values.firstWhere(
         (t) => t.name == row.type,

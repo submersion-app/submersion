@@ -16,6 +16,12 @@ final allDiversProvider = FutureProvider<List<Diver>>((ref) async {
   return repository.getAllDivers();
 });
 
+/// Check if any diver profiles exist
+final hasAnyDiversProvider = FutureProvider<bool>((ref) async {
+  final divers = await ref.watch(allDiversProvider.future);
+  return divers.isNotEmpty;
+});
+
 /// Single diver provider
 final diverByIdProvider =
     FutureProvider.family<Diver?, String>((ref, id) async {
@@ -70,6 +76,23 @@ final currentDiverProvider = FutureProvider<Diver?>((ref) async {
 
   // Fallback to default diver
   return repository.getDefaultDiver();
+});
+
+/// Validated current diver ID provider
+/// Returns the current diver ID only if it exists in the database,
+/// otherwise returns the default diver ID
+final validatedCurrentDiverIdProvider = FutureProvider<String?>((ref) async {
+  final currentId = ref.watch(currentDiverIdProvider);
+  final repository = ref.watch(diverRepositoryProvider);
+
+  if (currentId != null) {
+    final diver = await repository.getDiverById(currentId);
+    if (diver != null) return currentId;
+  }
+
+  // Fallback to default diver's ID
+  final defaultDiver = await repository.getDefaultDiver();
+  return defaultDiver?.id;
 });
 
 /// Diver list notifier for mutations

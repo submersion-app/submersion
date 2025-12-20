@@ -32,6 +32,7 @@ enum SiteDifficulty {
 /// Dive site/location entity
 class DiveSite extends Equatable {
   final String id;
+  final String? diverId;
   final String name;
   final String description;
   final GeoPoint? location;
@@ -51,6 +52,7 @@ class DiveSite extends Equatable {
 
   const DiveSite({
     required this.id,
+    this.diverId,
     required this.name,
     this.description = '',
     this.location,
@@ -91,6 +93,7 @@ class DiveSite extends Equatable {
 
   DiveSite copyWith({
     String? id,
+    String? diverId,
     String? name,
     String? description,
     GeoPoint? location,
@@ -110,6 +113,7 @@ class DiveSite extends Equatable {
   }) {
     return DiveSite(
       id: id ?? this.id,
+      diverId: diverId ?? this.diverId,
       name: name ?? this.name,
       description: description ?? this.description,
       location: location ?? this.location,
@@ -132,6 +136,7 @@ class DiveSite extends Equatable {
   @override
   List<Object?> get props => [
         id,
+        diverId,
         name,
         description,
         location,

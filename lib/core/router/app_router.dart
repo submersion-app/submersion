@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/buddies/presentation/pages/buddy_list_page.dart';
+import '../../features/divers/presentation/providers/diver_providers.dart';
+import '../../features/onboarding/presentation/pages/welcome_page.dart';
 import '../../features/buddies/presentation/pages/buddy_detail_page.dart';
 import '../../features/buddies/presentation/pages/buddy_edit_page.dart';
 import '../../features/divers/presentation/pages/diver_list_page.dart';
@@ -40,7 +42,29 @@ import '../../shared/widgets/main_scaffold.dart';
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/dives',
+    redirect: (context, state) async {
+      final hasDivers = await ref.read(hasAnyDiversProvider.future);
+      final isOnWelcome = state.matchedLocation == '/welcome';
+
+      // If no divers and not already on welcome, redirect to welcome
+      if (!hasDivers && !isOnWelcome) {
+        return '/welcome';
+      }
+
+      // If has divers and on welcome, redirect to dives
+      if (hasDivers && isOnWelcome) {
+        return '/dives';
+      }
+
+      return null;
+    },
     routes: [
+      // Welcome/Onboarding route (outside ShellRoute - no bottom nav)
+      GoRoute(
+        path: '/welcome',
+        name: 'welcome',
+        builder: (context, state) => const WelcomePage(),
+      ),
       ShellRoute(
         builder: (context, state, child) => MainScaffold(child: child),
         routes: [

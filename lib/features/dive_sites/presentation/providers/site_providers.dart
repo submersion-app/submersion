@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../divers/presentation/providers/diver_providers.dart';
 import '../../data/repositories/site_repository_impl.dart';
 import '../../domain/entities/dive_site.dart' as domain;
 
@@ -11,7 +12,8 @@ final siteRepositoryProvider = Provider<SiteRepository>((ref) {
 /// All sites provider
 final sitesProvider = FutureProvider<List<domain.DiveSite>>((ref) async {
   final repository = ref.watch(siteRepositoryProvider);
-  return repository.getAllSites();
+  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  return repository.getAllSites(diverId: validatedDiverId);
 });
 
 /// Sites with dive counts provider
@@ -45,15 +47,30 @@ final siteDiveCountProvider = FutureProvider.family<int, String>((ref, siteId) a
 /// Site list notifier for mutations
 class SiteListNotifier extends StateNotifier<AsyncValue<List<domain.DiveSite>>> {
   final SiteRepository _repository;
+  final Ref _ref;
+  String? _validatedDiverId;
 
-  SiteListNotifier(this._repository) : super(const AsyncValue.loading()) {
-    _loadSites();
+  SiteListNotifier(this._repository, this._ref) : super(const AsyncValue.loading()) {
+    _initializeAndLoad();
+
+    // Listen for diver changes and reload
+    _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
+      if (previous != next) {
+        _initializeAndLoad();
+      }
+    });
+  }
+
+  Future<void> _initializeAndLoad() async {
+    final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
+    _validatedDiverId = validatedId;
+    await _loadSites();
   }
 
   Future<void> _loadSites() async {
     state = const AsyncValue.loading();
     try {
-      final sites = await _repository.getAllSites();
+      final sites = await _repository.getAllSites(diverId: _validatedDiverId);
       state = AsyncValue.data(sites);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -62,10 +79,19 @@ class SiteListNotifier extends StateNotifier<AsyncValue<List<domain.DiveSite>>> 
 
   Future<void> refresh() async {
     await _loadSites();
+    _ref.invalidate(sitesProvider);
+    _ref.invalidate(sitesWithCountsProvider);
   }
 
   Future<domain.DiveSite> addSite(domain.DiveSite site) async {
-    final newSite = await _repository.createSite(site);
+    // Get fresh validated diver ID before creating
+    final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
+
+    // Ensure diverId is set on new sites
+    final siteWithDiver = site.diverId == null && validatedId != null
+        ? site.copyWith(diverId: validatedId)
+        : site;
+    final newSite = await _repository.createSite(siteWithDiver);
     await _loadSites();
     return newSite;
   }
@@ -84,5 +110,5 @@ class SiteListNotifier extends StateNotifier<AsyncValue<List<domain.DiveSite>>> 
 final siteListNotifierProvider =
     StateNotifierProvider<SiteListNotifier, AsyncValue<List<domain.DiveSite>>>((ref) {
   final repository = ref.watch(siteRepositoryProvider);
-  return SiteListNotifier(repository);
+  return SiteListNotifier(repository, ref);
 });

@@ -12,10 +12,14 @@ class DiveCenterRepository {
   final _log = LoggerService.forClass(DiveCenterRepository);
 
   /// Get all dive centers
-  Future<List<domain.DiveCenter>> getAllDiveCenters() async {
+  Future<List<domain.DiveCenter>> getAllDiveCenters({String? diverId}) async {
     try {
       final query = _db.select(_db.diveCenters)
         ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+
+      if (diverId != null) {
+        query.where((t) => t.diverId.equals(diverId));
+      }
 
       final rows = await query.get();
       return rows.map(_mapRowToDiveCenter).toList();
@@ -87,6 +91,7 @@ class DiveCenterRepository {
 
       await _db.into(_db.diveCenters).insert(DiveCentersCompanion(
             id: Value(id),
+            diverId: Value(center.diverId),
             name: Value(center.name),
             location: Value(center.location),
             latitude: Value(center.latitude),
@@ -177,6 +182,7 @@ class DiveCenterRepository {
   domain.DiveCenter _mapRowToDiveCenter(DiveCenter row) {
     return domain.DiveCenter(
       id: row.id,
+      diverId: row.diverId,
       name: row.name,
       location: row.location,
       latitude: row.latitude,

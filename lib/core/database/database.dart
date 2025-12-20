@@ -38,6 +38,7 @@ class Divers extends Table {
 /// Dive trips (group of dives at a destination)
 class Trips extends Table {
   TextColumn get id => text()();
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
   TextColumn get name => text()();
   IntColumn get startDate => integer()(); // Unix timestamp
   IntColumn get endDate => integer()(); // Unix timestamp
@@ -140,6 +141,7 @@ class DiveProfiles extends Table {
 /// Dive sites/locations
 class DiveSites extends Table {
   TextColumn get id => text()();
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
   TextColumn get name => text()();
   TextColumn get description => text().withDefault(const Constant(''))();
   RealColumn get latitude => real().nullable()();
@@ -195,6 +197,7 @@ class DiveTanks extends Table {
 /// Equipment catalog
 class Equipment extends Table {
   TextColumn get id => text()();
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
   TextColumn get name => text()();
   TextColumn get type => text()(); // regulator, bcd, wetsuit, etc.
   TextColumn get brand => text().nullable()();
@@ -247,6 +250,7 @@ class DiveWeights extends Table {
 /// Equipment sets (named collections of equipment items)
 class EquipmentSets extends Table {
   TextColumn get id => text()();
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
   TextColumn get name => text()();
   TextColumn get description => text().withDefault(const Constant(''))();
   IntColumn get createdAt => integer()();
@@ -312,7 +316,7 @@ class Media extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// Application settings key-value store
+/// Application settings key-value store (legacy - kept for backward compatibility)
 class Settings extends Table {
   TextColumn get key => text()();
   TextColumn get value => text().nullable()();
@@ -322,9 +326,67 @@ class Settings extends Table {
   Set<Column> get primaryKey => {key};
 }
 
+/// Per-diver settings (v16)
+class DiverSettings extends Table {
+  TextColumn get id => text()();
+  TextColumn get diverId => text().references(Divers, #id)();
+  // Unit settings
+  TextColumn get depthUnit =>
+      text().withDefault(const Constant('meters'))();
+  TextColumn get temperatureUnit =>
+      text().withDefault(const Constant('celsius'))();
+  TextColumn get pressureUnit =>
+      text().withDefault(const Constant('bar'))();
+  TextColumn get volumeUnit =>
+      text().withDefault(const Constant('liters'))();
+  TextColumn get weightUnit =>
+      text().withDefault(const Constant('kilograms'))();
+  // Theme
+  TextColumn get themeMode =>
+      text().withDefault(const Constant('system'))();
+  // Defaults
+  TextColumn get defaultDiveType =>
+      text().withDefault(const Constant('recreational'))();
+  RealColumn get defaultTankVolume =>
+      real().withDefault(const Constant(12.0))();
+  IntColumn get defaultStartPressure =>
+      integer().withDefault(const Constant(200))();
+  // Decompression settings
+  IntColumn get gfLow =>
+      integer().withDefault(const Constant(30))();
+  IntColumn get gfHigh =>
+      integer().withDefault(const Constant(70))();
+  RealColumn get ppO2MaxWorking =>
+      real().withDefault(const Constant(1.4))();
+  RealColumn get ppO2MaxDeco =>
+      real().withDefault(const Constant(1.6))();
+  IntColumn get cnsWarningThreshold =>
+      integer().withDefault(const Constant(80))();
+  RealColumn get ascentRateWarning =>
+      real().withDefault(const Constant(9.0))();
+  RealColumn get ascentRateCritical =>
+      real().withDefault(const Constant(12.0))();
+  BoolColumn get showCeilingOnProfile =>
+      boolean().withDefault(const Constant(true))();
+  BoolColumn get showAscentRateColors =>
+      boolean().withDefault(const Constant(true))();
+  BoolColumn get showNdlOnProfile =>
+      boolean().withDefault(const Constant(true))();
+  RealColumn get lastStopDepth =>
+      real().withDefault(const Constant(3.0))();
+  RealColumn get decoStopIncrement =>
+      real().withDefault(const Constant(3.0))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Dive buddies contact list
 class Buddies extends Table {
   TextColumn get id => text()();
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
   TextColumn get name => text()();
   TextColumn get email => text().nullable()();
   TextColumn get phone => text().nullable()();
@@ -397,6 +459,7 @@ class ServiceRecords extends Table {
 /// Dive centers/operators
 class DiveCenters extends Table {
   TextColumn get id => text()();
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
   TextColumn get name => text()();
   TextColumn get location => text().nullable()();
   RealColumn get latitude => real().nullable()();
@@ -419,6 +482,7 @@ class DiveCenters extends Table {
 /// Tags for organizing dives (v1.5)
 class Tags extends Table {
   TextColumn get id => text()();
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
   TextColumn get name => text()();
   TextColumn get color => text().nullable()(); // Hex color code for UI
   IntColumn get createdAt => integer()();
@@ -431,6 +495,8 @@ class Tags extends Table {
 /// Custom dive types (v1.0)
 class DiveTypes extends Table {
   TextColumn get id => text()(); // Unique identifier (slug)
+  TextColumn get diverId =>
+      text().nullable().references(Divers, #id)(); // null for built-in types
   TextColumn get name => text()(); // Display name
   BoolColumn get isBuiltIn =>
       boolean().withDefault(const Constant(false))(); // System vs user-defined
@@ -458,6 +524,7 @@ class DiveTags extends Table {
 /// Dive computers (devices that record dive data)
 class DiveComputers extends Table {
   TextColumn get id => text()();
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
   TextColumn get name => text()(); // User-friendly name e.g., "My Perdix"
   TextColumn get manufacturer => text().nullable()(); // e.g., "Shearwater"
   TextColumn get model => text().nullable()(); // e.g., "Perdix AI"
@@ -519,6 +586,7 @@ class GasSwitches extends Table {
 @DriftDatabase(
   tables: [
     Divers,
+    DiverSettings,
     Trips,
     Dives,
     DiveProfiles,
@@ -550,7 +618,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 15;
+  int get schemaVersion => 16;
 
   @override
   MigrationStrategy get migration {
@@ -1103,6 +1171,138 @@ class AppDatabase extends _$AppDatabase {
           ''');
           await customStatement('''
             CREATE INDEX IF NOT EXISTS idx_dive_profiles_computer_id ON dive_profiles(computer_id)
+          ''');
+        }
+        if (from < 16) {
+          // Migration v15 -> v16: Add diver_id to all entity tables for multi-diver data isolation
+          const meDiverId = 'me-default-diver';
+
+          // 1. Trips
+          await customStatement(
+            'ALTER TABLE trips ADD COLUMN diver_id TEXT REFERENCES divers(id)',
+          );
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_trips_diver_id ON trips(diver_id)
+          ''');
+          await customStatement("UPDATE trips SET diver_id = '$meDiverId'");
+
+          // 2. Equipment
+          await customStatement(
+            'ALTER TABLE equipment ADD COLUMN diver_id TEXT REFERENCES divers(id)',
+          );
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_equipment_diver_id ON equipment(diver_id)
+          ''');
+          await customStatement("UPDATE equipment SET diver_id = '$meDiverId'");
+
+          // 3. Buddies
+          await customStatement(
+            'ALTER TABLE buddies ADD COLUMN diver_id TEXT REFERENCES divers(id)',
+          );
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_buddies_diver_id ON buddies(diver_id)
+          ''');
+          await customStatement("UPDATE buddies SET diver_id = '$meDiverId'");
+
+          // 4. Dive Sites
+          await customStatement(
+            'ALTER TABLE dive_sites ADD COLUMN diver_id TEXT REFERENCES divers(id)',
+          );
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dive_sites_diver_id ON dive_sites(diver_id)
+          ''');
+          await customStatement("UPDATE dive_sites SET diver_id = '$meDiverId'");
+
+          // 5. Dive Centers
+          await customStatement(
+            'ALTER TABLE dive_centers ADD COLUMN diver_id TEXT REFERENCES divers(id)',
+          );
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dive_centers_diver_id ON dive_centers(diver_id)
+          ''');
+          await customStatement("UPDATE dive_centers SET diver_id = '$meDiverId'");
+
+          // 6. Dive Types (only custom types get diver_id, built-in remain null)
+          await customStatement(
+            'ALTER TABLE dive_types ADD COLUMN diver_id TEXT REFERENCES divers(id)',
+          );
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dive_types_diver_id ON dive_types(diver_id)
+          ''');
+          await customStatement(
+            "UPDATE dive_types SET diver_id = '$meDiverId' WHERE is_built_in = 0",
+          );
+
+          // 7. Dive Computers
+          await customStatement(
+            'ALTER TABLE dive_computers ADD COLUMN diver_id TEXT REFERENCES divers(id)',
+          );
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dive_computers_diver_id ON dive_computers(diver_id)
+          ''');
+          await customStatement("UPDATE dive_computers SET diver_id = '$meDiverId'");
+
+          // 8. Equipment Sets
+          await customStatement(
+            'ALTER TABLE equipment_sets ADD COLUMN diver_id TEXT REFERENCES divers(id)',
+          );
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_equipment_sets_diver_id ON equipment_sets(diver_id)
+          ''');
+          await customStatement("UPDATE equipment_sets SET diver_id = '$meDiverId'");
+
+          // 9. Tags
+          await customStatement(
+            'ALTER TABLE tags ADD COLUMN diver_id TEXT REFERENCES divers(id)',
+          );
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_tags_diver_id ON tags(diver_id)
+          ''');
+          await customStatement("UPDATE tags SET diver_id = '$meDiverId'");
+
+          // 10. Create diver_settings table for per-diver preferences
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS diver_settings (
+              id TEXT NOT NULL PRIMARY KEY,
+              diver_id TEXT NOT NULL REFERENCES divers(id),
+              depth_unit TEXT NOT NULL DEFAULT 'meters',
+              temperature_unit TEXT NOT NULL DEFAULT 'celsius',
+              pressure_unit TEXT NOT NULL DEFAULT 'bar',
+              volume_unit TEXT NOT NULL DEFAULT 'liters',
+              weight_unit TEXT NOT NULL DEFAULT 'kilograms',
+              theme_mode TEXT NOT NULL DEFAULT 'system',
+              default_dive_type TEXT NOT NULL DEFAULT 'recreational',
+              default_tank_volume REAL NOT NULL DEFAULT 12.0,
+              default_start_pressure INTEGER NOT NULL DEFAULT 200,
+              gf_low INTEGER NOT NULL DEFAULT 30,
+              gf_high INTEGER NOT NULL DEFAULT 70,
+              pp_o2_max_working REAL NOT NULL DEFAULT 1.4,
+              pp_o2_max_deco REAL NOT NULL DEFAULT 1.6,
+              cns_warning_threshold INTEGER NOT NULL DEFAULT 80,
+              ascent_rate_warning REAL NOT NULL DEFAULT 9.0,
+              ascent_rate_critical REAL NOT NULL DEFAULT 12.0,
+              show_ceiling_on_profile INTEGER NOT NULL DEFAULT 1,
+              show_ascent_rate_colors INTEGER NOT NULL DEFAULT 1,
+              show_ndl_on_profile INTEGER NOT NULL DEFAULT 1,
+              last_stop_depth REAL NOT NULL DEFAULT 3.0,
+              deco_stop_increment REAL NOT NULL DEFAULT 3.0,
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL
+            )
+          ''');
+
+          await customStatement('''
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_diver_settings_diver_id ON diver_settings(diver_id)
+          ''');
+
+          // Create default settings for the "Me" diver
+          final now = DateTime.now().millisecondsSinceEpoch;
+          await customStatement('''
+            INSERT INTO diver_settings (
+              id, diver_id, created_at, updated_at
+            ) VALUES (
+              'settings-$meDiverId', '$meDiverId', $now, $now
+            )
           ''');
         }
       },

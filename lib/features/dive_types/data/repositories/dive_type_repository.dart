@@ -16,13 +16,20 @@ class DiveTypeRepository {
   // ============================================================================
 
   /// Get all dive types, ordered by sort order then name
-  Future<List<domain.DiveTypeEntity>> getAllDiveTypes() async {
+  /// Returns built-in types (diverId = null) plus custom types for the specified diver
+  Future<List<domain.DiveTypeEntity>> getAllDiveTypes({String? diverId}) async {
     try {
       final query = _db.select(_db.diveTypes)
         ..orderBy([
           (t) => OrderingTerm.asc(t.sortOrder),
           (t) => OrderingTerm.asc(t.name),
         ]);
+
+      // Show built-in types (diverId is null) plus current diver's custom types
+      if (diverId != null) {
+        query.where((t) => t.diverId.isNull() | t.diverId.equals(diverId));
+      }
+
       final rows = await query.get();
       return rows.map(_mapRowToDiveType).toList();
     } catch (e, stackTrace) {
@@ -48,15 +55,22 @@ class DiveTypeRepository {
     }
   }
 
-  /// Get only custom (user-defined) dive types
-  Future<List<domain.DiveTypeEntity>> getCustomDiveTypes() async {
+  /// Get only custom (user-defined) dive types for the specified diver
+  Future<List<domain.DiveTypeEntity>> getCustomDiveTypes({String? diverId}) async {
     try {
       final query = _db.select(_db.diveTypes)
-        ..where((t) => t.isBuiltIn.equals(false))
         ..orderBy([
           (t) => OrderingTerm.asc(t.sortOrder),
           (t) => OrderingTerm.asc(t.name),
         ]);
+
+      // Filter by non-built-in types for the specified diver
+      if (diverId != null) {
+        query.where((t) => t.isBuiltIn.equals(false) & t.diverId.equals(diverId));
+      } else {
+        query.where((t) => t.isBuiltIn.equals(false));
+      }
+
       final rows = await query.get();
       return rows.map(_mapRowToDiveType).toList();
     } catch (e, stackTrace) {
@@ -111,6 +125,7 @@ class DiveTypeRepository {
 
       await _db.into(_db.diveTypes).insert(DiveTypesCompanion(
         id: Value(uniqueId),
+        diverId: Value(diveType.diverId),
         name: Value(diveType.name),
         isBuiltIn: const Value(false), // Custom types are never built-in
         sortOrder: Value(diveType.sortOrder > 0 ? diveType.sortOrder : maxSortOrder + 1),
@@ -177,20 +192,34 @@ class DiveTypeRepository {
   // Statistics
   // ============================================================================
 
-  /// Get dive type usage statistics
-  Future<List<DiveTypeStatistic>> getDiveTypeStatistics() async {
+  /// Get dive type usage statistics for the specified diver
+  /// Shows built-in types (diverId is null) plus custom types for the diver
+  Future<List<DiveTypeStatistic>> getDiveTypeStatistics({String? diverId}) async {
     try {
+      final String whereClause;
+      final List<Variable> variables;
+
+      if (diverId != null) {
+        whereClause = 'WHERE dt.diver_id IS NULL OR dt.diver_id = ?';
+        variables = [Variable.withString(diverId)];
+      } else {
+        whereClause = '';
+        variables = [];
+      }
+
       final result = await _db.customSelect('''
         SELECT dt.*, COUNT(d.id) as dive_count
         FROM dive_types dt
         LEFT JOIN dives d ON dt.id = d.dive_type
+        $whereClause
         GROUP BY dt.id
         ORDER BY dt.sort_order, dt.name
-      ''').get();
+      ''', variables: variables).get();
 
       return result.map((row) => DiveTypeStatistic(
         diveType: domain.DiveTypeEntity(
           id: row.data['id'] as String,
+          diverId: row.data['diver_id'] as String?,
           name: row.data['name'] as String,
           isBuiltIn: (row.data['is_built_in'] as int) == 1,
           sortOrder: row.data['sort_order'] as int,
@@ -232,6 +261,7 @@ class DiveTypeRepository {
   domain.DiveTypeEntity _mapRowToDiveType(DiveType row) {
     return domain.DiveTypeEntity(
       id: row.id,
+      diverId: row.diverId,
       name: row.name,
       isBuiltIn: row.isBuiltIn,
       sortOrder: row.sortOrder,

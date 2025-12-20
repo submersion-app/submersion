@@ -7,6 +7,9 @@ class DiveComputer extends Equatable {
   /// Unique identifier
   final String id;
 
+  /// Owner diver ID
+  final String? diverId;
+
   /// User-given name for this computer
   final String name;
 
@@ -45,6 +48,7 @@ class DiveComputer extends Equatable {
 
   const DiveComputer({
     required this.id,
+    this.diverId,
     required this.name,
     this.manufacturer,
     this.model,
@@ -103,12 +107,14 @@ class DiveComputer extends Equatable {
   factory DiveComputer.create({
     required String id,
     required String name,
+    String? diverId,
     String? manufacturer,
     String? model,
   }) {
     final now = DateTime.now();
     return DiveComputer(
       id: id,
+      diverId: diverId,
       name: name,
       manufacturer: manufacturer,
       model: model,
@@ -119,6 +125,7 @@ class DiveComputer extends Equatable {
 
   DiveComputer copyWith({
     String? id,
+    String? diverId,
     String? name,
     String? manufacturer,
     String? model,
@@ -134,6 +141,7 @@ class DiveComputer extends Equatable {
   }) {
     return DiveComputer(
       id: id ?? this.id,
+      diverId: diverId ?? this.diverId,
       name: name ?? this.name,
       manufacturer: manufacturer ?? this.manufacturer,
       model: model ?? this.model,
@@ -152,6 +160,7 @@ class DiveComputer extends Equatable {
   @override
   List<Object?> get props => [
         id,
+        diverId,
         name,
         manufacturer,
         model,
