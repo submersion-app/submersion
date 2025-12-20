@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/enums.dart';
+import '../../../divers/presentation/providers/diver_providers.dart';
 import '../../domain/entities/equipment_set.dart';
 import '../../domain/entities/equipment_item.dart';
 import '../providers/equipment_providers.dart';
@@ -250,8 +251,13 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
     setState(() => _isLoading = true);
 
     try {
+      // Get the current diver ID - preserve existing for edits, get fresh for new sets
+      final diverId = existingSet?.diverId ??
+          await ref.read(validatedCurrentDiverIdProvider.future);
+
       final set = EquipmentSet(
         id: widget.setId ?? '',
+        diverId: diverId,
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim(),
         equipmentIds: _selectedEquipmentIds.toList(),

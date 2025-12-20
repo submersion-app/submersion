@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/enums.dart';
+import '../../../divers/presentation/providers/diver_providers.dart';
 import '../../domain/entities/equipment_item.dart';
 import '../providers/equipment_providers.dart';
 
@@ -469,8 +470,12 @@ class _AddEquipmentSheetState extends ConsumerState<AddEquipmentSheet> {
     setState(() => _isSaving = true);
 
     try {
+      // Get the current diver ID for new equipment
+      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+
       final equipment = EquipmentItem(
         id: '',
+        diverId: diverId,
         name: _nameController.text.trim(),
         type: _selectedType,
         brand: _brandController.text.trim().isEmpty ? null : _brandController.text.trim(),

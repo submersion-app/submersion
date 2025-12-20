@@ -33,7 +33,7 @@ final equipmentByStatusProvider = FutureProvider.family<List<EquipmentItem>, Equ
   if (status == null) {
     return repository.getAllEquipment(diverId: validatedDiverId);
   }
-  return repository.getEquipmentByStatus(status);
+  return repository.getEquipmentByStatus(status, diverId: validatedDiverId);
 });
 
 /// All equipment provider
@@ -52,16 +52,18 @@ final equipmentItemProvider = FutureProvider.family<EquipmentItem?, String>((ref
 /// Equipment with service due provider
 final serviceDueEquipmentProvider = FutureProvider<List<EquipmentItem>>((ref) async {
   final repository = ref.watch(equipmentRepositoryProvider);
-  return repository.getEquipmentWithServiceDue();
+  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  return repository.getEquipmentWithServiceDue(diverId: validatedDiverId);
 });
 
 /// Equipment search provider
 final equipmentSearchProvider = FutureProvider.family<List<EquipmentItem>, String>((ref, query) async {
+  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
   if (query.isEmpty) {
     return ref.watch(allEquipmentProvider).value ?? [];
   }
   final repository = ref.watch(equipmentRepositoryProvider);
-  return repository.searchEquipment(query);
+  return repository.searchEquipment(query, diverId: validatedDiverId);
 });
 
 /// Equipment list notifier for mutations
@@ -76,12 +78,16 @@ class EquipmentListNotifier extends StateNotifier<AsyncValue<List<EquipmentItem>
     // Listen for diver changes and reload
     _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
       if (previous != next) {
+        state = const AsyncValue.loading();
+        _ref.invalidate(validatedCurrentDiverIdProvider);
+        _ref.invalidate(allEquipmentProvider);
         _initializeAndLoad();
       }
     });
   }
 
   Future<void> _initializeAndLoad() async {
+    state = const AsyncValue.loading();
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
     _validatedDiverId = validatedId;
     await _loadEquipment();
@@ -98,17 +104,27 @@ class EquipmentListNotifier extends StateNotifier<AsyncValue<List<EquipmentItem>
   }
 
   Future<void> refresh() async {
+    // Get fresh validated diver ID before loading
+    final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
+    _validatedDiverId = validatedId;
     await _loadEquipment();
+    _ref.invalidate(activeEquipmentProvider);
     _ref.invalidate(retiredEquipmentProvider);
+    _ref.invalidate(allEquipmentProvider);
     _ref.invalidate(serviceDueEquipmentProvider);
+    // Invalidate all status filters
+    for (final status in EquipmentStatus.values) {
+      _ref.invalidate(equipmentByStatusProvider(status));
+    }
+    _ref.invalidate(equipmentByStatusProvider(null));
   }
 
   Future<EquipmentItem> addEquipment(EquipmentItem equipment) async {
     // Get fresh validated diver ID before creating
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
 
-    // Ensure diverId is set on new equipment
-    final equipmentWithDiver = equipment.diverId == null && validatedId != null
+    // Always set diverId to the current validated diver for new items
+    final equipmentWithDiver = validatedId != null
         ? equipment.copyWith(diverId: validatedId)
         : equipment;
     final newEquipment = await _repository.createEquipment(equipmentWithDiver);

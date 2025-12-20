@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/enums.dart';
+import '../../../divers/presentation/providers/diver_providers.dart';
 import '../../data/repositories/certification_repository.dart';
 import '../../domain/entities/certification.dart';
 
@@ -13,7 +14,8 @@ final certificationRepositoryProvider = Provider<CertificationRepository>((ref) 
 final allCertificationsProvider =
     FutureProvider<List<Certification>>((ref) async {
   final repository = ref.watch(certificationRepositoryProvider);
-  return repository.getAllCertifications();
+  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  return repository.getAllCertifications(diverId: validatedDiverId);
 });
 
 /// Single certification provider
@@ -26,25 +28,28 @@ final certificationByIdProvider =
 /// Certification search provider
 final certificationSearchProvider =
     FutureProvider.family<List<Certification>, String>((ref, query) async {
+  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
   if (query.isEmpty) {
     return ref.watch(allCertificationsProvider).value ?? [];
   }
   final repository = ref.watch(certificationRepositoryProvider);
-  return repository.searchCertifications(query);
+  return repository.searchCertifications(query, diverId: validatedDiverId);
 });
 
 /// Expiring certifications provider (within 90 days by default)
 final expiringCertificationsProvider =
     FutureProvider.family<List<Certification>, int>((ref, days) async {
   final repository = ref.watch(certificationRepositoryProvider);
-  return repository.getExpiringCertifications(days);
+  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  return repository.getExpiringCertifications(days, diverId: validatedDiverId);
 });
 
 /// Expired certifications provider
 final expiredCertificationsProvider =
     FutureProvider<List<Certification>>((ref) async {
   final repository = ref.watch(certificationRepositoryProvider);
-  return repository.getExpiredCertifications();
+  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  return repository.getExpiredCertifications(diverId: validatedDiverId);
 });
 
 /// Certifications by agency provider
@@ -59,16 +64,34 @@ class CertificationListNotifier
     extends StateNotifier<AsyncValue<List<Certification>>> {
   final CertificationRepository _repository;
   final Ref _ref;
+  String? _validatedDiverId;
 
   CertificationListNotifier(this._repository, this._ref)
       : super(const AsyncValue.loading()) {
-    _loadCertifications();
+    _initializeAndLoad();
+
+    // Listen for diver changes and reload
+    _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
+      if (previous != next) {
+        state = const AsyncValue.loading();
+        _ref.invalidate(validatedCurrentDiverIdProvider);
+        _ref.invalidate(allCertificationsProvider);
+        _initializeAndLoad();
+      }
+    });
+  }
+
+  Future<void> _initializeAndLoad() async {
+    state = const AsyncValue.loading();
+    final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
+    _validatedDiverId = validatedId;
+    await _loadCertifications();
   }
 
   Future<void> _loadCertifications() async {
     state = const AsyncValue.loading();
     try {
-      final certifications = await _repository.getAllCertifications();
+      final certifications = await _repository.getAllCertifications(diverId: _validatedDiverId);
       state = AsyncValue.data(certifications);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -76,6 +99,9 @@ class CertificationListNotifier
   }
 
   Future<void> refresh() async {
+    // Get fresh validated diver ID before loading
+    final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
+    _validatedDiverId = validatedId;
     await _loadCertifications();
     _ref.invalidate(allCertificationsProvider);
     _ref.invalidate(expiringCertificationsProvider(90));
@@ -83,7 +109,14 @@ class CertificationListNotifier
   }
 
   Future<Certification> addCertification(Certification cert) async {
-    final newCert = await _repository.createCertification(cert);
+    // Get fresh validated diver ID before creating
+    final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
+
+    // Always set diverId to the current validated diver for new items
+    final certWithDiver = validatedId != null
+        ? cert.copyWith(diverId: validatedId)
+        : cert;
+    final newCert = await _repository.createCertification(certWithDiver);
     await refresh();
     return newCert;
   }

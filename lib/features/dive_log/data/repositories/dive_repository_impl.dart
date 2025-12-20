@@ -511,7 +511,7 @@ class DiveRepository {
   }
 
   /// Search dives by notes or buddy name
-  Future<List<domain.Dive>> searchDives(String query) async {
+  Future<List<domain.Dive>> searchDives(String query, {String? diverId}) async {
     try {
       final searchQuery = _db.select(_db.dives)
         ..where(
@@ -521,6 +521,10 @@ class DiveRepository {
               t.diveMaster.contains(query),
         )
         ..orderBy([(t) => OrderingTerm.desc(t.diveDateTime)]);
+
+      if (diverId != null) {
+        searchQuery.where((t) => t.diverId.equals(diverId));
+      }
 
       final rows = await searchQuery.get();
       return Future.wait(rows.map(_mapRowToDive));
@@ -1280,11 +1284,15 @@ class DiveRepository {
   }
 
   /// Get all favorite dives
-  Future<List<domain.Dive>> getFavoriteDives() async {
+  Future<List<domain.Dive>> getFavoriteDives({String? diverId}) async {
     try {
       final query = _db.select(_db.dives)
         ..where((t) => t.isFavorite.equals(true))
         ..orderBy([(t) => OrderingTerm.desc(t.diveDateTime)]);
+
+      if (diverId != null) {
+        query.where((t) => t.diverId.equals(diverId));
+      }
 
       final rows = await query.get();
       return Future.wait(rows.map(_mapRowToDive));
@@ -1391,13 +1399,17 @@ class DiveRepository {
 
   /// Get all dive numbers with gaps detected
   /// Returns a list of DiveNumberInfo including gaps
-  Future<DiveNumberingInfo> getDiveNumberingInfo() async {
+  Future<DiveNumberingInfo> getDiveNumberingInfo({String? diverId}) async {
     try {
       final query = _db.select(_db.dives)
         ..orderBy([
           (t) => OrderingTerm.asc(t.entryTime),
           (t) => OrderingTerm.asc(t.diveDateTime)
         ]);
+
+      if (diverId != null) {
+        query.where((t) => t.diverId.equals(diverId));
+      }
 
       final rows = await query.get();
 

@@ -95,12 +95,16 @@ class DiveComputerNotifier extends StateNotifier<AsyncValue<List<DiveComputer>>>
     // Listen for diver changes and reload
     _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
       if (previous != next) {
+        state = const AsyncValue.loading();
+        _ref.invalidate(validatedCurrentDiverIdProvider);
+        _ref.invalidate(allDiveComputersProvider);
         _initializeAndLoad();
       }
     });
   }
 
   Future<void> _initializeAndLoad() async {
+    state = const AsyncValue.loading();
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
     _validatedDiverId = validatedId;
     await _load();
@@ -126,8 +130,8 @@ class DiveComputerNotifier extends StateNotifier<AsyncValue<List<DiveComputer>>>
     // Get fresh validated diver ID before creating
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
 
-    // Ensure diverId is set on new computers
-    final computerWithDiver = computer.diverId == null && validatedId != null
+    // Always set diverId to the current validated diver for new items
+    final computerWithDiver = validatedId != null
         ? computer.copyWith(diverId: validatedId)
         : computer;
     final created = await _repository.createComputer(computerWithDiver);

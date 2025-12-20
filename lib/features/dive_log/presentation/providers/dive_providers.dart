@@ -165,11 +165,12 @@ final nextDiveNumberProvider = FutureProvider<int>((ref) async {
 
 /// Search results provider
 final diveSearchProvider = FutureProvider.family<List<domain.Dive>, String>((ref, query) async {
+  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
   if (query.isEmpty) {
     return ref.watch(divesProvider).value ?? [];
   }
   final repository = ref.watch(diveRepositoryProvider);
-  return repository.searchDives(query);
+  return repository.searchDives(query, diverId: validatedDiverId);
 });
 
 /// Dive list notifier for mutations
@@ -284,5 +285,6 @@ final surfaceIntervalProvider = FutureProvider.family<Duration?, String>((ref, d
 /// Provider for dive numbering information (gaps and unnumbered dives)
 final diveNumberingInfoProvider = FutureProvider<DiveNumberingInfo>((ref) async {
   final repository = ref.watch(diveRepositoryProvider);
-  return repository.getDiveNumberingInfo();
+  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  return repository.getDiveNumberingInfo(diverId: validatedDiverId);
 });

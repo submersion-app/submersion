@@ -69,11 +69,15 @@ class EquipmentRepository {
   }
 
   /// Get equipment by status
-  Future<List<EquipmentItem>> getEquipmentByStatus(EquipmentStatus status) async {
+  Future<List<EquipmentItem>> getEquipmentByStatus(EquipmentStatus status, {String? diverId}) async {
     try {
       final query = _db.select(_db.equipment)
         ..where((t) => t.status.equals(status.name))
         ..orderBy([(t) => OrderingTerm.asc(t.type), (t) => OrderingTerm.asc(t.name)]);
+
+      if (diverId != null) {
+        query.where((t) => t.diverId.equals(diverId));
+      }
 
       final rows = await query.get();
       return rows.map(_mapRowToEquipment).toList();
@@ -242,29 +246,33 @@ class EquipmentRepository {
   }
 
   /// Get equipment with service due
-  Future<List<EquipmentItem>> getEquipmentWithServiceDue() async {
-    final allEquipment = await getActiveEquipment();
+  Future<List<EquipmentItem>> getEquipmentWithServiceDue({String? diverId}) async {
+    final allEquipment = await getActiveEquipment(diverId: diverId);
     return allEquipment.where((g) => g.isServiceDue).toList();
   }
 
   /// Search equipment by name, brand, model, or serial number
-  Future<List<EquipmentItem>> searchEquipment(String query) async {
+  Future<List<EquipmentItem>> searchEquipment(String query, {String? diverId}) async {
     try {
       final searchTerm = '%${query.toLowerCase()}%';
+      final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+      final variables = [
+        Variable.withString(searchTerm),
+        Variable.withString(searchTerm),
+        Variable.withString(searchTerm),
+        Variable.withString(searchTerm),
+        if (diverId != null) Variable.withString(diverId),
+      ];
 
       final results = await _db.customSelect('''
         SELECT * FROM equipment
-        WHERE LOWER(name) LIKE ?
+        WHERE (LOWER(name) LIKE ?
            OR LOWER(brand) LIKE ?
            OR LOWER(model) LIKE ?
-           OR LOWER(serial_number) LIKE ?
+           OR LOWER(serial_number) LIKE ?)
+        $diverFilter
         ORDER BY is_active DESC, type ASC, name ASC
-      ''', variables: [
-        Variable.withString(searchTerm),
-        Variable.withString(searchTerm),
-        Variable.withString(searchTerm),
-        Variable.withString(searchTerm),
-      ],).get();
+      ''', variables: variables,).get();
 
       return results.map((row) {
         return EquipmentItem(

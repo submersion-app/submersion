@@ -44,39 +44,51 @@ class DiveCenterRepository {
   }
 
   /// Search dive centers by name or location
-  Future<List<domain.DiveCenter>> searchDiveCenters(String query) async {
+  Future<List<domain.DiveCenter>> searchDiveCenters(String query, {String? diverId}) async {
     final searchTerm = '%${query.toLowerCase()}%';
+    final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+    final variables = [
+      Variable.withString(searchTerm),
+      Variable.withString(searchTerm),
+      Variable.withString(searchTerm),
+      if (diverId != null) Variable.withString(diverId),
+    ];
 
     final results = await _db.customSelect('''
       SELECT * FROM dive_centers
-      WHERE LOWER(name) LIKE ?
+      WHERE (LOWER(name) LIKE ?
          OR LOWER(location) LIKE ?
-         OR LOWER(country) LIKE ?
+         OR LOWER(country) LIKE ?)
+      $diverFilter
       ORDER BY name ASC
-    ''', variables: [
-      Variable.withString(searchTerm),
-      Variable.withString(searchTerm),
-      Variable.withString(searchTerm),
-    ],).get();
+    ''', variables: variables,).get();
 
     return results.map(_mapCustomRowToDiveCenter).toList();
   }
 
   /// Get dive centers by country
-  Future<List<domain.DiveCenter>> getDiveCentersByCountry(String country) async {
+  Future<List<domain.DiveCenter>> getDiveCentersByCountry(String country, {String? diverId}) async {
     final query = _db.select(_db.diveCenters)
       ..where((t) => t.country.equals(country))
       ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+
+    if (diverId != null) {
+      query.where((t) => t.diverId.equals(diverId));
+    }
 
     final rows = await query.get();
     return rows.map(_mapRowToDiveCenter).toList();
   }
 
   /// Get dive centers with coordinates (for map view)
-  Future<List<domain.DiveCenter>> getDiveCentersWithCoordinates() async {
+  Future<List<domain.DiveCenter>> getDiveCentersWithCoordinates({String? diverId}) async {
     final query = _db.select(_db.diveCenters)
       ..where((t) => t.latitude.isNotNull() & t.longitude.isNotNull())
       ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+
+    if (diverId != null) {
+      query.where((t) => t.diverId.equals(diverId));
+    }
 
     final rows = await query.get();
     return rows.map(_mapRowToDiveCenter).toList();
@@ -169,12 +181,16 @@ class DiveCenterRepository {
   }
 
   /// Get all unique countries
-  Future<List<String>> getCountries() async {
+  Future<List<String>> getCountries({String? diverId}) async {
+    final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+    final variables = diverId != null ? [Variable.withString(diverId)] : <Variable<Object>>[];
+
     final results = await _db.customSelect('''
       SELECT DISTINCT country FROM dive_centers
       WHERE country IS NOT NULL AND country != ''
+      $diverFilter
       ORDER BY country ASC
-    ''').get();
+    ''', variables: variables,).get();
 
     return results.map((row) => row.data['country'] as String).toList();
   }

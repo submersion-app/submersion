@@ -54,12 +54,17 @@ class TagListNotifier extends StateNotifier<AsyncValue<List<Tag>>> {
     // Listen for diver changes and reload
     _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
       if (previous != next) {
+        state = const AsyncValue.loading();
+        _ref.invalidate(validatedCurrentDiverIdProvider);
+        _ref.invalidate(tagsProvider);
+        _ref.invalidate(tagStatisticsProvider);
         _initializeAndLoad();
       }
     });
   }
 
   Future<void> _initializeAndLoad() async {
+    state = const AsyncValue.loading();
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
     _validatedDiverId = validatedId;
     await _loadTags();
@@ -76,6 +81,9 @@ class TagListNotifier extends StateNotifier<AsyncValue<List<Tag>>> {
   }
 
   Future<void> refresh() async {
+    // Get fresh validated diver ID before loading
+    final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
+    _validatedDiverId = validatedId;
     await _loadTags();
     _ref.invalidate(tagsProvider);
   }
@@ -84,8 +92,8 @@ class TagListNotifier extends StateNotifier<AsyncValue<List<Tag>>> {
     // Get fresh validated diver ID before creating
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
 
-    // Ensure diverId is set on new tags
-    final tagWithDiver = tag.diverId == null && validatedId != null
+    // Always set diverId to the current validated diver for new items
+    final tagWithDiver = validatedId != null
         ? tag.copyWith(diverId: validatedId)
         : tag;
     final newTag = await _repository.createTag(tagWithDiver);

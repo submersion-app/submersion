@@ -5,6 +5,7 @@ import '../../../../core/constants/enums.dart';
 /// Represents a diver certification
 class Certification extends Equatable {
   final String id;
+  final String? diverId;
   final String name;
   final CertificationAgency agency;
   final CertificationLevel? level;
@@ -21,6 +22,7 @@ class Certification extends Equatable {
 
   const Certification({
     required this.id,
+    this.diverId,
     required this.name,
     required this.agency,
     this.level,
@@ -69,6 +71,7 @@ class Certification extends Equatable {
   /// Create a copy with updated fields
   Certification copyWith({
     String? id,
+    String? diverId,
     String? name,
     CertificationAgency? agency,
     CertificationLevel? level,
@@ -85,6 +88,7 @@ class Certification extends Equatable {
   }) {
     return Certification(
       id: id ?? this.id,
+      diverId: diverId ?? this.diverId,
       name: name ?? this.name,
       agency: agency ?? this.agency,
       level: level ?? this.level,
@@ -116,6 +120,7 @@ class Certification extends Equatable {
   @override
   List<Object?> get props => [
         id,
+        diverId,
         name,
         agency,
         level,
