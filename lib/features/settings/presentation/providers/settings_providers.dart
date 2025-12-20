@@ -206,31 +206,41 @@ final diverSettingsRepositoryProvider = Provider<DiverSettingsRepository>((ref) 
   return DiverSettingsRepository();
 });
 
-/// Key to track if SharedPreferences settings have been migrated to database
-const String _settingsMigratedKey = 'settings_migrated_to_db';
-
 /// Settings notifier that persists to database per-diver
 class SettingsNotifier extends StateNotifier<AppSettings> {
   final DiverSettingsRepository _repository;
-  final SharedPreferences _prefs;
   final Ref _ref;
   String? _validatedDiverId;
   bool _isLoading = false;
 
-  SettingsNotifier(this._repository, this._prefs, this._ref) : super(const AppSettings()) {
+  SettingsNotifier(this._repository, this._ref) : super(const AppSettings()) {
     _initializeAndLoad();
 
     // Listen for diver changes and reload settings
     _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
       if (previous != next) {
+        // Reset diver ID immediately to prevent saving to wrong diver during switch
+        _validatedDiverId = null;
+        _isLoading = false; // Allow loading even if previous load was in progress
         _initializeAndLoad();
       }
     });
   }
 
   Future<void> _initializeAndLoad() async {
-    final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
-    _validatedDiverId = validatedId;
+    // Get current diver ID directly (more reliable than going through FutureProvider)
+    final currentId = _ref.read(currentDiverIdProvider);
+
+    String? diverId = currentId;
+
+    // If no current diver ID, try to get default diver
+    if (diverId == null) {
+      final repository = _ref.read(diverRepositoryProvider);
+      final defaultDiver = await repository.getDefaultDiver();
+      diverId = defaultDiver?.id;
+    }
+
+    _validatedDiverId = diverId;
     await _loadSettings();
   }
 
@@ -246,99 +256,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         return;
       }
 
-      // Check if we need to migrate SharedPreferences settings to database
-      final needsMigration = !(_prefs.getBool(_settingsMigratedKey) ?? false);
-
-      if (needsMigration) {
-        // Migrate SharedPreferences settings to database for this diver
-        final migratedSettings = _loadSettingsFromPrefs();
-        await _repository.getOrCreateSettingsForDiver(diverId, defaultSettings: migratedSettings);
-        await _prefs.setBool(_settingsMigratedKey, true);
-        state = migratedSettings;
-      } else {
-        // Load from database
-        final settings = await _repository.getOrCreateSettingsForDiver(diverId);
-        state = settings;
-      }
+      // Load settings from database
+      final settings = await _repository.getOrCreateSettingsForDiver(diverId);
+      state = settings;
     } finally {
       _isLoading = false;
-    }
-  }
-
-  /// Load settings from SharedPreferences (for migration)
-  AppSettings _loadSettingsFromPrefs() {
-    return AppSettings(
-      depthUnit: _loadEnum(
-        SettingsKeys.depthUnit,
-        DepthUnit.values,
-        DepthUnit.meters,
-      ),
-      temperatureUnit: _loadEnum(
-        SettingsKeys.temperatureUnit,
-        TemperatureUnit.values,
-        TemperatureUnit.celsius,
-      ),
-      pressureUnit: _loadEnum(
-        SettingsKeys.pressureUnit,
-        PressureUnit.values,
-        PressureUnit.bar,
-      ),
-      volumeUnit: _loadEnum(
-        SettingsKeys.volumeUnit,
-        VolumeUnit.values,
-        VolumeUnit.liters,
-      ),
-      weightUnit: _loadEnum(
-        SettingsKeys.weightUnit,
-        WeightUnit.values,
-        WeightUnit.kilograms,
-      ),
-      themeMode: _loadThemeMode(),
-      defaultDiveType:
-          _prefs.getString(SettingsKeys.defaultDiveType) ?? 'recreational',
-      defaultTankVolume:
-          _prefs.getDouble(SettingsKeys.defaultTankVolume) ?? 12.0,
-      defaultStartPressure:
-          _prefs.getInt(SettingsKeys.defaultStartPressure) ?? 200,
-      gfLow: _prefs.getInt(SettingsKeys.gfLow) ?? 30,
-      gfHigh: _prefs.getInt(SettingsKeys.gfHigh) ?? 70,
-      ppO2MaxWorking: _prefs.getDouble(SettingsKeys.ppO2MaxWorking) ?? 1.4,
-      ppO2MaxDeco: _prefs.getDouble(SettingsKeys.ppO2MaxDeco) ?? 1.6,
-      cnsWarningThreshold:
-          _prefs.getInt(SettingsKeys.cnsWarningThreshold) ?? 80,
-      ascentRateWarning:
-          _prefs.getDouble(SettingsKeys.ascentRateWarning) ?? 9.0,
-      ascentRateCritical:
-          _prefs.getDouble(SettingsKeys.ascentRateCritical) ?? 12.0,
-      showCeilingOnProfile:
-          _prefs.getBool(SettingsKeys.showCeilingOnProfile) ?? true,
-      showAscentRateColors:
-          _prefs.getBool(SettingsKeys.showAscentRateColors) ?? true,
-      showNdlOnProfile: _prefs.getBool(SettingsKeys.showNdlOnProfile) ?? true,
-      lastStopDepth: _prefs.getDouble(SettingsKeys.lastStopDepth) ?? 3.0,
-      decoStopIncrement:
-          _prefs.getDouble(SettingsKeys.decoStopIncrement) ?? 3.0,
-    );
-  }
-
-  T _loadEnum<T extends Enum>(String key, List<T> values, T defaultValue) {
-    final stored = _prefs.getString(key);
-    if (stored == null) return defaultValue;
-    return values.firstWhere(
-      (e) => e.name == stored,
-      orElse: () => defaultValue,
-    );
-  }
-
-  ThemeMode _loadThemeMode() {
-    final stored = _prefs.getString(SettingsKeys.themeMode);
-    switch (stored) {
-      case 'light':
-        return ThemeMode.light;
-      case 'dark':
-        return ThemeMode.dark;
-      default:
-        return ThemeMode.system;
     }
   }
 
@@ -500,8 +422,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 /// Settings provider
 final settingsProvider = StateNotifierProvider<SettingsNotifier, AppSettings>((ref) {
   final repository = ref.watch(diverSettingsRepositoryProvider);
-  final prefs = ref.watch(sharedPreferencesProvider);
-  return SettingsNotifier(repository, prefs, ref);
+  return SettingsNotifier(repository, ref);
 });
 
 /// Convenience providers for individual settings
