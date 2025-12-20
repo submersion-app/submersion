@@ -75,12 +75,20 @@ class _DiverDetailContent extends ConsumerWidget {
               if (value == 'delete') {
                 final confirmed = await _showDeleteConfirmation(context);
                 if (confirmed && context.mounted) {
-                  await ref.read(diverListNotifierProvider.notifier).deleteDiver(diver.id);
-                  if (context.mounted) {
-                    context.pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Diver deleted')),
-                    );
+                  try {
+                    await ref.read(diverListNotifierProvider.notifier).deleteDiver(diver.id);
+                    if (context.mounted) {
+                      context.pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Diver deleted')),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Failed to delete: $e')),
+                      );
+                    }
                   }
                 }
               } else if (value == 'set_default') {

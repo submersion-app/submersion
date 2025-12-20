@@ -135,7 +135,59 @@ class DiverRepository {
   Future<void> deleteDiver(String id) async {
     try {
       _log.info('Deleting diver: $id');
-      // Note: Related dives will have diverId set to null (no cascade)
+
+      // First, set diverId to null in all related tables to avoid FK constraint
+      await _db.customStatement(
+        'UPDATE dives SET diver_id = NULL WHERE diver_id = ?',
+        [id],
+      );
+      await _db.customStatement(
+        'UPDATE trips SET diver_id = NULL WHERE diver_id = ?',
+        [id],
+      );
+      await _db.customStatement(
+        'UPDATE dive_sites SET diver_id = NULL WHERE diver_id = ?',
+        [id],
+      );
+      await _db.customStatement(
+        'UPDATE equipment SET diver_id = NULL WHERE diver_id = ?',
+        [id],
+      );
+      await _db.customStatement(
+        'UPDATE equipment_sets SET diver_id = NULL WHERE diver_id = ?',
+        [id],
+      );
+      await _db.customStatement(
+        'UPDATE buddies SET diver_id = NULL WHERE diver_id = ?',
+        [id],
+      );
+      await _db.customStatement(
+        'UPDATE certifications SET diver_id = NULL WHERE diver_id = ?',
+        [id],
+      );
+      await _db.customStatement(
+        'UPDATE dive_centers SET diver_id = NULL WHERE diver_id = ?',
+        [id],
+      );
+      await _db.customStatement(
+        'UPDATE tags SET diver_id = NULL WHERE diver_id = ?',
+        [id],
+      );
+      await _db.customStatement(
+        'UPDATE dive_types SET diver_id = NULL WHERE diver_id = ?',
+        [id],
+      );
+      await _db.customStatement(
+        'UPDATE dive_computers SET diver_id = NULL WHERE diver_id = ?',
+        [id],
+      );
+
+      // Delete diver settings (not nullable, so delete instead of nullify)
+      await (_db.delete(_db.diverSettings)
+            ..where((t) => t.diverId.equals(id)))
+          .go();
+
+      // Now delete the diver
       await (_db.delete(_db.divers)..where((t) => t.id.equals(id))).go();
       _log.info('Deleted diver: $id');
     } catch (e, stackTrace) {
