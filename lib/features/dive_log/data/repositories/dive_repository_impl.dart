@@ -12,6 +12,7 @@ import '../../../dive_sites/domain/entities/dive_site.dart' as domain;
 import '../../../equipment/domain/entities/equipment_item.dart';
 import '../../../tags/domain/entities/tag.dart' as domain;
 import '../../../tags/data/repositories/tag_repository.dart';
+import '../../../trips/domain/entities/trip.dart' as domain;
 
 class DiveRepository {
   final AppDatabase _db = DatabaseService.instance.database;
@@ -76,6 +77,17 @@ class DiveRepository {
           : <DiveCenter>[];
       final centersById = {for (final c in allCenters) c.id: c};
 
+      // Load all trips for these dives in one query
+      final tripIds = rows
+          .where((r) => r.tripId != null)
+          .map((r) => r.tripId!)
+          .toSet()
+          .toList();
+      final allTrips = tripIds.isNotEmpty
+          ? await (_db.select(_db.trips)..where((t) => t.id.isIn(tripIds))).get()
+          : <Trip>[];
+      final tripsById = {for (final t in allTrips) t.id: t};
+
       // Load all equipment for these dives in one query
       final allDiveEquipment = await (_db.select(_db.diveEquipment).join([
         innerJoin(_db.equipment,
@@ -134,6 +146,7 @@ class DiveRepository {
               center: row.diveCenterId != null
                   ? centersById[row.diveCenterId]
                   : null,
+              trip: row.tripId != null ? tripsById[row.tripId] : null,
               tags: tagsByDive[row.id] ?? [],
             ),
           )
@@ -811,6 +824,7 @@ class DiveRepository {
     required List<EquipmentItem> equipment,
     DiveSite? site,
     DiveCenter? center,
+    Trip? trip,
     List<domain.Tag> tags = const [],
   }) {
     // Map site if exists
@@ -857,6 +871,23 @@ class DiveRepository {
       );
     }
 
+    // Map trip if exists
+    domain.Trip? domainTrip;
+    if (trip != null) {
+      domainTrip = domain.Trip(
+        id: trip.id,
+        name: trip.name,
+        startDate: DateTime.fromMillisecondsSinceEpoch(trip.startDate),
+        endDate: DateTime.fromMillisecondsSinceEpoch(trip.endDate),
+        location: trip.location,
+        resortName: trip.resortName,
+        liveaboardName: trip.liveaboardName,
+        notes: trip.notes,
+        createdAt: DateTime.fromMillisecondsSinceEpoch(trip.createdAt),
+        updatedAt: DateTime.fromMillisecondsSinceEpoch(trip.updatedAt),
+      );
+    }
+
     return domain.Dive(
       id: row.id,
       diverId: row.diverId,
@@ -886,6 +917,8 @@ class DiveRepository {
       notes: row.notes,
       site: domainSite,
       diveCenter: domainCenter,
+      trip: domainTrip,
+      tripId: row.tripId,
       rating: row.rating,
       currentDirection: row.currentDirection != null
           ? CurrentDirection.values.firstWhere(
@@ -1067,6 +1100,28 @@ class DiveRepository {
       }
     }
 
+    // Get trip if exists
+    domain.Trip? trip;
+    if (row.tripId != null) {
+      final tripQuery = _db.select(_db.trips)
+        ..where((t) => t.id.equals(row.tripId!));
+      final tripRow = await tripQuery.getSingleOrNull();
+      if (tripRow != null) {
+        trip = domain.Trip(
+          id: tripRow.id,
+          name: tripRow.name,
+          startDate: DateTime.fromMillisecondsSinceEpoch(tripRow.startDate),
+          endDate: DateTime.fromMillisecondsSinceEpoch(tripRow.endDate),
+          location: tripRow.location,
+          resortName: tripRow.resortName,
+          liveaboardName: tripRow.liveaboardName,
+          notes: tripRow.notes,
+          createdAt: DateTime.fromMillisecondsSinceEpoch(tripRow.createdAt),
+          updatedAt: DateTime.fromMillisecondsSinceEpoch(tripRow.updatedAt),
+        );
+      }
+    }
+
     // Get tags for this dive
     final tags = await _tagRepository.getTagsForDive(row.id);
 
@@ -1099,6 +1154,8 @@ class DiveRepository {
       notes: row.notes,
       site: site,
       diveCenter: diveCenter,
+      trip: trip,
+      tripId: row.tripId,
       rating: row.rating,
       // Conditions fields
       currentDirection: row.currentDirection != null

@@ -12,15 +12,21 @@ import '../../../../core/services/database_service.dart';
 import '../../../../core/services/export_service.dart';
 import '../../../dive_log/domain/entities/dive.dart';
 import '../../../dive_log/presentation/providers/dive_providers.dart';
+import '../../../dive_log/presentation/providers/dive_computer_providers.dart';
 import '../../../dive_sites/domain/entities/dive_site.dart';
 import '../../../dive_sites/presentation/providers/site_providers.dart';
 import '../../../equipment/presentation/providers/equipment_providers.dart';
+import '../../../equipment/presentation/providers/equipment_set_providers.dart';
 import '../../../buddies/presentation/providers/buddy_providers.dart';
 import '../../../buddies/domain/entities/buddy.dart';
 import '../../../certifications/presentation/providers/certification_providers.dart';
+import '../../../tags/domain/entities/tag.dart';
 import '../../../dive_centers/presentation/providers/dive_center_providers.dart';
 import '../../../divers/presentation/providers/diver_providers.dart';
 import '../../../marine_life/presentation/providers/species_providers.dart';
+import '../../../trips/presentation/providers/trip_providers.dart';
+import '../../../tags/presentation/providers/tag_providers.dart';
+import '../../../dive_types/presentation/providers/dive_type_providers.dart';
 
 /// Export service provider
 final exportServiceProvider = Provider<ExportService>((ref) {
@@ -139,13 +145,27 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final diveCenters = await _ref.read(allDiveCentersProvider.future);
       final species = await _ref.read(allSpeciesProvider.future);
 
-      // Fetch dive buddies for each dive
+      // Collect new comprehensive data
+      final currentDiver = await _ref.read(currentDiverProvider.future);
+      final trips = await _ref.read(allTripsProvider.future);
+      final tags = await _ref.read(tagsProvider.future);
+      final customDiveTypes = await _ref.read(diveTypesProvider.future);
+      final diveComputers = await _ref.read(allDiveComputersProvider.future);
+      final equipmentSets = await _ref.read(equipmentSetsProvider.future);
+
+      // Fetch dive buddies and tags for each dive
       final buddyRepository = _ref.read(buddyRepositoryProvider);
+      final tagRepository = _ref.read(tagRepositoryProvider);
       final Map<String, List<BuddyWithRole>> diveBuddies = {};
+      final Map<String, List<Tag>> diveTags = {};
       for (final dive in dives) {
         final buddiesForDive = await buddyRepository.getBuddiesForDive(dive.id);
         if (buddiesForDive.isNotEmpty) {
           diveBuddies[dive.id] = buddiesForDive;
+        }
+        final tagsForDive = await tagRepository.getTagsForDive(dive.id);
+        if (tagsForDive.isNotEmpty) {
+          diveTags[dive.id] = tagsForDive;
         }
       }
 
@@ -159,6 +179,13 @@ class ExportNotifier extends StateNotifier<ExportState> {
         diveCenters: diveCenters,
         species: species,
         diveBuddies: diveBuddies,
+        owner: currentDiver,
+        trips: trips,
+        tags: tags,
+        diveTags: diveTags,
+        customDiveTypes: customDiveTypes,
+        diveComputers: diveComputers,
+        equipmentSets: equipmentSets,
       );
       state = state.copyWith(status: ExportStatus.success, message: 'UDDF file generated successfully', filePath: path);
     } catch (e) {

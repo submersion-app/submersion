@@ -17,6 +17,13 @@ import '../../features/marine_life/domain/entities/species.dart';
 import '../../features/buddies/domain/entities/buddy.dart';
 import '../../features/certifications/domain/entities/certification.dart';
 import '../../features/dive_centers/domain/entities/dive_center.dart';
+import '../../features/dive_log/domain/entities/dive_computer.dart';
+import '../../features/dive_log/domain/entities/dive_weight.dart';
+import '../../features/dive_log/domain/entities/profile_event.dart';
+import '../../features/dive_types/domain/entities/dive_type_entity.dart';
+import '../../features/divers/domain/entities/diver.dart';
+import '../../features/equipment/domain/entities/equipment_set.dart';
+import '../../features/tags/domain/entities/tag.dart';
 import '../../features/trips/domain/entities/trip.dart';
 
 /// Result class for comprehensive UDDF import
@@ -31,6 +38,13 @@ class UddfImportResult {
   final List<Map<String, dynamic>> sightings;
   final List<Map<String, dynamic>> serviceRecords;
   final Map<String, String> settings;
+  // New fields for comprehensive export/import
+  final Map<String, dynamic>? owner; // Current diver profile
+  final List<Map<String, dynamic>> trips;
+  final List<Map<String, dynamic>> tags;
+  final List<Map<String, dynamic>> customDiveTypes;
+  final List<Map<String, dynamic>> diveComputers;
+  final List<Map<String, dynamic>> equipmentSets;
 
   const UddfImportResult({
     this.dives = const [],
@@ -43,6 +57,12 @@ class UddfImportResult {
     this.sightings = const [],
     this.serviceRecords = const [],
     this.settings = const {},
+    this.owner,
+    this.trips = const [],
+    this.tags = const [],
+    this.customDiveTypes = const [],
+    this.diveComputers = const [],
+    this.equipmentSets = const [],
   });
 
   /// Check if any data was imported
@@ -55,7 +75,13 @@ class UddfImportResult {
       diveCenters.isEmpty &&
       species.isEmpty &&
       serviceRecords.isEmpty &&
-      settings.isEmpty;
+      settings.isEmpty &&
+      owner == null &&
+      trips.isEmpty &&
+      tags.isEmpty &&
+      customDiveTypes.isEmpty &&
+      diveComputers.isEmpty &&
+      equipmentSets.isEmpty;
 
   /// Get total count of all items
   int get totalItems =>
@@ -67,17 +93,29 @@ class UddfImportResult {
       diveCenters.length +
       species.length +
       serviceRecords.length +
-      settings.length;
+      settings.length +
+      (owner != null ? 1 : 0) +
+      trips.length +
+      tags.length +
+      customDiveTypes.length +
+      diveComputers.length +
+      equipmentSets.length;
 
   /// Summary string for display
   String get summary {
     final parts = <String>[];
+    if (owner != null) parts.add('1 diver profile');
     if (dives.isNotEmpty) parts.add('${dives.length} dives');
     if (sites.isNotEmpty) parts.add('${sites.length} sites');
+    if (trips.isNotEmpty) parts.add('${trips.length} trips');
     if (equipment.isNotEmpty) parts.add('${equipment.length} equipment');
+    if (equipmentSets.isNotEmpty) parts.add('${equipmentSets.length} equipment sets');
     if (buddies.isNotEmpty) parts.add('${buddies.length} buddies');
     if (certifications.isNotEmpty) parts.add('${certifications.length} certifications');
     if (diveCenters.isNotEmpty) parts.add('${diveCenters.length} dive centers');
+    if (diveComputers.isNotEmpty) parts.add('${diveComputers.length} dive computers');
+    if (tags.isNotEmpty) parts.add('${tags.length} tags');
+    if (customDiveTypes.isNotEmpty) parts.add('${customDiveTypes.length} custom dive types');
     if (species.isNotEmpty) parts.add('${species.length} species');
     if (serviceRecords.isNotEmpty) parts.add('${serviceRecords.length} service records');
     if (settings.isNotEmpty) parts.add('${settings.length} settings');
@@ -926,7 +964,8 @@ class ExportService {
   // ==================== COMPREHENSIVE UDDF EXPORT ====================
 
   /// Export ALL application data to UDDF format
-  /// This includes: dives, sites, equipment, buddies, certifications, dive centers, species, service records, settings
+  /// This includes: dives, sites, equipment, buddies, certifications, dive centers,
+  /// species, service records, settings, trips, tags, dive types, dive computers, equipment sets
   Future<String> exportAllDataToUddf({
     required List<Dive> dives,
     List<DiveSite>? sites,
@@ -939,6 +978,16 @@ class ExportService {
     Map<String, String>? settings,
     /// Map of dive ID to list of buddies with roles for that dive
     Map<String, List<BuddyWithRole>>? diveBuddies,
+    // New parameters for comprehensive export
+    Diver? owner,
+    List<Trip>? trips,
+    List<Tag>? tags,
+    Map<String, List<Tag>>? diveTags,
+    List<DiveTypeEntity>? customDiveTypes,
+    List<DiveComputer>? diveComputers,
+    Map<String, List<ProfileEvent>>? diveProfileEvents,
+    Map<String, List<DiveWeight>>? diveWeights,
+    List<EquipmentSet>? equipmentSets,
   }) async {
     final builder = XmlBuilder();
 
@@ -957,39 +1006,62 @@ class ExportService {
         },);
       },);
 
-      // Diver section with full buddy records
-      if (buddies != null && buddies.isNotEmpty) {
+      // Diver section with owner and buddy records (UDDF standard)
+      if (owner != null || (buddies != null && buddies.isNotEmpty)) {
         builder.element('diver', nest: () {
-          for (final buddy in buddies) {
-            builder.element('buddy', attributes: {'id': 'buddy_${buddy.id}'}, nest: () {
+          // Export owner (current diver) - UDDF standard <owner> element
+          if (owner != null) {
+            builder.element('owner', attributes: {'id': 'owner_${owner.id}'}, nest: () {
               builder.element('personal', nest: () {
-                // Split name into first/last
-                final nameParts = buddy.name.split(' ');
+                final nameParts = owner.name.split(' ');
                 builder.element('firstname', nest: nameParts.first);
                 if (nameParts.length > 1) {
                   builder.element('lastname', nest: nameParts.sublist(1).join(' '));
                 }
-                if (buddy.email != null && buddy.email!.isNotEmpty) {
-                  builder.element('email', nest: buddy.email);
+                if (owner.email != null && owner.email!.isNotEmpty) {
+                  builder.element('email', nest: owner.email);
                 }
-                if (buddy.phone != null && buddy.phone!.isNotEmpty) {
-                  builder.element('phone', nest: buddy.phone);
+                if (owner.phone != null && owner.phone!.isNotEmpty) {
+                  builder.element('phone', nest: owner.phone);
                 }
               },);
-              if (buddy.certificationLevel != null || buddy.certificationAgency != null) {
-                builder.element('certification', nest: () {
-                  if (buddy.certificationLevel != null) {
-                    builder.element('level', nest: buddy.certificationLevel!.name);
+              // Certifications will be added in applicationdata section
+            },);
+          }
+
+          // Export buddies
+          if (buddies != null) {
+            for (final buddy in buddies) {
+              builder.element('buddy', attributes: {'id': 'buddy_${buddy.id}'}, nest: () {
+                builder.element('personal', nest: () {
+                  // Split name into first/last
+                  final nameParts = buddy.name.split(' ');
+                  builder.element('firstname', nest: nameParts.first);
+                  if (nameParts.length > 1) {
+                    builder.element('lastname', nest: nameParts.sublist(1).join(' '));
                   }
-                  if (buddy.certificationAgency != null) {
-                    builder.element('agency', nest: buddy.certificationAgency!.name);
+                  if (buddy.email != null && buddy.email!.isNotEmpty) {
+                    builder.element('email', nest: buddy.email);
+                  }
+                  if (buddy.phone != null && buddy.phone!.isNotEmpty) {
+                    builder.element('phone', nest: buddy.phone);
                   }
                 },);
-              }
-              if (buddy.notes.isNotEmpty) {
-                builder.element('notes', nest: buddy.notes);
-              }
-            },);
+                if (buddy.certificationLevel != null || buddy.certificationAgency != null) {
+                  builder.element('certification', nest: () {
+                    if (buddy.certificationLevel != null) {
+                      builder.element('level', nest: buddy.certificationLevel!.name);
+                    }
+                    if (buddy.certificationAgency != null) {
+                      builder.element('agency', nest: buddy.certificationAgency!.name);
+                    }
+                  },);
+                }
+                if (buddy.notes.isNotEmpty) {
+                  builder.element('notes', nest: buddy.notes);
+                }
+              },);
+            }
           }
         },);
       }
@@ -1002,6 +1074,31 @@ class ExportService {
             _buildSiteElement(builder, site);
           }
         },);
+      }
+
+      // Dive trips (UDDF standard section)
+      if (trips != null && trips.isNotEmpty) {
+        for (final trip in trips) {
+          builder.element('divetrip', attributes: {'id': 'trip_${trip.id}'}, nest: () {
+            builder.element('name', nest: trip.name);
+            builder.element('dateoftrip', nest: () {
+              builder.element('startdate', nest: () {
+                builder.element('datetime', nest: trip.startDate.toIso8601String());
+              },);
+              builder.element('enddate', nest: () {
+                builder.element('datetime', nest: trip.endDate.toIso8601String());
+              },);
+            },);
+            if (trip.location != null && trip.location!.isNotEmpty) {
+              builder.element('geography', nest: () {
+                builder.element('location', nest: trip.location);
+              },);
+            }
+            if (trip.notes.isNotEmpty) {
+              builder.element('notes', nest: trip.notes);
+            }
+          },);
+        }
       }
 
       // Gas definitions
@@ -1039,7 +1136,19 @@ class ExportService {
             builder.element('repetitiongroup', nest: () {
               for (final dive in dateEntry.value) {
                 final diveBuddyList = diveBuddies?[dive.id] ?? [];
-                _buildDiveElement(builder, dive, buddies, diveBuddyList);
+                final diveTagList = diveTags?[dive.id] ?? [];
+                final profileEventList = diveProfileEvents?[dive.id] ?? [];
+                final weightList = diveWeights?[dive.id] ?? [];
+                _buildDiveElement(
+                  builder,
+                  dive,
+                  buddies,
+                  diveBuddyList,
+                  diveTagList,
+                  profileEventList,
+                  weightList,
+                  trips,
+                );
               }
             },);
           }
@@ -1055,6 +1164,12 @@ class ExportService {
         species: species,
         serviceRecords: serviceRecords,
         settings: settings,
+        owner: owner,
+        tags: tags,
+        customDiveTypes: customDiveTypes,
+        diveComputers: diveComputers,
+        equipmentSets: equipmentSets,
+        trips: trips,
       );
     },);
 
@@ -1094,14 +1209,32 @@ class ExportService {
     },);
   }
 
-  void _buildDiveElement(XmlBuilder builder, Dive dive, List<Buddy>? buddies, List<BuddyWithRole> diveBuddyList) {
+  void _buildDiveElement(
+    XmlBuilder builder,
+    Dive dive,
+    List<Buddy>? buddies,
+    List<BuddyWithRole> diveBuddyList,
+    List<Tag> diveTags,
+    List<ProfileEvent> profileEvents,
+    List<DiveWeight> diveWeights,
+    List<Trip>? trips,
+  ) {
     // Separate buddies by role for UDDF export
     final regularBuddies = diveBuddyList.where((b) => b.role == BuddyRole.buddy || b.role == BuddyRole.student).toList();
-    final guidesAndDivemasters = diveBuddyList.where((b) => 
-      b.role == BuddyRole.diveGuide || 
-      b.role == BuddyRole.diveMaster || 
+    final guidesAndDivemasters = diveBuddyList.where((b) =>
+      b.role == BuddyRole.diveGuide ||
+      b.role == BuddyRole.diveMaster ||
       b.role == BuddyRole.instructor,
     ).toList();
+
+    // Find the trip this dive belongs to
+    Trip? diveTrip;
+    if (trips != null && dive.tripId != null) {
+      diveTrip = trips.cast<Trip?>().firstWhere(
+        (t) => t?.id == dive.tripId,
+        orElse: () => null,
+      );
+    }
 
     builder.element('dive', attributes: {'id': 'dive_${dive.id}'}, nest: () {
       // Information before dive
@@ -1110,11 +1243,21 @@ class ExportService {
         if (dive.diveNumber != null) {
           builder.element('divenumber', nest: dive.diveNumber.toString());
         }
+        if (dive.entryTime != null) {
+          builder.element('entrytime', nest: dive.entryTime!.toIso8601String());
+        }
         if (dive.airTemp != null) {
           builder.element('airtemperature', nest: (dive.airTemp! + 273.15).toString());
         }
+        if (dive.altitude != null) {
+          builder.element('altitude', nest: dive.altitude.toString());
+        }
         if (dive.site != null) {
           builder.element('link', attributes: {'ref': 'site_${dive.site!.id}'});
+        }
+        // Link to trip
+        if (diveTrip != null) {
+          builder.element('link', attributes: {'ref': 'trip_${diveTrip.id}'});
         }
         // Export guides/divemasters/instructors in the divemaster field
         if (guidesAndDivemasters.isNotEmpty) {
@@ -1134,6 +1277,14 @@ class ExportService {
         // Link to buddy records in diver section
         for (final buddyWithRole in diveBuddyList) {
           builder.element('link', attributes: {'ref': 'buddy_${buddyWithRole.buddy.id}'});
+        }
+        // Equipment used on this dive
+        if (dive.equipment.isNotEmpty) {
+          builder.element('equipmentused', nest: () {
+            for (final item in dive.equipment) {
+              builder.element('equipmentref', nest: 'equip_${item.id}');
+            }
+          },);
         }
       },);
 
@@ -1160,6 +1311,9 @@ class ExportService {
               }
               if (point.pressure != null) {
                 builder.element('tankpressure', nest: (point.pressure! * 100000).toString());
+              }
+              if (point.heartRate != null) {
+                builder.element('heartrate', nest: point.heartRate.toString());
               }
             },);
           }
@@ -1189,8 +1343,59 @@ class ExportService {
         }
       },);
 
+      // Tank data (complete tank information)
+      if (dive.tanks.isNotEmpty) {
+        for (final tank in dive.tanks) {
+          builder.element('tankdata', nest: () {
+            // Link to gas mix
+            final mixId = 'mix_${tank.gasMix.o2.toInt()}_${tank.gasMix.he.toInt()}';
+            builder.element('link', attributes: {'ref': mixId});
+            // Tank name
+            if (tank.name != null && tank.name!.isNotEmpty) {
+              builder.element('tankname', nest: tank.name);
+            }
+            // Volume in liters
+            if (tank.volume != null) {
+              builder.element('tankvolume', nest: tank.volume.toString());
+            }
+            // Working pressure in Pascal (UDDF standard)
+            if (tank.workingPressure != null) {
+              builder.element(
+                'tankworkingpressure',
+                nest: (tank.workingPressure! * 100000).toString(),
+              );
+            }
+            // Start pressure in Pascal
+            if (tank.startPressure != null) {
+              builder.element(
+                'tankpressurebegin',
+                nest: (tank.startPressure! * 100000).toString(),
+              );
+            }
+            // End pressure in Pascal
+            if (tank.endPressure != null) {
+              builder.element(
+                'tankpressureend',
+                nest: (tank.endPressure! * 100000).toString(),
+              );
+            }
+            // Tank role (app-specific)
+            builder.element('tankrole', nest: tank.role.name);
+            // Tank material
+            if (tank.material != null) {
+              builder.element('tankmaterial', nest: tank.material!.name);
+            }
+            // Tank order (for multi-tank configurations)
+            builder.element('tankorder', nest: tank.order.toString());
+          },);
+        }
+      }
+
       // Information after dive
       builder.element('informationafterdive', nest: () {
+        if (dive.exitTime != null) {
+          builder.element('exittime', nest: dive.exitTime!.toIso8601String());
+        }
         if (dive.maxDepth != null) {
           builder.element('greatestdepth', nest: dive.maxDepth.toString());
         }
@@ -1199,6 +1404,9 @@ class ExportService {
         }
         if (dive.duration != null) {
           builder.element('diveduration', nest: dive.duration!.inSeconds.toString());
+        }
+        if (dive.runtime != null) {
+          builder.element('runtime', nest: dive.runtime!.inSeconds.toString());
         }
         if (dive.waterTemp != null) {
           builder.element('lowesttemperature', nest: (dive.waterTemp! + 273.15).toString());
@@ -1256,6 +1464,17 @@ class ExportService {
             builder.element('para', nest: dive.notes);
           },);
         }
+        // App-specific dive metadata
+        if (dive.isFavorite) {
+          builder.element('isfavorite', nest: 'true');
+        }
+        if (dive.photoIds.isNotEmpty) {
+          builder.element('photos', nest: () {
+            for (final photoId in dive.photoIds) {
+              builder.element('photoref', nest: photoId);
+            }
+          },);
+        }
         // Export regular buddies in the buddy field for compatibility
         if (regularBuddies.isNotEmpty) {
           for (final buddyWithRole in regularBuddies) {
@@ -1277,6 +1496,52 @@ class ExportService {
             },);
           },);
         }
+        // Export additional weights (app-specific, beyond single weight)
+        if (diveWeights.isNotEmpty) {
+          builder.element('weights', nest: () {
+            for (final weight in diveWeights) {
+              builder.element('weight', nest: () {
+                builder.element('amount', nest: weight.amountKg.toString());
+                builder.element('type', nest: weight.weightType.name);
+                if (weight.notes.isNotEmpty) {
+                  builder.element('notes', nest: weight.notes);
+                }
+              },);
+            }
+          },);
+        }
+        // Export tags (app-specific)
+        if (diveTags.isNotEmpty) {
+          builder.element('tags', nest: () {
+            for (final tag in diveTags) {
+              builder.element('tagref', nest: 'tag_${tag.id}');
+            }
+          },);
+        }
+        // Export profile events (app-specific)
+        if (profileEvents.isNotEmpty) {
+          builder.element('profileevents', nest: () {
+            for (final event in profileEvents) {
+              builder.element('event', nest: () {
+                builder.element('time', nest: event.timestamp.toString());
+                builder.element('eventtype', nest: event.eventType.name);
+                builder.element('severity', nest: event.severity.name);
+                if (event.depth != null) {
+                  builder.element('depth', nest: event.depth.toString());
+                }
+                if (event.value != null) {
+                  builder.element('value', nest: event.value.toString());
+                }
+                if (event.description != null) {
+                  builder.element('description', nest: event.description);
+                }
+                if (event.tankId != null) {
+                  builder.element('tankref', nest: event.tankId);
+                }
+              },);
+            }
+          },);
+        }
       },);
     },);
   }
@@ -1289,13 +1554,25 @@ class ExportService {
     List<Species>? species,
     List<ServiceRecord>? serviceRecords,
     Map<String, String>? settings,
+    Diver? owner,
+    List<Tag>? tags,
+    List<DiveTypeEntity>? customDiveTypes,
+    List<DiveComputer>? diveComputers,
+    List<EquipmentSet>? equipmentSets,
+    List<Trip>? trips,
   }) {
     final hasData = (equipment?.isNotEmpty ?? false) ||
         (certifications?.isNotEmpty ?? false) ||
         (diveCenters?.isNotEmpty ?? false) ||
         (species?.isNotEmpty ?? false) ||
         (serviceRecords?.isNotEmpty ?? false) ||
-        (settings?.isNotEmpty ?? false);
+        (settings?.isNotEmpty ?? false) ||
+        owner != null ||
+        (tags?.isNotEmpty ?? false) ||
+        (customDiveTypes?.isNotEmpty ?? false) ||
+        (diveComputers?.isNotEmpty ?? false) ||
+        (equipmentSets?.isNotEmpty ?? false) ||
+        (trips?.isNotEmpty ?? false);
 
     if (!hasData) return;
 
@@ -1466,6 +1743,148 @@ class ExportService {
               builder.element('setting', attributes: {'key': entry.key}, nest: entry.value);
             }
           },);
+        }
+
+        // Tags (no UDDF equivalent)
+        if (tags != null && tags.isNotEmpty) {
+          builder.element('tags', nest: () {
+            for (final tag in tags) {
+              builder.element('tag', attributes: {'id': 'tag_${tag.id}'}, nest: () {
+                builder.element('name', nest: tag.name);
+                if (tag.colorHex != null) {
+                  builder.element('color', nest: tag.colorHex);
+                }
+              },);
+            }
+          },);
+        }
+
+        // Custom Dive Types (no UDDF equivalent - UDDF has fixed types)
+        if (customDiveTypes != null && customDiveTypes.isNotEmpty) {
+          builder.element('divetypes', nest: () {
+            for (final diveType in customDiveTypes) {
+              builder.element('divetype', attributes: {'id': diveType.id}, nest: () {
+                builder.element('name', nest: diveType.name);
+                builder.element('sortorder', nest: diveType.sortOrder.toString());
+                builder.element('isbuiltin', nest: diveType.isBuiltIn.toString());
+              },);
+            }
+          },);
+        }
+
+        // Dive Computers (no UDDF equivalent)
+        if (diveComputers != null && diveComputers.isNotEmpty) {
+          builder.element('divecomputers', nest: () {
+            for (final computer in diveComputers) {
+              builder.element('computer', attributes: {'id': 'computer_${computer.id}'}, nest: () {
+                builder.element('name', nest: computer.name);
+                if (computer.manufacturer != null) {
+                  builder.element('manufacturer', nest: computer.manufacturer);
+                }
+                if (computer.model != null) {
+                  builder.element('model', nest: computer.model);
+                }
+                if (computer.serialNumber != null) {
+                  builder.element('serialnumber', nest: computer.serialNumber);
+                }
+                if (computer.connectionType != null) {
+                  builder.element('connectiontype', nest: computer.connectionType);
+                }
+                if (computer.bluetoothAddress != null) {
+                  builder.element('bluetoothaddress', nest: computer.bluetoothAddress);
+                }
+                builder.element('isfavorite', nest: computer.isFavorite.toString());
+                if (computer.notes.isNotEmpty) {
+                  builder.element('notes', nest: computer.notes);
+                }
+              },);
+            }
+          },);
+        }
+
+        // Equipment Sets (no UDDF equivalent)
+        if (equipmentSets != null && equipmentSets.isNotEmpty) {
+          builder.element('equipmentsets', nest: () {
+            for (final set in equipmentSets) {
+              builder.element('set', attributes: {'id': 'set_${set.id}'}, nest: () {
+                builder.element('name', nest: set.name);
+                if (set.description.isNotEmpty) {
+                  builder.element('description', nest: set.description);
+                }
+                if (set.equipmentIds.isNotEmpty) {
+                  builder.element('items', nest: () {
+                    for (final itemId in set.equipmentIds) {
+                      builder.element('itemref', nest: 'equip_$itemId');
+                    }
+                  },);
+                }
+              },);
+            }
+          },);
+        }
+
+        // Owner extended data (medical, emergency, insurance - not in UDDF standard)
+        if (owner != null) {
+          builder.element('ownerextended', nest: () {
+            if (owner.medicalNotes.isNotEmpty) {
+              builder.element('medicalnotes', nest: owner.medicalNotes);
+            }
+            if (owner.bloodType != null) {
+              builder.element('bloodtype', nest: owner.bloodType);
+            }
+            if (owner.allergies != null) {
+              builder.element('allergies', nest: owner.allergies);
+            }
+            if (owner.emergencyContact.isComplete) {
+              builder.element('emergencycontact', nest: () {
+                if (owner.emergencyContact.name != null) {
+                  builder.element('name', nest: owner.emergencyContact.name);
+                }
+                if (owner.emergencyContact.phone != null) {
+                  builder.element('phone', nest: owner.emergencyContact.phone);
+                }
+                if (owner.emergencyContact.relation != null) {
+                  builder.element('relationship', nest: owner.emergencyContact.relation);
+                }
+              },);
+            }
+            if (owner.insurance.provider != null) {
+              builder.element('insurance', nest: () {
+                builder.element('provider', nest: owner.insurance.provider);
+                if (owner.insurance.policyNumber != null) {
+                  builder.element('policynumber', nest: owner.insurance.policyNumber);
+                }
+                if (owner.insurance.expiryDate != null) {
+                  builder.element('expirydate', nest: owner.insurance.expiryDate!.toIso8601String());
+                }
+              },);
+            }
+            if (owner.notes.isNotEmpty) {
+              builder.element('notes', nest: owner.notes);
+            }
+          },);
+        }
+
+        // Trip extended data (resort/liveaboard names - not in UDDF standard)
+        if (trips != null && trips.isNotEmpty) {
+          final tripsWithExtendedData = trips.where((t) =>
+            t.resortName != null && t.resortName!.isNotEmpty ||
+            t.liveaboardName != null && t.liveaboardName!.isNotEmpty,
+          );
+          if (tripsWithExtendedData.isNotEmpty) {
+            builder.element('tripextended', nest: () {
+              for (final trip in tripsWithExtendedData) {
+                builder.element('trip', attributes: {'tripref': 'trip_${trip.id}'}, nest: () {
+                  if (trip.resortName != null && trip.resortName!.isNotEmpty) {
+                    builder.element('resortname', nest: trip.resortName);
+                  }
+                  if (trip.liveaboardName != null && trip.liveaboardName!.isNotEmpty) {
+                    builder.element('liveaboardname', nest: trip.liveaboardName);
+                  }
+                },);
+              }
+            },);
+          }
         }
       },);
     },);
@@ -1688,6 +2107,40 @@ class ExportService {
         }
       }
 
+      // Get tank name
+      final tankName = _getElementText(tankDataElement, 'tankname');
+      if (tankName != null && tankName.isNotEmpty) {
+        tankInfo['name'] = tankName;
+      }
+
+      // Get working pressure
+      final workingPressureText =
+          _getElementText(tankDataElement, 'tankworkingpressure');
+      if (workingPressureText != null) {
+        final pascal = double.tryParse(workingPressureText);
+        if (pascal != null) {
+          tankInfo['workingPressure'] = (pascal / 100000).round();
+        }
+      }
+
+      // Get tank role
+      final tankRole = _getElementText(tankDataElement, 'tankrole');
+      if (tankRole != null && tankRole.isNotEmpty) {
+        tankInfo['role'] = tankRole;
+      }
+
+      // Get tank material
+      final tankMaterial = _getElementText(tankDataElement, 'tankmaterial');
+      if (tankMaterial != null && tankMaterial.isNotEmpty) {
+        tankInfo['material'] = tankMaterial;
+      }
+
+      // Get tank order
+      final tankOrder = _getElementText(tankDataElement, 'tankorder');
+      if (tankOrder != null) {
+        tankInfo['order'] = int.tryParse(tankOrder) ?? 0;
+      }
+
       // Only add tank if it has meaningful data
       if (tankInfo['volume'] != null || tankInfo['gasMix'] != null) {
         tanks.add(tankInfo);
@@ -1732,6 +2185,12 @@ class ExportService {
           if (pascal != null) {
             point['pressure'] = pascal / 100000;
           }
+        }
+
+        // Get heart rate
+        final heartRateText = _getElementText(waypoint, 'heartrate');
+        if (heartRateText != null) {
+          point['heartRate'] = int.tryParse(heartRateText);
         }
 
         // Check for gas switch
@@ -1866,11 +2325,19 @@ class ExportService {
       throw const FormatException('Invalid UDDF file: missing uddf root element');
     }
 
-    // Parse full buddy records from diver section
+    // Parse full buddy records and owner from diver section
     final buddies = <Map<String, dynamic>>[];
     final buddyMap = <String, Map<String, dynamic>>{};
+    Map<String, dynamic>? owner;
     final diverElement = uddfElement.findElements('diver').firstOrNull;
     if (diverElement != null) {
+      // Parse owner (current diver)
+      final ownerElement = diverElement.findElements('owner').firstOrNull;
+      if (ownerElement != null) {
+        owner = _parseOwner(ownerElement);
+      }
+
+      // Parse buddies
       for (final buddyElement in diverElement.findElements('buddy')) {
         final buddyData = _parseFullBuddy(buddyElement);
         if (buddyData.isNotEmpty) {
@@ -1897,6 +2364,19 @@ class ExportService {
         }
         sites.add(siteData);
       }
+    }
+
+    // Parse trips (UDDF standard divetrip elements)
+    final trips = <Map<String, dynamic>>[];
+    final tripMap = <String, Map<String, dynamic>>{};
+    for (final tripElement in uddfElement.findElements('divetrip')) {
+      final tripData = _parseTrip(tripElement);
+      final tripId = tripElement.getAttribute('id');
+      if (tripId != null) {
+        tripData['uddfId'] = tripId;
+        tripMap[tripId] = tripData;
+      }
+      trips.add(tripData);
     }
 
     // Parse gas definitions
@@ -1943,6 +2423,10 @@ class ExportService {
     final species = <Map<String, dynamic>>[];
     final serviceRecords = <Map<String, dynamic>>[];
     final settings = <String, String>{};
+    final tags = <Map<String, dynamic>>[];
+    final customDiveTypes = <Map<String, dynamic>>[];
+    final diveComputers = <Map<String, dynamic>>[];
+    final equipmentSets = <Map<String, dynamic>>[];
 
     final appDataElement = uddfElement.findElements('applicationdata').firstOrNull;
     if (appDataElement != null) {
@@ -2014,6 +2498,67 @@ class ExportService {
             }
           }
         }
+
+        // Parse tags
+        final tagsSection = submersionElement.findElements('tags').firstOrNull;
+        if (tagsSection != null) {
+          for (final tagElement in tagsSection.findElements('tag')) {
+            final tagData = _parseTag(tagElement);
+            if (tagData.isNotEmpty) {
+              tags.add(tagData);
+            }
+          }
+        }
+
+        // Parse custom dive types
+        final diveTypesSection = submersionElement.findElements('divetypes').firstOrNull;
+        if (diveTypesSection != null) {
+          for (final typeElement in diveTypesSection.findElements('divetype')) {
+            final typeData = _parseDiveTypeElement(typeElement);
+            if (typeData.isNotEmpty) {
+              customDiveTypes.add(typeData);
+            }
+          }
+        }
+
+        // Parse dive computers
+        final computersSection = submersionElement.findElements('divecomputers').firstOrNull;
+        if (computersSection != null) {
+          for (final computerElement in computersSection.findElements('computer')) {
+            final computerData = _parseDiveComputer(computerElement);
+            if (computerData.isNotEmpty) {
+              diveComputers.add(computerData);
+            }
+          }
+        }
+
+        // Parse equipment sets
+        final setsSection = submersionElement.findElements('equipmentsets').firstOrNull;
+        if (setsSection != null) {
+          for (final setElement in setsSection.findElements('set')) {
+            final setData = _parseEquipmentSet(setElement);
+            if (setData.isNotEmpty) {
+              equipmentSets.add(setData);
+            }
+          }
+        }
+
+        // Parse owner extended data (medical, emergency, insurance)
+        final ownerExtSection = submersionElement.findElements('ownerextended').firstOrNull;
+        if (ownerExtSection != null && owner != null) {
+          _parseOwnerExtended(ownerExtSection, owner);
+        }
+
+        // Parse trip extended data (resort/liveaboard names)
+        final tripExtSection = submersionElement.findElements('tripextended').firstOrNull;
+        if (tripExtSection != null) {
+          for (final tripExtElement in tripExtSection.findElements('trip')) {
+            final tripRef = tripExtElement.getAttribute('tripref');
+            if (tripRef != null && tripMap.containsKey(tripRef)) {
+              _parseTripExtended(tripExtElement, tripMap[tripRef]!);
+            }
+          }
+        }
       }
     }
 
@@ -2028,6 +2573,12 @@ class ExportService {
       sightings: sightings,
       serviceRecords: serviceRecords,
       settings: settings,
+      owner: owner,
+      trips: trips,
+      tags: tags,
+      customDiveTypes: customDiveTypes,
+      diveComputers: diveComputers,
+      equipmentSets: equipmentSets,
     );
   }
 
@@ -2368,6 +2919,176 @@ class ExportService {
       }
     }
     return null;
+  }
+
+  // ==================== NEW SECTION PARSERS ====================
+
+  Map<String, dynamic> _parseOwner(XmlElement ownerElement) {
+    final owner = <String, dynamic>{};
+    final ownerId = ownerElement.getAttribute('id');
+    if (ownerId != null) {
+      owner['uddfId'] = ownerId;
+    }
+
+    final personalElement = ownerElement.findElements('personal').firstOrNull;
+    if (personalElement != null) {
+      final firstName = _getElementText(personalElement, 'firstname');
+      final lastName = _getElementText(personalElement, 'lastname');
+      final name = [firstName, lastName].whereType<String>().where((s) => s.isNotEmpty).join(' ').trim();
+      if (name.isNotEmpty) {
+        owner['name'] = name;
+      }
+      owner['email'] = _getElementText(personalElement, 'email');
+      owner['phone'] = _getElementText(personalElement, 'phone');
+    }
+
+    return owner;
+  }
+
+  Map<String, dynamic> _parseTrip(XmlElement tripElement) {
+    final trip = <String, dynamic>{};
+
+    trip['name'] = _getElementText(tripElement, 'name') ?? '';
+    trip['notes'] = _getElementText(tripElement, 'notes') ?? '';
+
+    // Parse date range
+    final dateOfTrip = tripElement.findElements('dateoftrip').firstOrNull;
+    if (dateOfTrip != null) {
+      final startDateElement = dateOfTrip.findElements('startdate').firstOrNull;
+      if (startDateElement != null) {
+        final startDateTime = _getElementText(startDateElement, 'datetime');
+        if (startDateTime != null) {
+          trip['startDate'] = DateTime.tryParse(startDateTime);
+        }
+      }
+      final endDateElement = dateOfTrip.findElements('enddate').firstOrNull;
+      if (endDateElement != null) {
+        final endDateTime = _getElementText(endDateElement, 'datetime');
+        if (endDateTime != null) {
+          trip['endDate'] = DateTime.tryParse(endDateTime);
+        }
+      }
+    }
+
+    // Parse geography
+    final geographyElement = tripElement.findElements('geography').firstOrNull;
+    if (geographyElement != null) {
+      trip['location'] = _getElementText(geographyElement, 'location');
+    }
+
+    return trip;
+  }
+
+  Map<String, dynamic> _parseTag(XmlElement tagElement) {
+    final tag = <String, dynamic>{};
+    final tagId = tagElement.getAttribute('id');
+    if (tagId != null) {
+      tag['uddfId'] = tagId;
+    }
+
+    tag['name'] = _getElementText(tagElement, 'name') ?? '';
+    tag['colorHex'] = _getElementText(tagElement, 'color');
+
+    return tag;
+  }
+
+  Map<String, dynamic> _parseDiveTypeElement(XmlElement typeElement) {
+    final diveType = <String, dynamic>{};
+    final typeId = typeElement.getAttribute('id');
+    if (typeId != null) {
+      diveType['id'] = typeId;
+    }
+
+    diveType['name'] = _getElementText(typeElement, 'name') ?? '';
+
+    final sortOrder = _getElementText(typeElement, 'sortorder');
+    if (sortOrder != null) {
+      diveType['sortOrder'] = int.tryParse(sortOrder) ?? 0;
+    }
+
+    final isBuiltIn = _getElementText(typeElement, 'isbuiltin');
+    diveType['isBuiltIn'] = isBuiltIn?.toLowerCase() == 'true';
+
+    return diveType;
+  }
+
+  Map<String, dynamic> _parseDiveComputer(XmlElement computerElement) {
+    final computer = <String, dynamic>{};
+    final computerId = computerElement.getAttribute('id');
+    if (computerId != null) {
+      computer['uddfId'] = computerId;
+    }
+
+    computer['name'] = _getElementText(computerElement, 'name') ?? '';
+    computer['manufacturer'] = _getElementText(computerElement, 'manufacturer');
+    computer['model'] = _getElementText(computerElement, 'model');
+    computer['serialNumber'] = _getElementText(computerElement, 'serialnumber');
+    computer['connectionType'] = _getElementText(computerElement, 'connectiontype');
+    computer['bluetoothAddress'] = _getElementText(computerElement, 'bluetoothaddress');
+
+    final isFavorite = _getElementText(computerElement, 'isfavorite');
+    computer['isFavorite'] = isFavorite?.toLowerCase() == 'true';
+
+    computer['notes'] = _getElementText(computerElement, 'notes') ?? '';
+
+    return computer;
+  }
+
+  Map<String, dynamic> _parseEquipmentSet(XmlElement setElement) {
+    final equipmentSet = <String, dynamic>{};
+    final setId = setElement.getAttribute('id');
+    if (setId != null) {
+      equipmentSet['uddfId'] = setId;
+    }
+
+    equipmentSet['name'] = _getElementText(setElement, 'name') ?? '';
+    equipmentSet['description'] = _getElementText(setElement, 'description') ?? '';
+
+    // Parse equipment item references
+    final itemsElement = setElement.findElements('items').firstOrNull;
+    if (itemsElement != null) {
+      final itemRefs = <String>[];
+      for (final itemRef in itemsElement.findElements('itemref')) {
+        final ref = itemRef.innerText.trim();
+        if (ref.isNotEmpty) {
+          itemRefs.add(ref);
+        }
+      }
+      equipmentSet['equipmentRefs'] = itemRefs;
+    }
+
+    return equipmentSet;
+  }
+
+  void _parseOwnerExtended(XmlElement ownerExtElement, Map<String, dynamic> owner) {
+    owner['medicalNotes'] = _getElementText(ownerExtElement, 'medicalnotes') ?? '';
+    owner['bloodType'] = _getElementText(ownerExtElement, 'bloodtype');
+    owner['allergies'] = _getElementText(ownerExtElement, 'allergies');
+    owner['notes'] = _getElementText(ownerExtElement, 'notes') ?? '';
+
+    // Parse emergency contact
+    final emergencyElement = ownerExtElement.findElements('emergencycontact').firstOrNull;
+    if (emergencyElement != null) {
+      owner['emergencyContactName'] = _getElementText(emergencyElement, 'name');
+      owner['emergencyContactPhone'] = _getElementText(emergencyElement, 'phone');
+      owner['emergencyContactRelation'] = _getElementText(emergencyElement, 'relationship');
+    }
+
+    // Parse insurance
+    final insuranceElement = ownerExtElement.findElements('insurance').firstOrNull;
+    if (insuranceElement != null) {
+      owner['insuranceProvider'] = _getElementText(insuranceElement, 'provider');
+      owner['insurancePolicyNumber'] = _getElementText(insuranceElement, 'policynumber');
+      final expiryDate = _getElementText(insuranceElement, 'expirydate');
+      if (expiryDate != null) {
+        owner['insuranceExpiryDate'] = DateTime.tryParse(expiryDate);
+      }
+    }
+  }
+
+  void _parseTripExtended(XmlElement tripExtElement, Map<String, dynamic> trip) {
+    trip['resortName'] = _getElementText(tripExtElement, 'resortname');
+    trip['liveaboardName'] = _getElementText(tripExtElement, 'liveaboardname');
   }
 
   // ==================== CSV IMPORT ====================
