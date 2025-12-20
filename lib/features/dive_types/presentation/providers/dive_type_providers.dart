@@ -55,6 +55,14 @@ class DiveTypeListNotifier extends StateNotifier<AsyncValue<List<DiveTypeEntity>
     // Listen for diver changes and reload
     _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
       if (previous != next) {
+        // Immediately set state to loading to prevent showing stale data
+        state = const AsyncValue.loading();
+
+        // Invalidate the validated provider to ensure fresh data
+        _ref.invalidate(validatedCurrentDiverIdProvider);
+        _ref.invalidate(diveTypesProvider);
+        _ref.invalidate(customDiveTypesProvider);
+        _ref.invalidate(diveTypeStatisticsProvider);
         _initializeAndLoad();
       }
     });
@@ -100,9 +108,14 @@ class DiveTypeListNotifier extends StateNotifier<AsyncValue<List<DiveTypeEntity>
   }
 
   /// Add a custom dive type by name (generates ID automatically)
+  /// Throws if no valid diver profile exists
   Future<DiveTypeEntity> addDiveTypeByName(String name) async {
     // Get fresh validated diver ID before creating
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
+
+    if (validatedId == null) {
+      throw Exception('Cannot create custom dive type without a diver profile');
+    }
 
     final diveType = DiveTypeEntity.create(
       id: DiveTypeEntity.generateSlug(name),
@@ -136,8 +149,10 @@ class DiveTypeListNotifier extends StateNotifier<AsyncValue<List<DiveTypeEntity>
   }
 }
 
-final diveTypeListNotifierProvider =
-    StateNotifierProvider<DiveTypeListNotifier, AsyncValue<List<DiveTypeEntity>>>((ref) {
+final diveTypeListNotifierProvider = StateNotifierProvider.autoDispose<
+    DiveTypeListNotifier, AsyncValue<List<DiveTypeEntity>>>((ref) {
   final repository = ref.watch(diveTypeRepositoryProvider);
+  // Watch the current diver ID so the provider rebuilds when it changes
+  ref.watch(currentDiverIdProvider);
   return DiveTypeListNotifier(repository, ref);
 });
