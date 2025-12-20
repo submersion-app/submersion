@@ -2658,6 +2658,24 @@ class ExportService {
       if (entryType != null) {
         diveData['entryMethod'] = _parseEnumValue(entryType, enums.EntryMethod.values);
       }
+
+      // Extract link references for trip, dive center, and buddies
+      final buddyRefs = <String>[];
+      for (final linkElement in beforeElement.findElements('link')) {
+        final ref = linkElement.getAttribute('ref');
+        if (ref != null) {
+          if (ref.startsWith('trip_')) {
+            diveData['tripRef'] = ref;
+          } else if (ref.startsWith('center_')) {
+            diveData['diveCenterRef'] = ref;
+          } else if (ref.startsWith('buddy_')) {
+            buddyRefs.add(ref);
+          }
+        }
+      }
+      if (buddyRefs.isNotEmpty) {
+        diveData['buddyRefs'] = buddyRefs;
+      }
     }
 
     // Parse additional fields from informationafterdive
@@ -2715,6 +2733,21 @@ class ExportService {
         }
         if (sightingsList.isNotEmpty) {
           diveData['sightings'] = sightingsList;
+        }
+      }
+
+      // Parse tag references
+      final tagsElement = afterElement.findElements('tags').firstOrNull;
+      if (tagsElement != null) {
+        final tagRefs = <String>[];
+        for (final tagRefElement in tagsElement.findElements('tagref')) {
+          final tagRef = tagRefElement.innerText.trim();
+          if (tagRef.isNotEmpty) {
+            tagRefs.add(tagRef);
+          }
+        }
+        if (tagRefs.isNotEmpty) {
+          diveData['tagRefs'] = tagRefs;
         }
       }
     }
