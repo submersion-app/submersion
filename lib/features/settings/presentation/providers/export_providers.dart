@@ -831,7 +831,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
           final newId = uuid.v4();
 
           // Map equipment item references to new IDs
-          final itemRefsValue = setData['equipmentIds'];
+          // Parser stores as 'equipmentRefs' with values like 'equip_<uuid>'
+          final itemRefsValue = setData['equipmentRefs'];
           final itemRefs = itemRefsValue is List
               ? itemRefsValue.whereType<String>().toList()
               : <String>[];
@@ -1022,6 +1023,15 @@ class ExportNotifier extends StateNotifier<ExportState> {
       _ref.invalidate(sitesProvider);
       _ref.invalidate(allBuddiesProvider);
       _ref.invalidate(allEquipmentProvider);
+      _ref.invalidate(activeEquipmentProvider);
+      _ref.invalidate(retiredEquipmentProvider);
+      _ref.invalidate(serviceDueEquipmentProvider);
+      // Invalidate all equipment status filters including "All" (null)
+      _ref.invalidate(equipmentByStatusProvider(null));
+      for (final status in EquipmentStatus.values) {
+        _ref.invalidate(equipmentByStatusProvider(status));
+      }
+      _ref.invalidate(equipmentListNotifierProvider);
       _ref.invalidate(equipmentSetsProvider);
       _ref.invalidate(allTripsProvider);
       _ref.invalidate(allDiveCentersProvider);
