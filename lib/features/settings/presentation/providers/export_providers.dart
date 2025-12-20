@@ -19,6 +19,7 @@ import '../../../buddies/presentation/providers/buddy_providers.dart';
 import '../../../buddies/domain/entities/buddy.dart';
 import '../../../certifications/presentation/providers/certification_providers.dart';
 import '../../../dive_centers/presentation/providers/dive_center_providers.dart';
+import '../../../divers/presentation/providers/diver_providers.dart';
 import '../../../marine_life/presentation/providers/species_providers.dart';
 
 /// Export service provider
@@ -170,8 +171,19 @@ class ExportNotifier extends StateNotifier<ExportState> {
   }
 
   Future<void> importDivesFromCsv() async {
-    state = state.copyWith(status: ExportStatus.exporting, message: 'Selecting file...');
+    state = state.copyWith(status: ExportStatus.exporting, message: 'Checking diver profile...');
     try {
+      // Verify an active diver profile exists before importing
+      final currentDiver = await _ref.read(currentDiverProvider.future);
+      if (currentDiver == null) {
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: 'Please create a diver profile before importing dives',
+        );
+        return;
+      }
+
+      state = state.copyWith(message: 'Selecting file...');
       // Use FileType.any on iOS/macOS since custom extensions don't work reliably
       final useAnyType = Platform.isIOS || Platform.isMacOS;
       final result = await FilePicker.platform.pickFiles(
@@ -237,6 +249,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
 
         final dive = Dive(
           id: diveId,
+          diverId: currentDiver.id,
           diveNumber: diveData['diveNumber'] as int?,
           dateTime: dateTime,
           entryTime: entryTime,
@@ -371,8 +384,19 @@ class ExportNotifier extends StateNotifier<ExportState> {
   }
 
   Future<void> importDivesFromUddf() async {
-    state = state.copyWith(status: ExportStatus.exporting, message: 'Selecting file...');
+    state = state.copyWith(status: ExportStatus.exporting, message: 'Checking diver profile...');
     try {
+      // Verify an active diver profile exists before importing
+      final currentDiver = await _ref.read(currentDiverProvider.future);
+      if (currentDiver == null) {
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: 'Please create a diver profile before importing dives',
+        );
+        return;
+      }
+
+      state = state.copyWith(message: 'Selecting file...');
       // Use FileType.any on iOS/macOS since custom extensions don't work reliably
       final useAnyType = Platform.isIOS || Platform.isMacOS;
       final result = await FilePicker.platform.pickFiles(
@@ -530,9 +554,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
         final entryTime = dateTime;
         final exitTime = runtime != null ? dateTime.add(runtime) : null;
 
-        // Create initial dive object
+        // Create initial dive object assigned to the current diver
         var dive = Dive(
           id: diveId,
+          diverId: currentDiver.id,
           diveNumber: diveData['diveNumber'] as int?,
           dateTime: dateTime,
           entryTime: entryTime,
