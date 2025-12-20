@@ -2141,9 +2141,32 @@ class ExportService {
         tankInfo['order'] = int.tryParse(tankOrder) ?? 0;
       }
 
-      // Only add tank if it has meaningful data
-      if (tankInfo['volume'] != null || tankInfo['gasMix'] != null) {
+      // Only add tank if it has meaningful data:
+      // - Has volume (physical tank size is known)
+      // - Has pressure data (tank was actually used)
+      // - Has working pressure (tank specification is known)
+      // Tanks with only gas mix references are often placeholders from other
+      // dive log software and should be skipped unless no other tanks exist
+      final hasMeaningfulData = tankInfo['volume'] != null ||
+          tankInfo['startPressure'] != null ||
+          tankInfo['endPressure'] != null ||
+          tankInfo['workingPressure'] != null;
+      if (hasMeaningfulData) {
         tanks.add(tankInfo);
+      }
+    }
+
+    // If no tanks with meaningful data found, create a default tank from first gas mix
+    if (tanks.isEmpty) {
+      for (final tankDataElement in diveElement.findElements('tankdata')) {
+        final mixLink = tankDataElement.findElements('link').firstOrNull;
+        if (mixLink != null) {
+          final mixRef = mixLink.getAttribute('ref');
+          if (mixRef != null && gasMixes.containsKey(mixRef)) {
+            tanks.add({'gasMix': gasMixes[mixRef]});
+            break;
+          }
+        }
       }
     }
 
@@ -2246,6 +2269,25 @@ class ExportService {
         }
       }
 
+      // Fallback: extract water temp from profile if not found in lowesttemperature
+      // Some dive log software (like Subsurface) only stores temp in waypoints
+      if (!diveData.containsKey('waterTemp')) {
+        final profile = diveData['profile'] as List<Map<String, dynamic>>?;
+        if (profile != null && profile.isNotEmpty) {
+          // Find the lowest temperature in the profile (water temp at depth)
+          double? minTemp;
+          for (final point in profile) {
+            final temp = point['temperature'] as double?;
+            if (temp != null && (minTemp == null || temp < minTemp)) {
+              minTemp = temp;
+            }
+          }
+          if (minTemp != null) {
+            diveData['waterTemp'] = minTemp;
+          }
+        }
+      }
+
       final visibilityText = _getElementText(afterElement, 'visibility');
       if (visibilityText != null) {
         diveData['visibility'] = _parseUddfVisibility(visibilityText);
@@ -2282,6 +2324,24 @@ class ExportService {
               buddyNames.add(buddyName);
             }
           }
+        }
+      }
+    }
+
+    // Final fallback: extract water temp from profile if still not set
+    // This handles cases where there's no informationafterdive element
+    if (!diveData.containsKey('waterTemp')) {
+      final profile = diveData['profile'] as List<Map<String, dynamic>>?;
+      if (profile != null && profile.isNotEmpty) {
+        double? minTemp;
+        for (final point in profile) {
+          final temp = point['temperature'] as double?;
+          if (temp != null && (minTemp == null || temp < minTemp)) {
+            minTemp = temp;
+          }
+        }
+        if (minTemp != null) {
+          diveData['waterTemp'] = minTemp;
         }
       }
     }

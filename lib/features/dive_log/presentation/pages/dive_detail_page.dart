@@ -171,163 +171,184 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
   Widget _buildHeaderSection(BuildContext context, WidgetRef ref, Dive dive, UnitFormatter units) {
     final hasLocation = dive.site?.location != null;
+    final colorScheme = Theme.of(context).colorScheme;
+    final cardColor = Theme.of(context).cardColor;
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
+    final content = Padding(
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (hasLocation) _buildMiniMap(context, dive),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 24,
+                backgroundColor: colorScheme.primaryContainer,
+                child: Text(
+                  '#${dive.diveNumber ?? '-'}',
+                  style: TextStyle(
+                    color: colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CircleAvatar(
-                      radius: 24,
-                      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                      child: Text(
-                        '#${dive.diveNumber ?? '-'}',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onPrimaryContainer,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                    Text(
+                      dive.site?.name ?? 'Unknown Site',
+                      style: Theme.of(context).textTheme.titleLarge,
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            dive.site?.name ?? 'Unknown Site',
-                            style: Theme.of(context).textTheme.titleLarge,
+                    Text(
+                      'Entry: ${DateFormat('MMM d, y • h:mm a').format(dive.effectiveEntryTime)}',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
                           ),
-                          Text(
-                            'Entry: ${DateFormat('MMM d, y • h:mm a').format(dive.effectiveEntryTime)}',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                ),
-                          ),
-                          if (dive.exitTime != null)
-                            Text(
-                              'Exit: ${DateFormat('h:mm a').format(dive.exitTime!)}',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                  ),
+                    ),
+                    if (dive.exitTime != null)
+                      Text(
+                        'Exit: ${DateFormat('h:mm a').format(dive.exitTime!)}',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
                             ),
-                        ],
-                      ),
-                    ),
-                    if (dive.rating != null)
-                      Row(
-                        children: [
-                          Icon(Icons.star, color: Colors.amber.shade600, size: 20),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${dive.rating}',
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                        ],
                       ),
                   ],
                 ),
-                const SizedBox(height: 16),
+              ),
+              if (dive.rating != null)
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildStatItem(
-                      context,
-                      Icons.arrow_downward,
-                      units.formatDepth(dive.maxDepth),
-                      'Max Depth',
-                    ),
-                    _buildStatItem(
-                      context,
-                      Icons.timer,
-                      dive.duration != null ? '${dive.duration!.inMinutes} min' : '--',
-                      'Bottom Time',
-                    ),
-                    _buildStatItem(
-                      context,
-                      Icons.timelapse,
-                      _formatRuntime(dive),
-                      'Runtime',
-                    ),
-                    _buildStatItem(
-                      context,
-                      Icons.thermostat,
-                      units.formatTemperature(dive.waterTemp),
-                      'Temp',
+                    Icon(Icons.star, color: Colors.amber.shade600, size: 20),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${dive.rating}',
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
                   ],
                 ),
-              ],
-            ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildStatItem(
+                context,
+                Icons.arrow_downward,
+                units.formatDepth(dive.maxDepth),
+                'Max Depth',
+              ),
+              _buildStatItem(
+                context,
+                Icons.timer,
+                dive.duration != null ? '${dive.duration!.inMinutes} min' : '--',
+                'Bottom Time',
+              ),
+              _buildStatItem(
+                context,
+                Icons.timelapse,
+                _formatRuntime(dive),
+                'Runtime',
+              ),
+              _buildStatItem(
+                context,
+                Icons.thermostat,
+                units.formatTemperature(dive.waterTemp),
+                'Temp',
+              ),
+            ],
           ),
         ],
       ),
     );
-  }
 
-  Widget _buildMiniMap(BuildContext context, Dive dive) {
-    final colorScheme = Theme.of(context).colorScheme;
+    if (!hasLocation) {
+      return Card(
+        clipBehavior: Clip.antiAlias,
+        child: content,
+      );
+    }
+
     final site = dive.site!;
     final siteLocation = LatLng(site.location!.latitude, site.location!.longitude);
 
-    return InkWell(
-      onTap: () => context.push('/sites/${site.id}'),
-      child: SizedBox(
-        height: 100,
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => context.push('/sites/${site.id}'),
         child: Stack(
           children: [
-            FlutterMap(
-              options: MapOptions(
-                initialCenter: siteLocation,
-                initialZoom: 12.0,
-                interactionOptions: const InteractionOptions(
-                  flags: InteractiveFlag.none,
+            // Map background
+            Positioned.fill(
+              child: FlutterMap(
+                options: MapOptions(
+                  initialCenter: siteLocation,
+                  initialZoom: 12.0,
+                  interactionOptions: const InteractionOptions(
+                    flags: InteractiveFlag.none,
+                  ),
                 ),
-              ),
-              children: [
-                TileLayer(
-                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  userAgentPackageName: 'com.submersion.app',
-                  maxZoom: 19,
-                ),
-                MarkerLayer(
-                  markers: [
-                    Marker(
-                      point: siteLocation,
-                      width: 32,
-                      height: 32,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: colorScheme.primary,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: colorScheme.onPrimary,
-                            width: 2,
+                children: [
+                  TileLayer(
+                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    userAgentPackageName: 'com.submersion.app',
+                    maxZoom: 19,
+                  ),
+                  MarkerLayer(
+                    markers: [
+                      Marker(
+                        point: siteLocation,
+                        width: 32,
+                        height: 32,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: colorScheme.onPrimary,
+                              width: 2,
+                            ),
                           ),
-                        ),
-                        child: Center(
-                          child: Icon(
-                            Icons.scuba_diving,
-                            size: 16,
-                            color: colorScheme.onPrimary,
+                          child: Center(
+                            child: Icon(
+                              Icons.scuba_diving,
+                              size: 16,
+                              color: colorScheme.onPrimary,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
+            // Gradient overlay from top to bottom
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    stops: const [0.0, 0.3, 0.7, 1.0],
+                    colors: [
+                      cardColor.withValues(alpha: 0.3),
+                      cardColor.withValues(alpha: 0.6),
+                      cardColor.withValues(alpha: 0.85),
+                      cardColor,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            // Content
+            content,
+            // View Site button
             Positioned(
               right: 8,
-              bottom: 8,
+              top: 8,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
@@ -1325,17 +1346,17 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 }
 
 /// Fullscreen dive profile page with rotation support
-class _FullscreenProfilePage extends StatefulWidget {
+class _FullscreenProfilePage extends ConsumerStatefulWidget {
   final Dive dive;
   final ProfileAnalysis? analysis;
 
   const _FullscreenProfilePage({required this.dive, this.analysis});
 
   @override
-  State<_FullscreenProfilePage> createState() => _FullscreenProfilePageState();
+  ConsumerState<_FullscreenProfilePage> createState() => _FullscreenProfilePageState();
 }
 
-class _FullscreenProfilePageState extends State<_FullscreenProfilePage> {
+class _FullscreenProfilePageState extends ConsumerState<_FullscreenProfilePage> {
   DiveProfilePoint? _selectedPoint;
 
   @override
@@ -1437,6 +1458,8 @@ class _FullscreenProfilePageState extends State<_FullscreenProfilePage> {
 
   Widget _buildMetricsTable(BuildContext context, {bool compact = false}) {
     final colorScheme = Theme.of(context).colorScheme;
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
     final point = _selectedPoint;
 
     return Container(
@@ -1479,7 +1502,7 @@ class _FullscreenProfilePageState extends State<_FullscreenProfilePage> {
                   ),
             )
           else if (compact)
-            _buildCompactMetrics(context, point)
+            _buildCompactMetrics(context, point, units)
           else
             Table(
               columnWidths: const {
@@ -1492,15 +1515,15 @@ class _FullscreenProfilePageState extends State<_FullscreenProfilePage> {
                   'Time',
                   _formatTime(point.timestamp),
                   'Depth',
-                  '${point.depth.toStringAsFixed(1)}m',
+                  units.formatDepth(point.depth),
                 ),
                 if (point.temperature != null || point.pressure != null)
                   _buildTableRow(
                     context,
                     point.temperature != null ? 'Temperature' : '',
-                    point.temperature != null ? '${point.temperature!.toStringAsFixed(1)}°C' : '',
+                    point.temperature != null ? units.formatTemperature(point.temperature) : '',
                     point.pressure != null ? 'Pressure' : '',
-                    point.pressure != null ? '${point.pressure!.toInt()} bar' : '',
+                    point.pressure != null ? units.formatPressure(point.pressure) : '',
                   ),
                 if (point.heartRate != null)
                   _buildTableRow(
@@ -1517,16 +1540,16 @@ class _FullscreenProfilePageState extends State<_FullscreenProfilePage> {
     );
   }
 
-  Widget _buildCompactMetrics(BuildContext context, DiveProfilePoint point) {
+  Widget _buildCompactMetrics(BuildContext context, DiveProfilePoint point, UnitFormatter units) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildCompactMetricRow(context, 'Time', _formatTime(point.timestamp)),
-        _buildCompactMetricRow(context, 'Depth', '${point.depth.toStringAsFixed(1)}m'),
+        _buildCompactMetricRow(context, 'Depth', units.formatDepth(point.depth)),
         if (point.temperature != null)
-          _buildCompactMetricRow(context, 'Temp', '${point.temperature!.toStringAsFixed(1)}°C'),
+          _buildCompactMetricRow(context, 'Temp', units.formatTemperature(point.temperature)),
         if (point.pressure != null)
-          _buildCompactMetricRow(context, 'Pressure', '${point.pressure!.toInt()} bar'),
+          _buildCompactMetricRow(context, 'Pressure', units.formatPressure(point.pressure)),
         if (point.heartRate != null)
           _buildCompactMetricRow(context, 'HR', '${point.heartRate!} bpm'),
       ],

@@ -788,7 +788,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   );
                   lines.add(
                     TextSpan(
-                      text: '${point.pressure!.toInt()} bar\n',
+                      text: '${units.formatPressure(point.pressure)}\n',
                       style: TextStyle(
                         color: colorScheme.onInverseSurface,
                         fontWeight: FontWeight.bold,
