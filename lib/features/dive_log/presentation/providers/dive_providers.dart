@@ -205,10 +205,16 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
   }
 
   Future<domain.Dive> addDive(domain.Dive dive) async {
-    // Ensure the dive is assigned to the current diver
-    final diveWithDiver = dive.diverId == null && _currentDiverId != null
-        ? dive.copyWith(diverId: _currentDiverId)
-        : dive;
+    // Ensure the dive is assigned to the current diver (if diver exists)
+    var diveWithDiver = dive;
+    if (dive.diverId == null && _currentDiverId != null) {
+      // Verify the diver exists before assigning to avoid FK constraint errors
+      final diverRepository = _ref.read(diverRepositoryProvider);
+      final diverExists = await diverRepository.getDiverById(_currentDiverId!);
+      if (diverExists != null) {
+        diveWithDiver = dive.copyWith(diverId: _currentDiverId);
+      }
+    }
     final newDive = await _repository.createDive(diveWithDiver);
     await _loadDives();
     _ref.invalidate(diveStatisticsProvider);

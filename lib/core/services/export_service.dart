@@ -1478,8 +1478,9 @@ class ExportService {
   /// Returns a map with 'dives' and 'sites' lists
   Future<Map<String, List<Map<String, dynamic>>>> importDivesFromUddf(String uddfContent) async {
     final document = XmlDocument.parse(uddfContent);
-    final uddfElement = document.findElements('uddf').firstOrNull;
-    if (uddfElement == null) {
+    // Use rootElement instead of findElements to handle XML namespaces properly
+    final uddfElement = document.rootElement;
+    if (uddfElement.name.local != 'uddf') {
       throw const FormatException('Invalid UDDF file: missing uddf root element');
     }
 
@@ -1859,8 +1860,9 @@ class ExportService {
   /// Returns UddfImportResult with all parsed data
   Future<UddfImportResult> importAllDataFromUddf(String uddfContent) async {
     final document = XmlDocument.parse(uddfContent);
-    final uddfElement = document.findElements('uddf').firstOrNull;
-    if (uddfElement == null) {
+    // Use rootElement instead of findElements to handle XML namespaces properly
+    final uddfElement = document.rootElement;
+    if (uddfElement.name.local != 'uddf') {
       throw const FormatException('Invalid UDDF file: missing uddf root element');
     }
 
