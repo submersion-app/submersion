@@ -14,9 +14,13 @@ void main() {
       test('should return O2 fraction at surface', () {
         // At surface (0m), ppO2 = 1.0 * fO2
         expect(
-            O2ToxicityCalculator.calculatePpO2(0, 0.21), closeTo(0.21, 0.001));
+          O2ToxicityCalculator.calculatePpO2(0, 0.21),
+          closeTo(0.21, 0.001),
+        );
         expect(
-            O2ToxicityCalculator.calculatePpO2(0, 0.32), closeTo(0.32, 0.001));
+          O2ToxicityCalculator.calculatePpO2(0, 0.32),
+          closeTo(0.32, 0.001),
+        );
         expect(O2ToxicityCalculator.calculatePpO2(0, 1.0), closeTo(1.0, 0.001));
       });
 
@@ -24,17 +28,25 @@ void main() {
         // At 10m, ambient pressure = 2.0 bar
         // ppO2 = 2.0 * fO2
         expect(
-            O2ToxicityCalculator.calculatePpO2(10, 0.21), closeTo(0.42, 0.001));
+          O2ToxicityCalculator.calculatePpO2(10, 0.21),
+          closeTo(0.42, 0.001),
+        );
         expect(
-            O2ToxicityCalculator.calculatePpO2(10, 0.32), closeTo(0.64, 0.001));
+          O2ToxicityCalculator.calculatePpO2(10, 0.32),
+          closeTo(0.64, 0.001),
+        );
       });
 
       test('should calculate ppO2 at 30m correctly', () {
         // At 30m, ambient pressure = 4.0 bar
         expect(
-            O2ToxicityCalculator.calculatePpO2(30, 0.21), closeTo(0.84, 0.001));
+          O2ToxicityCalculator.calculatePpO2(30, 0.21),
+          closeTo(0.84, 0.001),
+        );
         expect(
-            O2ToxicityCalculator.calculatePpO2(30, 0.32), closeTo(1.28, 0.001));
+          O2ToxicityCalculator.calculatePpO2(30, 0.32),
+          closeTo(1.28, 0.001),
+        );
       });
 
       test('should reach 1.4 ppO2 at MOD for nitrox 32', () {
@@ -224,7 +236,7 @@ void main() {
           0,
           120,
           1800 + 120,
-          1800 + 240
+          1800 + 240,
         ]; // descent, bottom, ascent
 
         final exposure = calculator.calculateDiveExposure(

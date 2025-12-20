@@ -297,8 +297,9 @@ class TripRepository {
   }
 
   /// Get all trips with their statistics
-  Future<List<domain.TripWithStats>> getAllTripsWithStats(
-      {String? diverId}) async {
+  Future<List<domain.TripWithStats>> getAllTripsWithStats({
+    String? diverId,
+  }) async {
     final diverFilter = diverId != null ? 'WHERE t.diver_id = ?' : '';
     final variables =
         diverId != null ? [Variable.withString(diverId)] : <Variable<Object>>[];

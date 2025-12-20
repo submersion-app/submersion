@@ -90,8 +90,11 @@ class TagRepository {
   }
 
   /// Create a tag or get existing if name already exists
-  Future<domain.Tag> getOrCreateTag(String name,
-      {String? colorHex, String? diverId}) async {
+  Future<domain.Tag> getOrCreateTag(
+    String name, {
+    String? colorHex,
+    String? diverId,
+  }) async {
     try {
       // Check if tag with this name exists for this diver
       final existing = await getTagByName(name, diverId: diverId);
@@ -173,9 +176,11 @@ class TagRepository {
               name: row.data['name'] as String,
               colorHex: row.data['color'] as String?,
               createdAt: DateTime.fromMillisecondsSinceEpoch(
-                  row.data['created_at'] as int),
+                row.data['created_at'] as int,
+              ),
               updatedAt: DateTime.fromMillisecondsSinceEpoch(
-                  row.data['updated_at'] as int),
+                row.data['updated_at'] as int,
+              ),
             ),
           )
           .toList();
@@ -187,7 +192,8 @@ class TagRepository {
 
   /// Get tags for multiple dives (batch loading)
   Future<Map<String, List<domain.Tag>>> getTagsForDives(
-      List<String> diveIds) async {
+    List<String> diveIds,
+  ) async {
     if (diveIds.isEmpty) return {};
 
     try {
@@ -210,9 +216,11 @@ class TagRepository {
           name: row.data['name'] as String,
           colorHex: row.data['color'] as String?,
           createdAt: DateTime.fromMillisecondsSinceEpoch(
-              row.data['created_at'] as int),
+            row.data['created_at'] as int,
+          ),
           updatedAt: DateTime.fromMillisecondsSinceEpoch(
-              row.data['updated_at'] as int),
+            row.data['updated_at'] as int,
+          ),
         );
         tagsByDive.putIfAbsent(diveId, () => []).add(tag);
       }
@@ -381,9 +389,11 @@ class TagRepository {
                 name: row.data['name'] as String,
                 colorHex: row.data['color'] as String?,
                 createdAt: DateTime.fromMillisecondsSinceEpoch(
-                    row.data['created_at'] as int),
+                  row.data['created_at'] as int,
+                ),
                 updatedAt: DateTime.fromMillisecondsSinceEpoch(
-                    row.data['updated_at'] as int),
+                  row.data['updated_at'] as int,
+                ),
               ),
               diveCount: row.data['dive_count'] as int,
             ),
