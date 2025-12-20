@@ -2086,6 +2086,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       // Create dive entity
       final dive = Dive(
         id: widget.diveId ?? '',
+        diverId: _existingDive?.diverId, // Preserve diver assignment
         diveNumber: _existingDive?.diveNumber,
         dateTime: entryDateTime, // Keep for backward compatibility
         entryTime: entryDateTime,
@@ -2119,6 +2120,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         tags: _selectedTags,
         // Preserve favorite status when editing
         isFavorite: _existingDive?.isFavorite ?? false,
+        // Preserve dive profile data (time series from dive computer)
+        profile: _existingDive?.profile ?? const [],
+        // Preserve photo associations
+        photoIds: _existingDive?.photoIds ?? const [],
+        // Preserve legacy buddy/divemaster text fields
+        buddy: _existingDive?.buddy,
+        diveMaster: _existingDive?.diveMaster,
       );
 
       // Save using the notifier
