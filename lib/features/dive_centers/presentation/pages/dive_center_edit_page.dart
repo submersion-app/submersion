@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../divers/presentation/providers/diver_providers.dart';
 import '../../domain/entities/dive_center.dart';
 import '../providers/dive_center_providers.dart';
 
@@ -97,9 +98,17 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
     setState(() => _isLoading = true);
 
     try {
+      // Get the current diver ID - preserve existing for edits, get fresh for new centers
+      final existingCenter = widget.centerId != null
+          ? ref.read(diveCenterByIdProvider(widget.centerId!)).valueOrNull
+          : null;
+      final diverId = existingCenter?.diverId ??
+          await ref.read(validatedCurrentDiverIdProvider.future);
+
       final now = DateTime.now();
       final center = DiveCenter(
         id: widget.centerId ?? '',
+        diverId: diverId,
         name: _nameController.text.trim(),
         location: _locationController.text.trim().isEmpty
             ? null

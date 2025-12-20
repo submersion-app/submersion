@@ -69,12 +69,16 @@ class BuddyListNotifier extends StateNotifier<AsyncValue<List<Buddy>>> {
     // Listen for diver changes and reload
     _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
       if (previous != next) {
+        state = const AsyncValue.loading();
+        _ref.invalidate(validatedCurrentDiverIdProvider);
+        _ref.invalidate(allBuddiesProvider);
         _initializeAndLoad();
       }
     });
   }
 
   Future<void> _initializeAndLoad() async {
+    state = const AsyncValue.loading();
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
     _validatedDiverId = validatedId;
     await _loadBuddies();
@@ -91,6 +95,9 @@ class BuddyListNotifier extends StateNotifier<AsyncValue<List<Buddy>>> {
   }
 
   Future<void> refresh() async {
+    // Get fresh validated diver ID before loading
+    final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
+    _validatedDiverId = validatedId;
     await _loadBuddies();
     _ref.invalidate(allBuddiesProvider);
   }
@@ -99,8 +106,8 @@ class BuddyListNotifier extends StateNotifier<AsyncValue<List<Buddy>>> {
     // Get fresh validated diver ID before creating
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
 
-    // Ensure diverId is set on new buddies
-    final buddyWithDiver = buddy.diverId == null && validatedId != null
+    // Always set diverId to the current validated diver for new items
+    final buddyWithDiver = validatedId != null
         ? buddy.copyWith(diverId: validatedId)
         : buddy;
     final newBuddy = await _repository.createBuddy(buddyWithDiver);

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/enums.dart';
+import '../../../divers/presentation/providers/diver_providers.dart';
 import '../../domain/entities/buddy.dart';
 import '../providers/buddy_providers.dart';
 
@@ -415,9 +416,14 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
     setState(() => _isSaving = true);
 
     try {
+      // Get the current diver ID - preserve existing for edits, get fresh for new buddies
+      final diverId = _originalBuddy?.diverId ??
+          await ref.read(validatedCurrentDiverIdProvider.future);
+
       final now = DateTime.now();
       final buddy = Buddy(
         id: widget.buddyId ?? '',
+        diverId: diverId,
         name: _nameController.text.trim(),
         email: _emailController.text.trim().isEmpty
             ? null

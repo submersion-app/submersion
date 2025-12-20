@@ -40,12 +40,16 @@ class EquipmentSetListNotifier extends StateNotifier<AsyncValue<List<EquipmentSe
     // Listen for diver changes and reload
     _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
       if (previous != next) {
+        state = const AsyncValue.loading();
+        _ref.invalidate(validatedCurrentDiverIdProvider);
+        _ref.invalidate(equipmentSetsProvider);
         _initializeAndLoad();
       }
     });
   }
 
   Future<void> _initializeAndLoad() async {
+    state = const AsyncValue.loading();
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
     _validatedDiverId = validatedId;
     await _loadSets();
@@ -62,6 +66,9 @@ class EquipmentSetListNotifier extends StateNotifier<AsyncValue<List<EquipmentSe
   }
 
   Future<void> refresh() async {
+    // Get fresh validated diver ID before loading
+    final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
+    _validatedDiverId = validatedId;
     await _loadSets();
     _ref.invalidate(equipmentSetsProvider);
   }
@@ -70,8 +77,8 @@ class EquipmentSetListNotifier extends StateNotifier<AsyncValue<List<EquipmentSe
     // Get fresh validated diver ID before creating
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
 
-    // Ensure diverId is set on new sets
-    final setWithDiver = set.diverId == null && validatedId != null
+    // Always set diverId to the current validated diver for new items
+    final setWithDiver = validatedId != null
         ? set.copyWith(diverId: validatedId)
         : set;
     final newSet = await _repository.createSet(setWithDiver);

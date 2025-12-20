@@ -126,7 +126,7 @@ class SiteRepository {
   }
 
   /// Search sites by name or location
-  Future<List<domain.DiveSite>> searchSites(String query) async {
+  Future<List<domain.DiveSite>> searchSites(String query, {String? diverId}) async {
     try {
       final searchQuery = _db.select(_db.diveSites)
         ..where((t) =>
@@ -134,6 +134,10 @@ class SiteRepository {
             t.country.contains(query) |
             t.region.contains(query),)
         ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+
+      if (diverId != null) {
+        searchQuery.where((t) => t.diverId.equals(diverId));
+      }
 
       final rows = await searchQuery.get();
       return rows.map(_mapRowToSite).toList();
@@ -164,9 +168,9 @@ class SiteRepository {
   }
 
   /// Get sites with dive counts
-  Future<List<SiteWithDiveCount>> getSitesWithDiveCounts() async {
+  Future<List<SiteWithDiveCount>> getSitesWithDiveCounts({String? diverId}) async {
     try {
-      final sites = await getAllSites();
+      final sites = await getAllSites(diverId: diverId);
       final counts = await getDiveCountsBySite();
 
       return sites.map((site) => SiteWithDiveCount(

@@ -19,7 +19,8 @@ final sitesProvider = FutureProvider<List<domain.DiveSite>>((ref) async {
 /// Sites with dive counts provider
 final sitesWithCountsProvider = FutureProvider<List<SiteWithDiveCount>>((ref) async {
   final repository = ref.watch(siteRepositoryProvider);
-  return repository.getSitesWithDiveCounts();
+  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  return repository.getSitesWithDiveCounts(diverId: validatedDiverId);
 });
 
 /// Single site provider
@@ -30,11 +31,12 @@ final siteProvider = FutureProvider.family<domain.DiveSite?, String>((ref, id) a
 
 /// Site search provider
 final siteSearchProvider = FutureProvider.family<List<domain.DiveSite>, String>((ref, query) async {
+  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
   if (query.isEmpty) {
     return ref.watch(sitesProvider).value ?? [];
   }
   final repository = ref.watch(siteRepositoryProvider);
-  return repository.searchSites(query);
+  return repository.searchSites(query, diverId: validatedDiverId);
 });
 
 /// Dive count for a specific site
@@ -56,12 +58,17 @@ class SiteListNotifier extends StateNotifier<AsyncValue<List<domain.DiveSite>>> 
     // Listen for diver changes and reload
     _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
       if (previous != next) {
+        state = const AsyncValue.loading();
+        _ref.invalidate(validatedCurrentDiverIdProvider);
+        _ref.invalidate(sitesProvider);
+        _ref.invalidate(sitesWithCountsProvider);
         _initializeAndLoad();
       }
     });
   }
 
   Future<void> _initializeAndLoad() async {
+    state = const AsyncValue.loading();
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
     _validatedDiverId = validatedId;
     await _loadSites();
@@ -78,6 +85,9 @@ class SiteListNotifier extends StateNotifier<AsyncValue<List<domain.DiveSite>>> 
   }
 
   Future<void> refresh() async {
+    // Get fresh validated diver ID before loading
+    final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
+    _validatedDiverId = validatedId;
     await _loadSites();
     _ref.invalidate(sitesProvider);
     _ref.invalidate(sitesWithCountsProvider);
@@ -87,8 +97,8 @@ class SiteListNotifier extends StateNotifier<AsyncValue<List<domain.DiveSite>>> 
     // Get fresh validated diver ID before creating
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
 
-    // Ensure diverId is set on new sites
-    final siteWithDiver = site.diverId == null && validatedId != null
+    // Always set diverId to the current validated diver for new items
+    final siteWithDiver = validatedId != null
         ? site.copyWith(diverId: validatedId)
         : site;
     final newSite = await _repository.createSite(siteWithDiver);

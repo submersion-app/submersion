@@ -77,12 +77,15 @@ class TripListNotifier extends StateNotifier<AsyncValue<List<TripWithStats>>> {
     // Listen for diver changes and reload
     _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
       if (previous != next) {
+        // Invalidate the validated provider to ensure we get the fresh value
+        _ref.invalidate(validatedCurrentDiverIdProvider);
         _initializeAndLoad();
       }
     });
   }
 
   Future<void> _initializeAndLoad() async {
+    state = const AsyncValue.loading();
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
     _validatedDiverId = validatedId;
     await _loadTrips();
@@ -99,6 +102,9 @@ class TripListNotifier extends StateNotifier<AsyncValue<List<TripWithStats>>> {
   }
 
   Future<void> refresh() async {
+    // Get fresh validated diver ID before loading
+    final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
+    _validatedDiverId = validatedId;
     await _loadTrips();
     _ref.invalidate(allTripsProvider);
     _ref.invalidate(allTripsWithStatsProvider);
@@ -108,8 +114,9 @@ class TripListNotifier extends StateNotifier<AsyncValue<List<TripWithStats>>> {
     // Get fresh validated diver ID before creating
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
 
-    // Ensure diverId is set on new trips
-    final tripWithDiver = trip.diverId == null && validatedId != null
+    // Always set diverId to the current validated diver for new trips
+    // This ensures the trip's diverId matches the filter used to display it
+    final tripWithDiver = validatedId != null
         ? trip.copyWith(diverId: validatedId)
         : trip;
     final newTrip = await _repository.createTrip(tripWithDiver);

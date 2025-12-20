@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/enums.dart';
+import '../../../divers/presentation/providers/diver_providers.dart';
 import '../../domain/entities/certification.dart';
 import '../providers/certification_providers.dart';
 
@@ -415,9 +416,14 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
     setState(() => _isSaving = true);
 
     try {
+      // Get the current diver ID - preserve existing for edits, get fresh for new certs
+      final diverId = _originalCertification?.diverId ??
+          await ref.read(validatedCurrentDiverIdProvider.future);
+
       final now = DateTime.now();
       final cert = Certification(
         id: widget.certificationId ?? '',
+        diverId: diverId,
         name: _nameController.text.trim(),
         agency: _agency,
         level: _level,

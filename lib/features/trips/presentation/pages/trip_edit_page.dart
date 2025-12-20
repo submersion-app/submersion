@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../divers/presentation/providers/diver_providers.dart';
 import '../../domain/entities/trip.dart';
 import '../providers/trip_providers.dart';
 
@@ -369,9 +370,14 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
     setState(() => _isSaving = true);
 
     try {
+      // Get the current diver ID - preserve existing for edits, get fresh for new trips
+      final diverId = _originalTrip?.diverId ??
+          await ref.read(validatedCurrentDiverIdProvider.future);
+
       final now = DateTime.now();
       final trip = Trip(
         id: widget.tripId ?? '',
+        diverId: diverId,
         name: _nameController.text.trim(),
         startDate: _startDate,
         endDate: _endDate,

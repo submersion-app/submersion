@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../../core/services/location_service.dart';
+import '../../../divers/presentation/providers/diver_providers.dart';
 import '../../domain/entities/dive_site.dart';
 import '../providers/site_providers.dart';
 import '../widgets/location_picker_map.dart';
@@ -686,7 +687,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       GeoPoint? location;
       final latText = _latitudeController.text.trim();
       final lngText = _longitudeController.text.trim();
-      
+
       if (latText.isNotEmpty && lngText.isNotEmpty) {
         final lat = double.tryParse(latText);
         final lng = double.tryParse(lngText);
@@ -695,8 +696,16 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
         }
       }
 
+      // Get the current diver ID - preserve existing for edits, get fresh for new sites
+      final existingSite = widget.isEditing
+          ? ref.read(siteProvider(widget.siteId!)).valueOrNull
+          : null;
+      final diverId = existingSite?.diverId ??
+          await ref.read(validatedCurrentDiverIdProvider.future);
+
       final site = DiveSite(
         id: widget.siteId ?? '',
+        diverId: diverId,
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim(),
         country: _countryController.text.trim().isEmpty ? null : _countryController.text.trim(),

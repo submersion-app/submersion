@@ -95,8 +95,8 @@ class DiveTypeListNotifier extends StateNotifier<AsyncValue<List<DiveTypeEntity>
     // Get fresh validated diver ID before creating
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
 
-    // Ensure diverId is set on new custom dive types
-    final diveTypeWithDiver = diveType.diverId == null && validatedId != null
+    // Always set diverId to the current validated diver for new items
+    final diveTypeWithDiver = validatedId != null
         ? diveType.copyWith(diverId: validatedId)
         : diveType;
     final newDiveType = await _repository.createDiveType(diveTypeWithDiver);

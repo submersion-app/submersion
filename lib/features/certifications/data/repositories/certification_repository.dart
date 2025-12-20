@@ -13,13 +13,17 @@ class CertificationRepository {
   final _log = LoggerService.forClass(CertificationRepository);
 
   /// Get all certifications ordered by issue date (newest first)
-  Future<List<domain.Certification>> getAllCertifications() async {
+  Future<List<domain.Certification>> getAllCertifications({String? diverId}) async {
     try {
       final query = _db.select(_db.certifications)
         ..orderBy([
           (t) => OrderingTerm.desc(t.issueDate),
           (t) => OrderingTerm.asc(t.name),
         ]);
+
+      if (diverId != null) {
+        query.where((t) => t.diverId.equals(diverId));
+      }
 
       final rows = await query.get();
       return rows.map(_mapRowToCertification).toList();
@@ -44,24 +48,30 @@ class CertificationRepository {
   }
 
   /// Search certifications by name or agency
-  Future<List<domain.Certification>> searchCertifications(String query) async {
+  Future<List<domain.Certification>> searchCertifications(String query, {String? diverId}) async {
     final searchTerm = '%${query.toLowerCase()}%';
+
+    final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+    final variables = [
+      Variable.withString(searchTerm),
+      Variable.withString(searchTerm),
+      Variable.withString(searchTerm),
+      if (diverId != null) Variable.withString(diverId),
+    ];
 
     final results = await _db.customSelect('''
       SELECT * FROM certifications
-      WHERE LOWER(name) LIKE ?
+      WHERE (LOWER(name) LIKE ?
          OR LOWER(agency) LIKE ?
-         OR LOWER(card_number) LIKE ?
+         OR LOWER(card_number) LIKE ?)
+      $diverFilter
       ORDER BY issue_date DESC, name ASC
-    ''', variables: [
-      Variable.withString(searchTerm),
-      Variable.withString(searchTerm),
-      Variable.withString(searchTerm),
-    ],).get();
+    ''', variables: variables).get();
 
     return results.map((row) {
       return domain.Certification(
         id: row.data['id'] as String,
+        diverId: row.data['diver_id'] as String?,
         name: row.data['name'] as String,
         agency: _parseCertificationAgency(row.data['agency'] as String),
         level: _parseCertificationLevel(row.data['level'] as String?),
@@ -91,6 +101,7 @@ class CertificationRepository {
 
       await _db.into(_db.certifications).insert(CertificationsCompanion(
             id: Value(id),
+            diverId: Value(cert.diverId),
             name: Value(cert.name),
             agency: Value(cert.agency.name),
             level: Value(cert.level?.name),
@@ -158,25 +169,31 @@ class CertificationRepository {
 
   /// Get certifications expiring within days
   Future<List<domain.Certification>> getExpiringCertifications(
-      int withinDays,) async {
+      int withinDays, {String? diverId}) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     final threshold =
         DateTime.now().add(Duration(days: withinDays)).millisecondsSinceEpoch;
+
+    final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+    final variables = [
+      Variable.withInt(now),
+      Variable.withInt(threshold),
+      if (diverId != null) Variable.withString(diverId),
+    ];
 
     final results = await _db.customSelect('''
       SELECT * FROM certifications
       WHERE expiry_date IS NOT NULL
         AND expiry_date > ?
         AND expiry_date <= ?
+        $diverFilter
       ORDER BY expiry_date ASC
-    ''', variables: [
-      Variable.withInt(now),
-      Variable.withInt(threshold),
-    ],).get();
+    ''', variables: variables).get();
 
     return results.map((row) {
       return domain.Certification(
         id: row.data['id'] as String,
+        diverId: row.data['diver_id'] as String?,
         name: row.data['name'] as String,
         agency: _parseCertificationAgency(row.data['agency'] as String),
         level: _parseCertificationLevel(row.data['level'] as String?),
@@ -197,21 +214,27 @@ class CertificationRepository {
   }
 
   /// Get expired certifications
-  Future<List<domain.Certification>> getExpiredCertifications() async {
+  Future<List<domain.Certification>> getExpiredCertifications({String? diverId}) async {
     final now = DateTime.now().millisecondsSinceEpoch;
+
+    final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+    final variables = [
+      Variable.withInt(now),
+      if (diverId != null) Variable.withString(diverId),
+    ];
 
     final results = await _db.customSelect('''
       SELECT * FROM certifications
       WHERE expiry_date IS NOT NULL
         AND expiry_date <= ?
+        $diverFilter
       ORDER BY expiry_date DESC
-    ''', variables: [
-      Variable.withInt(now),
-    ],).get();
+    ''', variables: variables).get();
 
     return results.map((row) {
       return domain.Certification(
         id: row.data['id'] as String,
+        diverId: row.data['diver_id'] as String?,
         name: row.data['name'] as String,
         agency: _parseCertificationAgency(row.data['agency'] as String),
         level: _parseCertificationLevel(row.data['level'] as String?),
@@ -245,6 +268,7 @@ class CertificationRepository {
   domain.Certification _mapRowToCertification(Certification row) {
     return domain.Certification(
       id: row.id,
+      diverId: row.diverId,
       name: row.name,
       agency: _parseCertificationAgency(row.agency),
       level: _parseCertificationLevel(row.level),
