@@ -14,11 +14,15 @@ import '../../../marine_life/domain/entities/species.dart';
 import '../../../marine_life/presentation/providers/species_providers.dart';
 import '../../../settings/presentation/providers/export_providers.dart';
 import '../../../settings/presentation/providers/settings_providers.dart';
+import '../../data/services/profile_analysis_service.dart';
 import '../../domain/entities/dive.dart';
 import '../providers/dive_providers.dart';
+import '../providers/profile_analysis_provider.dart';
+import '../widgets/deco_info_panel.dart';
 import '../widgets/dive_profile_chart.dart';
+import '../widgets/o2_toxicity_card.dart';
 
-class DiveDetailPage extends ConsumerWidget {
+class DiveDetailPage extends ConsumerStatefulWidget {
   final String diveId;
 
   const DiveDetailPage({
@@ -27,7 +31,17 @@ class DiveDetailPage extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DiveDetailPage> createState() => _DiveDetailPageState();
+}
+
+class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
+  /// Currently selected point index on the profile timeline
+  int? _selectedPointIndex;
+
+  String get diveId => widget.diveId;
+
+  @override
+  Widget build(BuildContext context) {
     final diveAsync = ref.watch(diveProvider(diveId));
 
     return diveAsync.when(
@@ -124,7 +138,11 @@ class DiveDetailPage extends ConsumerWidget {
             _buildHeaderSection(context, ref, dive, units),
             const SizedBox(height: 24),
             if (dive.profile.isNotEmpty) ...[
-              _buildProfileSection(context, dive),
+              _buildProfileSection(context, ref, dive),
+              const SizedBox(height: 24),
+              _buildDecoSection(context, ref, dive),
+              const SizedBox(height: 24),
+              _buildO2ToxicitySection(context, ref, dive),
               const SizedBox(height: 24),
             ],
             _buildDetailsSection(context, ref, dive, units),
@@ -378,7 +396,10 @@ class DiveDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildProfileSection(BuildContext context, Dive dive) {
+  Widget _buildProfileSection(BuildContext context, WidgetRef ref, Dive dive) {
+    // Get profile analysis
+    final analysis = ref.watch(diveProfileAnalysisProvider(dive));
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -405,7 +426,7 @@ class DiveDetailPage extends ConsumerWidget {
                       icon: const Icon(Icons.fullscreen),
                       tooltip: 'View fullscreen',
                       visualDensity: VisualDensity.compact,
-                      onPressed: () => _showFullscreenProfile(context, dive),
+                      onPressed: () => _showFullscreenProfile(context, ref, dive),
                     ),
                   ],
                 ),
@@ -416,6 +437,23 @@ class DiveDetailPage extends ConsumerWidget {
               profile: dive.profile,
               diveDuration: dive.calculatedDuration,
               maxDepth: dive.maxDepth,
+              ceilingCurve: analysis?.ceilingCurve,
+              ascentRates: analysis?.ascentRates,
+              events: analysis?.events,
+              ndlCurve: analysis?.ndlCurve,
+              onPointSelected: (point) {
+                if (point == null) {
+                  setState(() => _selectedPointIndex = null);
+                  return;
+                }
+                // Find the index of this point in the profile
+                final index = dive.profile.indexWhere(
+                  (p) => p.timestamp == point.timestamp,
+                );
+                setState(() {
+                  _selectedPointIndex = index >= 0 ? index : null;
+                });
+              },
             ),
           ],
         ),
@@ -423,10 +461,137 @@ class DiveDetailPage extends ConsumerWidget {
     );
   }
 
-  void _showFullscreenProfile(BuildContext context, Dive dive) {
+  Widget _buildDecoSection(BuildContext context, WidgetRef ref, Dive dive) {
+    final analysis = ref.watch(diveProfileAnalysisProvider(dive));
+
+    // Don't show if no analysis available
+    if (analysis == null || analysis.decoStatuses.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    // Use selected point or default to final status
+    final index = _selectedPointIndex != null &&
+            _selectedPointIndex! < analysis.decoStatuses.length
+        ? _selectedPointIndex!
+        : analysis.decoStatuses.length - 1;
+    final status = analysis.decoStatuses[index];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (_selectedPointIndex != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.timeline,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'At ${_formatTimestamp(dive.profile[_selectedPointIndex!].timestamp)}',
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: () => setState(() => _selectedPointIndex = null),
+                  icon: const Icon(Icons.clear, size: 16),
+                  label: const Text('Show end'),
+                  style: TextButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        DecoInfoPanel(
+          status: status,
+          showTissueChart: true,
+          showDecoStops: true,
+        ),
+      ],
+    );
+  }
+
+  String _formatTimestamp(int seconds) {
+    final minutes = seconds ~/ 60;
+    final secs = seconds % 60;
+    return '$minutes:${secs.toString().padLeft(2, '0')}';
+  }
+
+  Widget _buildO2ToxicitySection(BuildContext context, WidgetRef ref, Dive dive) {
+    final analysis = ref.watch(diveProfileAnalysisProvider(dive));
+
+    // Don't show if no analysis available
+    if (analysis == null) {
+      return const SizedBox.shrink();
+    }
+
+    // Show ppO2 at selected point if available
+    final selectedPpO2 = _selectedPointIndex != null &&
+            _selectedPointIndex! < analysis.ppO2Curve.length
+        ? analysis.ppO2Curve[_selectedPointIndex!]
+        : null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (selectedPpO2 != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Card(
+              color: Theme.of(context).colorScheme.primaryContainer,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.air,
+                      size: 20,
+                      color: _getPpO2Color(selectedPpO2),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'ppO₂ at selected point:',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const Spacer(),
+                    Text(
+                      '${selectedPpO2.toStringAsFixed(2)} bar',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: _getPpO2Color(selectedPpO2),
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        O2ToxicityCard(
+          exposure: analysis.o2Exposure,
+          showDetails: true,
+        ),
+      ],
+    );
+  }
+
+  Color _getPpO2Color(double ppO2) {
+    if (ppO2 >= 1.6) return Colors.red;
+    if (ppO2 >= 1.4) return Colors.orange;
+    return Colors.green;
+  }
+
+  void _showFullscreenProfile(BuildContext context, WidgetRef ref, Dive dive) {
+    final analysis = ref.read(diveProfileAnalysisProvider(dive));
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => _FullscreenProfilePage(dive: dive),
+        builder: (context) => _FullscreenProfilePage(dive: dive, analysis: analysis),
       ),
     );
   }
@@ -1106,8 +1271,9 @@ class DiveDetailPage extends ConsumerWidget {
 /// Fullscreen dive profile page with rotation support
 class _FullscreenProfilePage extends StatefulWidget {
   final Dive dive;
+  final ProfileAnalysis? analysis;
 
-  const _FullscreenProfilePage({required this.dive});
+  const _FullscreenProfilePage({required this.dive, this.analysis});
 
   @override
   State<_FullscreenProfilePage> createState() => _FullscreenProfilePageState();
@@ -1181,6 +1347,10 @@ class _FullscreenProfilePageState extends State<_FullscreenProfilePage> {
                       profile: dive.profile,
                       diveDuration: dive.calculatedDuration,
                       maxDepth: dive.maxDepth,
+                      ceilingCurve: widget.analysis?.ceilingCurve,
+                      ascentRates: widget.analysis?.ascentRates,
+                      events: widget.analysis?.events,
+                      ndlCurve: widget.analysis?.ndlCurve,
                       onPointSelected: (point) {
                         setState(() => _selectedPoint = point);
                       },

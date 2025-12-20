@@ -249,3 +249,127 @@ enum TankMaterial {
   final String displayName;
   const TankMaterial(this.displayName);
 }
+
+/// Dive mode (open circuit, closed circuit rebreather, semi-closed)
+enum DiveMode {
+  oc('Open Circuit'),
+  ccr('Closed Circuit Rebreather'),
+  scr('Semi-Closed Rebreather');
+
+  final String displayName;
+  const DiveMode(this.displayName);
+
+  /// Short code for database storage
+  String get code => name;
+
+  /// Parse from database value
+  static DiveMode fromCode(String code) {
+    return DiveMode.values.firstWhere(
+      (e) => e.code == code,
+      orElse: () => DiveMode.oc,
+    );
+  }
+}
+
+/// Profile event types (markers on dive profile)
+enum ProfileEventType {
+  descentStart('Descent Start', 'info'),
+  descentEnd('Descent End', 'info'),
+  ascentStart('Ascent Start', 'info'),
+  safetyStopStart('Safety Stop Start', 'info'),
+  safetyStopEnd('Safety Stop End', 'info'),
+  decoStopStart('Deco Stop Start', 'info'),
+  decoStopEnd('Deco Stop End', 'info'),
+  gasSwitch('Gas Switch', 'info'),
+  maxDepth('Max Depth', 'info'),
+  ascentRateWarning('Ascent Rate Warning', 'warning'),
+  ascentRateCritical('Ascent Rate Critical', 'alert'),
+  decoViolation('Deco Violation', 'alert'),
+  missedStop('Missed Deco Stop', 'alert'),
+  lowGas('Low Gas Warning', 'warning'),
+  cnsWarning('CNS Warning', 'warning'),
+  cnsCritical('CNS Critical', 'alert'),
+  ppO2High('High ppO2', 'warning'),
+  ppO2Low('Low ppO2', 'warning'),
+  setpointChange('Setpoint Change', 'info'),
+  bookmark('Bookmark', 'info'),
+  alert('Alert', 'alert'),
+  note('Note', 'info');
+
+  final String displayName;
+  final String defaultSeverity; // 'info', 'warning', 'alert'
+
+  const ProfileEventType(this.displayName, this.defaultSeverity);
+
+  /// Get icon for this event type
+  String get iconName {
+    switch (this) {
+      case ProfileEventType.descentStart:
+      case ProfileEventType.descentEnd:
+        return 'arrow_downward';
+      case ProfileEventType.ascentStart:
+        return 'arrow_upward';
+      case ProfileEventType.safetyStopStart:
+      case ProfileEventType.safetyStopEnd:
+        return 'pause_circle';
+      case ProfileEventType.decoStopStart:
+      case ProfileEventType.decoStopEnd:
+        return 'stop_circle';
+      case ProfileEventType.gasSwitch:
+        return 'swap_horiz';
+      case ProfileEventType.maxDepth:
+        return 'vertical_align_bottom';
+      case ProfileEventType.ascentRateWarning:
+      case ProfileEventType.ascentRateCritical:
+        return 'speed';
+      case ProfileEventType.decoViolation:
+      case ProfileEventType.missedStop:
+        return 'dangerous';
+      case ProfileEventType.lowGas:
+        return 'propane_tank';
+      case ProfileEventType.cnsWarning:
+      case ProfileEventType.cnsCritical:
+        return 'air';
+      case ProfileEventType.ppO2High:
+      case ProfileEventType.ppO2Low:
+        return 'warning';
+      case ProfileEventType.setpointChange:
+        return 'tune';
+      case ProfileEventType.bookmark:
+        return 'bookmark';
+      case ProfileEventType.alert:
+        return 'notification_important';
+      case ProfileEventType.note:
+        return 'note';
+    }
+  }
+}
+
+/// Event severity levels
+enum EventSeverity {
+  info('Info'),
+  warning('Warning'),
+  alert('Alert');
+
+  final String displayName;
+  const EventSeverity(this.displayName);
+}
+
+/// Ascent rate category for coloring
+enum AscentRateCategory {
+  safe('Safe', 'green'),
+  warning('Warning', 'yellow'),
+  danger('Danger', 'red');
+
+  final String displayName;
+  final String colorName;
+  const AscentRateCategory(this.displayName, this.colorName);
+
+  /// Get category from ascent rate in m/min
+  static AscentRateCategory fromRate(double rateMetersPerMin) {
+    final absRate = rateMetersPerMin.abs();
+    if (absRate <= 9.0) return AscentRateCategory.safe;
+    if (absRate <= 12.0) return AscentRateCategory.warning;
+    return AscentRateCategory.danger;
+  }
+}

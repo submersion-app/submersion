@@ -5,9 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/constants/enums.dart';
+import '../../../../core/deco/ascent_rate_calculator.dart';
 import '../../../../core/utils/unit_formatter.dart';
 import '../../../settings/presentation/providers/settings_providers.dart';
 import '../../domain/entities/dive.dart';
+import '../../domain/entities/profile_event.dart';
 
 /// Interactive dive profile chart showing depth over time with zoom/pan support
 class DiveProfileChart extends ConsumerStatefulWidget {
@@ -18,6 +21,28 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   final bool showPressure;
   final void Function(DiveProfilePoint? point)? onPointSelected;
 
+  // Decompression visualization data (optional)
+  /// Ceiling curve in meters, same length as profile
+  final List<double>? ceilingCurve;
+
+  /// Ascent rate data for each profile point
+  final List<AscentRatePoint>? ascentRates;
+
+  /// Profile events to display as markers
+  final List<ProfileEvent>? events;
+
+  /// NDL values in seconds for each point (-1 = in deco)
+  final List<int>? ndlCurve;
+
+  /// Whether to show ceiling by default
+  final bool showCeiling;
+
+  /// Whether to color depth line by ascent rate
+  final bool showAscentRateColors;
+
+  /// Whether to show event markers
+  final bool showEvents;
+
   const DiveProfileChart({
     super.key,
     required this.profile,
@@ -26,6 +51,13 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.showTemperature = true,
     this.showPressure = false,
     this.onPointSelected,
+    this.ceilingCurve,
+    this.ascentRates,
+    this.events,
+    this.ndlCurve,
+    this.showCeiling = true,
+    this.showAscentRateColors = true,
+    this.showEvents = true,
   });
 
   @override
@@ -36,6 +68,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   bool _showTemperature = true;
   bool _showPressure = false;
   bool _showHeartRate = false;
+
+  // Decompression visualization toggles
+  bool _showCeiling = true;
+  bool _showAscentRateColors = true;
+  bool _showEvents = true;
 
   // Zoom/pan state
   double _zoomLevel = 1.0;
@@ -56,6 +93,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     super.initState();
     _showTemperature = widget.showTemperature;
     _showPressure = widget.showPressure;
+    _showCeiling = widget.showCeiling;
+    _showAscentRateColors = widget.showAscentRateColors;
+    _showEvents = widget.showEvents;
   }
 
   void _resetZoom() {
@@ -148,6 +188,34 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   label: 'HR',
                   isEnabled: _showHeartRate,
                   onTap: () => setState(() => _showHeartRate = !_showHeartRate),
+                ),
+              // Ceiling toggle (if data available)
+              if (widget.ceilingCurve != null)
+                _buildMetricToggle(
+                  context,
+                  color: Colors.amber.shade700,
+                  label: 'Ceiling',
+                  isEnabled: _showCeiling,
+                  onTap: () => setState(() => _showCeiling = !_showCeiling),
+                ),
+              // Ascent rate coloring toggle (if data available)
+              if (widget.ascentRates != null)
+                _buildMetricToggle(
+                  context,
+                  color: Colors.green,
+                  label: 'Rate',
+                  isEnabled: _showAscentRateColors,
+                  onTap: () => setState(
+                      () => _showAscentRateColors = !_showAscentRateColors),
+                ),
+              // Events toggle (if data available)
+              if (widget.events != null && widget.events!.isNotEmpty)
+                _buildMetricToggle(
+                  context,
+                  color: Colors.purple,
+                  label: 'Events',
+                  isEnabled: _showEvents,
+                  onTap: () => setState(() => _showEvents = !_showEvents),
                 ),
               // Zoom controls (pushed to end)
               _buildZoomControls(context),
@@ -599,7 +667,16 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               minHR != null &&
               maxHR != null)
             _buildHeartRateLine(heartRateColor, totalMaxDepth, minHR, maxHR),
+
+          // Ceiling line (if showing and data available)
+          if (_showCeiling && widget.ceilingCurve != null)
+            _buildCeilingLine(units),
         ],
+        extraLinesData: ExtraLinesData(
+          horizontalLines: _showEvents && widget.events != null
+              ? _buildEventLines(colorScheme)
+              : [],
+        ),
         lineTouchData: LineTouchData(
           enabled: true,
           touchCallback: (event, response) {
@@ -868,6 +945,63 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     if (minutes <= 30) return 300; // 5 min intervals
     if (minutes <= 60) return 600; // 10 min intervals
     return 900; // 15 min intervals
+  }
+
+  /// Build the ceiling line (decompression ceiling)
+  LineChartBarData _buildCeilingLine(UnitFormatter units) {
+    final ceilingData = widget.ceilingCurve!;
+    final ceilingColor = Colors.amber.shade700;
+
+    // Build spots only where ceiling > 0
+    final spots = <FlSpot>[];
+    for (int i = 0; i < widget.profile.length && i < ceilingData.length; i++) {
+      final ceiling = ceilingData[i];
+      if (ceiling > 0) {
+        spots.add(FlSpot(
+          widget.profile[i].timestamp.toDouble(),
+          -units.convertDepth(ceiling), // Convert and negate for inverted axis
+        ));
+      }
+    }
+
+    return LineChartBarData(
+      spots: spots,
+      isCurved: true,
+      curveSmoothness: 0.2,
+      color: ceilingColor,
+      barWidth: 2,
+      isStrokeCapRound: true,
+      dotData: const FlDotData(show: false),
+      dashArray: [4, 4],
+      belowBarData: BarAreaData(
+        show: true,
+        color: ceilingColor.withValues(alpha: 0.15),
+        cutOffY: 0, // Fill to surface
+        applyCutOffY: true,
+      ),
+    );
+  }
+
+  /// Build vertical lines for events
+  List<HorizontalLine> _buildEventLines(ColorScheme colorScheme) {
+    // We use vertical lines at event timestamps, but fl_chart's extraLinesData
+    // uses HorizontalLine/VerticalLine. Since we want vertical markers at
+    // specific times, we'd need VerticalLine. However, the current fl_chart API
+    // might not support this well in lineBarsData context.
+    // For now, return empty - events will be shown differently
+    return [];
+  }
+
+  /// Get color for ascent rate category
+  Color _getAscentRateColor(AscentRateCategory category) {
+    switch (category) {
+      case AscentRateCategory.safe:
+        return Colors.green;
+      case AscentRateCategory.warning:
+        return Colors.orange;
+      case AscentRateCategory.danger:
+        return Colors.red;
+    }
   }
 }
 

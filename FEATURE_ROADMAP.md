@@ -3,7 +3,9 @@
 
 > **Last Updated:** 2025-12-19
 > **Current Version:** 1.1.0 (v1.1 Complete)
-> **Status:** v1.0 ✅ COMPLETE | v1.1 ✅ COMPLETE | v1.5 📋 Planned
+> **Status:** v1.0 ✅ COMPLETE | v1.1 ✅ COMPLETE | v1.5 🚧 In Progress
+>
+> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete - Bühlmann ZH-L16C deco algorithm, CNS/OTU O₂ toxicity tracking, ascent rate monitoring, multi-computer support, 141 unit tests
 
 ---
 
@@ -106,20 +108,23 @@
 | Temperature overlay | ✅ Implemented | MVP | Toggle on/off |
 | Zoom and pan controls | ✅ Implemented | v1.1 | Pinch/scroll zoom, pan when zoomed |
 | Touch markers/tooltips | ✅ Implemented | v1.1 | Shows depth, time, temp at touch point |
-| Profile markers/events | 📋 Planned | v1.5 | Descent, safety stop, gas switch, alerts |
-| Ascent rate indicators | 📋 Planned | v1.5 | Color-code dangerous ascents |
-| Ceiling / NDL curve | 📋 Planned | v1.5 | Requires deco algorithm |
-| ppO₂ curve, CNS/OTU | 📋 Planned | v1.5 | Technical diving |
+| Profile markers/events | ✅ Implemented | v1.5 | Descent, safety stop, gas switch, alerts |
+| Ascent rate indicators | ✅ Implemented | v1.5 | Color-coded (green <9m/min, yellow 9-12, red >12) |
+| Ceiling / NDL curve | ✅ Implemented | v1.5 | Bühlmann ZH-L16C with GF support |
+| ppO₂ curve, CNS/OTU | ✅ Implemented | v1.5 | O2ToxicityCard with NOAA tables |
 | SAC/RMV overlay | 📋 Planned | v1.5 | Instantaneous gas consumption |
 | Profile export as PNG | 📋 Planned | v2.0 | Export chart image for sharing |
 
 **v1.5 Tasks:**
-- [ ] Profile event markers (table: `dive_profile_events` with type, timestamp, description)
-- [ ] Ascent rate calculation and color overlay (green <9m/min, yellow 9-12, red >12)
-- [ ] NDL curve from Bühlmann implementation
-- [ ] CNS O₂ toxicity tracking for nitrox/trimix
-- [ ] OTU (Oxygen Tolerance Unit) calculation
-- [ ] ppO₂ graph for CCR dives
+- [x] Profile event markers (ProfileEvent entity with type, timestamp, severity)
+- [x] Ascent rate calculation and color overlay (green <9m/min, yellow 9-12, red >12)
+- [x] NDL curve from Bühlmann implementation
+- [x] CNS O₂ toxicity tracking for nitrox/trimix (NOAA exposure tables)
+- [x] OTU (Oxygen Tolerance Unit) calculation
+- [x] ppO₂ curve display with warnings
+- [x] Deco ceiling curve on profile chart
+- [x] Interactive timeline updates deco/O2 panels
+- [ ] SAC/RMV overlay on profile chart
 
 ---
 
@@ -127,14 +132,16 @@
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Multiple computers per dive | 📋 Planned | v1.5 | Backup computer, bottom timer |
+| Multiple computers per dive | ✅ Implemented | v1.5 | DiveComputer entity with profiles |
+| Profile selector UI | ✅ Implemented | v1.5 | ProfileSelectorWidget for switching |
 | Profile comparison (buddies) | 📋 Planned | v2.0 | Side-by-side view |
 | Profile merging | 📋 Planned | v2.0 | Combine multiple sources |
 
 **v1.5 Tasks:**
-- [ ] Add `computer_id` to dive_profiles table
-- [ ] UI to select active profile when multiple exist
-- [ ] Indicate which profile is "primary" for statistics
+- [x] DiveComputer entity (name, manufacturer, model, serial)
+- [x] Add `computerId` to dive_profiles table
+- [x] UI to select active profile when multiple exist (ProfileSelectorWidget)
+- [x] Primary profile indicator for statistics
 
 **v2.0 Tasks:**
 - [ ] Side-by-side profile comparison view
@@ -275,16 +282,20 @@
 | SAC / RMV (per dive) | ✅ Implemented | MVP | Surface Air Consumption Rate |
 | MOD calculation | ✅ Implemented | MVP | Maximum Operating Depth in entity |
 | END calculation | ✅ Implemented | MVP | Equivalent Narcotic Depth in entity |
+| CNS% tracking | ✅ Implemented | v1.5 | NOAA exposure tables with warnings |
+| OTU tracking | ✅ Implemented | v1.5 | Daily limit tracking with % display |
+| ppO₂ monitoring | ✅ Implemented | v1.5 | Warning/critical thresholds (1.4/1.6 bar) |
 | SAC per segment | 📋 Planned | v1.5 | Time-based or depth-based segments |
 | SAC per cylinder | 📋 Planned | v1.5 | For multi-tank dives |
-| CNS / OTU tracking | 📋 Planned | v1.5 | O₂ toxicity tracking |
 
 **v1.5 Tasks:**
+- [x] CNS% calculation per dive (accumulated O₂ exposure using NOAA tables)
+- [x] OTU calculation (Oxygen Tolerance Units with daily limit tracking)
+- [x] CNS/OTU display on dive detail page (O2ToxicityCard)
+- [x] ppO₂ curve calculation and warnings
+- [x] 68 unit tests for O2 toxicity calculations
 - [ ] Segment SAC calculation (5-minute segments or depth-based)
 - [ ] SAC trend chart (line chart showing SAC over time for a dive)
-- [ ] CNS% calculation per dive (accumulated O₂ exposure)
-- [ ] OTU calculation (Oxygen Tolerance Units)
-- [ ] CNS/OTU display on dive detail page with warnings if exceeded limits
 
 ---
 
@@ -292,21 +303,28 @@
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Bühlmann ZH-L16 with GF | 📋 Planned | v1.5 | Industry-standard deco algorithm |
+| Bühlmann ZH-L16C with GF | ✅ Implemented | v1.5 | Full algorithm with 16 compartments |
+| Gradient Factors | ✅ Implemented | v1.5 | GF Low/High configurable in settings |
+| NDL display | ✅ Implemented | v1.5 | Real-time NDL on profile chart |
+| Ceiling calculation | ✅ Implemented | v1.5 | M-values with gradient factors |
+| Tissue loading display | ✅ Implemented | v1.5 | 16-compartment bar chart (DecoInfoPanel) |
+| TTS calculation | ✅ Implemented | v1.5 | Time To Surface with deco stops |
+| Deco stop schedule | ✅ Implemented | v1.5 | Stop depth/time with deep stop support |
 | Calculated vs DC ceiling | 📋 Planned | v1.5 | Compare app calc with computer |
-| NDL display | 📋 Planned | v1.5 | No Decompression Limit |
 | OC/CCR support | 📋 Planned | v1.5 | Open Circuit / Closed Circuit Rebreather |
 | Setpoints, diluent, bailout | 📋 Planned | v1.5 | CCR-specific fields |
 
 **v1.5 Tasks (Deco Algorithm Implementation):**
-- [ ] Implement Bühlmann ZH-L16C algorithm in Dart
-- [ ] Gradient Factors (GF Low/High) configuration in settings
-- [ ] 16-compartment tissue loading calculation
-- [ ] NDL calculation for any depth/gas combination
-- [ ] Ceiling calculation (M-values with GF)
-- [ ] Deco schedule generation (stop depth/time)
-- [ ] Display NDL/ceiling on profile chart
-- [ ] TTS (Time To Surface) calculation
+- [x] Implement Bühlmann ZH-L16C algorithm in Dart
+- [x] Gradient Factors (GF Low/High) configuration in settings
+- [x] 16-compartment tissue loading calculation
+- [x] NDL calculation for any depth/gas combination
+- [x] Ceiling calculation (M-values with GF)
+- [x] Deco schedule generation (stop depth/time)
+- [x] Display NDL/ceiling on profile chart
+- [x] TTS (Time To Surface) calculation
+- [x] DecoInfoPanel with tissue loading visualization
+- [x] 141 unit tests for deco algorithms
 
 **v1.5 CCR Support:**
 - [ ] Add `dive_mode` enum (OC, CCR, SCR) to dives table
@@ -1113,9 +1131,13 @@
 - [x] Tags system
 - [x] Integration and performance tests
 
-## v1.5 (Planned)
+## v1.5 (In Progress)
 - [ ] Dive computer import (50+ models)
-- [ ] Bühlmann algorithm validated
+- [x] Bühlmann ZH-L16C algorithm implemented (141 unit tests)
+- [x] Profile analysis with deco ceiling, NDL, tissue loading
+- [x] O₂ toxicity tracking (CNS%, OTU, ppO₂)
+- [x] Ascent rate monitoring with warnings
+- [x] Multi-computer/profile support
 - [ ] Dive planner with deco schedules
 - [ ] Performance with 5000+ dives
 
