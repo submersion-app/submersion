@@ -206,7 +206,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   label: 'Rate',
                   isEnabled: _showAscentRateColors,
                   onTap: () => setState(
-                      () => _showAscentRateColors = !_showAscentRateColors),
+                    () => _showAscentRateColors = !_showAscentRateColors,
+                  ),
                 ),
               // Events toggle (if data available)
               if (widget.events != null && widget.events!.isNotEmpty)
@@ -420,8 +421,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     );
   }
 
-  Widget _buildLegendItem(BuildContext context,
-      {required Color color, required String label}) {
+  Widget _buildLegendItem(
+    BuildContext context, {
+    required Color color,
+    required String label,
+  }) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -651,7 +655,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               minTemp != null &&
               maxTemp != null)
             _buildTemperatureLine(
-                colorScheme, totalMaxDepth, minTemp, maxTemp, units),
+              colorScheme,
+              totalMaxDepth,
+              minTemp,
+              maxTemp,
+              units,
+            ),
 
           // Pressure line (if showing)
           if (_showPressure &&
@@ -659,7 +668,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               minPressure != null &&
               maxPressure != null)
             _buildPressureLine(
-                pressureColor, totalMaxDepth, minPressure, maxPressure),
+              pressureColor,
+              totalMaxDepth,
+              minPressure,
+              maxPressure,
+            ),
 
           // Heart rate line (if showing)
           if (_showHeartRate &&
@@ -714,73 +727,93 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 final lines = <TextSpan>[];
 
                 // Time (always shown)
-                lines.add(TextSpan(
-                  text: '$minutes:${seconds.toString().padLeft(2, '0')}\n',
-                  style: TextStyle(
-                    color: colorScheme.onInverseSurface.withValues(alpha: 0.7),
-                    fontSize: 11,
+                lines.add(
+                  TextSpan(
+                    text: '$minutes:${seconds.toString().padLeft(2, '0')}\n',
+                    style: TextStyle(
+                      color:
+                          colorScheme.onInverseSurface.withValues(alpha: 0.7),
+                      fontSize: 11,
+                    ),
                   ),
-                ));
+                );
 
                 // Depth (always shown) with color marker
                 final depthDisplay = units.formatDepth(point.depth);
-                lines.add(TextSpan(
-                  text: '● ',
-                  style: TextStyle(color: colorScheme.primary, fontSize: 10),
-                ));
-                lines.add(TextSpan(
-                  text: '$depthDisplay\n',
-                  style: TextStyle(
-                    color: colorScheme.onInverseSurface,
-                    fontWeight: FontWeight.bold,
+                lines.add(
+                  TextSpan(
+                    text: '● ',
+                    style: TextStyle(color: colorScheme.primary, fontSize: 10),
                   ),
-                ));
+                );
+                lines.add(
+                  TextSpan(
+                    text: '$depthDisplay\n',
+                    style: TextStyle(
+                      color: colorScheme.onInverseSurface,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                );
 
                 // Temperature (if enabled and available)
                 if (_showTemperature && point.temperature != null) {
                   final tempDisplay =
                       units.formatTemperature(point.temperature);
-                  lines.add(TextSpan(
-                    text: '● ',
-                    style: TextStyle(color: colorScheme.tertiary, fontSize: 10),
-                  ));
-                  lines.add(TextSpan(
-                    text: '$tempDisplay\n',
-                    style: TextStyle(
-                      color: colorScheme.onInverseSurface,
-                      fontWeight: FontWeight.bold,
+                  lines.add(
+                    TextSpan(
+                      text: '● ',
+                      style:
+                          TextStyle(color: colorScheme.tertiary, fontSize: 10),
                     ),
-                  ));
+                  );
+                  lines.add(
+                    TextSpan(
+                      text: '$tempDisplay\n',
+                      style: TextStyle(
+                        color: colorScheme.onInverseSurface,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  );
                 }
 
                 // Pressure (if enabled and available)
                 if (_showPressure && point.pressure != null) {
-                  lines.add(const TextSpan(
-                    text: '● ',
-                    style: TextStyle(color: Colors.orange, fontSize: 10),
-                  ));
-                  lines.add(TextSpan(
-                    text: '${point.pressure!.toInt()} bar\n',
-                    style: TextStyle(
-                      color: colorScheme.onInverseSurface,
-                      fontWeight: FontWeight.bold,
+                  lines.add(
+                    const TextSpan(
+                      text: '● ',
+                      style: TextStyle(color: Colors.orange, fontSize: 10),
                     ),
-                  ));
+                  );
+                  lines.add(
+                    TextSpan(
+                      text: '${point.pressure!.toInt()} bar\n',
+                      style: TextStyle(
+                        color: colorScheme.onInverseSurface,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  );
                 }
 
                 // Heart rate (if enabled and available)
                 if (_showHeartRate && point.heartRate != null) {
-                  lines.add(const TextSpan(
-                    text: '● ',
-                    style: TextStyle(color: Colors.red, fontSize: 10),
-                  ));
-                  lines.add(TextSpan(
-                    text: '${point.heartRate!} bpm\n',
-                    style: TextStyle(
-                      color: colorScheme.onInverseSurface,
-                      fontWeight: FontWeight.bold,
+                  lines.add(
+                    const TextSpan(
+                      text: '● ',
+                      style: TextStyle(color: Colors.red, fontSize: 10),
                     ),
-                  ));
+                  );
+                  lines.add(
+                    TextSpan(
+                      text: '${point.heartRate!} bpm\n',
+                      style: TextStyle(
+                        color: colorScheme.onInverseSurface,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  );
                 }
 
                 return LineTooltipItem(
@@ -797,14 +830,17 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   }
 
   LineChartBarData _buildDepthLine(
-      ColorScheme colorScheme, UnitFormatter units) {
+    ColorScheme colorScheme,
+    UnitFormatter units,
+  ) {
     return LineChartBarData(
       spots: widget.profile
           .map(
             (p) => FlSpot(
               p.timestamp.toDouble(),
-              -units.convertDepth(p
-                  .depth), // Convert to user's unit and negate for inverted axis
+              -units.convertDepth(
+                p.depth,
+              ), // Convert to user's unit and negate for inverted axis
             ),
           )
           .toList(),
@@ -842,8 +878,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             (p) => FlSpot(
               p.timestamp.toDouble(),
               // Convert temp to user's unit, then map to depth axis
-              -_mapTempToDepth(units.convertTemperature(p.temperature!),
-                  chartMaxDepth, minTemp, maxTemp),
+              -_mapTempToDepth(
+                units.convertTemperature(p.temperature!),
+                chartMaxDepth,
+                minTemp,
+                maxTemp,
+              ),
             ),
           )
           .toList(),
@@ -870,7 +910,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             (p) => FlSpot(
               p.timestamp.toDouble(),
               -_mapValueToDepth(
-                  p.pressure!, chartMaxDepth, minPressure, maxPressure),
+                p.pressure!,
+                chartMaxDepth,
+                minPressure,
+                maxPressure,
+              ),
             ),
           )
           .toList(),
@@ -897,7 +941,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             (p) => FlSpot(
               p.timestamp.toDouble(),
               -_mapValueToDepth(
-                  p.heartRate!.toDouble(), chartMaxDepth, minHR, maxHR),
+                p.heartRate!.toDouble(),
+                chartMaxDepth,
+                minHR,
+                maxHR,
+              ),
             ),
           )
           .toList(),
@@ -913,21 +961,33 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
   // Map temperature value to depth axis for overlay
   double _mapTempToDepth(
-      double temp, double maxDepth, double minTemp, double maxTemp) {
+    double temp,
+    double maxDepth,
+    double minTemp,
+    double maxTemp,
+  ) {
     final normalized = (temp - minTemp) / (maxTemp - minTemp);
     return maxDepth * (1 - normalized); // Higher temp maps to shallower depth
   }
 
   // Generic value to depth axis mapping
   double _mapValueToDepth(
-      double value, double maxDepth, double minValue, double maxValue) {
+    double value,
+    double maxDepth,
+    double minValue,
+    double maxValue,
+  ) {
     final normalized = (value - minValue) / (maxValue - minValue);
     return maxDepth * (1 - normalized);
   }
 
   // Map depth axis value back to temperature for right axis labels
   double _mapDepthToTemp(
-      double depthAxisValue, double maxDepth, double minTemp, double maxTemp) {
+    double depthAxisValue,
+    double maxDepth,
+    double minTemp,
+    double maxTemp,
+  ) {
     final normalized = 1 - (depthAxisValue / maxDepth);
     return minTemp + (normalized * (maxTemp - minTemp));
   }
@@ -957,10 +1017,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     for (int i = 0; i < widget.profile.length && i < ceilingData.length; i++) {
       final ceiling = ceilingData[i];
       if (ceiling > 0) {
-        spots.add(FlSpot(
-          widget.profile[i].timestamp.toDouble(),
-          -units.convertDepth(ceiling), // Convert and negate for inverted axis
-        ));
+        spots.add(
+          FlSpot(
+            widget.profile[i].timestamp.toDouble(),
+            -units
+                .convertDepth(ceiling), // Convert and negate for inverted axis
+          ),
+        );
       }
     }
 
@@ -1043,8 +1106,12 @@ class DiveProfileMiniChart extends StatelessWidget {
           lineBarsData: [
             LineChartBarData(
               spots: profile
-                  .map((p) => FlSpot(p.timestamp.toDouble(),
-                      -p.depth)) // Negate for inverted axis
+                  .map(
+                    (p) => FlSpot(
+                      p.timestamp.toDouble(),
+                      -p.depth,
+                    ),
+                  ) // Negate for inverted axis
                   .toList(),
               isCurved: true,
               curveSmoothness: 0.3,

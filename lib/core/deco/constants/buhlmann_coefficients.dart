@@ -8,6 +8,7 @@
 /// - Bühlmann, A.A. "Decompression-Decompression Sickness" (1984)
 /// - Erik Baker's "Understanding M-values" (1998)
 /// - ZH-L16C coefficients from various validated sources
+library;
 
 /// ZH-L16C Nitrogen half-times in minutes for each compartment (1-16).
 const List<double> zhl16cN2HalfTimes = [
@@ -191,8 +192,10 @@ double calculateInspiredHe(double ambientPressure, double fHe) {
 /// [depthMeters] is the depth in meters.
 /// [surfacePressure] is the surface pressure in bar (default 1.0).
 /// Returns ambient pressure in bar.
-double calculateAmbientPressure(double depthMeters,
-    {double surfacePressure = 1.0}) {
+double calculateAmbientPressure(
+  double depthMeters, {
+  double surfacePressure = 1.0,
+}) {
   return surfacePressure + (depthMeters / 10.0);
 }
 
@@ -201,8 +204,10 @@ double calculateAmbientPressure(double depthMeters,
 /// [ambientPressure] is the pressure in bar.
 /// [surfacePressure] is the surface pressure in bar (default 1.0).
 /// Returns depth in meters.
-double calculateDepthFromPressure(double ambientPressure,
-    {double surfacePressure = 1.0}) {
+double calculateDepthFromPressure(
+  double ambientPressure, {
+  double surfacePressure = 1.0,
+}) {
   return (ambientPressure - surfacePressure) * 10.0;
 }
 

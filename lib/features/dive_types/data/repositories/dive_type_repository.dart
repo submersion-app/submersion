@@ -31,7 +31,8 @@ class DiveTypeRepository {
       // Custom types: isBuiltIn = false AND diverId = currentDiverId
       if (diverId != null) {
         query.where(
-          (t) => t.isBuiltIn.equals(true) |
+          (t) =>
+              t.isBuiltIn.equals(true) |
               (t.isBuiltIn.equals(false) & t.diverId.equals(diverId)),
         );
       } else {
@@ -66,7 +67,8 @@ class DiveTypeRepository {
 
   /// Get only custom (user-defined) dive types for the specified diver
   /// Returns empty list if no diverId is provided (custom types require a diver)
-  Future<List<domain.DiveTypeEntity>> getCustomDiveTypes({String? diverId}) async {
+  Future<List<domain.DiveTypeEntity>> getCustomDiveTypes(
+      {String? diverId}) async {
     try {
       // Custom types require a diver - return empty list if no diver specified
       if (diverId == null) {
@@ -115,7 +117,8 @@ class DiveTypeRepository {
 
   /// Create a new custom dive type
   /// Custom dive types require a diverId to be associated with a diver profile
-  Future<domain.DiveTypeEntity> createDiveType(domain.DiveTypeEntity diveType) async {
+  Future<domain.DiveTypeEntity> createDiveType(
+      domain.DiveTypeEntity diveType) async {
     try {
       // Custom dive types must have a diver ID
       if (diveType.diverId == null) {
@@ -125,7 +128,8 @@ class DiveTypeRepository {
         );
       }
 
-      _log.info('Creating dive type: ${diveType.name} for diver: ${diveType.diverId}');
+      _log.info(
+          'Creating dive type: ${diveType.name} for diver: ${diveType.diverId}');
 
       // Generate slug from name if id is empty
       final id = diveType.id.isEmpty
@@ -134,7 +138,8 @@ class DiveTypeRepository {
 
       // Ensure the slug is unique
       final existing = await getDiveTypeById(id);
-      final uniqueId = existing != null ? '${id}_${_uuid.v4().substring(0, 8)}' : id;
+      final uniqueId =
+          existing != null ? '${id}_${_uuid.v4().substring(0, 8)}' : id;
 
       final now = DateTime.now().millisecondsSinceEpoch;
 
@@ -142,22 +147,25 @@ class DiveTypeRepository {
       final maxSortOrder = await _getMaxSortOrder();
 
       await _db.into(_db.diveTypes).insert(
-        DiveTypesCompanion(
-          id: Value(uniqueId),
-          diverId: Value(diveType.diverId),
-          name: Value(diveType.name),
-          isBuiltIn: const Value(false), // Custom types are never built-in
-          sortOrder:
-              Value(diveType.sortOrder > 0 ? diveType.sortOrder : maxSortOrder + 1),
-          createdAt: Value(now),
-          updatedAt: Value(now),
-        ),
-      );
+            DiveTypesCompanion(
+              id: Value(uniqueId),
+              diverId: Value(diveType.diverId),
+              name: Value(diveType.name),
+              isBuiltIn: const Value(false), // Custom types are never built-in
+              sortOrder: Value(diveType.sortOrder > 0
+                  ? diveType.sortOrder
+                  : maxSortOrder + 1),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
 
-      _log.info('Created dive type with id: $uniqueId for diver: ${diveType.diverId}');
+      _log.info(
+          'Created dive type with id: $uniqueId for diver: ${diveType.diverId}');
       return diveType.copyWith(
         id: uniqueId,
-        sortOrder: diveType.sortOrder > 0 ? diveType.sortOrder : maxSortOrder + 1,
+        sortOrder:
+            diveType.sortOrder > 0 ? diveType.sortOrder : maxSortOrder + 1,
       );
     } catch (e, stackTrace) {
       _log.error('Failed to create dive type', e, stackTrace);
@@ -177,7 +185,8 @@ class DiveTypeRepository {
       _log.info('Updating dive type: ${diveType.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await (_db.update(_db.diveTypes)..where((t) => t.id.equals(diveType.id))).write(
+      await (_db.update(_db.diveTypes)..where((t) => t.id.equals(diveType.id)))
+          .write(
         DiveTypesCompanion(
           name: Value(diveType.name),
           sortOrder: Value(diveType.sortOrder),
@@ -216,14 +225,16 @@ class DiveTypeRepository {
   /// Get dive type usage statistics for the specified diver
   /// Shows built-in types plus custom types for the diver
   /// If no diverId is provided, shows only built-in types
-  Future<List<DiveTypeStatistic>> getDiveTypeStatistics({String? diverId}) async {
+  Future<List<DiveTypeStatistic>> getDiveTypeStatistics(
+      {String? diverId}) async {
     try {
       final String whereClause;
       final List<Variable> variables;
 
       if (diverId != null) {
         // Built-in types OR (custom types for this diver)
-        whereClause = 'WHERE dt.is_built_in = 1 OR (dt.is_built_in = 0 AND dt.diver_id = ?)';
+        whereClause =
+            'WHERE dt.is_built_in = 1 OR (dt.is_built_in = 0 AND dt.diver_id = ?)';
         variables = [Variable.withString(diverId)];
       } else {
         // No diver specified - only show built-in types
@@ -231,27 +242,36 @@ class DiveTypeRepository {
         variables = [];
       }
 
-      final result = await _db.customSelect('''
+      final result = await _db.customSelect(
+        '''
         SELECT dt.*, COUNT(d.id) as dive_count
         FROM dive_types dt
         LEFT JOIN dives d ON dt.id = d.dive_type
         $whereClause
         GROUP BY dt.id
         ORDER BY dt.sort_order, dt.name
-      ''', variables: variables).get();
+      ''',
+        variables: variables,
+      ).get();
 
-      return result.map((row) => DiveTypeStatistic(
-        diveType: domain.DiveTypeEntity(
-          id: row.data['id'] as String,
-          diverId: row.data['diver_id'] as String?,
-          name: row.data['name'] as String,
-          isBuiltIn: (row.data['is_built_in'] as int) == 1,
-          sortOrder: row.data['sort_order'] as int,
-          createdAt: DateTime.fromMillisecondsSinceEpoch(row.data['created_at'] as int),
-          updatedAt: DateTime.fromMillisecondsSinceEpoch(row.data['updated_at'] as int),
-        ),
-        diveCount: row.data['dive_count'] as int,
-      ),).toList();
+      return result
+          .map(
+            (row) => DiveTypeStatistic(
+              diveType: domain.DiveTypeEntity(
+                id: row.data['id'] as String,
+                diverId: row.data['diver_id'] as String?,
+                name: row.data['name'] as String,
+                isBuiltIn: (row.data['is_built_in'] as int) == 1,
+                sortOrder: row.data['sort_order'] as int,
+                createdAt: DateTime.fromMillisecondsSinceEpoch(
+                    row.data['created_at'] as int),
+                updatedAt: DateTime.fromMillisecondsSinceEpoch(
+                    row.data['updated_at'] as int),
+              ),
+              diveCount: row.data['dive_count'] as int,
+            ),
+          )
+          .toList();
     } catch (e, stackTrace) {
       _log.error('Failed to get dive type statistics', e, stackTrace);
       rethrow;
@@ -261,9 +281,12 @@ class DiveTypeRepository {
   /// Check if a dive type is in use
   Future<bool> isDiveTypeInUse(String id) async {
     try {
-      final result = await _db.customSelect('''
+      final result = await _db.customSelect(
+        '''
         SELECT COUNT(*) as count FROM dives WHERE dive_type = ?
-      ''', variables: [Variable.withString(id)],).getSingle();
+      ''',
+        variables: [Variable.withString(id)],
+      ).getSingle();
       return (result.data['count'] as int) > 0;
     } catch (e, stackTrace) {
       _log.error('Failed to check if dive type is in use: $id', e, stackTrace);

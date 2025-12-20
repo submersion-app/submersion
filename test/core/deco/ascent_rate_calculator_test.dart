@@ -82,18 +82,21 @@ void main() {
 
       test('should categorize descent by absolute value', () {
         // Fast descent also triggers warnings
-        expect(calculator.categorize(-10.0), equals(AscentRateCategory.warning));
+        expect(
+            calculator.categorize(-10.0), equals(AscentRateCategory.warning));
         expect(calculator.categorize(-15.0), equals(AscentRateCategory.danger));
       });
 
       test('should respect custom thresholds', () {
-        final conservative = const AscentRateCalculator(
+        const conservative = AscentRateCalculator(
           warningThreshold: 6.0,
           criticalThreshold: 9.0,
         );
 
-        expect(conservative.categorize(7.0), equals(AscentRateCategory.warning));
-        expect(conservative.categorize(10.0), equals(AscentRateCategory.danger));
+        expect(
+            conservative.categorize(7.0), equals(AscentRateCategory.warning));
+        expect(
+            conservative.categorize(10.0), equals(AscentRateCategory.danger));
         expect(calculator.categorize(7.0), equals(AscentRateCategory.safe));
       });
     });
@@ -122,7 +125,7 @@ void main() {
         final timestamps = [0, 60, 120, 600, 660, 720];
 
         // Use no smoothing for predictable results
-        final calc = const AscentRateCalculator(smoothingWindow: 1);
+        const calc = AscentRateCalculator(smoothingWindow: 1);
         final rates = calc.calculateProfileRates(depths, timestamps);
 
         expect(rates.length, equals(6));
@@ -160,7 +163,7 @@ void main() {
         final timestamps = [0, 60, 120, 180];
 
         // Use no smoothing for predictable results
-        final calc = const AscentRateCalculator(smoothingWindow: 1);
+        const calc = AscentRateCalculator(smoothingWindow: 1);
         final rates = calc.calculateProfileRates(depths, timestamps);
 
         // Ascent rates of 10m/min should be warning
@@ -174,7 +177,7 @@ void main() {
         final depths = [30.0, 0.0];
         final timestamps = [0, 60];
 
-        final calc = const AscentRateCalculator(smoothingWindow: 1);
+        const calc = AscentRateCalculator(smoothingWindow: 1);
         final rates = calc.calculateProfileRates(depths, timestamps);
 
         expect(rates[1].category, equals(AscentRateCategory.danger));
@@ -186,15 +189,17 @@ void main() {
         final depths = [30.0, 30.0, 25.0, 30.0, 30.0];
         final timestamps = [0, 60, 70, 80, 140];
 
-        final smoothedCalc = const AscentRateCalculator(smoothingWindow: 3);
-        final unsmoothCalc = const AscentRateCalculator(smoothingWindow: 1);
+        const smoothedCalc = AscentRateCalculator(smoothingWindow: 3);
+        const unsmoothCalc = AscentRateCalculator(smoothingWindow: 1);
 
         final smoothed = smoothedCalc.calculateProfileRates(depths, timestamps);
         final unsmooth = unsmoothCalc.calculateProfileRates(depths, timestamps);
 
         // With smoothing, spike should be reduced
-        expect(smoothed[2].rateMetersPerMin.abs(),
-            lessThan(unsmooth[2].rateMetersPerMin.abs()));
+        expect(
+          smoothed[2].rateMetersPerMin.abs(),
+          lessThan(unsmooth[2].rateMetersPerMin.abs()),
+        );
       });
     });
 
@@ -450,7 +455,8 @@ void main() {
           ),
         ];
 
-        expect(calculator.getMaxDescentRate(rates), equals(30.0)); // Returned as positive
+        expect(calculator.getMaxDescentRate(rates),
+            equals(30.0)); // Returned as positive
       });
 
       test('should ignore ascent rates', () {
@@ -775,7 +781,7 @@ void main() {
 
   group('Integration tests', () {
     test('should analyze a typical recreational dive profile', () {
-      final calculator = const AscentRateCalculator(smoothingWindow: 1);
+      const calculator = AscentRateCalculator(smoothingWindow: 1);
 
       // Simulate a 30-minute dive to 18m with proper ascent
       final depths = <double>[];
@@ -819,7 +825,7 @@ void main() {
     });
 
     test('should detect emergency ascent', () {
-      final calculator = const AscentRateCalculator(smoothingWindow: 1);
+      const calculator = AscentRateCalculator(smoothingWindow: 1);
 
       // Emergency ascent from 30m to surface in 1 minute (30m/min!)
       final depths = [30.0, 20.0, 10.0, 0.0];

@@ -139,7 +139,9 @@ class CnsTable {
 
   /// Calculate remaining CNS% after surface interval
   static double cnsAfterSurfaceInterval(
-      double currentCns, int surfaceIntervalMinutes) {
+    double currentCns,
+    int surfaceIntervalMinutes,
+  ) {
     if (currentCns <= 0) return 0.0;
     // Exponential decay with 90-minute half-time
     final halfTimes = surfaceIntervalMinutes / cnsHalfTimeMinutes;
@@ -172,7 +174,11 @@ class OtuCalculator {
 
   static double _exp(double x) {
     // Use dart:math exp
-    return x.isFinite ? (2.718281828459045 * x).abs() < 700 ? _expImpl(x) : 0 : 0;
+    return x.isFinite
+        ? (2.718281828459045 * x).abs() < 700
+            ? _expImpl(x)
+            : 0
+        : 0;
   }
 
   static double _expImpl(double x) {
@@ -190,8 +196,8 @@ class OtuCalculator {
     if (x <= 0) return double.negativeInfinity;
     // Natural log approximation
     double result = 0;
-    double y = (x - 1) / (x + 1);
-    double y2 = y * y;
+    final double y = (x - 1) / (x + 1);
+    final double y2 = y * y;
     double term = y;
     for (int i = 1; i <= 50; i += 2) {
       result += term / i;

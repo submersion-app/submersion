@@ -84,14 +84,17 @@ class DiveRepository {
           .toSet()
           .toList();
       final allTrips = tripIds.isNotEmpty
-          ? await (_db.select(_db.trips)..where((t) => t.id.isIn(tripIds))).get()
+          ? await (_db.select(_db.trips)..where((t) => t.id.isIn(tripIds)))
+              .get()
           : <Trip>[];
       final tripsById = {for (final t in allTrips) t.id: t};
 
       // Load all equipment for these dives in one query
       final allDiveEquipment = await (_db.select(_db.diveEquipment).join([
-        innerJoin(_db.equipment,
-            _db.equipment.id.equalsExp(_db.diveEquipment.equipmentId)),
+        innerJoin(
+          _db.equipment,
+          _db.equipment.id.equalsExp(_db.diveEquipment.equipmentId),
+        ),
       ])
             ..where(_db.diveEquipment.diveId.isIn(diveIds)))
           .get();
@@ -465,13 +468,19 @@ class DiveRepository {
 
   /// Get dives within a date range
   Future<List<domain.Dive>> getDivesInRange(
-      DateTime start, DateTime end) async {
+    DateTime start,
+    DateTime end,
+  ) async {
     try {
       final query = _db.select(_db.dives)
-        ..where((t) =>
-            t.diveDateTime.isBiggerOrEqualValue(start.millisecondsSinceEpoch))
-        ..where((t) =>
-            t.diveDateTime.isSmallerOrEqualValue(end.millisecondsSinceEpoch))
+        ..where(
+          (t) =>
+              t.diveDateTime.isBiggerOrEqualValue(start.millisecondsSinceEpoch),
+        )
+        ..where(
+          (t) =>
+              t.diveDateTime.isSmallerOrEqualValue(end.millisecondsSinceEpoch),
+        )
         ..orderBy([(t) => OrderingTerm.desc(t.diveDateTime)]);
 
       final rows = await query.get();
@@ -808,7 +817,8 @@ class DiveRepository {
       diveNumber: row.data['dive_number'] as int?,
       siteName: row.data['site_name'] as String?,
       dateTime: DateTime.fromMillisecondsSinceEpoch(
-          row.data['dive_date_time'] as int),
+        row.data['dive_date_time'] as int,
+      ),
       maxDepth: row.data['max_depth'] as double?,
       duration: row.data['duration'] != null
           ? Duration(seconds: row.data['duration'] as int)
@@ -1011,8 +1021,10 @@ class DiveRepository {
 
     // Get equipment for this dive
     final equipmentQuery = _db.select(_db.diveEquipment).join([
-      innerJoin(_db.equipment,
-          _db.equipment.id.equalsExp(_db.diveEquipment.equipmentId)),
+      innerJoin(
+        _db.equipment,
+        _db.equipment.id.equalsExp(_db.diveEquipment.equipmentId),
+      ),
     ])
       ..where(_db.diveEquipment.diveId.equals(row.id));
     final equipmentRows = await equipmentQuery.get();
@@ -1354,7 +1366,7 @@ class DiveRepository {
         )
         ..orderBy([
           (t) => OrderingTerm.desc(t.entryTime),
-          (t) => OrderingTerm.desc(t.diveDateTime)
+          (t) => OrderingTerm.desc(t.diveDateTime),
         ])
         ..limit(1);
 
@@ -1388,7 +1400,10 @@ class DiveRepository {
       return interval.isNegative ? Duration.zero : interval;
     } catch (e, stackTrace) {
       _log.error(
-          'Failed to calculate surface interval for: $diveId', e, stackTrace);
+        'Failed to calculate surface interval for: $diveId',
+        e,
+        stackTrace,
+      );
       return null;
     }
   }
@@ -1404,7 +1419,7 @@ class DiveRepository {
       final query = _db.select(_db.dives)
         ..orderBy([
           (t) => OrderingTerm.asc(t.entryTime),
-          (t) => OrderingTerm.asc(t.diveDateTime)
+          (t) => OrderingTerm.asc(t.diveDateTime),
         ]);
 
       if (diverId != null) {
@@ -1468,7 +1483,7 @@ class DiveRepository {
       final query = _db.select(_db.dives)
         ..orderBy([
           (t) => OrderingTerm.asc(t.entryTime),
-          (t) => OrderingTerm.asc(t.diveDateTime)
+          (t) => OrderingTerm.asc(t.diveDateTime),
         ]);
 
       final rows = await query.get();
@@ -1501,7 +1516,7 @@ class DiveRepository {
       final query = _db.select(_db.dives)
         ..orderBy([
           (t) => OrderingTerm.asc(t.entryTime),
-          (t) => OrderingTerm.asc(t.diveDateTime)
+          (t) => OrderingTerm.asc(t.diveDateTime),
         ]);
 
       final rows = await query.get();
@@ -1576,8 +1591,11 @@ class MonthlyDiveCount {
   final int month;
   final int count;
 
-  MonthlyDiveCount(
-      {required this.year, required this.month, required this.count});
+  MonthlyDiveCount({
+    required this.year,
+    required this.month,
+    required this.count,
+  });
 
   String get label {
     const months = [
@@ -1592,7 +1610,7 @@ class MonthlyDiveCount {
       'Sep',
       'Oct',
       'Nov',
-      'Dec'
+      'Dec',
     ];
     return months[month - 1];
   }
