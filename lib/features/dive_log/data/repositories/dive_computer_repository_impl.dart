@@ -18,13 +18,17 @@ class DiveComputerRepository {
   // ============================================================================
 
   /// Get all dive computers
-  Future<List<domain.DiveComputer>> getAllComputers() async {
+  Future<List<domain.DiveComputer>> getAllComputers({String? diverId}) async {
     try {
       final query = _db.select(_db.diveComputers)
         ..orderBy([
           (t) => OrderingTerm.desc(t.isFavorite),
           (t) => OrderingTerm.asc(t.name),
         ]);
+
+      if (diverId != null) {
+        query.where((t) => t.diverId.equals(diverId));
+      }
 
       final rows = await query.get();
       return rows.map((row) => _mapRowToComputer(row)).toList();
@@ -49,11 +53,15 @@ class DiveComputerRepository {
   }
 
   /// Get the favorite (primary) dive computer
-  Future<domain.DiveComputer?> getFavoriteComputer() async {
+  Future<domain.DiveComputer?> getFavoriteComputer({String? diverId}) async {
     try {
       final query = _db.select(_db.diveComputers)
         ..where((t) => t.isFavorite.equals(true))
         ..limit(1);
+
+      if (diverId != null) {
+        query.where((t) => t.diverId.equals(diverId));
+      }
 
       final row = await query.getSingleOrNull();
       return row != null ? _mapRowToComputer(row) : null;
@@ -73,6 +81,7 @@ class DiveComputerRepository {
       await _db.into(_db.diveComputers).insert(
             DiveComputersCompanion(
               id: Value(id),
+              diverId: Value(computer.diverId),
               name: Value(computer.name),
               manufacturer: Value(computer.manufacturer),
               model: Value(computer.model),
@@ -145,15 +154,21 @@ class DiveComputerRepository {
     }
   }
 
-  /// Set a computer as the favorite (clears other favorites first)
-  Future<void> setFavoriteComputer(String id) async {
+  /// Set a computer as the favorite (clears other favorites first for the same diver)
+  Future<void> setFavoriteComputer(String id, {String? diverId}) async {
     try {
       _log.info('Setting favorite computer: $id');
 
-      // Clear all favorites
-      await (_db.update(_db.diveComputers)).write(
-        const DiveComputersCompanion(isFavorite: Value(false)),
-      );
+      // Clear all favorites for this diver (or all if no diverId)
+      if (diverId != null) {
+        await (_db.update(_db.diveComputers)..where((t) => t.diverId.equals(diverId))).write(
+          const DiveComputersCompanion(isFavorite: Value(false)),
+        );
+      } else {
+        await (_db.update(_db.diveComputers)).write(
+          const DiveComputersCompanion(isFavorite: Value(false)),
+        );
+      }
 
       // Set the new favorite
       await (_db.update(_db.diveComputers)..where((t) => t.id.equals(id))).write(
@@ -479,14 +494,19 @@ class DiveComputerRepository {
   /// Find or create a dive computer by serial number and model
   Future<domain.DiveComputer> findOrCreateComputer({
     required String serialNumber,
+    String? diverId,
     String? manufacturer,
     String? model,
     String? connectionType,
   }) async {
     try {
-      // Try to find existing computer
+      // Try to find existing computer for this diver
       final query = _db.select(_db.diveComputers)
         ..where((t) => t.serialNumber.equals(serialNumber));
+
+      if (diverId != null) {
+        query.where((t) => t.diverId.equals(diverId));
+      }
 
       final existing = await query.getSingleOrNull();
       if (existing != null) {
@@ -501,6 +521,7 @@ class DiveComputerRepository {
 
       final computer = domain.DiveComputer(
         id: _uuid.v4(),
+        diverId: diverId,
         name: name,
         manufacturer: manufacturer,
         model: model,
@@ -585,6 +606,7 @@ class DiveComputerRepository {
   domain.DiveComputer _mapRowToComputer(db.DiveComputer row) {
     return domain.DiveComputer(
       id: row.id,
+      diverId: row.diverId,
       name: row.name,
       manufacturer: row.manufacturer,
       model: row.model,

@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 /// Represents a dive center/operator
 class DiveCenter extends Equatable {
   final String id;
+  final String? diverId;
   final String name;
   final String? location;
   final double? latitude;
@@ -19,6 +20,7 @@ class DiveCenter extends Equatable {
 
   const DiveCenter({
     required this.id,
+    this.diverId,
     required this.name,
     this.location,
     this.latitude,
@@ -47,6 +49,7 @@ class DiveCenter extends Equatable {
   /// Create a copy with updated fields
   DiveCenter copyWith({
     String? id,
+    String? diverId,
     String? name,
     String? location,
     double? latitude,
@@ -63,6 +66,7 @@ class DiveCenter extends Equatable {
   }) {
     return DiveCenter(
       id: id ?? this.id,
+      diverId: diverId ?? this.diverId,
       name: name ?? this.name,
       location: location ?? this.location,
       latitude: latitude ?? this.latitude,
@@ -93,6 +97,7 @@ class DiveCenter extends Equatable {
   @override
   List<Object?> get props => [
         id,
+        diverId,
         name,
         location,
         latitude,

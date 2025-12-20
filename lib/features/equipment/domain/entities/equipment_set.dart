@@ -5,6 +5,7 @@ import 'equipment_item.dart';
 /// A named collection of equipment items
 class EquipmentSet extends Equatable {
   final String id;
+  final String? diverId;
   final String name;
   final String description;
   final List<String> equipmentIds;
@@ -14,6 +15,7 @@ class EquipmentSet extends Equatable {
 
   const EquipmentSet({
     required this.id,
+    this.diverId,
     required this.name,
     this.description = '',
     this.equipmentIds = const [],
@@ -32,6 +34,7 @@ class EquipmentSet extends Equatable {
 
   EquipmentSet copyWith({
     String? id,
+    String? diverId,
     String? name,
     String? description,
     List<String>? equipmentIds,
@@ -41,6 +44,7 @@ class EquipmentSet extends Equatable {
   }) {
     return EquipmentSet(
       id: id ?? this.id,
+      diverId: diverId ?? this.diverId,
       name: name ?? this.name,
       description: description ?? this.description,
       equipmentIds: equipmentIds ?? this.equipmentIds,
@@ -51,5 +55,5 @@ class EquipmentSet extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, name, description, equipmentIds, createdAt, updatedAt];
+  List<Object?> get props => [id, diverId, name, description, equipmentIds, createdAt, updatedAt];
 }

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../divers/presentation/providers/diver_providers.dart';
 import '../../data/repositories/dive_center_repository.dart';
 import '../../domain/entities/dive_center.dart';
 
@@ -11,7 +12,8 @@ final diveCenterRepositoryProvider = Provider<DiveCenterRepository>((ref) {
 /// All dive centers provider
 final allDiveCentersProvider = FutureProvider<List<DiveCenter>>((ref) async {
   final repository = ref.watch(diveCenterRepositoryProvider);
-  return repository.getAllDiveCenters();
+  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  return repository.getAllDiveCenters(diverId: validatedDiverId);
 });
 
 /// Single dive center provider
@@ -62,16 +64,30 @@ final diveCenterDiveCountProvider =
 class DiveCenterListNotifier extends StateNotifier<AsyncValue<List<DiveCenter>>> {
   final DiveCenterRepository _repository;
   final Ref _ref;
+  String? _validatedDiverId;
 
   DiveCenterListNotifier(this._repository, this._ref)
       : super(const AsyncValue.loading()) {
-    _loadDiveCenters();
+    _initializeAndLoad();
+
+    // Listen for diver changes and reload
+    _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
+      if (previous != next) {
+        _initializeAndLoad();
+      }
+    });
+  }
+
+  Future<void> _initializeAndLoad() async {
+    final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
+    _validatedDiverId = validatedId;
+    await _loadDiveCenters();
   }
 
   Future<void> _loadDiveCenters() async {
     state = const AsyncValue.loading();
     try {
-      final centers = await _repository.getAllDiveCenters();
+      final centers = await _repository.getAllDiveCenters(diverId: _validatedDiverId);
       state = AsyncValue.data(centers);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -80,12 +96,20 @@ class DiveCenterListNotifier extends StateNotifier<AsyncValue<List<DiveCenter>>>
 
   Future<void> refresh() async {
     await _loadDiveCenters();
+    _ref.invalidate(allDiveCentersProvider);
     _ref.invalidate(diveCentersWithCoordinatesProvider);
     _ref.invalidate(diveCenterCountriesProvider);
   }
 
   Future<DiveCenter> addDiveCenter(DiveCenter center) async {
-    final newCenter = await _repository.createDiveCenter(center);
+    // Get fresh validated diver ID before creating
+    final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
+
+    // Ensure diverId is set on new dive centers
+    final centerWithDiver = center.diverId == null && validatedId != null
+        ? center.copyWith(diverId: validatedId)
+        : center;
+    final newCenter = await _repository.createDiveCenter(centerWithDiver);
     await refresh();
     return newCenter;
   }

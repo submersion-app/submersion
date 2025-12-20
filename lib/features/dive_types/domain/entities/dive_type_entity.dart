@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 /// Domain entity for dive types (both built-in and custom)
 class DiveTypeEntity extends Equatable {
   final String id; // Unique identifier (slug format)
+  final String? diverId; // null for built-in types, set for custom types
   final String name; // Display name
   final bool isBuiltIn; // System type (cannot be deleted)
   final int sortOrder;
@@ -11,6 +12,7 @@ class DiveTypeEntity extends Equatable {
 
   const DiveTypeEntity({
     required this.id,
+    this.diverId,
     required this.name,
     this.isBuiltIn = false,
     this.sortOrder = 0,
@@ -22,11 +24,13 @@ class DiveTypeEntity extends Equatable {
   factory DiveTypeEntity.create({
     required String id,
     required String name,
+    String? diverId,
     int sortOrder = 0,
   }) {
     final now = DateTime.now();
     return DiveTypeEntity(
       id: id,
+      diverId: diverId,
       name: name,
       isBuiltIn: false,
       sortOrder: sortOrder,
@@ -46,6 +50,7 @@ class DiveTypeEntity extends Equatable {
 
   DiveTypeEntity copyWith({
     String? id,
+    String? diverId,
     String? name,
     bool? isBuiltIn,
     int? sortOrder,
@@ -54,6 +59,7 @@ class DiveTypeEntity extends Equatable {
   }) {
     return DiveTypeEntity(
       id: id ?? this.id,
+      diverId: diverId ?? this.diverId,
       name: name ?? this.name,
       isBuiltIn: isBuiltIn ?? this.isBuiltIn,
       sortOrder: sortOrder ?? this.sortOrder,
@@ -63,5 +69,5 @@ class DiveTypeEntity extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, name, isBuiltIn, sortOrder, createdAt, updatedAt];
+  List<Object?> get props => [id, diverId, name, isBuiltIn, sortOrder, createdAt, updatedAt];
 }

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/constants/units.dart';
+import '../../../divers/presentation/providers/diver_providers.dart';
+import '../../data/repositories/diver_settings_repository.dart';
 
 /// Unit system preset
 enum UnitPreset {
@@ -199,16 +201,73 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
   throw UnimplementedError('SharedPreferences must be initialized before use');
 });
 
-/// Settings notifier that persists to SharedPreferences
-class SettingsNotifier extends StateNotifier<AppSettings> {
-  final SharedPreferences _prefs;
+/// Repository provider for diver settings
+final diverSettingsRepositoryProvider = Provider<DiverSettingsRepository>((ref) {
+  return DiverSettingsRepository();
+});
 
-  SettingsNotifier(this._prefs) : super(const AppSettings()) {
-    _loadSettings();
+/// Key to track if SharedPreferences settings have been migrated to database
+const String _settingsMigratedKey = 'settings_migrated_to_db';
+
+/// Settings notifier that persists to database per-diver
+class SettingsNotifier extends StateNotifier<AppSettings> {
+  final DiverSettingsRepository _repository;
+  final SharedPreferences _prefs;
+  final Ref _ref;
+  String? _validatedDiverId;
+  bool _isLoading = false;
+
+  SettingsNotifier(this._repository, this._prefs, this._ref) : super(const AppSettings()) {
+    _initializeAndLoad();
+
+    // Listen for diver changes and reload settings
+    _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
+      if (previous != next) {
+        _initializeAndLoad();
+      }
+    });
   }
 
-  void _loadSettings() {
-    state = AppSettings(
+  Future<void> _initializeAndLoad() async {
+    final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
+    _validatedDiverId = validatedId;
+    await _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    if (_isLoading) return;
+    _isLoading = true;
+
+    try {
+      final diverId = _validatedDiverId;
+      if (diverId == null) {
+        // No diver selected, use defaults
+        state = const AppSettings();
+        return;
+      }
+
+      // Check if we need to migrate SharedPreferences settings to database
+      final needsMigration = !(_prefs.getBool(_settingsMigratedKey) ?? false);
+
+      if (needsMigration) {
+        // Migrate SharedPreferences settings to database for this diver
+        final migratedSettings = _loadSettingsFromPrefs();
+        await _repository.getOrCreateSettingsForDiver(diverId, defaultSettings: migratedSettings);
+        await _prefs.setBool(_settingsMigratedKey, true);
+        state = migratedSettings;
+      } else {
+        // Load from database
+        final settings = await _repository.getOrCreateSettingsForDiver(diverId);
+        state = settings;
+      }
+    } finally {
+      _isLoading = false;
+    }
+  }
+
+  /// Load settings from SharedPreferences (for migration)
+  AppSettings _loadSettingsFromPrefs() {
+    return AppSettings(
       depthUnit: _loadEnum(
         SettingsKeys.depthUnit,
         DepthUnit.values,
@@ -241,7 +300,6 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
           _prefs.getDouble(SettingsKeys.defaultTankVolume) ?? 12.0,
       defaultStartPressure:
           _prefs.getInt(SettingsKeys.defaultStartPressure) ?? 200,
-      // Decompression settings
       gfLow: _prefs.getInt(SettingsKeys.gfLow) ?? 30,
       gfHigh: _prefs.getInt(SettingsKeys.gfHigh) ?? 70,
       ppO2MaxWorking: _prefs.getDouble(SettingsKeys.ppO2MaxWorking) ?? 1.4,
@@ -284,166 +342,166 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     }
   }
 
+  Future<void> _saveSettings() async {
+    final diverId = _validatedDiverId;
+    if (diverId == null) return;
+    await _repository.updateSettingsForDiver(diverId, state);
+  }
+
   Future<void> setDepthUnit(DepthUnit unit) async {
-    await _prefs.setString(SettingsKeys.depthUnit, unit.name);
     state = state.copyWith(depthUnit: unit);
+    await _saveSettings();
   }
 
   Future<void> setTemperatureUnit(TemperatureUnit unit) async {
-    await _prefs.setString(SettingsKeys.temperatureUnit, unit.name);
     state = state.copyWith(temperatureUnit: unit);
+    await _saveSettings();
   }
 
   Future<void> setPressureUnit(PressureUnit unit) async {
-    await _prefs.setString(SettingsKeys.pressureUnit, unit.name);
     state = state.copyWith(pressureUnit: unit);
+    await _saveSettings();
   }
 
   Future<void> setVolumeUnit(VolumeUnit unit) async {
-    await _prefs.setString(SettingsKeys.volumeUnit, unit.name);
     state = state.copyWith(volumeUnit: unit);
+    await _saveSettings();
   }
 
   Future<void> setWeightUnit(WeightUnit unit) async {
-    await _prefs.setString(SettingsKeys.weightUnit, unit.name);
     state = state.copyWith(weightUnit: unit);
+    await _saveSettings();
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {
-    String value;
-    switch (mode) {
-      case ThemeMode.light:
-        value = 'light';
-        break;
-      case ThemeMode.dark:
-        value = 'dark';
-        break;
-      case ThemeMode.system:
-        value = 'system';
-        break;
-    }
-    await _prefs.setString(SettingsKeys.themeMode, value);
     state = state.copyWith(themeMode: mode);
+    await _saveSettings();
   }
 
   Future<void> setDefaultDiveType(String diveType) async {
-    await _prefs.setString(SettingsKeys.defaultDiveType, diveType);
     state = state.copyWith(defaultDiveType: diveType);
+    await _saveSettings();
   }
 
   Future<void> setDefaultTankVolume(double volume) async {
-    await _prefs.setDouble(SettingsKeys.defaultTankVolume, volume);
     state = state.copyWith(defaultTankVolume: volume);
+    await _saveSettings();
   }
 
   Future<void> setDefaultStartPressure(int pressure) async {
-    await _prefs.setInt(SettingsKeys.defaultStartPressure, pressure);
     state = state.copyWith(defaultStartPressure: pressure);
+    await _saveSettings();
   }
 
   // Decompression & Safety setters
 
   Future<void> setGfLow(int value) async {
     final clamped = value.clamp(0, 100);
-    await _prefs.setInt(SettingsKeys.gfLow, clamped);
     state = state.copyWith(gfLow: clamped);
+    await _saveSettings();
   }
 
   Future<void> setGfHigh(int value) async {
     final clamped = value.clamp(0, 100);
-    await _prefs.setInt(SettingsKeys.gfHigh, clamped);
     state = state.copyWith(gfHigh: clamped);
+    await _saveSettings();
   }
 
   /// Set both gradient factors at once
   Future<void> setGradientFactors(int low, int high) async {
     final clampedLow = low.clamp(0, 100);
     final clampedHigh = high.clamp(clampedLow, 100);
-    await _prefs.setInt(SettingsKeys.gfLow, clampedLow);
-    await _prefs.setInt(SettingsKeys.gfHigh, clampedHigh);
     state = state.copyWith(gfLow: clampedLow, gfHigh: clampedHigh);
+    await _saveSettings();
   }
 
   Future<void> setPpO2MaxWorking(double value) async {
     final clamped = value.clamp(1.0, 1.6);
-    await _prefs.setDouble(SettingsKeys.ppO2MaxWorking, clamped);
     state = state.copyWith(ppO2MaxWorking: clamped);
+    await _saveSettings();
   }
 
   Future<void> setPpO2MaxDeco(double value) async {
     final clamped = value.clamp(1.2, 1.6);
-    await _prefs.setDouble(SettingsKeys.ppO2MaxDeco, clamped);
     state = state.copyWith(ppO2MaxDeco: clamped);
+    await _saveSettings();
   }
 
   Future<void> setCnsWarningThreshold(int value) async {
     final clamped = value.clamp(50, 100);
-    await _prefs.setInt(SettingsKeys.cnsWarningThreshold, clamped);
     state = state.copyWith(cnsWarningThreshold: clamped);
+    await _saveSettings();
   }
 
   Future<void> setAscentRateWarning(double value) async {
     final clamped = value.clamp(3.0, 18.0);
-    await _prefs.setDouble(SettingsKeys.ascentRateWarning, clamped);
     state = state.copyWith(ascentRateWarning: clamped);
+    await _saveSettings();
   }
 
   Future<void> setAscentRateCritical(double value) async {
     final clamped = value.clamp(6.0, 20.0);
-    await _prefs.setDouble(SettingsKeys.ascentRateCritical, clamped);
     state = state.copyWith(ascentRateCritical: clamped);
+    await _saveSettings();
   }
 
   Future<void> setShowCeilingOnProfile(bool value) async {
-    await _prefs.setBool(SettingsKeys.showCeilingOnProfile, value);
     state = state.copyWith(showCeilingOnProfile: value);
+    await _saveSettings();
   }
 
   Future<void> setShowAscentRateColors(bool value) async {
-    await _prefs.setBool(SettingsKeys.showAscentRateColors, value);
     state = state.copyWith(showAscentRateColors: value);
+    await _saveSettings();
   }
 
   Future<void> setShowNdlOnProfile(bool value) async {
-    await _prefs.setBool(SettingsKeys.showNdlOnProfile, value);
     state = state.copyWith(showNdlOnProfile: value);
+    await _saveSettings();
   }
 
   Future<void> setLastStopDepth(double value) async {
     final clamped = value.clamp(3.0, 6.0);
-    await _prefs.setDouble(SettingsKeys.lastStopDepth, clamped);
     state = state.copyWith(lastStopDepth: clamped);
+    await _saveSettings();
   }
 
   Future<void> setDecoStopIncrement(double value) async {
     final clamped = value.clamp(1.0, 3.0);
-    await _prefs.setDouble(SettingsKeys.decoStopIncrement, clamped);
     state = state.copyWith(decoStopIncrement: clamped);
+    await _saveSettings();
   }
 
   /// Set all units to metric
   Future<void> setMetric() async {
-    await setDepthUnit(DepthUnit.meters);
-    await setTemperatureUnit(TemperatureUnit.celsius);
-    await setPressureUnit(PressureUnit.bar);
-    await setVolumeUnit(VolumeUnit.liters);
-    await setWeightUnit(WeightUnit.kilograms);
+    state = state.copyWith(
+      depthUnit: DepthUnit.meters,
+      temperatureUnit: TemperatureUnit.celsius,
+      pressureUnit: PressureUnit.bar,
+      volumeUnit: VolumeUnit.liters,
+      weightUnit: WeightUnit.kilograms,
+    );
+    await _saveSettings();
   }
 
   /// Set all units to imperial
   Future<void> setImperial() async {
-    await setDepthUnit(DepthUnit.feet);
-    await setTemperatureUnit(TemperatureUnit.fahrenheit);
-    await setPressureUnit(PressureUnit.psi);
-    await setVolumeUnit(VolumeUnit.cubicFeet);
-    await setWeightUnit(WeightUnit.pounds);
+    state = state.copyWith(
+      depthUnit: DepthUnit.feet,
+      temperatureUnit: TemperatureUnit.fahrenheit,
+      pressureUnit: PressureUnit.psi,
+      volumeUnit: VolumeUnit.cubicFeet,
+      weightUnit: WeightUnit.pounds,
+    );
+    await _saveSettings();
   }
 }
 
 /// Settings provider
 final settingsProvider = StateNotifierProvider<SettingsNotifier, AppSettings>((ref) {
+  final repository = ref.watch(diverSettingsRepositoryProvider);
   final prefs = ref.watch(sharedPreferencesProvider);
-  return SettingsNotifier(prefs);
+  return SettingsNotifier(repository, prefs, ref);
 });
 
 /// Convenience providers for individual settings

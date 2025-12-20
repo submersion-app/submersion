@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 /// Tag entity for organizing dives
 class Tag extends Equatable {
   final String id;
+  final String? diverId;
   final String name;
   final String? colorHex; // Hex color code like '#FF5733'
   final DateTime createdAt;
@@ -11,6 +12,7 @@ class Tag extends Equatable {
 
   const Tag({
     required this.id,
+    this.diverId,
     required this.name,
     this.colorHex,
     required this.createdAt,
@@ -34,11 +36,13 @@ class Tag extends Equatable {
   factory Tag.create({
     required String id,
     required String name,
+    String? diverId,
     String? colorHex,
   }) {
     final now = DateTime.now();
     return Tag(
       id: id,
+      diverId: diverId,
       name: name,
       colorHex: colorHex,
       createdAt: now,
@@ -48,6 +52,7 @@ class Tag extends Equatable {
 
   Tag copyWith({
     String? id,
+    String? diverId,
     String? name,
     String? colorHex,
     DateTime? createdAt,
@@ -55,6 +60,7 @@ class Tag extends Equatable {
   }) {
     return Tag(
       id: id ?? this.id,
+      diverId: diverId ?? this.diverId,
       name: name ?? this.name,
       colorHex: colorHex ?? this.colorHex,
       createdAt: createdAt ?? this.createdAt,
@@ -63,7 +69,7 @@ class Tag extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, name, colorHex, createdAt, updatedAt];
+  List<Object?> get props => [id, diverId, name, colorHex, createdAt, updatedAt];
 }
 
 /// Predefined tag colors for selection

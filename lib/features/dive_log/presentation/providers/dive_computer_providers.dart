@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../divers/presentation/providers/diver_providers.dart';
 import '../../data/repositories/dive_computer_repository_impl.dart';
 import '../../domain/entities/dive_computer.dart';
 
@@ -11,7 +12,8 @@ final diveComputerRepositoryProvider = Provider<DiveComputerRepository>((ref) {
 /// All dive computers
 final allDiveComputersProvider = FutureProvider<List<DiveComputer>>((ref) async {
   final repository = ref.watch(diveComputerRepositoryProvider);
-  return repository.getAllComputers();
+  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  return repository.getAllComputers(diverId: validatedDiverId);
 });
 
 /// Get a dive computer by ID
@@ -24,7 +26,8 @@ final diveComputerByIdProvider =
 /// Get the favorite (primary) dive computer
 final favoriteDiveComputerProvider = FutureProvider<DiveComputer?>((ref) async {
   final repository = ref.watch(diveComputerRepositoryProvider);
-  return repository.getFavoriteComputer();
+  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  return repository.getFavoriteComputer(diverId: validatedDiverId);
 });
 
 /// Get dive computers for a specific dive
@@ -83,14 +86,29 @@ final selectedComputerProvider = StateNotifierProvider.family<
 /// State notifier for managing dive computers
 class DiveComputerNotifier extends StateNotifier<AsyncValue<List<DiveComputer>>> {
   final DiveComputerRepository _repository;
+  final Ref _ref;
+  String? _validatedDiverId;
 
-  DiveComputerNotifier(this._repository) : super(const AsyncValue.loading()) {
-    _load();
+  DiveComputerNotifier(this._repository, this._ref) : super(const AsyncValue.loading()) {
+    _initializeAndLoad();
+
+    // Listen for diver changes and reload
+    _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
+      if (previous != next) {
+        _initializeAndLoad();
+      }
+    });
+  }
+
+  Future<void> _initializeAndLoad() async {
+    final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
+    _validatedDiverId = validatedId;
+    await _load();
   }
 
   Future<void> _load() async {
     try {
-      final computers = await _repository.getAllComputers();
+      final computers = await _repository.getAllComputers(diverId: _validatedDiverId);
       state = AsyncValue.data(computers);
     } catch (e, stackTrace) {
       state = AsyncValue.error(e, stackTrace);
@@ -100,10 +118,19 @@ class DiveComputerNotifier extends StateNotifier<AsyncValue<List<DiveComputer>>>
   Future<void> refresh() async {
     state = const AsyncValue.loading();
     await _load();
+    _ref.invalidate(allDiveComputersProvider);
+    _ref.invalidate(favoriteDiveComputerProvider);
   }
 
   Future<DiveComputer> create(DiveComputer computer) async {
-    final created = await _repository.createComputer(computer);
+    // Get fresh validated diver ID before creating
+    final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
+
+    // Ensure diverId is set on new computers
+    final computerWithDiver = computer.diverId == null && validatedId != null
+        ? computer.copyWith(diverId: validatedId)
+        : computer;
+    final created = await _repository.createComputer(computerWithDiver);
     await _load();
     return created;
   }
@@ -119,7 +146,8 @@ class DiveComputerNotifier extends StateNotifier<AsyncValue<List<DiveComputer>>>
   }
 
   Future<void> setFavorite(String id) async {
-    await _repository.setFavoriteComputer(id);
+    final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
+    await _repository.setFavoriteComputer(id, diverId: validatedId);
     await _load();
   }
 }
@@ -129,7 +157,7 @@ final diveComputerNotifierProvider =
     StateNotifierProvider<DiveComputerNotifier, AsyncValue<List<DiveComputer>>>(
         (ref) {
   final repository = ref.watch(diveComputerRepositoryProvider);
-  return DiveComputerNotifier(repository);
+  return DiveComputerNotifier(repository, ref);
 });
 
 /// State for dive profile viewing (which computer's profile to display)

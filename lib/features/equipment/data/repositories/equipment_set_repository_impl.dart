@@ -12,9 +12,14 @@ class EquipmentSetRepository {
   final _equipmentRepo = EquipmentRepository();
 
   /// Get all equipment sets
-  Future<List<domain.EquipmentSet>> getAllSets() async {
+  Future<List<domain.EquipmentSet>> getAllSets({String? diverId}) async {
     final query = _db.select(_db.equipmentSets)
       ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+
+    if (diverId != null) {
+      query.where((t) => t.diverId.equals(diverId));
+    }
+
     final rows = await query.get();
 
     final sets = <domain.EquipmentSet>[];
@@ -57,6 +62,7 @@ class EquipmentSetRepository {
 
     await _db.into(_db.equipmentSets).insert(EquipmentSetsCompanion(
       id: Value(id),
+      diverId: Value(set.diverId),
       name: Value(set.name),
       description: Value(set.description),
       createdAt: Value(now),
@@ -138,6 +144,7 @@ class EquipmentSetRepository {
   domain.EquipmentSet _mapRowToSet(EquipmentSet row, List<String> equipmentIds) {
     return domain.EquipmentSet(
       id: row.id,
+      diverId: row.diverId,
       name: row.name,
       description: row.description,
       equipmentIds: equipmentIds,

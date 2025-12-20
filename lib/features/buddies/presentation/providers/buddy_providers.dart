@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/enums.dart';
+import '../../../divers/presentation/providers/diver_providers.dart';
 import '../../data/repositories/buddy_repository.dart';
 import '../../domain/entities/buddy.dart';
 
@@ -12,7 +13,8 @@ final buddyRepositoryProvider = Provider<BuddyRepository>((ref) {
 /// All buddies provider
 final allBuddiesProvider = FutureProvider<List<Buddy>>((ref) async {
   final repository = ref.watch(buddyRepositoryProvider);
-  return repository.getAllBuddies();
+  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  return repository.getAllBuddies(diverId: validatedDiverId);
 });
 
 /// Single buddy provider
@@ -32,11 +34,12 @@ final buddiesForDiveProvider =
 /// Buddy search provider
 final buddySearchProvider =
     FutureProvider.family<List<Buddy>, String>((ref, query) async {
+  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
   if (query.isEmpty) {
     return ref.watch(allBuddiesProvider).value ?? [];
   }
   final repository = ref.watch(buddyRepositoryProvider);
-  return repository.searchBuddies(query);
+  return repository.searchBuddies(query, diverId: validatedDiverId);
 });
 
 /// Buddy stats provider
@@ -57,16 +60,30 @@ final diveIdsForBuddyProvider =
 class BuddyListNotifier extends StateNotifier<AsyncValue<List<Buddy>>> {
   final BuddyRepository _repository;
   final Ref _ref;
+  String? _validatedDiverId;
 
   BuddyListNotifier(this._repository, this._ref)
       : super(const AsyncValue.loading()) {
-    _loadBuddies();
+    _initializeAndLoad();
+
+    // Listen for diver changes and reload
+    _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
+      if (previous != next) {
+        _initializeAndLoad();
+      }
+    });
+  }
+
+  Future<void> _initializeAndLoad() async {
+    final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
+    _validatedDiverId = validatedId;
+    await _loadBuddies();
   }
 
   Future<void> _loadBuddies() async {
     state = const AsyncValue.loading();
     try {
-      final buddies = await _repository.getAllBuddies();
+      final buddies = await _repository.getAllBuddies(diverId: _validatedDiverId);
       state = AsyncValue.data(buddies);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -79,7 +96,14 @@ class BuddyListNotifier extends StateNotifier<AsyncValue<List<Buddy>>> {
   }
 
   Future<Buddy> addBuddy(Buddy buddy) async {
-    final newBuddy = await _repository.createBuddy(buddy);
+    // Get fresh validated diver ID before creating
+    final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
+
+    // Ensure diverId is set on new buddies
+    final buddyWithDiver = buddy.diverId == null && validatedId != null
+        ? buddy.copyWith(diverId: validatedId)
+        : buddy;
+    final newBuddy = await _repository.createBuddy(buddyWithDiver);
     await refresh();
     return newBuddy;
   }
