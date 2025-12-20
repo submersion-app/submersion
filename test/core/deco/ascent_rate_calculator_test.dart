@@ -83,7 +83,9 @@ void main() {
       test('should categorize descent by absolute value', () {
         // Fast descent also triggers warnings
         expect(
-            calculator.categorize(-10.0), equals(AscentRateCategory.warning));
+          calculator.categorize(-10.0),
+          equals(AscentRateCategory.warning),
+        );
         expect(calculator.categorize(-15.0), equals(AscentRateCategory.danger));
       });
 
@@ -94,9 +96,13 @@ void main() {
         );
 
         expect(
-            conservative.categorize(7.0), equals(AscentRateCategory.warning));
+          conservative.categorize(7.0),
+          equals(AscentRateCategory.warning),
+        );
         expect(
-            conservative.categorize(10.0), equals(AscentRateCategory.danger));
+          conservative.categorize(10.0),
+          equals(AscentRateCategory.danger),
+        );
         expect(calculator.categorize(7.0), equals(AscentRateCategory.safe));
       });
     });
@@ -455,8 +461,10 @@ void main() {
           ),
         ];
 
-        expect(calculator.getMaxDescentRate(rates),
-            equals(30.0)); // Returned as positive
+        expect(
+          calculator.getMaxDescentRate(rates),
+          equals(30.0),
+        ); // Returned as positive
       });
 
       test('should ignore ascent rates', () {

@@ -13,8 +13,9 @@ class CertificationRepository {
   final _log = LoggerService.forClass(CertificationRepository);
 
   /// Get all certifications ordered by issue date (newest first)
-  Future<List<domain.Certification>> getAllCertifications(
-      {String? diverId}) async {
+  Future<List<domain.Certification>> getAllCertifications({
+    String? diverId,
+  }) async {
     try {
       final query = _db.select(_db.certifications)
         ..orderBy([
@@ -49,8 +50,10 @@ class CertificationRepository {
   }
 
   /// Search certifications by name or agency
-  Future<List<domain.Certification>> searchCertifications(String query,
-      {String? diverId}) async {
+  Future<List<domain.Certification>> searchCertifications(
+    String query, {
+    String? diverId,
+  }) async {
     final searchTerm = '%${query.toLowerCase()}%';
 
     final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
@@ -228,8 +231,9 @@ class CertificationRepository {
   }
 
   /// Get expired certifications
-  Future<List<domain.Certification>> getExpiredCertifications(
-      {String? diverId}) async {
+  Future<List<domain.Certification>> getExpiredCertifications({
+    String? diverId,
+  }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
 
     final diverFilter = diverId != null ? 'AND diver_id = ?' : '';

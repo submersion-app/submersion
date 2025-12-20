@@ -44,8 +44,10 @@ class BuddyRepository {
   }
 
   /// Search buddies by name, email, or phone
-  Future<List<domain.Buddy>> searchBuddies(String query,
-      {String? diverId}) async {
+  Future<List<domain.Buddy>> searchBuddies(
+    String query, {
+    String? diverId,
+  }) async {
     final searchTerm = '%${query.toLowerCase()}%';
     final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
     final variables = [
@@ -157,9 +159,11 @@ class BuddyRepository {
           photoPath: row.data['photo_path'] as String?,
           notes: (row.data['notes'] as String?) ?? '',
           createdAt: DateTime.fromMillisecondsSinceEpoch(
-              row.data['created_at'] as int),
+            row.data['created_at'] as int,
+          ),
           updatedAt: DateTime.fromMillisecondsSinceEpoch(
-              row.data['updated_at'] as int),
+            row.data['updated_at'] as int,
+          ),
         );
       }
 

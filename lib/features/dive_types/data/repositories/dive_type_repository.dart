@@ -67,8 +67,9 @@ class DiveTypeRepository {
 
   /// Get only custom (user-defined) dive types for the specified diver
   /// Returns empty list if no diverId is provided (custom types require a diver)
-  Future<List<domain.DiveTypeEntity>> getCustomDiveTypes(
-      {String? diverId}) async {
+  Future<List<domain.DiveTypeEntity>> getCustomDiveTypes({
+    String? diverId,
+  }) async {
     try {
       // Custom types require a diver - return empty list if no diver specified
       if (diverId == null) {
@@ -118,7 +119,8 @@ class DiveTypeRepository {
   /// Create a new custom dive type
   /// Custom dive types require a diverId to be associated with a diver profile
   Future<domain.DiveTypeEntity> createDiveType(
-      domain.DiveTypeEntity diveType) async {
+    domain.DiveTypeEntity diveType,
+  ) async {
     try {
       // Custom dive types must have a diver ID
       if (diveType.diverId == null) {
@@ -129,7 +131,8 @@ class DiveTypeRepository {
       }
 
       _log.info(
-          'Creating dive type: ${diveType.name} for diver: ${diveType.diverId}');
+        'Creating dive type: ${diveType.name} for diver: ${diveType.diverId}',
+      );
 
       // Generate slug from name if id is empty
       final id = diveType.id.isEmpty
@@ -152,16 +155,17 @@ class DiveTypeRepository {
               diverId: Value(diveType.diverId),
               name: Value(diveType.name),
               isBuiltIn: const Value(false), // Custom types are never built-in
-              sortOrder: Value(diveType.sortOrder > 0
-                  ? diveType.sortOrder
-                  : maxSortOrder + 1),
+              sortOrder: Value(
+                diveType.sortOrder > 0 ? diveType.sortOrder : maxSortOrder + 1,
+              ),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
           );
 
       _log.info(
-          'Created dive type with id: $uniqueId for diver: ${diveType.diverId}');
+        'Created dive type with id: $uniqueId for diver: ${diveType.diverId}',
+      );
       return diveType.copyWith(
         id: uniqueId,
         sortOrder:
@@ -225,8 +229,9 @@ class DiveTypeRepository {
   /// Get dive type usage statistics for the specified diver
   /// Shows built-in types plus custom types for the diver
   /// If no diverId is provided, shows only built-in types
-  Future<List<DiveTypeStatistic>> getDiveTypeStatistics(
-      {String? diverId}) async {
+  Future<List<DiveTypeStatistic>> getDiveTypeStatistics({
+    String? diverId,
+  }) async {
     try {
       final String whereClause;
       final List<Variable> variables;
@@ -264,9 +269,11 @@ class DiveTypeRepository {
                 isBuiltIn: (row.data['is_built_in'] as int) == 1,
                 sortOrder: row.data['sort_order'] as int,
                 createdAt: DateTime.fromMillisecondsSinceEpoch(
-                    row.data['created_at'] as int),
+                  row.data['created_at'] as int,
+                ),
                 updatedAt: DateTime.fromMillisecondsSinceEpoch(
-                    row.data['updated_at'] as int),
+                  row.data['updated_at'] as int,
+                ),
               ),
               diveCount: row.data['dive_count'] as int,
             ),
