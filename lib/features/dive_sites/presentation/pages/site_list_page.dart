@@ -6,33 +6,153 @@ import '../../data/repositories/site_repository_impl.dart';
 import '../../domain/entities/dive_site.dart';
 import '../providers/site_providers.dart';
 
-class SiteListPage extends ConsumerWidget {
+class SiteListPage extends ConsumerStatefulWidget {
   const SiteListPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final sitesAsync = ref.watch(sitesWithCountsProvider);
+  ConsumerState<SiteListPage> createState() => _SiteListPageState();
+}
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dive Sites'),
+class _SiteListPageState extends ConsumerState<SiteListPage> {
+  bool _isSelectionMode = false;
+  final Set<String> _selectedIds = {};
+  List<DiveSite>? _deletedSites;
+
+  void _enterSelectionMode(String? initialId) {
+    setState(() {
+      _isSelectionMode = true;
+      _selectedIds.clear();
+      if (initialId != null) {
+        _selectedIds.add(initialId);
+      }
+    });
+  }
+
+  void _exitSelectionMode() {
+    setState(() {
+      _isSelectionMode = false;
+      _selectedIds.clear();
+    });
+  }
+
+  void _toggleSelection(String id) {
+    setState(() {
+      if (_selectedIds.contains(id)) {
+        _selectedIds.remove(id);
+        if (_selectedIds.isEmpty) {
+          _isSelectionMode = false;
+        }
+      } else {
+        _selectedIds.add(id);
+      }
+    });
+  }
+
+  void _selectAll(List<SiteWithDiveCount> sites) {
+    setState(() {
+      _selectedIds.addAll(sites.map((s) => s.site.id));
+    });
+  }
+
+  void _deselectAll() {
+    setState(() {
+      _selectedIds.clear();
+    });
+  }
+
+  Future<void> _confirmAndDelete() async {
+    final count = _selectedIds.length;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Sites'),
+        content: Text(
+          'Are you sure you want to delete $count ${count == 1 ? 'site' : 'sites'}? This action can be undone within 5 seconds.',
+        ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              showSearch(
-                context: context,
-                delegate: SiteSearchDelegate(ref),
-              );
-            },
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
           ),
-          IconButton(
-            icon: const Icon(Icons.map),
-            tooltip: 'Map View',
-            onPressed: () => context.push('/sites/map'),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('Delete'),
           ),
         ],
       ),
+    );
+
+    if (confirmed == true && mounted) {
+      final idsToDelete = _selectedIds.toList();
+      _exitSelectionMode();
+
+      // Perform deletion and get deleted sites for undo
+      final deletedSites = await ref
+          .read(siteListNotifierProvider.notifier)
+          .bulkDeleteSites(idsToDelete);
+
+      _deletedSites = deletedSites;
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Deleted ${deletedSites.length} ${deletedSites.length == 1 ? 'site' : 'sites'}'),
+            duration: const Duration(seconds: 5),
+            action: SnackBarAction(
+              label: 'Undo',
+              onPressed: () async {
+                if (_deletedSites != null && _deletedSites!.isNotEmpty) {
+                  await ref
+                      .read(siteListNotifierProvider.notifier)
+                      .restoreSites(_deletedSites!);
+                  _deletedSites = null;
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Sites restored'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                }
+              },
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final sitesAsync = ref.watch(sitesWithCountsProvider);
+
+    return Scaffold(
+      appBar: _isSelectionMode
+          ? _buildSelectionAppBar(sitesAsync.valueOrNull ?? [])
+          : AppBar(
+              title: const Text('Dive Sites'),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: () {
+                    showSearch(
+                      context: context,
+                      delegate: SiteSearchDelegate(ref),
+                    );
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.map),
+                  tooltip: 'Map View',
+                  onPressed: () => context.push('/sites/map'),
+                ),
+              ],
+            ),
       body: sitesAsync.when(
         data: (sites) => sites.isEmpty
             ? _buildEmptyState(context)
@@ -54,11 +174,46 @@ class SiteListPage extends ConsumerWidget {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/sites/new'),
-        icon: const Icon(Icons.add_location),
-        label: const Text('Add Site'),
+      floatingActionButton: _isSelectionMode
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: () => context.push('/sites/new'),
+              icon: const Icon(Icons.add_location),
+              label: const Text('Add Site'),
+            ),
+    );
+  }
+
+  AppBar _buildSelectionAppBar(List<SiteWithDiveCount> sites) {
+    return AppBar(
+      leading: IconButton(
+        icon: const Icon(Icons.close),
+        onPressed: _exitSelectionMode,
       ),
+      title: Text('${_selectedIds.length} selected'),
+      actions: [
+        if (_selectedIds.length < sites.length)
+          IconButton(
+            icon: const Icon(Icons.select_all),
+            tooltip: 'Select All',
+            onPressed: () => _selectAll(sites),
+          ),
+        if (_selectedIds.isNotEmpty)
+          IconButton(
+            icon: const Icon(Icons.deselect),
+            tooltip: 'Deselect All',
+            onPressed: _deselectAll,
+          ),
+        if (_selectedIds.isNotEmpty)
+          IconButton(
+            icon: Icon(
+              Icons.delete,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            tooltip: 'Delete Selected',
+            onPressed: _confirmAndDelete,
+          ),
+      ],
     );
   }
 
@@ -73,13 +228,21 @@ class SiteListPage extends ConsumerWidget {
         itemBuilder: (context, index) {
           final siteData = sites[index];
           final site = siteData.site;
+          final isSelected = _selectedIds.contains(site.id);
           return SiteListTile(
             name: site.name,
             location: site.locationString.isNotEmpty ? site.locationString : null,
             maxDepth: site.maxDepth,
             diveCount: siteData.diveCount,
             rating: site.rating,
-            onTap: () => context.push('/sites/${site.id}'),
+            isSelectionMode: _isSelectionMode,
+            isSelected: isSelected,
+            onTap: _isSelectionMode
+                ? () => _toggleSelection(site.id)
+                : () => context.push('/sites/${site.id}'),
+            onLongPress: _isSelectionMode
+                ? null
+                : () => _enterSelectionMode(site.id),
           );
         },
       ),
@@ -239,6 +402,9 @@ class SiteListTile extends StatelessWidget {
   final int diveCount;
   final double? rating;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
+  final bool isSelectionMode;
+  final bool isSelected;
 
   const SiteListTile({
     super.key,
@@ -248,41 +414,95 @@ class SiteListTile extends StatelessWidget {
     this.diveCount = 0,
     this.rating,
     this.onTap,
+    this.onLongPress,
+    this.isSelectionMode = false,
+    this.isSelected = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: ListTile(
+      color: isSelected ? colorScheme.primaryContainer.withValues(alpha: 0.3) : null,
+      child: InkWell(
         onTap: onTap,
-        leading: CircleAvatar(
-          backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-          child: Icon(
-            Icons.location_on,
-            color: Theme.of(context).colorScheme.onSecondaryContainer,
-          ),
-        ),
-        title: Text(name),
-        subtitle: location != null ? Text(location!) : null,
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            if (diveCount > 0)
-              Text(
-                '$diveCount dives',
-                style: Theme.of(context).textTheme.bodySmall,
+        onLongPress: onLongPress,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              // Selection checkbox or location icon
+              if (isSelectionMode)
+                Checkbox(
+                  value: isSelected,
+                  onChanged: (_) => onTap?.call(),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  visualDensity: VisualDensity.compact,
+                )
+              else
+                CircleAvatar(
+                  backgroundColor: colorScheme.secondaryContainer,
+                  child: Icon(
+                    Icons.location_on,
+                    color: colorScheme.onSecondaryContainer,
+                  ),
+                ),
+              const SizedBox(width: 12),
+              // Main content
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (location != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        location!,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                ),
               ),
-            if (rating != null)
-              Row(
-                mainAxisSize: MainAxisSize.min,
+              // Trailing info
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  const Icon(Icons.star, color: Colors.amber, size: 16),
-                  Text(rating!.toStringAsFixed(1)),
+                  if (diveCount > 0)
+                    Text(
+                      '$diveCount dives',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  if (rating != null)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.star, color: Colors.amber, size: 16),
+                        Text(rating!.toStringAsFixed(1)),
+                      ],
+                    ),
                 ],
               ),
-          ],
+              if (!isSelectionMode)
+                Icon(
+                  Icons.chevron_right,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+            ],
+          ),
         ),
       ),
     );

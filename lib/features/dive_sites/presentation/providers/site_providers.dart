@@ -115,6 +115,28 @@ class SiteListNotifier extends StateNotifier<AsyncValue<List<domain.DiveSite>>> 
     await _repository.deleteSite(id);
     await _loadSites();
   }
+
+  /// Bulk delete multiple sites
+  /// Returns the deleted sites for potential undo
+  Future<List<domain.DiveSite>> bulkDeleteSites(List<String> ids) async {
+    // Get the sites before deleting for undo capability
+    final sitesToDelete = await _repository.getSitesByIds(ids);
+    await _repository.bulkDeleteSites(ids);
+    await _loadSites();
+    _ref.invalidate(sitesProvider);
+    _ref.invalidate(sitesWithCountsProvider);
+    return sitesToDelete;
+  }
+
+  /// Restore multiple sites (for undo functionality)
+  Future<void> restoreSites(List<domain.DiveSite> sites) async {
+    for (final site in sites) {
+      await _repository.createSite(site);
+    }
+    await _loadSites();
+    _ref.invalidate(sitesProvider);
+    _ref.invalidate(sitesWithCountsProvider);
+  }
 }
 
 final siteListNotifierProvider =
