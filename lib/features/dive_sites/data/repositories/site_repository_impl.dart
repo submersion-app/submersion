@@ -125,6 +125,33 @@ class SiteRepository {
     }
   }
 
+  /// Get multiple sites by IDs
+  Future<List<domain.DiveSite>> getSitesByIds(List<String> ids) async {
+    if (ids.isEmpty) return [];
+    try {
+      final query = _db.select(_db.diveSites)
+        ..where((t) => t.id.isIn(ids));
+      final rows = await query.get();
+      return rows.map(_mapRowToSite).toList();
+    } catch (e, stackTrace) {
+      _log.error('Failed to get sites by ids', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Bulk delete multiple sites
+  Future<void> bulkDeleteSites(List<String> ids) async {
+    if (ids.isEmpty) return;
+    try {
+      _log.info('Bulk deleting ${ids.length} sites');
+      await (_db.delete(_db.diveSites)..where((t) => t.id.isIn(ids))).go();
+      _log.info('Bulk deleted ${ids.length} sites');
+    } catch (e, stackTrace) {
+      _log.error('Failed to bulk delete sites', e, stackTrace);
+      rethrow;
+    }
+  }
+
   /// Search sites by name or location
   Future<List<domain.DiveSite>> searchSites(String query, {String? diverId}) async {
     try {
