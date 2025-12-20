@@ -13,22 +13,28 @@ void main() {
     group('calculatePpO2', () {
       test('should return O2 fraction at surface', () {
         // At surface (0m), ppO2 = 1.0 * fO2
-        expect(O2ToxicityCalculator.calculatePpO2(0, 0.21), closeTo(0.21, 0.001));
-        expect(O2ToxicityCalculator.calculatePpO2(0, 0.32), closeTo(0.32, 0.001));
+        expect(
+            O2ToxicityCalculator.calculatePpO2(0, 0.21), closeTo(0.21, 0.001));
+        expect(
+            O2ToxicityCalculator.calculatePpO2(0, 0.32), closeTo(0.32, 0.001));
         expect(O2ToxicityCalculator.calculatePpO2(0, 1.0), closeTo(1.0, 0.001));
       });
 
       test('should calculate ppO2 at 10m correctly', () {
         // At 10m, ambient pressure = 2.0 bar
         // ppO2 = 2.0 * fO2
-        expect(O2ToxicityCalculator.calculatePpO2(10, 0.21), closeTo(0.42, 0.001));
-        expect(O2ToxicityCalculator.calculatePpO2(10, 0.32), closeTo(0.64, 0.001));
+        expect(
+            O2ToxicityCalculator.calculatePpO2(10, 0.21), closeTo(0.42, 0.001));
+        expect(
+            O2ToxicityCalculator.calculatePpO2(10, 0.32), closeTo(0.64, 0.001));
       });
 
       test('should calculate ppO2 at 30m correctly', () {
         // At 30m, ambient pressure = 4.0 bar
-        expect(O2ToxicityCalculator.calculatePpO2(30, 0.21), closeTo(0.84, 0.001));
-        expect(O2ToxicityCalculator.calculatePpO2(30, 0.32), closeTo(1.28, 0.001));
+        expect(
+            O2ToxicityCalculator.calculatePpO2(30, 0.21), closeTo(0.84, 0.001));
+        expect(
+            O2ToxicityCalculator.calculatePpO2(30, 0.32), closeTo(1.28, 0.001));
       });
 
       test('should reach 1.4 ppO2 at MOD for nitrox 32', () {
@@ -214,7 +220,12 @@ void main() {
       test('should calculate exposure for simple dive profile', () {
         // Simple square profile: 30 minutes at 20m on air
         final depths = [0.0, 20.0, 20.0, 0.0];
-        final timestamps = [0, 120, 1800 + 120, 1800 + 240]; // descent, bottom, ascent
+        final timestamps = [
+          0,
+          120,
+          1800 + 120,
+          1800 + 240
+        ]; // descent, bottom, ascent
 
         final exposure = calculator.calculateDiveExposure(
           depths: depths,
@@ -402,7 +413,7 @@ void main() {
       });
 
       test('should respect custom thresholds', () {
-        final conservativeCalc = const O2ToxicityCalculator(
+        const conservativeCalc = O2ToxicityCalculator(
           ppO2WarningThreshold: 1.2,
         );
 
@@ -453,7 +464,7 @@ void main() {
       });
 
       test('should respect custom warning threshold', () {
-        final conservativeCalc = const O2ToxicityCalculator(
+        const conservativeCalc = O2ToxicityCalculator(
           cnsWarningThreshold: 60,
         );
 
@@ -492,38 +503,38 @@ void main() {
 
   group('O2Exposure entity', () {
     test('should calculate cnsDelta correctly', () {
-      final exposure = O2Exposure(cnsStart: 20, cnsEnd: 45);
+      const exposure = O2Exposure(cnsStart: 20, cnsEnd: 45);
       expect(exposure.cnsDelta, equals(25));
     });
 
     test('should flag cnsWarning at 80%', () {
-      expect(O2Exposure(cnsEnd: 79).cnsWarning, isFalse);
-      expect(O2Exposure(cnsEnd: 80).cnsWarning, isTrue);
-      expect(O2Exposure(cnsEnd: 100).cnsWarning, isTrue);
+      expect(const O2Exposure(cnsEnd: 79).cnsWarning, isFalse);
+      expect(const O2Exposure(cnsEnd: 80).cnsWarning, isTrue);
+      expect(const O2Exposure(cnsEnd: 100).cnsWarning, isTrue);
     });
 
     test('should flag cnsCritical at 100%', () {
-      expect(O2Exposure(cnsEnd: 99).cnsCritical, isFalse);
-      expect(O2Exposure(cnsEnd: 100).cnsCritical, isTrue);
+      expect(const O2Exposure(cnsEnd: 99).cnsCritical, isFalse);
+      expect(const O2Exposure(cnsEnd: 100).cnsCritical, isTrue);
     });
 
     test('should flag ppO2Warning above 1.4', () {
-      expect(O2Exposure(maxPpO2: 1.4).ppO2Warning, isFalse);
-      expect(O2Exposure(maxPpO2: 1.41).ppO2Warning, isTrue);
+      expect(const O2Exposure(maxPpO2: 1.4).ppO2Warning, isFalse);
+      expect(const O2Exposure(maxPpO2: 1.41).ppO2Warning, isTrue);
     });
 
     test('should flag ppO2Critical above 1.6', () {
-      expect(O2Exposure(maxPpO2: 1.6).ppO2Critical, isFalse);
-      expect(O2Exposure(maxPpO2: 1.61).ppO2Critical, isTrue);
+      expect(const O2Exposure(maxPpO2: 1.6).ppO2Critical, isFalse);
+      expect(const O2Exposure(maxPpO2: 1.61).ppO2Critical, isTrue);
     });
 
     test('should calculate otuPercentOfDaily correctly', () {
-      final exposure = O2Exposure(otu: 150);
+      const exposure = O2Exposure(otu: 150);
       expect(exposure.otuPercentOfDaily, equals(50.0));
     });
 
     test('should format values correctly', () {
-      final exposure = O2Exposure(
+      const exposure = O2Exposure(
         cnsEnd: 45.6,
         otu: 123.4,
         maxPpO2: 1.38,
@@ -541,7 +552,7 @@ void main() {
     });
 
     test('should copyWith correctly', () {
-      final original = O2Exposure(cnsEnd: 50, otu: 100);
+      const original = O2Exposure(cnsEnd: 50, otu: 100);
       final modified = original.copyWith(cnsEnd: 60);
 
       expect(modified.cnsEnd, equals(60));

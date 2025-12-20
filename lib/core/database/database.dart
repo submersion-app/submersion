@@ -122,8 +122,8 @@ class DiveProfiles extends Table {
       text().references(Dives, #id, onDelete: KeyAction.cascade)();
   TextColumn get computerId =>
       text().nullable().references(DiveComputers, #id)();
-  BoolColumn get isPrimary =>
-      boolean().withDefault(const Constant(true))(); // Primary profile for stats
+  BoolColumn get isPrimary => boolean()
+      .withDefault(const Constant(true))(); // Primary profile for stats
   IntColumn get timestamp => integer()(); // seconds from dive start
   RealColumn get depth => real()();
   RealColumn get pressure => real().nullable()(); // bar
@@ -184,7 +184,8 @@ class DiveTanks extends Table {
   RealColumn get hePercent => real().withDefault(const Constant(0.0))();
   IntColumn get tankOrder => integer().withDefault(const Constant(0))();
   TextColumn get tankRole => text().withDefault(
-      const Constant('backGas'))(); // backGas, stage, deco, bailout, etc.
+        const Constant('backGas'),
+      )(); // backGas, stage, deco, bailout, etc.
   TextColumn get tankMaterial =>
       text().nullable()(); // aluminum, steel, carbonFiber
   TextColumn get tankName =>
@@ -205,7 +206,8 @@ class Equipment extends Table {
   TextColumn get serialNumber => text().nullable()();
   TextColumn get size => text().nullable()(); // S, M, L, XL, or specific size
   TextColumn get status => text().withDefault(
-      const Constant('active'))(); // active, needsService, retired, etc.
+        const Constant('active'),
+      )(); // active, needsService, retired, etc.
   IntColumn get purchaseDate => integer().nullable()();
   RealColumn get purchasePrice => real().nullable()();
   TextColumn get purchaseCurrency =>
@@ -331,19 +333,15 @@ class DiverSettings extends Table {
   TextColumn get id => text()();
   TextColumn get diverId => text().references(Divers, #id)();
   // Unit settings
-  TextColumn get depthUnit =>
-      text().withDefault(const Constant('meters'))();
+  TextColumn get depthUnit => text().withDefault(const Constant('meters'))();
   TextColumn get temperatureUnit =>
       text().withDefault(const Constant('celsius'))();
-  TextColumn get pressureUnit =>
-      text().withDefault(const Constant('bar'))();
-  TextColumn get volumeUnit =>
-      text().withDefault(const Constant('liters'))();
+  TextColumn get pressureUnit => text().withDefault(const Constant('bar'))();
+  TextColumn get volumeUnit => text().withDefault(const Constant('liters'))();
   TextColumn get weightUnit =>
       text().withDefault(const Constant('kilograms'))();
   // Theme
-  TextColumn get themeMode =>
-      text().withDefault(const Constant('system'))();
+  TextColumn get themeMode => text().withDefault(const Constant('system'))();
   // Defaults
   TextColumn get defaultDiveType =>
       text().withDefault(const Constant('recreational'))();
@@ -352,18 +350,13 @@ class DiverSettings extends Table {
   IntColumn get defaultStartPressure =>
       integer().withDefault(const Constant(200))();
   // Decompression settings
-  IntColumn get gfLow =>
-      integer().withDefault(const Constant(30))();
-  IntColumn get gfHigh =>
-      integer().withDefault(const Constant(70))();
-  RealColumn get ppO2MaxWorking =>
-      real().withDefault(const Constant(1.4))();
-  RealColumn get ppO2MaxDeco =>
-      real().withDefault(const Constant(1.6))();
+  IntColumn get gfLow => integer().withDefault(const Constant(30))();
+  IntColumn get gfHigh => integer().withDefault(const Constant(70))();
+  RealColumn get ppO2MaxWorking => real().withDefault(const Constant(1.4))();
+  RealColumn get ppO2MaxDeco => real().withDefault(const Constant(1.6))();
   IntColumn get cnsWarningThreshold =>
       integer().withDefault(const Constant(80))();
-  RealColumn get ascentRateWarning =>
-      real().withDefault(const Constant(9.0))();
+  RealColumn get ascentRateWarning => real().withDefault(const Constant(9.0))();
   RealColumn get ascentRateCritical =>
       real().withDefault(const Constant(12.0))();
   BoolColumn get showCeilingOnProfile =>
@@ -372,10 +365,8 @@ class DiverSettings extends Table {
       boolean().withDefault(const Constant(true))();
   BoolColumn get showNdlOnProfile =>
       boolean().withDefault(const Constant(true))();
-  RealColumn get lastStopDepth =>
-      real().withDefault(const Constant(3.0))();
-  RealColumn get decoStopIncrement =>
-      real().withDefault(const Constant(3.0))();
+  RealColumn get lastStopDepth => real().withDefault(const Constant(3.0))();
+  RealColumn get decoStopIncrement => real().withDefault(const Constant(3.0))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 

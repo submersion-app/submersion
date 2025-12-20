@@ -49,8 +49,9 @@ class DecoStatus extends Equatable {
 
   /// Get the leading (most saturated) compartment
   TissueCompartment get leadingCompartment {
-    return compartments.reduce((a, b) =>
-        a.percentLoading > b.percentLoading ? a : b);
+    return compartments.reduce(
+      (a, b) => a.percentLoading > b.percentLoading ? a : b,
+    );
   }
 
   /// Leading compartment loading percentage
@@ -178,5 +179,6 @@ class DecoStop extends Equatable {
   }
 
   @override
-  List<Object?> get props => [depthMeters, durationSeconds, gasName, isDeepStop];
+  List<Object?> get props =>
+      [depthMeters, durationSeconds, gasName, isDeepStop];
 }

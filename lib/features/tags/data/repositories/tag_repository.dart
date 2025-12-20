@@ -18,7 +18,8 @@ class TagRepository {
   /// Get all tags, ordered by name
   Future<List<domain.Tag>> getAllTags({String? diverId}) async {
     try {
-      final query = _db.select(_db.tags)..orderBy([(t) => OrderingTerm.asc(t.name)]);
+      final query = _db.select(_db.tags)
+        ..orderBy([(t) => OrderingTerm.asc(t.name)]);
 
       if (diverId != null) {
         query.where((t) => t.diverId.equals(diverId));
@@ -69,14 +70,16 @@ class TagRepository {
       final id = tag.id.isEmpty ? _uuid.v4() : tag.id;
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await _db.into(_db.tags).insert(TagsCompanion(
-        id: Value(id),
-        diverId: Value(tag.diverId),
-        name: Value(tag.name),
-        color: Value(tag.colorHex),
-        createdAt: Value(now),
-        updatedAt: Value(now),
-      ),);
+      await _db.into(_db.tags).insert(
+            TagsCompanion(
+              id: Value(id),
+              diverId: Value(tag.diverId),
+              name: Value(tag.name),
+              color: Value(tag.colorHex),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
 
       _log.info('Created tag with id: $id');
       return tag.copyWith(id: id);
@@ -87,7 +90,8 @@ class TagRepository {
   }
 
   /// Create a tag or get existing if name already exists
-  Future<domain.Tag> getOrCreateTag(String name, {String? colorHex, String? diverId}) async {
+  Future<domain.Tag> getOrCreateTag(String name,
+      {String? colorHex, String? diverId}) async {
     try {
       // Check if tag with this name exists for this diver
       final existing = await getTagByName(name, diverId: diverId);
@@ -97,14 +101,16 @@ class TagRepository {
 
       // Create new tag
       final now = DateTime.now();
-      return createTag(domain.Tag(
-        id: _uuid.v4(),
-        diverId: diverId,
-        name: name.trim(),
-        colorHex: colorHex,
-        createdAt: now,
-        updatedAt: now,
-      ),);
+      return createTag(
+        domain.Tag(
+          id: _uuid.v4(),
+          diverId: diverId,
+          name: name.trim(),
+          colorHex: colorHex,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
     } catch (e, stackTrace) {
       _log.error('Failed to get or create tag: $name', e, stackTrace);
       rethrow;
@@ -150,20 +156,29 @@ class TagRepository {
   /// Get tags for a specific dive
   Future<List<domain.Tag>> getTagsForDive(String diveId) async {
     try {
-      final result = await _db.customSelect('''
+      final result = await _db.customSelect(
+        '''
         SELECT t.* FROM tags t
         INNER JOIN dive_tags dt ON t.id = dt.tag_id
         WHERE dt.dive_id = ?
         ORDER BY t.name
-      ''', variables: [Variable.withString(diveId)],).get();
+      ''',
+        variables: [Variable.withString(diveId)],
+      ).get();
 
-      return result.map((row) => domain.Tag(
-        id: row.data['id'] as String,
-        name: row.data['name'] as String,
-        colorHex: row.data['color'] as String?,
-        createdAt: DateTime.fromMillisecondsSinceEpoch(row.data['created_at'] as int),
-        updatedAt: DateTime.fromMillisecondsSinceEpoch(row.data['updated_at'] as int),
-      ),).toList();
+      return result
+          .map(
+            (row) => domain.Tag(
+              id: row.data['id'] as String,
+              name: row.data['name'] as String,
+              colorHex: row.data['color'] as String?,
+              createdAt: DateTime.fromMillisecondsSinceEpoch(
+                  row.data['created_at'] as int),
+              updatedAt: DateTime.fromMillisecondsSinceEpoch(
+                  row.data['updated_at'] as int),
+            ),
+          )
+          .toList();
     } catch (e, stackTrace) {
       _log.error('Failed to get tags for dive: $diveId', e, stackTrace);
       rethrow;
@@ -171,17 +186,21 @@ class TagRepository {
   }
 
   /// Get tags for multiple dives (batch loading)
-  Future<Map<String, List<domain.Tag>>> getTagsForDives(List<String> diveIds) async {
+  Future<Map<String, List<domain.Tag>>> getTagsForDives(
+      List<String> diveIds) async {
     if (diveIds.isEmpty) return {};
 
     try {
       final placeholders = diveIds.map((_) => '?').join(',');
-      final result = await _db.customSelect('''
+      final result = await _db.customSelect(
+        '''
         SELECT dt.dive_id, t.* FROM tags t
         INNER JOIN dive_tags dt ON t.id = dt.tag_id
         WHERE dt.dive_id IN ($placeholders)
         ORDER BY t.name
-      ''', variables: diveIds.map((id) => Variable.withString(id)).toList(),).get();
+      ''',
+        variables: diveIds.map((id) => Variable.withString(id)).toList(),
+      ).get();
 
       final tagsByDive = <String, List<domain.Tag>>{};
       for (final row in result) {
@@ -190,8 +209,10 @@ class TagRepository {
           id: row.data['id'] as String,
           name: row.data['name'] as String,
           colorHex: row.data['color'] as String?,
-          createdAt: DateTime.fromMillisecondsSinceEpoch(row.data['created_at'] as int),
-          updatedAt: DateTime.fromMillisecondsSinceEpoch(row.data['updated_at'] as int),
+          createdAt: DateTime.fromMillisecondsSinceEpoch(
+              row.data['created_at'] as int),
+          updatedAt: DateTime.fromMillisecondsSinceEpoch(
+              row.data['updated_at'] as int),
         );
         tagsByDive.putIfAbsent(diveId, () => []).add(tag);
       }
@@ -214,17 +235,20 @@ class TagRepository {
       final removedTagIds = existingTagIds.difference(newTagIds);
 
       // Delete existing tags for this dive
-      await (_db.delete(_db.diveTags)..where((t) => t.diveId.equals(diveId))).go();
+      await (_db.delete(_db.diveTags)..where((t) => t.diveId.equals(diveId)))
+          .go();
 
       // Insert new tags
       final now = DateTime.now().millisecondsSinceEpoch;
       for (final tag in tags) {
-        await _db.into(_db.diveTags).insert(DiveTagsCompanion(
-          id: Value(_uuid.v4()),
-          diveId: Value(diveId),
-          tagId: Value(tag.id),
-          createdAt: Value(now),
-        ),);
+        await _db.into(_db.diveTags).insert(
+              DiveTagsCompanion(
+                id: Value(_uuid.v4()),
+                diveId: Value(diveId),
+                tagId: Value(tag.id),
+                createdAt: Value(now),
+              ),
+            );
       }
 
       // Clean up any tags that are no longer used
@@ -245,12 +269,14 @@ class TagRepository {
       _log.info('Adding tag $tagId to dive: $diveId');
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await _db.into(_db.diveTags).insert(DiveTagsCompanion(
-        id: Value(_uuid.v4()),
-        diveId: Value(diveId),
-        tagId: Value(tagId),
-        createdAt: Value(now),
-      ),);
+      await _db.into(_db.diveTags).insert(
+            DiveTagsCompanion(
+              id: Value(_uuid.v4()),
+              diveId: Value(diveId),
+              tagId: Value(tagId),
+              createdAt: Value(now),
+            ),
+          );
 
       _log.info('Added tag $tagId to dive: $diveId');
     } catch (e, stackTrace) {
@@ -266,10 +292,10 @@ class TagRepository {
       await (_db.delete(_db.diveTags)
             ..where((t) => t.diveId.equals(diveId) & t.tagId.equals(tagId)))
           .go();
-      
+
       // Clean up the tag if it's no longer used
       await _deleteTagIfUnused(tagId);
-      
+
       _log.info('Removed tag $tagId from dive: $diveId');
     } catch (e, stackTrace) {
       _log.error('Failed to remove tag from dive', e, stackTrace);
@@ -297,9 +323,12 @@ class TagRepository {
 
   /// Get the number of dives using a specific tag
   Future<int> _getTagUsageCount(String tagId) async {
-    final result = await _db.customSelect('''
+    final result = await _db.customSelect(
+      '''
       SELECT COUNT(*) as count FROM dive_tags WHERE tag_id = ?
-    ''', variables: [Variable.withString(tagId)],).getSingle();
+    ''',
+      variables: [Variable.withString(tagId)],
+    ).getSingle();
     return result.data['count'] as int;
   }
 
@@ -327,28 +356,39 @@ class TagRepository {
   Future<List<TagStatistic>> getTagStatistics({String? diverId}) async {
     try {
       final diverFilter = diverId != null ? 'WHERE t.diver_id = ?' : '';
-      final variables = diverId != null ? [Variable.withString(diverId)] : <Variable<Object>>[];
+      final variables = diverId != null
+          ? [Variable.withString(diverId)]
+          : <Variable<Object>>[];
 
-      final result = await _db.customSelect('''
+      final result = await _db.customSelect(
+        '''
         SELECT t.*, COUNT(dt.dive_id) as dive_count
         FROM tags t
         LEFT JOIN dive_tags dt ON t.id = dt.tag_id
         $diverFilter
         GROUP BY t.id
         ORDER BY dive_count DESC, t.name
-      ''', variables: variables).get();
+      ''',
+        variables: variables,
+      ).get();
 
-      return result.map((row) => TagStatistic(
-        tag: domain.Tag(
-          id: row.data['id'] as String,
-          diverId: row.data['diver_id'] as String?,
-          name: row.data['name'] as String,
-          colorHex: row.data['color'] as String?,
-          createdAt: DateTime.fromMillisecondsSinceEpoch(row.data['created_at'] as int),
-          updatedAt: DateTime.fromMillisecondsSinceEpoch(row.data['updated_at'] as int),
-        ),
-        diveCount: row.data['dive_count'] as int,
-      ),).toList();
+      return result
+          .map(
+            (row) => TagStatistic(
+              tag: domain.Tag(
+                id: row.data['id'] as String,
+                diverId: row.data['diver_id'] as String?,
+                name: row.data['name'] as String,
+                colorHex: row.data['color'] as String?,
+                createdAt: DateTime.fromMillisecondsSinceEpoch(
+                    row.data['created_at'] as int),
+                updatedAt: DateTime.fromMillisecondsSinceEpoch(
+                    row.data['updated_at'] as int),
+              ),
+              diveCount: row.data['dive_count'] as int,
+            ),
+          )
+          .toList();
     } catch (e, stackTrace) {
       _log.error('Failed to get tag statistics', e, stackTrace);
       rethrow;

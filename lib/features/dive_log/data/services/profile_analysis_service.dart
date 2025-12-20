@@ -286,13 +286,15 @@ class ProfileAnalysisService {
     for (int i = 1; i < depths.length; i++) {
       if (depths[i] > 1.0 && depths[i] > depths[i - 1]) {
         descentStartIndex = i;
-        events.add(ProfileEvent.descentStart(
-          id: _uuid.v4(),
-          diveId: diveId,
-          timestamp: timestamps[i],
-          depth: depths[i],
-          createdAt: now,
-        ));
+        events.add(
+          ProfileEvent.descentStart(
+            id: _uuid.v4(),
+            diveId: diveId,
+            timestamp: timestamps[i],
+            depth: depths[i],
+            createdAt: now,
+          ),
+        );
         break;
       }
     }
@@ -301,27 +303,31 @@ class ProfileAnalysisService {
     if (descentStartIndex != null) {
       for (int i = descentStartIndex + 1; i < depths.length; i++) {
         if (depths[i] <= depths[i - 1]) {
-          events.add(ProfileEvent(
-            id: _uuid.v4(),
-            diveId: diveId,
-            timestamp: timestamps[i],
-            eventType: ProfileEventType.descentEnd,
-            depth: depths[i],
-            createdAt: now,
-          ));
+          events.add(
+            ProfileEvent(
+              id: _uuid.v4(),
+              diveId: diveId,
+              timestamp: timestamps[i],
+              eventType: ProfileEventType.descentEnd,
+              depth: depths[i],
+              createdAt: now,
+            ),
+          );
           break;
         }
       }
     }
 
     // Find max depth
-    events.add(ProfileEvent.maxDepth(
-      id: _uuid.v4(),
-      diveId: diveId,
-      timestamp: maxDepthTimestamp,
-      depth: maxDepth,
-      createdAt: now,
-    ));
+    events.add(
+      ProfileEvent.maxDepth(
+        id: _uuid.v4(),
+        diveId: diveId,
+        timestamp: maxDepthTimestamp,
+        depth: maxDepth,
+        createdAt: now,
+      ),
+    );
 
     // Find ascent start (last significant depth decrease starting)
     for (int i = depths.length - 1; i > 0; i--) {
@@ -334,13 +340,15 @@ class ProfileAnalysisService {
             break;
           }
         }
-        events.add(ProfileEvent.ascentStart(
-          id: _uuid.v4(),
-          diveId: diveId,
-          timestamp: timestamps[ascentStart],
-          depth: depths[ascentStart],
-          createdAt: now,
-        ));
+        events.add(
+          ProfileEvent.ascentStart(
+            id: _uuid.v4(),
+            diveId: diveId,
+            timestamp: timestamps[ascentStart],
+            depth: depths[ascentStart],
+            createdAt: now,
+          ),
+        );
         break;
       }
     }
@@ -350,45 +358,51 @@ class ProfileAnalysisService {
 
     // Add ascent rate violation events
     for (final violation in ascentRateViolations) {
-      events.add(ProfileEvent.ascentRateWarning(
-        id: _uuid.v4(),
-        diveId: diveId,
-        timestamp: violation.startTimestamp,
-        depth: violation.depthAtMaxRate,
-        rate: violation.maxRate,
-        createdAt: now,
-        isCritical: violation.isCritical,
-      ));
+      events.add(
+        ProfileEvent.ascentRateWarning(
+          id: _uuid.v4(),
+          diveId: diveId,
+          timestamp: violation.startTimestamp,
+          depth: violation.depthAtMaxRate,
+          rate: violation.maxRate,
+          createdAt: now,
+          isCritical: violation.isCritical,
+        ),
+      );
     }
 
     // Detect ppO2 warnings
     for (int i = 0; i < ppO2Curve.length; i++) {
       if (ppO2Curve[i] > 1.6) {
-        events.add(ProfileEvent(
-          id: _uuid.v4(),
-          diveId: diveId,
-          timestamp: timestamps[i],
-          eventType: ProfileEventType.ppO2High,
-          severity: EventSeverity.alert,
-          depth: depths[i],
-          value: ppO2Curve[i],
-          createdAt: now,
-        ));
+        events.add(
+          ProfileEvent(
+            id: _uuid.v4(),
+            diveId: diveId,
+            timestamp: timestamps[i],
+            eventType: ProfileEventType.ppO2High,
+            severity: EventSeverity.alert,
+            depth: depths[i],
+            value: ppO2Curve[i],
+            createdAt: now,
+          ),
+        );
         // Skip ahead to avoid duplicate events
         while (i < ppO2Curve.length - 1 && ppO2Curve[i + 1] > 1.6) {
           i++;
         }
       } else if (ppO2Curve[i] > 1.4) {
-        events.add(ProfileEvent(
-          id: _uuid.v4(),
-          diveId: diveId,
-          timestamp: timestamps[i],
-          eventType: ProfileEventType.ppO2High,
-          severity: EventSeverity.warning,
-          depth: depths[i],
-          value: ppO2Curve[i],
-          createdAt: now,
-        ));
+        events.add(
+          ProfileEvent(
+            id: _uuid.v4(),
+            diveId: diveId,
+            timestamp: timestamps[i],
+            eventType: ProfileEventType.ppO2High,
+            severity: EventSeverity.warning,
+            depth: depths[i],
+            value: ppO2Curve[i],
+            createdAt: now,
+          ),
+        );
         while (i < ppO2Curve.length - 1 && ppO2Curve[i + 1] > 1.4) {
           i++;
         }
@@ -430,22 +444,26 @@ class ProfileAnalysisService {
           final duration = timestamps[i - 1] - stopStartTimestamp;
           if (duration >= minStopDuration) {
             // This was a safety stop
-            events.add(ProfileEvent.safetyStop(
-              id: _uuid.v4(),
-              diveId: diveId,
-              timestamp: stopStartTimestamp,
-              depth: depths[stopStartIndex],
-              createdAt: now,
-              isStart: true,
-            ));
-            events.add(ProfileEvent.safetyStop(
-              id: _uuid.v4(),
-              diveId: diveId,
-              timestamp: timestamps[i - 1],
-              depth: depths[i - 1],
-              createdAt: now,
-              isStart: false,
-            ));
+            events.add(
+              ProfileEvent.safetyStop(
+                id: _uuid.v4(),
+                diveId: diveId,
+                timestamp: stopStartTimestamp,
+                depth: depths[stopStartIndex],
+                createdAt: now,
+                isStart: true,
+              ),
+            );
+            events.add(
+              ProfileEvent.safetyStop(
+                id: _uuid.v4(),
+                diveId: diveId,
+                timestamp: timestamps[i - 1],
+                depth: depths[i - 1],
+                createdAt: now,
+                isStart: false,
+              ),
+            );
           }
           stopStartIndex = null;
           stopStartTimestamp = null;
@@ -519,10 +537,9 @@ class ProfileAnalysisService {
       ceiling: analysis.ceilingCurve[index],
       ndl: analysis.ndlCurve[index],
       ppO2: analysis.ppO2Curve[index],
-      decoStatus:
-          index < analysis.decoStatuses.length
-              ? analysis.decoStatuses[index]
-              : null,
+      decoStatus: index < analysis.decoStatuses.length
+          ? analysis.decoStatuses[index]
+          : null,
     );
   }
 }

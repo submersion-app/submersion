@@ -54,7 +54,8 @@ class TripRepository {
       if (diverId != null) Variable.withString(diverId),
     ];
 
-    final results = await _db.customSelect('''
+    final results = await _db.customSelect(
+      '''
       SELECT * FROM trips
       WHERE (LOWER(name) LIKE ?
          OR LOWER(location) LIKE ?
@@ -62,7 +63,9 @@ class TripRepository {
          OR LOWER(liveaboard_name) LIKE ?)
       $diverFilter
       ORDER BY start_date DESC
-    ''', variables: variables).get();
+    ''',
+      variables: variables,
+    ).get();
 
     return results.map((row) {
       return domain.Trip(
@@ -92,19 +95,21 @@ class TripRepository {
       final id = trip.id.isEmpty ? _uuid.v4() : trip.id;
       final now = DateTime.now();
 
-      await _db.into(_db.trips).insert(TripsCompanion(
-            id: Value(id),
-            diverId: Value(trip.diverId),
-            name: Value(trip.name),
-            startDate: Value(trip.startDate.millisecondsSinceEpoch),
-            endDate: Value(trip.endDate.millisecondsSinceEpoch),
-            location: Value(trip.location),
-            resortName: Value(trip.resortName),
-            liveaboardName: Value(trip.liveaboardName),
-            notes: Value(trip.notes),
-            createdAt: Value(now.millisecondsSinceEpoch),
-            updatedAt: Value(now.millisecondsSinceEpoch),
-          ),);
+      await _db.into(_db.trips).insert(
+            TripsCompanion(
+              id: Value(id),
+              diverId: Value(trip.diverId),
+              name: Value(trip.name),
+              startDate: Value(trip.startDate.millisecondsSinceEpoch),
+              endDate: Value(trip.endDate.millisecondsSinceEpoch),
+              location: Value(trip.location),
+              resortName: Value(trip.resortName),
+              liveaboardName: Value(trip.liveaboardName),
+              notes: Value(trip.notes),
+              createdAt: Value(now.millisecondsSinceEpoch),
+              updatedAt: Value(now.millisecondsSinceEpoch),
+            ),
+          );
 
       _log.info('Created trip with id: $id');
       return trip.copyWith(id: id, createdAt: now, updatedAt: now);
@@ -162,22 +167,28 @@ class TripRepository {
 
   /// Get dives for a specific trip
   Future<List<String>> getDiveIdsForTrip(String tripId) async {
-    final results = await _db.customSelect('''
+    final results = await _db.customSelect(
+      '''
       SELECT id FROM dives
       WHERE trip_id = ?
       ORDER BY dive_date_time DESC
-    ''', variables: [Variable.withString(tripId)],).get();
+    ''',
+      variables: [Variable.withString(tripId)],
+    ).get();
 
     return results.map((row) => row.data['id'] as String).toList();
   }
 
   /// Get dive count for a trip
   Future<int> getDiveCountForTrip(String tripId) async {
-    final result = await _db.customSelect('''
+    final result = await _db.customSelect(
+      '''
       SELECT COUNT(*) as count
       FROM dives
       WHERE trip_id = ?
-    ''', variables: [Variable.withString(tripId)],).getSingle();
+    ''',
+      variables: [Variable.withString(tripId)],
+    ).getSingle();
 
     return result.data['count'] as int? ?? 0;
   }
@@ -221,7 +232,8 @@ class TripRepository {
       throw Exception('Trip not found');
     }
 
-    final statsResult = await _db.customSelect('''
+    final statsResult = await _db.customSelect(
+      '''
       SELECT
         COUNT(*) as dive_count,
         COALESCE(SUM(duration), 0) as total_bottom_time,
@@ -229,7 +241,9 @@ class TripRepository {
         AVG(max_depth) as avg_depth
       FROM dives
       WHERE trip_id = ?
-    ''', variables: [Variable.withString(tripId)],).getSingle();
+    ''',
+      variables: [Variable.withString(tripId)],
+    ).getSingle();
 
     return domain.TripWithStats(
       trip: trip,
@@ -250,13 +264,16 @@ class TripRepository {
       if (diverId != null) Variable.withString(diverId),
     ];
 
-    final result = await _db.customSelect('''
+    final result = await _db.customSelect(
+      '''
       SELECT * FROM trips
       WHERE start_date <= ? AND end_date >= ?
       $diverFilter
       ORDER BY start_date DESC
       LIMIT 1
-    ''', variables: variables).getSingleOrNull();
+    ''',
+      variables: variables,
+    ).getSingleOrNull();
 
     if (result == null) return null;
 
@@ -280,11 +297,14 @@ class TripRepository {
   }
 
   /// Get all trips with their statistics
-  Future<List<domain.TripWithStats>> getAllTripsWithStats({String? diverId}) async {
+  Future<List<domain.TripWithStats>> getAllTripsWithStats(
+      {String? diverId}) async {
     final diverFilter = diverId != null ? 'WHERE t.diver_id = ?' : '';
-    final variables = diverId != null ? [Variable.withString(diverId)] : <Variable<Object>>[];
+    final variables =
+        diverId != null ? [Variable.withString(diverId)] : <Variable<Object>>[];
 
-    final rows = await _db.customSelect('''
+    final rows = await _db.customSelect(
+      '''
       SELECT
         t.*,
         COUNT(DISTINCT d.id) AS dive_count,
@@ -296,21 +316,27 @@ class TripRepository {
       $diverFilter
       GROUP BY t.id
       ORDER BY t.start_date DESC
-    ''', variables: variables).get();
+    ''',
+      variables: variables,
+    ).get();
 
     return rows.map((row) {
       final trip = domain.Trip(
         id: row.data['id'] as String,
         diverId: row.data['diver_id'] as String?,
         name: row.data['name'] as String,
-        startDate: DateTime.fromMillisecondsSinceEpoch(row.data['start_date'] as int),
-        endDate: DateTime.fromMillisecondsSinceEpoch(row.data['end_date'] as int),
+        startDate:
+            DateTime.fromMillisecondsSinceEpoch(row.data['start_date'] as int),
+        endDate:
+            DateTime.fromMillisecondsSinceEpoch(row.data['end_date'] as int),
         location: row.data['location'] as String?,
         resortName: row.data['resort_name'] as String?,
         liveaboardName: row.data['liveaboard_name'] as String?,
         notes: (row.data['notes'] as String?) ?? '',
-        createdAt: DateTime.fromMillisecondsSinceEpoch(row.data['created_at'] as int),
-        updatedAt: DateTime.fromMillisecondsSinceEpoch(row.data['updated_at'] as int),
+        createdAt:
+            DateTime.fromMillisecondsSinceEpoch(row.data['created_at'] as int),
+        updatedAt:
+            DateTime.fromMillisecondsSinceEpoch(row.data['updated_at'] as int),
       );
       return domain.TripWithStats(
         trip: trip,

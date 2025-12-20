@@ -165,12 +165,14 @@ class AscentRateCalculator {
     // Create rate points
     for (int i = 0; i < depths.length; i++) {
       final rate = smoothedRates[i];
-      rates.add(AscentRatePoint(
-        timestamp: timestamps[i],
-        depth: depths[i],
-        rateMetersPerMin: rate,
-        category: categorize(rate),
-      ));
+      rates.add(
+        AscentRatePoint(
+          timestamp: timestamps[i],
+          depth: depths[i],
+          rateMetersPerMin: rate,
+          category: categorize(rate),
+        ),
+      );
     }
 
     return rates;
@@ -229,13 +231,15 @@ class AscentRateCalculator {
         }
       } else if (violationStart != null) {
         // End of violation
-        violations.add(AscentRateViolation(
-          startTimestamp: violationStart,
-          endTimestamp: ratePoints[i - 1].timestamp,
-          maxRate: maxRate,
-          depthAtMaxRate: depthAtMax,
-          isCritical: hasCritical,
-        ));
+        violations.add(
+          AscentRateViolation(
+            startTimestamp: violationStart,
+            endTimestamp: ratePoints[i - 1].timestamp,
+            maxRate: maxRate,
+            depthAtMaxRate: depthAtMax,
+            isCritical: hasCritical,
+          ),
+        );
         violationStart = null;
         maxRate = 0;
         depthAtMax = 0;
@@ -245,13 +249,15 @@ class AscentRateCalculator {
 
     // Handle violation that extends to end of dive
     if (violationStart != null && ratePoints.isNotEmpty) {
-      violations.add(AscentRateViolation(
-        startTimestamp: violationStart,
-        endTimestamp: ratePoints.last.timestamp,
-        maxRate: maxRate,
-        depthAtMaxRate: depthAtMax,
-        isCritical: hasCritical,
-      ));
+      violations.add(
+        AscentRateViolation(
+          startTimestamp: violationStart,
+          endTimestamp: ratePoints.last.timestamp,
+          maxRate: maxRate,
+          depthAtMaxRate: depthAtMax,
+          isCritical: hasCritical,
+        ),
+      );
     }
 
     return violations;

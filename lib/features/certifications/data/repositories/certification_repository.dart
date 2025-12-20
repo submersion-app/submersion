@@ -13,7 +13,8 @@ class CertificationRepository {
   final _log = LoggerService.forClass(CertificationRepository);
 
   /// Get all certifications ordered by issue date (newest first)
-  Future<List<domain.Certification>> getAllCertifications({String? diverId}) async {
+  Future<List<domain.Certification>> getAllCertifications(
+      {String? diverId}) async {
     try {
       final query = _db.select(_db.certifications)
         ..orderBy([
@@ -48,7 +49,8 @@ class CertificationRepository {
   }
 
   /// Search certifications by name or agency
-  Future<List<domain.Certification>> searchCertifications(String query, {String? diverId}) async {
+  Future<List<domain.Certification>> searchCertifications(String query,
+      {String? diverId}) async {
     final searchTerm = '%${query.toLowerCase()}%';
 
     final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
@@ -59,14 +61,17 @@ class CertificationRepository {
       if (diverId != null) Variable.withString(diverId),
     ];
 
-    final results = await _db.customSelect('''
+    final results = await _db.customSelect(
+      '''
       SELECT * FROM certifications
       WHERE (LOWER(name) LIKE ?
          OR LOWER(agency) LIKE ?
          OR LOWER(card_number) LIKE ?)
       $diverFilter
       ORDER BY issue_date DESC, name ASC
-    ''', variables: variables).get();
+    ''',
+      variables: variables,
+    ).get();
 
     return results.map((row) {
       return domain.Certification(
@@ -93,29 +98,32 @@ class CertificationRepository {
 
   /// Create a new certification
   Future<domain.Certification> createCertification(
-      domain.Certification cert,) async {
+    domain.Certification cert,
+  ) async {
     try {
       _log.info('Creating certification: ${cert.name}');
       final id = cert.id.isEmpty ? _uuid.v4() : cert.id;
       final now = DateTime.now();
 
-      await _db.into(_db.certifications).insert(CertificationsCompanion(
-            id: Value(id),
-            diverId: Value(cert.diverId),
-            name: Value(cert.name),
-            agency: Value(cert.agency.name),
-            level: Value(cert.level?.name),
-            cardNumber: Value(cert.cardNumber),
-            issueDate: Value(cert.issueDate?.millisecondsSinceEpoch),
-            expiryDate: Value(cert.expiryDate?.millisecondsSinceEpoch),
-            instructorName: Value(cert.instructorName),
-            instructorNumber: Value(cert.instructorNumber),
-            photoFrontPath: Value(cert.photoFrontPath),
-            photoBackPath: Value(cert.photoBackPath),
-            notes: Value(cert.notes),
-            createdAt: Value(now.millisecondsSinceEpoch),
-            updatedAt: Value(now.millisecondsSinceEpoch),
-          ),);
+      await _db.into(_db.certifications).insert(
+            CertificationsCompanion(
+              id: Value(id),
+              diverId: Value(cert.diverId),
+              name: Value(cert.name),
+              agency: Value(cert.agency.name),
+              level: Value(cert.level?.name),
+              cardNumber: Value(cert.cardNumber),
+              issueDate: Value(cert.issueDate?.millisecondsSinceEpoch),
+              expiryDate: Value(cert.expiryDate?.millisecondsSinceEpoch),
+              instructorName: Value(cert.instructorName),
+              instructorNumber: Value(cert.instructorNumber),
+              photoFrontPath: Value(cert.photoFrontPath),
+              photoBackPath: Value(cert.photoBackPath),
+              notes: Value(cert.notes),
+              createdAt: Value(now.millisecondsSinceEpoch),
+              updatedAt: Value(now.millisecondsSinceEpoch),
+            ),
+          );
 
       _log.info('Created certification with id: $id');
       return cert.copyWith(id: id, createdAt: now, updatedAt: now);
@@ -159,7 +167,8 @@ class CertificationRepository {
   Future<void> deleteCertification(String id) async {
     try {
       _log.info('Deleting certification: $id');
-      await (_db.delete(_db.certifications)..where((t) => t.id.equals(id))).go();
+      await (_db.delete(_db.certifications)..where((t) => t.id.equals(id)))
+          .go();
       _log.info('Deleted certification: $id');
     } catch (e, stackTrace) {
       _log.error('Failed to delete certification: $id', e, stackTrace);
@@ -169,7 +178,9 @@ class CertificationRepository {
 
   /// Get certifications expiring within days
   Future<List<domain.Certification>> getExpiringCertifications(
-      int withinDays, {String? diverId}) async {
+    int withinDays, {
+    String? diverId,
+  }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     final threshold =
         DateTime.now().add(Duration(days: withinDays)).millisecondsSinceEpoch;
@@ -181,14 +192,17 @@ class CertificationRepository {
       if (diverId != null) Variable.withString(diverId),
     ];
 
-    final results = await _db.customSelect('''
+    final results = await _db.customSelect(
+      '''
       SELECT * FROM certifications
       WHERE expiry_date IS NOT NULL
         AND expiry_date > ?
         AND expiry_date <= ?
         $diverFilter
       ORDER BY expiry_date ASC
-    ''', variables: variables).get();
+    ''',
+      variables: variables,
+    ).get();
 
     return results.map((row) {
       return domain.Certification(
@@ -214,7 +228,8 @@ class CertificationRepository {
   }
 
   /// Get expired certifications
-  Future<List<domain.Certification>> getExpiredCertifications({String? diverId}) async {
+  Future<List<domain.Certification>> getExpiredCertifications(
+      {String? diverId}) async {
     final now = DateTime.now().millisecondsSinceEpoch;
 
     final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
@@ -223,13 +238,16 @@ class CertificationRepository {
       if (diverId != null) Variable.withString(diverId),
     ];
 
-    final results = await _db.customSelect('''
+    final results = await _db.customSelect(
+      '''
       SELECT * FROM certifications
       WHERE expiry_date IS NOT NULL
         AND expiry_date <= ?
         $diverFilter
       ORDER BY expiry_date DESC
-    ''', variables: variables).get();
+    ''',
+      variables: variables,
+    ).get();
 
     return results.map((row) {
       return domain.Certification(
@@ -256,7 +274,8 @@ class CertificationRepository {
 
   /// Get certifications by agency
   Future<List<domain.Certification>> getCertificationsByAgency(
-      CertificationAgency agency,) async {
+    CertificationAgency agency,
+  ) async {
     final query = _db.select(_db.certifications)
       ..where((t) => t.agency.equals(agency.name))
       ..orderBy([(t) => OrderingTerm.desc(t.issueDate)]);

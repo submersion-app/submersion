@@ -51,17 +51,19 @@ class BuhlmannAlgorithm {
     final surfaceN2 = calculateInspiredN2(surfacePressureBar, airN2Fraction);
 
     for (int i = 0; i < zhl16CompartmentCount; i++) {
-      compartments.add(TissueCompartment(
-        compartmentNumber: i + 1,
-        halfTimeN2: zhl16cN2HalfTimes[i],
-        halfTimeHe: zhl16cHeHalfTimes[i],
-        mValueAN2: zhl16cN2A[i],
-        mValueBN2: zhl16cN2B[i],
-        mValueAHe: zhl16cHeA[i],
-        mValueBHe: zhl16cHeB[i],
-        currentPN2: surfaceN2,
-        currentPHe: 0.0,
-      ));
+      compartments.add(
+        TissueCompartment(
+          compartmentNumber: i + 1,
+          halfTimeN2: zhl16cN2HalfTimes[i],
+          halfTimeHe: zhl16cHeHalfTimes[i],
+          mValueAN2: zhl16cN2A[i],
+          mValueBN2: zhl16cN2B[i],
+          mValueAHe: zhl16cHeA[i],
+          mValueBHe: zhl16cHeB[i],
+          currentPN2: surfaceN2,
+          currentPHe: 0.0,
+        ),
+      );
     }
 
     return compartments;
@@ -116,10 +118,12 @@ class BuhlmannAlgorithm {
         comp.halfTimeHe,
       );
 
-      newCompartments.add(comp.copyWith(
-        currentPN2: newN2,
-        currentPHe: newHe,
-      ));
+      newCompartments.add(
+        comp.copyWith(
+          currentPN2: newN2,
+          currentPHe: newHe,
+        ),
+      );
     }
 
     _compartments = newCompartments;
@@ -264,28 +268,29 @@ class BuhlmannAlgorithm {
     final savedCompartments = List<TissueCompartment>.from(_compartments);
 
     // Find first stop depth
-    double ceiling = calculateCeiling(currentDepth: currentDepth);
+    final double ceiling = calculateCeiling(currentDepth: currentDepth);
     if (ceiling <= 0) {
       _compartments = savedCompartments;
       return stops; // No deco required
     }
 
-    double currentStopDepth =
-        (ceiling / stopIncrement).ceil() * stopIncrement;
+    double currentStopDepth = (ceiling / stopIncrement).ceil() * stopIncrement;
 
     // Simulate ascent to first stop
     _simulateAscent(currentDepth, currentStopDepth, fN2, fHe);
 
     // Calculate stops
     while (currentStopDepth >= lastStopDepth) {
-      int stopTime = _calculateStopTime(currentStopDepth, fN2, fHe);
+      final int stopTime = _calculateStopTime(currentStopDepth, fN2, fHe);
 
       if (stopTime > 0) {
-        stops.add(DecoStop(
-          depthMeters: currentStopDepth,
-          durationSeconds: stopTime,
-          isDeepStop: currentStopDepth > 9,
-        ));
+        stops.add(
+          DecoStop(
+            depthMeters: currentStopDepth,
+            durationSeconds: stopTime,
+            isDeepStop: currentStopDepth > 9,
+          ),
+        );
 
         // Apply stop time
         calculateSegment(
@@ -421,8 +426,7 @@ class BuhlmannAlgorithm {
     final stops = ndl < 0
         ? calculateDecoSchedule(currentDepth: currentDepth, fN2: fN2, fHe: fHe)
         : <DecoStop>[];
-    final tts =
-        ndl < 0 ? calculateTts(currentDepth: currentDepth) : 0;
+    final tts = ndl < 0 ? calculateTts(currentDepth: currentDepth) : 0;
 
     return DecoStatus(
       compartments: List.unmodifiable(_compartments),
@@ -470,11 +474,13 @@ class BuhlmannAlgorithm {
         );
       }
 
-      results.add(getDecoStatus(
-        currentDepth: depths[i],
-        fN2: fN2,
-        fHe: fHe,
-      ));
+      results.add(
+        getDecoStatus(
+          currentDepth: depths[i],
+          fN2: fN2,
+          fHe: fHe,
+        ),
+      );
     }
 
     return results;
