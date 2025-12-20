@@ -611,6 +611,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             ),
             const Divider(),
             _buildDetailRow(context, 'Dive Type', dive.diveTypeName),
+            if (dive.trip != null)
+              _buildTripRow(context, dive),
             if (dive.diveCenter != null)
               _buildDiveCenterRow(context, dive),
             if (dive.visibility != null)
@@ -802,6 +804,60 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           ),
           Text(value, style: Theme.of(context).textTheme.bodyMedium),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTripRow(BuildContext context, Dive dive) {
+    final trip = dive.trip!;
+    return InkWell(
+      onTap: () => context.push('/trips/${trip.id}'),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Trip',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+            Flexible(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          trip.name,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (trip.subtitle != null)
+                          Text(
+                            trip.subtitle!,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.chevron_right,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

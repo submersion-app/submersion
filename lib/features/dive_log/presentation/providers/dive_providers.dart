@@ -2,7 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/repositories/dive_repository_impl.dart';
 import '../../domain/entities/dive.dart' as domain;
+import '../../../dive_centers/presentation/providers/dive_center_providers.dart';
 import '../../../divers/presentation/providers/diver_providers.dart';
+import '../../../trips/presentation/providers/trip_providers.dart';
 
 /// Filter state for dive list
 class DiveFilterState {
@@ -205,6 +207,23 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
     await _loadDives();
   }
 
+  /// Invalidate trip and dive center providers for a dive
+  void _invalidateRelatedProviders(domain.Dive dive) {
+    // Invalidate trip stats if dive has a trip (check both tripId and trip object)
+    final tripId = dive.tripId ?? dive.trip?.id;
+    if (tripId != null) {
+      _ref.invalidate(tripWithStatsProvider(tripId));
+    }
+    // Invalidate dive center count if dive has a dive center
+    if (dive.diveCenter != null) {
+      _ref.invalidate(diveCenterDiveCountProvider(dive.diveCenter!.id));
+    }
+    // Refresh the trip list notifier (it's a StateNotifier so needs explicit refresh)
+    _ref.read(tripListNotifierProvider.notifier).refresh();
+    // Also invalidate the FutureProvider versions
+    _ref.invalidate(allTripsWithStatsProvider);
+  }
+
   Future<domain.Dive> addDive(domain.Dive dive) async {
     // Ensure the dive is assigned to the current diver (if diver exists)
     var diveWithDiver = dive;
@@ -219,20 +238,34 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
     final newDive = await _repository.createDive(diveWithDiver);
     await _loadDives();
     _ref.invalidate(diveStatisticsProvider);
+    _invalidateRelatedProviders(newDive);
     return newDive;
   }
 
   Future<void> updateDive(domain.Dive dive) async {
+    // Get old dive to invalidate old trip/center if changed
+    final oldDive = await _repository.getDiveById(dive.id);
     await _repository.updateDive(dive);
     await _loadDives();
     _ref.invalidate(diveStatisticsProvider);
     _ref.invalidate(diveProvider(dive.id));
+    // Invalidate old associations
+    if (oldDive != null) {
+      _invalidateRelatedProviders(oldDive);
+    }
+    // Invalidate new associations
+    _invalidateRelatedProviders(dive);
   }
 
   Future<void> deleteDive(String id) async {
+    // Get dive before deleting to know its associations
+    final dive = await _repository.getDiveById(id);
     await _repository.deleteDive(id);
     await _loadDives();
     _ref.invalidate(diveStatisticsProvider);
+    if (dive != null) {
+      _invalidateRelatedProviders(dive);
+    }
   }
 
   /// Bulk delete multiple dives
@@ -243,6 +276,10 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
     await _repository.bulkDeleteDives(ids);
     await _loadDives();
     _ref.invalidate(diveStatisticsProvider);
+    // Invalidate related providers for all deleted dives
+    for (final dive in divesToDelete) {
+      _invalidateRelatedProviders(dive);
+    }
     return divesToDelete;
   }
 
@@ -253,6 +290,10 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
     }
     await _loadDives();
     _ref.invalidate(diveStatisticsProvider);
+    // Invalidate related providers for all restored dives
+    for (final dive in dives) {
+      _invalidateRelatedProviders(dive);
+    }
   }
 
   /// Toggle favorite status for a dive
