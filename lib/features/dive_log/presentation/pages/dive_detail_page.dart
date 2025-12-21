@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../../core/constants/enums.dart';
+import '../../../../core/constants/units.dart';
 import '../../../../core/utils/unit_formatter.dart';
 import '../../../buddies/domain/entities/buddy.dart';
 import '../../../buddies/presentation/providers/buddy_providers.dart';
@@ -247,21 +248,21 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               ),
               _buildStatItem(
                 context,
-                Icons.timer,
-                dive.duration != null ? '${dive.duration!.inMinutes} min' : '--',
-                'Bottom Time',
-              ),
-              _buildStatItem(
-                context,
                 Icons.timelapse,
                 _formatRuntime(dive),
                 'Runtime',
               ),
               _buildStatItem(
                 context,
+                Icons.timer,
+                dive.duration != null ? '${dive.duration!.inMinutes} min' : '--',
+                'Bottom Time',
+              ),
+              _buildStatItem(
+                context,
                 Icons.thermostat,
                 units.formatTemperature(dive.waterTemp),
-                'Temp',
+                'Water Temp',
               ),
             ],
           ),
@@ -653,8 +654,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               _buildDetailRow(context, 'Buddy', dive.buddy!),
             if (dive.diveMaster != null && dive.diveMaster!.isNotEmpty)
               _buildDetailRow(context, 'Dive Master', dive.diveMaster!),
-            if (dive.sac != null)
-              _buildDetailRow(context, 'SAC Rate', '${units.convertPressure(dive.sac!).toStringAsFixed(1)} ${units.pressureSymbol}/min'),
+            _buildSacRow(context, ref, dive, units),
             // Gradient factors (from dive computer)
             if (dive.gradientFactorLow != null && dive.gradientFactorHigh != null)
               _buildDetailRow(context, 'Gradient Factors', 'GF ${dive.gradientFactorLow}/${dive.gradientFactorHigh}'),
@@ -845,6 +845,23 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         ),
       ),
     );
+  }
+
+  Widget _buildSacRow(BuildContext context, WidgetRef ref, Dive dive, UnitFormatter units) {
+    final sacUnit = ref.watch(sacUnitProvider);
+
+    // Determine which SAC value to show based on setting
+    if (sacUnit == SacUnit.litersPerMin) {
+      // Volume-based SAC (L/min) - requires tank volume
+      if (dive.sac == null) return const SizedBox.shrink();
+      final value = '${units.convertVolume(dive.sac!).toStringAsFixed(1)} ${units.volumeSymbol}/min';
+      return _buildDetailRow(context, 'SAC Rate', value);
+    } else {
+      // Pressure-based SAC (bar/min or psi/min) - doesn't require tank volume
+      if (dive.sacPressure == null) return const SizedBox.shrink();
+      final value = '${units.convertPressure(dive.sacPressure!).toStringAsFixed(1)} ${units.pressureSymbol}/min';
+      return _buildDetailRow(context, 'SAC Rate', value);
+    }
   }
 
   Widget _buildDetailRow(BuildContext context, String label, String value) {

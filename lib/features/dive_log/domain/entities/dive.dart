@@ -140,17 +140,74 @@ class Dive extends Equatable {
   /// Total weight from all weight entries
   double get totalWeight => weights.fold(0.0, (sum, w) => sum + w.amountKg);
 
-  /// Air consumption rate in bar/min (Surface Air Consumption)
+  /// Air consumption rate in L/min at surface (Surface Air Consumption)
+  /// Calculates total gas consumed across all tanks with valid data.
   double? get sac {
     if (tanks.isEmpty || duration == null || avgDepth == null) return null;
-    final tank = tanks.first;
-    if (tank.startPressure == null || tank.endPressure == null) return null;
 
-    final pressureUsed = tank.startPressure! - tank.endPressure!;
     final minutes = duration!.inSeconds / 60;
+    if (minutes <= 0) return null;
+
     final avgPressureAtm = (avgDepth! / 10) + 1; // Convert depth to ATM
 
-    return pressureUsed / minutes / avgPressureAtm;
+    // Sum gas consumed across all tanks (in liters at surface pressure)
+    double totalGasLiters = 0;
+    int tanksWithData = 0;
+
+    for (final tank in tanks) {
+      if (tank.startPressure == null ||
+          tank.endPressure == null ||
+          tank.volume == null) {
+        continue;
+      }
+
+      final pressureUsed = tank.startPressure! - tank.endPressure!;
+      if (pressureUsed <= 0) continue;
+
+      // Gas in liters at surface = tank_volume × pressure_used
+      // Example: 12L tank, 100 bar used = 1200 liters at surface
+      final gasLiters = tank.volume! * pressureUsed;
+      totalGasLiters += gasLiters;
+      tanksWithData++;
+    }
+
+    if (tanksWithData == 0 || totalGasLiters <= 0) return null;
+
+    // SAC in liters/min at surface
+    return totalGasLiters / minutes / avgPressureAtm;
+  }
+
+  /// Air consumption rate in pressure units per minute (bar/min or psi/min)
+  /// This is a simpler calculation that doesn't require tank volume.
+  /// It calculates the average pressure drop per minute adjusted for depth.
+  double? get sacPressure {
+    if (tanks.isEmpty || duration == null || avgDepth == null) return null;
+
+    final minutes = duration!.inSeconds / 60;
+    if (minutes <= 0) return null;
+
+    final avgPressureAtm = (avgDepth! / 10) + 1; // Convert depth to ATM
+
+    // Sum pressure consumed across all tanks with data
+    double totalPressureUsed = 0;
+    int tanksWithData = 0;
+
+    for (final tank in tanks) {
+      if (tank.startPressure == null || tank.endPressure == null) {
+        continue;
+      }
+
+      final pressureUsed = tank.startPressure! - tank.endPressure!;
+      if (pressureUsed <= 0) continue;
+
+      totalPressureUsed += pressureUsed;
+      tanksWithData++;
+    }
+
+    if (tanksWithData == 0 || totalPressureUsed <= 0) return null;
+
+    // SAC in bar/min at surface (average across all tanks)
+    return (totalPressureUsed / tanksWithData) / minutes / avgPressureAtm;
   }
 
   /// Calculate bottom time from dive profile data.

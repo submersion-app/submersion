@@ -58,6 +58,12 @@ class SettingsPage extends ConsumerWidget {
             value: settings.weightUnit.symbol,
             onTap: () => _showWeightUnitPicker(context, ref, settings.weightUnit),
           ),
+          _buildUnitTile(
+            context,
+            title: 'SAC Rate',
+            value: settings.sacUnit == SacUnit.litersPerMin ? 'L/min' : 'pressure/min',
+            onTap: () => _showSacUnitPicker(context, ref, settings.sacUnit),
+          ),
           const Divider(),
 
           _buildSectionHeader(context, 'Appearance'),
@@ -617,6 +623,42 @@ class SettingsPage extends ConsumerWidget {
               },
             );
           }).toList(),
+        ),
+      ),
+    );
+  }
+
+  void _showSacUnitPicker(BuildContext context, WidgetRef ref, SacUnit currentUnit) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('SAC Rate Unit'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: const Text('Liters per minute (L/min)'),
+              subtitle: const Text('Requires tank volume'),
+              trailing: currentUnit == SacUnit.litersPerMin
+                  ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
+                  : null,
+              onTap: () {
+                ref.read(settingsProvider.notifier).setSacUnit(SacUnit.litersPerMin);
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+            ListTile(
+              title: const Text('Pressure per minute'),
+              subtitle: const Text('No tank volume needed (bar/min or psi/min)'),
+              trailing: currentUnit == SacUnit.pressurePerMin
+                  ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
+                  : null,
+              onTap: () {
+                ref.read(settingsProvider.notifier).setSacUnit(SacUnit.pressurePerMin);
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+          ],
         ),
       ),
     );

@@ -94,6 +94,8 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
     );
 
     if (confirmed == true && mounted) {
+      // Capture ScaffoldMessenger before async operations to prevent stale context
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
       final idsToDelete = _selectedIds.toList();
       _exitSelectionMode();
 
@@ -105,11 +107,12 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
       _deletedDives = deletedDives;
 
       if (mounted) {
-        ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.clearSnackBars();
+        scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text('Deleted ${deletedDives.length} ${deletedDives.length == 1 ? 'dive' : 'dives'}'),
             duration: const Duration(seconds: 5),
+            showCloseIcon: true,
             action: SnackBarAction(
               label: 'Undo',
               onPressed: () async {
@@ -119,7 +122,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
                       .restoreDives(_deletedDives!);
                   _deletedDives = null;
                   if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    scaffoldMessenger.showSnackBar(
                       const SnackBar(
                         content: Text('Dives restored'),
                         duration: Duration(seconds: 2),

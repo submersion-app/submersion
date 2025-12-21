@@ -73,3 +73,15 @@ enum WeightUnit {
     return value;
   }
 }
+
+/// SAC (Surface Air Consumption) calculation method
+enum SacUnit {
+  /// L/min - requires tank volume, calculates actual gas consumption
+  litersPerMin('L/min'),
+
+  /// pressure/min - uses pressure drop only (bar or psi depending on pressure unit)
+  pressurePerMin('pressure/min');
+
+  final String symbol;
+  const SacUnit(this.symbol);
+}

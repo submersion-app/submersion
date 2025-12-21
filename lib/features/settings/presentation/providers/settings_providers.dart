@@ -23,6 +23,7 @@ class SettingsKeys {
   static const String pressureUnit = 'pressure_unit';
   static const String volumeUnit = 'volume_unit';
   static const String weightUnit = 'weight_unit';
+  static const String sacUnit = 'sac_unit';
   static const String unitPreset = 'unit_preset';
   static const String themeMode = 'theme_mode';
   static const String defaultDiveType = 'default_dive_type';
@@ -51,6 +52,7 @@ class AppSettings {
   final PressureUnit pressureUnit;
   final VolumeUnit volumeUnit;
   final WeightUnit weightUnit;
+  final SacUnit sacUnit;
   final ThemeMode themeMode;
   final String defaultDiveType;
   final double defaultTankVolume;
@@ -99,6 +101,7 @@ class AppSettings {
     this.pressureUnit = PressureUnit.bar,
     this.volumeUnit = VolumeUnit.liters,
     this.weightUnit = WeightUnit.kilograms,
+    this.sacUnit = SacUnit.litersPerMin,
     this.themeMode = ThemeMode.system,
     this.defaultDiveType = 'recreational',
     this.defaultTankVolume = 12.0,
@@ -153,6 +156,7 @@ class AppSettings {
     PressureUnit? pressureUnit,
     VolumeUnit? volumeUnit,
     WeightUnit? weightUnit,
+    SacUnit? sacUnit,
     ThemeMode? themeMode,
     String? defaultDiveType,
     double? defaultTankVolume,
@@ -176,6 +180,7 @@ class AppSettings {
       pressureUnit: pressureUnit ?? this.pressureUnit,
       volumeUnit: volumeUnit ?? this.volumeUnit,
       weightUnit: weightUnit ?? this.weightUnit,
+      sacUnit: sacUnit ?? this.sacUnit,
       themeMode: themeMode ?? this.themeMode,
       defaultDiveType: defaultDiveType ?? this.defaultDiveType,
       defaultTankVolume: defaultTankVolume ?? this.defaultTankVolume,
@@ -292,6 +297,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setWeightUnit(WeightUnit unit) async {
     state = state.copyWith(weightUnit: unit);
+    await _saveSettings();
+  }
+
+  Future<void> setSacUnit(SacUnit unit) async {
+    state = state.copyWith(sacUnit: unit);
     await _saveSettings();
   }
 
@@ -436,6 +446,10 @@ final temperatureUnitProvider = Provider<TemperatureUnit>((ref) {
 
 final pressureUnitProvider = Provider<PressureUnit>((ref) {
   return ref.watch(settingsProvider.select((s) => s.pressureUnit));
+});
+
+final sacUnitProvider = Provider<SacUnit>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.sacUnit));
 });
 
 final themeModeProvider = Provider<ThemeMode>((ref) {
