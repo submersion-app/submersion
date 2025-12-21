@@ -14,8 +14,8 @@ final diveComputerRepositoryProvider = Provider<DiveComputerRepository>((ref) {
 });
 
 /// Whether to use the mock download manager for development/testing.
-/// Set to false to use real device communication via libdivecomputer.
-final useMockDownloadManagerProvider = StateProvider<bool>((ref) => true);
+/// Set to true to use simulated downloads instead of real device communication.
+final useMockDownloadManagerProvider = StateProvider<bool>((ref) => false);
 
 /// Provider for the download manager.
 ///
