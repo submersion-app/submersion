@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+
+import 'package:equatable/equatable.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/constants/enums.dart';
@@ -8,6 +11,69 @@ import '../../../../core/deco/entities/deco_status.dart';
 import '../../../../core/deco/entities/o2_exposure.dart';
 import '../../../../core/deco/o2_toxicity_calculator.dart';
 import '../../domain/entities/profile_event.dart';
+
+/// Represents SAC calculated over a segment of the dive.
+class SacSegment extends Equatable {
+  /// Start timestamp of this segment (seconds from dive start)
+  final int startTimestamp;
+
+  /// End timestamp of this segment (seconds from dive start)
+  final int endTimestamp;
+
+  /// Average depth during this segment (meters)
+  final double avgDepth;
+
+  /// Minimum depth during this segment (meters)
+  final double minDepth;
+
+  /// Maximum depth during this segment (meters)
+  final double maxDepth;
+
+  /// SAC rate for this segment (bar/min at surface)
+  final double sacRate;
+
+  /// Gas consumed during this segment (bar)
+  final double gasConsumed;
+
+  const SacSegment({
+    required this.startTimestamp,
+    required this.endTimestamp,
+    required this.avgDepth,
+    required this.minDepth,
+    required this.maxDepth,
+    required this.sacRate,
+    required this.gasConsumed,
+  });
+
+  /// Duration of this segment in seconds
+  int get durationSeconds => endTimestamp - startTimestamp;
+
+  /// Duration of this segment in minutes
+  double get durationMinutes => durationSeconds / 60.0;
+
+  /// Get the midpoint timestamp (useful for charting)
+  int get midTimestamp => (startTimestamp + endTimestamp) ~/ 2;
+
+  @override
+  List<Object?> get props => [
+        startTimestamp,
+        endTimestamp,
+        avgDepth,
+        minDepth,
+        maxDepth,
+        sacRate,
+        gasConsumed,
+      ];
+}
+
+/// Type of segmentation for SAC calculation.
+enum SacSegmentationType {
+  /// Fixed time intervals (e.g., every 5 minutes)
+  timeInterval,
+
+  /// Segments based on depth zones
+  depthBased,
+}
 
 /// Complete analysis results for a dive profile.
 class ProfileAnalysis {
@@ -38,8 +104,14 @@ class ProfileAnalysis {
   /// ppO2 at each profile point (bar)
   final List<double> ppO2Curve;
 
-  /// SAC rate at each point (L/min at surface) - null if no pressure data
+  /// SAC rate at each point (bar/min at surface) - null if no pressure data
   final List<double>? sacCurve;
+
+  /// Smoothed SAC curve (rolling average, bar/min at surface) - better for visualization
+  final List<double>? smoothedSacCurve;
+
+  /// SAC calculated over time-based segments (e.g., 5-minute intervals)
+  final List<SacSegment>? sacSegments;
 
   /// Maximum depth reached (meters)
   final double maxDepth;
@@ -64,6 +136,8 @@ class ProfileAnalysis {
     required this.o2Exposure,
     required this.ppO2Curve,
     this.sacCurve,
+    this.smoothedSacCurve,
+    this.sacSegments,
     required this.maxDepth,
     required this.averageDepth,
     required this.maxDepthTimestamp,
@@ -244,8 +318,24 @@ class ProfileAnalysisService {
 
     // Calculate SAC if pressure data available
     List<double>? sacCurve;
+    List<double>? smoothedSacCurve;
+    List<SacSegment>? sacSegments;
+
     if (pressures != null && pressures.length == depths.length) {
       sacCurve = _calculateSacCurve(depths, timestamps, pressures);
+
+      if (sacCurve != null) {
+        // Calculate smoothed SAC curve for better visualization
+        smoothedSacCurve = _smoothSacCurve(sacCurve, windowSize: 30);
+
+        // Calculate 5-minute segment SAC values
+        sacSegments = _calculateSacSegments(
+          depths: depths,
+          timestamps: timestamps,
+          pressures: pressures,
+          intervalSeconds: 300, // 5 minutes
+        );
+      }
     }
 
     return ProfileAnalysis(
@@ -259,6 +349,8 @@ class ProfileAnalysisService {
       o2Exposure: o2Exposure,
       ppO2Curve: ppO2Curve,
       sacCurve: sacCurve,
+      smoothedSacCurve: smoothedSacCurve,
+      sacSegments: sacSegments,
       maxDepth: maxDepth,
       averageDepth: averageDepth,
       maxDepthTimestamp: maxDepthTimestamp,
@@ -509,6 +601,205 @@ class ProfileAnalysisService {
     }
 
     return sacCurve;
+  }
+
+  /// Apply a rolling average to smooth the SAC curve for better visualization.
+  ///
+  /// [windowSize] is the number of points to average (default 30 for ~30 seconds
+  /// with 1-second samples).
+  List<double> _smoothSacCurve(List<double> sacCurve, {int windowSize = 30}) {
+    if (sacCurve.length <= windowSize) {
+      // Not enough points, return as-is
+      return List.from(sacCurve);
+    }
+
+    final smoothed = <double>[];
+
+    for (int i = 0; i < sacCurve.length; i++) {
+      // Calculate window bounds
+      final halfWindow = windowSize ~/ 2;
+      final start = math.max(0, i - halfWindow);
+      final end = math.min(sacCurve.length, i + halfWindow + 1);
+
+      // Calculate average of non-zero values in window
+      double sum = 0;
+      int count = 0;
+
+      for (int j = start; j < end; j++) {
+        if (sacCurve[j] > 0) {
+          sum += sacCurve[j];
+          count++;
+        }
+      }
+
+      smoothed.add(count > 0 ? sum / count : 0.0);
+    }
+
+    return smoothed;
+  }
+
+  /// Calculate SAC over fixed time intervals.
+  ///
+  /// [intervalSeconds] is the segment duration (default 300 = 5 minutes).
+  List<SacSegment> _calculateSacSegments({
+    required List<double> depths,
+    required List<int> timestamps,
+    required List<double> pressures,
+    int intervalSeconds = 300,
+  }) {
+    if (timestamps.isEmpty || pressures.length != depths.length) {
+      return [];
+    }
+
+    final segments = <SacSegment>[];
+    final startTime = timestamps.first;
+    final endTime = timestamps.last;
+
+    int segmentStart = startTime;
+
+    while (segmentStart < endTime) {
+      final segmentEnd = math.min(segmentStart + intervalSeconds, endTime);
+
+      // Find indices within this segment
+      final startIdx = timestamps.indexWhere((t) => t >= segmentStart);
+      final endIdx = timestamps.lastIndexWhere((t) => t <= segmentEnd);
+
+      if (startIdx < 0 || endIdx < 0 || endIdx <= startIdx) {
+        segmentStart = segmentEnd;
+        continue;
+      }
+
+      // Calculate segment metrics
+      double depthSum = 0;
+      double minDepth = double.infinity;
+      double maxDepth = 0;
+      int count = 0;
+
+      for (int i = startIdx; i <= endIdx; i++) {
+        final depth = depths[i];
+        depthSum += depth;
+        minDepth = math.min(minDepth, depth);
+        maxDepth = math.max(maxDepth, depth);
+        count++;
+      }
+
+      if (count == 0) {
+        segmentStart = segmentEnd;
+        continue;
+      }
+
+      final avgDepth = depthSum / count;
+      final pressureStart = pressures[startIdx];
+      final pressureEnd = pressures[endIdx];
+      final pressureDrop = pressureStart - pressureEnd;
+      final segmentDuration = timestamps[endIdx] - timestamps[startIdx];
+
+      // Calculate SAC for segment
+      double sacRate = 0;
+      if (pressureDrop > 0 && segmentDuration > 0) {
+        final ambientPressure = 1.0 + (avgDepth / 10.0);
+        final consumptionRate = pressureDrop / (segmentDuration / 60.0);
+        sacRate = consumptionRate / ambientPressure;
+      }
+
+      // Only add segment if we have valid data
+      if (segmentDuration > 30) {
+        // At least 30 seconds
+        segments.add(
+          SacSegment(
+            startTimestamp: timestamps[startIdx],
+            endTimestamp: timestamps[endIdx],
+            avgDepth: avgDepth,
+            minDepth: minDepth == double.infinity ? 0 : minDepth,
+            maxDepth: maxDepth,
+            sacRate: sacRate,
+            gasConsumed: pressureDrop > 0 ? pressureDrop : 0,
+          ),
+        );
+      }
+
+      segmentStart = segmentEnd;
+    }
+
+    return segments;
+  }
+
+  /// Calculate SAC segments based on depth zones.
+  ///
+  /// Groups the dive into segments based on depth ranges (0-10m, 10-20m, etc.)
+  List<SacSegment> calculateDepthBasedSegments({
+    required List<double> depths,
+    required List<int> timestamps,
+    required List<double> pressures,
+    double depthInterval = 10.0,
+  }) {
+    if (timestamps.isEmpty || pressures.length != depths.length) {
+      return [];
+    }
+
+    // Group points by depth zone
+    final zoneData = <int, List<int>>{}; // zone -> list of indices
+
+    for (int i = 0; i < depths.length; i++) {
+      final zone = (depths[i] / depthInterval).floor();
+      zoneData.putIfAbsent(zone, () => []).add(i);
+    }
+
+    final segments = <SacSegment>[];
+
+    for (final entry in zoneData.entries) {
+      final indices = entry.value;
+      if (indices.length < 2) continue;
+
+      // Sort indices by timestamp
+      indices.sort((a, b) => timestamps[a].compareTo(timestamps[b]));
+
+      final startIdx = indices.first;
+      final endIdx = indices.last;
+
+      // Calculate metrics
+      double depthSum = 0;
+      double minDepth = double.infinity;
+      double maxDepth = 0;
+
+      for (final i in indices) {
+        depthSum += depths[i];
+        minDepth = math.min(minDepth, depths[i]);
+        maxDepth = math.max(maxDepth, depths[i]);
+      }
+
+      final avgDepth = depthSum / indices.length;
+      final pressureStart = pressures[startIdx];
+      final pressureEnd = pressures[endIdx];
+      final pressureDrop = pressureStart - pressureEnd;
+      final segmentDuration = timestamps[endIdx] - timestamps[startIdx];
+
+      double sacRate = 0;
+      if (pressureDrop > 0 && segmentDuration > 0) {
+        final ambientPressure = 1.0 + (avgDepth / 10.0);
+        final consumptionRate = pressureDrop / (segmentDuration / 60.0);
+        sacRate = consumptionRate / ambientPressure;
+      }
+
+      if (segmentDuration > 30) {
+        segments.add(
+          SacSegment(
+            startTimestamp: timestamps[startIdx],
+            endTimestamp: timestamps[endIdx],
+            avgDepth: avgDepth,
+            minDepth: minDepth == double.infinity ? 0 : minDepth,
+            maxDepth: maxDepth,
+            sacRate: sacRate,
+            gasConsumed: pressureDrop > 0 ? pressureDrop : 0,
+          ),
+        );
+      }
+    }
+
+    // Sort by start timestamp
+    segments.sort((a, b) => a.startTimestamp.compareTo(b.startTimestamp));
+
+    return segments;
   }
 
   /// Get analysis at a specific timestamp.
