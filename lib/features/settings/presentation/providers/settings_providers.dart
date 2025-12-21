@@ -101,7 +101,7 @@ class AppSettings {
     this.pressureUnit = PressureUnit.bar,
     this.volumeUnit = VolumeUnit.liters,
     this.weightUnit = WeightUnit.kilograms,
-    this.sacUnit = SacUnit.litersPerMin,
+    this.sacUnit = SacUnit.pressurePerMin,
     this.themeMode = ThemeMode.system,
     this.defaultDiveType = 'recreational',
     this.defaultTankVolume = 12.0,

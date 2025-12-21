@@ -199,7 +199,7 @@ class DiverSettingsRepository {
   SacUnit _parseSacUnit(String value) {
     return SacUnit.values.firstWhere(
       (e) => e.name == value,
-      orElse: () => SacUnit.litersPerMin,
+      orElse: () => SacUnit.pressurePerMin,
     );
   }
 

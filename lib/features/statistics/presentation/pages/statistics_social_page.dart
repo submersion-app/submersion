@@ -62,7 +62,7 @@ class StatisticsSocialPage extends ConsumerWidget {
                 percentage: data.solo / total * 100,
               ),
             ],
-            colors: [Colors.green, Colors.orange],
+            colors: const [Colors.green, Colors.orange],
           );
         },
         loading: () => const SizedBox(

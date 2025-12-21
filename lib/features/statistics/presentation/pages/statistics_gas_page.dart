@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/units.dart';
 import '../../../../core/utils/unit_formatter.dart';
 import '../../../settings/presentation/providers/settings_providers.dart';
 import '../providers/statistics_providers.dart';
@@ -39,6 +40,12 @@ class StatisticsGasPage extends ConsumerWidget {
 
   Widget _buildSacTrendSection(BuildContext context, WidgetRef ref, UnitFormatter units) {
     final sacTrendAsync = ref.watch(sacTrendProvider);
+    final sacUnit = ref.watch(sacUnitProvider);
+
+    // Determine unit symbol based on SAC calculation method
+    final unitSymbol = sacUnit == SacUnit.litersPerMin
+        ? '${units.volumeSymbol}/min'
+        : '${units.pressureSymbol}/min';
 
     return StatSectionCard(
       title: 'SAC Rate Trend',
@@ -47,7 +54,7 @@ class StatisticsGasPage extends ConsumerWidget {
         data: (data) => TrendLineChart(
           data: data,
           lineColor: Colors.blue,
-          valueFormatter: (value) => '${value.toStringAsFixed(1)} ${units.volumeSymbol}/min',
+          valueFormatter: (value) => '${value.toStringAsFixed(1)} $unitSymbol',
         ),
         loading: () => const SizedBox(
           height: 200,
@@ -90,6 +97,12 @@ class StatisticsGasPage extends ConsumerWidget {
 
   Widget _buildSacRecordsSection(BuildContext context, WidgetRef ref, UnitFormatter units) {
     final sacRecordsAsync = ref.watch(sacRecordsProvider);
+    final sacUnit = ref.watch(sacUnitProvider);
+
+    // Determine unit symbol based on SAC calculation method
+    final unitSymbol = sacUnit == SacUnit.litersPerMin
+        ? '${units.volumeSymbol}/min'
+        : '${units.pressureSymbol}/min';
 
     return StatSectionCard(
       title: 'SAC Rate Records',
@@ -108,7 +121,7 @@ class StatisticsGasPage extends ConsumerWidget {
               if (records.best != null)
                 ValueRankingCard(
                   title: 'Best SAC Rate',
-                  value: '${records.best!.value?.toStringAsFixed(1)} ${units.volumeSymbol}/min',
+                  value: '${records.best!.value?.toStringAsFixed(1)} $unitSymbol',
                   subtitle: records.best!.subtitle,
                   icon: Icons.emoji_events,
                   iconColor: Colors.green,
@@ -119,7 +132,7 @@ class StatisticsGasPage extends ConsumerWidget {
               if (records.worst != null)
                 ValueRankingCard(
                   title: 'Highest SAC Rate',
-                  value: '${records.worst!.value?.toStringAsFixed(1)} ${units.volumeSymbol}/min',
+                  value: '${records.worst!.value?.toStringAsFixed(1)} $unitSymbol',
                   subtitle: records.worst!.subtitle,
                   icon: Icons.speed,
                   iconColor: Colors.orange,

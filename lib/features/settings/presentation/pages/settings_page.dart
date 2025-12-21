@@ -61,7 +61,9 @@ class SettingsPage extends ConsumerWidget {
           _buildUnitTile(
             context,
             title: 'SAC Rate',
-            value: settings.sacUnit == SacUnit.litersPerMin ? 'L/min' : 'pressure/min',
+            value: settings.sacUnit == SacUnit.litersPerMin
+                ? '${settings.volumeUnit.symbol}/min'
+                : '${settings.pressureUnit.symbol}/min',
             onTap: () => _showSacUnitPicker(context, ref, settings.sacUnit),
           ),
           const Divider(),
@@ -637,8 +639,8 @@ class SettingsPage extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              title: const Text('Liters per minute (L/min)'),
-              subtitle: const Text('Requires tank volume'),
+              title: const Text('Volume per minute'),
+              subtitle: const Text('Requires tank volume (L/min or cuft/min)'),
               trailing: currentUnit == SacUnit.litersPerMin
                   ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
                   : null,
