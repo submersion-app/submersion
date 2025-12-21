@@ -350,6 +350,8 @@ class DiverSettings extends Table {
   TextColumn get volumeUnit => text().withDefault(const Constant('liters'))();
   TextColumn get weightUnit =>
       text().withDefault(const Constant('kilograms'))();
+  TextColumn get sacUnit =>
+      text().withDefault(const Constant('litersPerMin'))();
   // Theme
   TextColumn get themeMode => text().withDefault(const Constant('system'))();
   // Defaults
@@ -619,7 +621,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration {
@@ -651,6 +653,14 @@ class AppDatabase extends _$AppDatabase {
             INSERT OR IGNORE INTO dive_types (id, name, is_built_in, sort_order, created_at, updated_at)
             VALUES ('${type.$1}', '${type.$2}', 1, ${type.$3}, $now, $now)
           ''');
+        }
+      },
+      onUpgrade: (Migrator m, int from, int to) async {
+        if (from < 2) {
+          // Add sacUnit column to diver_settings
+          await customStatement(
+            "ALTER TABLE diver_settings ADD COLUMN sac_unit TEXT NOT NULL DEFAULT 'litersPerMin'",
+          );
         }
       },
       beforeOpen: (details) async {

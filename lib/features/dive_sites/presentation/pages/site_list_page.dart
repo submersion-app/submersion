@@ -86,6 +86,8 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
     );
 
     if (confirmed == true && mounted) {
+      // Capture ScaffoldMessenger before async operations to prevent stale context
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
       final idsToDelete = _selectedIds.toList();
       _exitSelectionMode();
 
@@ -97,11 +99,12 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
       _deletedSites = deletedSites;
 
       if (mounted) {
-        ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.clearSnackBars();
+        scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text('Deleted ${deletedSites.length} ${deletedSites.length == 1 ? 'site' : 'sites'}'),
             duration: const Duration(seconds: 5),
+            showCloseIcon: true,
             action: SnackBarAction(
               label: 'Undo',
               onPressed: () async {
@@ -111,7 +114,7 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
                       .restoreSites(_deletedSites!);
                   _deletedSites = null;
                   if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    scaffoldMessenger.showSnackBar(
                       const SnackBar(
                         content: Text('Sites restored'),
                         duration: Duration(seconds: 2),

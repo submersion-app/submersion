@@ -42,6 +42,7 @@ class DiverSettingsRepository {
         pressureUnit: Value(s.pressureUnit.name),
         volumeUnit: Value(s.volumeUnit.name),
         weightUnit: Value(s.weightUnit.name),
+        sacUnit: Value(s.sacUnit.name),
         themeMode: Value(_themeModeToString(s.themeMode)),
         defaultDiveType: Value(s.defaultDiveType),
         defaultTankVolume: Value(s.defaultTankVolume),
@@ -82,6 +83,7 @@ class DiverSettingsRepository {
           pressureUnit: Value(settings.pressureUnit.name),
           volumeUnit: Value(settings.volumeUnit.name),
           weightUnit: Value(settings.weightUnit.name),
+          sacUnit: Value(settings.sacUnit.name),
           themeMode: Value(_themeModeToString(settings.themeMode)),
           defaultDiveType: Value(settings.defaultDiveType),
           defaultTankVolume: Value(settings.defaultTankVolume),
@@ -139,6 +141,7 @@ class DiverSettingsRepository {
       pressureUnit: _parsePressureUnit(row.pressureUnit),
       volumeUnit: _parseVolumeUnit(row.volumeUnit),
       weightUnit: _parseWeightUnit(row.weightUnit),
+      sacUnit: _parseSacUnit(row.sacUnit),
       themeMode: _parseThemeMode(row.themeMode),
       defaultDiveType: row.defaultDiveType,
       defaultTankVolume: row.defaultTankVolume,
@@ -190,6 +193,13 @@ class DiverSettingsRepository {
     return WeightUnit.values.firstWhere(
       (e) => e.name == value,
       orElse: () => WeightUnit.kilograms,
+    );
+  }
+
+  SacUnit _parseSacUnit(String value) {
+    return SacUnit.values.firstWhere(
+      (e) => e.name == value,
+      orElse: () => SacUnit.litersPerMin,
     );
   }
 
