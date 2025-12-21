@@ -21,8 +21,6 @@ const slipEscEsc = 0xDD;
 /// Shearwater protocol constants
 const rdbiRequest = 0x22;
 const rdbiResponse = 0x62;
-const wdbiRequest = 0x2E;
-const wdbiResponse = 0x6E;
 const nak = 0x7F;
 
 /// Shearwater RDBI identifiers (2-byte IDs, not addresses)
@@ -33,6 +31,7 @@ const idLogUpload = 0x8021; // Logbook upload info (base address)
 const manifestAddress = 0xE0000000; // Manifest memory address
 const manifestSize = 0x600; // Size of manifest data
 const recordSize = 0x20; // Size of each manifest entry
+const diveDownloadSize = 0xFFFFFF; // Max dive size used by Shearwater
 
 /// BLE packet size
 const blePacketSize = 32;
@@ -57,6 +56,7 @@ class ShearwaterBleProtocol {
   StreamSubscription<List<int>>? _notifySubscription;
   final _responseController = StreamController<List<int>>.broadcast();
   final _receivedData = <int>[];
+  int? _logUploadBaseAddress;
 
   bool _isConnected = false;
   final int _timeout = 10000; // milliseconds (increased for slow responses)
@@ -343,34 +343,6 @@ class ShearwaterBleProtocol {
     }
   }
 
-  /// Standard SLIP encoding with leading and trailing END bytes
-  /// RFC 1055 specifies END at both start and end to flush receiver state
-  List<int> _encodeSlip(List<int> data) {
-    final result = <int>[];
-
-    // Leading END byte to flush any partial frame in receiver
-    result.add(slipEnd);
-
-    // SLIP encode the data (escape special bytes)
-    for (final byte in data) {
-      if (byte == slipEnd) {
-        result.add(slipEsc);
-        result.add(slipEscEnd);
-      } else if (byte == slipEsc) {
-        result.add(slipEsc);
-        result.add(slipEscEsc);
-      } else {
-        result.add(byte);
-      }
-    }
-
-    // Trailing END byte to terminate the frame
-    result.add(slipEnd);
-
-    // No padding - send just the SLIP frame
-    return result;
-  }
-
   /// Encode data with SLIP and BLE framing (matching libdivecomputer).
   ///
   /// For BLE transport:
@@ -519,21 +491,81 @@ class ShearwaterBleProtocol {
 
   /// Download a single dive's data.
   Future<DownloadedDive> downloadDive(DiveManifestEntry entry) async {
-    _log.info('Downloading dive ${entry.diveNumber}');
+    final baseAddress = await _resolveLogUploadBaseAddress();
+    final absoluteAddress = baseAddress + entry.dataAddress;
 
-    // TODO: Implement dive data download using RDBI with dive-specific identifier
-    // For now, return a placeholder dive with info from manifest
-    _log.warning('Dive data download not yet implemented, using manifest info only');
-
-    return DownloadedDive(
-      diveNumber: entry.diveNumber,
-      startTime: entry.dateTime,
-      durationSeconds: entry.durationSeconds,
-      maxDepth: entry.maxDepth,
-      avgDepth: entry.maxDepth * 0.6, // Estimate
-      profile: [], // No profile data yet
-      fingerprint: entry.fingerprint,
+    _log.info(
+      'Downloading dive ${entry.diveNumber}: base=0x${baseAddress.toRadixString(16)}, '
+      'offset=0x${entry.dataAddress.toRadixString(16)}, '
+      'address=0x${absoluteAddress.toRadixString(16)}, '
+      'size=${entry.dataSize}',
     );
+
+    List<int> diveData;
+
+    try {
+      diveData = await _downloadMemory(
+        address: absoluteAddress,
+        size: diveDownloadSize,
+        compressed: true,
+      );
+    } on DownloadException {
+      if (entry.dataSize <= 0) rethrow;
+      _log.info('Compressed download rejected, trying uncompressed...');
+      diveData = await _downloadMemory(
+        address: absoluteAddress,
+        size: entry.dataSize,
+        compressed: false,
+      );
+    }
+
+    _log.info('Downloaded ${diveData.length} bytes of dive data');
+
+    return _parseDive(entry, diveData);
+  }
+
+  Future<int> _resolveLogUploadBaseAddress() async {
+    if (_logUploadBaseAddress != null) {
+      return _logUploadBaseAddress!;
+    }
+
+    _log.info('Reading log upload base address...');
+    final logUploadData = await readById(idLogUpload);
+    if (logUploadData.length < 5) {
+      throw DownloadException(
+        'Log upload info too short: ${logUploadData.length} bytes',
+        phase: DownloadPhase.downloading,
+      );
+    }
+
+    final rawBase = (logUploadData[1] << 24) |
+        (logUploadData[2] << 16) |
+        (logUploadData[3] << 8) |
+        logUploadData[4];
+
+    int baseAddress;
+    switch (rawBase) {
+      case 0xDD000000:
+      case 0xC0000000:
+      case 0x90000000:
+        baseAddress = 0xC0000000;
+        break;
+      case 0x80000000:
+        baseAddress = 0x80000000;
+        break;
+      default:
+        baseAddress = rawBase;
+        _log.warning(
+          'Unknown log upload base address 0x${rawBase.toRadixString(16)}',
+        );
+    }
+
+    _log.info(
+      'Log upload base address resolved: 0x${baseAddress.toRadixString(16)}',
+    );
+
+    _logUploadBaseAddress = baseAddress;
+    return baseAddress;
   }
 
   List<int> _decompressData(List<int> data) {
@@ -551,6 +583,13 @@ class ShearwaterBleProtocol {
     required int size,
     required bool compressed,
   }) async {
+    if (size <= 0) {
+      throw const DownloadException(
+        'Invalid download size',
+        phase: DownloadPhase.downloading,
+      );
+    }
+
     final initRequest = [
       0x35,
       compressed ? 0x10 : 0x00,
@@ -564,7 +603,28 @@ class ShearwaterBleProtocol {
       size & 0xFF,
     ];
 
+    _log.info(
+      'RequestDownload: address=0x${address.toRadixString(16)}, '
+      'size=$size, compressed=$compressed',
+    );
+
     final initResponse = await transfer(initRequest);
+
+    // Check for NAK response
+    if (initResponse.isNotEmpty && initResponse[0] == nak) {
+      final errorCode =
+          initResponse.length >= 3 ? initResponse[2] : 0;
+      _log.warning(
+        'NAK received for RequestDownload: error=0x${errorCode.toRadixString(16)}',
+      );
+      throw DownloadException(
+        'Device rejected download request: '
+        '${initResponse.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')} '
+        '(address=0x${address.toRadixString(16)}, size=$size, compressed=$compressed)',
+        phase: DownloadPhase.downloading,
+      );
+    }
+
     if (initResponse.length < 3 ||
         initResponse[0] != 0x75 ||
         initResponse[1] != 0x10) {
@@ -576,8 +636,9 @@ class ShearwaterBleProtocol {
 
     final buffer = <int>[];
     var block = 1;
+    var done = false;
 
-    while (buffer.length < size) {
+    while (buffer.length < size && !done) {
       final response = await transfer([0x36, block & 0xFF]);
       if (response.length < 2 ||
           response[0] != 0x76 ||
@@ -590,6 +651,9 @@ class ShearwaterBleProtocol {
 
       final payload = response.sublist(2);
       buffer.addAll(payload);
+      if (compressed && _rleHasTerminator(buffer)) {
+        done = true;
+      }
 
       block++;
     }
@@ -613,6 +677,33 @@ class ShearwaterBleProtocol {
     }
 
     return buffer;
+  }
+
+  bool _rleHasTerminator(List<int> data) {
+    var bitOffset = 0;
+    final totalBits = data.length * 8;
+
+    while (bitOffset + 9 <= totalBits) {
+      final byteOffset = bitOffset ~/ 8;
+      final bitShift = bitOffset % 8;
+
+      int value;
+      if (byteOffset + 1 < data.length) {
+        value = ((data[byteOffset] << 8) | data[byteOffset + 1]) >>
+            (16 - bitShift - 9);
+      } else {
+        value = data[byteOffset] >> (8 - bitShift - 1);
+      }
+      value &= 0x1FF;
+
+      if (value == 0) {
+        return true;
+      }
+
+      bitOffset += 9;
+    }
+
+    return false;
   }
 
   List<int> _rleDecompress(List<int> data) {
