@@ -27,7 +27,10 @@ const nak = 0x7F;
 
 /// Shearwater RDBI identifiers (2-byte IDs, not addresses)
 const idSerial = 0x8010; // Serial number
-const idManifest = 0xE000; // Dive manifest
+const idLogUpload = 0x8021; // Logbook upload info (base address)
+
+/// Shearwater manifest location (memory address) and layout
+const manifestAddress = 0xE0000000; // Manifest memory address
 const manifestSize = 0x600; // Size of manifest data
 const recordSize = 0x20; // Size of each manifest entry
 
@@ -54,10 +57,6 @@ class ShearwaterBleProtocol {
   StreamSubscription<List<int>>? _notifySubscription;
   final _responseController = StreamController<List<int>>.broadcast();
   final _receivedData = <int>[];
-
-  // Multi-frame response tracking
-  int _expectedFrames = 0;
-  int _receivedFrames = 0;
 
   bool _isConnected = false;
   final int _timeout = 10000; // milliseconds (increased for slow responses)
@@ -173,35 +172,15 @@ class ShearwaterBleProtocol {
   void _onDataReceived(List<int> data) {
     _log.info('Received ${data.length} bytes: ${data.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}');
 
-    // For BLE, skip the 2-byte frame header [nframes, frame_index]
-    if (data.length >= 2) {
-      final nframes = data[0];
-      final frameIndex = data[1];
-      _log.info('BLE frame header: nframes=$nframes, index=$frameIndex');
-
-      // Track multi-frame responses
-      if (frameIndex == 0) {
-        // First frame - reset tracking
-        _expectedFrames = nframes;
-        _receivedFrames = 1;
-      } else {
-        _receivedFrames++;
-      }
-
-      // Add payload (skip header)
-      _receivedData.addAll(data.sublist(2));
-
-      // Only try to parse when we have all frames
-      if (_receivedFrames >= _expectedFrames) {
-        _log.info('All $nframes frame(s) received, parsing...');
-        _tryParseResponse();
-      } else {
-        _log.info('Waiting for more frames: $_receivedFrames/$_expectedFrames');
-      }
-    } else {
-      _receivedData.addAll(data);
-      _tryParseResponse();
+    // For BLE, skip the 2-byte frame header [nframes, frame_index] and
+    // stream bytes until a SLIP END marker is found.
+    if (data.length < 2) {
+      _log.warning('BLE frame too short (${data.length} bytes), ignoring');
+      return;
     }
+
+    _receivedData.addAll(data.sublist(2));
+    _tryParseResponse();
   }
 
   void _tryParseResponse() {
@@ -327,10 +306,8 @@ class ShearwaterBleProtocol {
       'Writing: ${encoded.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}',
     );
 
-    // Clear any stale data in the receive buffer and reset frame tracking
+    // Clear any stale data in the receive buffer
     _receivedData.clear();
-    _expectedFrames = 0;
-    _receivedFrames = 0;
 
     // Subscribe to response stream BEFORE sending (device responds very fast!)
     final responseFuture = _responseController.stream.first.timeout(
@@ -400,98 +377,56 @@ class ShearwaterBleProtocol {
   /// - Each 32-byte frame has 2-byte header: [nframes, frame_index]
   /// - Data is SLIP-encoded (no leading END for BLE)
   /// - Frame ends with SLIP END byte (0xC0)
-  /// - Remaining bytes padded with zeros
+  /// - Frames are not padded
   List<int> _encodeSlipBle(List<int> data) {
-    // First, calculate total SLIP-encoded size (for frame count)
-    var slipSize = 1; // Trailing END byte
+    // Calculate total SLIP-encoded size (including trailing END) for frame count.
+    var slipSize = 1; // Trailing END byte.
     for (final byte in data) {
-      if (byte == slipEnd || byte == slipEsc) {
-        slipSize += 2; // Escaped
-      } else {
-        slipSize += 1;
-      }
+      slipSize += (byte == slipEnd || byte == slipEsc) ? 2 : 1;
     }
 
-    // Calculate number of frames needed
-    // Each frame has 2-byte header, leaving 30 bytes for payload
-    const payloadPerFrame = blePacketSize - 2;
-    final frameCount = (slipSize + payloadPerFrame - 1) ~/ payloadPerFrame;
-
+    final frameCount = (slipSize + blePacketSize - 1) ~/ blePacketSize;
     _log.info('SLIP size: $slipSize bytes, frames: $frameCount');
 
-    // Build frames
     final result = <int>[];
     var frameIndex = 0;
-    var payloadBytes = 0;
+    var frameBytes = 0;
 
-    // Start first frame with header
-    result.add(frameCount);
-    result.add(frameIndex);
-    payloadBytes = 0;
+    void startFrame() {
+      result.add(frameCount);
+      result.add(frameIndex);
+      frameBytes = 2;
+    }
 
-    // SLIP encode the data (no leading END for BLE)
-    for (final byte in data) {
-      if (byte == slipEnd) {
-        _addByteToFrame(result, slipEsc, frameCount, payloadBytes, payloadPerFrame);
-        payloadBytes++;
-        if (payloadBytes >= payloadPerFrame) {
-          frameIndex++;
-          result.add(frameCount);
-          result.add(frameIndex);
-          payloadBytes = 0;
-        }
-        _addByteToFrame(result, slipEscEnd, frameCount, payloadBytes, payloadPerFrame);
-        payloadBytes++;
-        if (payloadBytes >= payloadPerFrame) {
-          frameIndex++;
-          result.add(frameCount);
-          result.add(frameIndex);
-          payloadBytes = 0;
-        }
-      } else if (byte == slipEsc) {
-        _addByteToFrame(result, slipEsc, frameCount, payloadBytes, payloadPerFrame);
-        payloadBytes++;
-        if (payloadBytes >= payloadPerFrame) {
-          frameIndex++;
-          result.add(frameCount);
-          result.add(frameIndex);
-          payloadBytes = 0;
-        }
-        _addByteToFrame(result, slipEscEsc, frameCount, payloadBytes, payloadPerFrame);
-        payloadBytes++;
-        if (payloadBytes >= payloadPerFrame) {
-          frameIndex++;
-          result.add(frameCount);
-          result.add(frameIndex);
-          payloadBytes = 0;
-        }
-      } else {
-        result.add(byte);
-        payloadBytes++;
-        if (payloadBytes >= payloadPerFrame) {
-          frameIndex++;
-          result.add(frameCount);
-          result.add(frameIndex);
-          payloadBytes = 0;
-        }
+    void addByte(int byte, {bool flushIfFull = true}) {
+      result.add(byte);
+      frameBytes++;
+      if (flushIfFull && frameBytes >= blePacketSize) {
+        frameIndex++;
+        startFrame();
       }
     }
 
-    // Add trailing END byte
-    result.add(slipEnd);
-    payloadBytes++;
+    // Start first frame with header.
+    startFrame();
 
-    // Pad final frame to 32 bytes
-    while (result.length % blePacketSize != 0) {
-      result.add(0);
+    // SLIP encode the data (no leading END for BLE).
+    for (final byte in data) {
+      if (byte == slipEnd) {
+        addByte(slipEsc);
+        addByte(slipEscEnd);
+      } else if (byte == slipEsc) {
+        addByte(slipEsc);
+        addByte(slipEscEsc);
+      } else {
+        addByte(byte);
+      }
     }
 
-    return result;
-  }
+    // Add trailing END byte without flushing into a new empty frame.
+    addByte(slipEnd, flushIfFull: false);
 
-  void _addByteToFrame(List<int> result, int byte, int frameCount,
-      int payloadBytes, int payloadPerFrame) {
-    result.add(byte);
+    return result;
   }
 
   /// Read data by identifier (RDBI command).
@@ -507,16 +442,28 @@ class ShearwaterBleProtocol {
     final response = await transfer(request);
 
     // Validate response
-    if (response.isEmpty || response[0] == nak) {
+    if (response.isEmpty) {
       throw const DownloadException(
-        'Device returned NAK',
+        'Empty response from device',
         phase: DownloadPhase.downloading,
       );
     }
 
-    if (response[0] != rdbiResponse) {
+    if (response.length >= 3 &&
+        response[0] == nak &&
+        response[1] == rdbiRequest) {
       throw DownloadException(
-        'Unexpected response: 0x${response[0].toRadixString(16)}',
+        'Device returned NAK: 0x${response[2].toRadixString(16)}',
+        phase: DownloadPhase.downloading,
+      );
+    }
+
+    if (response.length < 3 ||
+        response[0] != rdbiResponse ||
+        response[1] != request[1] ||
+        response[2] != request[2]) {
+      throw DownloadException(
+        'Unexpected response: ${response.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}',
         phase: DownloadPhase.downloading,
       );
     }
@@ -539,8 +486,12 @@ class ShearwaterBleProtocol {
       // Continue anyway to try manifest
     }
 
-    // Read manifest using RDBI with identifier 0xE000
-    final manifestData = await readById(idManifest);
+    // Download manifest from memory address.
+    final manifestData = await _downloadMemory(
+      address: manifestAddress,
+      size: manifestSize,
+      compressed: false,
+    );
     _log.info('Received ${manifestData.length} bytes of manifest data');
 
     final entries = <DiveManifestEntry>[];
@@ -593,6 +544,75 @@ class ShearwaterBleProtocol {
     _xorDecompress(rleDecompressed);
 
     return rleDecompressed;
+  }
+
+  Future<List<int>> _downloadMemory({
+    required int address,
+    required int size,
+    required bool compressed,
+  }) async {
+    final initRequest = [
+      0x35,
+      compressed ? 0x10 : 0x00,
+      0x34,
+      (address >> 24) & 0xFF,
+      (address >> 16) & 0xFF,
+      (address >> 8) & 0xFF,
+      address & 0xFF,
+      (size >> 16) & 0xFF,
+      (size >> 8) & 0xFF,
+      size & 0xFF,
+    ];
+
+    final initResponse = await transfer(initRequest);
+    if (initResponse.length < 3 ||
+        initResponse[0] != 0x75 ||
+        initResponse[1] != 0x10) {
+      throw DownloadException(
+        'Unexpected init response: ${initResponse.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}',
+        phase: DownloadPhase.downloading,
+      );
+    }
+
+    final buffer = <int>[];
+    var block = 1;
+
+    while (buffer.length < size) {
+      final response = await transfer([0x36, block & 0xFF]);
+      if (response.length < 2 ||
+          response[0] != 0x76 ||
+          response[1] != (block & 0xFF)) {
+        throw DownloadException(
+          'Unexpected block response for $block: ${response.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}',
+          phase: DownloadPhase.downloading,
+        );
+      }
+
+      final payload = response.sublist(2);
+      buffer.addAll(payload);
+
+      block++;
+    }
+
+    final quitResponse = await transfer([0x37]);
+    if (quitResponse.length < 2 ||
+        quitResponse[0] != 0x77 ||
+        quitResponse[1] != 0x00) {
+      throw DownloadException(
+        'Unexpected quit response: ${quitResponse.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}',
+        phase: DownloadPhase.downloading,
+      );
+    }
+
+    if (compressed) {
+      return _decompressData(buffer);
+    }
+
+    if (buffer.length > size) {
+      return buffer.sublist(0, size);
+    }
+
+    return buffer;
   }
 
   List<int> _rleDecompress(List<int> data) {
@@ -727,7 +747,55 @@ class DiveManifestEntry {
     if (data.length < 32) return null;
 
     try {
-      // Manifest entry format (32 bytes):
+      final allZero = data.every((b) => b == 0);
+      final allFF = data.every((b) => b == 0xFF);
+      if (allZero || allFF) return null;
+
+      final header = (data[0] << 8) | data[1];
+      final isPetrelFormat = header == 0xA5C4 || header == 0x5A23;
+
+      if (isPetrelFormat) {
+        // Petrel/Teric manifest format (32 bytes):
+        // 0-1: Record header (0xA5C4 valid, 0x5A23 deleted)
+        // 2-3: Dive number (best-effort)
+        // 4-7: Fingerprint
+        // 8-11: Timestamp (Unix, best-effort)
+        // 12-13: Duration (minutes, best-effort)
+        // 14-15: Max depth (cm, best-effort)
+        // 20-23: Data address
+        if (header == 0x5A23) return null;
+
+        final diveNumber = (data[2] << 8) | data[3];
+        final timestamp = (data[8] << 24) | (data[9] << 16) | (data[10] << 8) | data[11];
+        final durationMin = (data[12] << 8) | data[13];
+        final maxDepthCm = (data[14] << 8) | data[15];
+        final dataAddress =
+            (data[20] << 24) | (data[21] << 16) | (data[22] << 8) | data[23];
+        final dataSize =
+            (data[24] << 24) | (data[25] << 16) | (data[26] << 8) | data[27];
+
+        final fingerprint = data
+            .sublist(4, 8)
+            .map((b) => b.toRadixString(16).padLeft(2, '0'))
+            .join()
+            .toUpperCase();
+
+        if (dataAddress == 0) return null;
+
+        final dateTime = _safeTimestamp(timestamp);
+
+        return DiveManifestEntry(
+          diveNumber: diveNumber,
+          dateTime: dateTime,
+          durationSeconds: durationMin * 60,
+          maxDepth: maxDepthCm / 100.0,
+          dataAddress: dataAddress,
+          dataSize: dataSize,
+          fingerprint: fingerprint,
+        );
+      }
+
+      // Legacy manifest format (32 bytes):
       // 0-3: Data address
       // 4-7: Data size
       // 8-11: Timestamp (Unix)
@@ -737,15 +805,18 @@ class DiveManifestEntry {
       // 18-21: Fingerprint
       // 22-31: Reserved
 
-      final dataAddress = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
-      final dataSize = (data[4] << 24) | (data[5] << 16) | (data[6] << 8) | data[7];
-      final timestamp = (data[8] << 24) | (data[9] << 16) | (data[10] << 8) | data[11];
+      final dataAddress =
+          (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
+      final dataSize =
+          (data[4] << 24) | (data[5] << 16) | (data[6] << 8) | data[7];
+      final timestamp =
+          (data[8] << 24) | (data[9] << 16) | (data[10] << 8) | data[11];
       final diveNumber = (data[12] << 8) | data[13];
       final maxDepthCm = (data[14] << 8) | data[15];
       final durationMin = (data[16] << 8) | data[17];
 
-      // Build fingerprint hex string
-      final fingerprint = data.sublist(18, 22)
+      final fingerprint = data
+          .sublist(18, 22)
           .map((b) => b.toRadixString(16).padLeft(2, '0'))
           .join()
           .toUpperCase();
@@ -754,7 +825,7 @@ class DiveManifestEntry {
 
       return DiveManifestEntry(
         diveNumber: diveNumber,
-        dateTime: DateTime.fromMillisecondsSinceEpoch(timestamp * 1000),
+        dateTime: _safeTimestamp(timestamp),
         durationSeconds: durationMin * 60,
         maxDepth: maxDepthCm / 100.0,
         dataAddress: dataAddress,
@@ -764,5 +835,17 @@ class DiveManifestEntry {
     } catch (e) {
       return null;
     }
+  }
+
+  static DateTime _safeTimestamp(int timestampSeconds) {
+    if (timestampSeconds <= 0) {
+      return DateTime.now();
+    }
+    final dateTime =
+        DateTime.fromMillisecondsSinceEpoch(timestampSeconds * 1000);
+    if (dateTime.year < 1990 || dateTime.year > 2100) {
+      return DateTime.now();
+    }
+    return dateTime;
   }
 }
