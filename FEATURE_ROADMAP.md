@@ -112,7 +112,7 @@
 | Ascent rate indicators | ✅ Implemented | v1.5 | Color-coded (green <9m/min, yellow 9-12, red >12) |
 | Ceiling / NDL curve | ✅ Implemented | v1.5 | Bühlmann ZH-L16C with GF support |
 | ppO₂ curve, CNS/OTU | ✅ Implemented | v1.5 | O2ToxicityCard with NOAA tables |
-| SAC/RMV overlay | 📋 Planned | v1.5 | Instantaneous gas consumption |
+| SAC/RMV overlay | ✅ Implemented | v1.5 | Instantaneous gas consumption |
 | Profile export as PNG | 📋 Planned | v2.0 | Export chart image for sharing |
 
 **v1.5 Tasks:**
@@ -124,7 +124,7 @@
 - [x] ppO₂ curve display with warnings
 - [x] Deco ceiling curve on profile chart
 - [x] Interactive timeline updates deco/O2 panels
-- [ ] SAC/RMV overlay on profile chart
+- [x] SAC/RMV overlay on profile chart
 
 ---
 

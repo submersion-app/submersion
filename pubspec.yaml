@@ -40,6 +40,7 @@ dependencies:
 
   # Platform Integration
   flutter_blue_plus: ^1.32.12
+  dive_computer: ^0.1.0-dev.2  # libdivecomputer FFI wrapper
   permission_handler: ^11.3.1
   file_picker: ^8.1.2
   image_picker: ^1.1.2
