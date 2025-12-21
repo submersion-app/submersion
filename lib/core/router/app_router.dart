@@ -48,6 +48,7 @@ import '../../features/dive_types/presentation/pages/dive_types_page.dart';
 import '../../features/tools/presentation/pages/weight_calculator_page.dart';
 import '../../features/dive_computer/presentation/pages/device_list_page.dart';
 import '../../features/dive_computer/presentation/pages/device_detail_page.dart';
+import '../../features/dive_computer/presentation/pages/device_download_page.dart';
 import '../../features/dive_computer/presentation/pages/device_discovery_page.dart';
 import '../../shared/widgets/main_scaffold.dart';
 
@@ -481,6 +482,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => DeviceDetailPage(
                   computerId: state.pathParameters['computerId']!,
                 ),
+                routes: [
+                  GoRoute(
+                    path: 'download',
+                    name: 'computerDownload',
+                    builder: (context, state) => DeviceDownloadPage(
+                      computerId: state.pathParameters['computerId']!,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

@@ -3,6 +3,7 @@ import 'dart:async';
 import '../../domain/entities/device_model.dart';
 import '../../domain/services/download_manager.dart';
 import 'bluetooth_connection_manager.dart';
+import 'shearwater_ble_protocol.dart';
 
 /// Implementation of [DownloadManager] using libdivecomputer via the dive_computer package.
 ///
@@ -158,42 +159,117 @@ class LibdcDownloadManager implements DownloadManager {
   /// Download dives from the device using the appropriate protocol.
   ///
   /// This method handles the actual communication with the dive computer.
-  /// Currently implements a placeholder that can be replaced with real
-  /// dive_computer package integration.
+  /// Currently supports Shearwater devices via native Dart BLE protocol.
   Future<List<DownloadedDive>> _downloadFromDevice({
     required DiscoveredDevice device,
     required DeviceModel model,
     required bool newDivesOnly,
     DateTime? sinceTimestamp,
   }) async {
-    // TODO: Integrate with dive_computer package for real device communication
-    //
-    // The integration would look something like:
-    //
-    // 1. Initialize the dive_computer plugin:
-    //    final dc = DiveComputer.instance;
-    //    await dc.open(family: model.dcFamily, model: model.dcModel);
-    //
-    // 2. Set up the transport (Bluetooth):
-    //    final transport = BluetoothTransport(_connectionManager.bluetoothDevice);
-    //    await dc.setTransport(transport);
-    //
-    // 3. Download dives with progress callbacks:
-    //    final dives = await dc.downloadDives(
-    //      onProgress: (current, total) {
-    //        _updateProgress(DownloadProgress.downloading(current, total));
-    //      },
-    //    );
-    //
-    // 4. Parse the dive data into our format
-    //
-    // For now, we throw an exception to indicate real implementation is needed
+    // Check if this is a Shearwater device
+    if (model.manufacturer.toLowerCase() == 'shearwater') {
+      return _downloadFromShearwater(
+        device: device,
+        newDivesOnly: newDivesOnly,
+        sinceTimestamp: sinceTimestamp,
+      );
+    }
+
+    // For other manufacturers, we'd need additional protocol implementations
     throw DownloadException(
-      'Device communication not yet implemented. '
-      'The dive_computer package integration is required for actual downloads. '
-      'Device: ${model.fullName} (${model.dcFamily})',
+      'Device communication not yet implemented for ${model.manufacturer}. '
+      'Currently only Shearwater devices are supported via BLE. '
+      'Device: ${model.fullName}',
       phase: DownloadPhase.downloading,
     );
+  }
+
+  /// Download dives from a Shearwater device using the native Dart BLE protocol.
+  Future<List<DownloadedDive>> _downloadFromShearwater({
+    required DiscoveredDevice device,
+    required bool newDivesOnly,
+    DateTime? sinceTimestamp,
+  }) async {
+    // Get the BluetoothDevice from the connection manager
+    final bluetoothDevice = _connectionManager.bluetoothDevice;
+    if (bluetoothDevice == null) {
+      throw const DownloadException(
+        'Bluetooth device not connected',
+        phase: DownloadPhase.connecting,
+      );
+    }
+
+    final protocol = ShearwaterBleProtocol(bluetoothDevice);
+
+    try {
+      // Connect and discover services
+      _updateProgress(
+        const DownloadProgress(
+          currentDive: 0,
+          totalDives: 0,
+          percentage: 0.15,
+          status: 'Discovering services...',
+          phase: DownloadPhase.enumerating,
+        ),
+      );
+      await protocol.connect();
+
+      if (_isCancelled) return [];
+
+      // Download manifest
+      _updateProgress(
+        const DownloadProgress(
+          currentDive: 0,
+          totalDives: 0,
+          percentage: 0.2,
+          status: 'Reading dive manifest...',
+          phase: DownloadPhase.enumerating,
+        ),
+      );
+      final manifest = await protocol.downloadManifest();
+
+      if (_isCancelled) return [];
+
+      // Filter dives if needed
+      var divesToDownload = manifest;
+      if (newDivesOnly && sinceTimestamp != null) {
+        divesToDownload = manifest
+            .where((entry) => entry.dateTime.isAfter(sinceTimestamp))
+            .toList();
+      }
+
+      if (divesToDownload.isEmpty) {
+        return [];
+      }
+
+      // Download each dive
+      final downloadedDives = <DownloadedDive>[];
+
+      for (int i = 0; i < divesToDownload.length; i++) {
+        if (_isCancelled) break;
+
+        final entry = divesToDownload[i];
+
+        _updateProgress(
+          DownloadProgress(
+            currentDive: i + 1,
+            totalDives: divesToDownload.length,
+            percentage: 0.2 + (0.7 * (i / divesToDownload.length)),
+            status: 'Downloading dive ${entry.diveNumber}...',
+            phase: DownloadPhase.downloading,
+          ),
+        );
+
+        final dive = await protocol.downloadDive(entry);
+        downloadedDives.add(dive);
+        _divesController.add(dive);
+      }
+
+      return downloadedDives;
+    } finally {
+      await protocol.disconnect();
+      protocol.dispose();
+    }
   }
 
   @override

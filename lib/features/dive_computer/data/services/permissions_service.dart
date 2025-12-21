@@ -118,8 +118,15 @@ class DiveComputerPermissionsService {
         return BluetoothAvailability.notSupported;
       }
 
-      // Check adapter state
-      final state = await FlutterBluePlus.adapterState.first;
+      // Wait for a definitive adapter state (skip 'unknown' states)
+      // The Bluetooth stack may take a moment to initialize on some platforms
+      final state = await FlutterBluePlus.adapterState
+          .where((s) => s != BluetoothAdapterState.unknown)
+          .first
+          .timeout(
+            const Duration(seconds: 3),
+            onTimeout: () => BluetoothAdapterState.unknown,
+          );
 
       switch (state) {
         case BluetoothAdapterState.on:
