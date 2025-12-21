@@ -48,6 +48,16 @@ class Dive extends Equatable {
   final WaterType? waterType;
   // Altitude for altitude diving
   final double? altitude; // meters above sea level
+  // Surface pressure for altitude/weather corrections
+  final double? surfacePressure; // bar (standard ~1.013)
+  // Surface interval before this dive
+  final Duration? surfaceInterval;
+  // Decompression gradient factors
+  final int? gradientFactorLow; // GF Lo (0-100)
+  final int? gradientFactorHigh; // GF Hi (0-100)
+  // Dive computer that logged this dive
+  final String? diveComputerModel;
+  final String? diveComputerSerial;
   // Weight system fields (legacy single weight - kept for backward compatibility)
   final double? weightAmount; // kg
   final WeightType? weightType;
@@ -93,6 +103,12 @@ class Dive extends Equatable {
     this.exitMethod,
     this.waterType,
     this.altitude,
+    this.surfacePressure,
+    this.surfaceInterval,
+    this.gradientFactorLow,
+    this.gradientFactorHigh,
+    this.diveComputerModel,
+    this.diveComputerSerial,
     this.weightAmount,
     this.weightType,
     this.weights = const [],
@@ -229,6 +245,12 @@ class Dive extends Equatable {
     EntryMethod? exitMethod,
     WaterType? waterType,
     double? altitude,
+    double? surfacePressure,
+    Duration? surfaceInterval,
+    int? gradientFactorLow,
+    int? gradientFactorHigh,
+    String? diveComputerModel,
+    String? diveComputerSerial,
     double? weightAmount,
     WeightType? weightType,
     List<DiveWeight>? weights,
@@ -271,6 +293,12 @@ class Dive extends Equatable {
       exitMethod: exitMethod ?? this.exitMethod,
       waterType: waterType ?? this.waterType,
       altitude: altitude ?? this.altitude,
+      surfacePressure: surfacePressure ?? this.surfacePressure,
+      surfaceInterval: surfaceInterval ?? this.surfaceInterval,
+      gradientFactorLow: gradientFactorLow ?? this.gradientFactorLow,
+      gradientFactorHigh: gradientFactorHigh ?? this.gradientFactorHigh,
+      diveComputerModel: diveComputerModel ?? this.diveComputerModel,
+      diveComputerSerial: diveComputerSerial ?? this.diveComputerSerial,
       weightAmount: weightAmount ?? this.weightAmount,
       weightType: weightType ?? this.weightType,
       weights: weights ?? this.weights,
@@ -316,6 +344,12 @@ class Dive extends Equatable {
         exitMethod,
         waterType,
         altitude,
+        surfacePressure,
+        surfaceInterval,
+        gradientFactorLow,
+        gradientFactorHigh,
+        diveComputerModel,
+        diveComputerSerial,
         weightAmount,
         weightType,
         weights,
