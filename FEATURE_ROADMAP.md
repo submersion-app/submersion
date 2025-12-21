@@ -294,8 +294,8 @@
 - [x] CNS/OTU display on dive detail page (O2ToxicityCard)
 - [x] ppO₂ curve calculation and warnings
 - [x] 68 unit tests for O2 toxicity calculations
-- [ ] Segment SAC calculation (5-minute segments or depth-based)
-- [ ] SAC trend chart (line chart showing SAC over time for a dive)
+- [x] Segment SAC calculation (5-minute segments or depth-based)
+- [x] SAC trend chart (line chart showing SAC over time for a dive)
 
 ---
 

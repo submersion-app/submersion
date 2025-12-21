@@ -6,6 +6,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/enums.dart';
+import '../../../../core/constants/units.dart';
 import '../../../../core/deco/ascent_rate_calculator.dart';
 import '../../../../core/utils/unit_formatter.dart';
 import '../../../settings/presentation/providers/settings_providers.dart';
@@ -34,6 +35,15 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// NDL values in seconds for each point (-1 = in deco)
   final List<int>? ndlCurve;
 
+  /// SAC rate curve (bar/min at surface) - smoothed for visualization
+  final List<double>? sacCurve;
+
+  /// Tank volume in liters (for L/min SAC conversion)
+  final double? tankVolume;
+
+  /// Normalization factor to align profile SAC with tank-based SAC
+  final double sacNormalizationFactor;
+
   /// Whether to show ceiling by default
   final bool showCeiling;
 
@@ -42,6 +52,9 @@ class DiveProfileChart extends ConsumerStatefulWidget {
 
   /// Whether to show event markers
   final bool showEvents;
+
+  /// Whether to show SAC curve by default
+  final bool showSac;
 
   const DiveProfileChart({
     super.key,
@@ -55,9 +68,13 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.ascentRates,
     this.events,
     this.ndlCurve,
+    this.sacCurve,
+    this.tankVolume,
+    this.sacNormalizationFactor = 1.0,
     this.showCeiling = true,
     this.showAscentRateColors = true,
     this.showEvents = true,
+    this.showSac = false,
   });
 
   @override
@@ -68,6 +85,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   bool _showTemperature = true;
   bool _showPressure = false;
   bool _showHeartRate = false;
+  bool _showSac = false;
 
   // Decompression visualization toggles
   bool _showCeiling = true;
@@ -93,6 +111,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     super.initState();
     _showTemperature = widget.showTemperature;
     _showPressure = widget.showPressure;
+    _showSac = widget.showSac;
     _showCeiling = widget.showCeiling;
     _showAscentRateColors = widget.showAscentRateColors;
     _showEvents = widget.showEvents;
@@ -188,6 +207,15 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   label: 'HR',
                   isEnabled: _showHeartRate,
                   onTap: () => setState(() => _showHeartRate = !_showHeartRate),
+                ),
+              // SAC curve toggle (if data available)
+              if (widget.sacCurve != null && widget.sacCurve!.isNotEmpty)
+                _buildMetricToggle(
+                  context,
+                  color: Colors.teal,
+                  label: 'SAC',
+                  isEnabled: _showSac,
+                  onTap: () => setState(() => _showSac = !_showSac),
                 ),
               // Ceiling toggle (if data available)
               if (widget.ceilingCurve != null)
@@ -559,6 +587,17 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       }
     }
 
+    // SAC bounds (if showing)
+    double? minSac, maxSac;
+    final hasSacData = widget.sacCurve != null && widget.sacCurve!.isNotEmpty;
+    if (_showSac && hasSacData) {
+      final sacs = widget.sacCurve!.where((s) => s > 0);
+      if (sacs.isNotEmpty) {
+        minSac = 0; // Always start from 0 for SAC
+        maxSac = sacs.reduce(math.max) * 1.2; // Add 20% headroom
+      }
+    }
+
     return LineChart(
       LineChartData(
         minX: visibleMinX,
@@ -680,6 +719,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               minHR != null &&
               maxHR != null)
             _buildHeartRateLine(heartRateColor, totalMaxDepth, minHR, maxHR),
+
+          // SAC curve line (if showing)
+          if (_showSac && hasSacData && minSac != null && maxSac != null)
+            _buildSacLine(totalMaxDepth, minSac, maxSac),
 
           // Ceiling line (if showing and data available)
           if (_showCeiling && widget.ceilingCurve != null)
@@ -814,6 +857,46 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       ),
                     ),
                   );
+                }
+
+                // SAC (if enabled and available)
+                if (_showSac &&
+                    widget.sacCurve != null &&
+                    spot.spotIndex < widget.sacCurve!.length) {
+                  final sacBarPerMin = widget.sacCurve![spot.spotIndex];
+                  if (sacBarPerMin > 0) {
+                    // Apply normalization to align with tank-based SAC
+                    final normalizedSac =
+                        sacBarPerMin * widget.sacNormalizationFactor;
+                    final sacUnit = ref.read(sacUnitProvider);
+                    String sacText;
+                    if (sacUnit == SacUnit.litersPerMin &&
+                        widget.tankVolume != null) {
+                      // Convert to L/min
+                      final sacLPerMin = normalizedSac * widget.tankVolume!;
+                      sacText =
+                          '${units.convertVolume(sacLPerMin).toStringAsFixed(1)} ${units.volumeSymbol}/min\n';
+                    } else {
+                      // Use pressure units
+                      sacText =
+                          '${units.convertPressure(normalizedSac).toStringAsFixed(1)} ${units.pressureSymbol}/min\n';
+                    }
+                    lines.add(
+                      const TextSpan(
+                        text: '● ',
+                        style: TextStyle(color: Colors.teal, fontSize: 10),
+                      ),
+                    );
+                    lines.add(
+                      TextSpan(
+                        text: sacText,
+                        style: TextStyle(
+                          color: colorScheme.onInverseSurface,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    );
+                  }
                 }
 
                 return LineTooltipItem(
@@ -956,6 +1039,41 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
       dashArray: [3, 2],
+    );
+  }
+
+  /// Build SAC (Surface Air Consumption) curve line
+  LineChartBarData _buildSacLine(
+    double chartMaxDepth,
+    double minSac,
+    double maxSac,
+  ) {
+    const sacColor = Colors.teal;
+    final sacCurve = widget.sacCurve!;
+
+    // Build spots for each profile point that has SAC data
+    final spots = <FlSpot>[];
+    for (int i = 0; i < widget.profile.length && i < sacCurve.length; i++) {
+      final sac = sacCurve[i];
+      if (sac > 0) {
+        spots.add(
+          FlSpot(
+            widget.profile[i].timestamp.toDouble(),
+            -_mapValueToDepth(sac, chartMaxDepth, minSac, maxSac),
+          ),
+        );
+      }
+    }
+
+    return LineChartBarData(
+      spots: spots,
+      isCurved: true,
+      curveSmoothness: 0.3,
+      color: sacColor,
+      barWidth: 2,
+      isStrokeCapRound: true,
+      dotData: const FlDotData(show: false),
+      dashArray: [6, 3], // Distinctive dash pattern for SAC
     );
   }
 

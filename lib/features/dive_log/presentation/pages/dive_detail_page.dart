@@ -24,6 +24,35 @@ import '../widgets/deco_info_panel.dart';
 import '../widgets/dive_profile_chart.dart';
 import '../widgets/o2_toxicity_card.dart';
 
+/// Calculate normalization factor to align profile-based SAC with tank-based SAC.
+/// The segments are calculated from profile pressure data, but dive.sacPressure
+/// uses tank start/end pressures - these can differ, so we normalize.
+double calculateSacNormalizationFactor(Dive dive, ProfileAnalysis? analysis) {
+  if (analysis?.sacSegments == null || analysis!.sacSegments!.isEmpty) {
+    return 1.0;
+  }
+
+  final diveSacPressure = dive.sacPressure;
+  if (diveSacPressure == null || diveSacPressure <= 0) {
+    return 1.0;
+  }
+
+  // Calculate weighted average of segment SAC (weighted by duration)
+  double totalWeightedSac = 0;
+  int totalDuration = 0;
+  for (final segment in analysis.sacSegments!) {
+    totalWeightedSac += segment.sacRate * segment.durationSeconds;
+    totalDuration += segment.durationSeconds;
+  }
+
+  if (totalDuration <= 0) return 1.0;
+
+  final avgSegmentSac = totalWeightedSac / totalDuration;
+  if (avgSegmentSac <= 0) return 1.0;
+
+  return diveSacPressure / avgSegmentSac;
+}
+
 class DiveDetailPage extends ConsumerStatefulWidget {
   final String diveId;
 
@@ -146,6 +175,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               const SizedBox(height: 24),
               _buildO2ToxicitySection(context, ref, dive),
               const SizedBox(height: 24),
+              _buildSacSegmentsSection(context, ref, dive),
             ],
             _buildDetailsSection(context, ref, dive, units),
             if (_hasConditions(dive)) ...[
@@ -469,6 +499,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               ascentRates: analysis?.ascentRates,
               events: analysis?.events,
               ndlCurve: analysis?.ndlCurve,
+              sacCurve: analysis?.smoothedSacCurve,
+              tankVolume: dive.tanks
+                  .where((t) => t.volume != null && t.volume! > 0)
+                  .map((t) => t.volume!)
+                  .firstOrNull,
+              sacNormalizationFactor:
+                  calculateSacNormalizationFactor(dive, analysis),
               onPointSelected: (point) {
                 if (point == null) {
                   setState(() => _selectedPointIndex = null);
@@ -613,6 +650,182 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     if (ppO2 >= 1.6) return Colors.red;
     if (ppO2 >= 1.4) return Colors.orange;
     return Colors.green;
+  }
+
+  Widget _buildSacSegmentsSection(
+      BuildContext context, WidgetRef ref, Dive dive,) {
+    final analysis = ref.watch(diveProfileAnalysisProvider(dive));
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
+    final sacUnit = ref.watch(sacUnitProvider);
+
+    // Don't show if no SAC segments available
+    if (analysis == null ||
+        analysis.sacSegments == null ||
+        analysis.sacSegments!.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final segments = analysis.sacSegments!;
+
+    // Get tank volume for L/min conversion (use first tank with volume)
+    final tankVolume = dive.tanks
+        .where((t) => t.volume != null && t.volume! > 0)
+        .map((t) => t.volume!)
+        .firstOrNull;
+
+    // Determine if we can show L/min (need tank volume)
+    final showLitersPerMin =
+        sacUnit == SacUnit.litersPerMin && tankVolume != null;
+
+    // Use the top-level normalization function
+    final normalizationFactor = calculateSacNormalizationFactor(dive, analysis);
+
+    // Format SAC value based on unit setting, applying normalization
+    String formatSacValue(double sacBarPerMin) {
+      // Apply normalization to align with overall dive SAC
+      final normalizedSac = sacBarPerMin * normalizationFactor;
+
+      if (showLitersPerMin) {
+        // Convert bar/min to L/min: sacLPerMin = sacBarPerMin * tankVolume
+        final sacLPerMin = normalizedSac * tankVolume;
+        return '${units.convertVolume(sacLPerMin).toStringAsFixed(1)} ${units.volumeSymbol}/min';
+      } else {
+        // Convert to user's pressure unit (bar or psi)
+        return '${units.convertPressure(normalizedSac).toStringAsFixed(1)} ${units.pressureSymbol}/min';
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.air,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'SAC Rate by Segment',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '5-minute intervals',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+                const SizedBox(height: 16),
+                ...segments.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final segment = entry.value;
+                  final startMin = segment.startTimestamp ~/ 60;
+                  final endMin = segment.endTimestamp ~/ 60;
+                  final avgDepthDisplay = units.formatDepth(segment.avgDepth);
+
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      bottom: index < segments.length - 1 ? 8 : 0,
+                    ),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 70,
+                          child: Text(
+                            '$startMin-${endMin}min',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                        Expanded(
+                          child: _buildSacBar(
+                            context,
+                            segment.sacRate,
+                            segments
+                                .map((s) => s.sacRate)
+                                .reduce((a, b) => a > b ? a : b),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          width: 90,
+                          child: Text(
+                            formatSacValue(segment.sacRate),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                            textAlign: TextAlign.right,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          width: 50,
+                          child: Text(
+                            avgDepthDisplay,
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
+                                    ),
+                            textAlign: TextAlign.right,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+
+  Widget _buildSacBar(BuildContext context, double sacRate, double maxSac) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final percentage = maxSac > 0 ? (sacRate / maxSac).clamp(0.0, 1.0) : 0.0;
+
+    // Color based on SAC rate (lower is better)
+    Color barColor;
+    if (sacRate <= 12) {
+      barColor = Colors.green;
+    } else if (sacRate <= 18) {
+      barColor = Colors.orange;
+    } else {
+      barColor = Colors.red;
+    }
+
+    return Container(
+      height: 12,
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: FractionallySizedBox(
+        alignment: Alignment.centerLeft,
+        widthFactor: percentage,
+        child: Container(
+          decoration: BoxDecoration(
+            color: barColor,
+            borderRadius: BorderRadius.circular(6),
+          ),
+        ),
+      ),
+    );
   }
 
   void _showFullscreenProfile(BuildContext context, WidgetRef ref, Dive dive) {
@@ -1489,6 +1702,13 @@ class _FullscreenProfilePageState extends ConsumerState<_FullscreenProfilePage> 
                       ascentRates: widget.analysis?.ascentRates,
                       events: widget.analysis?.events,
                       ndlCurve: widget.analysis?.ndlCurve,
+                      sacCurve: widget.analysis?.smoothedSacCurve,
+                      tankVolume: dive.tanks
+                          .where((t) => t.volume != null && t.volume! > 0)
+                          .map((t) => t.volume!)
+                          .firstOrNull,
+                      sacNormalizationFactor:
+                          calculateSacNormalizationFactor(dive, widget.analysis),
                       onPointSelected: (point) {
                         setState(() => _selectedPoint = point);
                       },
