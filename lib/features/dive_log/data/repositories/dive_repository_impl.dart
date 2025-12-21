@@ -30,7 +30,12 @@ class DiveRepository {
   Future<List<domain.Dive>> getAllDives({String? diverId}) async {
     try {
       final query = _db.select(_db.dives)
-        ..orderBy([(t) => OrderingTerm.desc(t.diveDateTime)]);
+        ..orderBy([
+          // Order by entry time (preferred), falling back to dive date time
+          (t) => OrderingTerm.desc(coalesce([t.entryTime, t.diveDateTime])),
+          // Use dive number as secondary sort for dives with same timestamp
+          (t) => OrderingTerm.desc(t.diveNumber),
+        ]);
 
       if (diverId != null) {
         query.where((t) => t.diverId.equals(diverId));
@@ -213,6 +218,13 @@ class DiveRepository {
               exitMethod: Value(dive.exitMethod?.name),
               waterType: Value(dive.waterType?.name),
               altitude: Value(dive.altitude),
+              surfacePressure: Value(dive.surfacePressure),
+              // Surface interval and deco settings
+              surfaceIntervalSeconds: Value(dive.surfaceInterval?.inSeconds),
+              gradientFactorLow: Value(dive.gradientFactorLow),
+              gradientFactorHigh: Value(dive.gradientFactorHigh),
+              diveComputerModel: Value(dive.diveComputerModel),
+              diveComputerSerial: Value(dive.diveComputerSerial),
               // Weight system fields
               weightAmount: Value(dive.weightAmount),
               weightType: Value(dive.weightType?.name),
@@ -331,6 +343,13 @@ class DiveRepository {
           exitMethod: Value(dive.exitMethod?.name),
           waterType: Value(dive.waterType?.name),
           altitude: Value(dive.altitude),
+          surfacePressure: Value(dive.surfacePressure),
+          // Surface interval and deco settings
+          surfaceIntervalSeconds: Value(dive.surfaceInterval?.inSeconds),
+          gradientFactorLow: Value(dive.gradientFactorLow),
+          gradientFactorHigh: Value(dive.gradientFactorHigh),
+          diveComputerModel: Value(dive.diveComputerModel),
+          diveComputerSerial: Value(dive.diveComputerSerial),
           // Weight system fields
           weightAmount: Value(dive.weightAmount),
           weightType: Value(dive.weightType?.name),
@@ -437,7 +456,10 @@ class DiveRepository {
     try {
       final query = _db.select(_db.dives)
         ..where((t) => t.id.isIn(ids))
-        ..orderBy([(t) => OrderingTerm.desc(t.diveDateTime)]);
+        ..orderBy([
+          (t) => OrderingTerm.desc(coalesce([t.entryTime, t.diveDateTime])),
+          (t) => OrderingTerm.desc(t.diveNumber),
+        ]);
 
       final rows = await query.get();
       return Future.wait(rows.map(_mapRowToDive));
@@ -456,7 +478,10 @@ class DiveRepository {
     try {
       final query = _db.select(_db.dives)
         ..where((t) => t.siteId.equals(siteId))
-        ..orderBy([(t) => OrderingTerm.desc(t.diveDateTime)]);
+        ..orderBy([
+          (t) => OrderingTerm.desc(coalesce([t.entryTime, t.diveDateTime])),
+          (t) => OrderingTerm.desc(t.diveNumber),
+        ]);
 
       final rows = await query.get();
       return Future.wait(rows.map(_mapRowToDive));
@@ -481,7 +506,10 @@ class DiveRepository {
           (t) =>
               t.diveDateTime.isSmallerOrEqualValue(end.millisecondsSinceEpoch),
         )
-        ..orderBy([(t) => OrderingTerm.desc(t.diveDateTime)]);
+        ..orderBy([
+          (t) => OrderingTerm.desc(coalesce([t.entryTime, t.diveDateTime])),
+          (t) => OrderingTerm.desc(t.diveNumber),
+        ]);
 
       final rows = await query.get();
       return Future.wait(rows.map(_mapRowToDive));
@@ -491,8 +519,11 @@ class DiveRepository {
     }
   }
 
-  /// Get the next dive number
+  /// Get the next dive number based on MAX(dive_number) + 1
   /// Optionally filter by [diverId] for per-diver numbering
+  /// Note: This returns the next number after the highest existing number,
+  /// which may not be chronologically correct. Use [getDiveNumberForDate]
+  /// for chronologically-based numbering.
   Future<int> getNextDiveNumber({String? diverId}) async {
     try {
       final String sql;
@@ -519,6 +550,43 @@ class DiveRepository {
     }
   }
 
+  /// Get the dive number based on chronological position for a given date
+  /// Counts how many dives exist before [dateTime] and returns count + startFrom
+  /// This ensures dive numbers match chronological order
+  Future<int> getDiveNumberForDate(DateTime dateTime, {String? diverId, int startFrom = 1}) async {
+    try {
+      final timestamp = dateTime.millisecondsSinceEpoch;
+      final String sql;
+      final List<Object> args;
+
+      if (diverId != null) {
+        sql = '''
+          SELECT COUNT(*) as count FROM dives
+          WHERE diver_id = ? AND (
+            entry_time < ? OR (entry_time IS NULL AND dive_date_time < ?)
+          )
+        ''';
+        args = [diverId, timestamp, timestamp];
+      } else {
+        sql = '''
+          SELECT COUNT(*) as count FROM dives
+          WHERE entry_time < ? OR (entry_time IS NULL AND dive_date_time < ?)
+        ''';
+        args = [timestamp, timestamp];
+      }
+
+      final result = await _db
+          .customSelect(sql, variables: args.map((a) => Variable(a)).toList())
+          .getSingle();
+
+      final count = result.data['count'] as int;
+      return count + startFrom;
+    } catch (e, stackTrace) {
+      _log.error('Failed to get dive number for date', e, stackTrace);
+      rethrow;
+    }
+  }
+
   /// Search dives by notes or buddy name
   Future<List<domain.Dive>> searchDives(String query, {String? diverId}) async {
     try {
@@ -529,7 +597,10 @@ class DiveRepository {
               t.buddy.contains(query) |
               t.diveMaster.contains(query),
         )
-        ..orderBy([(t) => OrderingTerm.desc(t.diveDateTime)]);
+        ..orderBy([
+          (t) => OrderingTerm.desc(coalesce([t.entryTime, t.diveDateTime])),
+          (t) => OrderingTerm.desc(t.diveNumber),
+        ]);
 
       if (diverId != null) {
         searchQuery.where((t) => t.diverId.equals(diverId));
@@ -966,6 +1037,14 @@ class DiveRepository {
             )
           : null,
       altitude: row.altitude,
+      surfacePressure: row.surfacePressure,
+      surfaceInterval: row.surfaceIntervalSeconds != null
+          ? Duration(seconds: row.surfaceIntervalSeconds!)
+          : null,
+      gradientFactorLow: row.gradientFactorLow,
+      gradientFactorHigh: row.gradientFactorHigh,
+      diveComputerModel: row.diveComputerModel,
+      diveComputerSerial: row.diveComputerSerial,
       weightAmount: row.weightAmount,
       weightType: row.weightType != null
           ? WeightType.values.firstWhere(
@@ -1206,6 +1285,14 @@ class DiveRepository {
             )
           : null,
       altitude: row.altitude,
+      surfacePressure: row.surfacePressure,
+      surfaceInterval: row.surfaceIntervalSeconds != null
+          ? Duration(seconds: row.surfaceIntervalSeconds!)
+          : null,
+      gradientFactorLow: row.gradientFactorLow,
+      gradientFactorHigh: row.gradientFactorHigh,
+      diveComputerModel: row.diveComputerModel,
+      diveComputerSerial: row.diveComputerSerial,
       // Weight system fields
       weightAmount: row.weightAmount,
       weightType: row.weightType != null
@@ -1300,7 +1387,10 @@ class DiveRepository {
     try {
       final query = _db.select(_db.dives)
         ..where((t) => t.isFavorite.equals(true))
-        ..orderBy([(t) => OrderingTerm.desc(t.diveDateTime)]);
+        ..orderBy([
+          (t) => OrderingTerm.desc(coalesce([t.entryTime, t.diveDateTime])),
+          (t) => OrderingTerm.desc(t.diveNumber),
+        ]);
 
       if (diverId != null) {
         query.where((t) => t.diverId.equals(diverId));
@@ -1506,45 +1596,26 @@ class DiveRepository {
     }
   }
 
-  /// Fill gaps in dive numbers without changing existing numbers
-  /// This assigns numbers to dives that have null dive numbers
+  /// Fill gaps in dive numbers by renumbering all dives chronologically
+  /// This ensures dive numbers match chronological order
   Future<void> assignMissingDiveNumbers() async {
     try {
-      _log.info('Assigning missing dive numbers');
+      _log.info('Assigning missing dive numbers by renumbering chronologically');
 
-      // Get all dives ordered by entry time
-      final query = _db.select(_db.dives)
-        ..orderBy([
-          (t) => OrderingTerm.asc(t.entryTime),
-          (t) => OrderingTerm.asc(t.diveDateTime),
-        ]);
+      // Find the minimum existing dive number to preserve as the starting point
+      // This respects the user's existing numbering scheme
+      final minResult = await _db
+          .customSelect(
+            'SELECT MIN(dive_number) as min_num FROM dives WHERE dive_number IS NOT NULL',
+          )
+          .getSingleOrNull();
 
-      final rows = await query.get();
+      final startFrom = (minResult?.data['min_num'] as int?) ?? 1;
 
-      // Find the highest existing number
-      int maxNumber = 0;
-      for (final row in rows) {
-        if (row.diveNumber != null && row.diveNumber! > maxNumber) {
-          maxNumber = row.diveNumber!;
-        }
-      }
+      // Renumber all dives chronologically starting from the minimum existing number
+      await renumberAllDives(startFrom: startFrom);
 
-      // Assign numbers to unnumbered dives
-      int nextNumber = maxNumber + 1;
-      for (final row in rows) {
-        if (row.diveNumber == null) {
-          await (_db.update(_db.dives)..where((t) => t.id.equals(row.id)))
-              .write(
-            DivesCompanion(
-              diveNumber: Value(nextNumber),
-              updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
-            ),
-          );
-          nextNumber++;
-        }
-      }
-
-      _log.info('Assigned numbers to ${nextNumber - maxNumber - 1} dives');
+      _log.info('Dive numbers assigned chronologically starting from $startFrom');
     } catch (e, stackTrace) {
       _log.error('Failed to assign missing dive numbers', e, stackTrace);
       rethrow;

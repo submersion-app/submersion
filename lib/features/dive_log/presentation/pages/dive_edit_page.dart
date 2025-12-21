@@ -85,6 +85,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   WaterType? _waterType;
   final _swellHeightController = TextEditingController();
   final _altitudeController = TextEditingController();
+  final _surfacePressureController = TextEditingController();
 
   // Weight fields - multiple weight entries per dive
   List<DiveWeight> _weights = [];
@@ -214,6 +215,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _altitudeController.text = dive.altitude != null
               ? units.convertDepth(dive.altitude!).toStringAsFixed(0)
               : '';
+          _surfacePressureController.text = dive.surfacePressure != null
+              ? (dive.surfacePressure! * 1000).toStringAsFixed(0)  // Convert bar to mbar
+              : '';
 
           // Load weight entries (weights already stored in kg, conversion happens in display)
           _weights = List.from(dive.weights);
@@ -290,6 +294,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     _notesController.dispose();
     _swellHeightController.dispose();
     _altitudeController.dispose();
+    _surfacePressureController.dispose();
     super.dispose();
   }
 
@@ -1526,6 +1531,19 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               ],
             ),
             const SizedBox(height: 16),
+            // Surface Pressure field (always in mbar)
+            TextFormField(
+              controller: _surfacePressureController,
+              decoration: const InputDecoration(
+                labelText: 'Surface Pressure',
+                suffixText: 'mbar',
+                helperText: 'Standard: 1013 mbar at sea level',
+                hintText: '1013',
+                prefixIcon: Icon(Icons.speed),
+              ),
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
@@ -2082,6 +2100,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       final altitude = _altitudeController.text.isNotEmpty
           ? units.depthToMeters(double.parse(_altitudeController.text))
           : null;
+      final surfacePressure = _surfacePressureController.text.isNotEmpty
+          ? double.parse(_surfacePressureController.text) / 1000  // Convert mbar to bar
+          : null;
 
       // Create dive entity
       final dive = Dive(
@@ -2114,6 +2135,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         exitMethod: _exitMethod,
         waterType: _waterType,
         altitude: altitude,
+        surfacePressure: surfacePressure,
         // Weight entries (multiple)
         weights: _weights,
         // Tags

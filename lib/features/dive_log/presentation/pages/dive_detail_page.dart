@@ -146,18 +146,23 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               const SizedBox(height: 24),
             ],
             _buildDetailsSection(context, ref, dive, units),
-            const SizedBox(height: 24),
-            _buildConditionsSection(context, dive),
-            const SizedBox(height: 24),
-            _buildWeightSection(context, dive, units),
-            const SizedBox(height: 24),
-            _buildTagsSection(context, dive),
+            if (_hasConditions(dive)) ...[
+              const SizedBox(height: 24),
+              _buildConditionsSection(context, dive),
+            ],
+            if (_hasWeights(dive)) ...[
+              const SizedBox(height: 24),
+              _buildWeightSection(context, dive, units),
+            ],
+            if (dive.tags.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              _buildTagsSection(context, dive),
+            ],
             const SizedBox(height: 24),
             _buildBuddiesSection(context, ref),
             const SizedBox(height: 24),
             if (dive.tanks.isNotEmpty) ...[
               _buildTanksSection(context, dive, units),
-              const SizedBox(height: 24),
             ],
             _buildSightingsSection(context, ref),
             const SizedBox(height: 24),
@@ -650,7 +655,29 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               _buildDetailRow(context, 'Dive Master', dive.diveMaster!),
             if (dive.sac != null)
               _buildDetailRow(context, 'SAC Rate', '${units.convertPressure(dive.sac!).toStringAsFixed(1)} ${units.pressureSymbol}/min'),
-            surfaceIntervalAsync.when(
+            // Gradient factors (from dive computer)
+            if (dive.gradientFactorLow != null && dive.gradientFactorHigh != null)
+              _buildDetailRow(context, 'Gradient Factors', 'GF ${dive.gradientFactorLow}/${dive.gradientFactorHigh}'),
+            // Dive computer info
+            if (dive.diveComputerModel != null && dive.diveComputerModel!.isNotEmpty)
+              _buildDetailRow(
+                context,
+                'Dive Computer',
+                dive.diveComputerSerial != null && dive.diveComputerSerial!.isNotEmpty
+                    ? '${dive.diveComputerModel} (${dive.diveComputerSerial})'
+                    : dive.diveComputerModel!,
+              ),
+            // Surface interval - prefer imported value, fall back to calculated
+            if (dive.surfaceInterval != null)
+              Builder(builder: (context) {
+                final interval = dive.surfaceInterval!;
+                final hours = interval.inHours;
+                final minutes = interval.inMinutes % 60;
+                final intervalText = hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m';
+                return _buildDetailRow(context, 'Surface Interval', intervalText);
+              },)
+            else
+              surfaceIntervalAsync.when(
               data: (interval) {
                 if (interval == null) return const SizedBox.shrink();
                 final hours = interval.inHours;
@@ -667,12 +694,21 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
   }
 
-  Widget _buildConditionsSection(BuildContext context, Dive dive) {
-    final hasConditions = dive.currentDirection != null ||
+  bool _hasConditions(Dive dive) {
+    return dive.currentDirection != null ||
         dive.currentStrength != null ||
         dive.swellHeight != null ||
         dive.entryMethod != null ||
         dive.exitMethod != null;
+  }
+
+  bool _hasWeights(Dive dive) {
+    return dive.weights.isNotEmpty ||
+        (dive.weightAmount != null && dive.weightAmount! > 0);
+  }
+
+  Widget _buildConditionsSection(BuildContext context, Dive dive) {
+    final hasConditions = _hasConditions(dive);
 
     if (!hasConditions) return const SizedBox.shrink();
 
@@ -704,11 +740,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   }
 
   Widget _buildWeightSection(BuildContext context, Dive dive, UnitFormatter units) {
+    if (!_hasWeights(dive)) return const SizedBox.shrink();
+
     // Combine new weights with legacy single weight for unified display
     final hasWeights = dive.weights.isNotEmpty;
     final hasLegacyWeight = dive.weightAmount != null && dive.weightAmount! > 0;
-
-    if (!hasWeights && !hasLegacyWeight) return const SizedBox.shrink();
 
     // Build list of weights to display (new format + legacy if present)
     final displayWeights = <_WeightDisplay>[];
@@ -1035,40 +1071,41 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           return const SizedBox.shrink(); // Don't show section if no sightings
         }
 
-        return Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 24),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Marine Life',
-                      style: Theme.of(context).textTheme.titleMedium,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Marine Life',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        Text(
+                          '${sightings.length} species',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      '${sightings.length} species',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                    ),
+                    const Divider(),
+                    ...sightings.map((sighting) => _buildSightingTile(context, sighting)),
                   ],
                 ),
-                const Divider(),
-                ...sightings.map((sighting) => _buildSightingTile(context, sighting)),
-              ],
+              ),
             ),
-          ),
+          ],
         );
       },
-      loading: () => const Card(
-        child: Padding(
-          padding: EdgeInsets.all(32),
-          child: Center(child: CircularProgressIndicator()),
-        ),
-      ),
+      loading: () => const SizedBox.shrink(),
       error: (_, __) => const SizedBox.shrink(),
     );
   }

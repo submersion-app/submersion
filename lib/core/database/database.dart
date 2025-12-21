@@ -92,6 +92,16 @@ class Dives extends Table {
   TextColumn get waterType => text().nullable()();
   // Altitude for altitude diving
   RealColumn get altitude => real().nullable()(); // meters above sea level
+  // Surface pressure for altitude/weather corrections
+  RealColumn get surfacePressure => real().nullable()(); // bar (default ~1.013)
+  // Surface interval before this dive
+  IntColumn get surfaceIntervalSeconds => integer().nullable()(); // seconds
+  // Decompression gradient factors
+  IntColumn get gradientFactorLow => integer().nullable()(); // 0-100
+  IntColumn get gradientFactorHigh => integer().nullable()(); // 0-100
+  // Dive computer that logged this dive (for display/export, separate from computerId relation)
+  TextColumn get diveComputerModel => text().nullable()();
+  TextColumn get diveComputerSerial => text().nullable()();
   // Weight system fields
   RealColumn get weightAmount => real().nullable()(); // kg
   TextColumn get weightType => text().nullable()();

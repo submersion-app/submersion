@@ -784,6 +784,16 @@ class ExportService {
                   if (dive.airTemp != null) {
                     builder.element('airtemperature', nest: (dive.airTemp! + 273.15).toString()); // Kelvin
                   }
+                  if (dive.surfacePressure != null) {
+                    // UDDF stores pressure in Pascal (bar * 100000)
+                    builder.element('atmosphericpressure', nest: (dive.surfacePressure! * 100000).toString());
+                  }
+                  // Surface interval before dive
+                  if (dive.surfaceInterval != null) {
+                    builder.element('surfaceintervalbeforedive', nest: () {
+                      builder.element('passedtime', nest: dive.surfaceInterval!.inSeconds.toString());
+                    },);
+                  }
                   if (dive.site != null) {
                     builder.element('link', attributes: {'ref': 'site_${dive.site!.id}'});
                   }
@@ -1025,6 +1035,30 @@ class ExportService {
                   builder.element('phone', nest: owner.phone);
                 }
               },);
+              // Export dive computers used in equipment section
+              // Collect unique dive computers from all dives
+              final uniqueComputers = <String, Map<String, String>>{};
+              for (final dive in dives) {
+                if (dive.diveComputerModel != null && dive.diveComputerModel!.isNotEmpty) {
+                  final computerId = 'dc_${dive.diveComputerModel!.replaceAll(' ', '_')}_${dive.diveComputerSerial ?? 'unknown'}';
+                  uniqueComputers[computerId] = {
+                    'model': dive.diveComputerModel!,
+                    'serial': dive.diveComputerSerial ?? '',
+                  };
+                }
+              }
+              if (uniqueComputers.isNotEmpty) {
+                builder.element('equipment', nest: () {
+                  for (final entry in uniqueComputers.entries) {
+                    builder.element('divecomputer', attributes: {'id': entry.key}, nest: () {
+                      builder.element('model', nest: entry.value['model']);
+                      if (entry.value['serial']!.isNotEmpty) {
+                        builder.element('serialnumber', nest: entry.value['serial']);
+                      }
+                    },);
+                  }
+                },);
+              }
               // Certifications will be added in applicationdata section
             },);
           }
@@ -1121,6 +1155,28 @@ class ExportService {
           },);
         }
       },);
+
+      // Deco models (gradient factors)
+      final uniqueGFs = <String, Map<String, int>>{};
+      for (final dive in dives) {
+        if (dive.gradientFactorLow != null && dive.gradientFactorHigh != null) {
+          final gfId = 'gf_${dive.gradientFactorLow}_${dive.gradientFactorHigh}';
+          uniqueGFs[gfId] = {
+            'low': dive.gradientFactorLow!,
+            'high': dive.gradientFactorHigh!,
+          };
+        }
+      }
+      if (uniqueGFs.isNotEmpty) {
+        builder.element('decomodel', nest: () {
+          for (final entry in uniqueGFs.entries) {
+            builder.element('buehlmann', attributes: {'id': entry.key}, nest: () {
+              builder.element('gradientfactorlow', nest: entry.value['low'].toString());
+              builder.element('gradientfactorhigh', nest: entry.value['high'].toString());
+            },);
+          }
+        },);
+      }
 
       // Profile data (dives)
       if (dives.isNotEmpty) {
@@ -1252,6 +1308,20 @@ class ExportService {
         if (dive.altitude != null) {
           builder.element('altitude', nest: dive.altitude.toString());
         }
+        if (dive.surfacePressure != null) {
+          // UDDF stores pressure in Pascal (bar * 100000)
+          builder.element('atmosphericpressure', nest: (dive.surfacePressure! * 100000).toString());
+        }
+        // Surface interval before dive
+        if (dive.surfaceInterval != null) {
+          builder.element('surfaceintervalbeforedive', nest: () {
+            builder.element('passedtime', nest: dive.surfaceInterval!.inSeconds.toString());
+          },);
+        }
+        // Link to gradient factors decomodel if set
+        if (dive.gradientFactorLow != null && dive.gradientFactorHigh != null) {
+          builder.element('link', attributes: {'ref': 'gf_${dive.gradientFactorLow}_${dive.gradientFactorHigh}'});
+        }
         if (dive.site != null) {
           builder.element('link', attributes: {'ref': 'site_${dive.site!.id}'});
         }
@@ -1278,11 +1348,16 @@ class ExportService {
         for (final buddyWithRole in diveBuddyList) {
           builder.element('link', attributes: {'ref': 'buddy_${buddyWithRole.buddy.id}'});
         }
-        // Equipment used on this dive
-        if (dive.equipment.isNotEmpty) {
+        // Equipment used on this dive (including dive computer)
+        if (dive.equipment.isNotEmpty || (dive.diveComputerModel != null && dive.diveComputerModel!.isNotEmpty)) {
           builder.element('equipmentused', nest: () {
             for (final item in dive.equipment) {
               builder.element('equipmentref', nest: 'equip_${item.id}');
+            }
+            // Link to dive computer
+            if (dive.diveComputerModel != null && dive.diveComputerModel!.isNotEmpty) {
+              final computerId = 'dc_${dive.diveComputerModel!.replaceAll(' ', '_')}_${dive.diveComputerSerial ?? 'unknown'}';
+              builder.element('link', attributes: {'ref': computerId});
             }
           },);
         }
@@ -1949,13 +2024,55 @@ class ExportService {
       }
     }
 
+    // Parse deco models for gradient factors
+    final decoModels = <String, Map<String, int>>{};
+    final decoModelElement = uddfElement.findElements('decomodel').firstOrNull;
+    if (decoModelElement != null) {
+      // Check for Bühlmann model with gradient factors
+      for (final buehlmannElement in decoModelElement.findElements('buehlmann')) {
+        final modelId = buehlmannElement.getAttribute('id');
+        if (modelId != null) {
+          final gfLowText = _getElementText(buehlmannElement, 'gradientfactorlow');
+          final gfHighText = _getElementText(buehlmannElement, 'gradientfactorhigh');
+          decoModels[modelId] = {
+            'gfLow': gfLowText != null ? int.tryParse(gfLowText) ?? 0 : 0,
+            'gfHigh': gfHighText != null ? int.tryParse(gfHighText) ?? 0 : 0,
+          };
+        }
+      }
+    }
+
+    // Parse dive computers from diver/owner/equipment section
+    final diveComputers = <String, Map<String, String>>{};
+    if (diverElement != null) {
+      final ownerElement = diverElement.findElements('owner').firstOrNull;
+      if (ownerElement != null) {
+        final equipmentElement = ownerElement.findElements('equipment').firstOrNull;
+        if (equipmentElement != null) {
+          for (final computerElement in equipmentElement.findElements('divecomputer')) {
+            final computerId = computerElement.getAttribute('id');
+            if (computerId != null) {
+              final model = _getElementText(computerElement, 'model');
+              final serial = _getElementText(computerElement, 'serialnumber');
+              diveComputers[computerId] = {
+                'model': model ?? '',
+                'serial': serial ?? '',
+              };
+            }
+          }
+        }
+      }
+    }
+
     // Parse dives from profile data
     final dives = <Map<String, dynamic>>[];
     final profileDataElement = uddfElement.findElements('profiledata').firstOrNull;
     if (profileDataElement != null) {
       for (final repGroup in profileDataElement.findElements('repetitiongroup')) {
         for (final diveElement in repGroup.findElements('dive')) {
-          final diveData = _parseUddfDive(diveElement, sites, buddies, gasMixes);
+          final diveData = _parseUddfDive(
+            diveElement, sites, buddies, gasMixes, decoModels, diveComputers,
+          );
           if (diveData.isNotEmpty) {
             dives.add(diveData);
           }
@@ -2012,6 +2129,8 @@ class ExportService {
     Map<String, Map<String, dynamic>> sites,
     Map<String, Map<String, dynamic>> buddies,
     Map<String, GasMix> gasMixes,
+    Map<String, Map<String, int>> decoModels,
+    Map<String, Map<String, String>> diveComputers,
   ) {
     final diveData = <String, dynamic>{};
     final buddyNames = <String>[];
@@ -2034,11 +2153,39 @@ class ExportService {
         // UDDF stores temps in Kelvin
         final kelvin = double.tryParse(airTempText);
         if (kelvin != null) {
-          diveData['airTemp'] = kelvin - 273.15;
+          final celsius = kelvin - 273.15;
+          // Validate reasonable air temperature range (-40°C to 50°C)
+          // Shearwater may incorrectly encode Fahrenheit as Kelvin (adding 273.15 to °F instead of °C)
+          if (celsius >= -40 && celsius <= 50) {
+            diveData['airTemp'] = celsius;
+          }
         }
       }
 
-      // Parse equipment used (e.g., lead weight)
+      // Check for atmospheric/surface pressure (standard UDDF uses 'atmosphericpressure', Shearwater uses 'surfacepressure')
+      var atmPressureText = _getElementText(beforeElement, 'atmosphericpressure');
+      atmPressureText ??= _getElementText(beforeElement, 'surfacepressure');
+      if (atmPressureText != null) {
+        // UDDF stores pressure in Pascal, convert to bar
+        final pascal = double.tryParse(atmPressureText);
+        if (pascal != null) {
+          diveData['surfacePressure'] = pascal / 100000;
+        }
+      }
+
+      // Parse surface interval before dive
+      final surfaceIntervalElement = beforeElement.findElements('surfaceintervalbeforedive').firstOrNull;
+      if (surfaceIntervalElement != null) {
+        final passedTimeText = _getElementText(surfaceIntervalElement, 'passedtime');
+        if (passedTimeText != null) {
+          final seconds = int.tryParse(passedTimeText);
+          if (seconds != null && seconds > 0) {
+            diveData['surfaceInterval'] = Duration(seconds: seconds);
+          }
+        }
+      }
+
+      // Parse equipment used (e.g., lead weight, dive computer)
       final equipmentElement = beforeElement.findElements('equipmentused').firstOrNull;
       if (equipmentElement != null) {
         final leadText = _getElementText(equipmentElement, 'leadquantity');
@@ -2050,7 +2197,7 @@ class ExportService {
         }
       }
 
-      // Get all linked references (can be sites or buddies)
+      // Get all linked references (can be sites, buddies, decomodels, or dive computers)
       for (final linkElement in beforeElement.findElements('link')) {
         final ref = linkElement.getAttribute('ref');
         if (ref != null) {
@@ -2063,6 +2210,42 @@ class ExportService {
             final buddyName = buddies[ref]?['name'] as String?;
             if (buddyName != null && buddyName.isNotEmpty) {
               buddyNames.add(buddyName);
+            }
+          }
+          // Check if it's a deco model reference (gradient factors)
+          else if (decoModels.containsKey(ref)) {
+            final model = decoModels[ref]!;
+            if (model['gfLow'] != null && model['gfLow']! > 0) {
+              diveData['gradientFactorLow'] = model['gfLow'];
+            }
+            if (model['gfHigh'] != null && model['gfHigh']! > 0) {
+              diveData['gradientFactorHigh'] = model['gfHigh'];
+            }
+          }
+          // Check if it's a dive computer reference
+          else if (diveComputers.containsKey(ref)) {
+            final computer = diveComputers[ref]!;
+            if (computer['model']?.isNotEmpty == true) {
+              diveData['diveComputerModel'] = computer['model'];
+            }
+            if (computer['serial']?.isNotEmpty == true) {
+              diveData['diveComputerSerial'] = computer['serial'];
+            }
+          }
+        }
+      }
+
+      // Also check equipmentused for dive computer links (Shearwater style)
+      if (equipmentElement != null) {
+        for (final linkElement in equipmentElement.findElements('link')) {
+          final ref = linkElement.getAttribute('ref');
+          if (ref != null && diveComputers.containsKey(ref)) {
+            final computer = diveComputers[ref]!;
+            if (computer['model']?.isNotEmpty == true) {
+              diveData['diveComputerModel'] = computer['model'];
+            }
+            if (computer['serial']?.isNotEmpty == true) {
+              diveData['diveComputerSerial'] = computer['serial'];
             }
           }
         }
@@ -2141,17 +2324,34 @@ class ExportService {
         tankInfo['order'] = int.tryParse(tankOrder) ?? 0;
       }
 
-      // Only add tank if it has meaningful data:
-      // - Has volume (physical tank size is known)
-      // - Has pressure data (tank was actually used)
-      // - Has working pressure (tank specification is known)
-      // Tanks with only gas mix references are often placeholders from other
-      // dive log software and should be skipped unless no other tanks exist
-      final hasMeaningfulData = tankInfo['volume'] != null ||
-          tankInfo['startPressure'] != null ||
-          tankInfo['endPressure'] != null ||
-          tankInfo['workingPressure'] != null;
-      if (hasMeaningfulData) {
+      // Validate tank data before adding
+      final startPressure = tankInfo['startPressure'] as int?;
+      final endPressure = tankInfo['endPressure'] as int?;
+      final volume = tankInfo['volume'] as double?;
+      final workingPressure = tankInfo['workingPressure'] as int?;
+
+      // Check if pressure data is valid (not both zero or nonsensical)
+      final hasValidPressure = startPressure != null &&
+          endPressure != null &&
+          startPressure > 10 && // Minimum reasonable start pressure (10 bar)
+          startPressure >= endPressure; // Start should be >= end
+
+      // Only add tank if it has meaningful and valid data:
+      // - Has valid pressure data (tank was actually used with realistic values)
+      // - Or has volume with working pressure (physical tank specification)
+      // Tanks with zero pressures or only gas mix references are often
+      // placeholders from dive computers and should be skipped
+      final hasMeaningfulData = hasValidPressure ||
+          (volume != null && volume > 0) ||
+          (workingPressure != null && workingPressure > 0);
+
+      // Skip tanks with both pressures at 0 or very low (unusable data)
+      final hasBadPressureData = startPressure != null &&
+          endPressure != null &&
+          startPressure <= 10 &&
+          endPressure <= 10;
+
+      if (hasMeaningfulData && !hasBadPressureData) {
         tanks.add(tankInfo);
       }
     }
@@ -2197,7 +2397,11 @@ class ExportService {
         if (tempText != null) {
           final kelvin = double.tryParse(tempText);
           if (kelvin != null) {
-            point['temperature'] = kelvin - 273.15;
+            final celsius = kelvin - 273.15;
+            // Validate reasonable water temperature range (-2°C to 40°C)
+            if (celsius >= -2 && celsius <= 40) {
+              point['temperature'] = celsius;
+            }
           }
         }
 
@@ -2265,7 +2469,11 @@ class ExportService {
       if (waterTempText != null) {
         final kelvin = double.tryParse(waterTempText);
         if (kelvin != null) {
-          diveData['waterTemp'] = kelvin - 273.15;
+          final celsius = kelvin - 273.15;
+          // Validate reasonable water temperature range (-2°C to 40°C)
+          if (celsius >= -2 && celsius <= 40) {
+            diveData['waterTemp'] = celsius;
+          }
         }
       }
 
@@ -2278,7 +2486,8 @@ class ExportService {
           double? minTemp;
           for (final point in profile) {
             final temp = point['temperature'] as double?;
-            if (temp != null && (minTemp == null || temp < minTemp)) {
+            // Validate reasonable water temperature range (-2°C to 40°C)
+            if (temp != null && temp >= -2 && temp <= 40 && (minTemp == null || temp < minTemp)) {
               minTemp = temp;
             }
           }
@@ -2336,7 +2545,8 @@ class ExportService {
         double? minTemp;
         for (final point in profile) {
           final temp = point['temperature'] as double?;
-          if (temp != null && (minTemp == null || temp < minTemp)) {
+          // Validate reasonable water temperature range (-2°C to 40°C)
+          if (temp != null && temp >= -2 && temp <= 40 && (minTemp == null || temp < minTemp)) {
             minTemp = temp;
           }
         }
@@ -2451,6 +2661,45 @@ class ExportService {
       }
     }
 
+    // Parse deco models for gradient factors
+    final decoModels = <String, Map<String, int>>{};
+    final decoModelElement = uddfElement.findElements('decomodel').firstOrNull;
+    if (decoModelElement != null) {
+      for (final buehlmannElement in decoModelElement.findElements('buehlmann')) {
+        final modelId = buehlmannElement.getAttribute('id');
+        if (modelId != null) {
+          final gfLowText = _getElementText(buehlmannElement, 'gradientfactorlow');
+          final gfHighText = _getElementText(buehlmannElement, 'gradientfactorhigh');
+          decoModels[modelId] = {
+            'gfLow': gfLowText != null ? int.tryParse(gfLowText) ?? 0 : 0,
+            'gfHigh': gfHighText != null ? int.tryParse(gfHighText) ?? 0 : 0,
+          };
+        }
+      }
+    }
+
+    // Parse dive computers from diver/owner/equipment section
+    final diveComputersMap = <String, Map<String, String>>{};
+    if (diverElement != null) {
+      final ownerElement = diverElement.findElements('owner').firstOrNull;
+      if (ownerElement != null) {
+        final equipmentElement = ownerElement.findElements('equipment').firstOrNull;
+        if (equipmentElement != null) {
+          for (final computerElement in equipmentElement.findElements('divecomputer')) {
+            final computerId = computerElement.getAttribute('id');
+            if (computerId != null) {
+              final model = _getElementText(computerElement, 'model');
+              final serial = _getElementText(computerElement, 'serialnumber');
+              diveComputersMap[computerId] = {
+                'model': model ?? '',
+                'serial': serial ?? '',
+              };
+            }
+          }
+        }
+      }
+    }
+
     // Parse dives with extended fields
     final dives = <Map<String, dynamic>>[];
     final sightings = <Map<String, dynamic>>[];
@@ -2458,7 +2707,9 @@ class ExportService {
     if (profileDataElement != null) {
       for (final repGroup in profileDataElement.findElements('repetitiongroup')) {
         for (final diveElement in repGroup.findElements('dive')) {
-          final diveData = _parseFullDive(diveElement, siteMap, buddyMap, gasMixes);
+          final diveData = _parseFullDive(
+            diveElement, siteMap, buddyMap, gasMixes, decoModels, diveComputersMap,
+          );
           if (diveData.isNotEmpty) {
             dives.add(diveData);
             // Extract sightings from dive
@@ -2700,9 +2951,13 @@ class ExportService {
     Map<String, Map<String, dynamic>> sites,
     Map<String, Map<String, dynamic>> buddies,
     Map<String, GasMix> gasMixes,
+    Map<String, Map<String, int>> decoModels,
+    Map<String, Map<String, String>> diveComputers,
   ) {
     // Start with existing parse
-    final diveData = _parseUddfDive(diveElement, sites, buddies, gasMixes);
+    final diveData = _parseUddfDive(
+      diveElement, sites, buddies, gasMixes, decoModels, diveComputers,
+    );
 
     // Parse additional fields from informationbeforedive
     final beforeElement = diveElement.findElements('informationbeforedive').firstOrNull;

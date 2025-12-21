@@ -236,6 +236,14 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
       }
     }
     final newDive = await _repository.createDive(diveWithDiver);
+
+    // If the dive was created without a dive number, renumber all dives
+    // chronologically to ensure proper ordering
+    if (dive.diveNumber == null) {
+      await _repository.assignMissingDiveNumbers();
+      _ref.invalidate(diveNumberingInfoProvider);
+    }
+
     await _loadDives();
     _ref.invalidate(diveStatisticsProvider);
     _invalidateRelatedProviders(newDive);
