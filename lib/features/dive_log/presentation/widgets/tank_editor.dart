@@ -57,9 +57,11 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     // For tank volume: imperial uses gas capacity (cuft), metric uses water volume (liters)
     String volumeText = '';
     if (widget.tank.volume != null) {
-      if (settings.volumeUnit == VolumeUnit.cubicFeet && widget.tank.workingPressure != null) {
+      if (settings.volumeUnit == VolumeUnit.cubicFeet &&
+          widget.tank.workingPressure != null) {
         // Calculate cuft from liters and working pressure
-        final cuft = (widget.tank.volume! * widget.tank.workingPressure!) / 28.3168;
+        final cuft =
+            (widget.tank.volume! * widget.tank.workingPressure!) / 28.3168;
         volumeText = cuft.toStringAsFixed(1);
       } else {
         volumeText = widget.tank.volume!.toStringAsFixed(1);
@@ -69,17 +71,23 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     _volumeController = TextEditingController(text: volumeText);
     _workingPressureController = TextEditingController(
       text: widget.tank.workingPressure != null
-          ? units.convertPressure(widget.tank.workingPressure!.toDouble()).toStringAsFixed(0)
+          ? units
+              .convertPressure(widget.tank.workingPressure!.toDouble())
+              .toStringAsFixed(0)
           : '',
     );
     _startPressureController = TextEditingController(
       text: widget.tank.startPressure != null
-          ? units.convertPressure(widget.tank.startPressure!.toDouble()).toStringAsFixed(0)
+          ? units
+              .convertPressure(widget.tank.startPressure!.toDouble())
+              .toStringAsFixed(0)
           : '',
     );
     _endPressureController = TextEditingController(
       text: widget.tank.endPressure != null
-          ? units.convertPressure(widget.tank.endPressure!.toDouble()).toStringAsFixed(0)
+          ? units
+              .convertPressure(widget.tank.endPressure!.toDouble())
+              .toStringAsFixed(0)
           : '',
     );
     _o2Controller = TextEditingController(
@@ -118,57 +126,62 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   void _notifyChange() {
     final settings = ref.read(settingsProvider);
     final units = UnitFormatter(settings);
-    
+
     // Convert from user's preferred units back to metric for storage
     final volumeDisplay = double.tryParse(_volumeController.text);
-    final workingPressureDisplay = double.tryParse(_workingPressureController.text);
+    final workingPressureDisplay =
+        double.tryParse(_workingPressureController.text);
     final startPressureDisplay = double.tryParse(_startPressureController.text);
     final endPressureDisplay = double.tryParse(_endPressureController.text);
-    
+
     // Convert working pressure to bar first (needed for cuft->liters conversion)
     final workingPressureBar = workingPressureDisplay != null
         ? units.pressureToBar(workingPressureDisplay).round()
         : null;
-    
+
     // For tank volume: convert cuft (gas capacity) back to liters (water volume)
     // Formula: liters = (cuft * 28.3168) / working_pressure_bar
     double? volumeLiters;
     if (volumeDisplay != null) {
-      if (settings.volumeUnit == VolumeUnit.cubicFeet && workingPressureBar != null && workingPressureBar > 0) {
+      if (settings.volumeUnit == VolumeUnit.cubicFeet &&
+          workingPressureBar != null &&
+          workingPressureBar > 0) {
         volumeLiters = (volumeDisplay * 28.3168) / workingPressureBar;
       } else {
         // Metric: value is already in liters
         volumeLiters = volumeDisplay;
       }
     }
-    
-    widget.onChanged(DiveTank(
-      id: widget.tank.id,
-      name: widget.tank.name,
-      volume: volumeLiters,
-      workingPressure: workingPressureBar,
-      startPressure: startPressureDisplay != null
-          ? units.pressureToBar(startPressureDisplay).round()
-          : null,
-      endPressure: endPressureDisplay != null
-          ? units.pressureToBar(endPressureDisplay).round()
-          : null,
-      gasMix: GasMix(
-        o2: double.tryParse(_o2Controller.text) ?? 21.0,
-        he: double.tryParse(_heController.text) ?? 0.0,
+
+    widget.onChanged(
+      DiveTank(
+        id: widget.tank.id,
+        name: widget.tank.name,
+        volume: volumeLiters,
+        workingPressure: workingPressureBar,
+        startPressure: startPressureDisplay != null
+            ? units.pressureToBar(startPressureDisplay).round()
+            : null,
+        endPressure: endPressureDisplay != null
+            ? units.pressureToBar(endPressureDisplay).round()
+            : null,
+        gasMix: GasMix(
+          o2: double.tryParse(_o2Controller.text) ?? 21.0,
+          he: double.tryParse(_heController.text) ?? 0.0,
+        ),
+        role: _role,
+        material: _material,
+        order: widget.tank.order,
+        presetName: _selectedPreset?.name,
       ),
-      role: _role,
-      material: _material,
-      order: widget.tank.order,
-      presetName: _selectedPreset?.name,
-    ));
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
-    
+
     final gasMix = GasMix(
       o2: double.tryParse(_o2Controller.text) ?? 21.0,
       he: double.tryParse(_heController.text) ?? 0.0,
@@ -542,8 +555,12 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       } else {
         _volumeController.text = preset.volumeLiters.toStringAsFixed(1);
       }
-      _workingPressureController.text = units.convertPressure(preset.workingPressureBar.toDouble()).toStringAsFixed(0);
-      _startPressureController.text = units.convertPressure(preset.workingPressureBar.toDouble()).toStringAsFixed(0);
+      _workingPressureController.text = units
+          .convertPressure(preset.workingPressureBar.toDouble())
+          .toStringAsFixed(0);
+      _startPressureController.text = units
+          .convertPressure(preset.workingPressureBar.toDouble())
+          .toStringAsFixed(0);
       _material = preset.material;
     });
     _notifyChange();
