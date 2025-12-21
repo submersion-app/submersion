@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../dive_log/domain/entities/dive_computer.dart';
 import '../../../dive_log/presentation/providers/dive_computer_providers.dart';
+import '../../../dive_log/presentation/providers/dive_providers.dart';
+import '../../../divers/presentation/providers/diver_providers.dart';
+import '../../data/services/dive_import_service.dart';
 import '../../domain/entities/device_model.dart';
 import '../../domain/services/download_manager.dart';
 import '../providers/discovery_providers.dart';
@@ -28,7 +31,9 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
   DiscoveredDevice? _discoveredDevice;
   bool _isScanning = false;
   bool _hasStartedDownload = false;
+  bool _hasStartedImport = false;
   String? _scanError;
+  DiveComputer? _computer;
 
   @override
   void initState() {
@@ -47,6 +52,8 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
       });
       return;
     }
+
+    _computer = computer;
 
     setState(() {
       _isScanning = true;
@@ -138,7 +145,47 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
     _hasStartedDownload = true;
 
     final notifier = ref.read(downloadNotifierProvider.notifier);
-    await notifier.startDownload(_discoveredDevice!);
+    final result = await notifier.startDownload(_discoveredDevice!);
+
+    if (!mounted) {
+      return;
+    }
+
+    if (!result.success || _hasStartedImport) {
+      return;
+    }
+
+    final computer =
+        _computer ?? ref.read(diveComputerByIdProvider(widget.computerId)).value;
+    if (computer == null) {
+      return;
+    }
+
+    _hasStartedImport = true;
+
+    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+    final importResult = await notifier.importDives(
+      computer: computer,
+      mode: ImportMode.newOnly,
+      defaultResolution: ConflictResolution.skip,
+      diverId: diverId,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    if (!importResult.isSuccess) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(importResult.errorMessage ?? 'Import failed'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+      return;
+    }
+
+    ref.invalidate(diveListNotifierProvider);
   }
 
   @override
@@ -401,6 +448,7 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
                       onPressed: () {
                         setState(() {
                           _hasStartedDownload = false;
+                          _hasStartedImport = false;
                           _discoveredDevice = null;
                         });
                         _startScanAndConnect();
