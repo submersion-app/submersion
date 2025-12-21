@@ -1015,6 +1015,19 @@ class ExportNotifier extends StateNotifier<ExportState> {
             }
           }
 
+          // Handle inline buddy names that weren't in the diver section
+          // Create buddy entities for them and link to dive
+          final unmatchedNamesValue = diveData['unmatchedBuddyNames'];
+          final unmatchedNames = unmatchedNamesValue is List
+              ? unmatchedNamesValue.whereType<String>().toList()
+              : <String>[];
+          for (final buddyName in unmatchedNames) {
+            // Use findOrCreateByName to either find existing or create new buddy
+            final buddy = await buddyRepository.findOrCreateByName(buddyName);
+            await buddyRepository.addBuddyToDive(diveId, buddy.id, BuddyRole.buddy);
+            buddiesImported++;
+          }
+
           // Link tags to the dive
           final tagRefsValue = diveData['tagRefs'];
           final tagRefs = tagRefsValue is List

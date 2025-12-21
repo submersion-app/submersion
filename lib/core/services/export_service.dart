@@ -2976,6 +2976,7 @@ class ExportService {
 
       // Extract link references for trip, dive center, and buddies
       final buddyRefs = <String>[];
+      final unmatchedBuddyNames = <String>[];
       for (final linkElement in beforeElement.findElements('link')) {
         final ref = linkElement.getAttribute('ref');
         if (ref != null) {
@@ -2983,13 +2984,50 @@ class ExportService {
             diveData['tripRef'] = ref;
           } else if (ref.startsWith('center_')) {
             diveData['diveCenterRef'] = ref;
-          } else if (ref.startsWith('buddy_')) {
+          } else if (ref.startsWith('buddy_') || buddies.containsKey(ref)) {
+            // Handle both our format (buddy_xxx) and other formats (e.g., Subsurface idp...)
             buddyRefs.add(ref);
           }
         }
       }
+
+      // Also parse inline buddy elements in informationbeforedive
+      for (final buddyElement in beforeElement.findElements('buddy')) {
+        final personalElement = buddyElement.findElements('personal').firstOrNull;
+        if (personalElement != null) {
+          final firstName = _getElementText(personalElement, 'firstname');
+          final lastName = _getElementText(personalElement, 'lastname');
+          final buddyName = [firstName, lastName]
+              .whereType<String>()
+              .where((s) => s.isNotEmpty)
+              .join(' ')
+              .trim();
+          if (buddyName.isNotEmpty) {
+            // Find matching buddy record by name
+            bool found = false;
+            for (final entry in buddies.entries) {
+              final recordName = entry.value['name'] as String?;
+              if (recordName != null &&
+                  recordName.toLowerCase() == buddyName.toLowerCase() &&
+                  !buddyRefs.contains(entry.key)) {
+                buddyRefs.add(entry.key);
+                found = true;
+                break;
+              }
+            }
+            // Track unmatched names to create buddies during import
+            if (!found && !unmatchedBuddyNames.contains(buddyName)) {
+              unmatchedBuddyNames.add(buddyName);
+            }
+          }
+        }
+      }
+
       if (buddyRefs.isNotEmpty) {
         diveData['buddyRefs'] = buddyRefs;
+      }
+      if (unmatchedBuddyNames.isNotEmpty) {
+        diveData['unmatchedBuddyNames'] = unmatchedBuddyNames;
       }
     }
 
@@ -3064,6 +3102,49 @@ class ExportService {
         if (tagRefs.isNotEmpty) {
           diveData['tagRefs'] = tagRefs;
         }
+      }
+
+      // Parse inline buddy elements and match to buddy records
+      // This handles dive computer exports that embed buddy info directly
+      final existingBuddyRefs = (diveData['buddyRefs'] as List<String>?) ?? [];
+      final existingUnmatched = (diveData['unmatchedBuddyNames'] as List<String>?) ?? [];
+      final buddyRefs = List<String>.from(existingBuddyRefs);
+      final unmatchedBuddyNames = List<String>.from(existingUnmatched);
+      for (final buddyElement in afterElement.findElements('buddy')) {
+        final personalElement = buddyElement.findElements('personal').firstOrNull;
+        if (personalElement != null) {
+          final firstName = _getElementText(personalElement, 'firstname');
+          final lastName = _getElementText(personalElement, 'lastname');
+          final buddyName = [firstName, lastName]
+              .whereType<String>()
+              .where((s) => s.isNotEmpty)
+              .join(' ')
+              .trim();
+          if (buddyName.isNotEmpty) {
+            // Find matching buddy record by name
+            bool found = false;
+            for (final entry in buddies.entries) {
+              final recordName = entry.value['name'] as String?;
+              if (recordName != null &&
+                  recordName.toLowerCase() == buddyName.toLowerCase() &&
+                  !buddyRefs.contains(entry.key)) {
+                buddyRefs.add(entry.key);
+                found = true;
+                break;
+              }
+            }
+            // Track unmatched names to create buddies during import
+            if (!found && !unmatchedBuddyNames.contains(buddyName)) {
+              unmatchedBuddyNames.add(buddyName);
+            }
+          }
+        }
+      }
+      if (buddyRefs.isNotEmpty) {
+        diveData['buddyRefs'] = buddyRefs;
+      }
+      if (unmatchedBuddyNames.isNotEmpty) {
+        diveData['unmatchedBuddyNames'] = unmatchedBuddyNames;
       }
     }
 
