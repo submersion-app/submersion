@@ -56,8 +56,9 @@ class StatisticsRepository {
   // Gas Statistics
   // ============================================================================
 
-  /// Get SAC rate trend by month (last 5 years)
-  Future<List<TrendDataPoint>> getSacTrend({String? diverId}) async {
+  /// Get SAC rate trend by month in L/min (last 5 years)
+  /// Requires tank volume data
+  Future<List<TrendDataPoint>> getSacVolumeTrend({String? diverId}) async {
     try {
       final fiveYearsAgo = DateTime.now().subtract(const Duration(days: 365 * 5));
       final cutoff = fiveYearsAgo.millisecondsSinceEpoch;
@@ -97,7 +98,54 @@ class StatisticsRepository {
         );
       }).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get SAC trend', e, stackTrace);
+      _log.error('Failed to get SAC volume trend', e, stackTrace);
+      return [];
+    }
+  }
+
+  /// Get SAC rate trend by month in pressure/min (last 5 years)
+  /// Does not require tank volume - uses pressure drop normalized to surface
+  Future<List<TrendDataPoint>> getSacPressureTrend({String? diverId}) async {
+    try {
+      final fiveYearsAgo = DateTime.now().subtract(const Duration(days: 365 * 5));
+      final cutoff = fiveYearsAgo.millisecondsSinceEpoch;
+
+      final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
+      final params = diverId != null ? [cutoff, diverId] : [cutoff];
+
+      final results = await _db.customSelect(
+        '''
+        SELECT
+          strftime('%Y', d.dive_date_time / 1000, 'unixepoch') AS year,
+          strftime('%m', d.dive_date_time / 1000, 'unixepoch') AS month,
+          AVG(
+            CASE
+              WHEN d.duration > 0 AND d.avg_depth > 0 AND t.start_pressure > t.end_pressure THEN
+                (t.start_pressure - t.end_pressure) / (d.duration / 60.0) / ((d.avg_depth / 10.0) + 1)
+              ELSE NULL
+            END
+          ) AS avg_sac
+        FROM dives d
+        LEFT JOIN dive_tanks t ON t.dive_id = d.id
+        WHERE d.dive_date_time >= ? $diverFilter
+        GROUP BY year, month
+        HAVING avg_sac IS NOT NULL
+        ORDER BY year, month
+        ''',
+        variables: params.map((p) => Variable(p)).toList(),
+      ).get();
+
+      return results.map((row) {
+        final year = int.parse(row.read<String>('year'));
+        final month = int.parse(row.read<String>('month'));
+        return TrendDataPoint(
+          date: DateTime(year, month),
+          value: row.read<double>('avg_sac'),
+          label: '${_monthAbbr(month)} $year',
+        );
+      }).toList();
+    } catch (e, stackTrace) {
+      _log.error('Failed to get SAC pressure trend', e, stackTrace);
       return [];
     }
   }
@@ -143,8 +191,9 @@ class StatisticsRepository {
     }
   }
 
-  /// Get best and worst SAC dives
-  Future<({RankingItem? best, RankingItem? worst})> getSacRecords({String? diverId}) async {
+  /// Get best and worst SAC dives in L/min (volume-based)
+  /// Requires tank volume data
+  Future<({RankingItem? best, RankingItem? worst})> getSacVolumeRecords({String? diverId}) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
@@ -190,7 +239,59 @@ class StatisticsRepository {
         worst: mapRow(results.last),
       );
     } catch (e, stackTrace) {
-      _log.error('Failed to get SAC records', e, stackTrace);
+      _log.error('Failed to get SAC volume records', e, stackTrace);
+      return (best: null, worst: null);
+    }
+  }
+
+  /// Get best and worst SAC dives in pressure/min (pressure-based)
+  /// Does not require tank volume
+  Future<({RankingItem? best, RankingItem? worst})> getSacPressureRecords({String? diverId}) async {
+    try {
+      final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
+      final params = diverId != null ? [diverId] : <dynamic>[];
+
+      final results = await _db.customSelect(
+        '''
+        SELECT
+          d.id,
+          d.dive_number,
+          ds.name AS site_name,
+          d.dive_date_time,
+          (t.start_pressure - t.end_pressure) / (d.duration / 60.0) / ((d.avg_depth / 10.0) + 1) AS sac
+        FROM dives d
+        JOIN dive_tanks t ON t.dive_id = d.id
+        LEFT JOIN dive_sites ds ON ds.id = d.site_id
+        WHERE d.duration > 0 AND d.avg_depth > 0
+          AND t.start_pressure > t.end_pressure
+          $diverFilter
+        ORDER BY sac ASC
+        ''',
+        variables: params.map((p) => Variable(p)).toList(),
+      ).get();
+
+      if (results.isEmpty) return (best: null, worst: null);
+
+      RankingItem mapRow(dynamic row) {
+        final dateMs = row.read<int>('dive_date_time');
+        final date = DateTime.fromMillisecondsSinceEpoch(dateMs);
+        final diveNum = row.read<int?>('dive_number');
+        final siteName = row.read<String?>('site_name');
+        return RankingItem(
+          id: row.read<String>('id'),
+          name: siteName ?? 'Dive #${diveNum ?? "?"}',
+          count: 0,
+          value: row.read<double>('sac'),
+          subtitle: '${date.day}/${date.month}/${date.year}',
+        );
+      }
+
+      return (
+        best: mapRow(results.first),
+        worst: mapRow(results.last),
+      );
+    } catch (e, stackTrace) {
+      _log.error('Failed to get SAC pressure records', e, stackTrace);
       return (best: null, worst: null);
     }
   }

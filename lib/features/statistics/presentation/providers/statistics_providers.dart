@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/constants/units.dart';
 import '../../../divers/presentation/providers/diver_providers.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../../data/repositories/statistics_repository.dart';
 
 /// Repository provider
@@ -12,10 +14,17 @@ final statisticsRepositoryProvider = Provider<StatisticsRepository>((ref) {
 // Gas Statistics Providers
 // ============================================================================
 
+/// SAC trend provider that uses the appropriate calculation based on sacUnit setting
 final sacTrendProvider = FutureProvider<List<TrendDataPoint>>((ref) async {
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  return repository.getSacTrend(diverId: currentDiverId);
+  final sacUnit = ref.watch(sacUnitProvider);
+
+  if (sacUnit == SacUnit.litersPerMin) {
+    return repository.getSacVolumeTrend(diverId: currentDiverId);
+  } else {
+    return repository.getSacPressureTrend(diverId: currentDiverId);
+  }
 });
 
 final gasMixDistributionProvider = FutureProvider<List<DistributionSegment>>((ref) async {
@@ -24,10 +33,17 @@ final gasMixDistributionProvider = FutureProvider<List<DistributionSegment>>((re
   return repository.getGasMixDistribution(diverId: currentDiverId);
 });
 
+/// SAC records provider that uses the appropriate calculation based on sacUnit setting
 final sacRecordsProvider = FutureProvider<({RankingItem? best, RankingItem? worst})>((ref) async {
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  return repository.getSacRecords(diverId: currentDiverId);
+  final sacUnit = ref.watch(sacUnitProvider);
+
+  if (sacUnit == SacUnit.litersPerMin) {
+    return repository.getSacVolumeRecords(diverId: currentDiverId);
+  } else {
+    return repository.getSacPressureRecords(diverId: currentDiverId);
+  }
 });
 
 // ============================================================================

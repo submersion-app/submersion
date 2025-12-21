@@ -157,7 +157,7 @@ class StatisticsConditionsPage extends ConsumerWidget {
           return MultiTrendLineChart(
             dataSeries: [minData, avgData, maxData],
             seriesLabels: const ['Min', 'Avg', 'Max'],
-            seriesColors: [Colors.blue, Colors.green, Colors.red],
+            seriesColors: const [Colors.blue, Colors.green, Colors.red],
             valueFormatter: (value) => units.formatTemperature(value),
           );
         },

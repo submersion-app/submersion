@@ -53,9 +53,14 @@ class TrendLineChart extends StatelessWidget {
 
     final color = lineColor ?? Theme.of(context).colorScheme.primary;
     final values = data.map((d) => d.value).toList();
-    final minY = values.reduce((a, b) => a < b ? a : b);
-    final maxY = values.reduce((a, b) => a > b ? a : b);
-    final padding = (maxY - minY) * 0.1;
+    final rawMinY = values.reduce((a, b) => a < b ? a : b);
+    final rawMaxY = values.reduce((a, b) => a > b ? a : b);
+    // Ensure we have a valid range even when all values are the same
+    final range = rawMaxY - rawMinY;
+    final effectiveRange = range > 0 ? range : (rawMaxY.abs() > 0 ? rawMaxY.abs() * 0.2 : 1.0);
+    final padding = effectiveRange * 0.1;
+    final minY = rawMinY;
+    final maxY = rawMaxY;
 
     return SizedBox(
       height: height,
@@ -125,7 +130,7 @@ class TrendLineChart extends StatelessWidget {
           gridData: FlGridData(
             show: true,
             drawVerticalLine: false,
-            horizontalInterval: (maxY - minY) / 4,
+            horizontalInterval: effectiveRange / 4,
             getDrawingHorizontalLine: (value) => FlLine(
               color: Theme.of(context).colorScheme.outlineVariant,
               strokeWidth: 1,
