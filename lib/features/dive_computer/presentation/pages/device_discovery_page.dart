@@ -4,8 +4,12 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../features/dive_log/domain/entities/dive_computer.dart';
 import '../../../../features/dive_log/presentation/providers/dive_computer_providers.dart';
+import '../../../../features/dive_log/presentation/providers/dive_providers.dart';
+import '../../../../features/divers/presentation/providers/diver_providers.dart';
+import '../../data/services/dive_import_service.dart';
 import '../../domain/entities/device_model.dart';
 import '../providers/discovery_providers.dart';
+import '../providers/download_providers.dart';
 import '../widgets/scan_step_widget.dart';
 import '../widgets/download_step_widget.dart';
 import '../widgets/summary_step_widget.dart';
@@ -442,7 +446,23 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
     // Move to download step (handled by notifier)
   }
 
-  void _onDownloadComplete() {
+  Future<void> _onDownloadComplete() async {
+    // Import downloaded dives into the database
+    if (_savedComputer != null) {
+      final downloadNotifier = ref.read(downloadNotifierProvider.notifier);
+      final currentDiverId = ref.read(currentDiverIdProvider);
+
+      await downloadNotifier.importDives(
+        computer: _savedComputer!,
+        mode: ImportMode.newOnly,
+        defaultResolution: ConflictResolution.skip,
+        diverId: currentDiverId,
+      );
+
+      // Invalidate the dive list so it refreshes with the new dives
+      ref.invalidate(diveListNotifierProvider);
+    }
+
     ref.read(discoveryNotifierProvider.notifier).goToSummary();
   }
 

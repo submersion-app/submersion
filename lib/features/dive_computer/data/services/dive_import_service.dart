@@ -316,6 +316,7 @@ class DiveImportService {
       durationSeconds: dive.durationSeconds,
       maxDepth: dive.maxDepth,
       isPrimary: true,
+      diverId: diverId,
     );
 
     return diveId;

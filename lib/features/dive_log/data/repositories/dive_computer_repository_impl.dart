@@ -406,6 +406,7 @@ class DiveComputerRepository {
     required int durationSeconds,
     double? maxDepth,
     bool isPrimary = false,
+    String? diverId,
   }) async {
     try {
       _log.info('Importing profile from computer $computerId');
@@ -425,6 +426,7 @@ class DiveComputerRepository {
         await _db.into(_db.dives).insert(
               DivesCompanion(
                 id: Value(diveId),
+                diverId: Value(diverId),
                 diveDateTime: Value(profileStartTime.millisecondsSinceEpoch),
                 entryTime: Value(profileStartTime.millisecondsSinceEpoch),
                 duration: Value(durationSeconds),
