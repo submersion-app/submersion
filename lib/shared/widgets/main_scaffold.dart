@@ -20,12 +20,12 @@ class MainScaffold extends StatelessWidget {
 
   int _calculateSelectedIndex(BuildContext context, {required bool isWideScreen}) {
     final location = GoRouterState.of(context).uri.path;
-    
+
     if (isWideScreen) {
       // Wide screen has all items in the rail
       if (location.startsWith('/dives')) return 0;
-      if (location.startsWith('/trips')) return 1;
-      if (location.startsWith('/sites')) return 2;
+      if (location.startsWith('/sites')) return 1;
+      if (location.startsWith('/trips')) return 2;
       if (location.startsWith('/equipment')) return 3;
       if (location.startsWith('/statistics')) return 4;
       if (location.startsWith('/buddies')) return 5;
@@ -34,10 +34,10 @@ class MainScaffold extends StatelessWidget {
       if (location.startsWith('/settings')) return 8;
       return 0;
     } else {
-      // Mobile: Dives, Trips, Sites, Equipment, More
+      // Mobile: Dives, Sites, Trips, Equipment, More
       if (location.startsWith('/dives')) return 0;
-      if (location.startsWith('/trips')) return 1;
-      if (location.startsWith('/sites')) return 2;
+      if (location.startsWith('/sites')) return 1;
+      if (location.startsWith('/trips')) return 2;
       if (location.startsWith('/equipment')) return 3;
       // Check if current route is in "More" menu
       for (final route in _moreRoutes) {
@@ -54,10 +54,10 @@ class MainScaffold extends StatelessWidget {
           context.go('/dives');
           break;
         case 1:
-          context.go('/trips');
+          context.go('/sites');
           break;
         case 2:
-          context.go('/sites');
+          context.go('/trips');
           break;
         case 3:
           context.go('/equipment');
@@ -85,10 +85,10 @@ class MainScaffold extends StatelessWidget {
           context.go('/dives');
           break;
         case 1:
-          context.go('/trips');
+          context.go('/sites');
           break;
         case 2:
-          context.go('/sites');
+          context.go('/trips');
           break;
         case 3:
           context.go('/equipment');
@@ -201,14 +201,14 @@ class MainScaffold extends StatelessWidget {
                   label: Text('Dives'),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.card_travel_outlined),
-                  selectedIcon: Icon(Icons.card_travel),
-                  label: Text('Trips'),
-                ),
-                NavigationRailDestination(
                   icon: Icon(Icons.location_on_outlined),
                   selectedIcon: Icon(Icons.location_on),
                   label: Text('Sites'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.card_travel_outlined),
+                  selectedIcon: Icon(Icons.card_travel),
+                  label: Text('Trips'),
                 ),
                 NavigationRailDestination(
                   icon: Icon(Icons.inventory_2_outlined),
@@ -263,14 +263,14 @@ class MainScaffold extends StatelessWidget {
             label: 'Dives',
           ),
           NavigationDestination(
-            icon: Icon(Icons.card_travel_outlined),
-            selectedIcon: Icon(Icons.card_travel),
-            label: 'Trips',
-          ),
-          NavigationDestination(
             icon: Icon(Icons.location_on_outlined),
             selectedIcon: Icon(Icons.location_on),
             label: 'Sites',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.card_travel_outlined),
+            selectedIcon: Icon(Icons.card_travel),
+            label: 'Trips',
           ),
           NavigationDestination(
             icon: Icon(Icons.inventory_2_outlined),
