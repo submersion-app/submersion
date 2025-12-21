@@ -11,18 +11,16 @@ class DiveParser {
   /// Convert a downloaded dive's profile samples to ProfilePointData.
   ///
   /// This is the format used by the dive_computer_repository for import.
+  /// Note: timestamps are stored as seconds from dive start, not absolute time.
   List<ProfilePointData> parseProfile(DownloadedDive dive) {
     final points = <ProfilePointData>[];
 
     for (final sample in dive.profile) {
-      // Convert time offset to absolute timestamp
-      final timestamp = dive.startTime
-          .add(Duration(seconds: sample.timeSeconds))
-          .millisecondsSinceEpoch;
-
       points.add(
         ProfilePointData(
-          timestamp: timestamp,
+          // Use relative time in seconds from dive start
+          // (the chart and profile analysis expect this format)
+          timestamp: sample.timeSeconds,
           depth: sample.depth,
           pressure: sample.pressure,
           temperature: sample.temperature,
