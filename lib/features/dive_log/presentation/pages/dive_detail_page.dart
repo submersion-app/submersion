@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../../core/constants/enums.dart';
+import '../../../../core/constants/tank_presets.dart';
 import '../../../../core/constants/units.dart';
 import '../../../../core/utils/unit_formatter.dart';
 import '../../../buddies/domain/entities/buddy.dart';
@@ -1061,6 +1062,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               final used = tank.pressureUsed != null
                   ? ' (${units.formatPressure(tank.pressureUsed!.toDouble())} used)'
                   : '';
+              // Get preset display name if available
+              final preset = tank.presetName != null
+                  ? TankPresets.byName(tank.presetName!)
+                  : null;
+              final tankLabel = preset?.displayName ??
+                  (tank.volume != null
+                      ? units.formatTankVolume(tank.volume, tank.workingPressure, decimals: 1)
+                      : null);
               return ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.propane_tank),
@@ -1068,9 +1077,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 subtitle: Text(
                   '$startP ${units.pressureSymbol} → $endP ${units.pressureSymbol}$used',
                 ),
-                trailing: tank.volume != null 
-                    ? Text(units.formatTankVolume(tank.volume, tank.workingPressure, decimals: 1)) 
-                    : null,
+                trailing: tankLabel != null ? Text(tankLabel) : null,
               );
             }),
           ],

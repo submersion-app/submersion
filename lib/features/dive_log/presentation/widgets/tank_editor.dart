@@ -42,6 +42,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   late TextEditingController _heController;
   late TankRole _role;
   late TankMaterial? _material;
+  TankPreset? _selectedPreset;
 
   @override
   void initState() {
@@ -52,7 +53,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   void _initializeControllers() {
     final settings = ref.read(settingsProvider);
     final units = UnitFormatter(settings);
-    
+
     // For tank volume: imperial uses gas capacity (cuft), metric uses water volume (liters)
     String volumeText = '';
     if (widget.tank.volume != null) {
@@ -64,7 +65,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         volumeText = widget.tank.volume!.toStringAsFixed(1);
       }
     }
-    
+
     _volumeController = TextEditingController(text: volumeText);
     _workingPressureController = TextEditingController(
       text: widget.tank.workingPressure != null
@@ -89,6 +90,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     );
     _role = widget.tank.role;
     _material = widget.tank.material;
+    // Initialize selected preset from tank's presetName
+    _selectedPreset = widget.tank.presetName != null
+        ? TankPresets.byName(widget.tank.presetName!)
+        : null;
   }
 
   @override
@@ -155,7 +160,8 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       role: _role,
       material: _material,
       order: widget.tank.order,
-    ),);
+      presetName: _selectedPreset?.name,
+    ));
   }
 
   @override
@@ -250,7 +256,8 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         // Tank preset dropdown
         Expanded(
           child: DropdownButtonFormField<TankPreset?>(
-            initialValue: null, // Always show "Select Preset" since preset is one-time fill
+            key: ValueKey(_selectedPreset?.name),
+            initialValue: _selectedPreset,
             decoration: const InputDecoration(
               labelText: 'Tank Preset',
               isDense: true,
@@ -270,6 +277,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             onChanged: (preset) {
               if (preset != null) {
                 _applyPreset(preset);
+              } else {
+                setState(() => _selectedPreset = null);
+                _notifyChange();
               }
             },
           ),
@@ -316,13 +326,17 @@ class _TankEditorState extends ConsumerState<TankEditor> {
               isDense: true,
             ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            onChanged: (_) => _notifyChange(),
+            onChanged: (_) {
+              _clearPreset();
+              _notifyChange();
+            },
           ),
         ),
         const SizedBox(width: 12),
         // Material
         Expanded(
           child: DropdownButtonFormField<TankMaterial?>(
+            key: ValueKey(_material?.name),
             initialValue: _material,
             decoration: const InputDecoration(
               labelText: 'Material',
@@ -342,6 +356,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             ],
             onChanged: (value) {
               setState(() => _material = value);
+              _clearPreset();
               _notifyChange();
             },
           ),
@@ -357,7 +372,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
               isDense: true,
             ),
             keyboardType: TextInputType.number,
-            onChanged: (_) => _notifyChange(),
+            onChanged: (_) {
+              _clearPreset();
+              _notifyChange();
+            },
           ),
         ),
       ],
@@ -513,8 +531,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   void _applyPreset(TankPreset preset) {
     final settings = ref.read(settingsProvider);
     final units = UnitFormatter(settings);
-    
+
     setState(() {
+      _selectedPreset = preset;
       // For volume: use cuft (gas capacity) for imperial, liters (water volume) for metric
       // This is because "tank size" in imperial is rated by gas capacity (e.g., AL80 = 80 cuft),
       // while metric uses physical water volume (e.g., 11.1L)
@@ -528,6 +547,13 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       _material = preset.material;
     });
     _notifyChange();
+  }
+
+  /// Clears the selected preset when tank specs are manually modified
+  void _clearPreset() {
+    if (_selectedPreset != null) {
+      setState(() => _selectedPreset = null);
+    }
   }
 
   void _applyGasTemplate(GasTemplate template) {

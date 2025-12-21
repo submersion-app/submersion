@@ -251,6 +251,7 @@ class DiveRepository {
                 tankRole: Value(tank.role.name),
                 tankMaterial: Value(tank.material?.name),
                 tankName: Value(tank.name),
+                presetName: Value(tank.presetName),
               ),
             );
       }
@@ -377,6 +378,7 @@ class DiveRepository {
                 tankRole: Value(tank.role.name),
                 tankMaterial: Value(tank.material?.name),
                 tankName: Value(tank.name),
+                presetName: Value(tank.presetName),
               ),
             );
       }
@@ -1073,6 +1075,7 @@ class DiveRepository {
                     )
                   : null,
               order: t.tankOrder,
+              presetName: t.presetName,
             ),
           )
           .toList(),
@@ -1322,6 +1325,7 @@ class DiveRepository {
                     )
                   : null,
               order: t.tankOrder,
+              presetName: t.presetName,
             ),
           )
           .toList(),
