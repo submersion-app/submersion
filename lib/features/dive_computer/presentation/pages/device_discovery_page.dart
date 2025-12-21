@@ -450,13 +450,17 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
     // Import downloaded dives into the database
     if (_savedComputer != null) {
       final downloadNotifier = ref.read(downloadNotifierProvider.notifier);
-      final currentDiverId = ref.read(currentDiverIdProvider);
+
+      // Use validatedCurrentDiverIdProvider to ensure we have a valid diver ID
+      // (falls back to default diver if no diver is selected)
+      final validatedDiverId =
+          await ref.read(validatedCurrentDiverIdProvider.future);
 
       await downloadNotifier.importDives(
         computer: _savedComputer!,
         mode: ImportMode.newOnly,
         defaultResolution: ConflictResolution.skip,
-        diverId: currentDiverId,
+        diverId: validatedDiverId,
       );
 
       // Invalidate the dive list so it refreshes with the new dives
