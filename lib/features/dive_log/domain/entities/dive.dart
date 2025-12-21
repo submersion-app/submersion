@@ -447,6 +447,7 @@ class DiveTank extends Equatable {
   final TankRole role; // back gas, stage, deco, bailout, etc.
   final TankMaterial? material; // aluminum, steel, carbon fiber
   final int order; // for multi-tank ordering
+  final String? presetName; // name of preset used (e.g., 'al80', 'hp100')
 
   const DiveTank({
     required this.id,
@@ -459,6 +460,7 @@ class DiveTank extends Equatable {
     this.role = TankRole.backGas,
     this.material,
     this.order = 0,
+    this.presetName,
   });
 
   /// Pressure consumed during dive
@@ -479,6 +481,8 @@ class DiveTank extends Equatable {
     TankRole? role,
     TankMaterial? material,
     int? order,
+    String? presetName,
+    bool clearPresetName = false,
   }) {
     return DiveTank(
       id: id ?? this.id,
@@ -491,6 +495,7 @@ class DiveTank extends Equatable {
       role: role ?? this.role,
       material: material ?? this.material,
       order: order ?? this.order,
+      presetName: clearPresetName ? null : (presetName ?? this.presetName),
     );
   }
 
@@ -506,6 +511,7 @@ class DiveTank extends Equatable {
         role,
         material,
         order,
+        presetName,
       ];
 }
 

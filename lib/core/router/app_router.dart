@@ -33,6 +33,15 @@ import '../../features/trips/presentation/pages/trip_detail_page.dart';
 import '../../features/trips/presentation/pages/trip_edit_page.dart';
 import '../../features/statistics/presentation/pages/statistics_page.dart';
 import '../../features/statistics/presentation/pages/records_page.dart';
+import '../../features/statistics/presentation/pages/statistics_gas_page.dart';
+import '../../features/statistics/presentation/pages/statistics_progression_page.dart';
+import '../../features/statistics/presentation/pages/statistics_conditions_page.dart';
+import '../../features/statistics/presentation/pages/statistics_social_page.dart';
+import '../../features/statistics/presentation/pages/statistics_geographic_page.dart';
+import '../../features/statistics/presentation/pages/statistics_marine_life_page.dart';
+import '../../features/statistics/presentation/pages/statistics_time_patterns_page.dart';
+import '../../features/statistics/presentation/pages/statistics_equipment_page.dart';
+import '../../features/statistics/presentation/pages/statistics_profile_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/settings/presentation/pages/api_keys_page.dart';
 import '../../features/dive_types/presentation/pages/dive_types_page.dart';
@@ -371,6 +380,53 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) => const NoTransitionPage(
               child: StatisticsPage(),
             ),
+            routes: [
+              GoRoute(
+                path: 'gas',
+                name: 'statisticsGas',
+                builder: (context, state) => const StatisticsGasPage(),
+              ),
+              GoRoute(
+                path: 'progression',
+                name: 'statisticsProgression',
+                builder: (context, state) => const StatisticsProgressionPage(),
+              ),
+              GoRoute(
+                path: 'conditions',
+                name: 'statisticsConditions',
+                builder: (context, state) => const StatisticsConditionsPage(),
+              ),
+              GoRoute(
+                path: 'social',
+                name: 'statisticsSocial',
+                builder: (context, state) => const StatisticsSocialPage(),
+              ),
+              GoRoute(
+                path: 'geographic',
+                name: 'statisticsGeographic',
+                builder: (context, state) => const StatisticsGeographicPage(),
+              ),
+              GoRoute(
+                path: 'marine-life',
+                name: 'statisticsMarineLife',
+                builder: (context, state) => const StatisticsMarineLifePage(),
+              ),
+              GoRoute(
+                path: 'time-patterns',
+                name: 'statisticsTimePatterns',
+                builder: (context, state) => const StatisticsTimePatternsPage(),
+              ),
+              GoRoute(
+                path: 'equipment',
+                name: 'statisticsEquipment',
+                builder: (context, state) => const StatisticsEquipmentPage(),
+              ),
+              GoRoute(
+                path: 'profile',
+                name: 'statisticsProfile',
+                builder: (context, state) => const StatisticsProfilePage(),
+              ),
+            ],
           ),
 
           // Records

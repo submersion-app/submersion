@@ -8,6 +8,7 @@ import '../../../dive_log/data/repositories/dive_repository_impl.dart';
 import '../../../dive_log/presentation/providers/dive_providers.dart';
 import '../../../settings/presentation/providers/settings_providers.dart';
 import '../../../tags/presentation/providers/tag_providers.dart';
+import '../widgets/stat_section_card.dart';
 
 class StatisticsPage extends ConsumerWidget {
   const StatisticsPage({super.key});
@@ -56,13 +57,15 @@ class StatisticsPage extends ConsumerWidget {
   Widget _buildContent(BuildContext context, WidgetRef ref, DiveStatistics stats) {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
-    
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildOverviewCards(context, stats, units),
+          const SizedBox(height: 24),
+          _buildCategoryCards(context),
           const SizedBox(height: 24),
           _buildDivesByMonthChart(context, stats),
           const SizedBox(height: 24),
@@ -73,6 +76,106 @@ class StatisticsPage extends ConsumerWidget {
           _buildTagStatistics(context),
         ],
       ),
+    );
+  }
+
+  Widget _buildCategoryCards(BuildContext context) {
+    final categories = [
+      (
+        icon: Icons.air,
+        title: 'Air Consumption',
+        subtitle: 'SAC rates & gas mixes',
+        color: Colors.blue,
+        route: '/statistics/gas',
+      ),
+      (
+        icon: Icons.trending_up,
+        title: 'Progression',
+        subtitle: 'Depth & time trends',
+        color: Colors.green,
+        route: '/statistics/progression',
+      ),
+      (
+        icon: Icons.thermostat,
+        title: 'Conditions',
+        subtitle: 'Visibility & temperature',
+        color: Colors.orange,
+        route: '/statistics/conditions',
+      ),
+      (
+        icon: Icons.people,
+        title: 'Social',
+        subtitle: 'Buddies & dive centers',
+        color: Colors.purple,
+        route: '/statistics/social',
+      ),
+      (
+        icon: Icons.public,
+        title: 'Geographic',
+        subtitle: 'Countries & regions',
+        color: Colors.teal,
+        route: '/statistics/geographic',
+      ),
+      (
+        icon: Icons.pets,
+        title: 'Marine Life',
+        subtitle: 'Species sightings',
+        color: Colors.cyan,
+        route: '/statistics/marine-life',
+      ),
+      (
+        icon: Icons.schedule,
+        title: 'Time Patterns',
+        subtitle: 'When you dive',
+        color: Colors.amber,
+        route: '/statistics/time-patterns',
+      ),
+      (
+        icon: Icons.build,
+        title: 'Equipment',
+        subtitle: 'Gear usage & weight',
+        color: Colors.brown,
+        route: '/statistics/equipment',
+      ),
+      (
+        icon: Icons.show_chart,
+        title: 'Profile Analysis',
+        subtitle: 'Ascent rates & deco',
+        color: Colors.indigo,
+        route: '/statistics/profile',
+      ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Explore Statistics',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: 12),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.4,
+          ),
+          itemCount: categories.length,
+          itemBuilder: (context, index) {
+            final cat = categories[index];
+            return StatCategoryCard(
+              icon: cat.icon,
+              title: cat.title,
+              subtitle: cat.subtitle,
+              color: cat.color,
+              onTap: () => context.push(cat.route),
+            );
+          },
+        ),
+      ],
     );
   }
 

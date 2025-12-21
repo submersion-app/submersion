@@ -200,6 +200,8 @@ class DiveTanks extends Table {
       text().nullable()(); // aluminum, steel, carbonFiber
   TextColumn get tankName =>
       text().nullable()(); // user-friendly name like "Primary AL80"
+  TextColumn get presetName =>
+      text().nullable()(); // preset name (e.g., 'al80', 'hp100')
 
   @override
   Set<Column> get primaryKey => {id};
@@ -621,7 +623,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration {
@@ -660,6 +662,12 @@ class AppDatabase extends _$AppDatabase {
           // Add sacUnit column to diver_settings
           await customStatement(
             "ALTER TABLE diver_settings ADD COLUMN sac_unit TEXT NOT NULL DEFAULT 'litersPerMin'",
+          );
+        }
+        if (from < 3) {
+          // Add presetName column to dive_tanks
+          await customStatement(
+            'ALTER TABLE dive_tanks ADD COLUMN preset_name TEXT',
           );
         }
       },
