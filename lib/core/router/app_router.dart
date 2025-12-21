@@ -46,6 +46,9 @@ import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/settings/presentation/pages/api_keys_page.dart';
 import '../../features/dive_types/presentation/pages/dive_types_page.dart';
 import '../../features/tools/presentation/pages/weight_calculator_page.dart';
+import '../../features/dive_computer/presentation/pages/device_list_page.dart';
+import '../../features/dive_computer/presentation/pages/device_detail_page.dart';
+import '../../features/dive_computer/presentation/pages/device_discovery_page.dart';
 import '../../shared/widgets/main_scaffold.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -459,6 +462,27 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/dive-types',
             name: 'diveTypes',
             builder: (context, state) => const DiveTypesPage(),
+          ),
+
+          // Dive Computers
+          GoRoute(
+            path: '/dive-computers',
+            name: 'diveComputers',
+            builder: (context, state) => const DeviceListPage(),
+            routes: [
+              GoRoute(
+                path: 'discover',
+                name: 'discoverDevice',
+                builder: (context, state) => const DeviceDiscoveryPage(),
+              ),
+              GoRoute(
+                path: ':computerId',
+                name: 'computerDetail',
+                builder: (context, state) => DeviceDetailPage(
+                  computerId: state.pathParameters['computerId']!,
+                ),
+              ),
+            ],
           ),
 
           // Tools

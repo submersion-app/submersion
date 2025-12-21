@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/units.dart';
+import '../../../dive_log/presentation/providers/dive_computer_providers.dart';
 import '../../../divers/domain/entities/diver.dart';
 import '../../../divers/presentation/providers/diver_providers.dart';
 import '../providers/api_key_providers.dart';
@@ -171,13 +172,23 @@ class SettingsPage extends ConsumerWidget {
           const Divider(),
 
           _buildSectionHeader(context, 'Dive Computer'),
-          ListTile(
-            leading: const Icon(Icons.bluetooth),
-            title: const Text('Connect Dive Computer'),
-            subtitle: const Text('Import dives via Bluetooth'),
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Dive computer connection coming soon')),
+          Consumer(
+            builder: (context, ref, child) {
+              final computersAsync = ref.watch(allDiveComputersProvider);
+              return ListTile(
+                leading: const Icon(Icons.bluetooth),
+                title: const Text('Dive Computers'),
+                subtitle: computersAsync.when(
+                  data: (computers) => Text(
+                    computers.isEmpty
+                        ? 'No computers connected'
+                        : '${computers.length} saved ${computers.length == 1 ? 'computer' : 'computers'}',
+                  ),
+                  loading: () => const Text('Loading...'),
+                  error: (_, __) => const Text('Error loading computers'),
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/dive-computers'),
               );
             },
           ),
