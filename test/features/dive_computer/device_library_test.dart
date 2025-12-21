@@ -185,7 +185,8 @@ void main() {
         expect(models, isNotEmpty);
         expect(
           models.every(
-              (m) => m.connectionTypes.contains(DeviceConnectionType.ble)),
+            (m) => m.connectionTypes.contains(DeviceConnectionType.ble),
+          ),
           isTrue,
         );
       });
@@ -195,7 +196,8 @@ void main() {
         expect(models, isNotEmpty);
         expect(
           models.every(
-              (m) => m.connectionTypes.contains(DeviceConnectionType.usb)),
+            (m) => m.connectionTypes.contains(DeviceConnectionType.usb),
+          ),
           isTrue,
         );
       });
@@ -466,8 +468,10 @@ void main() {
   group('DeviceConnectionType', () {
     test('has correct display names', () {
       expect(DeviceConnectionType.ble.displayName, equals('Bluetooth LE'));
-      expect(DeviceConnectionType.bluetoothClassic.displayName,
-          equals('Bluetooth'));
+      expect(
+        DeviceConnectionType.bluetoothClassic.displayName,
+        equals('Bluetooth'),
+      );
       expect(DeviceConnectionType.usb.displayName, equals('USB'));
       expect(DeviceConnectionType.infrared.displayName, equals('Infrared'));
     });
