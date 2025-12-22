@@ -4,6 +4,7 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 import '../../../../core/services/logger_service.dart';
 import '../../domain/services/download_manager.dart';
+import 'libdc_parser_service.dart';
 
 /// Shearwater BLE service UUID (full 128-bit custom UUID)
 const shearwaterServiceUuid = 'fe25c237-0ece-443c-b0aa-e02033e7029d';
@@ -153,10 +154,12 @@ class ShearwaterBleProtocol {
       _notifySubscription =
           _rxCharacteristic!.onValueReceived.listen(_onDataReceived);
       _log.info(
-          'Notifications enabled (notify=${rxProps.notify}, indicate=${rxProps.indicate})');
+        'Notifications enabled (notify=${rxProps.notify}, indicate=${rxProps.indicate})',
+      );
     } else {
       _log.warning(
-          'RX characteristic does not support notify or indicate! Will try polling.');
+        'RX characteristic does not support notify or indicate! Will try polling.',
+      );
     }
 
     // Give device time to stabilize after notification setup
@@ -750,49 +753,68 @@ class ShearwaterBleProtocol {
   }
 
   DownloadedDive _parseDive(DiveManifestEntry entry, List<int> data) {
-    // Parse dive header and samples from decompressed data
-    // This is a simplified parser - real implementation would need full format details
+    _log.info('Parsing dive data: ${data.length} bytes');
 
-    final samples = <ProfileSample>[];
-    var offset = 0;
+    // Try to parse using libdivecomputer's parser
+    try {
+      final parserService = LibdcParserService.instance;
 
-    // Skip header (size varies by firmware version)
-    // For now, assume samples start after a 128-byte header
-    offset = 128.clamp(0, data.length);
-
-    // Parse samples (simplified - actual format is more complex)
-    var timeSeconds = 0;
-    const sampleInterval = 10; // seconds
-
-    while (offset + 4 <= data.length) {
-      final depth = ((data[offset] << 8) | data[offset + 1]) / 100.0; // cm to m
-      double? temp;
-      if (offset + 3 < data.length) {
-        temp = ((data[offset + 2] << 8) | data[offset + 3]) / 10.0 - 273.15; // K to C
+      // Initialize if needed
+      if (!parserService.isInitialized) {
+        _log.info('Initializing libdivecomputer parser service');
+        parserService.initialize();
       }
 
-      if (depth >= 0 && depth < 200) {
-        // Reasonable depth check
-        samples.add(
-          ProfileSample(
-            timeSeconds: timeSeconds,
-            depth: depth,
-            temperature: temp,
-          ),
+      // Create manifest info to supplement parsed data
+      final manifestInfo = DiveManifestInfo(
+        diveNumber: entry.diveNumber,
+        dateTime: entry.dateTime,
+        durationSeconds: entry.durationSeconds,
+        maxDepth: entry.maxDepth,
+        fingerprint: entry.fingerprint,
+      );
+
+      // Parse the dive data using libdivecomputer
+      final parsedDive = parserService.parseDiveData(
+        vendor: 'Shearwater',
+        product: 'Teric', // TODO: Get actual product from device
+        data: data,
+        manifestInfo: manifestInfo,
+      );
+
+      if (parsedDive != null) {
+        _log.info(
+          'Successfully parsed dive ${entry.diveNumber} with '
+          '${parsedDive.profile.length} profile samples',
         );
+        return parsedDive;
       }
 
-      timeSeconds += sampleInterval;
-      offset += 4;
+      _log.warning(
+        'libdivecomputer parser returned null, falling back to manifest data',
+      );
+    } catch (e, stack) {
+      _log.warning(
+        'Failed to parse with libdivecomputer: $e, falling back to manifest data',
+        e,
+        stack,
+      );
     }
 
+    // Fallback to manifest-only data
+    return _createDiveFromManifest(entry);
+  }
+
+  /// Create a dive with just manifest data (no profile) as fallback
+  DownloadedDive _createDiveFromManifest(DiveManifestEntry entry) {
+    _log.info('Creating dive from manifest only (no profile data)');
     return DownloadedDive(
       diveNumber: entry.diveNumber,
       startTime: entry.dateTime,
       durationSeconds: entry.durationSeconds,
       maxDepth: entry.maxDepth,
-      avgDepth: samples.isEmpty ? 0 : samples.map((s) => s.depth).reduce((a, b) => a + b) / samples.length,
-      profile: samples,
+      avgDepth: entry.maxDepth * 0.6, // Estimate
+      profile: [], // No profile data
       fingerprint: entry.fingerprint,
     );
   }

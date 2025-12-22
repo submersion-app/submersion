@@ -1,5 +1,6 @@
 import '../../../../features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import '../../domain/services/download_manager.dart';
+export '../../../../features/dive_log/data/repositories/dive_computer_repository_impl.dart' show TankData;
 
 /// Service for parsing downloaded dive data into app entities.
 ///
@@ -30,6 +31,28 @@ class DiveParser {
     }
 
     return points;
+  }
+
+  /// Convert a downloaded dive's tank data to TankData.
+  ///
+  /// This extracts tank information including gas mix and pressures.
+  List<TankData> parseTanks(DownloadedDive dive) {
+    final tanks = <TankData>[];
+
+    for (final tank in dive.tanks) {
+      tanks.add(
+        TankData(
+          index: tank.index,
+          o2Percent: tank.o2Percent,
+          hePercent: tank.hePercent,
+          startPressure: tank.startPressure,
+          endPressure: tank.endPressure,
+          volumeLiters: tank.volumeLiters,
+        ),
+      );
+    }
+
+    return tanks;
   }
 
   /// Extract the maximum depth from a dive's profile.

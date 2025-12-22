@@ -308,6 +308,9 @@ class DiveImportService {
     // Parse profile data
     final profilePoints = _parser.parseProfile(dive);
 
+    // Convert tanks to TankData
+    final tanks = _parser.parseTanks(dive);
+
     // Import using repository
     final diveId = await _repository.importProfile(
       computerId: computerId,
@@ -317,6 +320,7 @@ class DiveImportService {
       maxDepth: dive.maxDepth,
       isPrimary: true,
       diverId: diverId,
+      tanks: tanks,
     );
 
     return diveId;
