@@ -54,6 +54,9 @@ dependencies:
   shared_preferences: ^2.3.2
   flutter_secure_storage: ^9.2.2
 
+  # FFI
+  ffi: ^2.1.0
+
   # Utilities
   intl: ^0.19.0
   uuid: ^4.5.0

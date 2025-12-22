@@ -2,7 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/database/database.dart' as db;
-import '../../../../core/database/database.dart' show AppDatabase, DiveComputersCompanion, DiveProfilesCompanion, DiveProfileEventsCompanion, DivesCompanion, DiveProfile, DiveProfileEvent;
+import '../../../../core/database/database.dart' show AppDatabase, DiveComputersCompanion, DiveProfilesCompanion, DiveProfileEventsCompanion, DivesCompanion, DiveTanksCompanion, DiveProfile, DiveProfileEvent;
 import '../../../../core/services/database_service.dart';
 import '../../../../core/services/logger_service.dart';
 import '../../domain/entities/dive_computer.dart' as domain;
@@ -407,6 +407,7 @@ class DiveComputerRepository {
     double? maxDepth,
     bool isPrimary = false,
     String? diverId,
+    List<TankData>? tanks,
   }) async {
     try {
       _log.info('Importing profile from computer $computerId');
@@ -417,6 +418,7 @@ class DiveComputerRepository {
         durationSeconds: durationSeconds,
       );
 
+      bool isNewDive = false;
       if (diveId == null) {
         // Create a new dive for this profile
         _log.info('No matching dive found, creating new dive');
@@ -437,6 +439,7 @@ class DiveComputerRepository {
             );
 
         isPrimary = true; // First profile is always primary
+        isNewDive = true;
       }
 
       // Check if this computer already has a profile for this dive
@@ -479,6 +482,31 @@ class DiveComputerRepository {
                 isPrimary: Value(isPrimary),
               ),
             );
+      }
+
+      // Insert tanks for new dives
+      if (isNewDive && tanks != null && tanks.isNotEmpty) {
+        _log.info('Importing ${tanks.length} tanks for dive $diveId');
+        for (final tank in tanks) {
+          await _db.into(_db.diveTanks).insert(
+                DiveTanksCompanion(
+                  id: Value(_uuid.v4()),
+                  diveId: Value(diveId),
+                  volume: Value(tank.volumeLiters),
+                  startPressure: Value(tank.startPressure?.round()),
+                  endPressure: Value(tank.endPressure?.round()),
+                  o2Percent: Value(tank.o2Percent),
+                  hePercent: Value(tank.hePercent),
+                  tankOrder: Value(tank.index),
+                  tankRole: const Value('backGas'),
+                ),
+              );
+          _log.info(
+            'Created tank ${tank.index}: '
+            'O2=${tank.o2Percent}%, start=${tank.startPressure} bar, '
+            'end=${tank.endPressure} bar',
+          );
+        }
       }
 
       // Update computer stats
@@ -641,5 +669,24 @@ class ProfilePointData {
     this.pressure,
     this.temperature,
     this.heartRate,
+  });
+}
+
+/// Data class for importing tank information
+class TankData {
+  final int index;
+  final double o2Percent;
+  final double hePercent;
+  final double? startPressure;
+  final double? endPressure;
+  final double? volumeLiters;
+
+  const TankData({
+    required this.index,
+    required this.o2Percent,
+    this.hePercent = 0.0,
+    this.startPressure,
+    this.endPressure,
+    this.volumeLiters,
   });
 }
