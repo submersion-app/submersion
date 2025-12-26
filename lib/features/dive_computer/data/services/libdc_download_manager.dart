@@ -2,11 +2,19 @@ import 'dart:async';
 
 import '../../domain/entities/device_model.dart';
 import '../../domain/services/download_manager.dart';
+import 'aqualung_ble_protocol.dart';
 import 'bluetooth_connection_manager.dart';
 import 'libdc_ffi_download_manager.dart';
 import 'mares_ble_protocol.dart';
 import 'shearwater_ble_protocol.dart';
 import 'suunto_ble_protocol.dart';
+
+/// Callback for requesting a PIN from the user.
+///
+/// Called when a device (like Aqualung) requires PIN authentication.
+/// Should display a dialog to the user and return the entered PIN,
+/// or null if the user cancelled.
+typedef PinRequestCallback = Future<String?> Function();
 
 /// Implementation of [DownloadManager] using libdivecomputer via the dive_computer package.
 ///
@@ -26,6 +34,12 @@ class LibdcDownloadManager implements DownloadManager {
   DownloadProgress _currentProgress = DownloadProgress.initial();
   bool _isDownloading = false;
   bool _isCancelled = false;
+
+  /// Callback for requesting a PIN from the user.
+  ///
+  /// Set this before calling [downloadDives] for Aqualung/Pelagic devices.
+  /// If not set and a PIN is required, the download will fail.
+  PinRequestCallback? onPinRequired;
 
   LibdcDownloadManager({
     required BluetoothConnectionManager connectionManager,
@@ -209,11 +223,19 @@ class LibdcDownloadManager implements DownloadManager {
               sinceTimestamp: sinceTimestamp,
             );
 
+          case 'aqualung':
+          case 'apeks':
+            return _downloadFromAqualung(
+              device: device,
+              newDivesOnly: newDivesOnly,
+              sinceTimestamp: sinceTimestamp,
+            );
+
           default:
             // Other BLE manufacturers not yet supported
             throw DownloadException(
               'BLE communication not yet implemented for ${model.manufacturer}. '
-              'Supported manufacturers: Shearwater, Suunto, Mares. '
+              'Supported manufacturers: Shearwater, Suunto, Mares, Aqualung. '
               'Device: ${model.fullName}',
               phase: DownloadPhase.downloading,
             );
@@ -489,6 +511,104 @@ class LibdcDownloadManager implements DownloadManager {
       );
 
       // Mares downloads all dives at once from memory
+      final dives = await protocol.downloadDives();
+
+      if (_isCancelled) return [];
+
+      // Filter by timestamp if needed
+      var filteredDives = dives;
+      if (newDivesOnly && sinceTimestamp != null) {
+        filteredDives = dives
+            .where((dive) => dive.startTime.isAfter(sinceTimestamp))
+            .toList();
+      }
+
+      for (final dive in filteredDives) {
+        _divesController.add(dive);
+      }
+
+      return filteredDives;
+    } finally {
+      await protocol.disconnect();
+      protocol.dispose();
+    }
+  }
+
+  /// Download dives from an Aqualung/Apeks device using the native Dart BLE protocol.
+  Future<List<DownloadedDive>> _downloadFromAqualung({
+    required DiscoveredDevice device,
+    required bool newDivesOnly,
+    DateTime? sinceTimestamp,
+  }) async {
+    final bluetoothDevice = _connectionManager.bluetoothDevice;
+    if (bluetoothDevice == null) {
+      throw const DownloadException(
+        'Bluetooth device not connected',
+        phase: DownloadPhase.connecting,
+      );
+    }
+
+    final protocol = AqualungBleProtocol(bluetoothDevice);
+
+    // Set up PIN callback using the external handler
+    protocol.onPinRequired = () async {
+      if (onPinRequired == null) {
+        throw const DownloadException(
+          'This device requires a PIN code but no PIN handler is configured. '
+          'Check the dive computer display for the PIN code.',
+          phase: DownloadPhase.connecting,
+        );
+      }
+
+      // Update progress to show we're waiting for PIN
+      _updateProgress(
+        const DownloadProgress(
+          currentDive: 0,
+          totalDives: 0,
+          percentage: 0.1,
+          status: 'PIN required - check dive computer display',
+          phase: DownloadPhase.connecting,
+        ),
+      );
+
+      final pin = await onPinRequired!();
+
+      if (pin == null || pin.isEmpty) {
+        throw const DownloadException(
+          'PIN entry was cancelled. '
+          'A PIN code is required to connect to this device.',
+          phase: DownloadPhase.connecting,
+        );
+      }
+
+      return pin;
+    };
+
+    try {
+      _updateProgress(
+        const DownloadProgress(
+          currentDive: 0,
+          totalDives: 0,
+          percentage: 0.15,
+          status: 'Discovering services...',
+          phase: DownloadPhase.enumerating,
+        ),
+      );
+      await protocol.connect();
+
+      if (_isCancelled) return [];
+
+      _updateProgress(
+        const DownloadProgress(
+          currentDive: 0,
+          totalDives: 0,
+          percentage: 0.2,
+          status: 'Downloading dive data...',
+          phase: DownloadPhase.downloading,
+        ),
+      );
+
+      // Aqualung downloads all dives at once from memory
       final dives = await protocol.downloadDives();
 
       if (_isCancelled) return [];

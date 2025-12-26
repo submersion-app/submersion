@@ -39,6 +39,10 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
     _hasStarted = true;
 
     final notifier = ref.read(downloadNotifierProvider.notifier);
+
+    // Set dialog context for PIN entry (Aqualung devices)
+    notifier.setDialogContext(context);
+
     final result = await notifier.startDownload(widget.device!);
 
     if (result.success) {
