@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/device_library.dart';
 import '../../data/services/bluetooth_connection_manager.dart';
 import '../../data/services/permissions_service.dart';
+import '../../data/services/usb_device_scanner.dart';
 import '../../domain/entities/device_model.dart';
 import '../../domain/services/connection_manager.dart';
 
@@ -35,6 +36,27 @@ final discoveredDevicesProvider =
     StreamProvider<List<DiscoveredDevice>>((ref) {
   final manager = ref.watch(bluetoothConnectionManagerProvider);
   return manager.discoveredDevices;
+});
+
+/// Provider for the USB device scanner.
+final usbDeviceScannerProvider = Provider<UsbDeviceScanner>((ref) {
+  final library = ref.watch(deviceLibraryProvider);
+  final scanner = UsbDeviceScanner(deviceLibrary: library);
+  ref.onDispose(() => scanner.dispose());
+  return scanner;
+});
+
+/// Provider for USB-capable device models.
+final usbDeviceModelsProvider = Provider<List<DeviceModel>>((ref) {
+  final scanner = ref.watch(usbDeviceScannerProvider);
+  return scanner.getUsbCapableDevices();
+});
+
+/// Provider for USB devices grouped by manufacturer.
+final usbDevicesByManufacturerProvider =
+    Provider<Map<String, List<DeviceModel>>>((ref) {
+  final scanner = ref.watch(usbDeviceScannerProvider);
+  return scanner.getUsbDevicesByManufacturer();
 });
 
 /// Provider for Bluetooth availability check.

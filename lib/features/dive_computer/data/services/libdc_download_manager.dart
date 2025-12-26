@@ -3,6 +3,7 @@ import 'dart:async';
 import '../../domain/entities/device_model.dart';
 import '../../domain/services/download_manager.dart';
 import 'bluetooth_connection_manager.dart';
+import 'libdc_ffi_download_manager.dart';
 import 'shearwater_ble_protocol.dart';
 
 /// Implementation of [DownloadManager] using libdivecomputer via the dive_computer package.
@@ -159,29 +160,95 @@ class LibdcDownloadManager implements DownloadManager {
   /// Download dives from the device using the appropriate protocol.
   ///
   /// This method handles the actual communication with the dive computer.
-  /// Currently supports Shearwater devices via native Dart BLE protocol.
+  /// Routes to the appropriate download method based on connection type:
+  /// - USB: Uses libdivecomputer FFI via LibdcFfiDownloadManager
+  /// - BLE Shearwater: Uses native Dart BLE protocol
+  /// - BLE other: Not yet supported (requires manufacturer-specific protocols)
   Future<List<DownloadedDive>> _downloadFromDevice({
     required DiscoveredDevice device,
     required DeviceModel model,
     required bool newDivesOnly,
     DateTime? sinceTimestamp,
   }) async {
-    // Check if this is a Shearwater device
-    if (model.manufacturer.toLowerCase() == 'shearwater') {
-      return _downloadFromShearwater(
+    // Route based on connection type
+    switch (device.connectionType) {
+      case DeviceConnectionType.usb:
+        // Use libdivecomputer FFI for USB devices
+        return _downloadViaUsb(
+          device: device,
+          model: model,
+          newDivesOnly: newDivesOnly,
+          sinceTimestamp: sinceTimestamp,
+        );
+
+      case DeviceConnectionType.ble:
+        // Check manufacturer for BLE devices
+        if (model.manufacturer.toLowerCase() == 'shearwater') {
+          return _downloadFromShearwater(
+            device: device,
+            newDivesOnly: newDivesOnly,
+            sinceTimestamp: sinceTimestamp,
+          );
+        }
+
+        // Other BLE manufacturers not yet supported
+        throw DownloadException(
+          'BLE communication not yet implemented for ${model.manufacturer}. '
+          'Currently only Shearwater devices are supported via BLE. '
+          'Device: ${model.fullName}',
+          phase: DownloadPhase.downloading,
+        );
+
+      case DeviceConnectionType.bluetoothClassic:
+        throw DownloadException(
+          'Bluetooth Classic is not yet supported. '
+          'Device: ${model.fullName}',
+          phase: DownloadPhase.downloading,
+        );
+
+      case DeviceConnectionType.infrared:
+        throw DownloadException(
+          'Infrared connections are not supported. '
+          'Device: ${model.fullName}',
+          phase: DownloadPhase.downloading,
+        );
+    }
+  }
+
+  /// Download dives from a USB-connected device using libdivecomputer FFI.
+  Future<List<DownloadedDive>> _downloadViaUsb({
+    required DiscoveredDevice device,
+    required DeviceModel model,
+    required bool newDivesOnly,
+    DateTime? sinceTimestamp,
+  }) async {
+    // Create the FFI download manager for USB devices
+    final ffiManager = LibdcFfiDownloadManager();
+
+    try {
+      // Forward progress updates
+      ffiManager.progress.listen((progress) {
+        _updateProgress(progress);
+      });
+
+      // Download dives
+      final result = await ffiManager.downloadDives(
         device: device,
         newDivesOnly: newDivesOnly,
         sinceTimestamp: sinceTimestamp,
       );
-    }
 
-    // For other manufacturers, we'd need additional protocol implementations
-    throw DownloadException(
-      'Device communication not yet implemented for ${model.manufacturer}. '
-      'Currently only Shearwater devices are supported via BLE. '
-      'Device: ${model.fullName}',
-      phase: DownloadPhase.downloading,
-    );
+      if (result.success) {
+        return result.dives;
+      } else {
+        throw DownloadException(
+          result.errorMessage ?? 'USB download failed',
+          phase: DownloadPhase.error,
+        );
+      }
+    } finally {
+      ffiManager.dispose();
+    }
   }
 
   /// Download dives from a Shearwater device using the native Dart BLE protocol.
