@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../features/dive_log/data/repositories/dive_computer_repository_impl.dart';
@@ -6,6 +7,7 @@ import '../../data/services/dive_import_service.dart';
 import '../../data/services/libdc_download_manager.dart';
 import '../../domain/entities/device_model.dart';
 import '../../domain/services/download_manager.dart';
+import '../widgets/pin_entry_dialog.dart';
 import 'discovery_providers.dart';
 
 /// Provider for the dive computer repository.
@@ -110,6 +112,10 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
   final DiveImportService _importService;
   final DiveComputerRepository _repository;
 
+  /// BuildContext for showing dialogs (e.g., PIN entry).
+  /// Must be set before starting download for devices that require PIN.
+  BuildContext? _dialogContext;
+
   DownloadNotifier({
     required DownloadManager downloadManager,
     required DiveImportService importService,
@@ -118,6 +124,14 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
         _importService = importService,
         _repository = repository,
         super(const DownloadState());
+
+  /// Set the context to use for showing dialogs during download.
+  ///
+  /// Must be called before [startDownload] for devices that may
+  /// require user interaction (e.g., Aqualung PIN entry).
+  void setDialogContext(BuildContext context) {
+    _dialogContext = context;
+  }
 
   /// Set whether to download new dives only.
   void setNewDivesOnly(bool value) {
@@ -133,6 +147,19 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
         clearImportResult: true,
         downloadedDives: [],
       );
+
+      // Set up PIN callback for devices that require it (e.g., Aqualung)
+      if (_downloadManager is LibdcDownloadManager) {
+        _downloadManager.onPinRequired = () async {
+          if (_dialogContext == null || !_dialogContext!.mounted) {
+            return null;
+          }
+          return PinEntryDialog.show(
+            _dialogContext!,
+            deviceName: device.recognizedModel?.fullName,
+          );
+        };
+      }
 
       // Listen to progress updates
       _downloadManager.progress.listen((progress) {
