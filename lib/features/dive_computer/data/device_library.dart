@@ -543,7 +543,7 @@ class DeviceLibrary {
       id: 'aqualung_i770r',
       manufacturer: 'Aqualung',
       model: 'i770R',
-      connectionTypes: [DeviceConnectionType.ble],
+      connectionTypes: [DeviceConnectionType.ble, DeviceConnectionType.usb],
       dcFamily: 'pelagic_i330r',
       dcModel: 4,
     ),
