@@ -4,7 +4,9 @@ import '../../domain/entities/device_model.dart';
 import '../../domain/services/download_manager.dart';
 import 'bluetooth_connection_manager.dart';
 import 'libdc_ffi_download_manager.dart';
+import 'mares_ble_protocol.dart';
 import 'shearwater_ble_protocol.dart';
+import 'suunto_ble_protocol.dart';
 
 /// Implementation of [DownloadManager] using libdivecomputer via the dive_computer package.
 ///
@@ -182,22 +184,40 @@ class LibdcDownloadManager implements DownloadManager {
         );
 
       case DeviceConnectionType.ble:
-        // Check manufacturer for BLE devices
-        if (model.manufacturer.toLowerCase() == 'shearwater') {
-          return _downloadFromShearwater(
-            device: device,
-            newDivesOnly: newDivesOnly,
-            sinceTimestamp: sinceTimestamp,
-          );
-        }
+        // Route to manufacturer-specific BLE protocol
+        final manufacturer = model.manufacturer.toLowerCase();
 
-        // Other BLE manufacturers not yet supported
-        throw DownloadException(
-          'BLE communication not yet implemented for ${model.manufacturer}. '
-          'Currently only Shearwater devices are supported via BLE. '
-          'Device: ${model.fullName}',
-          phase: DownloadPhase.downloading,
-        );
+        switch (manufacturer) {
+          case 'shearwater':
+            return _downloadFromShearwater(
+              device: device,
+              newDivesOnly: newDivesOnly,
+              sinceTimestamp: sinceTimestamp,
+            );
+
+          case 'suunto':
+            return _downloadFromSuunto(
+              device: device,
+              newDivesOnly: newDivesOnly,
+              sinceTimestamp: sinceTimestamp,
+            );
+
+          case 'mares':
+            return _downloadFromMares(
+              device: device,
+              newDivesOnly: newDivesOnly,
+              sinceTimestamp: sinceTimestamp,
+            );
+
+          default:
+            // Other BLE manufacturers not yet supported
+            throw DownloadException(
+              'BLE communication not yet implemented for ${model.manufacturer}. '
+              'Supported manufacturers: Shearwater, Suunto, Mares. '
+              'Device: ${model.fullName}',
+              phase: DownloadPhase.downloading,
+            );
+        }
 
       case DeviceConnectionType.bluetoothClassic:
         throw DownloadException(
@@ -333,6 +353,159 @@ class LibdcDownloadManager implements DownloadManager {
       }
 
       return downloadedDives;
+    } finally {
+      await protocol.disconnect();
+      protocol.dispose();
+    }
+  }
+
+  /// Download dives from a Suunto device using the native Dart BLE protocol.
+  Future<List<DownloadedDive>> _downloadFromSuunto({
+    required DiscoveredDevice device,
+    required bool newDivesOnly,
+    DateTime? sinceTimestamp,
+  }) async {
+    final bluetoothDevice = _connectionManager.bluetoothDevice;
+    if (bluetoothDevice == null) {
+      throw const DownloadException(
+        'Bluetooth device not connected',
+        phase: DownloadPhase.connecting,
+      );
+    }
+
+    final protocol = SuuntoBleProtocol(bluetoothDevice);
+
+    try {
+      _updateProgress(
+        const DownloadProgress(
+          currentDive: 0,
+          totalDives: 0,
+          percentage: 0.15,
+          status: 'Discovering services...',
+          phase: DownloadPhase.enumerating,
+        ),
+      );
+      await protocol.connect();
+
+      if (_isCancelled) return [];
+
+      _updateProgress(
+        const DownloadProgress(
+          currentDive: 0,
+          totalDives: 0,
+          percentage: 0.2,
+          status: 'Reading dive manifest...',
+          phase: DownloadPhase.enumerating,
+        ),
+      );
+      final manifest = await protocol.downloadManifest();
+
+      if (_isCancelled) return [];
+
+      // Filter dives if needed
+      // Note: Suunto manifest doesn't have date info until we download
+      // So we download all and filter after parsing
+      final divesToDownload = manifest;
+
+      if (divesToDownload.isEmpty) {
+        return [];
+      }
+
+      final downloadedDives = <DownloadedDive>[];
+
+      for (int i = 0; i < divesToDownload.length; i++) {
+        if (_isCancelled) break;
+
+        final entry = divesToDownload[i];
+
+        _updateProgress(
+          DownloadProgress(
+            currentDive: i + 1,
+            totalDives: divesToDownload.length,
+            percentage: 0.2 + (0.7 * (i / divesToDownload.length)),
+            status: 'Downloading dive ${entry.diveNumber}...',
+            phase: DownloadPhase.downloading,
+          ),
+        );
+
+        final dive = await protocol.downloadDive(entry);
+
+        // Filter by timestamp if needed
+        if (newDivesOnly && sinceTimestamp != null) {
+          if (dive.startTime.isBefore(sinceTimestamp)) {
+            continue;
+          }
+        }
+
+        downloadedDives.add(dive);
+        _divesController.add(dive);
+      }
+
+      return downloadedDives;
+    } finally {
+      await protocol.disconnect();
+      protocol.dispose();
+    }
+  }
+
+  /// Download dives from a Mares device using the native Dart BLE protocol.
+  Future<List<DownloadedDive>> _downloadFromMares({
+    required DiscoveredDevice device,
+    required bool newDivesOnly,
+    DateTime? sinceTimestamp,
+  }) async {
+    final bluetoothDevice = _connectionManager.bluetoothDevice;
+    if (bluetoothDevice == null) {
+      throw const DownloadException(
+        'Bluetooth device not connected',
+        phase: DownloadPhase.connecting,
+      );
+    }
+
+    final protocol = MaresBleProtocol(bluetoothDevice);
+
+    try {
+      _updateProgress(
+        const DownloadProgress(
+          currentDive: 0,
+          totalDives: 0,
+          percentage: 0.15,
+          status: 'Discovering services...',
+          phase: DownloadPhase.enumerating,
+        ),
+      );
+      await protocol.connect();
+
+      if (_isCancelled) return [];
+
+      _updateProgress(
+        const DownloadProgress(
+          currentDive: 0,
+          totalDives: 0,
+          percentage: 0.2,
+          status: 'Downloading dive data...',
+          phase: DownloadPhase.downloading,
+        ),
+      );
+
+      // Mares downloads all dives at once from memory
+      final dives = await protocol.downloadDives();
+
+      if (_isCancelled) return [];
+
+      // Filter by timestamp if needed
+      var filteredDives = dives;
+      if (newDivesOnly && sinceTimestamp != null) {
+        filteredDives = dives
+            .where((dive) => dive.startTime.isAfter(sinceTimestamp))
+            .toList();
+      }
+
+      for (final dive in filteredDives) {
+        _divesController.add(dive);
+      }
+
+      return filteredDives;
     } finally {
       await protocol.disconnect();
       protocol.dispose();
