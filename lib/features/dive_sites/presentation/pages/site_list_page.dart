@@ -154,6 +154,25 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
                   tooltip: 'Map View',
                   onPressed: () => context.push('/sites/map'),
                 ),
+                PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_vert),
+                  onSelected: (value) {
+                    switch (value) {
+                      case 'import':
+                        context.push('/sites/import');
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'import',
+                      child: ListTile(
+                        leading: Icon(Icons.travel_explore),
+                        title: Text('Import from Online'),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
       body: sitesAsync.when(
@@ -279,6 +298,12 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
             onPressed: () => context.push('/sites/new'),
             icon: const Icon(Icons.add_location),
             label: const Text('Add Your First Site'),
+          ),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: () => context.push('/sites/import'),
+            icon: const Icon(Icons.travel_explore),
+            label: const Text('Import from Online'),
           ),
         ],
       ),

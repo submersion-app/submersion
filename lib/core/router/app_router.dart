@@ -21,6 +21,7 @@ import '../../features/dive_log/presentation/pages/dive_edit_page.dart';
 import '../../features/dive_sites/presentation/pages/site_list_page.dart';
 import '../../features/dive_sites/presentation/pages/site_detail_page.dart';
 import '../../features/dive_sites/presentation/pages/site_edit_page.dart';
+import '../../features/dive_sites/presentation/pages/site_import_page.dart';
 import '../../features/dive_sites/presentation/pages/site_map_page.dart';
 import '../../features/equipment/presentation/pages/equipment_list_page.dart';
 import '../../features/equipment/presentation/pages/equipment_detail_page.dart';
@@ -125,6 +126,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'map',
                 name: 'sitesMap',
                 builder: (context, state) => const SiteMapPage(),
+              ),
+              GoRoute(
+                path: 'import',
+                name: 'importSite',
+                builder: (context, state) => const SiteImportPage(),
               ),
               GoRoute(
                 path: 'new',

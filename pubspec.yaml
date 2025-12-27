@@ -38,6 +38,9 @@ dependencies:
   cached_network_image: ^3.4.1
   photo_view: ^0.15.0
 
+  # Networking
+  http: ^1.2.2
+
   # Platform Integration
   flutter_blue_plus: ^1.32.12
   dive_computer: ^0.1.0-dev.2  # libdivecomputer FFI wrapper
