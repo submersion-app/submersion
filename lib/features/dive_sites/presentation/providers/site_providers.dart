@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../divers/presentation/providers/diver_providers.dart';
 import '../../data/repositories/site_repository_impl.dart';
+import '../../data/services/dive_site_api_service.dart';
 import '../../domain/entities/dive_site.dart' as domain;
 
 /// Repository provider
@@ -144,3 +145,161 @@ final siteListNotifierProvider =
   final repository = ref.watch(siteRepositoryProvider);
   return SiteListNotifier(repository, ref);
 });
+
+// ============================================================================
+// External Dive Site API Providers
+// ============================================================================
+
+/// Provider for the dive site API service.
+final diveSiteApiServiceProvider = Provider<DiveSiteApiService>((ref) {
+  return DiveSiteApiService();
+});
+
+/// State for external dive site search.
+class ExternalSiteSearchState {
+  final String query;
+  final bool isLoading;
+  final DiveSiteSearchResult? result;
+  final String? errorMessage;
+
+  const ExternalSiteSearchState({
+    this.query = '',
+    this.isLoading = false,
+    this.result,
+    this.errorMessage,
+  });
+
+  ExternalSiteSearchState copyWith({
+    String? query,
+    bool? isLoading,
+    DiveSiteSearchResult? result,
+    String? errorMessage,
+    bool clearError = false,
+  }) {
+    return ExternalSiteSearchState(
+      query: query ?? this.query,
+      isLoading: isLoading ?? this.isLoading,
+      result: result ?? this.result,
+      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+    );
+  }
+
+  List<ExternalDiveSite> get sites => result?.sites ?? [];
+  bool get hasResults => sites.isNotEmpty;
+  bool get hasError => errorMessage != null;
+}
+
+/// Notifier for searching external dive site APIs.
+class ExternalSiteSearchNotifier extends StateNotifier<ExternalSiteSearchState> {
+  final DiveSiteApiService _apiService;
+  final SiteListNotifier _siteListNotifier;
+  final Ref _ref;
+
+  ExternalSiteSearchNotifier(
+    this._apiService,
+    this._siteListNotifier,
+    this._ref,
+  ) : super(const ExternalSiteSearchState());
+
+  /// Search for dive sites by query.
+  Future<void> search(String query) async {
+    if (query.trim().isEmpty) {
+      state = const ExternalSiteSearchState();
+      return;
+    }
+
+    state = state.copyWith(
+      query: query,
+      isLoading: true,
+      clearError: true,
+    );
+
+    try {
+      final result = await _apiService.searchSites(query);
+
+      if (result.isSuccess) {
+        state = state.copyWith(
+          isLoading: false,
+          result: result,
+        );
+      } else {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: result.errorMessage ?? 'Search failed',
+        );
+      }
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'Search error: $e',
+      );
+    }
+  }
+
+  /// Search for dive sites by country.
+  Future<void> searchByCountry(String country) async {
+    state = state.copyWith(
+      query: country,
+      isLoading: true,
+      clearError: true,
+    );
+
+    try {
+      final result = await _apiService.searchByCountry(country);
+
+      if (result.isSuccess) {
+        state = state.copyWith(
+          isLoading: false,
+          result: result,
+        );
+      } else {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: result.errorMessage ?? 'Search failed',
+        );
+      }
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'Search error: $e',
+      );
+    }
+  }
+
+  /// Import an external dive site into the local database.
+  Future<domain.DiveSite?> importSite(ExternalDiveSite externalSite) async {
+    try {
+      // Get the validated diver ID
+      final validatedDiverId =
+          await _ref.read(validatedCurrentDiverIdProvider.future);
+
+      // Convert to local dive site
+      final site = externalSite.toDiveSite(diverId: validatedDiverId);
+
+      // Save to database
+      final savedSite = await _siteListNotifier.addSite(site);
+
+      return savedSite;
+    } catch (e) {
+      state = state.copyWith(
+        errorMessage: 'Failed to import site: $e',
+      );
+      return null;
+    }
+  }
+
+  /// Clear search results.
+  void clear() {
+    state = const ExternalSiteSearchState();
+  }
+}
+
+/// Provider for external site search.
+final externalSiteSearchProvider =
+    StateNotifierProvider<ExternalSiteSearchNotifier, ExternalSiteSearchState>(
+  (ref) {
+    final apiService = ref.watch(diveSiteApiServiceProvider);
+    final siteListNotifier = ref.watch(siteListNotifierProvider.notifier);
+    return ExternalSiteSearchNotifier(apiService, siteListNotifier, ref);
+  },
+);
