@@ -139,7 +139,13 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
   }
 
   /// Start downloading dives from the connected device.
-  Future<DownloadResult> startDownload(DiscoveredDevice device) async {
+  ///
+  /// If [computer] is provided and [newDivesOnly] is true, uses the
+  /// computer's last download timestamp for incremental downloads.
+  Future<DownloadResult> startDownload(
+    DiscoveredDevice device, {
+    DiveComputer? computer,
+  }) async {
     try {
       state = state.copyWith(
         phase: DownloadPhase.connecting,
@@ -176,10 +182,17 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
         );
       });
 
-      // Start download
+      // Get the last download timestamp for incremental downloads
+      DateTime? sinceTimestamp;
+      if (state.newDivesOnly && computer?.lastDownload != null) {
+        sinceTimestamp = computer!.lastDownload;
+      }
+
+      // Start download with optional timestamp filter
       final result = await _downloadManager.downloadDives(
         device: device,
         newDivesOnly: state.newDivesOnly,
+        sinceTimestamp: sinceTimestamp,
       );
 
       if (result.success) {
@@ -279,4 +292,18 @@ final isDownloadingProvider = Provider<bool>((ref) {
 final downloadPercentageProvider = Provider<double>((ref) {
   final state = ref.watch(downloadNotifierProvider);
   return state.progress?.percentage ?? 0.0;
+});
+
+/// Provider for dive computer statistics.
+final computerStatsProvider =
+    FutureProvider.family<DiveComputerStats, String>((ref, computerId) async {
+  final repository = ref.watch(diveComputerRepositoryProvider);
+  return repository.getComputerStats(computerId);
+});
+
+/// Provider for dive IDs imported from a specific computer.
+final computerDiveIdsProvider =
+    FutureProvider.family<List<String>, String>((ref, computerId) async {
+  final repository = ref.watch(diveComputerRepositoryProvider);
+  return repository.getDiveIdsForComputer(computerId);
 });

@@ -345,10 +345,35 @@ class DiveComputerRepository {
   /// [profileStartTime] - The start time of the profile being imported
   /// [toleranceMinutes] - Time window for matching (default 5 minutes)
   /// [durationSeconds] - Expected duration to help with matching
+  /// [maxDepth] - Maximum depth to help with matching
   Future<String?> findMatchingDive({
     required DateTime profileStartTime,
     int toleranceMinutes = 5,
     int? durationSeconds,
+    double? maxDepth,
+  }) async {
+    try {
+      final match = await findMatchingDiveWithScore(
+        profileStartTime: profileStartTime,
+        toleranceMinutes: toleranceMinutes,
+        durationSeconds: durationSeconds,
+        maxDepth: maxDepth,
+      );
+      return match?.diveId;
+    } catch (e, stackTrace) {
+      _log.error('Failed to find matching dive for profile', e, stackTrace);
+      return null;
+    }
+  }
+
+  /// Find a dive that matches with detailed scoring information.
+  /// Returns a [DiveMatchResult] with the match details, or null if no match.
+  Future<DiveMatchResult?> findMatchingDiveWithScore({
+    required DateTime profileStartTime,
+    int toleranceMinutes = 5,
+    int? durationSeconds,
+    double? maxDepth,
+    String? fingerprint,
   }) async {
     try {
       final startMs = profileStartTime.millisecondsSinceEpoch;
@@ -357,13 +382,13 @@ class DiveComputerRepository {
       // Search for dives within the tolerance window
       final result = await _db.customSelect(
         '''
-        SELECT id, dive_date_time, entry_time, duration, ABS(
-          COALESCE(entry_time, dive_date_time) - ?
-        ) as time_diff
+        SELECT id, dive_date_time, entry_time, duration, max_depth,
+          COALESCE(entry_time, dive_date_time) as effective_time,
+          ABS(COALESCE(entry_time, dive_date_time) - ?) as time_diff
         FROM dives
         WHERE ABS(COALESCE(entry_time, dive_date_time) - ?) <= ?
         ORDER BY time_diff ASC
-        LIMIT 5
+        LIMIT 10
       ''',
         variables: [
           Variable(startMs),
@@ -374,25 +399,138 @@ class DiveComputerRepository {
 
       if (result.isEmpty) return null;
 
-      // If we have duration info, prefer the dive with closest matching duration
-      if (durationSeconds != null && result.length > 1) {
-        for (final row in result) {
-          final diveDuration = row.data['duration'] as int?;
-          if (diveDuration != null) {
-            final durationDiff = (diveDuration - durationSeconds).abs();
-            // Within 2 minutes of expected duration
-            if (durationDiff <= 120) {
-              return row.data['id'] as String;
-            }
-          }
+      // Score each candidate and find the best match
+      DiveMatchResult? bestMatch;
+      double bestScore = 0.0;
+
+      for (final row in result) {
+        final diveId = row.data['id'] as String;
+        final timeDiff = row.data['time_diff'] as int;
+        final diveDuration = row.data['duration'] as int?;
+        final diveMaxDepth = row.data['max_depth'] as double?;
+
+        // Calculate component scores
+        final timeScore = 1.0 - (timeDiff / toleranceMs).clamp(0.0, 1.0);
+        var durationScore = 1.0;
+        var depthScore = 1.0;
+        int? durationDiff;
+        double? depthDiff;
+
+        // Duration comparison (if available)
+        if (durationSeconds != null && diveDuration != null) {
+          durationDiff = (diveDuration - durationSeconds).abs();
+          // Score based on duration difference (within 5 min = 100%, 10 min = 0%)
+          durationScore = 1.0 - (durationDiff / 600).clamp(0.0, 1.0);
+        }
+
+        // Depth comparison (if available)
+        if (maxDepth != null && diveMaxDepth != null) {
+          depthDiff = (diveMaxDepth - maxDepth).abs();
+          // Score based on depth difference (within 0.5m = 100%, 5m = 0%)
+          depthScore = 1.0 - (depthDiff / 5.0).clamp(0.0, 1.0);
+        }
+
+        // Weighted composite score
+        // Time is most important (40%), then depth (35%), then duration (25%)
+        final score = (timeScore * 0.40) + (depthScore * 0.35) + (durationScore * 0.25);
+
+        if (score > bestScore) {
+          bestScore = score;
+          bestMatch = DiveMatchResult(
+            diveId: diveId,
+            score: score,
+            timeDifferenceMs: timeDiff,
+            durationDifferenceSeconds: durationDiff,
+            depthDifferenceMeters: depthDiff,
+          );
         }
       }
 
-      // Return the closest time match
-      return result.first.data['id'] as String;
-    } catch (e, stackTrace) {
-      _log.error('Failed to find matching dive for profile', e, stackTrace);
+      // Only return a match if score meets minimum threshold
+      if (bestMatch != null && bestMatch.score >= 0.5) {
+        return bestMatch;
+      }
+
       return null;
+    } catch (e, stackTrace) {
+      _log.error('Failed to find matching dive with score', e, stackTrace);
+      return null;
+    }
+  }
+
+  /// Get dive statistics for a specific computer.
+  Future<DiveComputerStats> getComputerStats(String computerId) async {
+    try {
+      // Get dives that have profiles from this computer
+      final statsResult = await _db.customSelect(
+        '''
+        SELECT
+          COUNT(DISTINCT d.id) as dive_count,
+          MIN(d.dive_date_time) as first_dive,
+          MAX(d.dive_date_time) as last_dive,
+          MAX(d.max_depth) as deepest,
+          MAX(d.duration) as longest_duration,
+          AVG(d.max_depth) as avg_depth,
+          AVG(d.duration) as avg_duration,
+          MIN(d.min_temperature) as coldest,
+          MAX(d.max_temperature) as warmest,
+          SUM(d.duration) as total_time
+        FROM dives d
+        INNER JOIN dive_profiles dp ON d.id = dp.dive_id
+        WHERE dp.computer_id = ?
+        GROUP BY dp.computer_id
+      ''',
+        variables: [Variable(computerId)],
+      ).getSingleOrNull();
+
+      if (statsResult == null) {
+        return DiveComputerStats.empty();
+      }
+
+      final data = statsResult.data;
+      return DiveComputerStats(
+        diveCount: data['dive_count'] as int? ?? 0,
+        firstDive: data['first_dive'] != null
+            ? DateTime.fromMillisecondsSinceEpoch(data['first_dive'] as int)
+            : null,
+        lastDive: data['last_dive'] != null
+            ? DateTime.fromMillisecondsSinceEpoch(data['last_dive'] as int)
+            : null,
+        deepestDive: data['deepest'] as double?,
+        longestDuration: data['longest_duration'] as int?,
+        avgDepth: data['avg_depth'] as double?,
+        avgDuration: (data['avg_duration'] as num?)?.toDouble(),
+        coldestTemp: data['coldest'] as double?,
+        warmestTemp: data['warmest'] as double?,
+        totalBottomTime: data['total_time'] as int?,
+      );
+    } catch (e, stackTrace) {
+      _log.error('Failed to get computer stats: $computerId', e, stackTrace);
+      return DiveComputerStats.empty();
+    }
+  }
+
+  /// Get dive IDs that were imported from a specific computer.
+  Future<List<String>> getDiveIdsForComputer(String computerId, {int? limit}) async {
+    try {
+      final query = '''
+        SELECT DISTINCT d.id, d.dive_date_time
+        FROM dives d
+        INNER JOIN dive_profiles dp ON d.id = dp.dive_id
+        WHERE dp.computer_id = ?
+        ORDER BY d.dive_date_time DESC
+        ${limit != null ? 'LIMIT $limit' : ''}
+      ''';
+
+      final result = await _db.customSelect(
+        query,
+        variables: [Variable(computerId)],
+      ).get();
+
+      return result.map((row) => row.data['id'] as String).toList();
+    } catch (e, stackTrace) {
+      _log.error('Failed to get dive ids for computer: $computerId', e, stackTrace);
+      return [];
     }
   }
 
@@ -689,4 +827,123 @@ class TankData {
     this.endPressure,
     this.volumeLiters,
   });
+}
+
+/// Result of duplicate dive matching with scoring.
+class DiveMatchResult {
+  /// ID of the matching dive
+  final String diveId;
+
+  /// Match score from 0.0 to 1.0
+  final double score;
+
+  /// Time difference in milliseconds
+  final int timeDifferenceMs;
+
+  /// Duration difference in seconds (if compared)
+  final int? durationDifferenceSeconds;
+
+  /// Depth difference in meters (if compared)
+  final double? depthDifferenceMeters;
+
+  const DiveMatchResult({
+    required this.diveId,
+    required this.score,
+    required this.timeDifferenceMs,
+    this.durationDifferenceSeconds,
+    this.depthDifferenceMeters,
+  });
+
+  /// Time difference as Duration
+  Duration get timeDifference => Duration(milliseconds: timeDifferenceMs);
+
+  /// Whether this is a high-confidence match (score >= 0.8)
+  bool get isHighConfidence => score >= 0.8;
+
+  /// Whether this is a likely match (score >= 0.6)
+  bool get isLikelyMatch => score >= 0.6;
+
+  /// Human-readable confidence level
+  String get confidenceLevel {
+    if (score >= 0.9) return 'Exact';
+    if (score >= 0.8) return 'Very Likely';
+    if (score >= 0.6) return 'Likely';
+    if (score >= 0.5) return 'Possible';
+    return 'Unlikely';
+  }
+}
+
+/// Statistics for dives imported from a specific dive computer.
+class DiveComputerStats {
+  /// Number of dives imported from this computer
+  final int diveCount;
+
+  /// Date of the first dive
+  final DateTime? firstDive;
+
+  /// Date of the last/most recent dive
+  final DateTime? lastDive;
+
+  /// Maximum depth across all dives (meters)
+  final double? deepestDive;
+
+  /// Longest dive duration (seconds)
+  final int? longestDuration;
+
+  /// Average maximum depth (meters)
+  final double? avgDepth;
+
+  /// Average dive duration (seconds)
+  final double? avgDuration;
+
+  /// Coldest water temperature (Celsius)
+  final double? coldestTemp;
+
+  /// Warmest water temperature (Celsius)
+  final double? warmestTemp;
+
+  /// Total bottom time across all dives (seconds)
+  final int? totalBottomTime;
+
+  const DiveComputerStats({
+    required this.diveCount,
+    this.firstDive,
+    this.lastDive,
+    this.deepestDive,
+    this.longestDuration,
+    this.avgDepth,
+    this.avgDuration,
+    this.coldestTemp,
+    this.warmestTemp,
+    this.totalBottomTime,
+  });
+
+  /// Empty stats for computers with no dives
+  factory DiveComputerStats.empty() => const DiveComputerStats(diveCount: 0);
+
+  /// Whether there are any stats to display
+  bool get hasStats => diveCount > 0;
+
+  /// Total bottom time as Duration
+  Duration? get totalBottomTimeDuration =>
+      totalBottomTime != null ? Duration(seconds: totalBottomTime!) : null;
+
+  /// Longest duration as Duration
+  Duration? get longestDurationDuration =>
+      longestDuration != null ? Duration(seconds: longestDuration!) : null;
+
+  /// Average duration as Duration
+  Duration? get avgDurationDuration =>
+      avgDuration != null ? Duration(seconds: avgDuration!.round()) : null;
+
+  /// Format total bottom time as hours:minutes
+  String get totalBottomTimeFormatted {
+    if (totalBottomTime == null) return '--';
+    final hours = totalBottomTime! ~/ 3600;
+    final minutes = (totalBottomTime! % 3600) ~/ 60;
+    if (hours > 0) {
+      return '${hours}h ${minutes}m';
+    }
+    return '${minutes}m';
+  }
 }

@@ -1,11 +1,11 @@
 # Submersion Feature Roadmap
 ## Comprehensive Development Plan
 
-> **Last Updated:** 2025-12-19
+> **Last Updated:** 2025-12-29
 > **Current Version:** 1.1.0 (v1.1 Complete)
 > **Status:** v1.0 ✅ COMPLETE | v1.1 ✅ COMPLETE | v1.5 🚧 In Progress
 >
-> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete - Bühlmann ZH-L16C deco algorithm, CNS/OTU O₂ toxicity tracking, ascent rate monitoring, multi-computer support, 141 unit tests
+> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete - libdivecomputer FFI, BLE/USB scanning, 300+ device library, duplicate detection, incremental downloads, device stats
 
 ---
 
@@ -172,18 +172,18 @@
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| USB cable transfers | 📋 Planned | v1.5 | Via libdivecomputer |
-| Bluetooth Classic | 📋 Planned | v1.5 | flutter_blue_plus |
-| Bluetooth LE (BLE) | 📋 Planned | v1.5 | flutter_blue_plus |
+| USB cable transfers | ✅ Implemented | v1.5 | Via libdivecomputer FFI |
+| Bluetooth Classic | ✅ Implemented | v1.5 | flutter_blue_plus |
+| Bluetooth LE (BLE) | ✅ Implemented | v1.5 | flutter_blue_plus with manufacturer protocols |
 | Infrared (legacy) | 🔮 Future | v3.0 | Limited hardware support |
 | Wi-Fi / cloud devices | 📋 Planned | v2.0 | Garmin, Shearwater cloud API |
 
 **v1.5 Tasks (Critical Path):**
-- [ ] Integrate libdivecomputer via FFI (Dart bindings to C library)
-- [ ] Device detection and pairing UI
-- [ ] Bluetooth connection manager (scanning, pairing, reconnection)
-- [ ] USB device enumeration and selection
-- [ ] Progress indicator during download (% complete, dive count)
+- [x] Integrate libdivecomputer via FFI (Dart bindings to C library)
+- [x] Device detection and pairing UI (multi-step wizard)
+- [x] Bluetooth connection manager (scanning, pairing, reconnection)
+- [x] USB device enumeration and selection
+- [x] Progress indicator during download (% complete, dive count)
 
 ---
 
@@ -191,15 +191,16 @@
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| 300+ dive computer models | 📋 Planned | v1.5 | Via libdivecomputer |
-| Per-device presets | 📋 Planned | v1.5 | Save connection settings |
-| Favorite devices | 📋 Planned | v1.5 | Quick-select dropdown |
+| 300+ dive computer models | ✅ Implemented | v1.5 | Via libdivecomputer + device library |
+| Per-device presets | ✅ Implemented | v1.5 | Save connection settings |
+| Favorite devices | ✅ Implemented | v1.5 | Device list page with quick access |
 
 **v1.5 Tasks:**
-- [ ] Create `dive_computers` table (name, manufacturer, model, connection_type, last_used)
-- [ ] Device library with 300+ model definitions from libdivecomputer
-- [ ] Auto-detection of device model via USB VID/PID or BT service UUID
-- [ ] Device configuration persistence (COM port, BT address, connection params)
+- [x] Create `dive_computers` table (name, manufacturer, model, connection_type, last_used)
+- [x] Device library with 300+ model definitions from libdivecomputer
+- [x] Auto-detection of device model via USB VID/PID or BT service UUID
+- [x] Device configuration persistence (BT address, connection params)
+- [x] Manufacturer-specific BLE protocols (Aqualung, Shearwater, Mares, Suunto)
 
 ---
 
@@ -207,16 +208,16 @@
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Download new dives only | 📋 Planned | v1.5 | Track last download timestamp |
-| Force download all | 📋 Planned | v1.5 | Override with checkbox |
+| Download new dives only | ✅ Implemented | v1.5 | Uses lastDownload timestamp |
+| Force download all | ✅ Implemented | v1.5 | Toggle in download settings |
 | Auto-download when connected | 📋 Planned | v2.0 | Background sync |
-| Duplicate detection | 📋 Planned | v1.5 | Match by date+time+depth |
+| Duplicate detection | ✅ Implemented | v1.5 | Fuzzy match on time+depth+duration |
 
 **v1.5 Tasks:**
-- [ ] Store `last_download_timestamp` per dive computer
-- [ ] Duplicate detection algorithm (fuzzy match on datetime + depth within tolerance)
-- [ ] "New Dives" vs "All Dives" toggle in download wizard
-- [ ] Conflict resolution UI (keep existing, replace, create duplicate)
+- [x] Store `last_download_timestamp` per dive computer
+- [x] Duplicate detection algorithm (fuzzy match on datetime + depth within tolerance)
+- [x] "New Dives" vs "All Dives" toggle in download wizard
+- [x] Conflict resolution (skip, replace, import as new)
 
 **v2.0 Tasks:**
 - [ ] Background BLE scanning and auto-download (mobile)
@@ -228,15 +229,15 @@
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Rename dive computers | 📋 Planned | v1.5 | "Bob's Perdix", "Backup Computer" |
-| Associate dives with computer | 📋 Planned | v1.5 | Which computer recorded dive |
+| Rename dive computers | ✅ Implemented | v1.5 | Edit dialog in device detail |
+| Associate dives with computer | ✅ Implemented | v1.5 | computerId in dive_profiles table |
 | Firmware update via app | 📋 Planned | v2.0 | Shearwater-specific |
 | Remote configuration | 📋 Planned | v2.0 | Set gases, alarms, units |
 
 **v1.5 Tasks:**
-- [ ] Add `computer_id` to dives table (which device imported this dive)
-- [ ] Computer detail page showing all dives from that device
-- [ ] Computer stats (total dives, last used, battery level if available)
+- [x] Add `computer_id` to dives table (which device imported this dive)
+- [x] Computer detail page showing all dives from that device
+- [x] Computer stats (total dives, deepest, longest, avg depth, temp range, date range)
 
 **v2.0 Tasks:**
 - [ ] Firmware update wizard (download firmware, flash via BLE)
@@ -1132,12 +1133,17 @@
 - [x] Integration and performance tests
 
 ## v1.5 (In Progress)
-- [ ] Dive computer import (50+ models)
+- [x] Dive computer connectivity (libdivecomputer FFI, BLE, USB)
+- [x] 300+ dive computer models supported
+- [x] Manufacturer BLE protocols (Aqualung, Shearwater, Mares, Suunto)
 - [x] Bühlmann ZH-L16C algorithm implemented (141 unit tests)
 - [x] Profile analysis with deco ceiling, NDL, tissue loading
 - [x] O₂ toxicity tracking (CNS%, OTU, ppO₂)
 - [x] Ascent rate monitoring with warnings
 - [x] Multi-computer/profile support
+- [x] Duplicate dive detection (fuzzy match on time+depth+duration)
+- [x] Incremental downloads (uses lastDownload timestamp)
+- [x] Device stats page (deepest, longest, avg depth, temp range)
 - [ ] Dive planner with deco schedules
 - [ ] Performance with 5000+ dives
 
@@ -1177,5 +1183,5 @@
 
 ---
 
-**Document Version:** 2.1
-**Last Updated:** 2025-12-19
+**Document Version:** 2.3
+**Last Updated:** 2025-12-29

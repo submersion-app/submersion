@@ -278,25 +278,40 @@ class DiveImportService {
     double timeTolerance = 5.0, // minutes
     double depthTolerance = 0.5, // meters
   }) async {
-    // Use the repository's findMatchingDive with enhanced logic
-    final matchingDiveId = await _repository.findMatchingDive(
+    // Use the repository's enhanced matching with scoring
+    final match = await _repository.findMatchingDiveWithScore(
       profileStartTime: dive.startTime,
       toleranceMinutes: timeTolerance.round(),
       durationSeconds: dive.durationSeconds,
+      maxDepth: dive.maxDepth,
+      fingerprint: dive.fingerprint,
     );
 
-    if (matchingDiveId == null) {
+    if (match == null) {
       return DuplicateResult.noMatch();
     }
 
-    // Calculate match score
-    // For now, we return a likely match since we found something
-    // In a full implementation, we'd compare more fields
+    // Convert score to confidence level
+    final confidence = _scoreToConfidence(match.score);
+
+    // Convert time difference from ms to seconds
+    final timeDiffSeconds = match.timeDifferenceMs ~/ 1000;
+
     return DuplicateResult(
-      matchingDiveId: matchingDiveId,
-      confidence: DuplicateConfidence.likely,
-      score: 0.8,
+      matchingDiveId: match.diveId,
+      confidence: confidence,
+      score: match.score,
+      timeDifferenceSeconds: timeDiffSeconds,
+      depthDifferenceMeters: match.depthDifferenceMeters,
     );
+  }
+
+  /// Convert a numeric score to a confidence level.
+  DuplicateConfidence _scoreToConfidence(double score) {
+    if (score >= 0.9) return DuplicateConfidence.exact;
+    if (score >= 0.7) return DuplicateConfidence.likely;
+    if (score >= 0.5) return DuplicateConfidence.possible;
+    return DuplicateConfidence.none;
   }
 
   /// Import a downloaded dive as a new dive.
