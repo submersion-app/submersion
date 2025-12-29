@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
+import '../../../../features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import '../../../../features/dive_log/domain/entities/dive_computer.dart';
 import '../../../../features/dive_log/presentation/providers/dive_computer_providers.dart';
+import '../providers/download_providers.dart';
 
 /// Page displaying details about a specific dive computer.
 class DeviceDetailPage extends ConsumerWidget {
@@ -94,7 +97,7 @@ class DeviceDetailPage extends ConsumerWidget {
           children: [
             _buildInfoCard(context, computer, colorScheme),
             const SizedBox(height: 16),
-            _buildStatsCard(context, computer, colorScheme),
+            _buildStatsCard(context, ref, computer, colorScheme),
             const SizedBox(height: 16),
             _buildActionsCard(context, computer, colorScheme),
             if (computer.notes.isNotEmpty) ...[
@@ -210,10 +213,12 @@ class DeviceDetailPage extends ConsumerWidget {
 
   Widget _buildStatsCard(
     BuildContext context,
+    WidgetRef ref,
     DiveComputer computer,
     ColorScheme colorScheme,
   ) {
     final theme = Theme.of(context);
+    final statsAsync = ref.watch(computerStatsProvider(computer.id));
 
     return Card(
       child: Padding(
@@ -226,6 +231,7 @@ class DeviceDetailPage extends ConsumerWidget {
               style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 16),
+            // Basic stats row
             Row(
               children: [
                 Expanded(
@@ -233,7 +239,7 @@ class DeviceDetailPage extends ConsumerWidget {
                     context,
                     Icons.scuba_diving,
                     '${computer.diveCount}',
-                    'Dives',
+                    'Dives Imported',
                     colorScheme,
                   ),
                 ),
@@ -248,10 +254,199 @@ class DeviceDetailPage extends ConsumerWidget {
                 ),
               ],
             ),
+            // Detailed stats from database
+            statsAsync.when(
+              data: (stats) {
+                if (!stats.hasStats) {
+                  return const SizedBox.shrink();
+                }
+                return Column(
+                  children: [
+                    const SizedBox(height: 16),
+                    const Divider(),
+                    const SizedBox(height: 16),
+                    _buildDetailedStats(context, stats, colorScheme),
+                  ],
+                );
+              },
+              loading: () => const Padding(
+                padding: EdgeInsets.only(top: 16),
+                child: Center(
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+              ),
+              error: (_, __) => const SizedBox.shrink(),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildDetailedStats(
+    BuildContext context,
+    DiveComputerStats stats,
+    ColorScheme colorScheme,
+  ) {
+    final theme = Theme.of(context);
+    final dateFormat = DateFormat.yMMMd();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Depth and Duration row
+        Row(
+          children: [
+            Expanded(
+              child: _buildStatItem(
+                context,
+                Icons.arrow_downward,
+                stats.deepestDive != null
+                    ? '${stats.deepestDive!.toStringAsFixed(1)}m'
+                    : '--',
+                'Deepest',
+                colorScheme,
+              ),
+            ),
+            Expanded(
+              child: _buildStatItem(
+                context,
+                Icons.timer,
+                stats.longestDuration != null
+                    ? _formatDuration(stats.longestDuration!)
+                    : '--',
+                'Longest',
+                colorScheme,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        // Averages row
+        Row(
+          children: [
+            Expanded(
+              child: _buildStatItem(
+                context,
+                Icons.show_chart,
+                stats.avgDepth != null
+                    ? '${stats.avgDepth!.toStringAsFixed(1)}m'
+                    : '--',
+                'Avg Depth',
+                colorScheme,
+              ),
+            ),
+            Expanded(
+              child: _buildStatItem(
+                context,
+                Icons.access_time,
+                stats.totalBottomTimeFormatted,
+                'Total Time',
+                colorScheme,
+              ),
+            ),
+          ],
+        ),
+        // Temperature row (if available)
+        if (stats.coldestTemp != null || stats.warmestTemp != null) ...[
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _buildStatItem(
+                  context,
+                  Icons.thermostat,
+                  stats.coldestTemp != null
+                      ? '${stats.coldestTemp!.toStringAsFixed(0)}°C'
+                      : '--',
+                  'Coldest',
+                  colorScheme,
+                ),
+              ),
+              Expanded(
+                child: _buildStatItem(
+                  context,
+                  Icons.thermostat,
+                  stats.warmestTemp != null
+                      ? '${stats.warmestTemp!.toStringAsFixed(0)}°C'
+                      : '--',
+                  'Warmest',
+                  colorScheme,
+                ),
+              ),
+            ],
+          ),
+        ],
+        // Date range
+        if (stats.firstDive != null || stats.lastDive != null) ...[
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'First Dive',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    Text(
+                      stats.firstDive != null
+                          ? dateFormat.format(stats.firstDive!)
+                          : '--',
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                  ],
+                ),
+                Icon(
+                  Icons.arrow_forward,
+                  color: colorScheme.onSurfaceVariant,
+                  size: 16,
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      'Last Dive',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    Text(
+                      stats.lastDive != null
+                          ? dateFormat.format(stats.lastDive!)
+                          : '--',
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  String _formatDuration(int seconds) {
+    final hours = seconds ~/ 3600;
+    final minutes = (seconds % 3600) ~/ 60;
+    if (hours > 0) {
+      return '${hours}h ${minutes}m';
+    }
+    return '${minutes}m';
   }
 
   Widget _buildStatItem(
