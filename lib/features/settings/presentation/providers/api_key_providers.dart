@@ -1,104 +1,149 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-/// Keys for secure storage of API credentials.
+/// Keys for storage of API credentials.
 class ApiKeyConstants {
   static const String openWeatherMapKey = 'openweathermap_api_key';
   static const String worldTidesKey = 'worldtides_api_key';
+  static const String rapidApiKey = 'rapidapi_api_key';
 }
-
-/// Secure storage provider.
-final secureStorageProvider = Provider<FlutterSecureStorage>((ref) {
-  return const FlutterSecureStorage(
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
-    iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
-  );
-});
 
 /// State for API keys.
 class ApiKeyState {
   final String? openWeatherMapKey;
   final String? worldTidesKey;
+  final String? rapidApiKey;
   final bool isLoading;
 
   const ApiKeyState({
     this.openWeatherMapKey,
     this.worldTidesKey,
+    this.rapidApiKey,
     this.isLoading = false,
   });
 
   bool get hasWeatherKey => openWeatherMapKey?.isNotEmpty == true;
   bool get hasTideKey => worldTidesKey?.isNotEmpty == true;
-  bool get hasAnyKey => hasWeatherKey || hasTideKey;
-
-  ApiKeyState copyWith({
-    String? openWeatherMapKey,
-    String? worldTidesKey,
-    bool? isLoading,
-  }) {
-    return ApiKeyState(
-      openWeatherMapKey: openWeatherMapKey ?? this.openWeatherMapKey,
-      worldTidesKey: worldTidesKey ?? this.worldTidesKey,
-      isLoading: isLoading ?? this.isLoading,
-    );
-  }
+  bool get hasRapidApiKey => rapidApiKey?.isNotEmpty == true;
+  bool get hasAnyKey => hasWeatherKey || hasTideKey || hasRapidApiKey;
 }
 
-/// StateNotifier for managing API keys with secure storage.
+/// StateNotifier for managing API keys with SharedPreferences.
 class ApiKeyNotifier extends StateNotifier<ApiKeyState> {
-  final FlutterSecureStorage _storage;
-
-  ApiKeyNotifier(this._storage) : super(const ApiKeyState(isLoading: true)) {
+  ApiKeyNotifier() : super(const ApiKeyState(isLoading: true)) {
     _loadKeys();
   }
 
   Future<void> _loadKeys() async {
     try {
-      final weatherKey = await _storage.read(key: ApiKeyConstants.openWeatherMapKey);
-      final tideKey = await _storage.read(key: ApiKeyConstants.worldTidesKey);
+      final prefs = await SharedPreferences.getInstance();
+      final weatherKey = prefs.getString(ApiKeyConstants.openWeatherMapKey);
+      final tideKey = prefs.getString(ApiKeyConstants.worldTidesKey);
+      final rapidKey = prefs.getString(ApiKeyConstants.rapidApiKey);
 
       state = ApiKeyState(
         openWeatherMapKey: weatherKey,
         worldTidesKey: tideKey,
+        rapidApiKey: rapidKey,
         isLoading: false,
       );
     } catch (e) {
-      // If secure storage fails, continue with empty keys
+      // If storage fails, continue with empty keys
       state = const ApiKeyState(isLoading: false);
     }
   }
 
-  Future<void> setOpenWeatherMapKey(String? key) async {
-    if (key == null || key.isEmpty) {
-      await _storage.delete(key: ApiKeyConstants.openWeatherMapKey);
-      state = state.copyWith(openWeatherMapKey: null);
-    } else {
-      await _storage.write(key: ApiKeyConstants.openWeatherMapKey, value: key);
-      state = state.copyWith(openWeatherMapKey: key);
+  Future<(bool, String?)> setOpenWeatherMapKey(String? key) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (key == null || key.isEmpty) {
+        await prefs.remove(ApiKeyConstants.openWeatherMapKey);
+        state = ApiKeyState(
+          openWeatherMapKey: null,
+          worldTidesKey: state.worldTidesKey,
+          rapidApiKey: state.rapidApiKey,
+          isLoading: false,
+        );
+      } else {
+        await prefs.setString(ApiKeyConstants.openWeatherMapKey, key);
+        state = ApiKeyState(
+          openWeatherMapKey: key,
+          worldTidesKey: state.worldTidesKey,
+          rapidApiKey: state.rapidApiKey,
+          isLoading: false,
+        );
+      }
+      return (true, null);
+    } catch (e) {
+      return (false, 'Failed to save: $e');
     }
   }
 
-  Future<void> setWorldTidesKey(String? key) async {
-    if (key == null || key.isEmpty) {
-      await _storage.delete(key: ApiKeyConstants.worldTidesKey);
-      state = state.copyWith(worldTidesKey: null);
-    } else {
-      await _storage.write(key: ApiKeyConstants.worldTidesKey, value: key);
-      state = state.copyWith(worldTidesKey: key);
+  Future<(bool, String?)> setWorldTidesKey(String? key) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (key == null || key.isEmpty) {
+        await prefs.remove(ApiKeyConstants.worldTidesKey);
+        state = ApiKeyState(
+          openWeatherMapKey: state.openWeatherMapKey,
+          worldTidesKey: null,
+          rapidApiKey: state.rapidApiKey,
+          isLoading: false,
+        );
+      } else {
+        await prefs.setString(ApiKeyConstants.worldTidesKey, key);
+        state = ApiKeyState(
+          openWeatherMapKey: state.openWeatherMapKey,
+          worldTidesKey: key,
+          rapidApiKey: state.rapidApiKey,
+          isLoading: false,
+        );
+      }
+      return (true, null);
+    } catch (e) {
+      return (false, 'Failed to save: $e');
+    }
+  }
+
+  Future<(bool, String?)> setRapidApiKey(String? key) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (key == null || key.isEmpty) {
+        await prefs.remove(ApiKeyConstants.rapidApiKey);
+        state = ApiKeyState(
+          openWeatherMapKey: state.openWeatherMapKey,
+          worldTidesKey: state.worldTidesKey,
+          rapidApiKey: null,
+          isLoading: false,
+        );
+      } else {
+        await prefs.setString(ApiKeyConstants.rapidApiKey, key);
+        state = ApiKeyState(
+          openWeatherMapKey: state.openWeatherMapKey,
+          worldTidesKey: state.worldTidesKey,
+          rapidApiKey: key,
+          isLoading: false,
+        );
+      }
+      return (true, null);
+    } catch (e) {
+      return (false, 'Failed to save: $e');
     }
   }
 
   Future<void> clearAllKeys() async {
-    await _storage.delete(key: ApiKeyConstants.openWeatherMapKey);
-    await _storage.delete(key: ApiKeyConstants.worldTidesKey);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(ApiKeyConstants.openWeatherMapKey);
+    await prefs.remove(ApiKeyConstants.worldTidesKey);
+    await prefs.remove(ApiKeyConstants.rapidApiKey);
     state = const ApiKeyState(isLoading: false);
   }
 }
 
 /// Provider for API key state.
-final apiKeyProvider = StateNotifierProvider<ApiKeyNotifier, ApiKeyState>((ref) {
-  final storage = ref.watch(secureStorageProvider);
-  return ApiKeyNotifier(storage);
+final apiKeyProvider =
+    StateNotifierProvider<ApiKeyNotifier, ApiKeyState>((ref) {
+  return ApiKeyNotifier();
 });
 
 /// Convenience provider for checking if weather API is configured.
@@ -109,4 +154,14 @@ final hasWeatherApiKeyProvider = Provider<bool>((ref) {
 /// Convenience provider for checking if tide API is configured.
 final hasTideApiKeyProvider = Provider<bool>((ref) {
   return ref.watch(apiKeyProvider.select((s) => s.hasTideKey));
+});
+
+/// Convenience provider for checking if RapidAPI is configured.
+final hasRapidApiKeyProvider = Provider<bool>((ref) {
+  return ref.watch(apiKeyProvider.select((s) => s.hasRapidApiKey));
+});
+
+/// Convenience provider for getting the RapidAPI key.
+final rapidApiKeyProvider = Provider<String?>((ref) {
+  return ref.watch(apiKeyProvider.select((s) => s.rapidApiKey));
 });

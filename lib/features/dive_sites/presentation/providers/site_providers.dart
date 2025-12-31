@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../features/settings/presentation/providers/api_key_providers.dart';
 import '../../../divers/presentation/providers/diver_providers.dart';
 import '../../data/repositories/site_repository_impl.dart';
 import '../../data/services/dive_site_api_service.dart';
@@ -152,7 +153,10 @@ final siteListNotifierProvider =
 
 /// Provider for the dive site API service.
 final diveSiteApiServiceProvider = Provider<DiveSiteApiService>((ref) {
-  return DiveSiteApiService();
+  final rapidApiKey = ref.watch(rapidApiKeyProvider);
+  final service = DiveSiteApiService();
+  service.rapidApiKey = rapidApiKey;
+  return service;
 });
 
 /// State for external dive site search.
