@@ -165,12 +165,14 @@ class ExternalSiteSearchState {
   final bool isLoading;
   final DiveSiteSearchResult? result;
   final String? errorMessage;
+  final List<domain.DiveSite> localSites;
 
   const ExternalSiteSearchState({
     this.query = '',
     this.isLoading = false,
     this.result,
     this.errorMessage,
+    this.localSites = const [],
   });
 
   ExternalSiteSearchState copyWith({
@@ -179,29 +181,35 @@ class ExternalSiteSearchState {
     DiveSiteSearchResult? result,
     String? errorMessage,
     bool clearError = false,
+    List<domain.DiveSite>? localSites,
   }) {
     return ExternalSiteSearchState(
       query: query ?? this.query,
       isLoading: isLoading ?? this.isLoading,
       result: result ?? this.result,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      localSites: localSites ?? this.localSites,
     );
   }
 
   List<ExternalDiveSite> get sites => result?.sites ?? [];
-  bool get hasResults => sites.isNotEmpty;
+  bool get hasResults => sites.isNotEmpty || localSites.isNotEmpty;
   bool get hasError => errorMessage != null;
+  bool get hasLocalResults => localSites.isNotEmpty;
+  bool get hasExternalResults => sites.isNotEmpty;
 }
 
 /// Notifier for searching external dive site APIs.
 class ExternalSiteSearchNotifier extends StateNotifier<ExternalSiteSearchState> {
   final DiveSiteApiService _apiService;
   final SiteListNotifier _siteListNotifier;
+  final SiteRepository _siteRepository;
   final Ref _ref;
 
   ExternalSiteSearchNotifier(
     this._apiService,
     this._siteListNotifier,
+    this._siteRepository,
     this._ref,
   ) : super(const ExternalSiteSearchState());
 
@@ -219,17 +227,30 @@ class ExternalSiteSearchNotifier extends StateNotifier<ExternalSiteSearchState> 
     );
 
     try {
+      // Search local database first
+      final validatedDiverId =
+          await _ref.read(validatedCurrentDiverIdProvider.future);
+      final localResults = await _siteRepository.searchSites(
+        query,
+        diverId: validatedDiverId,
+      );
+
+      // Search external sources (API/bundled)
       final result = await _apiService.searchSites(query);
 
       if (result.isSuccess) {
         state = state.copyWith(
           isLoading: false,
           result: result,
+          localSites: localResults,
         );
       } else {
+        // Even if external search fails, show local results
         state = state.copyWith(
           isLoading: false,
-          errorMessage: result.errorMessage ?? 'Search failed',
+          result: result,
+          localSites: localResults,
+          errorMessage: localResults.isEmpty ? (result.errorMessage ?? 'Search failed') : null,
         );
       }
     } catch (e) {
@@ -249,17 +270,28 @@ class ExternalSiteSearchNotifier extends StateNotifier<ExternalSiteSearchState> 
     );
 
     try {
+      // Search local database first
+      final validatedDiverId =
+          await _ref.read(validatedCurrentDiverIdProvider.future);
+      final localResults = await _siteRepository.searchSites(
+        country,
+        diverId: validatedDiverId,
+      );
+
       final result = await _apiService.searchByCountry(country);
 
       if (result.isSuccess) {
         state = state.copyWith(
           isLoading: false,
           result: result,
+          localSites: localResults,
         );
       } else {
         state = state.copyWith(
           isLoading: false,
-          errorMessage: result.errorMessage ?? 'Search failed',
+          result: result,
+          localSites: localResults,
+          errorMessage: localResults.isEmpty ? (result.errorMessage ?? 'Search failed') : null,
         );
       }
     } catch (e) {
@@ -304,6 +336,7 @@ final externalSiteSearchProvider =
   (ref) {
     final apiService = ref.watch(diveSiteApiServiceProvider);
     final siteListNotifier = ref.watch(siteListNotifierProvider.notifier);
-    return ExternalSiteSearchNotifier(apiService, siteListNotifier, ref);
+    final siteRepository = ref.watch(siteRepositoryProvider);
+    return ExternalSiteSearchNotifier(apiService, siteListNotifier, siteRepository, ref);
   },
 );

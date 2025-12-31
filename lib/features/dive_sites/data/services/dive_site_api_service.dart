@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 
 import '../../../../core/services/logger_service.dart';
@@ -186,8 +187,12 @@ class DiveSiteApiService {
       }
     }
 
-    // For now, return empty for nearby without API
-    return const DiveSiteSearchResult(sites: []);
+    // Fall back to bundled sites
+    return _searchNearbyViaBundled(
+      latitude: latitude,
+      longitude: longitude,
+      radiusKm: radiusKm,
+    );
   }
 
   /// Search for dive sites by country.
@@ -454,13 +459,149 @@ class DiveSiteApiService {
     return sites;
   }
 
-  /// Fallback when no API key is configured.
+  /// Cached bundled dive sites to avoid reloading.
+  List<ExternalDiveSite>? _bundledSites;
+
+  /// Load bundled dive sites from assets.
+  Future<List<ExternalDiveSite>> _loadBundledSites() async {
+    if (_bundledSites != null) return _bundledSites!;
+
+    try {
+      final jsonString =
+          await rootBundle.loadString('assets/data/dive_sites.json');
+      final data = json.decode(jsonString) as Map<String, dynamic>;
+      final sitesList = data['sites'] as List<dynamic>;
+
+      _bundledSites = sitesList.map((item) {
+        final site = item as Map<String, dynamic>;
+        return ExternalDiveSite(
+          externalId: site['id'] as String,
+          name: site['name'] as String,
+          description: site['description'] as String?,
+          latitude: _parseDouble(site['latitude']),
+          longitude: _parseDouble(site['longitude']),
+          maxDepth: _parseDouble(site['max_depth']),
+          country: site['country'] as String?,
+          region: site['region'] as String?,
+          ocean: site['ocean'] as String?,
+          source: 'Bundled dive site database',
+        );
+      }).toList();
+
+      _log.info('Loaded ${_bundledSites!.length} bundled dive sites');
+      return _bundledSites!;
+    } catch (e) {
+      _log.warning('Failed to load bundled dive sites: $e');
+      return [];
+    }
+  }
+
+  /// Search bundled dive sites by query.
   Future<DiveSiteSearchResult> _searchViaOpenData(String query) async {
-    // No API key configured - return error message
-    return DiveSiteSearchResult.error(
-      'Configure a RapidAPI key in Settings > API Keys to search for dive sites online.',
+    final sites = await _loadBundledSites();
+    if (sites.isEmpty) {
+      return DiveSiteSearchResult.error(
+        'No bundled dive sites available. Configure a RapidAPI key for online search.',
+      );
+    }
+
+    final lowerQuery = query.toLowerCase().trim();
+    final matchedSites = sites.where((site) {
+      final name = site.name.toLowerCase();
+      final country = site.country?.toLowerCase() ?? '';
+      final region = site.region?.toLowerCase() ?? '';
+      final ocean = site.ocean?.toLowerCase() ?? '';
+      final description = site.description?.toLowerCase() ?? '';
+
+      return name.contains(lowerQuery) ||
+          country.contains(lowerQuery) ||
+          region.contains(lowerQuery) ||
+          ocean.contains(lowerQuery) ||
+          description.contains(lowerQuery) ||
+          lowerQuery.contains(name.split(' ').first);
+    }).toList();
+
+    if (matchedSites.isEmpty) {
+      return const DiveSiteSearchResult(
+        sites: [],
+        errorMessage:
+            'No matching sites in bundled database. Configure a RapidAPI key for online search.',
+      );
+    }
+
+    return DiveSiteSearchResult(
+      sites: matchedSites,
+      totalResults: matchedSites.length,
     );
   }
+
+  /// Search bundled sites by proximity to coordinates.
+  Future<DiveSiteSearchResult> _searchNearbyViaBundled({
+    required double latitude,
+    required double longitude,
+    double radiusKm = 100,
+  }) async {
+    final sites = await _loadBundledSites();
+    if (sites.isEmpty) {
+      return const DiveSiteSearchResult(sites: []);
+    }
+
+    final nearbySites = sites.where((site) {
+      if (!site.hasCoordinates) return false;
+      final distance = _haversineDistance(
+        latitude,
+        longitude,
+        site.latitude!,
+        site.longitude!,
+      );
+      return distance <= radiusKm;
+    }).toList();
+
+    // Sort by distance
+    nearbySites.sort((a, b) {
+      final distA = _haversineDistance(
+        latitude,
+        longitude,
+        a.latitude!,
+        a.longitude!,
+      );
+      final distB = _haversineDistance(
+        latitude,
+        longitude,
+        b.latitude!,
+        b.longitude!,
+      );
+      return distA.compareTo(distB);
+    });
+
+    return DiveSiteSearchResult(
+      sites: nearbySites,
+      totalResults: nearbySites.length,
+    );
+  }
+
+  /// Calculate distance between two points using Haversine formula.
+  double _haversineDistance(
+    double lat1,
+    double lon1,
+    double lat2,
+    double lon2,
+  ) {
+    const earthRadiusKm = 6371.0;
+    final dLat = _degreesToRadians(lat2 - lat1);
+    final dLon = _degreesToRadians(lon2 - lon1);
+
+    final a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(_degreesToRadians(lat1)) *
+            cos(_degreesToRadians(lat2)) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
+    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+
+    return earthRadiusKm * c;
+  }
+
+  double _degreesToRadians(double degrees) => degrees * pi / 180;
 
   double? _parseDouble(dynamic value) {
     if (value == null) return null;

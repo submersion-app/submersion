@@ -7,7 +7,9 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../../core/services/location_service.dart';
+import '../../../../core/utils/unit_formatter.dart';
 import '../../../divers/presentation/providers/diver_providers.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../../domain/entities/dive_site.dart';
 import '../providers/site_providers.dart';
 import '../widgets/location_picker_map.dart';
@@ -62,7 +64,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     super.dispose();
   }
 
-  void _initializeFromSite(DiveSite site) {
+  void _initializeFromSite(DiveSite site, UnitFormatter units) {
     if (_isInitialized) return;
     _isInitialized = true;
 
@@ -70,8 +72,13 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     _descriptionController.text = site.description;
     _countryController.text = site.country ?? '';
     _regionController.text = site.region ?? '';
-    _minDepthController.text = site.minDepth?.toString() ?? '';
-    _maxDepthController.text = site.maxDepth?.toString() ?? '';
+    // Convert depths from meters (storage) to user's preferred unit (display)
+    _minDepthController.text = site.minDepth != null
+        ? units.convertDepth(site.minDepth!).toStringAsFixed(1)
+        : '';
+    _maxDepthController.text = site.maxDepth != null
+        ? units.convertDepth(site.maxDepth!).toStringAsFixed(1)
+        : '';
     _latitudeController.text = site.location?.latitude.toString() ?? '';
     _longitudeController.text = site.location?.longitude.toString() ?? '';
     _notesController.text = site.notes;
@@ -85,6 +92,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
 
   @override
   Widget build(BuildContext context) {
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
+
     if (widget.isEditing) {
       final siteAsync = ref.watch(siteProvider(widget.siteId!));
       return siteAsync.when(
@@ -95,8 +105,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
               body: const Center(child: Text('This site no longer exists.')),
             );
           }
-          _initializeFromSite(site);
-          return _buildForm(context);
+          _initializeFromSite(site, units);
+          return _buildForm(context, units);
         },
         loading: () => Scaffold(
           appBar: AppBar(title: const Text('Loading...')),
@@ -109,10 +119,10 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       );
     }
 
-    return _buildForm(context);
+    return _buildForm(context, units);
   }
 
-  Widget _buildForm(BuildContext context) {
+  Widget _buildForm(BuildContext context, UnitFormatter units) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.isEditing ? 'Edit Site' : 'New Site'),
@@ -185,7 +195,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             const SizedBox(height: 16),
 
             // Depth Section
-            _buildDepthSection(context),
+            _buildDepthSection(context, units),
             const SizedBox(height: 16),
 
             // Difficulty
@@ -279,7 +289,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     );
   }
 
-  Widget _buildDepthSection(BuildContext context) {
+  Widget _buildDepthSection(BuildContext context, UnitFormatter units) {
+    final depthSymbol = units.depthSymbol;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -309,8 +320,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                 Expanded(
                   child: TextFormField(
                     controller: _minDepthController,
-                    decoration: const InputDecoration(
-                      labelText: 'Minimum Depth (m)',
+                    decoration: InputDecoration(
+                      labelText: 'Minimum Depth ($depthSymbol)',
                       hintText: 'e.g., 5',
                     ),
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -323,8 +334,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                 Expanded(
                   child: TextFormField(
                     controller: _maxDepthController,
-                    decoration: const InputDecoration(
-                      labelText: 'Maximum Depth (m)',
+                    decoration: InputDecoration(
+                      labelText: 'Maximum Depth ($depthSymbol)',
                       hintText: 'e.g., 30',
                     ),
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -684,6 +695,10 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     setState(() => _isLoading = true);
 
     try {
+      // Get settings for unit conversion
+      final settings = ref.read(settingsProvider);
+      final units = UnitFormatter(settings);
+
       GeoPoint? location;
       final latText = _latitudeController.text.trim();
       final lngText = _longitudeController.text.trim();
@@ -695,6 +710,12 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           location = GeoPoint(lat, lng);
         }
       }
+
+      // Convert depths from user's preferred unit to meters for storage
+      final minDepthInput = double.tryParse(_minDepthController.text);
+      final maxDepthInput = double.tryParse(_maxDepthController.text);
+      final minDepthMeters = minDepthInput != null ? units.depthToMeters(minDepthInput) : null;
+      final maxDepthMeters = maxDepthInput != null ? units.depthToMeters(maxDepthInput) : null;
 
       // Get the current diver ID - preserve existing for edits, get fresh for new sites
       final existingSite = widget.isEditing
@@ -710,8 +731,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
         description: _descriptionController.text.trim(),
         country: _countryController.text.trim().isEmpty ? null : _countryController.text.trim(),
         region: _regionController.text.trim().isEmpty ? null : _regionController.text.trim(),
-        minDepth: double.tryParse(_minDepthController.text),
-        maxDepth: double.tryParse(_maxDepthController.text),
+        minDepth: minDepthMeters,
+        maxDepth: maxDepthMeters,
         difficulty: _difficulty,
         location: location,
         rating: _rating > 0 ? _rating : null,

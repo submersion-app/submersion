@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../data/services/dive_site_api_service.dart';
+import '../../domain/entities/dive_site.dart';
 import '../providers/site_providers.dart';
 
 /// Page for searching and importing dive sites from online sources.
@@ -312,20 +313,68 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
       );
     }
 
-    // Results list
-    return ListView.builder(
+    // Results list with local sites first, then external sites
+    return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: state.sites.length,
-      itemBuilder: (context, index) {
-        final site = state.sites[index];
-        final isImported = _importedIds.contains(site.externalId);
+      children: [
+        // Local sites section (from user's database)
+        if (state.hasLocalResults) ...[
+          Padding(
+            padding: const EdgeInsets.only(top: 8, bottom: 12),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.folder,
+                  size: 20,
+                  color: colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'My Sites (${state.localSites.length})',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ...state.localSites.map((site) => _LocalSiteCard(site: site)),
+          const SizedBox(height: 16),
+        ],
 
-        return _DiveSiteCard(
-          site: site,
-          isImported: isImported,
-          onImport: () => _importSite(site),
-        );
-      },
+        // External sites section (from bundled database / API)
+        if (state.hasExternalResults) ...[
+          Padding(
+            padding: const EdgeInsets.only(top: 8, bottom: 12),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.public,
+                  size: 20,
+                  color: colorScheme.secondary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Import from Database (${state.sites.length})',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.secondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ...state.sites.map((site) {
+            final isImported = _importedIds.contains(site.externalId);
+            return _DiveSiteCard(
+              site: site,
+              isImported: isImported,
+              onImport: () => _importSite(site),
+            );
+          }),
+        ],
+      ],
     );
   }
 }
@@ -348,6 +397,148 @@ class _QuickSearchChip extends StatelessWidget {
         onPressed: onTap,
       ),
     );
+  }
+}
+
+/// Card for displaying a local site from the user's database.
+class _LocalSiteCard extends StatelessWidget {
+  final DiveSite site;
+
+  const _LocalSiteCard({required this.site});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+      child: InkWell(
+        onTap: () => context.push('/sites/${site.id}'),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Location icon with checkmark
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: colorScheme.primary,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.place,
+                  color: colorScheme.onPrimary,
+                ),
+              ),
+              const SizedBox(width: 12),
+
+              // Site info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      site.name,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _buildLocationText(),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    if (site.maxDepth != null || site.location != null) ...[
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          if (site.maxDepth != null) ...[
+                            Icon(
+                              Icons.arrow_downward,
+                              size: 16,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${site.maxDepth!.toStringAsFixed(0)}m',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                          ],
+                          if (site.location != null) ...[
+                            Icon(
+                              Icons.location_on,
+                              size: 16,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'GPS',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+
+              // Already saved indicator
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.check,
+                      size: 16,
+                      color: colorScheme.onPrimary,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Saved',
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: colorScheme.onPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _buildLocationText() {
+    final parts = <String>[];
+    if (site.region != null && site.region!.isNotEmpty) {
+      parts.add(site.region!);
+    }
+    if (site.country != null && site.country!.isNotEmpty) {
+      parts.add(site.country!);
+    }
+    return parts.isNotEmpty ? parts.join(', ') : 'Location not set';
   }
 }
 

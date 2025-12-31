@@ -5,7 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../../../../core/constants/units.dart';
+import '../../../../core/utils/unit_formatter.dart';
 import '../../../dive_log/presentation/providers/dive_providers.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../../domain/entities/dive_site.dart';
 import '../providers/site_providers.dart';
 
@@ -81,7 +84,7 @@ class SiteDetailPage extends ConsumerWidget {
             const SizedBox(height: 16),
 
             // Depth Information Section
-            _buildDepthSection(context, site),
+            _buildDepthSection(context, ref, site),
             const SizedBox(height: 16),
 
             // Difficulty Section
@@ -569,11 +572,33 @@ class SiteDetailPage extends ConsumerWidget {
         (site.parkingInfo != null && site.parkingInfo!.isNotEmpty);
   }
 
-  Widget _buildDepthSection(BuildContext context, DiveSite site) {
+  Widget _buildDepthSection(BuildContext context, WidgetRef ref, DiveSite site) {
     final colorScheme = Theme.of(context).colorScheme;
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
     final hasMinDepth = site.minDepth != null;
     final hasMaxDepth = site.maxDepth != null;
     final hasDepthInfo = hasMinDepth || hasMaxDepth;
+
+    // Determine primary and secondary units based on user settings
+    final isMetric = settings.depthUnit == DepthUnit.meters;
+    final primarySymbol = units.depthSymbol;
+    final secondarySymbol = isMetric ? 'ft' : 'm';
+
+    // Helper to format depth in both units
+    String formatPrimary(double meters) {
+      return units.convertDepth(meters).toStringAsFixed(1);
+    }
+
+    String formatSecondary(double meters) {
+      if (isMetric) {
+        // Primary is meters, secondary is feet
+        return (meters * 3.28084).toStringAsFixed(0);
+      } else {
+        // Primary is feet, secondary is meters
+        return meters.toStringAsFixed(1);
+      }
+    }
 
     return Card(
       child: Padding(
@@ -621,14 +646,14 @@ class SiteDetailPage extends ConsumerWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '${site.minDepth!.toStringAsFixed(1)} m',
+                            '${formatPrimary(site.minDepth!)} $primarySymbol',
                             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: colorScheme.secondary,
                                 ),
                           ),
                           Text(
-                            '${(site.minDepth! * 3.28084).toStringAsFixed(0)} ft',
+                            '${formatSecondary(site.minDepth!)} $secondarySymbol',
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                   color: colorScheme.onSurfaceVariant,
                                 ),
@@ -654,14 +679,14 @@ class SiteDetailPage extends ConsumerWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '${site.maxDepth!.toStringAsFixed(1)} m',
+                            '${formatPrimary(site.maxDepth!)} $primarySymbol',
                             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: colorScheme.primary,
                                 ),
                           ),
                           Text(
-                            '${(site.maxDepth! * 3.28084).toStringAsFixed(0)} ft',
+                            '${formatSecondary(site.maxDepth!)} $secondarySymbol',
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                   color: colorScheme.onSurfaceVariant,
                                 ),
