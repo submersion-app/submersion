@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:http/http.dart' as http;
 
@@ -95,6 +96,54 @@ class DiveSiteApiService {
   /// Users should set this via environment variable or settings.
   String? rapidApiKey;
 
+  /// Test if the RapidAPI key is valid by making a simple API call.
+  /// Returns a tuple of (isValid, errorMessage).
+  Future<(bool, String?)> testApiKeyWithDetails(String key) async {
+    try {
+      // Use GPS bounding box search - testing with a small area in the UK
+      final uri = Uri.parse(
+        'https://world-scuba-diving-sites-api.p.rapidapi.com/divesites/gps',
+      ).replace(
+        queryParameters: {
+          'southWestLat': '50.0',
+          'northEastLat': '51.0',
+          'southWestLng': '-1.0',
+          'northEastLng': '0.0',
+        },
+      );
+
+      final response = await http.get(
+        uri,
+        headers: {
+          'x-rapidapi-key': key,
+          'x-rapidapi-host': 'world-scuba-diving-sites-api.p.rapidapi.com',
+        },
+      );
+
+      _log.info('RapidAPI test response: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        return (true, null);
+      } else if (response.statusCode == 401 || response.statusCode == 403) {
+        return (false, 'Invalid API key or not subscribed to this API');
+      } else if (response.statusCode == 429) {
+        return (false, 'Rate limit exceeded - try again later');
+      } else {
+        return (false, 'API returned status ${response.statusCode}');
+      }
+    } catch (e) {
+      _log.warning('RapidAPI test failed: $e');
+      return (false, 'Connection error: $e');
+    }
+  }
+
+  /// Test if the RapidAPI key is valid by making a simple API call.
+  /// Returns true if the key works, false otherwise.
+  Future<bool> testApiKey(String key) async {
+    final (isValid, _) = await testApiKeyWithDetails(key);
+    return isValid;
+  }
+
   /// Search for dive sites by query string.
   Future<DiveSiteSearchResult> searchSites(String query) async {
     if (query.trim().isEmpty) {
@@ -106,11 +155,15 @@ class DiveSiteApiService {
       try {
         return await _searchViaRapidApi(query);
       } catch (e) {
-        _log.warning('RapidAPI search failed, falling back to open data: $e');
+        _log.warning('RapidAPI search failed: $e');
+        // Return error instead of silently falling back
+        return DiveSiteSearchResult.error(
+          'API search failed. Check your RapidAPI key in Settings > API Keys.',
+        );
       }
     }
 
-    // Fall back to open data sources
+    // Fall back to open data sources (only when no API key configured)
     return _searchViaOpenData(query);
   }
 
@@ -144,37 +197,194 @@ class DiveSiteApiService {
         return await _searchByCountryViaRapidApi(country);
       } catch (e) {
         _log.warning('RapidAPI country search failed: $e');
+        return DiveSiteSearchResult.error(
+          'API search failed. Check your RapidAPI key in Settings > API Keys.',
+        );
       }
     }
 
     return _searchViaOpenData(country);
   }
 
+  /// GPS bounding boxes for common diving regions.
+  static const Map<String, Map<String, double>> _regionBoundingBoxes = {
+    // Caribbean
+    'caribbean': {'swLat': 10.0, 'neLat': 27.0, 'swLng': -88.0, 'neLng': -59.0},
+    'cayman': {'swLat': 19.2, 'neLat': 19.8, 'swLng': -81.5, 'neLng': -79.7},
+    'bahamas': {'swLat': 20.9, 'neLat': 27.3, 'swLng': -80.5, 'neLng': -72.7},
+    'belize': {'swLat': 15.8, 'neLat': 18.5, 'swLng': -89.2, 'neLng': -87.4},
+    // Red Sea
+    'red sea': {'swLat': 12.0, 'neLat': 30.0, 'swLng': 32.0, 'neLng': 44.0},
+    'egypt': {'swLat': 22.0, 'neLat': 31.7, 'swLng': 24.7, 'neLng': 36.9},
+    // Southeast Asia
+    'thailand': {'swLat': 5.6, 'neLat': 20.5, 'swLng': 97.3, 'neLng': 105.6},
+    'indonesia': {'swLat': -11.0, 'neLat': 6.0, 'swLng': 95.0, 'neLng': 141.0},
+    'philippines': {'swLat': 4.5, 'neLat': 21.2, 'swLng': 116.9, 'neLng': 126.6},
+    'malaysia': {'swLat': 0.8, 'neLat': 7.4, 'swLng': 99.6, 'neLng': 119.3},
+    'raja ampat': {'swLat': -4.5, 'neLat': 0.5, 'swLng': 129.0, 'neLng': 132.0},
+    'bali': {'swLat': -8.9, 'neLat': -8.0, 'swLng': 114.4, 'neLng': 115.7},
+    // Pacific
+    'maldives': {'swLat': -0.7, 'neLat': 7.1, 'swLng': 72.6, 'neLng': 73.8},
+    'fiji': {'swLat': -21.0, 'neLat': -12.5, 'swLng': 177.0, 'neLng': -179.0},
+    'palau': {'swLat': 2.8, 'neLat': 8.1, 'swLng': 131.1, 'neLng': 134.7},
+    'australia': {'swLat': -44.0, 'neLat': -10.0, 'swLng': 113.0, 'neLng': 154.0},
+    'great barrier reef': {'swLat': -24.5, 'neLat': -10.7, 'swLng': 142.5, 'neLng': 154.0},
+    // Americas
+    'mexico': {'swLat': 14.5, 'neLat': 32.7, 'swLng': -118.4, 'neLng': -86.7},
+    'florida': {'swLat': 24.4, 'neLat': 31.0, 'swLng': -87.6, 'neLng': -80.0},
+    'hawaii': {'swLat': 18.9, 'neLat': 22.2, 'swLng': -160.2, 'neLng': -154.8},
+    'galapagos': {'swLat': -1.5, 'neLat': 0.5, 'swLng': -92.0, 'neLng': -89.0},
+    'costa rica': {'swLat': 8.0, 'neLat': 11.2, 'swLng': -85.9, 'neLng': -82.6},
+    // Europe/Mediterranean
+    'mediterranean': {'swLat': 30.0, 'neLat': 46.0, 'swLng': -6.0, 'neLng': 36.0},
+    'spain': {'swLat': 36.0, 'neLat': 43.8, 'swLng': -9.3, 'neLng': 3.3},
+    'malta': {'swLat': 35.8, 'neLat': 36.1, 'swLng': 14.1, 'neLng': 14.6},
+    'croatia': {'swLat': 42.4, 'neLat': 46.6, 'swLng': 13.5, 'neLng': 19.4},
+    'uk': {'swLat': 49.9, 'neLat': 60.9, 'swLng': -8.6, 'neLng': 1.8},
+    // Africa
+    'south africa': {'swLat': -35.0, 'neLat': -22.1, 'swLng': 16.5, 'neLng': 32.9},
+    // Japan
+    'japan': {'swLat': 24.0, 'neLat': 45.5, 'swLng': 122.9, 'neLng': 145.8},
+    'okinawa': {'swLat': 24.0, 'neLat': 27.9, 'swLng': 122.9, 'neLng': 131.3},
+  };
+
   /// Search using RapidAPI's World Scuba Diving Sites API.
+  /// First tries location-based text search, then falls back to GPS bounding box.
   Future<DiveSiteSearchResult> _searchViaRapidApi(String query) async {
+    final lowerQuery = query.toLowerCase().trim();
+
+    // First, try the location-based text search endpoint
+    try {
+      final result = await _searchByLocation(query);
+      if (result.sites.isNotEmpty) {
+        return result;
+      }
+    } catch (e) {
+      _log.info('Location search failed, trying GPS bounding box: $e');
+    }
+
+    // Fall back to GPS bounding box search if text search returns empty
+    Map<String, double>? boundingBox;
+    String? matchedRegion;
+    for (final entry in _regionBoundingBoxes.entries) {
+      // Check for partial matches (at least 3 characters)
+      if (lowerQuery.length >= 3) {
+        if (entry.key.startsWith(lowerQuery) ||
+            lowerQuery.startsWith(entry.key) ||
+            entry.key.contains(lowerQuery) ||
+            lowerQuery.contains(entry.key)) {
+          boundingBox = entry.value;
+          matchedRegion = entry.key;
+          break;
+        }
+      } else if (lowerQuery == entry.key) {
+        boundingBox = entry.value;
+        matchedRegion = entry.key;
+        break;
+      }
+    }
+
+    if (boundingBox == null) {
+      // No matching region found, search local database instead
+      _log.info('No GPS bounding box found for "$query", using local search');
+      return _searchViaOpenData(query);
+    }
+
+    final result = await _searchByBoundingBox(
+      southWestLat: boundingBox['swLat']!,
+      northEastLat: boundingBox['neLat']!,
+      southWestLng: boundingBox['swLng']!,
+      northEastLng: boundingBox['neLng']!,
+    );
+
+    // If query is more specific than the region name, filter results
+    if (matchedRegion != null && lowerQuery != matchedRegion) {
+      final filteredSites = result.sites.where((site) {
+        final siteName = site.name.toLowerCase();
+        final siteCountry = site.country?.toLowerCase() ?? '';
+        final siteRegion = site.region?.toLowerCase() ?? '';
+        return siteName.contains(lowerQuery) ||
+            siteCountry.contains(lowerQuery) ||
+            siteRegion.contains(lowerQuery) ||
+            lowerQuery.contains(siteName.split(' ').first);
+      }).toList();
+
+      // If we have filtered results, return them; otherwise return all
+      if (filteredSites.isNotEmpty) {
+        return DiveSiteSearchResult(
+          sites: filteredSites,
+          totalResults: filteredSites.length,
+        );
+      }
+    }
+
+    return result;
+  }
+
+  /// Search by location name/region text query.
+  Future<DiveSiteSearchResult> _searchByLocation(String location) async {
     final uri = Uri.parse(
-      'https://world-scuba-diving-sites-api.p.rapidapi.com/api/divesite',
-    ).replace(queryParameters: {'country': query});
+      'https://world-scuba-diving-sites-api.p.rapidapi.com/divesites',
+    ).replace(
+      queryParameters: {'location': location},
+    );
 
     final response = await http.get(
       uri,
       headers: {
-        'X-RapidAPI-Key': rapidApiKey!,
-        'X-RapidAPI-Host': 'world-scuba-diving-sites-api.p.rapidapi.com',
+        'x-rapidapi-key': rapidApiKey!,
+        'x-rapidapi-host': 'world-scuba-diving-sites-api.p.rapidapi.com',
       },
     );
 
-    if (response.statusCode != 200) {
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final sites = _parseGpsApiResponse(data);
+      return DiveSiteSearchResult(
+        sites: sites,
+        totalResults: sites.length,
+      );
+    } else {
+      throw Exception('Location search returned ${response.statusCode}');
+    }
+  }
+
+  /// Search by GPS bounding box.
+  Future<DiveSiteSearchResult> _searchByBoundingBox({
+    required double southWestLat,
+    required double northEastLat,
+    required double southWestLng,
+    required double northEastLng,
+  }) async {
+    final uri = Uri.parse(
+      'https://world-scuba-diving-sites-api.p.rapidapi.com/divesites/gps',
+    ).replace(
+      queryParameters: {
+        'southWestLat': southWestLat.toString(),
+        'northEastLat': northEastLat.toString(),
+        'southWestLng': southWestLng.toString(),
+        'northEastLng': northEastLng.toString(),
+      },
+    );
+
+    final response = await http.get(
+      uri,
+      headers: {
+        'x-rapidapi-key': rapidApiKey!,
+        'x-rapidapi-host': 'world-scuba-diving-sites-api.p.rapidapi.com',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final sites = _parseGpsApiResponse(data);
+      return DiveSiteSearchResult(
+        sites: sites,
+        totalResults: sites.length,
+      );
+    } else {
       throw Exception('API returned ${response.statusCode}');
     }
-
-    final data = json.decode(response.body) as Map<String, dynamic>;
-    final sites = _parseRapidApiResponse(data);
-
-    return DiveSiteSearchResult(
-      sites: sites,
-      totalResults: sites.length,
-    );
   }
 
   Future<DiveSiteSearchResult> _searchNearbyViaRapidApi({
@@ -182,59 +392,60 @@ class DiveSiteApiService {
     required double longitude,
     required double radiusKm,
   }) async {
-    // The World Scuba Diving Sites API doesn't support coordinate search
-    // We'd need to fetch all and filter client-side, which isn't practical
-    return const DiveSiteSearchResult(sites: []);
+    // Convert radius to bounding box (approximate)
+    final latDelta = radiusKm / 111.0; // ~111km per degree latitude
+    final lngDelta = radiusKm / (111.0 * cos(latitude * pi / 180));
+
+    return _searchByBoundingBox(
+      southWestLat: latitude - latDelta,
+      northEastLat: latitude + latDelta,
+      southWestLng: longitude - lngDelta,
+      northEastLng: longitude + lngDelta,
+    );
   }
 
   Future<DiveSiteSearchResult> _searchByCountryViaRapidApi(
     String country,
   ) async {
-    final uri = Uri.parse(
-      'https://world-scuba-diving-sites-api.p.rapidapi.com/api/divesite',
-    ).replace(queryParameters: {'country': country});
-
-    final response = await http.get(
-      uri,
-      headers: {
-        'X-RapidAPI-Key': rapidApiKey!,
-        'X-RapidAPI-Host': 'world-scuba-diving-sites-api.p.rapidapi.com',
-      },
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception('API returned ${response.statusCode}');
-    }
-
-    final data = json.decode(response.body) as Map<String, dynamic>;
-    final sites = _parseRapidApiResponse(data);
-
-    return DiveSiteSearchResult(
-      sites: sites,
-      totalResults: sites.length,
-    );
+    // Use the same region-based search
+    return _searchViaRapidApi(country);
   }
 
-  List<ExternalDiveSite> _parseRapidApiResponse(Map<String, dynamic> data) {
+  /// Parse response from GPS-based API endpoint.
+  List<ExternalDiveSite> _parseGpsApiResponse(dynamic data) {
     final sites = <ExternalDiveSite>[];
 
-    final dataList = data['data'] as List<dynamic>?;
-    if (dataList == null) return sites;
+    // The GPS API returns a list directly
+    final List<dynamic> dataList;
+    if (data is List) {
+      dataList = data;
+    } else if (data is Map && data['data'] is List) {
+      dataList = data['data'] as List;
+    } else {
+      _log.warning('Unexpected API response format: ${data.runtimeType}');
+      return sites;
+    }
 
     for (final item in dataList) {
       if (item is! Map<String, dynamic>) continue;
 
       try {
-        sites.add(ExternalDiveSite(
-          externalId: '${item['id'] ?? sites.length}',
-          name: item['site_name'] as String? ?? 'Unknown',
-          latitude: _parseDouble(item['latitude']),
-          longitude: _parseDouble(item['longitude']),
-          country: item['country'] as String?,
-          region: item['region'] as String?,
-          ocean: item['ocean'] as String?,
-          source: 'World Scuba Diving Sites API',
-        ),);
+        sites.add(
+          ExternalDiveSite(
+            externalId: '${item['id'] ?? sites.length}',
+            name: item['name'] as String? ??
+                item['site_name'] as String? ??
+                'Unknown',
+            description: item['description'] as String?,
+            latitude: _parseDouble(item['lat'] ?? item['latitude']),
+            longitude: _parseDouble(item['lng'] ?? item['longitude']),
+            maxDepth: _parseDouble(item['maxDepth'] ?? item['max_depth']),
+            country: item['country'] as String?,
+            region: item['region'] as String?,
+            ocean: item['ocean'] as String?,
+            source: 'World Scuba Diving Sites API',
+          ),
+        );
       } catch (e) {
         _log.warning('Failed to parse dive site: $e');
       }
@@ -243,24 +454,11 @@ class DiveSiteApiService {
     return sites;
   }
 
-  /// Search using open data sources (no API key required).
+  /// Fallback when no API key is configured.
   Future<DiveSiteSearchResult> _searchViaOpenData(String query) async {
-    // Use a curated list of popular dive sites as fallback
-    // This provides basic functionality without requiring API keys
-    final sites = _getPopularDiveSites()
-        .where(
-          (site) =>
-              site.name.toLowerCase().contains(query.toLowerCase()) ||
-              (site.country?.toLowerCase().contains(query.toLowerCase()) ??
-                  false) ||
-              (site.region?.toLowerCase().contains(query.toLowerCase()) ??
-                  false),
-        )
-        .toList();
-
-    return DiveSiteSearchResult(
-      sites: sites,
-      totalResults: sites.length,
+    // No API key configured - return error message
+    return DiveSiteSearchResult.error(
+      'Configure a RapidAPI key in Settings > API Keys to search for dive sites online.',
     );
   }
 
@@ -270,347 +468,5 @@ class DiveSiteApiService {
     if (value is int) return value.toDouble();
     if (value is String) return double.tryParse(value);
     return null;
-  }
-
-  /// Returns a curated list of popular dive sites worldwide.
-  /// This serves as fallback data when no API key is configured.
-  List<ExternalDiveSite> _getPopularDiveSites() {
-    return const [
-      // Caribbean
-      ExternalDiveSite(
-        externalId: 'pop_1',
-        name: 'Blue Hole',
-        description:
-            'Famous underwater sinkhole, one of the top dive sites in the world.',
-        latitude: 17.3156,
-        longitude: -87.5347,
-        maxDepth: 124,
-        country: 'Belize',
-        region: 'Caribbean',
-        features: ['Wall dive', 'Stalactites', 'Sharks'],
-        source: 'Popular Dive Sites',
-      ),
-      ExternalDiveSite(
-        externalId: 'pop_2',
-        name: 'USS Kittiwake',
-        description:
-            'Purposely sunk submarine rescue vessel, excellent wreck dive.',
-        latitude: 19.3603,
-        longitude: -81.4006,
-        maxDepth: 19,
-        country: 'Cayman Islands',
-        region: 'Caribbean',
-        features: ['Wreck', 'Penetration', 'Marine life'],
-        source: 'Popular Dive Sites',
-      ),
-
-      // Red Sea
-      ExternalDiveSite(
-        externalId: 'pop_3',
-        name: 'SS Thistlegorm',
-        description:
-            'WWII British cargo ship, one of the most famous wrecks in the world.',
-        latitude: 27.8132,
-        longitude: 33.9213,
-        maxDepth: 30,
-        country: 'Egypt',
-        region: 'Red Sea',
-        features: ['Wreck', 'WWII', 'Motorcycles', 'Trucks'],
-        source: 'Popular Dive Sites',
-      ),
-      ExternalDiveSite(
-        externalId: 'pop_4',
-        name: 'Ras Mohammed',
-        description: 'National park with stunning coral walls and marine life.',
-        latitude: 27.7275,
-        longitude: 34.2561,
-        maxDepth: 40,
-        country: 'Egypt',
-        region: 'Red Sea',
-        features: ['Coral walls', 'Pelagics', 'Sharks'],
-        source: 'Popular Dive Sites',
-      ),
-
-      // Southeast Asia
-      ExternalDiveSite(
-        externalId: 'pop_5',
-        name: 'Richelieu Rock',
-        description:
-            'Underwater pinnacle known for whale shark and manta encounters.',
-        latitude: 9.3647,
-        longitude: 98.0253,
-        maxDepth: 35,
-        country: 'Thailand',
-        region: 'Andaman Sea',
-        features: ['Pinnacle', 'Whale sharks', 'Mantas', 'Macro'],
-        source: 'Popular Dive Sites',
-      ),
-      ExternalDiveSite(
-        externalId: 'pop_6',
-        name: 'Tubbataha Reef',
-        description: 'UNESCO World Heritage Site with pristine coral reefs.',
-        latitude: 8.9167,
-        longitude: 119.8333,
-        maxDepth: 40,
-        country: 'Philippines',
-        region: 'Sulu Sea',
-        features: ['Coral reef', 'Sharks', 'Mantas', 'UNESCO'],
-        source: 'Popular Dive Sites',
-      ),
-      ExternalDiveSite(
-        externalId: 'pop_7',
-        name: 'Sipadan Island',
-        description:
-            'Famous for massive schools of barracuda and sea turtles.',
-        latitude: 4.1147,
-        longitude: 118.6289,
-        maxDepth: 40,
-        country: 'Malaysia',
-        region: 'Celebes Sea',
-        features: ['Barracuda', 'Turtles', 'Wall dive', 'Sharks'],
-        source: 'Popular Dive Sites',
-      ),
-
-      // Pacific
-      ExternalDiveSite(
-        externalId: 'pop_8',
-        name: 'Blue Corner',
-        description: 'High-current dive with incredible shark action.',
-        latitude: 7.1361,
-        longitude: 134.2164,
-        maxDepth: 30,
-        country: 'Palau',
-        region: 'Pacific',
-        features: ['Sharks', 'Current', 'Pelagics'],
-        source: 'Popular Dive Sites',
-      ),
-      ExternalDiveSite(
-        externalId: 'pop_9',
-        name: 'Great Barrier Reef - Cod Hole',
-        description: 'Famous for friendly potato cod interactions.',
-        latitude: -14.6769,
-        longitude: 145.6281,
-        maxDepth: 25,
-        country: 'Australia',
-        region: 'Coral Sea',
-        features: ['Potato cod', 'Coral reef', 'Marine life'],
-        source: 'Popular Dive Sites',
-      ),
-
-      // Maldives
-      ExternalDiveSite(
-        externalId: 'pop_10',
-        name: 'Manta Point',
-        description: 'Cleaning station with regular manta ray encounters.',
-        latitude: 3.9533,
-        longitude: 73.4719,
-        maxDepth: 25,
-        country: 'Maldives',
-        region: 'Indian Ocean',
-        features: ['Mantas', 'Cleaning station', 'Coral'],
-        source: 'Popular Dive Sites',
-      ),
-
-      // Galapagos
-      ExternalDiveSite(
-        externalId: 'pop_11',
-        name: 'Darwin\'s Arch',
-        description:
-            'World-famous site for hammerhead sharks and whale sharks.',
-        latitude: 1.6781,
-        longitude: -91.9886,
-        maxDepth: 30,
-        country: 'Ecuador',
-        region: 'Galapagos',
-        features: ['Hammerheads', 'Whale sharks', 'Current'],
-        source: 'Popular Dive Sites',
-      ),
-      ExternalDiveSite(
-        externalId: 'pop_12',
-        name: 'Gordon Rocks',
-        description: 'Challenging dive with hammerhead shark schools.',
-        latitude: -0.7917,
-        longitude: -90.4917,
-        maxDepth: 32,
-        country: 'Ecuador',
-        region: 'Galapagos',
-        features: ['Hammerheads', 'Sea lions', 'Current'],
-        source: 'Popular Dive Sites',
-      ),
-
-      // Indonesia
-      ExternalDiveSite(
-        externalId: 'pop_13',
-        name: 'Manta Sandy',
-        description: 'Reliable manta cleaning station in Raja Ampat.',
-        latitude: -0.5461,
-        longitude: 130.6489,
-        maxDepth: 18,
-        country: 'Indonesia',
-        region: 'Raja Ampat',
-        features: ['Mantas', 'Cleaning station', 'Coral'],
-        source: 'Popular Dive Sites',
-      ),
-      ExternalDiveSite(
-        externalId: 'pop_14',
-        name: 'Liberty Wreck',
-        description: 'WWII cargo ship wreck, excellent for all levels.',
-        latitude: -8.2733,
-        longitude: 115.5956,
-        maxDepth: 30,
-        country: 'Indonesia',
-        region: 'Bali',
-        features: ['Wreck', 'Shore dive', 'Marine life'],
-        source: 'Popular Dive Sites',
-      ),
-
-      // Mexico
-      ExternalDiveSite(
-        externalId: 'pop_15',
-        name: 'Cenote Dos Ojos',
-        description: 'Famous freshwater cenote with crystal clear visibility.',
-        latitude: 20.3269,
-        longitude: -87.3917,
-        maxDepth: 10,
-        country: 'Mexico',
-        region: 'Yucatan',
-        features: ['Cenote', 'Cave', 'Freshwater', 'Stalactites'],
-        source: 'Popular Dive Sites',
-      ),
-      ExternalDiveSite(
-        externalId: 'pop_16',
-        name: 'Socorro - El Boiler',
-        description: 'Remote island with giant manta and dolphin encounters.',
-        latitude: 18.7867,
-        longitude: -110.9617,
-        maxDepth: 25,
-        country: 'Mexico',
-        region: 'Pacific',
-        features: ['Giant mantas', 'Dolphins', 'Sharks'],
-        source: 'Popular Dive Sites',
-      ),
-
-      // Mediterranean
-      ExternalDiveSite(
-        externalId: 'pop_17',
-        name: 'MS Zenobia',
-        description: 'One of the top 10 wreck dives in the world.',
-        latitude: 34.9161,
-        longitude: 33.6469,
-        maxDepth: 42,
-        country: 'Cyprus',
-        region: 'Mediterranean',
-        features: ['Wreck', 'Trucks', 'Penetration'],
-        source: 'Popular Dive Sites',
-      ),
-      ExternalDiveSite(
-        externalId: 'pop_18',
-        name: 'El Toro',
-        description: 'Marine reserve with abundant fish life.',
-        latitude: 39.4550,
-        longitude: 2.4736,
-        maxDepth: 25,
-        country: 'Spain',
-        region: 'Mallorca',
-        features: ['Marine reserve', 'Groupers', 'Barracuda'],
-        source: 'Popular Dive Sites',
-      ),
-
-      // Florida
-      ExternalDiveSite(
-        externalId: 'pop_19',
-        name: 'Molasses Reef',
-        description: 'Popular reef in the Florida Keys marine sanctuary.',
-        latitude: 25.0117,
-        longitude: -80.3753,
-        maxDepth: 12,
-        country: 'United States',
-        region: 'Florida Keys',
-        features: ['Coral reef', 'Tropical fish', 'Easy dive'],
-        source: 'Popular Dive Sites',
-      ),
-      ExternalDiveSite(
-        externalId: 'pop_20',
-        name: 'Blue Heron Bridge',
-        description: 'World-class muck diving under a bridge.',
-        latitude: 26.7831,
-        longitude: -80.0450,
-        maxDepth: 6,
-        country: 'United States',
-        region: 'Florida',
-        features: ['Muck diving', 'Macro', 'Seahorses', 'Shore dive'],
-        source: 'Popular Dive Sites',
-      ),
-
-      // Hawaii
-      ExternalDiveSite(
-        externalId: 'pop_21',
-        name: 'Manta Ray Night Dive',
-        description: 'Night dive with manta rays attracted by lights.',
-        latitude: 19.7286,
-        longitude: -156.0456,
-        maxDepth: 10,
-        country: 'United States',
-        region: 'Hawaii',
-        features: ['Mantas', 'Night dive', 'Easy dive'],
-        source: 'Popular Dive Sites',
-      ),
-
-      // Costa Rica
-      ExternalDiveSite(
-        externalId: 'pop_22',
-        name: 'Cocos Island - Bajo Alcyone',
-        description: 'Famous seamount with schooling hammerheads.',
-        latitude: 5.5317,
-        longitude: -87.0433,
-        maxDepth: 30,
-        country: 'Costa Rica',
-        region: 'Pacific',
-        features: ['Hammerheads', 'Seamount', 'Pelagics'],
-        source: 'Popular Dive Sites',
-      ),
-
-      // South Africa
-      ExternalDiveSite(
-        externalId: 'pop_23',
-        name: 'Aliwal Shoal',
-        description: 'Shark diving destination with ragged-tooth sharks.',
-        latitude: -30.2633,
-        longitude: 30.8167,
-        maxDepth: 27,
-        country: 'South Africa',
-        region: 'KwaZulu-Natal',
-        features: ['Sharks', 'Ragged-tooth', 'Wrecks'],
-        source: 'Popular Dive Sites',
-      ),
-
-      // Japan
-      ExternalDiveSite(
-        externalId: 'pop_24',
-        name: 'Yonaguni Monument',
-        description: 'Mysterious underwater rock formation.',
-        latitude: 24.4353,
-        longitude: 123.0106,
-        maxDepth: 25,
-        country: 'Japan',
-        region: 'Okinawa',
-        features: ['Rock formation', 'Hammerheads', 'Mystery'],
-        source: 'Popular Dive Sites',
-      ),
-
-      // Fiji
-      ExternalDiveSite(
-        externalId: 'pop_25',
-        name: 'Great White Wall',
-        description: 'Soft coral wall covered in white coral.',
-        latitude: -16.8500,
-        longitude: -179.8667,
-        maxDepth: 30,
-        country: 'Fiji',
-        region: 'Somosomo Strait',
-        features: ['Soft coral', 'Wall dive', 'Current'],
-        source: 'Popular Dive Sites',
-      ),
-    ];
   }
 }

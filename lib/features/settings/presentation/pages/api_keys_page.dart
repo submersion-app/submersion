@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/services/tide_service.dart';
 import '../../../../core/services/weather_service.dart';
+import '../../../dive_sites/data/services/dive_site_api_service.dart';
 import '../providers/api_key_providers.dart';
 
 class ApiKeysPage extends ConsumerStatefulWidget {
@@ -16,45 +17,119 @@ class ApiKeysPage extends ConsumerStatefulWidget {
 class _ApiKeysPageState extends ConsumerState<ApiKeysPage> {
   final _weatherKeyController = TextEditingController();
   final _tideKeyController = TextEditingController();
+  final _rapidApiKeyController = TextEditingController();
   bool _weatherKeyObscured = true;
   bool _tideKeyObscured = true;
+  bool _rapidApiKeyObscured = true;
   bool _testingWeather = false;
   bool _testingTide = false;
+  bool _testingRapidApi = false;
+  bool _controllersInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    // Load existing keys into controllers
+    // Listen for when keys finish loading and populate controllers
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.listen<ApiKeyState>(apiKeyProvider, (previous, next) {
+        // Only populate controllers once when loading completes
+        if (previous?.isLoading == true && !next.isLoading && !_controllersInitialized) {
+          _populateControllers(next);
+        }
+      });
+      // Also check if already loaded
       final apiKeys = ref.read(apiKeyProvider);
-      _weatherKeyController.text = apiKeys.openWeatherMapKey ?? '';
-      _tideKeyController.text = apiKeys.worldTidesKey ?? '';
+      if (!apiKeys.isLoading && !_controllersInitialized) {
+        _populateControllers(apiKeys);
+      }
     });
+  }
+
+  void _populateControllers(ApiKeyState apiKeys) {
+    _controllersInitialized = true;
+    _weatherKeyController.text = apiKeys.openWeatherMapKey ?? '';
+    _tideKeyController.text = apiKeys.worldTidesKey ?? '';
+    _rapidApiKeyController.text = apiKeys.rapidApiKey ?? '';
   }
 
   @override
   void dispose() {
     _weatherKeyController.dispose();
     _tideKeyController.dispose();
+    _rapidApiKeyController.dispose();
     super.dispose();
   }
 
   Future<void> _saveWeatherKey() async {
     final key = _weatherKeyController.text.trim();
-    await ref.read(apiKeyProvider.notifier).setOpenWeatherMapKey(key.isEmpty ? null : key);
+    final (success, error) = await ref
+        .read(apiKeyProvider.notifier)
+        .setOpenWeatherMapKey(key.isEmpty ? null : key);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Weather API key saved')),
+        SnackBar(
+          content: Text(success ? 'Weather API key saved' : (error ?? 'Save failed')),
+          backgroundColor: success ? null : Colors.red,
+        ),
       );
     }
   }
 
   Future<void> _saveTideKey() async {
     final key = _tideKeyController.text.trim();
-    await ref.read(apiKeyProvider.notifier).setWorldTidesKey(key.isEmpty ? null : key);
+    final (success, error) = await ref
+        .read(apiKeyProvider.notifier)
+        .setWorldTidesKey(key.isEmpty ? null : key);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tide API key saved')),
+        SnackBar(
+          content: Text(success ? 'Tide API key saved' : (error ?? 'Save failed')),
+          backgroundColor: success ? null : Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _saveRapidApiKey() async {
+    final key = _rapidApiKeyController.text.trim();
+    final (success, error) = await ref
+        .read(apiKeyProvider.notifier)
+        .setRapidApiKey(key.isEmpty ? null : key);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success ? 'RapidAPI key saved' : (error ?? 'Save failed')),
+          backgroundColor: success ? null : Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _testRapidApiKey() async {
+    final key = _rapidApiKeyController.text.trim();
+    if (key.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Enter an API key first'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _testingRapidApi = true);
+
+    final service = DiveSiteApiService();
+    final (isValid, errorMessage) = await service.testApiKeyWithDetails(key);
+
+    if (mounted) {
+      setState(() => _testingRapidApi = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(isValid ? 'API key is valid!' : (errorMessage ?? 'Unknown error')),
+          backgroundColor: isValid ? Colors.green : Colors.red,
+          duration: const Duration(seconds: 5),
+        ),
       );
     }
   }
@@ -140,7 +215,7 @@ class _ApiKeysPageState extends ConsumerState<ApiKeysPage> {
         padding: const EdgeInsets.all(16),
         children: [
           Text(
-            'Configure API keys to enable automatic weather and tide data for your dives.',
+            'Configure API keys to enable weather data, tide information, and online dive site search.',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -183,6 +258,25 @@ class _ApiKeysPageState extends ConsumerState<ApiKeysPage> {
             getKeyLabel: 'Get API key (free tier available)',
           ),
 
+          const SizedBox(height: 16),
+
+          // RapidAPI Section (for dive site search)
+          _buildApiKeyCard(
+            context,
+            title: 'RapidAPI',
+            subtitle: 'Search and import dive sites from online database',
+            icon: Icons.scuba_diving,
+            controller: _rapidApiKeyController,
+            isObscured: _rapidApiKeyObscured,
+            onToggleObscure: () => setState(() => _rapidApiKeyObscured = !_rapidApiKeyObscured),
+            onSave: _saveRapidApiKey,
+            onTest: _testRapidApiKey,
+            isTesting: _testingRapidApi,
+            isConfigured: apiKeys.hasRapidApiKey,
+            getKeyUrl: 'https://rapidapi.com/the-dive-api-the-dive-api-default/api/world-scuba-diving-sites-api',
+            getKeyLabel: 'Subscribe on RapidAPI',
+          ),
+
           const SizedBox(height: 24),
 
           // Clear All Button
@@ -211,6 +305,7 @@ class _ApiKeysPageState extends ConsumerState<ApiKeysPage> {
                   await ref.read(apiKeyProvider.notifier).clearAllKeys();
                   _weatherKeyController.clear();
                   _tideKeyController.clear();
+                  _rapidApiKeyController.clear();
                   if (mounted) {
                     scaffoldMessenger.showSnackBar(
                       const SnackBar(content: Text('All API keys cleared')),
@@ -235,8 +330,8 @@ class _ApiKeysPageState extends ConsumerState<ApiKeysPage> {
     required bool isObscured,
     required VoidCallback onToggleObscure,
     required VoidCallback onSave,
-    required VoidCallback onTest,
-    required bool isTesting,
+    VoidCallback? onTest,
+    bool isTesting = false,
     required bool isConfigured,
     required String getKeyUrl,
     required String getKeyLabel,
@@ -297,19 +392,21 @@ class _ApiKeysPageState extends ConsumerState<ApiKeysPage> {
             const SizedBox(height: 12),
             Row(
               children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: isTesting ? null : onTest,
-                    child: isTesting
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text('Test'),
+                if (onTest != null) ...[
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: isTesting ? null : onTest,
+                      child: isTesting
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text('Test'),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
+                  const SizedBox(width: 8),
+                ],
                 Expanded(
                   child: FilledButton(
                     onPressed: onSave,
