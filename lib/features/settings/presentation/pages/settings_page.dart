@@ -9,6 +9,7 @@ import '../../../divers/presentation/providers/diver_providers.dart';
 import '../providers/api_key_providers.dart';
 import '../providers/export_providers.dart';
 import '../providers/settings_providers.dart';
+import '../providers/sync_providers.dart';
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
@@ -167,6 +168,42 @@ class SettingsPage extends ConsumerWidget {
             subtitle: const Text('Restore from backup'),
             onTap: () {
               _showRestoreConfirmation(context, ref);
+            },
+          ),
+          Consumer(
+            builder: (context, ref, child) {
+              final syncState = ref.watch(syncStateProvider);
+              String subtitle;
+              if (syncState.status == SyncStatus.syncing) {
+                subtitle = 'Syncing...';
+              } else if (syncState.lastSync != null) {
+                subtitle = 'Last synced: ${_formatSyncTime(syncState.lastSync!)}';
+              } else {
+                subtitle = 'Not configured';
+              }
+              return ListTile(
+                leading: const Icon(Icons.cloud_sync),
+                title: const Text('Cloud Sync'),
+                subtitle: Text(subtitle),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (syncState.conflicts > 0)
+                      Badge(
+                        label: Text('${syncState.conflicts}'),
+                        child: const Icon(Icons.warning, color: Colors.orange, size: 20),
+                      ),
+                    if (syncState.pendingChanges > 0 && syncState.conflicts == 0)
+                      Badge(
+                        label: Text('${syncState.pendingChanges}'),
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                      ),
+                    const SizedBox(width: 8),
+                    const Icon(Icons.chevron_right),
+                  ],
+                ),
+                onTap: () => context.push('/settings/cloud-sync'),
+              );
             },
           ),
           const Divider(),
@@ -917,5 +954,22 @@ class SettingsPage extends ConsumerWidget {
         ),
       ],
     );
+  }
+
+  String _formatSyncTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inMinutes < 1) {
+      return 'Just now';
+    } else if (difference.inHours < 1) {
+      return '${difference.inMinutes}m ago';
+    } else if (difference.inDays < 1) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays}d ago';
+    } else {
+      return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
+    }
   }
 }

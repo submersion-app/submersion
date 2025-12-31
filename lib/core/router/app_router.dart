@@ -45,6 +45,7 @@ import '../../features/statistics/presentation/pages/statistics_equipment_page.d
 import '../../features/statistics/presentation/pages/statistics_profile_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/settings/presentation/pages/api_keys_page.dart';
+import '../../features/settings/presentation/pages/cloud_sync_page.dart';
 import '../../features/dive_types/presentation/pages/dive_types_page.dart';
 import '../../features/tools/presentation/pages/weight_calculator_page.dart';
 import '../../features/dive_computer/presentation/pages/device_list_page.dart';
@@ -460,6 +461,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'api-keys',
                 name: 'apiKeys',
                 builder: (context, state) => const ApiKeysPage(),
+              ),
+              GoRoute(
+                path: 'cloud-sync',
+                name: 'cloudSync',
+                builder: (context, state) => const CloudSyncPage(),
               ),
             ],
           ),
