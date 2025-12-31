@@ -41,6 +41,11 @@ dependencies:
   # Networking
   http: ^1.2.2
 
+  # Cloud Storage
+  google_sign_in: ^6.2.2
+  googleapis: ^13.2.0
+  extension_google_sign_in_as_googleapis_auth: ^2.0.12
+
   # Platform Integration
   flutter_blue_plus: ^1.32.12
   dive_computer: ^0.1.0-dev.2  # libdivecomputer FFI wrapper
@@ -68,6 +73,7 @@ dependencies:
   csv: ^6.0.0
   collection: ^1.18.0
   equatable: ^2.0.5
+  crypto: ^3.0.3
 
 dev_dependencies:
   flutter_test:

@@ -585,6 +585,59 @@ class GasSwitches extends Table {
 }
 
 // ============================================================================
+// Sync Tables
+// ============================================================================
+
+/// Global sync metadata - tracks sync state for this device
+class SyncMetadata extends Table {
+  TextColumn get id => text()(); // Always 'global' for single record
+  IntColumn get lastSyncTimestamp =>
+      integer().nullable()(); // Unix timestamp ms of last successful sync
+  TextColumn get deviceId => text()(); // This device's unique UUID
+  TextColumn get syncProvider =>
+      text().nullable()(); // 'icloud' or 'googledrive'
+  TextColumn get remoteFileId =>
+      text().nullable()(); // Provider-specific file reference
+  IntColumn get syncVersion =>
+      integer().withDefault(const Constant(1))(); // Sync format version
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Per-record sync tracking for conflict detection
+class SyncRecords extends Table {
+  TextColumn get id => text()();
+  TextColumn get entityType => text()(); // e.g., 'dives', 'dive_sites'
+  TextColumn get recordId => text()(); // Primary key of the synced record
+  IntColumn get localUpdatedAt => integer()(); // Local modification timestamp
+  IntColumn get syncedAt => integer().nullable()(); // When last synced to cloud
+  TextColumn get syncStatus => text().withDefault(
+        const Constant('synced'),
+      )(); // synced, pending, conflict
+  TextColumn get conflictData =>
+      text().nullable()(); // JSON of conflicting remote data
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Deletion log for tracking deleted records during sync
+class DeletionLog extends Table {
+  TextColumn get id => text()();
+  TextColumn get entityType => text()(); // Which table the record was in
+  TextColumn get recordId => text()(); // Primary key of deleted record
+  IntColumn get deletedAt => integer()(); // Unix timestamp of deletion
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+// ============================================================================
 // Database Class
 // ============================================================================
 
@@ -617,13 +670,17 @@ class GasSwitches extends Table {
     DiveComputers,
     DiveProfileEvents,
     GasSwitches,
+    // Sync tables
+    SyncMetadata,
+    SyncRecords,
+    DeletionLog,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration {
@@ -669,6 +726,42 @@ class AppDatabase extends _$AppDatabase {
           await customStatement(
             'ALTER TABLE dive_tanks ADD COLUMN preset_name TEXT',
           );
+        }
+        if (from < 4) {
+          // Add sync tables for cloud sync feature
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS sync_metadata (
+              id TEXT NOT NULL PRIMARY KEY,
+              last_sync_timestamp INTEGER,
+              device_id TEXT NOT NULL,
+              sync_provider TEXT,
+              remote_file_id TEXT,
+              sync_version INTEGER NOT NULL DEFAULT 1,
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL
+            )
+          ''');
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS sync_records (
+              id TEXT NOT NULL PRIMARY KEY,
+              entity_type TEXT NOT NULL,
+              record_id TEXT NOT NULL,
+              local_updated_at INTEGER NOT NULL,
+              synced_at INTEGER,
+              sync_status TEXT NOT NULL DEFAULT 'synced',
+              conflict_data TEXT,
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL
+            )
+          ''');
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS deletion_log (
+              id TEXT NOT NULL PRIMARY KEY,
+              entity_type TEXT NOT NULL,
+              record_id TEXT NOT NULL,
+              deleted_at INTEGER NOT NULL
+            )
+          ''');
         }
       },
       beforeOpen: (details) async {
