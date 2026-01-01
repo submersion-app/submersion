@@ -188,10 +188,13 @@ class MainScaffold extends StatelessWidget {
                   _onDestinationSelected(context, index, isWideScreen: true),
               leading: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Icon(
-                  Icons.scuba_diving,
-                  size: 32,
-                  color: Theme.of(context).colorScheme.primary,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.asset(
+                    'assets/icon/icon.png',
+                    width: 40,
+                    height: 40,
+                  ),
                 ),
               ),
               destinations: const [
@@ -206,8 +209,8 @@ class MainScaffold extends StatelessWidget {
                   label: Text('Sites'),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.card_travel_outlined),
-                  selectedIcon: Icon(Icons.card_travel),
+                  icon: Icon(Icons.flight_outlined),
+                  selectedIcon: Icon(Icons.flight),
                   label: Text('Trips'),
                 ),
                 NavigationRailDestination(
@@ -268,8 +271,8 @@ class MainScaffold extends StatelessWidget {
             label: 'Sites',
           ),
           NavigationDestination(
-            icon: Icon(Icons.card_travel_outlined),
-            selectedIcon: Icon(Icons.card_travel),
+            icon: Icon(Icons.flight_outlined),
+            selectedIcon: Icon(Icons.flight),
             label: 'Trips',
           ),
           NavigationDestination(
