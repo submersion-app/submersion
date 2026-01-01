@@ -1,4 +1,4 @@
-package io.github.ericgriffin.submersion
+package app.submersion
 
 import io.flutter.embedding.android.FlutterActivity
 
