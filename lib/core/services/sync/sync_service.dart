@@ -193,19 +193,25 @@ class SyncService {
   /// 4. Upload merged result
   /// 5. Update local sync state
   Future<SyncResult> performSync() async {
+    print('[SyncService] performSync() called');
     final provider = _cloudProvider;
     if (provider == null) {
+      print('[SyncService] ERROR: No cloud provider configured');
       return const SyncResult(
         status: SyncResultStatus.error,
         message: 'No cloud provider configured',
       );
     }
 
+    print('[SyncService] Using provider: ${provider.providerName}');
+
     try {
       _reportProgress(SyncPhase.preparing, 0.0, 'Preparing sync...');
 
       // Check authentication
-      if (!await provider.isAuthenticated()) {
+      final isAuth = await provider.isAuthenticated();
+      print('[SyncService] isAuthenticated = $isAuth');
+      if (!isAuth) {
         return const SyncResult(
           status: SyncResultStatus.authError,
           message: 'Not authenticated with cloud provider',
@@ -276,14 +282,18 @@ class SyncService {
       _reportProgress(SyncPhase.uploading, 0.8, 'Uploading sync data...');
 
       // Upload to cloud
+      print('[SyncService] Getting sync folder...');
       final syncFolder = await provider.getOrCreateSyncFolder();
+      print('[SyncService] Sync folder = $syncFolder');
       const filename = 'submersion_sync.json';
 
+      print('[SyncService] Uploading ${localData.length} bytes to $syncFolder/$filename...');
       final result = await provider.uploadFile(
         localData,
         filename,
         folderId: syncFolder,
       );
+      print('[SyncService] Upload complete! fileId = ${result.fileId}');
 
       // Update sync state
       await _syncRepository.setRemoteFileId(result.fileId);

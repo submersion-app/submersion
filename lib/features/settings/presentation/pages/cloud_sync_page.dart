@@ -209,14 +209,49 @@ class CloudSyncPage extends ConsumerWidget {
     WidgetRef ref,
     CloudProviderType provider,
   ) async {
-    // TODO: Implement authentication flow for the selected provider
+    // Set the provider first so cloudStorageProviderProvider returns the correct instance
     ref.read(selectedCloudProviderTypeProvider.notifier).state = provider;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Selected ${provider.name}. Authentication coming soon.'),
-      ),
-    );
+    // Get the cloud storage provider instance
+    final cloudProvider = ref.read(cloudStorageProviderProvider);
+    if (cloudProvider == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to initialize ${provider.name} provider'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    try {
+      // Authenticate with the provider
+      await cloudProvider.authenticate();
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Connected to ${cloudProvider.providerName}'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+
+      // Refresh sync state after successful authentication
+      ref.read(syncStateProvider.notifier).refreshState();
+    } catch (e) {
+      // Clear the provider selection on failure
+      ref.read(selectedCloudProviderTypeProvider.notifier).state = null;
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${cloudProvider.providerName} connection failed: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildSyncActions(

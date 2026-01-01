@@ -84,14 +84,17 @@ class ICloudStorageProvider
 
   /// Get the iCloud container directory
   Future<Directory?> _getICloudContainer() async {
+    _log.info('_getICloudContainer called, cached: ${_icloudContainer != null}');
     if (_icloudContainer != null) {
       return _icloudContainer;
     }
 
     try {
+      _log.info('Platform: macOS=${Platform.isMacOS}, iOS=${Platform.isIOS}');
       if (Platform.isMacOS) {
         // On macOS, use the app's container in ~/Library/Mobile Documents/
         final home = Platform.environment['HOME'];
+        _log.info('HOME = $home');
         if (home != null) {
           // The container ID should match your iCloud container identifier
           // Format: iCloud~bundleid (with dots replaced by tildes)
@@ -102,17 +105,22 @@ class ICloudStorageProvider
             'iCloud~io~github~ericgriffin~submersion',
             'Documents',
           );
+          _log.info('iCloud container path: $containerPath');
           final container = Directory(containerPath);
 
           // Create if doesn't exist
-          if (!await container.exists()) {
+          final exists = await container.exists();
+          _log.info('Container exists: $exists');
+          if (!exists) {
             await container.create(recursive: true);
+            _log.info('Created container directory');
           }
 
           _icloudContainer = container;
           return container;
         }
       } else if (Platform.isIOS) {
+        _log.warning('iOS: Using local Documents directory (not real iCloud Drive)');
         // On iOS, use getApplicationDocumentsDirectory
         // Files here are backed up to iCloud if iCloud backup is enabled
         // For explicit iCloud Drive storage, we need a different approach

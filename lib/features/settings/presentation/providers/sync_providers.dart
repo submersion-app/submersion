@@ -100,26 +100,28 @@ class SyncState {
 
 /// Sync state notifier
 class SyncNotifier extends StateNotifier<SyncState> {
-  final SyncService _syncService;
   final SyncRepository _syncRepository;
   final Ref _ref;
 
-  SyncNotifier(this._syncService, this._syncRepository, this._ref)
-      : super(const SyncState()) {
+  SyncNotifier(this._syncRepository, this._ref) : super(const SyncState()) {
     _initialize();
   }
 
+  /// Get the current sync service (reads dynamically to get latest cloudProvider)
+  SyncService get _syncService => _ref.read(syncServiceProvider);
+
   Future<void> _initialize() async {
-    // Set up progress callback
+    // Load initial state
+    await refreshState();
+  }
+
+  void _setupProgressCallback() {
     _syncService.setProgressCallback((progress) {
       state = state.copyWith(
         progress: progress.progress,
         message: progress.message,
       );
     });
-
-    // Load initial state
-    await refreshState();
   }
 
   /// Refresh the sync state from the database
@@ -147,7 +149,11 @@ class SyncNotifier extends StateNotifier<SyncState> {
 
   /// Perform a sync operation
   Future<void> performSync() async {
-    if (state.status == SyncStatus.syncing) return;
+    print('[SyncNotifier] performSync() called');
+    if (state.status == SyncStatus.syncing) {
+      print('[SyncNotifier] Already syncing, returning early');
+      return;
+    }
 
     state = state.copyWith(
       status: SyncStatus.syncing,
@@ -155,8 +161,13 @@ class SyncNotifier extends StateNotifier<SyncState> {
       progress: 0.0,
     );
 
+    // Set up progress callback on the current sync service
+    _setupProgressCallback();
+
+    print('[SyncNotifier] Calling _syncService.performSync()...');
     try {
       final result = await _syncService.performSync();
+      print('[SyncNotifier] Result: ${result.status}, message: ${result.message}');
 
       if (result.isSuccess) {
         state = state.copyWith(
@@ -214,7 +225,6 @@ class SyncNotifier extends StateNotifier<SyncState> {
 /// Sync state provider
 final syncStateProvider = StateNotifierProvider<SyncNotifier, SyncState>((ref) {
   return SyncNotifier(
-    ref.watch(syncServiceProvider),
     ref.watch(syncRepositoryProvider),
     ref,
   );
