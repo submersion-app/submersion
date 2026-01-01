@@ -80,6 +80,7 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.14.2
   build_runner: ^2.4.12
   drift_dev: ^2.20.1
   freezed: ^2.5.7
