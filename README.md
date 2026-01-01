@@ -1,6 +1,6 @@
 <div>
   <img src="assets/icon/icon.png" alt="Submersion Logo" width="80" align="left">
-  <h2>Submersion</h2>
+  <h3>Submersion</h3>
   <p><i>A modern, open-source, cross-platform dive logging application.</i></p>
 </div>
 <br clear="all"/>
