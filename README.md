@@ -1,9 +1,6 @@
-<p>
-  <img src="assets/icon/icon.png" alt="Submersion Logo" width="100" height="100" align="left" style="margin-right: 16px;">
-</p>
+<img src="assets/icon/icon.png" alt="Submersion Logo" width="80" height="80" align="left" style="margin-right: 16px;">
 
-# Submersion
-
+### Submersion
 **A modern, open-source, cross-platform dive logging application.**
 
 <br clear="left"/>
