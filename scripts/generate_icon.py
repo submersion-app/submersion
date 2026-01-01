@@ -64,7 +64,7 @@ def create_icon(size):
 
     cx = size // 2
     wave_width = size * 0.80
-    thickness = size // 18
+    thickness = size // 14
 
     wave_configs = [
         (size * 0.18, thickness),
@@ -104,7 +104,7 @@ def create_icon(size):
     arrow_top = lowest_wave_base_y + center_wave_y - lowest_wave_thick/2
     arrow_bottom = size * 0.88
     arrow_width = size * 0.22
-    shaft_width = size * 0.08
+    shaft_width = size * 0.10
     head_height = size * 0.18
 
     mask_draw.rectangle(
@@ -157,7 +157,7 @@ def create_icon_no_rounded_corners(size):
 
     cx = size // 2
     wave_width = size * 0.80
-    thickness = size // 18
+    thickness = size // 14
 
     wave_configs = [
         (size * 0.18, thickness),
@@ -197,7 +197,7 @@ def create_icon_no_rounded_corners(size):
     arrow_top = lowest_wave_base_y + center_wave_y - lowest_wave_thick/2
     arrow_bottom = size * 0.88
     arrow_width = size * 0.22
-    shaft_width = size * 0.08
+    shaft_width = size * 0.10
     head_height = size * 0.18
 
     mask_draw.rectangle(
