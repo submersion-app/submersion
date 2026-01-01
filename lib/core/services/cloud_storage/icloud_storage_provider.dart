@@ -239,7 +239,7 @@ class ICloudStorageProvider
             name: filename,
             modifiedTime: stat.modified,
             sizeBytes: stat.size,
-          ));
+          ),);
         }
       }
 
