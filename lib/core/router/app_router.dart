@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../services/database_service.dart';
 import '../../features/buddies/presentation/pages/buddy_list_page.dart';
 import '../../features/divers/presentation/providers/diver_providers.dart';
 import '../../features/onboarding/presentation/pages/welcome_page.dart';
@@ -46,6 +47,7 @@ import '../../features/statistics/presentation/pages/statistics_profile_page.dar
 import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/settings/presentation/pages/api_keys_page.dart';
 import '../../features/settings/presentation/pages/cloud_sync_page.dart';
+import '../../features/settings/presentation/pages/storage_settings_page.dart';
 import '../../features/dive_types/presentation/pages/dive_types_page.dart';
 import '../../features/tools/presentation/pages/weight_calculator_page.dart';
 import '../../features/dive_computer/presentation/pages/device_list_page.dart';
@@ -59,6 +61,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/dashboard',
     redirect: (context, state) async {
+      // Skip redirect logic during database migration to prevent deadlock
+      if (DatabaseService.instance.isMigrating) {
+        return null;
+      }
+
       final hasDivers = await ref.read(hasAnyDiversProvider.future);
       final isOnWelcome = state.matchedLocation == '/welcome';
 
@@ -476,6 +483,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'cloud-sync',
                 name: 'cloudSync',
                 builder: (context, state) => const CloudSyncPage(),
+              ),
+              GoRoute(
+                path: 'storage',
+                name: 'storageSettings',
+                builder: (context, state) => const StorageSettingsPage(),
               ),
             ],
           ),

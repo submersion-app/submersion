@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/data/repositories/sync_repository.dart' show CloudProviderType;
@@ -15,6 +16,7 @@ class CloudSyncPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final syncState = ref.watch(syncStateProvider);
     final selectedProvider = ref.watch(selectedCloudProviderTypeProvider);
+    final isCustomFolderMode = ref.watch(isCloudSyncDisabledByCustomFolderProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -22,6 +24,8 @@ class CloudSyncPage extends ConsumerWidget {
       ),
       body: ListView(
         children: [
+          // Show banner when custom folder mode is active
+          if (isCustomFolderMode) _buildCustomFolderBanner(context),
           _buildSyncStatusCard(context, ref, syncState),
           const Divider(),
           _buildProviderSection(context, ref, selectedProvider),
@@ -33,6 +37,64 @@ class CloudSyncPage extends ConsumerWidget {
           ],
           const Divider(),
           _buildAdvancedSection(context, ref),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCustomFolderBanner(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.orange.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.orange.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.info_outline,
+                color: Colors.orange,
+                size: 24,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Cloud Sync Disabled',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: Colors.orange.shade800,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'App-managed cloud sync is disabled because you\'re using a custom storage folder. '
+            'Your folder\'s sync service (Dropbox, Google Drive, OneDrive, etc.) handles synchronization.',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: () => context.push('/settings/storage'),
+            icon: const Icon(Icons.settings),
+            label: const Text('Storage Settings'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.orange.shade800,
+              side: BorderSide(color: Colors.orange.shade800),
+            ),
+          ),
         ],
       ),
     );
@@ -236,6 +298,9 @@ class CloudSyncPage extends ConsumerWidget {
           ),
         );
       }
+
+      // Persist the provider selection to SharedPreferences
+      await ref.read(syncInitializerProvider).saveProvider(provider);
 
       // Refresh sync state after successful authentication
       ref.read(syncStateProvider.notifier).refreshState();

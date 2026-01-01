@@ -49,7 +49,7 @@ class DistributionSegment {
 
 /// Repository for all advanced statistics queries
 class StatisticsRepository {
-  final AppDatabase _db = DatabaseService.instance.database;
+  AppDatabase get _db => DatabaseService.instance.database;
   final _log = LoggerService.forClass(StatisticsRepository);
 
   // ============================================================================

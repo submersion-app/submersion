@@ -20,7 +20,7 @@ enum CloudProviderType {
 
 /// Repository for managing sync metadata and tracking
 class SyncRepository {
-  final AppDatabase _db = DatabaseService.instance.database;
+  AppDatabase get _db => DatabaseService.instance.database;
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(SyncRepository);
 

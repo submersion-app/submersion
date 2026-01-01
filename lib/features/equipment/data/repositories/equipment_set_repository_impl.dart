@@ -7,7 +7,7 @@ import '../../domain/entities/equipment_set.dart' as domain;
 import 'equipment_repository_impl.dart';
 
 class EquipmentSetRepository {
-  final AppDatabase _db = DatabaseService.instance.database;
+  AppDatabase get _db => DatabaseService.instance.database;
   final _uuid = const Uuid();
   final _equipmentRepo = EquipmentRepository();
 

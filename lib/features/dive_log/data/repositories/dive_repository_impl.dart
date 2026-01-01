@@ -15,7 +15,7 @@ import '../../../tags/data/repositories/tag_repository.dart';
 import '../../../trips/domain/entities/trip.dart' as domain;
 
 class DiveRepository {
-  final AppDatabase _db = DatabaseService.instance.database;
+  AppDatabase get _db => DatabaseService.instance.database;
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(DiveRepository);
   final TagRepository _tagRepository = TagRepository();

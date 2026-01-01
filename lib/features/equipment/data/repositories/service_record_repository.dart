@@ -7,7 +7,7 @@ import '../../../../core/constants/enums.dart';
 import '../../domain/entities/service_record.dart' as domain;
 
 class ServiceRecordRepository {
-  final AppDatabase _db = DatabaseService.instance.database;
+  AppDatabase get _db => DatabaseService.instance.database;
   final _uuid = const Uuid();
 
   /// Get all service records for an equipment item
