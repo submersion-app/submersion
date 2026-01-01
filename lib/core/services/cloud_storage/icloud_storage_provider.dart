@@ -102,7 +102,7 @@ class ICloudStorageProvider
             home,
             'Library',
             'Mobile Documents',
-            'iCloud~io~github~ericgriffin~submersion',
+            'iCloud~app~submersion',
             'Documents',
           );
           _log.info('iCloud container path: $containerPath');
