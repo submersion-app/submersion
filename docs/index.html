@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Submersion - Open Source Dive Log</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="description" content="Submersion is an open-source, cross-platform dive logging application for scuba divers. Track dives, manage equipment, analyze profiles, and more.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  <meta name="theme-color" content="#0077B6">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/logo.png">
+
+  <!-- Docsify Theme -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+
+  <!-- Custom Styles -->
+  <style>
+    :root {
+      /* Ocean Theme Colors */
+      --theme-color: #0077B6;
+      --theme-color-dark: #03045E;
+      --theme-color-light: #00B4D8;
+      --accent-color: #00C896;
+
+      /* Sidebar */
+      --sidebar-width: 280px;
+      --sidebar-nav-link-color: #364149;
+      --sidebar-nav-link-color--active: #0077B6;
+      --sidebar-nav-link-color--hover: #00B4D8;
+
+      /* Cover */
+      --cover-background-color: linear-gradient(135deg, #03045E 0%, #0077B6 50%, #00B4D8 100%);
+    }
+
+    /* Sidebar Styling */
+    .sidebar {
+      border-right: 1px solid #e8e8e8;
+    }
+
+    .sidebar-nav > ul > li > a {
+      font-weight: 600;
+      color: #03045E;
+    }
+
+    .sidebar-nav li.active > a {
+      color: var(--theme-color);
+      border-left: 3px solid var(--theme-color);
+      padding-left: 12px;
+      margin-left: -15px;
+    }
+
+    /* App Name in Sidebar */
+    .app-name-link img {
+      max-width: 50px;
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+
+    /* Code Blocks */
+    .markdown-section code {
+      background-color: #f6f8fa;
+      border-radius: 4px;
+      padding: 2px 6px;
+    }
+
+    .markdown-section pre > code {
+      padding: 1em;
+    }
+
+    /* Tables */
+    .markdown-section table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    .markdown-section table th {
+      background-color: #f6f8fa;
+      font-weight: 600;
+    }
+
+    .markdown-section table th,
+    .markdown-section table td {
+      border: 1px solid #dfe2e5;
+      padding: 8px 12px;
+    }
+
+    /* Feature Badges */
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+
+    .badge-complete {
+      background-color: #22C55E;
+      color: white;
+    }
+
+    .badge-planned {
+      background-color: #F59E0B;
+      color: white;
+    }
+
+    /* Callouts/Tips */
+    .tip {
+      background-color: #e7f5ff;
+      border-left: 4px solid #0077B6;
+      padding: 12px 16px;
+      margin: 16px 0;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .warning {
+      background-color: #fff3cd;
+      border-left: 4px solid #F59E0B;
+      padding: 12px 16px;
+      margin: 16px 0;
+      border-radius: 0 4px 4px 0;
+    }
+
+    /* Screenshot Placeholders */
+    .screenshot-placeholder {
+      background-color: #f0f0f0;
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+      padding: 40px;
+      text-align: center;
+      color: #666;
+      margin: 16px 0;
+    }
+
+    /* Dark Mode Support */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --sidebar-nav-link-color: #b8c0c8;
+        --sidebar-background: #1e1e1e;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">Loading documentation...</div>
+
+  <script>
+    window.$docsify = {
+      name: '<img src="assets/logo.png" alt="Submersion"> Submersion',
+      nameLink: '/',
+      repo: 'https://github.com/submersion-app/submersion',
+
+      // Load sidebar
+      loadSidebar: true,
+      subMaxLevel: 3,
+
+      // Auto header
+      autoHeader: true,
+
+      // Search plugin
+      search: {
+        maxAge: 86400000,
+        paths: 'auto',
+        placeholder: 'Search docs...',
+        noData: 'No results found',
+        depth: 3,
+        hideOtherSidebarContent: false,
+      },
+
+      // Pagination
+      pagination: {
+        previousText: 'Previous',
+        nextText: 'Next',
+        crossChapter: true,
+        crossChapterText: true,
+      },
+
+      // Copy code button
+      copyCode: {
+        buttonText: 'Copy',
+        errorText: 'Error',
+        successText: 'Copied!'
+      },
+
+      // Tabs plugin
+      tabs: {
+        persist: true,
+        sync: true,
+        theme: 'classic',
+        tabComments: true,
+        tabHeadings: true
+      },
+
+      // Theme color
+      themeColor: '#0077B6',
+
+      // Execute scripts in markdown
+      executeScript: true,
+
+      // Merge navbar into sidebar for mobile
+      mergeNavbar: true,
+
+      // Format updated time
+      formatUpdated: '{MM}/{DD}/{YYYY} {HH}:{mm}',
+
+      // 404 page
+      notFoundPage: true,
+
+      // Alias for better URLs
+      alias: {
+        '/.*/_sidebar.md': '/_sidebar.md',
+      },
+
+      // Auto to top
+      auto2top: true,
+    }
+  </script>
+
+  <!-- Docsify Core -->
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/docsify.min.js"></script>
+
+  <!-- Plugins -->
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-tabs@1/dist/docsify-tabs.min.js"></script>
+
+  <!-- Syntax Highlighting -->
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-dart.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-sql.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
+</body>
+</html>
