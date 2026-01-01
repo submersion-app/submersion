@@ -246,7 +246,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     ),
                     if (dive.exitTime != null)
                       Text(
-                        'Exit: ${DateFormat('h:mm a').format(dive.exitTime!)}',
+                        'Exit: ${DateFormat('MMM d, y • h:mm a').format(dive.exitTime!)}',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),
