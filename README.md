@@ -18,6 +18,15 @@ Most dive logging software falls into two categories: desktop applications stuck
 - **Technical Diving Ready** — Bühlmann ZH-L16C decompression, multi-gas support, CNS/OTU tracking, trimix blending.
 - **Free Forever** — Open source under GPL-3.0. No premium tiers for core features. No ads.
 
+## Data Philosophy
+
+Submersion is built on these principles:
+
+1. **Local-First** — Your data lives on your device. The app works offline, always.
+2. **No Lock-In** — Export your entire logbook to UDDF or CSV at any time. Switch apps without losing history.
+3. **No Account Required** — Use the app immediately. No sign-up, no email, no tracking.
+4. **Open Source** — Audit the code. Fork it. Improve it. Your dive log software should be as transparent as the water.
+
 ## Features
 
 ### Dive Logging
@@ -160,15 +169,6 @@ lib/
 - **libdivecomputer** — FFI bindings for dive computer communication
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed documentation.
-
-## Data Philosophy
-
-Submersion is built on these principles:
-
-1. **Local-First** — Your data lives on your device. The app works offline, always.
-2. **No Lock-In** — Export your entire logbook to UDDF or CSV at any time. Switch apps without losing history.
-3. **No Account Required** — Use the app immediately. No sign-up, no email, no tracking.
-4. **Open Source** — Audit the code. Fork it. Improve it. Your dive log software should be as transparent as the water.
 
 ## Roadmap
 
