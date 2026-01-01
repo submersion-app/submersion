@@ -1,8 +1,8 @@
-<img src="assets/icon/icon.png" alt="Submersion Logo" width="80" align="left">
-
-### **Submersion**
-#### A modern, open-source, cross-platform dive logging application.
-
+<div>
+  <img src="assets/icon/icon.png" alt="Submersion Logo" width="80" align="left">
+  <h3>Submersion</h3>
+  <p><i>A modern, open-source, cross-platform dive logging application.</i></p>
+</div>
 <br clear="all"/>
 
 Your dive data belongs to you. Submersion gives scuba divers complete control over their logbooks with no proprietary formats, no cloud lock-in, and no subscription fees. It's free software that runs on your devices, stores data locally, and exports to open standards.
