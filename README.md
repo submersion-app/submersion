@@ -11,7 +11,7 @@ Most dive logging software falls into two categories: desktop applications stuck
 - **Your Data, Your Control** — All data stored locally in SQLite and can be synced across devices through cloud storage. No account required. No cloud dependency. Export everything, anytime.
 - **Truly Cross-Platform** — One app for iOS, Android, macOS, Windows, and Linux. Your logbook works everywhere, and the interface is consistent across platforms.
 - **Open Standards** — Full UDDF 3.2 import/export. CSV support. No proprietary formats trapping your dive history.
-- **300+ Dive Computers** — Connect via USB or Bluetooth. Powered by [libdivecomputer](https://www.libdivecomputer.org/).
+- **300+ Dive Computers supported** — Connect via USB or Bluetooth. Powered by [libdivecomputer](https://www.libdivecomputer.org/).
 - **Technical Diving Ready** — Bühlmann ZH-L16C decompression, multi-gas support, CNS/OTU tracking, trimix blending.
 - **Free Forever** — Open source under GPL-3.0. No premium tiers for core features. No ads.
 
@@ -44,9 +44,9 @@ Most dive logging software falls into two categories: desktop applications stuck
 - Multi-computer support with profile selection
 
 ### Profile Analysis
-- Interactive depth/temperature charts with zoom and pan
-- Touch markers showing depth, time, and temperature
-- Ascent rate monitoring with color-coded warnings
+- Interactive depth/temperature/pressure/SAC charts with zoom and pan
+- Touch markers showing various metrics
+- Ascent rate calculation with color-coded warnings
 - Profile event markers (descent, safety stop, gas switch)
 - SAC/RMV overlay
 
