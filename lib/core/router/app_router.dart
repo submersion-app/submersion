@@ -52,11 +52,12 @@ import '../../features/dive_computer/presentation/pages/device_list_page.dart';
 import '../../features/dive_computer/presentation/pages/device_detail_page.dart';
 import '../../features/dive_computer/presentation/pages/device_download_page.dart';
 import '../../features/dive_computer/presentation/pages/device_discovery_page.dart';
+import '../../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../../shared/widgets/main_scaffold.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: '/dives',
+    initialLocation: '/dashboard',
     redirect: (context, state) async {
       final hasDivers = await ref.read(hasAnyDiversProvider.future);
       final isOnWelcome = state.matchedLocation == '/welcome';
@@ -66,9 +67,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return '/welcome';
       }
 
-      // If has divers and on welcome, redirect to dives
+      // If has divers and on welcome, redirect to dashboard
       if (hasDivers && isOnWelcome) {
-        return '/dives';
+        return '/dashboard';
       }
 
       return null;
@@ -83,6 +84,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ShellRoute(
         builder: (context, state, child) => MainScaffold(child: child),
         routes: [
+          // Dashboard (Home)
+          GoRoute(
+            path: '/dashboard',
+            name: 'dashboard',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: DashboardPage(),
+            ),
+          ),
+
           // Dive Log
           GoRoute(
             path: '/dives',
