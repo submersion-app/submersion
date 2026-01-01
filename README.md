@@ -5,7 +5,7 @@
 </div>
 <br clear="all"/>
 
-Submersion gives scuba divers full ownership of their logbooks—no proprietary formats, no cloud lock-in, no subscription fees. Track analytics, stats, records, and trends across your dives, all stored locally and exportable to open standards. Free and open-source, forever.
+Submersion gives scuba divers full ownership of their logbooks — no proprietary formats, no cloud lock-in, no subscription fees. Track analytics, stats, records, and trends across your dives, all stored locally and exportable to open standards. Free and open-source, forever.
 
 ## Why Submersion?
 
