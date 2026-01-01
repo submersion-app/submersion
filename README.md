@@ -1,5 +1,6 @@
 <img src="assets/icon/icon.png" alt="Submersion Logo" width="100" height="100" align="left" style="margin-right: 16px;">
 <h1 style="border: none;">Submersion</h1>
+
 <b>A modern, open-source, cross-platform dive logging application.</b>
 <br clear="left"/>
 
