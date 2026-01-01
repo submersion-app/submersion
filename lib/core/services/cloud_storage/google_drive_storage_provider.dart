@@ -220,7 +220,7 @@ class GoogleDriveStorageProvider
                 name: f.name!,
                 modifiedTime: f.modifiedTime ?? DateTime.now(),
                 sizeBytes: f.size != null ? int.tryParse(f.size!) : null,
-              ))
+              ),)
           .toList();
     } catch (e, stackTrace) {
       _log.error('Failed to list files', e, stackTrace);
@@ -275,7 +275,7 @@ class GoogleDriveStorageProvider
 
     try {
       // Look for existing sync folder
-      final query = "name = '${CloudStorageProviderMixin.syncFolderName}' "
+      const query = "name = '${CloudStorageProviderMixin.syncFolderName}' "
           "and mimeType = 'application/vnd.google-apps.folder' "
           "and 'appDataFolder' in parents "
           "and trashed = false";

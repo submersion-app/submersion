@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/data/repositories/sync_repository.dart';
+import '../../../../core/services/logger_service.dart';
 import '../../../../core/services/cloud_storage/cloud_storage_provider.dart';
 import '../../../../core/services/cloud_storage/google_drive_storage_provider.dart';
 import '../../../../core/services/cloud_storage/icloud_storage_provider.dart';
@@ -102,6 +103,7 @@ class SyncState {
 class SyncNotifier extends StateNotifier<SyncState> {
   final SyncRepository _syncRepository;
   final Ref _ref;
+  final _log = LoggerService.forClass(SyncNotifier);
 
   SyncNotifier(this._syncRepository, this._ref) : super(const SyncState()) {
     _initialize();
@@ -149,9 +151,9 @@ class SyncNotifier extends StateNotifier<SyncState> {
 
   /// Perform a sync operation
   Future<void> performSync() async {
-    print('[SyncNotifier] performSync() called');
+    _log.debug('performSync() called');
     if (state.status == SyncStatus.syncing) {
-      print('[SyncNotifier] Already syncing, returning early');
+      _log.debug('Already syncing, returning early');
       return;
     }
 
@@ -164,10 +166,10 @@ class SyncNotifier extends StateNotifier<SyncState> {
     // Set up progress callback on the current sync service
     _setupProgressCallback();
 
-    print('[SyncNotifier] Calling _syncService.performSync()...');
+    _log.debug('Calling _syncService.performSync()...');
     try {
       final result = await _syncService.performSync();
-      print('[SyncNotifier] Result: ${result.status}, message: ${result.message}');
+      _log.debug('Result: ${result.status}, message: ${result.message}');
 
       if (result.isSuccess) {
         state = state.copyWith(

@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/constants/enums.dart';
 import '../../../../core/constants/units.dart';
 import '../../../../core/deco/ascent_rate_calculator.dart';
 import '../../../../core/utils/unit_formatter.dart';
@@ -1173,17 +1172,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     return [];
   }
 
-  /// Get color for ascent rate category
-  Color _getAscentRateColor(AscentRateCategory category) {
-    switch (category) {
-      case AscentRateCategory.safe:
-        return Colors.green;
-      case AscentRateCategory.warning:
-        return Colors.orange;
-      case AscentRateCategory.danger:
-        return Colors.red;
-    }
-  }
 }
 
 /// Compact version of the dive profile chart for list previews

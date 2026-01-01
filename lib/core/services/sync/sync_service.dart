@@ -125,7 +125,7 @@ class SyncService {
       phase: phase,
       progress: progress,
       message: message,
-    ));
+    ),);
   }
 
   /// Check if sync is available (provider configured and authenticated)
@@ -169,7 +169,7 @@ class SyncService {
             remoteData: remoteData,
             localModified: DateTime.fromMillisecondsSinceEpoch(record.localUpdatedAt),
             remoteModified: DateTime.now(), // Would come from remote data
-          ));
+          ),);
         } catch (e) {
           _log.error('Failed to parse conflict data for ${record.recordId}', e, null);
         }
@@ -193,24 +193,24 @@ class SyncService {
   /// 4. Upload merged result
   /// 5. Update local sync state
   Future<SyncResult> performSync() async {
-    print('[SyncService] performSync() called');
+    _log.debug('performSync() called');
     final provider = _cloudProvider;
     if (provider == null) {
-      print('[SyncService] ERROR: No cloud provider configured');
+      _log.error('No cloud provider configured', null, null);
       return const SyncResult(
         status: SyncResultStatus.error,
         message: 'No cloud provider configured',
       );
     }
 
-    print('[SyncService] Using provider: ${provider.providerName}');
+    _log.debug('Using provider: ${provider.providerName}');
 
     try {
       _reportProgress(SyncPhase.preparing, 0.0, 'Preparing sync...');
 
       // Check authentication
       final isAuth = await provider.isAuthenticated();
-      print('[SyncService] isAuthenticated = $isAuth');
+      _log.debug('isAuthenticated = $isAuth');
       if (!isAuth) {
         return const SyncResult(
           status: SyncResultStatus.authError,
@@ -282,18 +282,18 @@ class SyncService {
       _reportProgress(SyncPhase.uploading, 0.8, 'Uploading sync data...');
 
       // Upload to cloud
-      print('[SyncService] Getting sync folder...');
+      _log.debug('Getting sync folder...');
       final syncFolder = await provider.getOrCreateSyncFolder();
-      print('[SyncService] Sync folder = $syncFolder');
+      _log.debug('Sync folder = $syncFolder');
       const filename = 'submersion_sync.json';
 
-      print('[SyncService] Uploading ${localData.length} bytes to $syncFolder/$filename...');
+      _log.debug('Uploading ${localData.length} bytes to $syncFolder/$filename...');
       final result = await provider.uploadFile(
         localData,
         filename,
         folderId: syncFolder,
       );
-      print('[SyncService] Upload complete! fileId = ${result.fileId}');
+      _log.debug('Upload complete! fileId = ${result.fileId}');
 
       // Update sync state
       await _syncRepository.setRemoteFileId(result.fileId);

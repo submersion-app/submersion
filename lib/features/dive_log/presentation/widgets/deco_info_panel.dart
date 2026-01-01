@@ -107,7 +107,6 @@ class DecoInfoPanel extends StatelessWidget {
 
   Widget _buildMetricsRow(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
 
     return Row(
       children: [
@@ -249,7 +248,6 @@ class DecoInfoPanel extends StatelessWidget {
   }
 
   Widget _buildTissueBar(BuildContext context, TissueCompartment comp) {
-    final colorScheme = Theme.of(context).colorScheme;
     final loading = comp.percentLoading.clamp(0.0, 120.0);
     final normalizedHeight = (loading / 120.0).clamp(0.0, 1.0);
     final color = _getLoadingColor(loading);
@@ -372,7 +370,6 @@ class NdlBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final isInDeco = status.inDeco;
 
     return Container(
