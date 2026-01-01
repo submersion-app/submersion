@@ -11,6 +11,7 @@ class MainScaffold extends StatelessWidget {
 
   // Routes that appear in the "More" menu on mobile
   static const _moreRoutes = [
+    '/equipment',
     '/statistics',
     '/buddies',
     '/dive-centers',
@@ -22,7 +23,9 @@ class MainScaffold extends StatelessWidget {
     final location = GoRouterState.of(context).uri.path;
 
     if (isWideScreen) {
-      // Wide screen has all items in the rail
+      // Wide screen: Dashboard (via logo), then all items in the rail
+      // Dashboard is accessed via logo click, not in the rail destinations
+      if (location.startsWith('/dashboard')) return -1; // No rail item selected
       if (location.startsWith('/dives')) return 0;
       if (location.startsWith('/sites')) return 1;
       if (location.startsWith('/trips')) return 2;
@@ -34,11 +37,11 @@ class MainScaffold extends StatelessWidget {
       if (location.startsWith('/settings')) return 8;
       return 0;
     } else {
-      // Mobile: Dives, Sites, Trips, Equipment, More
-      if (location.startsWith('/dives')) return 0;
-      if (location.startsWith('/sites')) return 1;
-      if (location.startsWith('/trips')) return 2;
-      if (location.startsWith('/equipment')) return 3;
+      // Mobile: Dashboard, Dives, Sites, Trips, More
+      if (location.startsWith('/dashboard')) return 0;
+      if (location.startsWith('/dives')) return 1;
+      if (location.startsWith('/sites')) return 2;
+      if (location.startsWith('/trips')) return 3;
       // Check if current route is in "More" menu
       for (final route in _moreRoutes) {
         if (location.startsWith(route)) return 4;
@@ -79,19 +82,19 @@ class MainScaffold extends StatelessWidget {
           break;
       }
     } else {
-      // Mobile navigation
+      // Mobile navigation: Dashboard, Dives, Sites, Trips, More
       switch (index) {
         case 0:
-          context.go('/dives');
+          context.go('/dashboard');
           break;
         case 1:
-          context.go('/sites');
+          context.go('/dives');
           break;
         case 2:
-          context.go('/trips');
+          context.go('/sites');
           break;
         case 3:
-          context.go('/equipment');
+          context.go('/trips');
           break;
         case 4:
           _showMoreMenu(context);
@@ -124,6 +127,14 @@ class MainScaffold extends StatelessWidget {
               ),
             ),
             const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.inventory_2),
+              title: const Text('Equipment'),
+              onTap: () {
+                Navigator.pop(context);
+                context.go('/equipment');
+              },
+            ),
             ListTile(
               leading: const Icon(Icons.bar_chart),
               title: const Text('Statistics'),
@@ -178,22 +189,31 @@ class MainScaffold extends StatelessWidget {
 
     if (isWideScreen) {
       // Desktop/Tablet layout with NavigationRail
+      // Use null for selectedIndex when on dashboard (selectedIndex == -1) to deselect all rail items
+      final railSelectedIndex = selectedIndex >= 0 ? selectedIndex : null;
       return Scaffold(
         body: Row(
           children: [
             NavigationRail(
               extended: MediaQuery.of(context).size.width >= 1200,
-              selectedIndex: selectedIndex,
+              selectedIndex: railSelectedIndex,
               onDestinationSelected: (index) =>
                   _onDestinationSelected(context, index, isWideScreen: true),
               leading: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.asset(
-                    'assets/icon/icon.png',
-                    width: 40,
-                    height: 40,
+                child: Tooltip(
+                  message: 'Dashboard',
+                  child: InkWell(
+                    onTap: () => context.go('/dashboard'),
+                    borderRadius: BorderRadius.circular(8),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.asset(
+                        'assets/icon/icon.png',
+                        width: 40,
+                        height: 40,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -261,6 +281,11 @@ class MainScaffold extends StatelessWidget {
             _onDestinationSelected(context, index, isWideScreen: false),
         destinations: const [
           NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          NavigationDestination(
             icon: Icon(Icons.waves_outlined),
             selectedIcon: Icon(Icons.waves),
             label: 'Dives',
@@ -274,11 +299,6 @@ class MainScaffold extends StatelessWidget {
             icon: Icon(Icons.flight_outlined),
             selectedIcon: Icon(Icons.flight),
             label: 'Trips',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.inventory_2_outlined),
-            selectedIcon: Icon(Icons.inventory_2),
-            label: 'Equipment',
           ),
           NavigationDestination(
             icon: Icon(Icons.more_horiz_outlined),
