@@ -9,7 +9,7 @@ import '../../domain/entities/dive_computer.dart' as domain;
 
 /// Repository for managing dive computers and multi-profile support.
 class DiveComputerRepository {
-  final AppDatabase _db = DatabaseService.instance.database;
+  AppDatabase get _db => DatabaseService.instance.database;
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(DiveComputerRepository);
 

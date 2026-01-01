@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/data/repositories/sync_repository.dart';
+import '../../../../core/domain/entities/storage_config.dart';
 import '../../../../core/services/logger_service.dart';
 import '../../../../core/services/cloud_storage/cloud_storage_provider.dart';
 import '../../../../core/services/cloud_storage/google_drive_storage_provider.dart';
@@ -9,6 +10,7 @@ import '../../../../core/services/sync/sync_data_serializer.dart';
 import '../../../../core/services/sync/sync_initializer.dart';
 import '../../../../core/services/sync/sync_service.dart';
 import 'settings_providers.dart';
+import 'storage_providers.dart';
 
 /// Sync repository provider
 final syncRepositoryProvider = Provider<SyncRepository>((ref) {
@@ -27,8 +29,17 @@ final selectedCloudProviderTypeProvider = StateProvider<CloudProviderType?>((ref
 final _googleDriveProvider = GoogleDriveStorageProvider();
 final _icloudProvider = ICloudStorageProvider();
 
-/// Cloud storage provider instance (null if none selected)
+/// Cloud storage provider instance (null if none selected or custom folder mode)
+///
+/// When using custom folder mode, app-managed cloud sync is disabled to prevent
+/// conflicts with external sync services (Dropbox, Google Drive desktop, etc.)
 final cloudStorageProviderProvider = Provider<CloudStorageProvider?>((ref) {
+  // Check if using custom folder mode - disable app-managed sync
+  final storageConfigState = ref.watch(storageConfigNotifierProvider);
+  if (storageConfigState.config.mode == StorageLocationMode.customFolder) {
+    return null; // External sync handles it via the custom folder
+  }
+
   final providerType = ref.watch(selectedCloudProviderTypeProvider);
   if (providerType == null) return null;
 
@@ -214,6 +225,8 @@ class SyncNotifier extends StateNotifier<SyncState> {
   Future<void> signOut() async {
     await _syncService.signOut();
     _ref.read(selectedCloudProviderTypeProvider.notifier).state = null;
+    // Clear the saved provider from SharedPreferences
+    await _ref.read(syncInitializerProvider).saveProvider(null);
     state = const SyncState();
   }
 
@@ -239,7 +252,17 @@ final lastSyncTimeProvider = Provider<DateTime?>((ref) {
 
 /// Is sync enabled provider
 final isSyncEnabledProvider = Provider<bool>((ref) {
+  // Check if cloud sync is disabled due to custom folder mode
+  if (ref.watch(isCloudSyncDisabledByCustomFolderProvider)) {
+    return false;
+  }
   return ref.watch(selectedCloudProviderTypeProvider) != null;
+});
+
+/// Whether cloud sync is disabled because custom folder mode is active
+final isCloudSyncDisabledByCustomFolderProvider = Provider<bool>((ref) {
+  final storageConfigState = ref.watch(storageConfigNotifierProvider);
+  return storageConfigState.config.mode == StorageLocationMode.customFolder;
 });
 
 /// Pending changes count provider

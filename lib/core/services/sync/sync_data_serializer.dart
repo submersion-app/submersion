@@ -181,7 +181,7 @@ class SyncData {
 
 /// Service for serializing and deserializing sync data
 class SyncDataSerializer {
-  final AppDatabase _db = DatabaseService.instance.database;
+  AppDatabase get _db => DatabaseService.instance.database;
   final _log = LoggerService.forClass(SyncDataSerializer);
 
   /// Export all data modified since the given timestamp

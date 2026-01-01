@@ -8,7 +8,7 @@ import '../../../settings/data/repositories/diver_settings_repository.dart';
 import '../../domain/entities/diver.dart' as domain;
 
 class DiverRepository {
-  final AppDatabase _db = DatabaseService.instance.database;
+  AppDatabase get _db => DatabaseService.instance.database;
   final DiverSettingsRepository _settingsRepository = DiverSettingsRepository();
   static const _uuid = Uuid();
   static final _log = LoggerService.forClass(DiverRepository);

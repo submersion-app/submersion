@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
 import '../database/database.dart';
+import 'database_location_service.dart';
 
 class DatabaseService {
   DatabaseService._();
@@ -13,13 +14,49 @@ class DatabaseService {
   static final DatabaseService instance = DatabaseService._();
 
   AppDatabase? _database;
+  DatabaseLocationService? _locationService;
+  String? _currentDatabasePath;
+  bool _isMigrating = false;
+
+  /// Whether a database migration is currently in progress
+  /// During migration, database access should be avoided
+  bool get isMigrating => _isMigrating;
 
   AppDatabase get database {
+    if (_isMigrating) {
+      throw StateError('Database migration in progress. Please wait.');
+    }
     if (_database == null) {
       throw StateError('Database not initialized. Call initialize() first.');
     }
     return _database!;
   }
+
+  /// Returns the database or null if not available (during migration or before init)
+  /// Use this for safe access that won't throw during migration
+  AppDatabase? get databaseOrNull => _isMigrating ? null : _database;
+
+  /// Unsafe access for internal migration checks.
+  /// Avoid using this outside migration code.
+  AppDatabase get databaseForMigration {
+    if (_database == null) {
+      throw StateError('Database not initialized. Call initialize() first.');
+    }
+    return _database!;
+  }
+
+  /// Call before starting a migration to prevent database access
+  void beginMigration() {
+    _isMigrating = true;
+  }
+
+  /// Call after migration completes to restore database access
+  void endMigration() {
+    _isMigrating = false;
+  }
+
+  /// The current database file path (set after initialization)
+  String? get currentPath => _currentDatabasePath;
 
   /// For testing only: allows injecting a test database
   @visibleForTesting
@@ -31,31 +68,105 @@ class DatabaseService {
   @visibleForTesting
   void resetForTesting() {
     _database = null;
+    _locationService = null;
+    _currentDatabasePath = null;
   }
 
-  Future<void> initialize() async {
+  /// Initialize the database with optional location service for custom paths
+  Future<void> initialize({DatabaseLocationService? locationService}) async {
     if (_database != null) return;
 
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final submersionDir = Directory(p.join(dbFolder.path, 'Submersion'));
+    _locationService = locationService;
+    final dbPath = await _resolveDatabasePath();
+    _currentDatabasePath = dbPath;
 
-    if (!await submersionDir.exists()) {
-      await submersionDir.create(recursive: true);
+    // Ensure directory exists
+    final dbDir = Directory(p.dirname(dbPath));
+    if (!await dbDir.exists()) {
+      await dbDir.create(recursive: true);
     }
 
-    final file = File(p.join(submersionDir.path, 'submersion.db'));
+    final file = File(dbPath);
+    // Use synchronous NativeDatabase instead of createInBackground
+    // Background isolates can cause close() to hang indefinitely during migration
+    // For a dive log app, synchronous DB operations are fast enough
+    _database = AppDatabase(NativeDatabase(file));
+  }
 
-    _database = AppDatabase(NativeDatabase.createInBackground(file));
+  /// Reinitialize the database at a specific path (used during migration)
+  Future<void> reinitializeAtPath(String newPath) async {
+    await close();
+
+    _currentDatabasePath = newPath;
+
+    // Ensure directory exists
+    final dbDir = Directory(p.dirname(newPath));
+    if (!await dbDir.exists()) {
+      await dbDir.create(recursive: true);
+    }
+
+    // Small delay to ensure any previous database connections are fully released
+    // This helps prevent SQLite file locking issues, especially with WAL mode
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    final file = File(newPath);
+    // Use synchronous NativeDatabase instead of createInBackground to avoid
+    // isolate communication issues during migration
+    _database = AppDatabase(NativeDatabase(file));
+
+    // Verify the database is ready by running a simple query
+    // This ensures the connection is fully established before returning
+    try {
+      await _database!
+          .customSelect('SELECT 1')
+          .get()
+          .timeout(const Duration(seconds: 10));
+    } catch (e) {
+      // If verification fails, close and rethrow
+      await close();
+      rethrow;
+    }
   }
 
   Future<void> close() async {
-    await _database?.close();
-    _database = null;
+    if (_database == null) return;
+
+    try {
+      // Add timeout to prevent hanging indefinitely
+      await _database!.close().timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {
+          // If close times out, just abandon the connection
+          // The OS will clean up the file handles when the app exits
+        },
+      );
+    } catch (e) {
+      // Ignore close errors - we're abandoning this connection anyway
+    } finally {
+      _database = null;
+    }
   }
 
-  Future<String> get databasePath async {
+  /// Resolve the database path using location service or default
+  Future<String> _resolveDatabasePath() async {
+    if (_locationService != null) {
+      return _locationService!.getDatabasePath();
+    }
+    return _getDefaultPath();
+  }
+
+  /// Get the default database path
+  Future<String> _getDefaultPath() async {
     final dbFolder = await getApplicationDocumentsDirectory();
     return p.join(dbFolder.path, 'Submersion', 'submersion.db');
+  }
+
+  /// Get the current database path (async version for external use)
+  Future<String> get databasePath async {
+    if (_currentDatabasePath != null) {
+      return _currentDatabasePath!;
+    }
+    return _resolveDatabasePath();
   }
 
   Future<void> backup(String destinationPath) async {

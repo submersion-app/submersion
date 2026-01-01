@@ -3,12 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/units.dart';
+import '../../../../core/domain/entities/storage_config.dart';
 import '../../../dive_log/presentation/providers/dive_computer_providers.dart';
 import '../../../divers/domain/entities/diver.dart';
 import '../../../divers/presentation/providers/diver_providers.dart';
 import '../providers/api_key_providers.dart';
 import '../providers/export_providers.dart';
 import '../providers/settings_providers.dart';
+import '../providers/storage_providers.dart';
 import '../providers/sync_providers.dart';
 
 class SettingsPage extends ConsumerWidget {
@@ -138,6 +140,22 @@ class SettingsPage extends ConsumerWidget {
           const Divider(),
 
           _buildSectionHeader(context, 'Data'),
+          Consumer(
+            builder: (context, ref, child) {
+              final storageState = ref.watch(storageConfigNotifierProvider);
+              final isCustomFolder =
+                  storageState.config.mode == StorageLocationMode.customFolder;
+              return ListTile(
+                leading: const Icon(Icons.folder),
+                title: const Text('Database Storage'),
+                subtitle: Text(
+                  isCustomFolder ? 'Custom folder' : 'App default location',
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/settings/storage'),
+              );
+            },
+          ),
           ListTile(
             leading: const Icon(Icons.file_download),
             title: const Text('Import'),

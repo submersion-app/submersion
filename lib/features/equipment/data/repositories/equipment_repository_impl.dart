@@ -8,7 +8,7 @@ import '../../../../core/constants/enums.dart';
 import '../../domain/entities/equipment_item.dart';
 
 class EquipmentRepository {
-  final AppDatabase _db = DatabaseService.instance.database;
+  AppDatabase get _db => DatabaseService.instance.database;
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(EquipmentRepository);
 

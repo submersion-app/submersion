@@ -9,7 +9,7 @@ import '../../../../core/services/logger_service.dart';
 import '../../presentation/providers/settings_providers.dart';
 
 class DiverSettingsRepository {
-  final AppDatabase _db = DatabaseService.instance.database;
+  AppDatabase get _db => DatabaseService.instance.database;
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(DiverSettingsRepository);
 
