@@ -97,7 +97,7 @@ Most dive logging software falls into two categories: desktop applications stuck
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/submersion.git
+git clone https://github.com/submersion-app/submersion.git
 cd submersion
 
 # Install dependencies
