@@ -5,14 +5,14 @@
 </div>
 <br clear="all"/>
 
-Your dive data belongs to you. Submersion gives scuba divers complete control over their logbooks with no proprietary formats, no cloud lock-in, and no subscription fees. It's free software that runs on your devices, stores data locally, and exports to open standards.
+Submersion gives scuba divers full ownership of their logbooks—no proprietary formats, no cloud lock-in, no subscription fees. Track analytics, stats, records, and trends across your dives, all stored locally and exportable to open standards. Free and open-source, forever.
 
 ## Why Submersion?
 
 Most dive logging software falls into two categories: desktop applications stuck in the past, or mobile apps that lock your data in proprietary clouds. Submersion is different:
 
-- **Your Data, Your Control** — All data stored locally in SQLite and can be synced across devices through cloud storage. No account required. No cloud dependency. Export everything, anytime.
-- **Truly Cross-Platform** — One app for iOS, Android, macOS, Windows, and Linux. Your logbook works everywhere, and the interface is consistent across platforms.
+- **You Control Your Data** — All data is stored locally in SQLite and can be synced across devices through cloud storage. No account required. No cloud dependency. Export everything, anytime.
+- **Truly Cross-Platform** — One app for iOS, Android, macOS, Windows, and Linux. Your logbook works everywhere. The same details and analytics are available on all platforms.
 - **Open Standards** — Full UDDF 3.2 import/export. CSV support. No proprietary formats trapping your dive history.
 - **300+ Dive Computers supported** — Connect via USB or Bluetooth. Powered by [libdivecomputer](https://www.libdivecomputer.org/).
 - **Technical Diving Ready** — Bühlmann ZH-L16C decompression, multi-gas support, CNS/OTU tracking, trimix blending.
