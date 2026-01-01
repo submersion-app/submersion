@@ -80,16 +80,12 @@ class _WelcomePageState extends ConsumerState<WelcomePage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   // App icon/logo
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: colorScheme.primaryContainer,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.scuba_diving,
-                      size: 64,
-                      color: colorScheme.onPrimaryContainer,
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(24),
+                    child: Image.asset(
+                      'assets/icon/icon.png',
+                      width: 120,
+                      height: 120,
                     ),
                   ),
                   const SizedBox(height: 32),
