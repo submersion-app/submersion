@@ -1003,8 +1003,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           ? GasColors.forGasMix(tanks.first.gasMix)
           : colorScheme.primary;
       return [
-        _buildSingleDepthSegment(gasColor, units, 0, widget.profile.length,
-            showFill: true)
+        _buildSingleDepthSegment(
+          gasColor,
+          units,
+          0,
+          widget.profile.length,
+          showFill: true,
+        ),
       ];
     }
 
