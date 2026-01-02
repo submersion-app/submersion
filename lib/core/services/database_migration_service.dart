@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:drift/native.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
@@ -50,15 +49,21 @@ class MigrationResult {
 /// Information about an existing database found at a location
 class ExistingDatabaseInfo {
   final String path;
+  final int userCount;
   final int diveCount;
   final int siteCount;
+  final int tripCount;
+  final int buddyCount;
   final int fileSize;
   final DateTime? lastModified;
 
   const ExistingDatabaseInfo({
     required this.path,
+    required this.userCount,
     required this.diveCount,
     required this.siteCount,
+    required this.tripCount,
+    required this.buddyCount,
     required this.fileSize,
     this.lastModified,
   });
@@ -118,21 +123,27 @@ class DatabaseMigrationService {
       final lastModified = stat.modified;
 
       // Try to open the database and count records
-      int diveCount = 0;
-      int siteCount = 0;
+      var counts = const _DatabaseCounts(
+        userCount: 0,
+        diveCount: 0,
+        siteCount: 0,
+        tripCount: 0,
+        buddyCount: 0,
+      );
 
       try {
-        final counts = await _fetchDatabaseCounts(dbPath);
-        diveCount = counts.diveCount;
-        siteCount = counts.siteCount;
+        counts = await _fetchDatabaseCounts(dbPath);
       } catch (e) {
         // Could not read database, but file exists
       }
 
       return ExistingDatabaseInfo(
         path: dbPath,
-        diveCount: diveCount,
-        siteCount: siteCount,
+        userCount: counts.userCount,
+        diveCount: counts.diveCount,
+        siteCount: counts.siteCount,
+        tripCount: counts.tripCount,
+        buddyCount: counts.buddyCount,
         fileSize: fileSize,
         lastModified: lastModified,
       );
@@ -156,33 +167,44 @@ class DatabaseMigrationService {
       final lastModified = stat.modified;
 
       // Count from current open database
+      int userCount = 0;
       int diveCount = 0;
       int siteCount = 0;
+      int tripCount = 0;
+      int buddyCount = 0;
 
       try {
         final db = _dbService.database;
-        final diveRow = await _withTimeout(
-          db.customSelect('SELECT COUNT(*) AS count FROM dives').getSingle(),
-          'Dive count query',
-          timeout: _infoQueryTimeout,
-        );
-        final siteRow = await _withTimeout(
+        final row = await _withTimeout(
           db
-              .customSelect('SELECT COUNT(*) AS count FROM dive_sites')
+              .customSelect('''
+            SELECT
+              (SELECT COUNT(*) FROM divers) AS user_count,
+              (SELECT COUNT(*) FROM dives) AS dive_count,
+              (SELECT COUNT(*) FROM dive_sites) AS site_count,
+              (SELECT COUNT(*) FROM trips) AS trip_count,
+              (SELECT COUNT(*) FROM buddies) AS buddy_count
+          ''')
               .getSingle(),
-          'Site count query',
+          'Database counts query',
           timeout: _infoQueryTimeout,
         );
-        diveCount = _parseCountValue(diveRow.data['count']);
-        siteCount = _parseCountValue(siteRow.data['count']);
+        userCount = _parseCountValue(row.data['user_count']);
+        diveCount = _parseCountValue(row.data['dive_count']);
+        siteCount = _parseCountValue(row.data['site_count']);
+        tripCount = _parseCountValue(row.data['trip_count']);
+        buddyCount = _parseCountValue(row.data['buddy_count']);
       } catch (e) {
         // Could not read counts
       }
 
       return ExistingDatabaseInfo(
         path: currentPath,
+        userCount: userCount,
         diveCount: diveCount,
         siteCount: siteCount,
+        tripCount: tripCount,
+        buddyCount: buddyCount,
         fileSize: fileSize,
         lastModified: lastModified,
       );
@@ -646,35 +668,43 @@ class DatabaseMigrationService {
   }
 
   Future<_DatabaseCounts> _fetchDatabaseCounts(String dbPath) async {
-    final executor = NativeDatabase(File(dbPath));
+    // Use sqlite3 directly to avoid Drift's migration system triggering
+    // when opening a database with a different schema version
+    final db = sqlite3.sqlite3.open(dbPath);
     try {
-      final diveResult = await _withTimeout(
-        executor.runSelect(
-          'SELECT COUNT(*) AS count FROM dives',
-          const [],
-        ),
-        'Dive count query',
-        timeout: _infoQueryTimeout,
-      );
-      final siteResult = await _withTimeout(
-        executor.runSelect(
-          'SELECT COUNT(*) AS count FROM dive_sites',
-          const [],
-        ),
-        'Site count query',
-        timeout: _infoQueryTimeout,
-      );
+      // Query each table individually to handle missing tables gracefully
+      // (older database versions may not have all tables)
+      final userCount = _safeTableCount(db, 'divers');
+      final diveCount = _safeTableCount(db, 'dives');
+      final siteCount = _safeTableCount(db, 'dive_sites');
+      final tripCount = _safeTableCount(db, 'trips');
+      final buddyCount = _safeTableCount(db, 'buddies');
+
       return _DatabaseCounts(
-        diveCount: _parseCountValue(
-          diveResult.isNotEmpty ? diveResult.first['count'] : null,
-        ),
-        siteCount: _parseCountValue(
-          siteResult.isNotEmpty ? siteResult.first['count'] : null,
-        ),
+        userCount: userCount,
+        diveCount: diveCount,
+        siteCount: siteCount,
+        tripCount: tripCount,
+        buddyCount: buddyCount,
       );
     } finally {
-      await executor.close();
+      db.dispose();
       await Future.delayed(const Duration(milliseconds: 50));
+    }
+  }
+
+  /// Safely count rows in a table, returning 0 if the table doesn't exist
+  int _safeTableCount(sqlite3.Database db, String tableName) {
+    try {
+      final result = db.select('SELECT COUNT(*) AS count FROM $tableName');
+      if (result.isEmpty) return 0;
+      final value = result.first['count'];
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      return 0;
+    } catch (e) {
+      // Table might not exist in older database versions
+      return 0;
     }
   }
 
@@ -687,11 +717,17 @@ class DatabaseMigrationService {
 }
 
 class _DatabaseCounts {
+  final int userCount;
   final int diveCount;
   final int siteCount;
+  final int tripCount;
+  final int buddyCount;
 
   const _DatabaseCounts({
+    required this.userCount,
     required this.diveCount,
     required this.siteCount,
+    required this.tripCount,
+    required this.buddyCount,
   });
 }
