@@ -132,8 +132,7 @@ class _MockCurrentDiverIdNotifier extends StateNotifier<String?>
 }
 
 /// Mock DiverListNotifier that doesn't access the database
-class _MockDiverListNotifier
-    extends StateNotifier<AsyncValue<List<Diver>>>
+class _MockDiverListNotifier extends StateNotifier<AsyncValue<List<Diver>>>
     implements DiverListNotifier {
   _MockDiverListNotifier() : super(const AsyncValue.data([]));
 
@@ -165,7 +164,8 @@ void main() {
       // Mock the settingsProvider to avoid database access
       settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
       // Mock the currentDiverIdProvider to avoid database access
-      currentDiverIdProvider.overrideWith((ref) => _MockCurrentDiverIdNotifier()),
+      currentDiverIdProvider
+          .overrideWith((ref) => _MockCurrentDiverIdNotifier()),
       // Mock currentDiverProvider
       currentDiverProvider.overrideWith((ref) async => null),
       // Mock diverListNotifierProvider
