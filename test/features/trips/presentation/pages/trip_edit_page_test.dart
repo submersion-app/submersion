@@ -212,7 +212,8 @@ void main() {
       expect(find.text('Cancel'), findsOneWidget);
     });
 
-    testWidgets('should show validation error when name is empty', (tester) async {
+    testWidgets('should show validation error when name is empty',
+        (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -268,7 +269,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            tripRepositoryProvider.overrideWithValue(_MockTripRepositoryWithTrip()),
+            tripRepositoryProvider
+                .overrideWithValue(_MockTripRepositoryWithTrip()),
             tripListNotifierProvider.overrideWith((ref) {
               return _MockTripListNotifier([]);
             }),
@@ -287,7 +289,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            tripRepositoryProvider.overrideWithValue(_MockTripRepositoryWithTrip()),
+            tripRepositoryProvider
+                .overrideWithValue(_MockTripRepositoryWithTrip()),
             tripListNotifierProvider.overrideWith((ref) {
               return _MockTripListNotifier([]);
             }),
@@ -325,7 +328,8 @@ class _MockTripRepository implements TripRepository {
   Future<List<Trip>> searchTrips(String query, {String? diverId}) async => [];
 
   @override
-  Future<List<TripWithStats>> getAllTripsWithStats({String? diverId}) async => [];
+  Future<List<TripWithStats>> getAllTripsWithStats({String? diverId}) async =>
+      [];
 
   @override
   Future<TripWithStats> getTripWithStats(String tripId) async {
@@ -379,7 +383,8 @@ class _MockTripRepositoryWithTrip implements TripRepository {
   Future<List<Trip>> searchTrips(String query, {String? diverId}) async => [];
 
   @override
-  Future<List<TripWithStats>> getAllTripsWithStats({String? diverId}) async => [];
+  Future<List<TripWithStats>> getAllTripsWithStats({String? diverId}) async =>
+      [];
 
   @override
   Future<TripWithStats> getTripWithStats(String tripId) async {
@@ -403,7 +408,8 @@ class _MockTripRepositoryWithTrip implements TripRepository {
 }
 
 /// Mock notifier
-class _MockTripListNotifier extends StateNotifier<AsyncValue<List<TripWithStats>>>
+class _MockTripListNotifier
+    extends StateNotifier<AsyncValue<List<TripWithStats>>>
     implements TripListNotifier {
   _MockTripListNotifier(List<TripWithStats> trips)
       : super(AsyncValue.data(trips));

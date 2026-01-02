@@ -17,7 +17,8 @@ class EquipmentSetEditPage extends ConsumerStatefulWidget {
   bool get isEditing => setId != null;
 
   @override
-  ConsumerState<EquipmentSetEditPage> createState() => _EquipmentSetEditPageState();
+  ConsumerState<EquipmentSetEditPage> createState() =>
+      _EquipmentSetEditPageState();
 }
 
 class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
@@ -56,7 +57,9 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
           if (set == null) {
             return Scaffold(
               appBar: AppBar(title: const Text('Set Not Found')),
-              body: const Center(child: Text('This equipment set no longer exists.')),
+              body: const Center(
+                child: Text('This equipment set no longer exists.'),
+              ),
             );
           }
           _initializeFromSet(set);
@@ -145,20 +148,33 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
                             Icon(
                               Icons.backpack_outlined,
                               size: 48,
-                              color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant
+                                  .withValues(alpha: 0.5),
                             ),
                             const SizedBox(height: 8),
                             Text(
                               'No equipment available',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
                                   ),
                             ),
                             const SizedBox(height: 8),
                             Text(
                               'Add equipment first before creating a set.',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
                                   ),
                               textAlign: TextAlign.center,
                             ),
@@ -186,12 +202,18 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
                             padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                             child: Text(
                               entry.key.displayName,
-                              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                                    color: Theme.of(context).colorScheme.primary,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelLarge
+                                  ?.copyWith(
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
                                   ),
                             ),
                           ),
-                          ...entry.value.map((item) => _buildEquipmentCheckbox(context, item)),
+                          ...entry.value.map(
+                            (item) => _buildEquipmentCheckbox(context, item),
+                          ),
                         ],
                       ),
                     );
@@ -277,7 +299,11 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
         context.pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(widget.isEditing ? 'Equipment set updated' : 'Equipment set created'),
+            content: Text(
+              widget.isEditing
+                  ? 'Equipment set updated'
+                  : 'Equipment set created',
+            ),
           ),
         );
       }

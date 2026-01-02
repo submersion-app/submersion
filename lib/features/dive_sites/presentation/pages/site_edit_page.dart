@@ -324,7 +324,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                       labelText: 'Minimum Depth ($depthSymbol)',
                       hintText: 'e.g., 5',
                     ),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                   ),
                 ),
                 const Padding(
@@ -338,7 +339,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                       labelText: 'Maximum Depth ($depthSymbol)',
                       hintText: 'e.g., 30',
                     ),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                   ),
                 ),
               ],
@@ -395,7 +397,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
 
     try {
       final locationService = LocationService.instance;
-      final result = await locationService.getCurrentLocation(includeGeocoding: true);
+      final result =
+          await locationService.getCurrentLocation(includeGeocoding: true);
 
       if (result == null) {
         if (mounted) {
@@ -528,7 +531,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                           ),
                         )
                       : const Icon(Icons.my_location, size: 18),
-                  label: Text(_isGettingLocation ? 'Getting...' : 'Use My Location'),
+                  label: Text(
+                    _isGettingLocation ? 'Getting...' : 'Use My Location',
+                  ),
                 ),
                 OutlinedButton.icon(
                   onPressed: _pickFromMap,
@@ -615,7 +620,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
               controller: _accessNotesController,
               decoration: const InputDecoration(
                 labelText: 'Access Notes',
-                hintText: 'How to get to the site, entry/exit points, shore/boat access',
+                hintText:
+                    'How to get to the site, entry/exit points, shore/boat access',
               ),
               maxLines: 3,
             ),
@@ -659,7 +665,10 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           children: [
             Row(
               children: [
-                Icon(Icons.warning_amber, color: Theme.of(context).colorScheme.error),
+                Icon(
+                  Icons.warning_amber,
+                  color: Theme.of(context).colorScheme.error,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   'Hazards & Safety',
@@ -679,7 +688,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
               controller: _hazardsController,
               decoration: const InputDecoration(
                 labelText: 'Hazards',
-                hintText: 'e.g., Strong currents, boat traffic, jellyfish, sharp coral',
+                hintText:
+                    'e.g., Strong currents, boat traffic, jellyfish, sharp coral',
               ),
               maxLines: 3,
             ),
@@ -714,8 +724,10 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       // Convert depths from user's preferred unit to meters for storage
       final minDepthInput = double.tryParse(_minDepthController.text);
       final maxDepthInput = double.tryParse(_maxDepthController.text);
-      final minDepthMeters = minDepthInput != null ? units.depthToMeters(minDepthInput) : null;
-      final maxDepthMeters = maxDepthInput != null ? units.depthToMeters(maxDepthInput) : null;
+      final minDepthMeters =
+          minDepthInput != null ? units.depthToMeters(minDepthInput) : null;
+      final maxDepthMeters =
+          maxDepthInput != null ? units.depthToMeters(maxDepthInput) : null;
 
       // Get the current diver ID - preserve existing for edits, get fresh for new sites
       final existingSite = widget.isEditing
@@ -729,18 +741,30 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
         diverId: diverId,
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim(),
-        country: _countryController.text.trim().isEmpty ? null : _countryController.text.trim(),
-        region: _regionController.text.trim().isEmpty ? null : _regionController.text.trim(),
+        country: _countryController.text.trim().isEmpty
+            ? null
+            : _countryController.text.trim(),
+        region: _regionController.text.trim().isEmpty
+            ? null
+            : _regionController.text.trim(),
         minDepth: minDepthMeters,
         maxDepth: maxDepthMeters,
         difficulty: _difficulty,
         location: location,
         rating: _rating > 0 ? _rating : null,
         notes: _notesController.text.trim(),
-        hazards: _hazardsController.text.trim().isEmpty ? null : _hazardsController.text.trim(),
-        accessNotes: _accessNotesController.text.trim().isEmpty ? null : _accessNotesController.text.trim(),
-        mooringNumber: _mooringNumberController.text.trim().isEmpty ? null : _mooringNumberController.text.trim(),
-        parkingInfo: _parkingInfoController.text.trim().isEmpty ? null : _parkingInfoController.text.trim(),
+        hazards: _hazardsController.text.trim().isEmpty
+            ? null
+            : _hazardsController.text.trim(),
+        accessNotes: _accessNotesController.text.trim().isEmpty
+            ? null
+            : _accessNotesController.text.trim(),
+        mooringNumber: _mooringNumberController.text.trim().isEmpty
+            ? null
+            : _mooringNumberController.text.trim(),
+        parkingInfo: _parkingInfoController.text.trim().isEmpty
+            ? null
+            : _parkingInfoController.text.trim(),
       );
 
       final notifier = ref.read(siteListNotifierProvider.notifier);
@@ -815,7 +839,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     setState(() => _isLoading = true);
 
     try {
-      await ref.read(siteListNotifierProvider.notifier).deleteSite(widget.siteId!);
+      await ref
+          .read(siteListNotifierProvider.notifier)
+          .deleteSite(widget.siteId!);
       ref.invalidate(sitesWithCountsProvider);
       ref.invalidate(sitesProvider);
 

@@ -63,7 +63,8 @@ class DiveFilterState {
       siteId: clearSiteId ? null : (siteId ?? this.siteId),
       minDepth: clearMinDepth ? null : (minDepth ?? this.minDepth),
       maxDepth: clearMaxDepth ? null : (maxDepth ?? this.maxDepth),
-      favoritesOnly: clearFavoritesOnly ? null : (favoritesOnly ?? this.favoritesOnly),
+      favoritesOnly:
+          clearFavoritesOnly ? null : (favoritesOnly ?? this.favoritesOnly),
       tagIds: clearTagIds ? const [] : (tagIds ?? this.tagIds),
     );
   }
@@ -75,7 +76,8 @@ class DiveFilterState {
       if (startDate != null && dive.dateTime.isBefore(startDate!)) {
         return false;
       }
-      if (endDate != null && dive.dateTime.isAfter(endDate!.add(const Duration(days: 1)))) {
+      if (endDate != null &&
+          dive.dateTime.isAfter(endDate!.add(const Duration(days: 1)))) {
         return false;
       }
 
@@ -90,10 +92,12 @@ class DiveFilterState {
       }
 
       // Depth filter
-      if (minDepth != null && (dive.maxDepth == null || dive.maxDepth! < minDepth!)) {
+      if (minDepth != null &&
+          (dive.maxDepth == null || dive.maxDepth! < minDepth!)) {
         return false;
       }
-      if (maxDepth != null && (dive.maxDepth == null || dive.maxDepth! > maxDepth!)) {
+      if (maxDepth != null &&
+          (dive.maxDepth == null || dive.maxDepth! > maxDepth!)) {
         return false;
       }
 
@@ -116,7 +120,8 @@ class DiveFilterState {
 }
 
 /// Dive filter state provider
-final diveFilterProvider = StateProvider<DiveFilterState>((ref) => const DiveFilterState());
+final diveFilterProvider =
+    StateProvider<DiveFilterState>((ref) => const DiveFilterState());
 
 /// Filtered dives provider - applies current filter to dive list
 final filteredDivesProvider = Provider<AsyncValue<List<domain.Dive>>>((ref) {
@@ -139,13 +144,16 @@ final divesProvider = FutureProvider<List<domain.Dive>>((ref) async {
 });
 
 /// Single dive provider
-final diveProvider = FutureProvider.family<domain.Dive?, String>((ref, id) async {
+final diveProvider =
+    FutureProvider.family<domain.Dive?, String>((ref, id) async {
   final repository = ref.watch(diveRepositoryProvider);
   return repository.getDiveById(id);
 });
 
 /// Dive profile provider - for lazy loading profiles in list views
-final diveProfileProvider = FutureProvider.family<List<domain.DiveProfilePoint>, String>((ref, diveId) async {
+final diveProfileProvider =
+    FutureProvider.family<List<domain.DiveProfilePoint>, String>(
+        (ref, diveId) async {
   final repository = ref.watch(diveRepositoryProvider);
   return repository.getDiveProfile(diveId);
 });
@@ -172,8 +180,10 @@ final nextDiveNumberProvider = FutureProvider<int>((ref) async {
 });
 
 /// Search results provider
-final diveSearchProvider = FutureProvider.family<List<domain.Dive>, String>((ref, query) async {
-  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+final diveSearchProvider =
+    FutureProvider.family<List<domain.Dive>, String>((ref, query) async {
+  final validatedDiverId =
+      await ref.watch(validatedCurrentDiverIdProvider.future);
   if (query.isEmpty) {
     return ref.watch(divesProvider).value ?? [];
   }
@@ -187,7 +197,8 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
   final Ref _ref;
   String? _currentDiverId;
 
-  DiveListNotifier(this._repository, this._ref) : super(const AsyncValue.loading()) {
+  DiveListNotifier(this._repository, this._ref)
+      : super(const AsyncValue.loading()) {
     // Watch for changes to current diver
     _currentDiverId = _ref.read(currentDiverIdProvider);
     _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
@@ -326,20 +337,24 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
 }
 
 final diveListNotifierProvider =
-    StateNotifierProvider<DiveListNotifier, AsyncValue<List<domain.Dive>>>((ref) {
+    StateNotifierProvider<DiveListNotifier, AsyncValue<List<domain.Dive>>>(
+        (ref) {
   final repository = ref.watch(diveRepositoryProvider);
   return DiveListNotifier(repository, ref);
 });
 
 /// Provider for getting the surface interval to the previous dive
-final surfaceIntervalProvider = FutureProvider.family<Duration?, String>((ref, diveId) async {
+final surfaceIntervalProvider =
+    FutureProvider.family<Duration?, String>((ref, diveId) async {
   final repository = ref.watch(diveRepositoryProvider);
   return repository.getSurfaceInterval(diveId);
 });
 
 /// Provider for dive numbering information (gaps and unnumbered dives)
-final diveNumberingInfoProvider = FutureProvider<DiveNumberingInfo>((ref) async {
+final diveNumberingInfoProvider =
+    FutureProvider<DiveNumberingInfo>((ref) async {
   final repository = ref.watch(diveRepositoryProvider);
-  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  final validatedDiverId =
+      await ref.watch(validatedCurrentDiverIdProvider.future);
   return repository.getDiveNumberingInfo(diverId: validatedDiverId);
 });

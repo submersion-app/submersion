@@ -105,7 +105,9 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
         scaffoldMessenger.clearSnackBars();
         scaffoldMessenger.showSnackBar(
           SnackBar(
-            content: Text('Deleted ${deletedSites.length} ${deletedSites.length == 1 ? 'site' : 'sites'}'),
+            content: Text(
+              'Deleted ${deletedSites.length} ${deletedSites.length == 1 ? 'site' : 'sites'}',
+            ),
             duration: const Duration(seconds: 5),
             showCloseIcon: true,
             action: SnackBarAction(
@@ -242,7 +244,11 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
     );
   }
 
-  Widget _buildSiteList(BuildContext context, WidgetRef ref, List<SiteWithDiveCount> sites) {
+  Widget _buildSiteList(
+    BuildContext context,
+    WidgetRef ref,
+    List<SiteWithDiveCount> sites,
+  ) {
     return RefreshIndicator(
       onRefresh: () async {
         ref.invalidate(sitesWithCountsProvider);
@@ -256,7 +262,8 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
           final isSelected = _selectedIds.contains(site.id);
           return SiteListTile(
             name: site.name,
-            location: site.locationString.isNotEmpty ? site.locationString : null,
+            location:
+                site.locationString.isNotEmpty ? site.locationString : null,
             maxDepth: site.maxDepth,
             diveCount: siteData.diveCount,
             rating: site.rating,
@@ -267,9 +274,8 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
             onTap: _isSelectionMode
                 ? () => _toggleSelection(site.id)
                 : () => context.push('/sites/${site.id}'),
-            onLongPress: _isSelectionMode
-                ? null
-                : () => _enterSelectionMode(site.id),
+            onLongPress:
+                _isSelectionMode ? null : () => _enterSelectionMode(site.id),
           );
         },
       ),
@@ -359,7 +365,10 @@ class SiteSearchDelegate extends SearchDelegate<DiveSite?> {
             Icon(
               Icons.search,
               size: 64,
-              color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurfaceVariant
+                  .withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
@@ -388,7 +397,10 @@ class SiteSearchDelegate extends SearchDelegate<DiveSite?> {
                 Icon(
                   Icons.search_off,
                   size: 64,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurfaceVariant
+                      .withValues(alpha: 0.5),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -408,7 +420,8 @@ class SiteSearchDelegate extends SearchDelegate<DiveSite?> {
             final site = sites[index];
             return SiteListTile(
               name: site.name,
-              location: site.locationString.isNotEmpty ? site.locationString : null,
+              location:
+                  site.locationString.isNotEmpty ? site.locationString : null,
               maxDepth: site.maxDepth,
               rating: site.rating,
               latitude: site.location?.latitude,
@@ -440,6 +453,7 @@ class SiteListTile extends ConsumerWidget {
   final VoidCallback? onLongPress;
   final bool isSelectionMode;
   final bool isSelected;
+
   /// Site coordinates for map background
   final double? latitude;
   final double? longitude;
@@ -475,7 +489,8 @@ class SiteListTile extends ConsumerWidget {
     // Determine text colors based on background
     final useLightText = shouldShowMap;
     final primaryTextColor = useLightText ? Colors.white : null;
-    final secondaryTextColor = useLightText ? Colors.white70 : colorScheme.onSurfaceVariant;
+    final secondaryTextColor =
+        useLightText ? Colors.white70 : colorScheme.onSurfaceVariant;
 
     // Build the content widget
     Widget buildContent() {
@@ -584,7 +599,8 @@ class SiteListTile extends ConsumerWidget {
                   ),
                   children: [
                     TileLayer(
-                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      urlTemplate:
+                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                       userAgentPackageName: 'com.submersion.app',
                       maxZoom: 19,
                     ),
@@ -620,7 +636,9 @@ class SiteListTile extends ConsumerWidget {
     // Standard card without map
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      color: isSelected ? colorScheme.primaryContainer.withValues(alpha: 0.3) : null,
+      color: isSelected
+          ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+          : null,
       child: InkWell(
         onTap: onTap,
         onLongPress: onLongPress,

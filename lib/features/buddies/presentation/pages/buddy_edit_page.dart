@@ -156,8 +156,9 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                           children: [
                             CircleAvatar(
                               radius: 50,
-                              backgroundColor:
-                                  Theme.of(context).colorScheme.primaryContainer,
+                              backgroundColor: Theme.of(context)
+                                  .colorScheme
+                                  .primaryContainer,
                               child: Text(
                                 _nameController.text.isNotEmpty
                                     ? _getInitials(_nameController.text)
@@ -193,11 +194,12 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                       Center(
                         child: Text(
                           'Photo support coming in v2.0',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurfaceVariant,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -232,7 +234,8 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                         validator: (value) {
                           if (value != null && value.isNotEmpty) {
                             final emailRegex = RegExp(
-                                r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',);
+                              r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+                            );
                             if (!emailRegex.hasMatch(value)) {
                               return 'Please enter a valid email';
                             }
@@ -394,8 +397,9 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Discard Changes?'),
-        content:
-            const Text('You have unsaved changes. Are you sure you want to leave?'),
+        content: const Text(
+          'You have unsaved changes. Are you sure you want to leave?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -444,15 +448,18 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
         await ref.read(buddyListNotifierProvider.notifier).updateBuddy(buddy);
         savedBuddy = buddy;
       } else {
-        savedBuddy = await ref.read(buddyListNotifierProvider.notifier).addBuddy(buddy);
+        savedBuddy =
+            await ref.read(buddyListNotifierProvider.notifier).addBuddy(buddy);
       }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(isEditing
-                ? 'Buddy updated successfully'
-                : 'Buddy added successfully',),
+            content: Text(
+              isEditing
+                  ? 'Buddy updated successfully'
+                  : 'Buddy added successfully',
+            ),
           ),
         );
         // Return the saved buddy so callers can use it

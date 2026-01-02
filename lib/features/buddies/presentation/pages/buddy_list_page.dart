@@ -24,7 +24,8 @@ class BuddyListPage extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Contact import is only available on iOS and Android'),
+            content:
+                Text('Contact import is only available on iOS and Android'),
           ),
         );
       }
@@ -159,7 +160,10 @@ class BuddyListPage extends ConsumerWidget {
   }
 
   Widget _buildBuddyList(
-      BuildContext context, WidgetRef ref, List<Buddy> buddies,) {
+    BuildContext context,
+    WidgetRef ref,
+    List<Buddy> buddies,
+  ) {
     return RefreshIndicator(
       onRefresh: () async {
         await ref.read(buddyListNotifierProvider.notifier).refresh();

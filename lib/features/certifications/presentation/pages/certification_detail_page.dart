@@ -227,10 +227,11 @@ class _CertificationDetailContent extends ConsumerWidget {
             child: Center(
               child: Text(
                 certification.agency.displayName.substring(
-                    0,
-                    certification.agency.displayName.length > 4
-                        ? 4
-                        : certification.agency.displayName.length,),
+                  0,
+                  certification.agency.displayName.length > 4
+                      ? 4
+                      : certification.agency.displayName.length,
+                ),
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onPrimaryContainer,
                   fontWeight: FontWeight.bold,
@@ -470,7 +471,8 @@ class _CertificationDetailContent extends ConsumerWidget {
           builder: (context) => AlertDialog(
             title: const Text('Delete Certification?'),
             content: Text(
-                'Are you sure you want to delete "${certification.name}"?',),
+              'Are you sure you want to delete "${certification.name}"?',
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),

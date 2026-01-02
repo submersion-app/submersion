@@ -228,7 +228,9 @@ class _BuddyDetailContent extends ConsumerWidget {
   }
 
   Widget _buildStatsSection(
-      BuildContext context, AsyncValue<BuddyStats> statsAsync,) {
+    BuildContext context,
+    AsyncValue<BuddyStats> statsAsync,
+  ) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -379,7 +381,8 @@ class _BuddyDetailContent extends ConsumerWidget {
           builder: (context) => AlertDialog(
             title: const Text('Delete Buddy?'),
             content: Text(
-                'Are you sure you want to delete ${buddy.name}? This will also remove them from all dives.',),
+              'Are you sure you want to delete ${buddy.name}? This will also remove them from all dives.',
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),

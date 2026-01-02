@@ -30,13 +30,13 @@ class WeightCalculator {
   };
 
   /// Calculate recommended weight based on parameters
-  /// 
+  ///
   /// Parameters:
   /// - [suitType]: Type of exposure suit (see _suitBaseWeights keys)
   /// - [tankMaterial]: Material of the tank being used
   /// - [waterType]: Type of water (fresh, salt, brackish)
   /// - [bodyWeightKg]: Diver's body weight in kg (optional, for fine-tuning)
-  /// 
+  ///
   /// Returns recommended weight in kg
   static double calculateRecommendedWeight({
     required String suitType,
@@ -75,25 +75,31 @@ class WeightCalculator {
   }) {
     final buffer = StringBuffer();
     final baseWeight = _suitBaseWeights[suitType] ?? 0;
-    
+
     buffer.writeln('Weight Calculation:');
-    buffer.writeln('  Base (${suitType.replaceAll('_', ' ')}): ${baseWeight.toStringAsFixed(1)} kg');
-    
+    buffer.writeln(
+      '  Base (${suitType.replaceAll('_', ' ')}): ${baseWeight.toStringAsFixed(1)} kg',
+    );
+
     if (tankMaterial != null) {
       final adj = _tankAdjustments[tankMaterial] ?? 0;
-      buffer.writeln('  Tank (${tankMaterial.displayName}): ${adj >= 0 ? '+' : ''}${adj.toStringAsFixed(1)} kg');
+      buffer.writeln(
+        '  Tank (${tankMaterial.displayName}): ${adj >= 0 ? '+' : ''}${adj.toStringAsFixed(1)} kg',
+      );
     }
-    
+
     if (waterType != null) {
       final adj = _waterAdjustments[waterType] ?? 0;
-      buffer.writeln('  Water (${waterType.displayName}): ${adj >= 0 ? '+' : ''}${adj.toStringAsFixed(1)} kg');
+      buffer.writeln(
+        '  Water (${waterType.displayName}): ${adj >= 0 ? '+' : ''}${adj.toStringAsFixed(1)} kg',
+      );
     }
-    
+
     if (bodyWeightKg != null && bodyWeightKg > 70) {
       final adj = (bodyWeightKg - 70) / 10;
       buffer.writeln('  Body weight adjustment: +${adj.toStringAsFixed(1)} kg');
     }
-    
+
     final total = calculateRecommendedWeight(
       suitType: suitType,
       tankMaterial: tankMaterial,
@@ -102,20 +108,19 @@ class WeightCalculator {
     );
     buffer.writeln('  ---');
     buffer.writeln('  Total: ${total.toStringAsFixed(1)} kg');
-    
+
     return buffer.toString();
   }
 
   /// Available suit types with display names
   static Map<String, String> get suitTypes => {
-    'none': 'No Suit',
-    'rashguard': 'Rashguard Only',
-    'shorty_3mm': '3mm Shorty',
-    'wetsuit_3mm': '3mm Full Wetsuit',
-    'wetsuit_5mm': '5mm Wetsuit',
-    'wetsuit_7mm': '7mm Wetsuit',
-    'semidry': 'Semi-dry Suit',
-    'drysuit': 'Drysuit',
-  };
+        'none': 'No Suit',
+        'rashguard': 'Rashguard Only',
+        'shorty_3mm': '3mm Shorty',
+        'wetsuit_3mm': '3mm Full Wetsuit',
+        'wetsuit_5mm': '5mm Wetsuit',
+        'wetsuit_7mm': '7mm Wetsuit',
+        'semidry': 'Semi-dry Suit',
+        'drysuit': 'Drysuit',
+      };
 }
-

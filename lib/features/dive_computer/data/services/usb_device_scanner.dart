@@ -114,8 +114,7 @@ class UsbDeviceScanner {
 
     try {
       dc.DiveComputer.instance.openConnection();
-      _supportedComputers =
-          await dc.DiveComputer.instance.supportedComputers;
+      _supportedComputers = await dc.DiveComputer.instance.supportedComputers;
       return _supportedComputers!;
     } catch (e) {
       _log.error('Failed to get supported computers from libdivecomputer', e);

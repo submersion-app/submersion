@@ -175,7 +175,8 @@ void main() {
       expect(find.text('32.5 m'), findsOneWidget);
     });
 
-    testWidgets('should display Trip Details section with location', (tester) async {
+    testWidgets('should display Trip Details section with location',
+        (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -287,7 +288,8 @@ void main() {
       expect(find.text('Dives'), findsOneWidget);
     });
 
-    testWidgets('should show empty dives message when no dives', (tester) async {
+    testWidgets('should show empty dives message when no dives',
+        (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -342,7 +344,8 @@ void main() {
       expect(find.byIcon(Icons.edit), findsOneWidget);
     });
 
-    testWidgets('should display popup menu with export and delete', (tester) async {
+    testWidgets('should display popup menu with export and delete',
+        (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -372,7 +375,8 @@ void main() {
       expect(find.text('Delete'), findsOneWidget);
     });
 
-    testWidgets('should display flight takeoff icon for regular trip', (tester) async {
+    testWidgets('should display flight takeoff icon for regular trip',
+        (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -397,7 +401,8 @@ void main() {
       expect(find.byIcon(Icons.flight_takeoff), findsOneWidget);
     });
 
-    testWidgets('should display sailing icon for liveaboard trip', (tester) async {
+    testWidgets('should display sailing icon for liveaboard trip',
+        (tester) async {
       final liveaboardTrip = Trip(
         id: 'liveaboard-id',
         name: 'Maldives Safari',
@@ -441,7 +446,8 @@ void main() {
 }
 
 /// Mock notifier
-class _MockTripListNotifier extends StateNotifier<AsyncValue<List<TripWithStats>>>
+class _MockTripListNotifier
+    extends StateNotifier<AsyncValue<List<TripWithStats>>>
     implements TripListNotifier {
   _MockTripListNotifier(List<TripWithStats> trips)
       : super(AsyncValue.data(trips));

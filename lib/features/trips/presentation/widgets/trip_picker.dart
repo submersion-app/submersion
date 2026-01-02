@@ -155,7 +155,10 @@ class TripPickerSheet extends ConsumerWidget {
           width: 40,
           height: 4,
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+            color: Theme.of(context)
+                .colorScheme
+                .onSurfaceVariant
+                .withValues(alpha: 0.4),
             borderRadius: BorderRadius.circular(2),
           ),
         ),
@@ -230,7 +233,9 @@ class TripPickerSheet extends ConsumerWidget {
                           ? Theme.of(context).colorScheme.primary
                           : Theme.of(context).colorScheme.primaryContainer,
                       child: Icon(
-                        trip.isLiveaboard ? Icons.sailing : Icons.flight_takeoff,
+                        trip.isLiveaboard
+                            ? Icons.sailing
+                            : Icons.flight_takeoff,
                         color: isSelected
                             ? Theme.of(context).colorScheme.onPrimary
                             : Theme.of(context).colorScheme.onPrimaryContainer,

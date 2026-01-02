@@ -38,7 +38,11 @@ class StatisticsGasPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildSacTrendSection(BuildContext context, WidgetRef ref, UnitFormatter units) {
+  Widget _buildSacTrendSection(
+    BuildContext context,
+    WidgetRef ref,
+    UnitFormatter units,
+  ) {
     final sacTrendAsync = ref.watch(sacTrendProvider);
     final sacUnit = ref.watch(sacUnitProvider);
 
@@ -95,7 +99,11 @@ class StatisticsGasPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildSacRecordsSection(BuildContext context, WidgetRef ref, UnitFormatter units) {
+  Widget _buildSacRecordsSection(
+    BuildContext context,
+    WidgetRef ref,
+    UnitFormatter units,
+  ) {
     final sacRecordsAsync = ref.watch(sacRecordsProvider);
     final sacUnit = ref.watch(sacUnitProvider);
 
@@ -121,7 +129,8 @@ class StatisticsGasPage extends ConsumerWidget {
               if (records.best != null)
                 ValueRankingCard(
                   title: 'Best SAC Rate',
-                  value: '${records.best!.value?.toStringAsFixed(1)} $unitSymbol',
+                  value:
+                      '${records.best!.value?.toStringAsFixed(1)} $unitSymbol',
                   subtitle: records.best!.subtitle,
                   icon: Icons.emoji_events,
                   iconColor: Colors.green,
@@ -132,7 +141,8 @@ class StatisticsGasPage extends ConsumerWidget {
               if (records.worst != null)
                 ValueRankingCard(
                   title: 'Highest SAC Rate',
-                  value: '${records.worst!.value?.toStringAsFixed(1)} $unitSymbol',
+                  value:
+                      '${records.worst!.value?.toStringAsFixed(1)} $unitSymbol',
                   subtitle: records.worst!.subtitle,
                   icon: Icons.speed,
                   iconColor: Colors.orange,

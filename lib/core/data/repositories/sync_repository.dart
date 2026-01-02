@@ -183,7 +183,11 @@ class SyncRepository {
             ),
           );
     } catch (e, stackTrace) {
-      _log.error('Failed to mark record pending: $entityType/$recordId', e, stackTrace);
+      _log.error(
+        'Failed to mark record pending: $entityType/$recordId',
+        e,
+        stackTrace,
+      );
       rethrow;
     }
   }
@@ -206,7 +210,11 @@ class SyncRepository {
         ),
       );
     } catch (e, stackTrace) {
-      _log.error('Failed to mark record synced: $entityType/$recordId', e, stackTrace);
+      _log.error(
+        'Failed to mark record synced: $entityType/$recordId',
+        e,
+        stackTrace,
+      );
       rethrow;
     }
   }
@@ -231,7 +239,11 @@ class SyncRepository {
 
       _log.warning('Marked conflict for: $entityType/$recordId');
     } catch (e, stackTrace) {
-      _log.error('Failed to mark record conflict: $entityType/$recordId', e, stackTrace);
+      _log.error(
+        'Failed to mark record conflict: $entityType/$recordId',
+        e,
+        stackTrace,
+      );
       rethrow;
     }
   }
@@ -292,7 +304,11 @@ class SyncRepository {
       await (_db.delete(_db.syncRecords)..where((t) => t.id.equals(id))).go();
       _log.info('Cleared conflict for: $entityType/$recordId');
     } catch (e, stackTrace) {
-      _log.error('Failed to clear conflict: $entityType/$recordId', e, stackTrace);
+      _log.error(
+        'Failed to clear conflict: $entityType/$recordId',
+        e,
+        stackTrace,
+      );
       rethrow;
     }
   }
@@ -332,7 +348,11 @@ class SyncRepository {
 
       _log.info('Logged deletion: $entityType/$recordId');
     } catch (e, stackTrace) {
-      _log.error('Failed to log deletion: $entityType/$recordId', e, stackTrace);
+      _log.error(
+        'Failed to log deletion: $entityType/$recordId',
+        e,
+        stackTrace,
+      );
       rethrow;
     }
   }
@@ -341,7 +361,9 @@ class SyncRepository {
   Future<List<DeletionLogData>> getDeletionsSince(DateTime since) async {
     try {
       final query = _db.select(_db.deletionLog)
-        ..where((t) => t.deletedAt.isBiggerOrEqualValue(since.millisecondsSinceEpoch));
+        ..where(
+          (t) => t.deletedAt.isBiggerOrEqualValue(since.millisecondsSinceEpoch),
+        );
       return query.get();
     } catch (e, stackTrace) {
       _log.error('Failed to get deletions since: $since', e, stackTrace);

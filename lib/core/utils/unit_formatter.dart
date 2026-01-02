@@ -38,7 +38,8 @@ class UnitFormatter {
   /// Format temperature value with unit symbol
   String formatTemperature(double? value, {int decimals = 0}) {
     if (value == null) return '--';
-    final converted = TemperatureUnit.celsius.convert(value, settings.temperatureUnit);
+    final converted =
+        TemperatureUnit.celsius.convert(value, settings.temperatureUnit);
     return '${converted.toStringAsFixed(decimals)}°${settings.temperatureUnit.symbol}';
   }
 
@@ -99,9 +100,13 @@ class UnitFormatter {
 
   /// Format tank volume - handles gas capacity conversion for imperial units
   /// For cuft, calculates gas capacity from physical volume and working pressure
-  String formatTankVolume(double? volumeLiters, int? workingPressureBar, {int decimals = 0}) {
+  String formatTankVolume(
+    double? volumeLiters,
+    int? workingPressureBar, {
+    int decimals = 0,
+  }) {
     if (volumeLiters == null) return '--';
-    
+
     if (settings.volumeUnit == VolumeUnit.cubicFeet) {
       if (workingPressureBar != null && workingPressureBar > 0) {
         // Calculate gas capacity in cubic feet
@@ -115,7 +120,7 @@ class UnitFormatter {
         return '~${cuft.toStringAsFixed(decimals)} ${settings.volumeUnit.symbol}';
       }
     }
-    
+
     // For liters, just show physical volume
     return '${volumeLiters.toStringAsFixed(decimals)} ${settings.volumeUnit.symbol}';
   }
@@ -157,4 +162,3 @@ class UnitFormatter {
     return settings.weightUnit.convert(value, WeightUnit.kilograms);
   }
 }
-

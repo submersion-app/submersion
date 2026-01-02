@@ -7,6 +7,7 @@ import '../../../../core/services/database_service.dart';
 import '../../../../core/services/logger_service.dart';
 import '../../domain/entities/dive.dart' as domain;
 import '../../domain/entities/dive_weight.dart' as domain;
+import '../../domain/entities/gas_switch.dart';
 import '../../../dive_centers/domain/entities/dive_center.dart' as domain;
 import '../../../dive_sites/domain/entities/dive_site.dart' as domain;
 import '../../../equipment/domain/entities/equipment_item.dart';
@@ -580,7 +581,11 @@ class DiveRepository {
   /// Get the dive number based on chronological position for a given date
   /// Counts how many dives exist before [dateTime] and returns count + startFrom
   /// This ensures dive numbers match chronological order
-  Future<int> getDiveNumberForDate(DateTime dateTime, {String? diverId, int startFrom = 1}) async {
+  Future<int> getDiveNumberForDate(
+    DateTime dateTime, {
+    String? diverId,
+    int startFrom = 1,
+  }) async {
     try {
       final timestamp = dateTime.millisecondsSinceEpoch;
       final String sql;
@@ -1460,6 +1465,135 @@ class DiveRepository {
   }
 
   // ============================================================================
+  // Gas Switch Operations
+  // ============================================================================
+
+  /// Get gas switches for a dive, ordered by timestamp
+  /// Returns gas switches with full tank info for display purposes
+  Future<List<GasSwitchWithTank>> getGasSwitchesForDive(String diveId) async {
+    try {
+      // Join gas_switches with dive_tanks to get full tank info
+      final query = _db.select(_db.gasSwitches).join([
+        innerJoin(
+          _db.diveTanks,
+          _db.diveTanks.id.equalsExp(_db.gasSwitches.tankId),
+        ),
+      ])
+        ..where(_db.gasSwitches.diveId.equals(diveId))
+        ..orderBy([OrderingTerm.asc(_db.gasSwitches.timestamp)]);
+
+      final rows = await query.get();
+      return rows.map((row) {
+        final gs = row.readTable(_db.gasSwitches);
+        final tank = row.readTable(_db.diveTanks);
+
+        return GasSwitchWithTank(
+          gasSwitch: GasSwitch(
+            id: gs.id,
+            diveId: gs.diveId,
+            timestamp: gs.timestamp,
+            tankId: gs.tankId,
+            depth: gs.depth,
+            createdAt: DateTime.fromMillisecondsSinceEpoch(gs.createdAt),
+          ),
+          tankName: tank.tankName ?? 'Tank ${tank.tankOrder + 1}',
+          gasMix: _formatGasMixName(tank.o2Percent, tank.hePercent),
+          o2Fraction: tank.o2Percent / 100.0,
+          heFraction: tank.hePercent / 100.0,
+        );
+      }).toList();
+    } catch (e, stackTrace) {
+      _log.error('Failed to get gas switches for dive: $diveId', e, stackTrace);
+      return [];
+    }
+  }
+
+  /// Format gas mix as a readable name (e.g., "Air", "EAN32", "Tx 21/35")
+  String _formatGasMixName(double o2, double he) {
+    if (he > 0) return 'Tx ${o2.toInt()}/${he.toInt()}';
+    if (o2 > 22) return 'EAN${o2.toInt()}';
+    if (o2 >= 20 && o2 <= 22) return 'Air';
+    return '${o2.toInt()}% O2';
+  }
+
+  /// Create a gas switch record
+  Future<GasSwitch> createGasSwitch(GasSwitch gasSwitch) async {
+    try {
+      final id = gasSwitch.id.isEmpty ? _uuid.v4() : gasSwitch.id;
+      final now = DateTime.now().millisecondsSinceEpoch;
+
+      await _db.into(_db.gasSwitches).insert(
+            GasSwitchesCompanion(
+              id: Value(id),
+              diveId: Value(gasSwitch.diveId),
+              timestamp: Value(gasSwitch.timestamp),
+              tankId: Value(gasSwitch.tankId),
+              depth: Value(gasSwitch.depth),
+              createdAt: Value(now),
+            ),
+          );
+
+      _log.info('Created gas switch for dive: ${gasSwitch.diveId}');
+      return gasSwitch.copyWith(id: id);
+    } catch (e, stackTrace) {
+      _log.error('Failed to create gas switch', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Delete a gas switch
+  Future<void> deleteGasSwitch(String id) async {
+    try {
+      await (_db.delete(_db.gasSwitches)..where((t) => t.id.equals(id))).go();
+      _log.info('Deleted gas switch: $id');
+    } catch (e, stackTrace) {
+      _log.error('Failed to delete gas switch: $id', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Delete all gas switches for a dive
+  Future<void> deleteGasSwitchesForDive(String diveId) async {
+    try {
+      await (_db.delete(_db.gasSwitches)..where((t) => t.diveId.equals(diveId)))
+          .go();
+      _log.info('Deleted gas switches for dive: $diveId');
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to delete gas switches for dive: $diveId',
+        e,
+        stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Bulk insert gas switches (for dive computer imports)
+  Future<void> insertGasSwitches(List<GasSwitch> switches) async {
+    if (switches.isEmpty) return;
+
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      for (final gs in switches) {
+        await _db.into(_db.gasSwitches).insert(
+              GasSwitchesCompanion(
+                id: Value(gs.id.isEmpty ? _uuid.v4() : gs.id),
+                diveId: Value(gs.diveId),
+                timestamp: Value(gs.timestamp),
+                tankId: Value(gs.tankId),
+                depth: Value(gs.depth),
+                createdAt: Value(now),
+              ),
+            );
+      }
+      _log.info('Inserted ${switches.length} gas switches');
+    } catch (e, stackTrace) {
+      _log.error('Failed to bulk insert gas switches', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  // ============================================================================
   // Surface Interval Operations
   // ============================================================================
 
@@ -1629,7 +1763,9 @@ class DiveRepository {
   /// This ensures dive numbers match chronological order
   Future<void> assignMissingDiveNumbers() async {
     try {
-      _log.info('Assigning missing dive numbers by renumbering chronologically');
+      _log.info(
+        'Assigning missing dive numbers by renumbering chronologically',
+      );
 
       // Find the minimum existing dive number to preserve as the starting point
       // This respects the user's existing numbering scheme
@@ -1644,7 +1780,9 @@ class DiveRepository {
       // Renumber all dives chronologically starting from the minimum existing number
       await renumberAllDives(startFrom: startFrom);
 
-      _log.info('Dive numbers assigned chronologically starting from $startFrom');
+      _log.info(
+        'Dive numbers assigned chronologically starting from $startFrom',
+      );
     } catch (e, stackTrace) {
       _log.error('Failed to assign missing dive numbers', e, stackTrace);
       rethrow;

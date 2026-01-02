@@ -19,7 +19,10 @@ class MainScaffold extends StatelessWidget {
     '/settings',
   ];
 
-  int _calculateSelectedIndex(BuildContext context, {required bool isWideScreen}) {
+  int _calculateSelectedIndex(
+    BuildContext context, {
+    required bool isWideScreen,
+  }) {
     final location = GoRouterState.of(context).uri.path;
 
     if (isWideScreen) {
@@ -49,7 +52,11 @@ class MainScaffold extends StatelessWidget {
     }
   }
 
-  void _onDestinationSelected(BuildContext context, int index, {required bool isWideScreen}) {
+  void _onDestinationSelected(
+    BuildContext context,
+    int index, {
+    required bool isWideScreen,
+  }) {
     if (isWideScreen) {
       switch (index) {
         case 0:
@@ -187,7 +194,8 @@ class MainScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isWideScreen = MediaQuery.of(context).size.width >= 800;
-    final selectedIndex = _calculateSelectedIndex(context, isWideScreen: isWideScreen);
+    final selectedIndex =
+        _calculateSelectedIndex(context, isWideScreen: isWideScreen);
 
     if (isWideScreen) {
       // Desktop/Tablet layout with NavigationRail

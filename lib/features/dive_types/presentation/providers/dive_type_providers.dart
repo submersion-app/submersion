@@ -13,43 +13,52 @@ final diveTypeRepositoryProvider = Provider<DiveTypeRepository>((ref) {
 /// Includes built-in types plus custom types for the current diver
 final diveTypesProvider = FutureProvider<List<DiveTypeEntity>>((ref) async {
   final repository = ref.watch(diveTypeRepositoryProvider);
-  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  final validatedDiverId =
+      await ref.watch(validatedCurrentDiverIdProvider.future);
   return repository.getAllDiveTypes(diverId: validatedDiverId);
 });
 
 /// Built-in dive types only
-final builtInDiveTypesProvider = FutureProvider<List<DiveTypeEntity>>((ref) async {
+final builtInDiveTypesProvider =
+    FutureProvider<List<DiveTypeEntity>>((ref) async {
   final repository = ref.watch(diveTypeRepositoryProvider);
   return repository.getBuiltInDiveTypes();
 });
 
 /// Custom (user-defined) dive types only for the current diver
-final customDiveTypesProvider = FutureProvider<List<DiveTypeEntity>>((ref) async {
+final customDiveTypesProvider =
+    FutureProvider<List<DiveTypeEntity>>((ref) async {
   final repository = ref.watch(diveTypeRepositoryProvider);
-  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  final validatedDiverId =
+      await ref.watch(validatedCurrentDiverIdProvider.future);
   return repository.getCustomDiveTypes(diverId: validatedDiverId);
 });
 
 /// Single dive type provider
-final diveTypeProvider = FutureProvider.family<DiveTypeEntity?, String>((ref, id) async {
+final diveTypeProvider =
+    FutureProvider.family<DiveTypeEntity?, String>((ref, id) async {
   final repository = ref.watch(diveTypeRepositoryProvider);
   return repository.getDiveTypeById(id);
 });
 
 /// Dive type statistics provider for the current diver
-final diveTypeStatisticsProvider = FutureProvider<List<DiveTypeStatistic>>((ref) async {
+final diveTypeStatisticsProvider =
+    FutureProvider<List<DiveTypeStatistic>>((ref) async {
   final repository = ref.watch(diveTypeRepositoryProvider);
-  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  final validatedDiverId =
+      await ref.watch(validatedCurrentDiverIdProvider.future);
   return repository.getDiveTypeStatistics(diverId: validatedDiverId);
 });
 
 /// Dive type list notifier for mutations
-class DiveTypeListNotifier extends StateNotifier<AsyncValue<List<DiveTypeEntity>>> {
+class DiveTypeListNotifier
+    extends StateNotifier<AsyncValue<List<DiveTypeEntity>>> {
   final DiveTypeRepository _repository;
   final Ref _ref;
   String? _validatedDiverId;
 
-  DiveTypeListNotifier(this._repository, this._ref) : super(const AsyncValue.loading()) {
+  DiveTypeListNotifier(this._repository, this._ref)
+      : super(const AsyncValue.loading()) {
     _initializeAndLoad();
 
     // Listen for diver changes and reload
@@ -78,7 +87,8 @@ class DiveTypeListNotifier extends StateNotifier<AsyncValue<List<DiveTypeEntity>
   Future<void> _loadDiveTypes() async {
     state = const AsyncValue.loading();
     try {
-      final diveTypes = await _repository.getAllDiveTypes(diverId: _validatedDiverId);
+      final diveTypes =
+          await _repository.getAllDiveTypes(diverId: _validatedDiverId);
       state = AsyncValue.data(diveTypes);
     } catch (e, st) {
       state = AsyncValue.error(e, st);

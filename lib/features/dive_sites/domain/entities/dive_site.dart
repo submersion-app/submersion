@@ -167,7 +167,8 @@ class GeoPoint extends Equatable {
   List<Object?> get props => [latitude, longitude];
 
   @override
-  String toString() => '${latitude.toStringAsFixed(6)}, ${longitude.toStringAsFixed(6)}';
+  String toString() =>
+      '${latitude.toStringAsFixed(6)}, ${longitude.toStringAsFixed(6)}';
 }
 
 /// Typical conditions at a dive site

@@ -201,7 +201,8 @@ class AqualungBleProtocol {
 
     // CRC-16-CCITT on the packet data (excluding checksum bytes)
     final data = packet.sublist(0, packet.length - 2);
-    final expectedCrc = (packet[packet.length - 2] << 8) | packet[packet.length - 1];
+    final expectedCrc =
+        (packet[packet.length - 2] << 8) | packet[packet.length - 1];
     final calculatedCrc = _calculateCrc16(data);
 
     return expectedCrc == calculatedCrc;
@@ -244,7 +245,11 @@ class AqualungBleProtocol {
     return packet;
   }
 
-  Future<List<int>> transfer(int flag, int command, [List<int>? payload]) async {
+  Future<List<int>> transfer(
+    int flag,
+    int command, [
+    List<int>? payload,
+  ]) async {
     if (!_isConnected) {
       throw const DownloadException(
         'Not connected to device',
@@ -318,7 +323,8 @@ class AqualungBleProtocol {
 
         // Send PIN
         final pinBytes = pin.codeUnits;
-        final pinResponse = await transfer(flagRequest, cmdAccessCode, pinBytes);
+        final pinResponse =
+            await transfer(flagRequest, cmdAccessCode, pinBytes);
 
         if (pinResponse.isEmpty || pinResponse[0] != 0x00) {
           throw const DownloadException(
@@ -349,7 +355,8 @@ class AqualungBleProtocol {
     }
 
     final authPayload = _getAuthPayload();
-    final authResponse = await transfer(flagRequest, cmdAuthenticate, authPayload);
+    final authResponse =
+        await transfer(flagRequest, cmdAuthenticate, authPayload);
     if (authResponse.isEmpty || authResponse[0] != 0x00) {
       _log.warning('Authentication response: $authResponse');
     }
@@ -398,7 +405,8 @@ class AqualungBleProtocol {
       ];
 
       try {
-        final response = await transfer(flagRequest, cmdFlashRead, addressBytes);
+        final response =
+            await transfer(flagRequest, cmdFlashRead, addressBytes);
 
         if (response.isEmpty) break;
 
@@ -407,7 +415,9 @@ class AqualungBleProtocol {
 
         // Check for end of data (all 0xFF)
         if (response.every((b) => b == 0xFF)) {
-          _log.info('End of data detected at address 0x${address.toRadixString(16)}');
+          _log.info(
+            'End of data detected at address 0x${address.toRadixString(16)}',
+          );
           break;
         }
       } catch (e) {

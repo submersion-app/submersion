@@ -32,7 +32,8 @@ void main() {
       expect(find.text('Dive Records'), findsOneWidget);
     });
 
-    testWidgets('should display empty state when no records exist', (tester) async {
+    testWidgets('should display empty state when no records exist',
+        (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -47,7 +48,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('No Records Yet'), findsOneWidget);
-      expect(find.text('Start logging dives to see your records here'), findsOneWidget);
+      expect(
+        find.text('Start logging dives to see your records here'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('should display refresh button in app bar', (tester) async {
@@ -67,7 +71,8 @@ void main() {
       expect(find.byIcon(Icons.refresh), findsOneWidget);
     });
 
-    testWidgets('should display record cards when records exist', (tester) async {
+    testWidgets('should display record cards when records exist',
+        (tester) async {
       final records = DiveRecords(
         deepestDive: DiveRecord(
           diveId: '1',

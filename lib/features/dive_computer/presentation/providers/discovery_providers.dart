@@ -13,7 +13,8 @@ final deviceLibraryProvider = Provider<DeviceLibrary>((ref) {
 });
 
 /// Provider for the permissions service.
-final permissionsServiceProvider = Provider<DiveComputerPermissionsService>((ref) {
+final permissionsServiceProvider =
+    Provider<DiveComputerPermissionsService>((ref) {
   return DiveComputerPermissionsService();
 });
 
@@ -32,8 +33,7 @@ final connectionStateProvider = StreamProvider<ConnectionState>((ref) {
 });
 
 /// Stream provider for discovered devices.
-final discoveredDevicesProvider =
-    StreamProvider<List<DiscoveredDevice>>((ref) {
+final discoveredDevicesProvider = StreamProvider<List<DiscoveredDevice>>((ref) {
   final manager = ref.watch(bluetoothConnectionManagerProvider);
   return manager.discoveredDevices;
 });
@@ -99,7 +99,8 @@ class DiscoveryState {
   }) {
     return DiscoveryState(
       currentStep: currentStep ?? this.currentStep,
-      selectedDevice: clearDevice ? null : (selectedDevice ?? this.selectedDevice),
+      selectedDevice:
+          clearDevice ? null : (selectedDevice ?? this.selectedDevice),
       isScanning: isScanning ?? this.isScanning,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       customDeviceName: customDeviceName ?? this.customDeviceName,
@@ -148,7 +149,8 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
       }
 
       // Check Bluetooth availability
-      final availability = await _permissionsService.checkBluetoothAvailability();
+      final availability =
+          await _permissionsService.checkBluetoothAvailability();
       if (availability != BluetoothAvailability.available) {
         state = state.copyWith(
           isScanning: false,

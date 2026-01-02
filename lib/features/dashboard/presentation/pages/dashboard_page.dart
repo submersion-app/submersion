@@ -22,7 +22,9 @@ class DashboardPage extends ConsumerWidget {
       appBar: AppBar(
         title: diverAsync.when(
           data: (diver) => Text(
-            diver != null ? 'Welcome, ${diver.name.split(' ').first}' : 'Dashboard',
+            diver != null
+                ? 'Welcome, ${diver.name.split(' ').first}'
+                : 'Dashboard',
           ),
           loading: () => const Text('Dashboard'),
           error: (_, __) => const Text('Dashboard'),
@@ -87,7 +89,11 @@ class DashboardPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatsGrid(BuildContext context, DiveStatistics stats, bool isWide) {
+  Widget _buildStatsGrid(
+    BuildContext context,
+    DiveStatistics stats,
+    bool isWide,
+  ) {
     final cards = [
       StatSummaryCard(
         icon: Icons.waves,
@@ -104,7 +110,8 @@ class DashboardPage extends ConsumerWidget {
       StatSummaryCard(
         icon: Icons.arrow_downward,
         label: 'Max Depth',
-        value: stats.maxDepth > 0 ? '${stats.maxDepth.toStringAsFixed(1)}m' : '-',
+        value:
+            stats.maxDepth > 0 ? '${stats.maxDepth.toStringAsFixed(1)}m' : '-',
         iconColor: Colors.indigo,
       ),
       StatSummaryCard(

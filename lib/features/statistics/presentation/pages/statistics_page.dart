@@ -39,7 +39,11 @@ class StatisticsPage extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 64, color: Theme.of(context).colorScheme.error),
+              Icon(
+                Icons.error_outline,
+                size: 64,
+                color: Theme.of(context).colorScheme.error,
+              ),
               const SizedBox(height: 16),
               const Text('Error loading statistics'),
               const SizedBox(height: 8),
@@ -54,7 +58,11 @@ class StatisticsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildContent(BuildContext context, WidgetRef ref, DiveStatistics stats) {
+  Widget _buildContent(
+    BuildContext context,
+    WidgetRef ref,
+    DiveStatistics stats,
+  ) {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
 
@@ -179,7 +187,11 @@ class StatisticsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildOverviewCards(BuildContext context, DiveStatistics stats, UnitFormatter units) {
+  Widget _buildOverviewCards(
+    BuildContext context,
+    DiveStatistics stats,
+    UnitFormatter units,
+  ) {
     return GridView.count(
       crossAxisCount: MediaQuery.of(context).size.width > 600 ? 4 : 2,
       shrinkWrap: true,
@@ -264,7 +276,10 @@ class StatisticsPage extends ConsumerWidget {
   Widget _buildDivesByMonthChart(BuildContext context, DiveStatistics stats) {
     final hasData = stats.divesByMonth.isNotEmpty;
     final maxCount = hasData
-        ? stats.divesByMonth.map((e) => e.count).reduce((a, b) => a > b ? a : b).toDouble()
+        ? stats.divesByMonth
+            .map((e) => e.count)
+            .reduce((a, b) => a > b ? a : b)
+            .toDouble()
         : 5.0;
 
     return Card(
@@ -292,7 +307,8 @@ class StatisticsPage extends ConsumerWidget {
                               return BarTooltipItem(
                                 '${data.fullLabel}\n${data.count} dives',
                                 TextStyle(
-                                  color: Theme.of(context).colorScheme.onPrimary,
+                                  color:
+                                      Theme.of(context).colorScheme.onPrimary,
                                   fontWeight: FontWeight.bold,
                                 ),
                               );
@@ -306,12 +322,14 @@ class StatisticsPage extends ConsumerWidget {
                               showTitles: true,
                               getTitlesWidget: (value, meta) {
                                 final index = value.toInt();
-                                if (index >= 0 && index < stats.divesByMonth.length) {
+                                if (index >= 0 &&
+                                    index < stats.divesByMonth.length) {
                                   return Padding(
                                     padding: const EdgeInsets.only(top: 8),
                                     child: Text(
                                       stats.divesByMonth[index].label,
-                                      style: Theme.of(context).textTheme.bodySmall,
+                                      style:
+                                          Theme.of(context).textTheme.bodySmall,
                                     ),
                                   );
                                 }
@@ -328,15 +346,20 @@ class StatisticsPage extends ConsumerWidget {
                                 if (value == value.roundToDouble()) {
                                   return Text(
                                     value.toInt().toString(),
-                                    style: Theme.of(context).textTheme.bodySmall,
+                                    style:
+                                        Theme.of(context).textTheme.bodySmall,
                                   );
                                 }
                                 return const Text('');
                               },
                             ),
                           ),
-                          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                          topTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
+                          rightTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
                         ),
                         borderData: FlBorderData(show: false),
                         gridData: FlGridData(
@@ -357,7 +380,9 @@ class StatisticsPage extends ConsumerWidget {
                                 toY: stats.divesByMonth[index].count.toDouble(),
                                 color: Theme.of(context).colorScheme.primary,
                                 width: 16,
-                                borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(4),
+                                ),
                               ),
                             ],
                           ),
@@ -371,13 +396,21 @@ class StatisticsPage extends ConsumerWidget {
                           Icon(
                             Icons.bar_chart,
                             size: 48,
-                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .primary
+                                .withValues(alpha: 0.5),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             'Chart will appear when you log dives',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
                                 ),
                           ),
                         ],
@@ -390,7 +423,11 @@ class StatisticsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildDepthDistribution(BuildContext context, DiveStatistics stats, UnitFormatter units) {
+  Widget _buildDepthDistribution(
+    BuildContext context,
+    DiveStatistics stats,
+    UnitFormatter units,
+  ) {
     final hasData = stats.depthDistribution.any((d) => d.count > 0);
     final colors = [
       Colors.lightBlue.shade300,
@@ -454,13 +491,18 @@ class StatisticsPage extends ConsumerWidget {
                               (index) {
                                 final data = stats.depthDistribution[index];
                                 // Convert depth range labels to user's preferred unit
-                                final minDisplay = units.convertDepth(data.minDepth.toDouble()).round();
-                                final maxDisplay = units.convertDepth(data.maxDepth.toDouble()).round();
+                                final minDisplay = units
+                                    .convertDepth(data.minDepth.toDouble())
+                                    .round();
+                                final maxDisplay = units
+                                    .convertDepth(data.maxDepth.toDouble())
+                                    .round();
                                 final label = data.maxDepth >= 100
                                     ? '$minDisplay${units.depthSymbol}+'
                                     : '$minDisplay-$maxDisplay${units.depthSymbol}';
                                 return Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 2),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 2),
                                   child: Row(
                                     children: [
                                       Container(
@@ -468,14 +510,17 @@ class StatisticsPage extends ConsumerWidget {
                                         height: 12,
                                         decoration: BoxDecoration(
                                           color: colors[index % colors.length],
-                                          borderRadius: BorderRadius.circular(2),
+                                          borderRadius:
+                                              BorderRadius.circular(2),
                                         ),
                                       ),
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
                                           label,
-                                          style: Theme.of(context).textTheme.bodySmall,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall,
                                         ),
                                       ),
                                     ],
@@ -494,13 +539,21 @@ class StatisticsPage extends ConsumerWidget {
                           Icon(
                             Icons.pie_chart,
                             size: 48,
-                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .primary
+                                .withValues(alpha: 0.5),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             'Chart will appear when you log dives',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
                                 ),
                           ),
                         ],
@@ -512,9 +565,17 @@ class StatisticsPage extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildMiniStat(context, 'Avg Depth', units.formatDepth(stats.avgMaxDepth)),
+                  _buildMiniStat(
+                    context,
+                    'Avg Depth',
+                    units.formatDepth(stats.avgMaxDepth),
+                  ),
                   if (stats.avgTemperature != null)
-                    _buildMiniStat(context, 'Avg Temp', units.formatTemperature(stats.avgTemperature)),
+                    _buildMiniStat(
+                      context,
+                      'Avg Temp',
+                      units.formatTemperature(stats.avgTemperature),
+                    ),
                 ],
               ),
             ],
@@ -573,7 +634,12 @@ class StatisticsPage extends ConsumerWidget {
               ...stats.topSites.asMap().entries.map((entry) {
                 final index = entry.key;
                 final site = entry.value;
-                return _buildSiteRankTile(context, index + 1, site.siteName, site.diveCount);
+                return _buildSiteRankTile(
+                  context,
+                  index + 1,
+                  site.siteName,
+                  site.diveCount,
+                );
               })
             else
               Center(
@@ -584,13 +650,18 @@ class StatisticsPage extends ConsumerWidget {
                       Icon(
                         Icons.location_on,
                         size: 48,
-                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withValues(alpha: 0.5),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'No dive sites yet',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
                             ),
                       ),
                     ],
@@ -603,7 +674,12 @@ class StatisticsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildSiteRankTile(BuildContext context, int rank, String siteName, int diveCount) {
+  Widget _buildSiteRankTile(
+    BuildContext context,
+    int rank,
+    String siteName,
+    int diveCount,
+  ) {
     final rankColors = [
       Colors.amber.shade600,
       Colors.grey.shade400,
@@ -618,14 +694,18 @@ class StatisticsPage extends ConsumerWidget {
             width: 28,
             height: 28,
             decoration: BoxDecoration(
-              color: rank <= 3 ? rankColors[rank - 1] : Theme.of(context).colorScheme.surfaceContainerHighest,
+              color: rank <= 3
+                  ? rankColors[rank - 1]
+                  : Theme.of(context).colorScheme.surfaceContainerHighest,
               shape: BoxShape.circle,
             ),
             child: Center(
               child: Text(
                 '$rank',
                 style: TextStyle(
-                  color: rank <= 3 ? Colors.white : Theme.of(context).colorScheme.onSurfaceVariant,
+                  color: rank <= 3
+                      ? Colors.white
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
                 ),
@@ -687,20 +767,33 @@ class StatisticsPage extends ConsumerWidget {
                               Icon(
                                 Icons.label_outline,
                                 size: 48,
-                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .primary
+                                    .withValues(alpha: 0.5),
                               ),
                               const SizedBox(height: 8),
                               Text(
                                 'No tags created yet',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
                                     ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 'Add tags to dives to see statistics',
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
                                     ),
                               ),
                             ],
@@ -713,7 +806,9 @@ class StatisticsPage extends ConsumerWidget {
               );
             }
 
-            final maxCount = tagStats.map((s) => s.diveCount).reduce((a, b) => a > b ? a : b);
+            final maxCount = tagStats
+                .map((s) => s.diveCount)
+                .reduce((a, b) => a > b ? a : b);
 
             return Card(
               child: Padding(
@@ -730,28 +825,36 @@ class StatisticsPage extends ConsumerWidget {
                         ),
                         Text(
                           '${tagStats.length} tags',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
                         ),
                       ],
                     ),
                     const Divider(),
-                    ...tagStats.take(10).map((stat) => _buildTagStatTile(
-                          context,
-                          stat.tag.name,
-                          stat.diveCount,
-                          stat.tag.color,
-                          maxCount,
-                        ),),
+                    ...tagStats.take(10).map(
+                          (stat) => _buildTagStatTile(
+                            context,
+                            stat.tag.name,
+                            stat.diveCount,
+                            stat.tag.color,
+                            maxCount,
+                          ),
+                        ),
                     if (tagStats.length > 10) ...[
                       const SizedBox(height: 8),
                       Center(
                         child: Text(
                           'and ${tagStats.length - 10} more tags',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
                         ),
                       ),
                     ],
@@ -808,7 +911,8 @@ class StatisticsPage extends ConsumerWidget {
                     Text(
                       '$diveCount ${diveCount == 1 ? 'dive' : 'dives'}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                     ),
                   ],

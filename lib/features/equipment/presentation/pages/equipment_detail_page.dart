@@ -25,7 +25,9 @@ class EquipmentDetailPage extends ConsumerWidget {
         if (equipment == null) {
           return Scaffold(
             appBar: AppBar(title: const Text('Equipment Not Found')),
-            body: const Center(child: Text('This equipment item no longer exists.')),
+            body: const Center(
+              child: Text('This equipment item no longer exists.'),
+            ),
           );
         }
         return _buildContent(context, ref, equipment);
@@ -41,7 +43,11 @@ class EquipmentDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildContent(BuildContext context, WidgetRef ref, EquipmentItem equipment) {
+  Widget _buildContent(
+    BuildContext context,
+    WidgetRef ref,
+    EquipmentItem equipment,
+  ) {
     return Scaffold(
       appBar: AppBar(
         title: Text(equipment.name),
@@ -51,7 +57,8 @@ class EquipmentDetailPage extends ConsumerWidget {
             onPressed: () => context.push('/equipment/$equipmentId/edit'),
           ),
           PopupMenuButton<String>(
-            onSelected: (value) => _handleMenuAction(context, ref, value, equipment),
+            onSelected: (value) =>
+                _handleMenuAction(context, ref, value, equipment),
             itemBuilder: (context) => [
               if (equipment.isActive)
                 const PopupMenuItem(
@@ -65,8 +72,12 @@ class EquipmentDetailPage extends ConsumerWidget {
               PopupMenuItem(
                 value: equipment.isActive ? 'retire' : 'reactivate',
                 child: ListTile(
-                  leading: Icon(equipment.isActive ? Icons.archive : Icons.unarchive),
-                  title: Text(equipment.isActive ? 'Retire Equipment' : 'Reactivate'),
+                  leading: Icon(
+                    equipment.isActive ? Icons.archive : Icons.unarchive,
+                  ),
+                  title: Text(
+                    equipment.isActive ? 'Retire Equipment' : 'Reactivate',
+                  ),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
@@ -139,15 +150,20 @@ class EquipmentDetailPage extends ConsumerWidget {
                       Text(
                         equipment.type.displayName,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
                             ),
                       ),
                       if (!equipment.isActive)
                         Chip(
                           label: const Text('Retired'),
-                          backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                          backgroundColor: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHighest,
                           labelStyle: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                     ],
@@ -207,7 +223,11 @@ class EquipmentDetailPage extends ConsumerWidget {
             if (equipment.model != null)
               _buildDetailRow(context, 'Model', equipment.model!),
             if (equipment.serialNumber != null)
-              _buildDetailRow(context, 'Serial Number', equipment.serialNumber!),
+              _buildDetailRow(
+                context,
+                'Serial Number',
+                equipment.serialNumber!,
+              ),
             if (equipment.size != null)
               _buildDetailRow(context, 'Size', equipment.size!),
             if (equipment.purchaseDate != null)
@@ -279,13 +299,16 @@ class EquipmentDetailPage extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
                     color: isOverdue
                         ? Theme.of(context).colorScheme.errorContainer
                         : daysUntil < 30
                             ? Theme.of(context).colorScheme.tertiaryContainer
-                            : Theme.of(context).colorScheme.surfaceContainerHighest,
+                            : Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -494,7 +517,8 @@ class _ServiceHistorySection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final recordsAsync = ref.watch(serviceRecordNotifierProvider(equipmentId));
-    final totalCostAsync = ref.watch(serviceRecordTotalCostProvider(equipmentId));
+    final totalCostAsync =
+        ref.watch(serviceRecordTotalCostProvider(equipmentId));
 
     return Card(
       child: Padding(
@@ -537,13 +561,21 @@ class _ServiceHistorySection extends ConsumerWidget {
                           Icon(
                             Icons.build_outlined,
                             size: 48,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurfaceVariant
+                                .withValues(alpha: 0.5),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             'No service records yet',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
                                 ),
                           ),
                         ],
@@ -562,7 +594,9 @@ class _ServiceHistorySection extends ConsumerWidget {
                             padding: const EdgeInsets.all(12),
                             margin: const EdgeInsets.only(bottom: 12),
                             decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainerHighest,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
@@ -574,7 +608,10 @@ class _ServiceHistorySection extends ConsumerWidget {
                                 ),
                                 Text(
                                   '\$${totalCost.toStringAsFixed(2)}',
-                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
                                         fontWeight: FontWeight.bold,
                                       ),
                                 ),
@@ -588,11 +625,15 @@ class _ServiceHistorySection extends ConsumerWidget {
                       error: (_, __) => const SizedBox.shrink(),
                     ),
                     // Service records list
-                    ...records.map((record) => _ServiceRecordTile(
-                          record: record,
-                          onTap: () => _showEditServiceDialog(context, ref, record),
-                          onDelete: () => _confirmDeleteRecord(context, ref, record),
-                        ),),
+                    ...records.map(
+                      (record) => _ServiceRecordTile(
+                        record: record,
+                        onTap: () =>
+                            _showEditServiceDialog(context, ref, record),
+                        onDelete: () =>
+                            _confirmDeleteRecord(context, ref, record),
+                      ),
+                    ),
                   ],
                 );
               },
@@ -618,31 +659,45 @@ class _ServiceHistorySection extends ConsumerWidget {
       builder: (context) => ServiceRecordDialog(
         equipmentId: equipmentId,
         onSave: (record) async {
-          await ref.read(serviceRecordNotifierProvider(equipmentId).notifier).addRecord(record);
+          await ref
+              .read(serviceRecordNotifierProvider(equipmentId).notifier)
+              .addRecord(record);
         },
       ),
     );
   }
 
-  void _showEditServiceDialog(BuildContext context, WidgetRef ref, ServiceRecord record) {
+  void _showEditServiceDialog(
+    BuildContext context,
+    WidgetRef ref,
+    ServiceRecord record,
+  ) {
     showDialog(
       context: context,
       builder: (context) => ServiceRecordDialog(
         equipmentId: equipmentId,
         existingRecord: record,
         onSave: (updatedRecord) async {
-          await ref.read(serviceRecordNotifierProvider(equipmentId).notifier).updateRecord(updatedRecord);
+          await ref
+              .read(serviceRecordNotifierProvider(equipmentId).notifier)
+              .updateRecord(updatedRecord);
         },
       ),
     );
   }
 
-  Future<void> _confirmDeleteRecord(BuildContext context, WidgetRef ref, ServiceRecord record) async {
+  Future<void> _confirmDeleteRecord(
+    BuildContext context,
+    WidgetRef ref,
+    ServiceRecord record,
+  ) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Service Record?'),
-        content: Text('Are you sure you want to delete this ${record.serviceType.displayName} record?'),
+        content: Text(
+          'Are you sure you want to delete this ${record.serviceType.displayName} record?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -660,7 +715,9 @@ class _ServiceHistorySection extends ConsumerWidget {
     );
 
     if (confirmed == true) {
-      await ref.read(serviceRecordNotifierProvider(equipmentId).notifier).deleteRecord(record.id);
+      await ref
+          .read(serviceRecordNotifierProvider(equipmentId).notifier)
+          .deleteRecord(record.id);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Service record deleted')),
@@ -883,7 +940,8 @@ class _ServiceRecordDialogState extends State<ServiceRecordDialog> {
                     prefixIcon: Icon(Icons.attach_money),
                     hintText: '0.00',
                   ),
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   validator: (value) {
                     if (value != null && value.isNotEmpty) {
                       final parsed = double.tryParse(value);
@@ -906,7 +964,8 @@ class _ServiceRecordDialogState extends State<ServiceRecordDialog> {
                       suffixIcon: _nextServiceDue != null
                           ? IconButton(
                               icon: const Icon(Icons.clear),
-                              onPressed: () => setState(() => _nextServiceDue = null),
+                              onPressed: () =>
+                                  setState(() => _nextServiceDue = null),
                             )
                           : null,
                     ),
@@ -973,7 +1032,8 @@ class _ServiceRecordDialogState extends State<ServiceRecordDialog> {
   Future<void> _pickNextServiceDate() async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: _nextServiceDue ?? DateTime.now().add(const Duration(days: 365)),
+      initialDate:
+          _nextServiceDue ?? DateTime.now().add(const Duration(days: 365)),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365 * 10)),
     );
@@ -994,8 +1054,12 @@ class _ServiceRecordDialogState extends State<ServiceRecordDialog> {
         equipmentId: widget.equipmentId,
         serviceType: _serviceType,
         serviceDate: _serviceDate,
-        provider: _providerController.text.trim().isEmpty ? null : _providerController.text.trim(),
-        cost: _costController.text.isEmpty ? null : double.tryParse(_costController.text),
+        provider: _providerController.text.trim().isEmpty
+            ? null
+            : _providerController.text.trim(),
+        cost: _costController.text.isEmpty
+            ? null
+            : double.tryParse(_costController.text),
         currency: 'USD',
         nextServiceDue: _nextServiceDue,
         notes: _notesController.text.trim(),
@@ -1008,7 +1072,11 @@ class _ServiceRecordDialogState extends State<ServiceRecordDialog> {
       if (mounted) {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(isEditing ? 'Service record updated' : 'Service record added')),
+          SnackBar(
+            content: Text(
+              isEditing ? 'Service record updated' : 'Service record added',
+            ),
+          ),
         );
       }
     } catch (e) {

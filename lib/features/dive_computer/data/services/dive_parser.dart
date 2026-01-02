@@ -1,6 +1,7 @@
 import '../../../../features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import '../../domain/services/download_manager.dart';
-export '../../../../features/dive_log/data/repositories/dive_computer_repository_impl.dart' show TankData;
+export '../../../../features/dive_log/data/repositories/dive_computer_repository_impl.dart'
+    show TankData;
 
 /// Service for parsing downloaded dive data into app entities.
 ///

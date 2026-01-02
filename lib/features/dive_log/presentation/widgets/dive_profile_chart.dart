@@ -11,7 +11,9 @@ import '../../../../core/utils/unit_formatter.dart';
 import '../../../settings/presentation/providers/settings_providers.dart';
 import '../../data/services/profile_markers_service.dart';
 import '../../domain/entities/dive.dart';
+import '../../domain/entities/gas_switch.dart';
 import '../../domain/entities/profile_event.dart';
+import 'gas_colors.dart';
 
 /// Interactive dive profile chart showing depth over time with zoom/pan support
 class DiveProfileChart extends ConsumerStatefulWidget {
@@ -65,6 +67,12 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// Whether to show pressure threshold markers (from settings)
   final bool showPressureThresholdMarkers;
 
+  /// Gas switches for coloring profile segments by active gas
+  final List<GasSwitchWithTank>? gasSwitches;
+
+  /// Tanks for determining initial gas color (before first switch)
+  final List<DiveTank>? tanks;
+
   const DiveProfileChart({
     super.key,
     required this.profile,
@@ -87,6 +95,8 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.markers,
     this.showMaxDepthMarker = false,
     this.showPressureThresholdMarkers = false,
+    this.gasSwitches,
+    this.tanks,
   });
 
   @override
@@ -107,6 +117,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   // Profile marker toggles
   bool _showMaxDepthMarkerLocal = true;
   bool _showPressureMarkersLocal = true;
+
+  // Gas switch visualization toggle
+  bool _showGasSwitchMarkers = true;
 
   // Helper getters for marker availability
   bool get _hasMaxDepthMarker =>
@@ -288,7 +301,19 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   label: '⅓½⅔',
                   isEnabled: _showPressureMarkersLocal,
                   onTap: () => setState(
-                    () => _showPressureMarkersLocal = !_showPressureMarkersLocal,
+                    () =>
+                        _showPressureMarkersLocal = !_showPressureMarkersLocal,
+                  ),
+                ),
+              // Gas switch markers toggle (if gas switches exist)
+              if (widget.gasSwitches != null && widget.gasSwitches!.isNotEmpty)
+                _buildMetricToggle(
+                  context,
+                  color: GasColors.nitrox,
+                  label: 'Gas',
+                  isEnabled: _showGasSwitchMarkers,
+                  onTap: () => setState(
+                    () => _showGasSwitchMarkers = !_showGasSwitchMarkers,
                   ),
                 ),
               // Zoom controls (pushed to end)
@@ -730,8 +755,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           border: Border.all(color: colorScheme.outlineVariant),
         ),
         lineBarsData: [
-          // Depth line (convert to user's preferred unit)
-          _buildDepthLine(colorScheme, units),
+          // Depth line segments (colored by active gas if gas switches exist)
+          ..._buildGasColoredDepthLines(colorScheme, units),
+
+          // Gas switch markers (if showing and data available)
+          if (_showGasSwitchMarkers) ..._buildGasSwitchMarkers(units),
 
           // Temperature line (if showing)
           if (_showTemperature &&
@@ -960,39 +988,170 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     );
   }
 
-  LineChartBarData _buildDepthLine(
+  /// Build depth line segments colored by active gas
+  /// Returns multiple line segments, each colored based on the active gas at that time
+  List<LineChartBarData> _buildGasColoredDepthLines(
     ColorScheme colorScheme,
     UnitFormatter units,
   ) {
+    final gasSwitches = widget.gasSwitches;
+    final tanks = widget.tanks;
+
+    // If no gas switches, use initial tank color or theme primary
+    if (gasSwitches == null || gasSwitches.isEmpty) {
+      final gasColor = (tanks != null && tanks.isNotEmpty)
+          ? GasColors.forGasMix(tanks.first.gasMix)
+          : colorScheme.primary;
+      return [_buildSingleDepthSegment(gasColor, units, 0, widget.profile.length, showFill: true)];
+    }
+
+    final lines = <LineChartBarData>[];
+
+    // Determine initial gas color from first tank
+    Color currentColor = (tanks != null && tanks.isNotEmpty)
+        ? GasColors.forGasMix(tanks.first.gasMix)
+        : GasColors.air;
+
+    int segmentStart = 0;
+    int switchIndex = 0;
+
+    for (int i = 0; i < widget.profile.length; i++) {
+      final point = widget.profile[i];
+
+      // Check if we've passed a gas switch
+      while (switchIndex < gasSwitches.length &&
+          point.timestamp >= gasSwitches[switchIndex].timestamp) {
+        // Create segment up to this switch point
+        if (i > segmentStart) {
+          lines.add(
+            _buildSingleDepthSegment(
+              currentColor,
+              units,
+              segmentStart,
+              i,
+              showFill: segmentStart == 0, // Only show fill for first segment
+            ),
+          );
+        }
+
+        // Update color for new gas
+        currentColor = GasColors.forMixFraction(
+          gasSwitches[switchIndex].o2Fraction,
+          gasSwitches[switchIndex].heFraction,
+        );
+        segmentStart = i;
+        switchIndex++;
+      }
+    }
+
+    // Add final segment
+    if (segmentStart < widget.profile.length) {
+      lines.add(
+        _buildSingleDepthSegment(
+          currentColor,
+          units,
+          segmentStart,
+          widget.profile.length,
+          showFill: segmentStart == 0, // Only show fill if this is the only segment
+        ),
+      );
+    }
+
+    return lines;
+  }
+
+  /// Build a single depth line segment with the given color
+  LineChartBarData _buildSingleDepthSegment(
+    Color color,
+    UnitFormatter units,
+    int startIndex,
+    int endIndex, {
+    bool showFill = false,
+  }) {
     return LineChartBarData(
       spots: widget.profile
+          .sublist(startIndex, endIndex)
           .map(
             (p) => FlSpot(
               p.timestamp.toDouble(),
-              -units.convertDepth(
-                p.depth,
-              ), // Convert to user's unit and negate for inverted axis
+              -units.convertDepth(p.depth),
             ),
           )
           .toList(),
       isCurved: true,
       curveSmoothness: 0.2,
-      color: colorScheme.primary,
+      color: color,
       barWidth: 2,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      belowBarData: BarAreaData(
-        show: true,
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            colorScheme.primary.withValues(alpha: 0.05),
-            colorScheme.primary.withValues(alpha: 0.3),
-          ],
-        ),
-      ),
+      belowBarData: showFill
+          ? BarAreaData(
+              show: true,
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: GasColors.gradientColors(color),
+              ),
+            )
+          : BarAreaData(show: false),
     );
+  }
+
+  /// Build gas switch marker dots on the profile
+  List<LineChartBarData> _buildGasSwitchMarkers(UnitFormatter units) {
+    final gasSwitches = widget.gasSwitches;
+    if (gasSwitches == null || gasSwitches.isEmpty) {
+      return [];
+    }
+
+    return gasSwitches.map((gs) {
+      final color = GasColors.forMixFraction(gs.o2Fraction, gs.heFraction);
+
+      // Find the depth at this timestamp from profile
+      final depth = gs.depth ?? _findDepthAtTimestamp(gs.timestamp);
+
+      return LineChartBarData(
+        spots: [
+          FlSpot(
+            gs.timestamp.toDouble(),
+            -units.convertDepth(depth),
+          ),
+        ],
+        isCurved: false,
+        color: Colors.transparent,
+        barWidth: 0,
+        dotData: FlDotData(
+          show: true,
+          getDotPainter: (spot, percent, bar, index) {
+            return FlDotCirclePainter(
+              radius: 6,
+              color: color,
+              strokeWidth: 2,
+              strokeColor: Colors.white,
+            );
+          },
+        ),
+      );
+    }).toList();
+  }
+
+  /// Find the depth at a given timestamp by interpolating profile data
+  double _findDepthAtTimestamp(int timestamp) {
+    if (widget.profile.isEmpty) return 0;
+
+    // Find the closest profile point
+    for (int i = 0; i < widget.profile.length; i++) {
+      if (widget.profile[i].timestamp >= timestamp) {
+        if (i == 0) return widget.profile[0].depth;
+        // Simple interpolation
+        final prev = widget.profile[i - 1];
+        final curr = widget.profile[i];
+        final ratio = (timestamp - prev.timestamp) /
+            (curr.timestamp - prev.timestamp);
+        return prev.depth + (curr.depth - prev.depth) * ratio;
+      }
+    }
+    return widget.profile.last.depth;
   }
 
   LineChartBarData _buildTemperatureLine(
@@ -1237,7 +1396,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         if (!widget.showMaxDepthMarker || !_showMaxDepthMarkerLocal) continue;
       } else {
         // Skip pressure markers if setting is off or locally toggled off
-        if (!widget.showPressureThresholdMarkers || !_showPressureMarkersLocal) {
+        if (!widget.showPressureThresholdMarkers ||
+            !_showPressureMarkersLocal) {
           continue;
         }
       }
@@ -1291,7 +1451,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     );
   }
 }
-
 
 /// Compact version of the dive profile chart for list previews
 class DiveProfileMiniChart extends StatelessWidget {

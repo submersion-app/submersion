@@ -176,16 +176,14 @@ class DatabaseMigrationService {
       try {
         final db = _dbService.database;
         final row = await _withTimeout(
-          db
-              .customSelect('''
+          db.customSelect('''
             SELECT
               (SELECT COUNT(*) FROM divers) AS user_count,
               (SELECT COUNT(*) FROM dives) AS dive_count,
               (SELECT COUNT(*) FROM dive_sites) AS site_count,
               (SELECT COUNT(*) FROM trips) AS trip_count,
               (SELECT COUNT(*) FROM buddies) AS buddy_count
-          ''')
-              .getSingle(),
+          ''').getSingle(),
           'Database counts query',
           timeout: _infoQueryTimeout,
         );
@@ -284,7 +282,8 @@ class DatabaseMigrationService {
       );
 
       // Step 5b: Create security-scoped bookmark for persistent access (macOS)
-      final bookmarkCreated = await _locationService.createAndStoreBookmark(folderPath);
+      final bookmarkCreated =
+          await _locationService.createAndStoreBookmark(folderPath);
       if (!bookmarkCreated) {
         // Log warning but don't fail - bookmark is optional for persistence
         // Access will work during this session, but may fail after restart

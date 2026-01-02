@@ -45,7 +45,8 @@ void main() {
 
   group('TripRepository', () {
     group('createTrip', () {
-      test('should create a new trip with generated ID when ID is empty', () async {
+      test('should create a new trip with generated ID when ID is empty',
+          () async {
         final trip = createTestTrip(name: 'Maldives Adventure');
 
         final createdTrip = await repository.createTrip(trip);
@@ -55,7 +56,8 @@ void main() {
       });
 
       test('should create a trip with provided ID', () async {
-        final trip = createTestTrip(id: 'custom-trip-id', name: 'Red Sea Expedition');
+        final trip =
+            createTestTrip(id: 'custom-trip-id', name: 'Red Sea Expedition');
 
         final createdTrip = await repository.createTrip(trip);
 
@@ -103,7 +105,8 @@ void main() {
 
     group('getTripById', () {
       test('should return trip when found', () async {
-        final trip = await repository.createTrip(createTestTrip(name: 'Find Me Trip'));
+        final trip =
+            await repository.createTrip(createTestTrip(name: 'Find Me Trip'));
 
         final result = await repository.getTripById(trip.id);
 
@@ -125,7 +128,8 @@ void main() {
         expect(result, isEmpty);
       });
 
-      test('should return all trips ordered by start date (newest first)', () async {
+      test('should return all trips ordered by start date (newest first)',
+          () async {
         final trip1 = createTestTrip(
           name: 'January Trip',
           startDate: DateTime(2024, 1, 1),
@@ -157,10 +161,12 @@ void main() {
 
     group('updateTrip', () {
       test('should update trip fields', () async {
-        final trip = await repository.createTrip(createTestTrip(
-          name: 'Original Name',
-          location: 'Original Location',
-        ),);
+        final trip = await repository.createTrip(
+          createTestTrip(
+            name: 'Original Name',
+            location: 'Original Location',
+          ),
+        );
 
         final updatedTrip = trip.copyWith(
           name: 'Updated Name',
@@ -178,11 +184,13 @@ void main() {
       });
 
       test('should update date range', () async {
-        final trip = await repository.createTrip(createTestTrip(
-          name: 'Date Update Trip',
-          startDate: DateTime(2024, 1, 1),
-          endDate: DateTime(2024, 1, 7),
-        ),);
+        final trip = await repository.createTrip(
+          createTestTrip(
+            name: 'Date Update Trip',
+            startDate: DateTime(2024, 1, 1),
+            endDate: DateTime(2024, 1, 7),
+          ),
+        );
 
         final newStartDate = DateTime(2024, 2, 1);
         final newEndDate = DateTime(2024, 2, 14);
@@ -203,7 +211,8 @@ void main() {
 
     group('deleteTrip', () {
       test('should delete existing trip', () async {
-        final trip = await repository.createTrip(createTestTrip(name: 'To Delete'));
+        final trip =
+            await repository.createTrip(createTestTrip(name: 'To Delete'));
 
         await repository.deleteTrip(trip.id);
         final result = await repository.getTripById(trip.id);
@@ -221,21 +230,27 @@ void main() {
 
     group('searchTrips', () {
       setUp(() async {
-        await repository.createTrip(createTestTrip(
-          name: 'Maldives Adventure',
-          location: 'Maldives',
-          resortName: 'Ocean Paradise Resort',
-        ),);
-        await repository.createTrip(createTestTrip(
-          name: 'Red Sea Expedition',
-          location: 'Egypt',
-          liveaboardName: 'MY Red Sea Explorer',
-        ),);
-        await repository.createTrip(createTestTrip(
-          name: 'Caribbean Dive Trip',
-          location: 'Bonaire',
-          resortName: 'Caribbean Divers',
-        ),);
+        await repository.createTrip(
+          createTestTrip(
+            name: 'Maldives Adventure',
+            location: 'Maldives',
+            resortName: 'Ocean Paradise Resort',
+          ),
+        );
+        await repository.createTrip(
+          createTestTrip(
+            name: 'Red Sea Expedition',
+            location: 'Egypt',
+            liveaboardName: 'MY Red Sea Explorer',
+          ),
+        );
+        await repository.createTrip(
+          createTestTrip(
+            name: 'Caribbean Dive Trip',
+            location: 'Bonaire',
+            resortName: 'Caribbean Divers',
+          ),
+        );
       });
 
       test('should find trips by name', () async {
@@ -282,11 +297,13 @@ void main() {
 
     group('findTripForDate', () {
       test('should find trip containing the given date', () async {
-        final trip = await repository.createTrip(createTestTrip(
-          name: 'June Trip',
-          startDate: DateTime(2024, 6, 1),
-          endDate: DateTime(2024, 6, 15),
-        ),);
+        final trip = await repository.createTrip(
+          createTestTrip(
+            name: 'June Trip',
+            startDate: DateTime(2024, 6, 1),
+            endDate: DateTime(2024, 6, 15),
+          ),
+        );
 
         final result = await repository.findTripForDate(DateTime(2024, 6, 10));
 
@@ -295,11 +312,13 @@ void main() {
       });
 
       test('should return null when no trip contains the date', () async {
-        await repository.createTrip(createTestTrip(
-          name: 'June Trip',
-          startDate: DateTime(2024, 6, 1),
-          endDate: DateTime(2024, 6, 15),
-        ),);
+        await repository.createTrip(
+          createTestTrip(
+            name: 'June Trip',
+            startDate: DateTime(2024, 6, 1),
+            endDate: DateTime(2024, 6, 15),
+          ),
+        );
 
         final result = await repository.findTripForDate(DateTime(2024, 7, 10));
 
@@ -307,11 +326,13 @@ void main() {
       });
 
       test('should include start date', () async {
-        final trip = await repository.createTrip(createTestTrip(
-          name: 'June Trip',
-          startDate: DateTime(2024, 6, 1),
-          endDate: DateTime(2024, 6, 15),
-        ),);
+        final trip = await repository.createTrip(
+          createTestTrip(
+            name: 'June Trip',
+            startDate: DateTime(2024, 6, 1),
+            endDate: DateTime(2024, 6, 15),
+          ),
+        );
 
         final result = await repository.findTripForDate(DateTime(2024, 6, 1));
 
@@ -320,11 +341,13 @@ void main() {
       });
 
       test('should include end date', () async {
-        final trip = await repository.createTrip(createTestTrip(
-          name: 'June Trip',
-          startDate: DateTime(2024, 6, 1),
-          endDate: DateTime(2024, 6, 15),
-        ),);
+        final trip = await repository.createTrip(
+          createTestTrip(
+            name: 'June Trip',
+            startDate: DateTime(2024, 6, 1),
+            endDate: DateTime(2024, 6, 15),
+          ),
+        );
 
         final result = await repository.findTripForDate(DateTime(2024, 6, 15));
 
@@ -335,7 +358,8 @@ void main() {
 
     group('getDiveCountForTrip', () {
       test('should return 0 when trip has no dives', () async {
-        final trip = await repository.createTrip(createTestTrip(name: 'Empty Trip'));
+        final trip =
+            await repository.createTrip(createTestTrip(name: 'Empty Trip'));
 
         final count = await repository.getDiveCountForTrip(trip.id);
 
@@ -344,8 +368,10 @@ void main() {
     });
 
     group('getTripWithStats', () {
-      test('should return stats with zero values for trip with no dives', () async {
-        final trip = await repository.createTrip(createTestTrip(name: 'Stats Trip'));
+      test('should return stats with zero values for trip with no dives',
+          () async {
+        final trip =
+            await repository.createTrip(createTestTrip(name: 'Stats Trip'));
 
         final stats = await repository.getTripWithStats(trip.id);
 
@@ -384,7 +410,8 @@ void main() {
 
     group('getDiveIdsForTrip', () {
       test('should return empty list when trip has no dives', () async {
-        final trip = await repository.createTrip(createTestTrip(name: 'No Dives Trip'));
+        final trip =
+            await repository.createTrip(createTestTrip(name: 'No Dives Trip'));
 
         final diveIds = await repository.getDiveIdsForTrip(trip.id);
 

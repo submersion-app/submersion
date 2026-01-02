@@ -99,7 +99,8 @@ class LocationService {
       );
 
       _log.info(
-          'Got position: ${position.latitude}, ${position.longitude} (accuracy: ${position.accuracy}m)',);
+        'Got position: ${position.latitude}, ${position.longitude} (accuracy: ${position.accuracy}m)',
+      );
 
       String? country;
       String? region;
@@ -107,7 +108,8 @@ class LocationService {
 
       // Perform reverse geocoding if requested
       if (includeGeocoding) {
-        final geocodeResult = await reverseGeocode(position.latitude, position.longitude);
+        final geocodeResult =
+            await reverseGeocode(position.latitude, position.longitude);
         country = geocodeResult.country;
         region = geocodeResult.region;
         locality = geocodeResult.locality;
@@ -129,18 +131,23 @@ class LocationService {
 
   /// Reverse geocode a location to get country/region
   /// Uses native geocoding on mobile, falls back to OpenStreetMap Nominatim on desktop
-  Future<({String? country, String? region, String? locality})>
-      reverseGeocode(double latitude, double longitude) async {
+  Future<({String? country, String? region, String? locality})> reverseGeocode(
+    double latitude,
+    double longitude,
+  ) async {
     try {
       _log.info('Reverse geocoding: $latitude, $longitude');
 
       // Try native geocoding first (works on iOS/Android)
       if (_isMobile) {
         try {
-          final placemarks = await placemarkFromCoordinates(latitude, longitude);
+          final placemarks =
+              await placemarkFromCoordinates(latitude, longitude);
           if (placemarks.isNotEmpty) {
             final place = placemarks.first;
-            _log.info('Native geocoded: ${place.locality}, ${place.administrativeArea}, ${place.country}');
+            _log.info(
+              'Native geocoded: ${place.locality}, ${place.administrativeArea}, ${place.country}',
+            );
             return (
               country: place.country,
               region: place.administrativeArea,
@@ -170,7 +177,7 @@ class LocationService {
 
       final client = HttpClient();
       client.userAgent = 'Submersion Dive Log App';
-      
+
       final request = await client.getUrl(url);
       final response = await request.close();
 
@@ -181,13 +188,13 @@ class LocationService {
 
         if (address != null) {
           final country = address['country'] as String?;
-          final region = address['state'] as String? ?? 
-                         address['province'] as String? ??
-                         address['region'] as String?;
-          final locality = address['city'] as String? ?? 
-                           address['town'] as String? ?? 
-                           address['village'] as String?;
-          
+          final region = address['state'] as String? ??
+              address['province'] as String? ??
+              address['region'] as String?;
+          final locality = address['city'] as String? ??
+              address['town'] as String? ??
+              address['village'] as String?;
+
           _log.info('Web geocoded: $locality, $region, $country');
           return (country: country, region: region, locality: locality);
         }
@@ -241,6 +248,6 @@ class LocationService {
   }
 
   /// Check if GPS features are supported on this platform
-  bool get isSupported => _isMobile || Platform.isMacOS || Platform.isWindows || Platform.isLinux;
+  bool get isSupported =>
+      _isMobile || Platform.isMacOS || Platform.isWindows || Platform.isLinux;
 }
-

@@ -72,8 +72,11 @@ class Trip extends Equatable {
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
       location: location == _undefined ? this.location : location as String?,
-      resortName: resortName == _undefined ? this.resortName : resortName as String?,
-      liveaboardName: liveaboardName == _undefined ? this.liveaboardName : liveaboardName as String?,
+      resortName:
+          resortName == _undefined ? this.resortName : resortName as String?,
+      liveaboardName: liveaboardName == _undefined
+          ? this.liveaboardName
+          : liveaboardName as String?,
       notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,

@@ -30,9 +30,9 @@ Future<void> main() async {
   // macOS sandbox revokes folder access after app restart - bookmarks restore it
   if (storageConfig.mode == StorageLocationMode.customFolder &&
       storageConfig.customFolderPath != null) {
-
     // Try to resolve the security-scoped bookmark to restore folder access
-    if (SecurityScopedBookmarkService.isSupported && locationService.hasStoredBookmark()) {
+    if (SecurityScopedBookmarkService.isSupported &&
+        locationService.hasStoredBookmark()) {
       debugPrint('  Resolving security-scoped bookmark...');
       final resolvedPath = await locationService.resolveStoredBookmark();
 
@@ -67,7 +67,9 @@ Future<void> main() async {
 
     if (!canAccess) {
       // Can't access database at custom location, reset to default
-      debugPrint('  WARNING: Resetting to default because database is not accessible');
+      debugPrint(
+        '  WARNING: Resetting to default because database is not accessible',
+      );
       await locationService.resetToDefault();
     }
   }

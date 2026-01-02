@@ -97,13 +97,15 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
     );
 
     if (mounted) {
-      Navigator.of(context).pop(PickedLocation(
-        latitude: _selectedLocation!.latitude,
-        longitude: _selectedLocation!.longitude,
-        country: result.country,
-        region: result.region,
-        locality: result.locality,
-      ),);
+      Navigator.of(context).pop(
+        PickedLocation(
+          latitude: _selectedLocation!.latitude,
+          longitude: _selectedLocation!.longitude,
+          country: result.country,
+          region: result.region,
+          locality: result.locality,
+        ),
+      );
     }
   }
 
@@ -126,7 +128,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     // Default to a world view if no initial location
     final initialCenter = widget.initialLocation ?? const LatLng(20.0, 0.0);
     final initialZoom = widget.initialLocation != null ? 12.0 : 2.0;
@@ -254,13 +256,20 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
                               children: [
                                 Text(
                                   'Latitude',
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
                                         color: colorScheme.onSurfaceVariant,
                                       ),
                                 ),
                                 Text(
-                                  _selectedLocation!.latitude.toStringAsFixed(6),
-                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  _selectedLocation!.latitude
+                                      .toStringAsFixed(6),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
                                         fontFamily: 'monospace',
                                       ),
                                 ),
@@ -273,13 +282,20 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
                               children: [
                                 Text(
                                   'Longitude',
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
                                         color: colorScheme.onSurfaceVariant,
                                       ),
                                 ),
                                 Text(
-                                  _selectedLocation!.longitude.toStringAsFixed(6),
-                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  _selectedLocation!.longitude
+                                      .toStringAsFixed(6),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
                                         fontFamily: 'monospace',
                                       ),
                                 ),
@@ -309,4 +325,3 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
     );
   }
 }
-

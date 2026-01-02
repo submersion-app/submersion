@@ -215,12 +215,14 @@ class GoogleDriveStorageProvider
 
       return (fileList.files ?? [])
           .where((f) => f.id != null && f.name != null)
-          .map((f) => CloudFileInfo(
-                id: f.id!,
-                name: f.name!,
-                modifiedTime: f.modifiedTime ?? DateTime.now(),
-                sizeBytes: f.size != null ? int.tryParse(f.size!) : null,
-              ),)
+          .map(
+            (f) => CloudFileInfo(
+              id: f.id!,
+              name: f.name!,
+              modifiedTime: f.modifiedTime ?? DateTime.now(),
+              sizeBytes: f.size != null ? int.tryParse(f.size!) : null,
+            ),
+          )
           .toList();
     } catch (e, stackTrace) {
       _log.error('Failed to list files', e, stackTrace);
@@ -250,7 +252,10 @@ class GoogleDriveStorageProvider
   }
 
   @override
-  Future<String> createFolder(String folderName, {String? parentFolderId}) async {
+  Future<String> createFolder(
+    String folderName, {
+    String? parentFolderId,
+  }) async {
     try {
       final folderMetadata = drive.File()
         ..name = folderName

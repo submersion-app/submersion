@@ -228,7 +228,9 @@ class SyncDataSerializer {
       // Group deletions by entity type
       final deletionMap = <String, List<String>>{};
       for (final deletion in deletions) {
-        deletionMap.putIfAbsent(deletion.entityType, () => []).add(deletion.recordId);
+        deletionMap
+            .putIfAbsent(deletion.entityType, () => [])
+            .add(deletion.recordId);
       }
 
       final exportedAt = DateTime.now().millisecondsSinceEpoch;
@@ -390,7 +392,9 @@ class SyncDataSerializer {
 
   Future<List<Map<String, dynamic>>> _exportEquipmentSetItems() async {
     final rows = await _db.select(_db.equipmentSetItems).get();
-    return rows.map((r) => {'setId': r.setId, 'equipmentId': r.equipmentId}).toList();
+    return rows
+        .map((r) => {'setId': r.setId, 'equipmentId': r.equipmentId})
+        .toList();
   }
 
   Future<List<Map<String, dynamic>>> _exportBuddies(int? since) async {
@@ -509,7 +513,9 @@ class SyncDataSerializer {
     return rows.map((r) => _sightingToJson(r)).toList();
   }
 
-  Future<List<Map<String, dynamic>>> _exportDiveProfileEvents(int? since) async {
+  Future<List<Map<String, dynamic>>> _exportDiveProfileEvents(
+    int? since,
+  ) async {
     if (since != null) {
       final modifiedDives = await (_db.select(_db.dives)
             ..where((t) => t.updatedAt.isBiggerOrEqualValue(since)))

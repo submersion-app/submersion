@@ -132,7 +132,6 @@ class _WelcomePageState extends ConsumerState<WelcomePage> {
                               ),
                             ),
                             const SizedBox(height: 24),
-
                             TextFormField(
                               controller: _nameController,
                               decoration: const InputDecoration(
@@ -152,7 +151,6 @@ class _WelcomePageState extends ConsumerState<WelcomePage> {
                               },
                             ),
                             const SizedBox(height: 24),
-
                             FilledButton.icon(
                               onPressed: _isSaving ? null : _createProfile,
                               icon: _isSaving

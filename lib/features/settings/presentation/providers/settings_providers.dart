@@ -226,11 +226,15 @@ class AppSettings {
       showNdlOnProfile: showNdlOnProfile ?? this.showNdlOnProfile,
       lastStopDepth: lastStopDepth ?? this.lastStopDepth,
       decoStopIncrement: decoStopIncrement ?? this.decoStopIncrement,
-      showDepthColoredDiveCards: showDepthColoredDiveCards ?? this.showDepthColoredDiveCards,
-      showMapBackgroundOnDiveCards: showMapBackgroundOnDiveCards ?? this.showMapBackgroundOnDiveCards,
-      showMapBackgroundOnSiteCards: showMapBackgroundOnSiteCards ?? this.showMapBackgroundOnSiteCards,
+      showDepthColoredDiveCards:
+          showDepthColoredDiveCards ?? this.showDepthColoredDiveCards,
+      showMapBackgroundOnDiveCards:
+          showMapBackgroundOnDiveCards ?? this.showMapBackgroundOnDiveCards,
+      showMapBackgroundOnSiteCards:
+          showMapBackgroundOnSiteCards ?? this.showMapBackgroundOnSiteCards,
       showMaxDepthMarker: showMaxDepthMarker ?? this.showMaxDepthMarker,
-      showPressureThresholdMarkers: showPressureThresholdMarkers ?? this.showPressureThresholdMarkers,
+      showPressureThresholdMarkers:
+          showPressureThresholdMarkers ?? this.showPressureThresholdMarkers,
     );
   }
 }
@@ -241,7 +245,8 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
 });
 
 /// Repository provider for diver settings
-final diverSettingsRepositoryProvider = Provider<DiverSettingsRepository>((ref) {
+final diverSettingsRepositoryProvider =
+    Provider<DiverSettingsRepository>((ref) {
   return DiverSettingsRepository();
 });
 
@@ -260,7 +265,8 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       if (previous != next) {
         // Reset diver ID immediately to prevent saving to wrong diver during switch
         _validatedDiverId = null;
-        _isLoading = false; // Allow loading even if previous load was in progress
+        _isLoading =
+            false; // Allow loading even if previous load was in progress
         _initializeAndLoad();
       }
     });
@@ -491,7 +497,8 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 }
 
 /// Settings provider
-final settingsProvider = StateNotifierProvider<SettingsNotifier, AppSettings>((ref) {
+final settingsProvider =
+    StateNotifierProvider<SettingsNotifier, AppSettings>((ref) {
   final repository = ref.watch(diverSettingsRepositoryProvider);
   return SettingsNotifier(repository, ref);
 });
@@ -580,11 +587,13 @@ final showDepthColoredDiveCardsProvider = Provider<bool>((ref) {
 });
 
 final showMapBackgroundOnDiveCardsProvider = Provider<bool>((ref) {
-  return ref.watch(settingsProvider.select((s) => s.showMapBackgroundOnDiveCards));
+  return ref
+      .watch(settingsProvider.select((s) => s.showMapBackgroundOnDiveCards));
 });
 
 final showMapBackgroundOnSiteCardsProvider = Provider<bool>((ref) {
-  return ref.watch(settingsProvider.select((s) => s.showMapBackgroundOnSiteCards));
+  return ref
+      .watch(settingsProvider.select((s) => s.showMapBackgroundOnSiteCards));
 });
 
 final showMaxDepthMarkerProvider = Provider<bool>((ref) {
@@ -592,5 +601,6 @@ final showMaxDepthMarkerProvider = Provider<bool>((ref) {
 });
 
 final showPressureThresholdMarkersProvider = Provider<bool>((ref) {
-  return ref.watch(settingsProvider.select((s) => s.showPressureThresholdMarkers));
+  return ref
+      .watch(settingsProvider.select((s) => s.showPressureThresholdMarkers));
 });

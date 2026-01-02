@@ -60,7 +60,10 @@ class CertificationListPage extends ConsumerWidget {
   }
 
   Widget _buildCertificationList(
-      BuildContext context, WidgetRef ref, List<Certification> certifications,) {
+    BuildContext context,
+    WidgetRef ref,
+    List<Certification> certifications,
+  ) {
     // Group certifications by status (expired, expiring soon, valid)
     final expired = <Certification>[];
     final expiringSoon = <Certification>[];
@@ -85,24 +88,30 @@ class CertificationListPage extends ConsumerWidget {
         children: [
           if (expired.isNotEmpty) ...[
             _buildSectionHeader(context, 'Expired', Colors.red),
-            ...expired.map((cert) => CertificationListTile(
-                  certification: cert,
-                  onTap: () => context.push('/certifications/${cert.id}'),
-                ),),
+            ...expired.map(
+              (cert) => CertificationListTile(
+                certification: cert,
+                onTap: () => context.push('/certifications/${cert.id}'),
+              ),
+            ),
           ],
           if (expiringSoon.isNotEmpty) ...[
             _buildSectionHeader(context, 'Expiring Soon', Colors.orange),
-            ...expiringSoon.map((cert) => CertificationListTile(
-                  certification: cert,
-                  onTap: () => context.push('/certifications/${cert.id}'),
-                ),),
+            ...expiringSoon.map(
+              (cert) => CertificationListTile(
+                certification: cert,
+                onTap: () => context.push('/certifications/${cert.id}'),
+              ),
+            ),
           ],
           if (valid.isNotEmpty) ...[
             _buildSectionHeader(context, 'Valid', Colors.green),
-            ...valid.map((cert) => CertificationListTile(
-                  certification: cert,
-                  onTap: () => context.push('/certifications/${cert.id}'),
-                ),),
+            ...valid.map(
+              (cert) => CertificationListTile(
+                certification: cert,
+                onTap: () => context.push('/certifications/${cert.id}'),
+              ),
+            ),
           ],
         ],
       ),
@@ -205,8 +214,12 @@ class CertificationListTile extends StatelessWidget {
       ),
       child: Center(
         child: Text(
-          certification.agency.displayName.substring(0,
-              certification.agency.displayName.length > 4 ? 4 : certification.agency.displayName.length,),
+          certification.agency.displayName.substring(
+            0,
+            certification.agency.displayName.length > 4
+                ? 4
+                : certification.agency.displayName.length,
+          ),
           style: TextStyle(
             color: Theme.of(context).colorScheme.onPrimaryContainer,
             fontWeight: FontWeight.bold,

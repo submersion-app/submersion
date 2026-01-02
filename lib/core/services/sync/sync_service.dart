@@ -32,10 +32,13 @@ class SyncResult {
     this.lastSyncTime,
   });
 
-  bool get isSuccess => status == SyncResultStatus.success || status == SyncResultStatus.noChanges;
+  bool get isSuccess =>
+      status == SyncResultStatus.success ||
+      status == SyncResultStatus.noChanges;
 
   @override
-  String toString() => 'SyncResult(status: $status, records: $recordsSynced, conflicts: $conflictsFound)';
+  String toString() =>
+      'SyncResult(status: $status, records: $recordsSynced, conflicts: $conflictsFound)';
 }
 
 /// Progress callback for sync operations
@@ -121,11 +124,13 @@ class SyncService {
   }
 
   void _reportProgress(SyncPhase phase, double progress, [String? message]) {
-    _progressCallback?.call(SyncProgress(
-      phase: phase,
-      progress: progress,
-      message: message,
-    ),);
+    _progressCallback?.call(
+      SyncProgress(
+        phase: phase,
+        progress: progress,
+        message: message,
+      ),
+    );
   }
 
   /// Check if sync is available (provider configured and authenticated)
@@ -162,16 +167,23 @@ class SyncService {
           // Parse the conflict data to create a SyncConflict object
           // The conflict data contains the remote version
           final remoteData = _parseConflictData(record.conflictData!);
-          conflicts.add(SyncConflict(
-            entityType: record.entityType,
-            recordId: record.recordId,
-            localData: {}, // Would need to fetch from database
-            remoteData: remoteData,
-            localModified: DateTime.fromMillisecondsSinceEpoch(record.localUpdatedAt),
-            remoteModified: DateTime.now(), // Would come from remote data
-          ),);
+          conflicts.add(
+            SyncConflict(
+              entityType: record.entityType,
+              recordId: record.recordId,
+              localData: {}, // Would need to fetch from database
+              remoteData: remoteData,
+              localModified:
+                  DateTime.fromMillisecondsSinceEpoch(record.localUpdatedAt),
+              remoteModified: DateTime.now(), // Would come from remote data
+            ),
+          );
         } catch (e) {
-          _log.error('Failed to parse conflict data for ${record.recordId}', e, null);
+          _log.error(
+            'Failed to parse conflict data for ${record.recordId}',
+            e,
+            null,
+          );
         }
       }
     }
@@ -239,7 +251,11 @@ class SyncService {
       final localData = Uint8List.fromList(localJson.codeUnits);
 
       // Try to download existing remote file
-      _reportProgress(SyncPhase.downloading, 0.4, 'Checking for remote data...');
+      _reportProgress(
+        SyncPhase.downloading,
+        0.4,
+        'Checking for remote data...',
+      );
 
       SyncPayload? remotePayload;
       final remoteFileId = await _syncRepository.getRemoteFileId();
@@ -274,7 +290,9 @@ class SyncService {
       if (remotePayload != null && remotePayload.deviceId != deviceId) {
         // Different device - check for conflicts
         // This is a simplified implementation - full merge logic would be more complex
-        _log.info('Remote data from different device: ${remotePayload.deviceId}');
+        _log.info(
+          'Remote data from different device: ${remotePayload.deviceId}',
+        );
         // For now, we skip conflict detection and just upload
         // A full implementation would compare records and detect conflicts
       }
@@ -287,7 +305,9 @@ class SyncService {
       _log.debug('Sync folder = $syncFolder');
       const filename = 'submersion_sync.json';
 
-      _log.debug('Uploading ${localData.length} bytes to $syncFolder/$filename...');
+      _log.debug(
+        'Uploading ${localData.length} bytes to $syncFolder/$filename...',
+      );
       final result = await provider.uploadFile(
         localData,
         filename,
@@ -307,7 +327,9 @@ class SyncService {
       _log.info('Sync completed successfully');
 
       return SyncResult(
-        status: conflictsFound > 0 ? SyncResultStatus.hasConflicts : SyncResultStatus.success,
+        status: conflictsFound > 0
+            ? SyncResultStatus.hasConflicts
+            : SyncResultStatus.success,
         recordsSynced: recordsSynced,
         conflictsFound: conflictsFound,
         lastSyncTime: result.uploadTime,

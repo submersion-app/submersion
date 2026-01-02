@@ -41,8 +41,9 @@ class StorageConfig {
   }) {
     return StorageConfig(
       mode: mode ?? this.mode,
-      customFolderPath:
-          clearCustomFolderPath ? null : (customFolderPath ?? this.customFolderPath),
+      customFolderPath: clearCustomFolderPath
+          ? null
+          : (customFolderPath ?? this.customFolderPath),
       lastVerified:
           clearLastVerified ? null : (lastVerified ?? this.lastVerified),
     );

@@ -224,7 +224,12 @@ class DiveSiteApiService {
     // Southeast Asia
     'thailand': {'swLat': 5.6, 'neLat': 20.5, 'swLng': 97.3, 'neLng': 105.6},
     'indonesia': {'swLat': -11.0, 'neLat': 6.0, 'swLng': 95.0, 'neLng': 141.0},
-    'philippines': {'swLat': 4.5, 'neLat': 21.2, 'swLng': 116.9, 'neLng': 126.6},
+    'philippines': {
+      'swLat': 4.5,
+      'neLat': 21.2,
+      'swLng': 116.9,
+      'neLng': 126.6,
+    },
     'malaysia': {'swLat': 0.8, 'neLat': 7.4, 'swLng': 99.6, 'neLng': 119.3},
     'raja ampat': {'swLat': -4.5, 'neLat': 0.5, 'swLng': 129.0, 'neLng': 132.0},
     'bali': {'swLat': -8.9, 'neLat': -8.0, 'swLng': 114.4, 'neLng': 115.7},
@@ -232,8 +237,18 @@ class DiveSiteApiService {
     'maldives': {'swLat': -0.7, 'neLat': 7.1, 'swLng': 72.6, 'neLng': 73.8},
     'fiji': {'swLat': -21.0, 'neLat': -12.5, 'swLng': 177.0, 'neLng': -179.0},
     'palau': {'swLat': 2.8, 'neLat': 8.1, 'swLng': 131.1, 'neLng': 134.7},
-    'australia': {'swLat': -44.0, 'neLat': -10.0, 'swLng': 113.0, 'neLng': 154.0},
-    'great barrier reef': {'swLat': -24.5, 'neLat': -10.7, 'swLng': 142.5, 'neLng': 154.0},
+    'australia': {
+      'swLat': -44.0,
+      'neLat': -10.0,
+      'swLng': 113.0,
+      'neLng': 154.0,
+    },
+    'great barrier reef': {
+      'swLat': -24.5,
+      'neLat': -10.7,
+      'swLng': 142.5,
+      'neLng': 154.0,
+    },
     // Americas
     'mexico': {'swLat': 14.5, 'neLat': 32.7, 'swLng': -118.4, 'neLng': -86.7},
     'florida': {'swLat': 24.4, 'neLat': 31.0, 'swLng': -87.6, 'neLng': -80.0},
@@ -241,13 +256,23 @@ class DiveSiteApiService {
     'galapagos': {'swLat': -1.5, 'neLat': 0.5, 'swLng': -92.0, 'neLng': -89.0},
     'costa rica': {'swLat': 8.0, 'neLat': 11.2, 'swLng': -85.9, 'neLng': -82.6},
     // Europe/Mediterranean
-    'mediterranean': {'swLat': 30.0, 'neLat': 46.0, 'swLng': -6.0, 'neLng': 36.0},
+    'mediterranean': {
+      'swLat': 30.0,
+      'neLat': 46.0,
+      'swLng': -6.0,
+      'neLng': 36.0,
+    },
     'spain': {'swLat': 36.0, 'neLat': 43.8, 'swLng': -9.3, 'neLng': 3.3},
     'malta': {'swLat': 35.8, 'neLat': 36.1, 'swLng': 14.1, 'neLng': 14.6},
     'croatia': {'swLat': 42.4, 'neLat': 46.6, 'swLng': 13.5, 'neLng': 19.4},
     'uk': {'swLat': 49.9, 'neLat': 60.9, 'swLng': -8.6, 'neLng': 1.8},
     // Africa
-    'south africa': {'swLat': -35.0, 'neLat': -22.1, 'swLng': 16.5, 'neLng': 32.9},
+    'south africa': {
+      'swLat': -35.0,
+      'neLat': -22.1,
+      'swLng': 16.5,
+      'neLng': 32.9,
+    },
     // Japan
     'japan': {'swLat': 24.0, 'neLat': 45.5, 'swLng': 122.9, 'neLng': 145.8},
     'okinawa': {'swLat': 24.0, 'neLat': 27.9, 'swLng': 122.9, 'neLng': 131.3},

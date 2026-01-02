@@ -2,7 +2,16 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/database/database.dart' as db;
-import '../../../../core/database/database.dart' show AppDatabase, DiveComputersCompanion, DiveProfilesCompanion, DiveProfileEventsCompanion, DivesCompanion, DiveTanksCompanion, DiveProfile, DiveProfileEvent;
+import '../../../../core/database/database.dart'
+    show
+        AppDatabase,
+        DiveComputersCompanion,
+        DiveProfilesCompanion,
+        DiveProfileEventsCompanion,
+        DivesCompanion,
+        DiveTanksCompanion,
+        DiveProfile,
+        DiveProfileEvent;
 import '../../../../core/services/database_service.dart';
 import '../../../../core/services/logger_service.dart';
 import '../../domain/entities/dive_computer.dart' as domain;
@@ -72,7 +81,9 @@ class DiveComputerRepository {
   }
 
   /// Create a new dive computer
-  Future<domain.DiveComputer> createComputer(domain.DiveComputer computer) async {
+  Future<domain.DiveComputer> createComputer(
+    domain.DiveComputer computer,
+  ) async {
     try {
       _log.info('Creating dive computer: ${computer.name}');
       final id = computer.id.isEmpty ? _uuid.v4() : computer.id;
@@ -137,7 +148,11 @@ class DiveComputerRepository {
 
       _log.info('Updated dive computer: ${computer.id}');
     } catch (e, stackTrace) {
-      _log.error('Failed to update dive computer: ${computer.id}', e, stackTrace);
+      _log.error(
+        'Failed to update dive computer: ${computer.id}',
+        e,
+        stackTrace,
+      );
       rethrow;
     }
   }
@@ -161,7 +176,9 @@ class DiveComputerRepository {
 
       // Clear all favorites for this diver (or all if no diverId)
       if (diverId != null) {
-        await (_db.update(_db.diveComputers)..where((t) => t.diverId.equals(diverId))).write(
+        await (_db.update(_db.diveComputers)
+              ..where((t) => t.diverId.equals(diverId)))
+            .write(
           const DiveComputersCompanion(isFavorite: Value(false)),
         );
       } else {
@@ -171,7 +188,8 @@ class DiveComputerRepository {
       }
 
       // Set the new favorite
-      await (_db.update(_db.diveComputers)..where((t) => t.id.equals(id))).write(
+      await (_db.update(_db.diveComputers)..where((t) => t.id.equals(id)))
+          .write(
         DiveComputersCompanion(
           isFavorite: const Value(true),
           updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
@@ -207,7 +225,8 @@ class DiveComputerRepository {
   Future<void> updateLastDownload(String id) async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
-      await (_db.update(_db.diveComputers)..where((t) => t.id.equals(id))).write(
+      await (_db.update(_db.diveComputers)..where((t) => t.id.equals(id)))
+          .write(
         DiveComputersCompanion(
           lastDownloadTimestamp: Value(now),
           updatedAt: Value(now),
@@ -298,7 +317,11 @@ class DiveComputerRepository {
 
       return result?.data['computer_id'] as String?;
     } catch (e, stackTrace) {
-      _log.error('Failed to get primary computer for dive: $diveId', e, stackTrace);
+      _log.error(
+        'Failed to get primary computer for dive: $diveId',
+        e,
+        stackTrace,
+      );
       return null;
     }
   }
@@ -306,7 +329,9 @@ class DiveComputerRepository {
   /// Set the primary profile for a dive (by computer ID)
   Future<void> setPrimaryProfile(String diveId, String computerId) async {
     try {
-      _log.info('Setting primary profile for dive $diveId to computer $computerId');
+      _log.info(
+        'Setting primary profile for dive $diveId to computer $computerId',
+      );
 
       // Clear all primary flags for this dive
       await _db.customStatement(
@@ -330,7 +355,11 @@ class DiveComputerRepository {
 
       _log.info('Set primary profile for dive $diveId');
     } catch (e, stackTrace) {
-      _log.error('Failed to set primary profile for dive: $diveId', e, stackTrace);
+      _log.error(
+        'Failed to set primary profile for dive: $diveId',
+        e,
+        stackTrace,
+      );
       rethrow;
     }
   }
@@ -432,7 +461,8 @@ class DiveComputerRepository {
 
         // Weighted composite score
         // Time is most important (40%), then depth (35%), then duration (25%)
-        final score = (timeScore * 0.40) + (depthScore * 0.35) + (durationScore * 0.25);
+        final score =
+            (timeScore * 0.40) + (depthScore * 0.35) + (durationScore * 0.25);
 
         if (score > bestScore) {
           bestScore = score;
@@ -511,7 +541,10 @@ class DiveComputerRepository {
   }
 
   /// Get dive IDs that were imported from a specific computer.
-  Future<List<String>> getDiveIdsForComputer(String computerId, {int? limit}) async {
+  Future<List<String>> getDiveIdsForComputer(
+    String computerId, {
+    int? limit,
+  }) async {
     try {
       final query = '''
         SELECT DISTINCT d.id, d.dive_date_time
@@ -529,7 +562,11 @@ class DiveComputerRepository {
 
       return result.map((row) => row.data['id'] as String).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get dive ids for computer: $computerId', e, stackTrace);
+      _log.error(
+        'Failed to get dive ids for computer: $computerId',
+        e,
+        stackTrace,
+      );
       return [];
     }
   }

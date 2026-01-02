@@ -84,10 +84,8 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
     _emailController.text = center.email ?? '';
     _websiteController.text = center.website ?? '';
     _notesController.text = center.notes;
-    _latitudeController.text =
-        center.latitude?.toStringAsFixed(6) ?? '';
-    _longitudeController.text =
-        center.longitude?.toStringAsFixed(6) ?? '';
+    _latitudeController.text = center.latitude?.toStringAsFixed(6) ?? '';
+    _longitudeController.text = center.longitude?.toStringAsFixed(6) ?? '';
     _rating = center.rating;
     _selectedAffiliations = List.from(center.affiliations);
   }

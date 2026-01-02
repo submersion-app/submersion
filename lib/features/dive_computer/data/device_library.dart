@@ -18,7 +18,9 @@ class DeviceLibrary {
   /// Get models by manufacturer
   List<DeviceModel> getByManufacturer(String manufacturer) {
     return _models
-        .where((m) => m.manufacturer.toLowerCase() == manufacturer.toLowerCase())
+        .where(
+          (m) => m.manufacturer.toLowerCase() == manufacturer.toLowerCase(),
+        )
         .toList();
   }
 

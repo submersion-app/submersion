@@ -15,7 +15,8 @@ class CloudFileInfo {
   });
 
   @override
-  String toString() => 'CloudFileInfo(id: $id, name: $name, modified: $modifiedTime)';
+  String toString() =>
+      'CloudFileInfo(id: $id, name: $name, modified: $modifiedTime)';
 }
 
 /// Result of an upload operation
@@ -38,7 +39,8 @@ class CloudStorageException implements Exception {
   const CloudStorageException(this.message, [this.cause, this.stackTrace]);
 
   @override
-  String toString() => 'CloudStorageException: $message${cause != null ? ' ($cause)' : ''}';
+  String toString() =>
+      'CloudStorageException: $message${cause != null ? ' ($cause)' : ''}';
 }
 
 /// Abstract interface for cloud storage providers (iCloud, Google Drive, etc.)

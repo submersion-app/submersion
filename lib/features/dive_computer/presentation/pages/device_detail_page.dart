@@ -68,7 +68,8 @@ class DeviceDetailPage extends ConsumerWidget {
               tooltip: 'Favorite computer',
             ),
           PopupMenuButton<String>(
-            onSelected: (action) => _handleMenuAction(context, ref, action, computer),
+            onSelected: (action) =>
+                _handleMenuAction(context, ref, action, computer),
             itemBuilder: (context) => [
               const PopupMenuItem(
                 value: 'edit',
@@ -489,7 +490,8 @@ class DeviceDetailPage extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             FilledButton.icon(
-              onPressed: () => context.push('/dive-computers/${computer.id}/download'),
+              onPressed: () =>
+                  context.push('/dive-computers/${computer.id}/download'),
               icon: const Icon(Icons.download),
               label: const Text('Download Dives'),
             ),
@@ -635,7 +637,9 @@ class DeviceDetailPage extends ConsumerWidget {
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
             onPressed: () {
-              ref.read(diveComputerNotifierProvider.notifier).delete(computer.id);
+              ref
+                  .read(diveComputerNotifierProvider.notifier)
+                  .delete(computer.id);
               Navigator.of(context).pop();
               context.pop(); // Go back to list
             },

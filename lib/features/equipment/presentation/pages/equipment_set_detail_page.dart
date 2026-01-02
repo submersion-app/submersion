@@ -24,7 +24,9 @@ class EquipmentSetDetailPage extends ConsumerWidget {
         if (set == null) {
           return Scaffold(
             appBar: AppBar(title: const Text('Set Not Found')),
-            body: const Center(child: Text('This equipment set no longer exists.')),
+            body: const Center(
+              child: Text('This equipment set no longer exists.'),
+            ),
           );
         }
         return _buildContent(context, ref, set);
@@ -77,7 +79,8 @@ class EquipmentSetDetailPage extends ConsumerWidget {
                   children: [
                     CircleAvatar(
                       radius: 32,
-                      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                      backgroundColor:
+                          Theme.of(context).colorScheme.primaryContainer,
                       child: Icon(
                         Icons.folder,
                         size: 32,
@@ -97,15 +100,23 @@ class EquipmentSetDetailPage extends ConsumerWidget {
                             const SizedBox(height: 4),
                             Text(
                               set.description,
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
                                   ),
                             ),
                           ],
                           const SizedBox(height: 4),
                           Text(
                             '${set.itemCount} ${set.itemCount == 1 ? 'item' : 'items'}',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(
                                   color: Theme.of(context).colorScheme.primary,
                                 ),
                           ),
@@ -134,18 +145,25 @@ class EquipmentSetDetailPage extends ConsumerWidget {
                         Icon(
                           Icons.backpack_outlined,
                           size: 48,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurfaceVariant
+                              .withValues(alpha: 0.5),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'No equipment in this set',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
                         ),
                         const SizedBox(height: 16),
                         OutlinedButton.icon(
-                          onPressed: () => context.push('/equipment/sets/$setId/edit'),
+                          onPressed: () =>
+                              context.push('/equipment/sets/$setId/edit'),
                           icon: const Icon(Icons.add),
                           label: const Text('Add Equipment'),
                         ),
@@ -175,7 +193,9 @@ class EquipmentSetDetailPage extends ConsumerWidget {
           ),
         ),
         title: Text(item.name),
-        subtitle: Text(item.fullName != item.name ? item.fullName : item.type.displayName),
+        subtitle: Text(
+          item.fullName != item.name ? item.fullName : item.type.displayName,
+        ),
         trailing: const Icon(Icons.chevron_right),
       ),
     );
@@ -212,7 +232,9 @@ class EquipmentSetDetailPage extends ConsumerWidget {
       );
 
       if (confirmed == true) {
-        await ref.read(equipmentSetListNotifierProvider.notifier).deleteSet(setId);
+        await ref
+            .read(equipmentSetListNotifierProvider.notifier)
+            .deleteSet(setId);
         if (context.mounted) {
           context.go('/equipment/sets');
           ScaffoldMessenger.of(context).showSnackBar(

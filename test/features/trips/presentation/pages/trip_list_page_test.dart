@@ -59,8 +59,10 @@ void main() {
 
       await tester.pumpAndSettle();
       expect(find.text('No trips added yet'), findsOneWidget);
-      expect(find.text('Create trips to group your dives by destination'),
-          findsOneWidget,);
+      expect(
+        find.text('Create trips to group your dives by destination'),
+        findsOneWidget,
+      );
       expect(find.text('Add Your First Trip'), findsOneWidget);
     });
 
@@ -164,7 +166,8 @@ void main() {
       expect(find.text('15 dives'), findsOneWidget);
     });
 
-    testWidgets('should show sailing icon for liveaboard trips', (tester) async {
+    testWidgets('should show sailing icon for liveaboard trips',
+        (tester) async {
       final testTrips = [
         TripWithStats(
           trip: Trip(
@@ -218,7 +221,8 @@ void main() {
 }
 
 /// Mock notifier that returns data immediately
-class _MockTripListNotifier extends StateNotifier<AsyncValue<List<TripWithStats>>>
+class _MockTripListNotifier
+    extends StateNotifier<AsyncValue<List<TripWithStats>>>
     implements TripListNotifier {
   _MockTripListNotifier(List<TripWithStats> trips)
       : super(AsyncValue.data(trips));
@@ -243,7 +247,8 @@ class _MockTripListNotifier extends StateNotifier<AsyncValue<List<TripWithStats>
 }
 
 /// Mock notifier that stays in loading state
-class _LoadingTripListNotifier extends StateNotifier<AsyncValue<List<TripWithStats>>>
+class _LoadingTripListNotifier
+    extends StateNotifier<AsyncValue<List<TripWithStats>>>
     implements TripListNotifier {
   _LoadingTripListNotifier() : super(const AsyncValue.loading());
 

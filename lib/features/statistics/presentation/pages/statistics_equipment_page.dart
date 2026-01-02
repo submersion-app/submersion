@@ -60,7 +60,11 @@ class StatisticsEquipmentPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildWeightTrendSection(BuildContext context, WidgetRef ref, UnitFormatter units) {
+  Widget _buildWeightTrendSection(
+    BuildContext context,
+    WidgetRef ref,
+    UnitFormatter units,
+  ) {
     final weightTrendAsync = ref.watch(weightTrendProvider);
 
     return StatSectionCard(

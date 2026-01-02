@@ -79,7 +79,10 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
               border: Border.all(
-                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
+                color: Theme.of(context)
+                    .colorScheme
+                    .outline
+                    .withValues(alpha: 0.5),
               ),
               borderRadius: BorderRadius.circular(8),
             ),
@@ -110,7 +113,8 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
   }
 
   Widget _buildEquipmentList() {
-    final equipmentAsync = ref.watch(equipmentByStatusProvider(_selectedStatus));
+    final equipmentAsync =
+        ref.watch(equipmentByStatusProvider(_selectedStatus));
 
     return equipmentAsync.when(
       data: (equipment) => equipment.isEmpty
@@ -126,7 +130,8 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
             Text('Error loading equipment: $error'),
             const SizedBox(height: 16),
             FilledButton(
-              onPressed: () => ref.invalidate(equipmentByStatusProvider(_selectedStatus)),
+              onPressed: () =>
+                  ref.invalidate(equipmentByStatusProvider(_selectedStatus)),
               child: const Text('Retry'),
             ),
           ],
@@ -135,7 +140,11 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
     );
   }
 
-  Widget _buildEquipmentListView(BuildContext context, WidgetRef ref, List<EquipmentItem> equipment) {
+  Widget _buildEquipmentListView(
+    BuildContext context,
+    WidgetRef ref,
+    List<EquipmentItem> equipment,
+  ) {
     return RefreshIndicator(
       onRefresh: () async {
         ref.invalidate(equipmentByStatusProvider(_selectedStatus));
@@ -160,8 +169,10 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
   }
 
   Widget _buildEmptyState(BuildContext context, WidgetRef ref) {
-    final filterText = _selectedStatus == null ? 'equipment' : '${_selectedStatus!.displayName.toLowerCase()} equipment';
-    
+    final filterText = _selectedStatus == null
+        ? 'equipment'
+        : '${_selectedStatus!.displayName.toLowerCase()} equipment';
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -384,7 +395,9 @@ class _AddEquipmentSheetState extends ConsumerState<AddEquipmentSheet> {
                           style: TextStyle(
                             color: _purchaseDate != null
                                 ? null
-                                : Theme.of(context).colorScheme.onSurfaceVariant,
+                                : Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
                           ),
                         ),
                       ),
@@ -396,7 +409,9 @@ class _AddEquipmentSheetState extends ConsumerState<AddEquipmentSheet> {
                         decoration: const InputDecoration(
                           labelText: 'Price',
                         ),
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -478,10 +493,18 @@ class _AddEquipmentSheetState extends ConsumerState<AddEquipmentSheet> {
         diverId: diverId,
         name: _nameController.text.trim(),
         type: _selectedType,
-        brand: _brandController.text.trim().isEmpty ? null : _brandController.text.trim(),
-        model: _modelController.text.trim().isEmpty ? null : _modelController.text.trim(),
-        serialNumber: _serialController.text.trim().isEmpty ? null : _serialController.text.trim(),
-        size: _sizeController.text.trim().isEmpty ? null : _sizeController.text.trim(),
+        brand: _brandController.text.trim().isEmpty
+            ? null
+            : _brandController.text.trim(),
+        model: _modelController.text.trim().isEmpty
+            ? null
+            : _modelController.text.trim(),
+        serialNumber: _serialController.text.trim().isEmpty
+            ? null
+            : _serialController.text.trim(),
+        size: _sizeController.text.trim().isEmpty
+            ? null
+            : _sizeController.text.trim(),
         purchaseDate: _purchaseDate,
         purchasePrice: _purchasePriceController.text.isNotEmpty
             ? double.tryParse(_purchasePriceController.text)
@@ -496,7 +519,9 @@ class _AddEquipmentSheetState extends ConsumerState<AddEquipmentSheet> {
         isActive: true,
       );
 
-      await widget.ref.read(equipmentListNotifierProvider.notifier).addEquipment(equipment);
+      await widget.ref
+          .read(equipmentListNotifierProvider.notifier)
+          .addEquipment(equipment);
 
       if (mounted) {
         Navigator.of(context).pop();
@@ -557,7 +582,8 @@ class EquipmentListTile extends StatelessWidget {
           ),
         ),
         title: Text(name),
-        subtitle: brandModel != null ? Text(brandModel!) : Text(type.displayName),
+        subtitle:
+            brandModel != null ? Text(brandModel!) : Text(type.displayName),
         trailing: _buildTrailing(context),
       ),
     );
@@ -574,14 +600,14 @@ class EquipmentListTile extends StatelessWidget {
         ),
       );
     }
-    
+
     if (daysUntilService != null) {
       return Text(
         '$daysUntilService days',
         style: Theme.of(context).textTheme.bodySmall,
       );
     }
-    
+
     // Show status badge for non-active statuses
     if (status != null && status != EquipmentStatus.active) {
       return Chip(
@@ -593,7 +619,7 @@ class EquipmentListTile extends StatelessWidget {
         ),
       );
     }
-    
+
     return null;
   }
 
@@ -669,7 +695,10 @@ class EquipmentSearchDelegate extends SearchDelegate<EquipmentItem?> {
             Icon(
               Icons.search,
               size: 64,
-              color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurfaceVariant
+                  .withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
@@ -698,7 +727,10 @@ class EquipmentSearchDelegate extends SearchDelegate<EquipmentItem?> {
                 Icon(
                   Icons.search_off,
                   size: 64,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurfaceVariant
+                      .withValues(alpha: 0.5),
                 ),
                 const SizedBox(height: 16),
                 Text(

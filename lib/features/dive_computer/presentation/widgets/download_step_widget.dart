@@ -119,7 +119,8 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
                         Expanded(
                           child: Text(
                             downloadState.errorMessage ?? 'An error occurred',
-                            style: TextStyle(color: colorScheme.onErrorContainer),
+                            style:
+                                TextStyle(color: colorScheme.onErrorContainer),
                           ),
                         ),
                       ],

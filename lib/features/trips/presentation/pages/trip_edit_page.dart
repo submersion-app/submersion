@@ -189,10 +189,12 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                         padding: const EdgeInsets.only(left: 40),
                         child: Text(
                           '${_endDate.difference(_startDate).inDays + 1} days',
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Theme.of(context).colorScheme.primary,
-                                  ),
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -295,9 +297,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
 
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
     final initialDate = isStartDate ? _startDate : _endDate;
-    final firstDate = isStartDate
-        ? DateTime(2000)
-        : _startDate;
+    final firstDate = isStartDate ? DateTime(2000) : _startDate;
     final lastDate = DateTime(2100);
 
     final pickedDate = await showDatePicker(
@@ -346,8 +346,9 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Discard Changes?'),
-        content:
-            const Text('You have unsaved changes. Are you sure you want to leave?'),
+        content: const Text(
+          'You have unsaved changes. Are you sure you want to leave?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -404,9 +405,11 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(isEditing
-                ? 'Trip updated successfully'
-                : 'Trip added successfully',),
+            content: Text(
+              isEditing
+                  ? 'Trip updated successfully'
+                  : 'Trip added successfully',
+            ),
           ),
         );
         context.pop();

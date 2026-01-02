@@ -5,7 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/data/repositories/sync_repository.dart' show CloudProviderType;
+import '../../../../core/data/repositories/sync_repository.dart'
+    show CloudProviderType;
 import '../providers/sync_providers.dart';
 import '../widgets/conflict_resolution_dialog.dart';
 
@@ -16,7 +17,8 @@ class CloudSyncPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final syncState = ref.watch(syncStateProvider);
     final selectedProvider = ref.watch(selectedCloudProviderTypeProvider);
-    final isCustomFolderMode = ref.watch(isCloudSyncDisabledByCustomFolderProvider);
+    final isCustomFolderMode =
+        ref.watch(isCloudSyncDisabledByCustomFolderProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -260,9 +262,7 @@ class CloudSyncPage extends ConsumerWidget {
           ? const Icon(Icons.check_circle, color: Colors.green)
           : null,
       enabled: isAvailable,
-      onTap: isAvailable
-          ? () => _selectProvider(context, ref, provider)
-          : null,
+      onTap: isAvailable ? () => _selectProvider(context, ref, provider) : null,
     );
   }
 
@@ -311,7 +311,8 @@ class CloudSyncPage extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${cloudProvider.providerName} connection failed: $e'),
+            content:
+                Text('${cloudProvider.providerName} connection failed: $e'),
             backgroundColor: Colors.red,
           ),
         );

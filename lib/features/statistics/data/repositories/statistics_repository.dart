@@ -60,7 +60,8 @@ class StatisticsRepository {
   /// Requires tank volume data
   Future<List<TrendDataPoint>> getSacVolumeTrend({String? diverId}) async {
     try {
-      final fiveYearsAgo = DateTime.now().subtract(const Duration(days: 365 * 5));
+      final fiveYearsAgo =
+          DateTime.now().subtract(const Duration(days: 365 * 5));
       final cutoff = fiveYearsAgo.millisecondsSinceEpoch;
 
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
@@ -107,7 +108,8 @@ class StatisticsRepository {
   /// Does not require tank volume - uses pressure drop normalized to surface
   Future<List<TrendDataPoint>> getSacPressureTrend({String? diverId}) async {
     try {
-      final fiveYearsAgo = DateTime.now().subtract(const Duration(days: 365 * 5));
+      final fiveYearsAgo =
+          DateTime.now().subtract(const Duration(days: 365 * 5));
       final cutoff = fiveYearsAgo.millisecondsSinceEpoch;
 
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
@@ -151,7 +153,9 @@ class StatisticsRepository {
   }
 
   /// Get gas mix distribution (Air, Nitrox, Trimix)
-  Future<List<DistributionSegment>> getGasMixDistribution({String? diverId}) async {
+  Future<List<DistributionSegment>> getGasMixDistribution({
+    String? diverId,
+  }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
@@ -174,7 +178,8 @@ class StatisticsRepository {
         variables: params.map((p) => Variable(p)).toList(),
       ).get();
 
-      final total = results.fold<int>(0, (sum, row) => sum + row.read<int>('dive_count'));
+      final total =
+          results.fold<int>(0, (sum, row) => sum + row.read<int>('dive_count'));
       if (total == 0) return [];
 
       return results.map((row) {
@@ -193,7 +198,9 @@ class StatisticsRepository {
 
   /// Get best and worst SAC dives in L/min (volume-based)
   /// Requires tank volume data
-  Future<({RankingItem? best, RankingItem? worst})> getSacVolumeRecords({String? diverId}) async {
+  Future<({RankingItem? best, RankingItem? worst})> getSacVolumeRecords({
+    String? diverId,
+  }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
@@ -246,7 +253,9 @@ class StatisticsRepository {
 
   /// Get best and worst SAC dives in pressure/min (pressure-based)
   /// Does not require tank volume
-  Future<({RankingItem? best, RankingItem? worst})> getSacPressureRecords({String? diverId}) async {
+  Future<({RankingItem? best, RankingItem? worst})> getSacPressureRecords({
+    String? diverId,
+  }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
@@ -301,9 +310,12 @@ class StatisticsRepository {
   // ============================================================================
 
   /// Get maximum depth progression by month (last 5 years)
-  Future<List<TrendDataPoint>> getDepthProgressionTrend({String? diverId}) async {
+  Future<List<TrendDataPoint>> getDepthProgressionTrend({
+    String? diverId,
+  }) async {
     try {
-      final fiveYearsAgo = DateTime.now().subtract(const Duration(days: 365 * 5));
+      final fiveYearsAgo =
+          DateTime.now().subtract(const Duration(days: 365 * 5));
       final cutoff = fiveYearsAgo.millisecondsSinceEpoch;
 
       final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
@@ -341,7 +353,8 @@ class StatisticsRepository {
   /// Get average bottom time trend by month (last 5 years)
   Future<List<TrendDataPoint>> getBottomTimeTrend({String? diverId}) async {
     try {
-      final fiveYearsAgo = DateTime.now().subtract(const Duration(days: 365 * 5));
+      final fiveYearsAgo =
+          DateTime.now().subtract(const Duration(days: 365 * 5));
       final cutoff = fiveYearsAgo.millisecondsSinceEpoch;
 
       final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
@@ -377,7 +390,9 @@ class StatisticsRepository {
   }
 
   /// Get dives per year
-  Future<List<({int year, int count})>> getDivesPerYear({String? diverId}) async {
+  Future<List<({int year, int count})>> getDivesPerYear({
+    String? diverId,
+  }) async {
     try {
       final diverFilter = diverId != null ? 'WHERE diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
@@ -449,7 +464,9 @@ class StatisticsRepository {
   // ============================================================================
 
   /// Get visibility distribution
-  Future<List<DistributionSegment>> getVisibilityDistribution({String? diverId}) async {
+  Future<List<DistributionSegment>> getVisibilityDistribution({
+    String? diverId,
+  }) async {
     try {
       final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
@@ -467,7 +484,8 @@ class StatisticsRepository {
         variables: params.map((p) => Variable(p)).toList(),
       ).get();
 
-      final total = results.fold<int>(0, (sum, row) => sum + row.read<int>('count'));
+      final total =
+          results.fold<int>(0, (sum, row) => sum + row.read<int>('count'));
       if (total == 0) return [];
 
       return results.map((row) {
@@ -485,7 +503,9 @@ class StatisticsRepository {
   }
 
   /// Get water type distribution (salt/fresh)
-  Future<List<DistributionSegment>> getWaterTypeDistribution({String? diverId}) async {
+  Future<List<DistributionSegment>> getWaterTypeDistribution({
+    String? diverId,
+  }) async {
     try {
       final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
@@ -503,7 +523,8 @@ class StatisticsRepository {
         variables: params.map((p) => Variable(p)).toList(),
       ).get();
 
-      final total = results.fold<int>(0, (sum, row) => sum + row.read<int>('count'));
+      final total =
+          results.fold<int>(0, (sum, row) => sum + row.read<int>('count'));
       if (total == 0) return [];
 
       return results.map((row) {
@@ -521,7 +542,9 @@ class StatisticsRepository {
   }
 
   /// Get entry method distribution
-  Future<List<DistributionSegment>> getEntryMethodDistribution({String? diverId}) async {
+  Future<List<DistributionSegment>> getEntryMethodDistribution({
+    String? diverId,
+  }) async {
     try {
       final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
@@ -539,7 +562,8 @@ class StatisticsRepository {
         variables: params.map((p) => Variable(p)).toList(),
       ).get();
 
-      final total = results.fold<int>(0, (sum, row) => sum + row.read<int>('count'));
+      final total =
+          results.fold<int>(0, (sum, row) => sum + row.read<int>('count'));
       if (total == 0) return [];
 
       return results.map((row) {
@@ -557,7 +581,8 @@ class StatisticsRepository {
   }
 
   /// Get temperature by month (min/avg/max)
-  Future<List<({int month, double? minTemp, double? avgTemp, double? maxTemp})>> getTemperatureByMonth({String? diverId}) async {
+  Future<List<({int month, double? minTemp, double? avgTemp, double? maxTemp})>>
+      getTemperatureByMonth({String? diverId}) async {
     try {
       final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
@@ -596,7 +621,10 @@ class StatisticsRepository {
   // ============================================================================
 
   /// Get top buddies by dive count
-  Future<List<RankingItem>> getTopBuddies({String? diverId, int limit = 10}) async {
+  Future<List<RankingItem>> getTopBuddies({
+    String? diverId,
+    int limit = 10,
+  }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final params = diverId != null ? [diverId, limit] : [limit];
@@ -661,7 +689,10 @@ class StatisticsRepository {
   }
 
   /// Get top dive centers by dive count
-  Future<List<RankingItem>> getTopDiveCenters({String? diverId, int limit = 10}) async {
+  Future<List<RankingItem>> getTopDiveCenters({
+    String? diverId,
+    int limit = 10,
+  }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final params = diverId != null ? [diverId, limit] : [limit];
@@ -702,7 +733,10 @@ class StatisticsRepository {
   // ============================================================================
 
   /// Get countries visited with dive counts
-  Future<List<RankingItem>> getCountriesVisited({String? diverId, int limit = 10}) async {
+  Future<List<RankingItem>> getCountriesVisited({
+    String? diverId,
+    int limit = 10,
+  }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final params = diverId != null ? [diverId, limit] : [limit];
@@ -737,7 +771,10 @@ class StatisticsRepository {
   }
 
   /// Get regions explored with dive counts
-  Future<List<RankingItem>> getRegionsExplored({String? diverId, int limit = 10}) async {
+  Future<List<RankingItem>> getRegionsExplored({
+    String? diverId,
+    int limit = 10,
+  }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final params = diverId != null ? [diverId, limit] : [limit];
@@ -774,7 +811,10 @@ class StatisticsRepository {
   }
 
   /// Get dives per trip
-  Future<List<RankingItem>> getDivesPerTrip({String? diverId, int limit = 10}) async {
+  Future<List<RankingItem>> getDivesPerTrip({
+    String? diverId,
+    int limit = 10,
+  }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final params = diverId != null ? [diverId, limit] : [limit];
@@ -838,7 +878,10 @@ class StatisticsRepository {
   }
 
   /// Get most common sightings
-  Future<List<RankingItem>> getMostCommonSightings({String? diverId, int limit = 10}) async {
+  Future<List<RankingItem>> getMostCommonSightings({
+    String? diverId,
+    int limit = 10,
+  }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final params = diverId != null ? [diverId, limit] : [limit];
@@ -876,7 +919,10 @@ class StatisticsRepository {
   }
 
   /// Get best sites for marine life (most species variety)
-  Future<List<RankingItem>> getBestSitesForMarineLife({String? diverId, int limit = 10}) async {
+  Future<List<RankingItem>> getBestSitesForMarineLife({
+    String? diverId,
+    int limit = 10,
+  }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final params = diverId != null ? [diverId, limit] : [limit];
@@ -916,7 +962,9 @@ class StatisticsRepository {
   // ============================================================================
 
   /// Get dives by day of week
-  Future<List<({int dayOfWeek, int count})>> getDivesByDayOfWeek({String? diverId}) async {
+  Future<List<({int dayOfWeek, int count})>> getDivesByDayOfWeek({
+    String? diverId,
+  }) async {
     try {
       final diverFilter = diverId != null ? 'WHERE diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
@@ -947,7 +995,9 @@ class StatisticsRepository {
   }
 
   /// Get dives by time of day (morning, afternoon, evening, night)
-  Future<List<DistributionSegment>> getDivesByTimeOfDay({String? diverId}) async {
+  Future<List<DistributionSegment>> getDivesByTimeOfDay({
+    String? diverId,
+  }) async {
     try {
       final diverFilter = diverId != null ? 'WHERE diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
@@ -976,7 +1026,8 @@ class StatisticsRepository {
         variables: params.map((p) => Variable(p)).toList(),
       ).get();
 
-      final total = results.fold<int>(0, (sum, row) => sum + row.read<int>('count'));
+      final total =
+          results.fold<int>(0, (sum, row) => sum + row.read<int>('count'));
       if (total == 0) return [];
 
       return results.map((row) {
@@ -994,7 +1045,9 @@ class StatisticsRepository {
   }
 
   /// Get dives by month (seasonal patterns)
-  Future<List<({int month, int count})>> getDivesBySeason({String? diverId}) async {
+  Future<List<({int month, int count})>> getDivesBySeason({
+    String? diverId,
+  }) async {
     try {
       final diverFilter = diverId != null ? 'WHERE diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
@@ -1025,7 +1078,8 @@ class StatisticsRepository {
   }
 
   /// Get surface interval statistics
-  Future<({double? avgMinutes, double? minMinutes, double? maxMinutes})> getSurfaceIntervalStats({String? diverId}) async {
+  Future<({double? avgMinutes, double? minMinutes, double? maxMinutes})>
+      getSurfaceIntervalStats({String? diverId}) async {
     try {
       final diverFilter = diverId != null ? 'WHERE diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
@@ -1044,7 +1098,9 @@ class StatisticsRepository {
         variables: params.map((p) => Variable(p)).toList(),
       ).get();
 
-      if (results.isEmpty) return (avgMinutes: null, minMinutes: null, maxMinutes: null);
+      if (results.isEmpty) {
+        return (avgMinutes: null, minMinutes: null, maxMinutes: null);
+      }
       return (
         avgMinutes: results.first.read<double?>('avg_si'),
         minMinutes: results.first.read<double?>('min_si'),
@@ -1061,7 +1117,10 @@ class StatisticsRepository {
   // ============================================================================
 
   /// Get most used gear
-  Future<List<RankingItem>> getMostUsedGear({String? diverId, int limit = 10}) async {
+  Future<List<RankingItem>> getMostUsedGear({
+    String? diverId,
+    int limit = 10,
+  }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final params = diverId != null ? [diverId, limit] : [limit];
@@ -1104,7 +1163,8 @@ class StatisticsRepository {
   /// Get weight trend by month
   Future<List<TrendDataPoint>> getWeightTrend({String? diverId}) async {
     try {
-      final fiveYearsAgo = DateTime.now().subtract(const Duration(days: 365 * 5));
+      final fiveYearsAgo =
+          DateTime.now().subtract(const Duration(days: 365 * 5));
       final cutoff = fiveYearsAgo.millisecondsSinceEpoch;
 
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
@@ -1145,7 +1205,9 @@ class StatisticsRepository {
   // ============================================================================
 
   /// Get average ascent/descent rates
-  Future<({double? avgAscent, double? avgDescent})> getAscentDescentRates({String? diverId}) async {
+  Future<({double? avgAscent, double? avgDescent})> getAscentDescentRates({
+    String? diverId,
+  }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
@@ -1174,7 +1236,9 @@ class StatisticsRepository {
   }
 
   /// Get time spent in depth ranges
-  Future<List<({String range, int minutes})>> getTimeAtDepthRanges({String? diverId}) async {
+  Future<List<({String range, int minutes})>> getTimeAtDepthRanges({
+    String? diverId,
+  }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
@@ -1211,7 +1275,8 @@ class StatisticsRepository {
       return results.map((row) {
         return (
           range: row.read<String>('depth_range'),
-          minutes: (row.read<int>('sample_count') / 60).round(), // Rough estimate
+          minutes:
+              (row.read<int>('sample_count') / 60).round(), // Rough estimate
         );
       }).toList();
     } catch (e, stackTrace) {
@@ -1221,7 +1286,9 @@ class StatisticsRepository {
   }
 
   /// Get percentage of dives with decompression obligation
-  Future<({int decoCount, int totalCount})> getDecoObligationStats({String? diverId}) async {
+  Future<({int decoCount, int totalCount})> getDecoObligationStats({
+    String? diverId,
+  }) async {
     try {
       final diverFilter = diverId != null ? 'WHERE d.diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
@@ -1254,7 +1321,20 @@ class StatisticsRepository {
   // ============================================================================
 
   String _monthAbbr(int month) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     return months[month - 1];
   }
 }

@@ -140,7 +140,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         // Get unit formatter to convert from stored metric to user's preferred units
         final settings = ref.read(settingsProvider);
         final units = UnitFormatter(settings);
-        
+
         setState(() {
           _existingDive = dive;
           // Use entryTime if available, otherwise fall back to dateTime
@@ -164,14 +164,16 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             // Auto-calculate from profile if no stored duration
             final calculatedDuration = dive.calculateBottomTimeFromProfile();
             if (calculatedDuration != null) {
-              _durationController.text = calculatedDuration.inMinutes.toString();
+              _durationController.text =
+                  calculatedDuration.inMinutes.toString();
             }
           }
           // Runtime: use stored value, or calculate from entry/exit times
           if (dive.runtime != null) {
             _runtimeController.text = dive.runtime!.inMinutes.toString();
           } else if (dive.entryTime != null && dive.exitTime != null) {
-            final calculatedRuntime = dive.exitTime!.difference(dive.entryTime!);
+            final calculatedRuntime =
+                dive.exitTime!.difference(dive.entryTime!);
             _runtimeController.text = calculatedRuntime.inMinutes.toString();
           }
           // Convert stored metric values to user's preferred units
@@ -216,19 +218,24 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               ? units.convertDepth(dive.altitude!).toStringAsFixed(0)
               : '';
           _surfacePressureController.text = dive.surfacePressure != null
-              ? (dive.surfacePressure! * 1000).toStringAsFixed(0)  // Convert bar to mbar
+              ? (dive.surfacePressure! * 1000)
+                  .toStringAsFixed(0) // Convert bar to mbar
               : '';
 
           // Load weight entries (weights already stored in kg, conversion happens in display)
           _weights = List.from(dive.weights);
           // Migrate legacy single weight to weights list if needed
-          if (_weights.isEmpty && dive.weightAmount != null && dive.weightAmount! > 0) {
-            _weights.add(DiveWeight(
-              id: _uuid.v4(),
-              diveId: dive.id,
-              weightType: dive.weightType ?? WeightType.belt,
-              amountKg: dive.weightAmount!,
-            ),);
+          if (_weights.isEmpty &&
+              dive.weightAmount != null &&
+              dive.weightAmount! > 0) {
+            _weights.add(
+              DiveWeight(
+                id: _uuid.v4(),
+                diveId: dive.id,
+                weightType: dive.weightType ?? WeightType.belt,
+                amountKg: dive.weightAmount!,
+              ),
+            );
           }
 
           // Load tags
@@ -250,7 +257,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     setState(() => _isCapturingLocation = true);
     try {
       final location = await LocationService.instance.getCurrentLocation(
-        includeGeocoding: false, // We just need coordinates for distance calculation
+        includeGeocoding:
+            false, // We just need coordinates for distance calculation
         timeout: const Duration(seconds: 10),
       );
       if (mounted && location != null) {
@@ -449,9 +457,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   child: OutlinedButton.icon(
                     onPressed: _selectExitDate,
                     icon: const Icon(Icons.calendar_today, size: 18),
-                    label: Text(_exitDate != null 
-                        ? DateFormat('MMM d, y').format(_exitDate!)
-                        : 'Select',),
+                    label: Text(
+                      _exitDate != null
+                          ? DateFormat('MMM d, y').format(_exitDate!)
+                          : 'Select',
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -467,7 +477,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             if (calculatedDuration != null) ...[
               const SizedBox(height: 12),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(8),
@@ -502,18 +513,18 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   }
 
   Widget _buildSurfaceIntervalDisplay() {
-    final surfaceIntervalAsync = ref.watch(surfaceIntervalProvider(widget.diveId!));
-    
+    final surfaceIntervalAsync =
+        ref.watch(surfaceIntervalProvider(widget.diveId!));
+
     return surfaceIntervalAsync.when(
       data: (interval) {
         if (interval == null) return const SizedBox.shrink();
-        
+
         final hours = interval.inHours;
         final minutes = interval.inMinutes % 60;
-        final intervalText = hours > 0 
-            ? '${hours}h ${minutes}m' 
-            : '${minutes}m';
-        
+        final intervalText =
+            hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m';
+
         return Padding(
           padding: const EdgeInsets.only(top: 12),
           child: Container(
@@ -559,7 +570,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           children: [
             Row(
               children: [
-                Text('Dive Site', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  'Dive Site',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 if (_isCapturingLocation) ...[
                   const SizedBox(width: 8),
                   SizedBox(
@@ -616,7 +630,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 ],
               ],
             ),
-            if (_selectedSite != null && _selectedSite!.locationString.isNotEmpty)
+            if (_selectedSite != null &&
+                _selectedSite!.locationString.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
@@ -742,7 +757,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   ),
                 ),
                 TextButton(
-                  onPressed: () => setState(() => _selectedTrip = suggestedTrip),
+                  onPressed: () =>
+                      setState(() => _selectedTrip = suggestedTrip),
                   child: const Text('Use'),
                 ),
               ],
@@ -854,7 +870,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Depth & Duration', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              'Depth & Duration',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -865,7 +884,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                       labelText: 'Max Depth',
                       suffixText: units.depthSymbol,
                     ),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -876,7 +896,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                       labelText: 'Avg Depth',
                       suffixText: units.depthSymbol,
                     ),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                   ),
                 ),
               ],
@@ -1000,14 +1021,16 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   void _addTank() {
     setState(() {
-      _tanks.add(DiveTank(
-        id: _uuid.v4(),
-        volume: 12.0,
-        startPressure: 200,
-        gasMix: const GasMix(),
-        role: _tanks.isEmpty ? TankRole.backGas : TankRole.stage,
-        order: _tanks.length,
-      ),);
+      _tanks.add(
+        DiveTank(
+          id: _uuid.v4(),
+          volume: 12.0,
+          startPressure: 200,
+          gasMix: const GasMix(),
+          role: _tanks.isEmpty ? TankRole.backGas : TankRole.stage,
+          order: _tanks.length,
+        ),
+      );
     });
   }
 
@@ -1031,7 +1054,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Equipment', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  'Equipment',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -1059,20 +1085,27 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                       Icon(
                         Icons.inventory_2_outlined,
                         size: 48,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurfaceVariant
+                            .withValues(alpha: 0.5),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'No equipment selected',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
                             ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Tap "Use Set" or "Add" to select equipment',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
                             ),
                       ),
                     ],
@@ -1086,7 +1119,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 return ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: CircleAvatar(
-                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                    backgroundColor:
+                        Theme.of(context).colorScheme.primaryContainer,
                     child: Icon(
                       _getEquipmentIcon(item.type),
                       color: Theme.of(context).colorScheme.onPrimaryContainer,
@@ -1331,7 +1365,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Conditions', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  'Conditions',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 Consumer(
                   builder: (context, ref, child) {
                     final conditions = ref.watch(conditionsFetchProvider);
@@ -1347,7 +1384,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : const Icon(Icons.cloud_download, size: 18),
-                      label: Text(conditions.isLoading ? 'Fetching...' : 'Fetch'),
+                      label:
+                          Text(conditions.isLoading ? 'Fetching...' : 'Fetch'),
                     );
                   },
                 ),
@@ -1362,11 +1400,15 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   error: (e, st) => Text('Error loading dive types: $e'),
                   data: (diveTypes) {
                     // Ensure selected dive type exists in the list
-                    final selectedExists = diveTypes.any((t) => t.id == _selectedDiveTypeId);
-                    final effectiveValue = selectedExists ? _selectedDiveTypeId : 'recreational';
+                    final selectedExists =
+                        diveTypes.any((t) => t.id == _selectedDiveTypeId);
+                    final effectiveValue =
+                        selectedExists ? _selectedDiveTypeId : 'recreational';
 
                     return DropdownButtonFormField<String>(
-                      key: ValueKey('dive_type_${diveTypes.length}_$effectiveValue'),
+                      key: ValueKey(
+                        'dive_type_${diveTypes.length}_$effectiveValue',
+                      ),
                       initialValue: effectiveValue,
                       decoration: const InputDecoration(
                         labelText: 'Dive Type',
@@ -1413,7 +1455,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                       labelText: 'Water Temp',
                       suffixText: units.temperatureSymbol,
                     ),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -1424,7 +1467,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                       labelText: 'Air Temp',
                       suffixText: units.temperatureSymbol,
                     ),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                   ),
                 ),
               ],
@@ -1455,7 +1499,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 Expanded(
                   child: DropdownButtonFormField<CurrentDirection>(
                     initialValue: _currentDirection,
-                    decoration: const InputDecoration(labelText: 'Current Direction'),
+                    decoration:
+                        const InputDecoration(labelText: 'Current Direction'),
                     isExpanded: true,
                     items: [
                       const DropdownMenuItem<CurrentDirection>(
@@ -1478,7 +1523,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 Expanded(
                   child: DropdownButtonFormField<CurrentStrength>(
                     initialValue: _currentStrength,
-                    decoration: const InputDecoration(labelText: 'Current Strength'),
+                    decoration:
+                        const InputDecoration(labelText: 'Current Strength'),
                     isExpanded: true,
                     items: [
                       const DropdownMenuItem<CurrentStrength>(
@@ -1509,7 +1555,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                       labelText: 'Swell Height',
                       suffixText: units.depthSymbol,
                     ),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -1524,7 +1571,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                         color: _isAltitudeDive(units) ? Colors.orange : null,
                       ),
                     ),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: false),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: false),
                     onChanged: (_) => setState(() {}),
                   ),
                 ),
@@ -1549,7 +1597,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 Expanded(
                   child: DropdownButtonFormField<EntryMethod>(
                     initialValue: _entryMethod,
-                    decoration: const InputDecoration(labelText: 'Entry Method'),
+                    decoration:
+                        const InputDecoration(labelText: 'Entry Method'),
                     isExpanded: true,
                     items: [
                       const DropdownMenuItem<EntryMethod>(
@@ -1615,8 +1664,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   Text(
                     'Total: ${units.formatWeight(totalWeight)}',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
               ],
             ),
@@ -1630,12 +1679,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             OutlinedButton.icon(
               onPressed: () {
                 setState(() {
-                  _weights.add(DiveWeight(
-                    id: _uuid.v4(),
-                    diveId: widget.diveId ?? '',
-                    weightType: WeightType.integrated,
-                    amountKg: 0,
-                  ),);
+                  _weights.add(
+                    DiveWeight(
+                      id: _uuid.v4(),
+                      diveId: widget.diveId ?? '',
+                      weightType: WeightType.integrated,
+                      amountKg: 0,
+                    ),
+                  );
                 });
               },
               icon: const Icon(Icons.add),
@@ -1647,7 +1698,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     );
   }
 
-  Widget _buildWeightEntryRow(int index, DiveWeight weight, UnitFormatter units) {
+  Widget _buildWeightEntryRow(
+    int index,
+    DiveWeight weight,
+    UnitFormatter units,
+  ) {
     // Display in user's preferred unit
     final displayAmount = units.convertWeight(weight.amountKg);
     return Padding(
@@ -1682,12 +1737,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           Expanded(
             flex: 1,
             child: TextFormField(
-              initialValue: displayAmount > 0 ? displayAmount.toStringAsFixed(1) : '',
+              initialValue:
+                  displayAmount > 0 ? displayAmount.toStringAsFixed(1) : '',
               decoration: InputDecoration(
                 labelText: units.weightSymbol,
                 isDense: true,
               ),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
               onChanged: (value) {
                 final displayValue = double.tryParse(value) ?? 0;
                 // Convert back to kg for storage
@@ -1765,7 +1822,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Marine Life', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  'Marine Life',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 TextButton.icon(
                   onPressed: _showSpeciesPicker,
                   icon: const Icon(Icons.add, size: 18),
@@ -1783,20 +1843,27 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                       Icon(
                         Icons.water,
                         size: 48,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurfaceVariant
+                            .withValues(alpha: 0.5),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'No marine life logged',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
                             ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Tap "Add" to record sightings',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
                             ),
                       ),
                     ],
@@ -1810,7 +1877,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 return ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: CircleAvatar(
-                    backgroundColor: _getCategoryColor(sighting.speciesCategory),
+                    backgroundColor:
+                        _getCategoryColor(sighting.speciesCategory),
                     child: Icon(
                       _getCategoryIcon(sighting.speciesCategory),
                       color: Colors.white,
@@ -1819,22 +1887,32 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   ),
                   title: Text(sighting.speciesName),
                   subtitle: sighting.notes.isNotEmpty
-                      ? Text(sighting.notes, maxLines: 1, overflow: TextOverflow.ellipsis)
+                      ? Text(
+                          sighting.notes,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        )
                       : null,
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       if (sighting.count > 1)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primaryContainer,
+                            color:
+                                Theme.of(context).colorScheme.primaryContainer,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
                             'x${sighting.count}',
                             style: TextStyle(
-                              color: Theme.of(context).colorScheme.onPrimaryContainer,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onPrimaryContainer,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -1920,15 +1998,17 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           scrollController: scrollController,
           onSpeciesSelected: (species, count, notes) {
             setState(() {
-              _sightings.add(Sighting(
-                id: DateTime.now().millisecondsSinceEpoch.toString(),
-                diveId: widget.diveId ?? '',
-                speciesId: species.id,
-                speciesName: species.commonName,
-                speciesCategory: species.category,
-                count: count,
-                notes: notes,
-              ),);
+              _sightings.add(
+                Sighting(
+                  id: DateTime.now().millisecondsSinceEpoch.toString(),
+                  diveId: widget.diveId ?? '',
+                  speciesId: species.id,
+                  speciesName: species.commonName,
+                  speciesCategory: species.category,
+                  count: count,
+                  notes: notes,
+                ),
+              );
             });
             Navigator.of(context).pop();
           },
@@ -2024,9 +2104,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   Future<void> _selectExitTime() async {
     final time = await showTimePicker(
       context: context,
-      initialTime: _exitTime ?? TimeOfDay.fromDateTime(
-        DateTime.now().add(const Duration(hours: 1)),
-      ),
+      initialTime: _exitTime ??
+          TimeOfDay.fromDateTime(
+            DateTime.now().add(const Duration(hours: 1)),
+          ),
     );
     if (time != null) {
       setState(() {
@@ -2101,7 +2182,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           ? units.depthToMeters(double.parse(_altitudeController.text))
           : null;
       final surfacePressure = _surfacePressureController.text.isNotEmpty
-          ? double.parse(_surfacePressureController.text) / 1000  // Convert mbar to bar
+          ? double.parse(_surfacePressureController.text) /
+              1000 // Convert mbar to bar
           : null;
 
       // Create dive entity
@@ -2118,7 +2200,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         avgDepth: avgDepth,
         waterTemp: waterTemp,
         airTemp: airTemp,
-        visibility: _selectedVisibility != Visibility.unknown ? _selectedVisibility : null,
+        visibility: _selectedVisibility != Visibility.unknown
+            ? _selectedVisibility
+            : null,
         diveTypeId: _selectedDiveTypeId,
         notes: _notesController.text,
         rating: _rating > 0 ? _rating : null,
@@ -2338,11 +2422,19 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final normalized = degrees % 360;
 
     if (normalized >= 337.5 || normalized < 22.5) return CurrentDirection.north;
-    if (normalized >= 22.5 && normalized < 67.5) return CurrentDirection.northEast;
+    if (normalized >= 22.5 && normalized < 67.5) {
+      return CurrentDirection.northEast;
+    }
     if (normalized >= 67.5 && normalized < 112.5) return CurrentDirection.east;
-    if (normalized >= 112.5 && normalized < 157.5) return CurrentDirection.southEast;
-    if (normalized >= 157.5 && normalized < 202.5) return CurrentDirection.south;
-    if (normalized >= 202.5 && normalized < 247.5) return CurrentDirection.southWest;
+    if (normalized >= 112.5 && normalized < 157.5) {
+      return CurrentDirection.southEast;
+    }
+    if (normalized >= 157.5 && normalized < 202.5) {
+      return CurrentDirection.south;
+    }
+    if (normalized >= 202.5 && normalized < 247.5) {
+      return CurrentDirection.southWest;
+    }
     if (normalized >= 247.5 && normalized < 292.5) return CurrentDirection.west;
     return CurrentDirection.northWest;
   }
@@ -2407,13 +2499,18 @@ class _SitePickerSheet extends ConsumerWidget {
                   if (currentLocation != null)
                     Row(
                       children: [
-                        Icon(Icons.my_location, size: 14, color: colorScheme.primary),
+                        Icon(
+                          Icons.my_location,
+                          size: 14,
+                          color: colorScheme.primary,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           'Sorted by distance',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: colorScheme.primary,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.primary,
+                                  ),
                         ),
                       ],
                     ),
@@ -2477,7 +2574,8 @@ class _SitePickerSheet extends ConsumerWidget {
                   return a.distance!.compareTo(b.distance!);
                 });
               } else {
-                sortedSites = sites.map((site) => _SiteWithDistance(site, null)).toList();
+                sortedSites =
+                    sites.map((site) => _SiteWithDistance(site, null)).toList();
               }
 
               return ListView.builder(
@@ -2488,7 +2586,8 @@ class _SitePickerSheet extends ConsumerWidget {
                   final site = siteWithDist.site;
                   final distance = siteWithDist.distance;
                   final isSelected = site.id == selectedSiteId;
-                  final isNearby = distance != null && distance < 50; // Within 50km
+                  final isNearby =
+                      distance != null && distance < 50; // Within 50km
 
                   return ListTile(
                     leading: CircleAvatar(
@@ -2515,8 +2614,13 @@ class _SitePickerSheet extends ConsumerWidget {
                         if (distance != null)
                           Text(
                             _formatDistance(distance),
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: isNearby ? colorScheme.tertiary : colorScheme.onSurfaceVariant,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(
+                                  color: isNearby
+                                      ? colorScheme.tertiary
+                                      : colorScheme.onSurfaceVariant,
                                   fontWeight: isNearby ? FontWeight.w600 : null,
                                 ),
                           ),
@@ -2555,7 +2659,8 @@ class _SiteWithDistance {
 /// Species picker bottom sheet with search
 class _SpeciesPickerSheet extends ConsumerStatefulWidget {
   final ScrollController scrollController;
-  final void Function(Species species, int count, String notes) onSpeciesSelected;
+  final void Function(Species species, int count, String notes)
+      onSpeciesSelected;
 
   const _SpeciesPickerSheet({
     required this.scrollController,
@@ -2563,7 +2668,8 @@ class _SpeciesPickerSheet extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<_SpeciesPickerSheet> createState() => _SpeciesPickerSheetState();
+  ConsumerState<_SpeciesPickerSheet> createState() =>
+      _SpeciesPickerSheetState();
 }
 
 class _SpeciesPickerSheetState extends ConsumerState<_SpeciesPickerSheet> {
@@ -2639,8 +2745,10 @@ class _SpeciesPickerSheetState extends ConsumerState<_SpeciesPickerSheet> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             children: [
               _buildCategoryChip(null, 'All'),
-              ...SpeciesCategory.values.map((category) =>
-                _buildCategoryChip(category, category.displayName),),
+              ...SpeciesCategory.values.map(
+                (category) =>
+                    _buildCategoryChip(category, category.displayName),
+              ),
             ],
           ),
         ),
@@ -2800,14 +2908,16 @@ class _SpeciesPickerSheetState extends ConsumerState<_SpeciesPickerSheet> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.remove_circle_outline),
-                    onPressed: count > 1
-                        ? () => setDialogState(() => count--)
-                        : null,
+                    onPressed:
+                        count > 1 ? () => setDialogState(() => count--) : null,
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      border: Border.all(color: Theme.of(context).colorScheme.outline),
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -2937,7 +3047,8 @@ class _EditSightingSheetState extends State<_EditSightingSheet> {
                             widget.onDelete();
                           },
                           style: FilledButton.styleFrom(
-                            backgroundColor: Theme.of(context).colorScheme.error,
+                            backgroundColor:
+                                Theme.of(context).colorScheme.error,
                           ),
                           child: const Text('Remove'),
                         ),
@@ -2963,9 +3074,11 @@ class _EditSightingSheetState extends State<_EditSightingSheet> {
               ),
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 24),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Theme.of(context).colorScheme.outline),
+                  border:
+                      Border.all(color: Theme.of(context).colorScheme.outline),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -2992,10 +3105,12 @@ class _EditSightingSheetState extends State<_EditSightingSheet> {
           const SizedBox(height: 24),
           FilledButton(
             onPressed: () {
-              widget.onSave(widget.sighting.copyWith(
-                count: _count,
-                notes: _notesController.text,
-              ),);
+              widget.onSave(
+                widget.sighting.copyWith(
+                  count: _count,
+                  notes: _notesController.text,
+                ),
+              );
             },
             child: const Text('Save Changes'),
           ),
@@ -3071,7 +3186,9 @@ class _EquipmentPickerSheet extends ConsumerWidget {
                             ? 'Add equipment from the Equipment tab'
                             : 'Remove items to add different ones',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
                             ),
                       ),
                     ],
@@ -3086,7 +3203,8 @@ class _EquipmentPickerSheet extends ConsumerWidget {
                   final equipment = available[index];
                   return ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      backgroundColor:
+                          Theme.of(context).colorScheme.surfaceContainerHighest,
                       child: Icon(
                         _getEquipmentIcon(equipment.type),
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -3153,7 +3271,8 @@ class _EquipmentPickerSheet extends ConsumerWidget {
 /// Equipment set picker bottom sheet
 class _EquipmentSetPickerSheet extends ConsumerWidget {
   final ScrollController scrollController;
-  final void Function(EquipmentSet set, List<EquipmentItem> items) onSetSelected;
+  final void Function(EquipmentSet set, List<EquipmentItem> items)
+      onSetSelected;
 
   const _EquipmentSetPickerSheet({
     required this.scrollController,
@@ -3205,7 +3324,9 @@ class _EquipmentSetPickerSheet extends ConsumerWidget {
                       Text(
                         'Create sets in Equipment > Sets',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
                             ),
                       ),
                     ],
@@ -3278,7 +3399,8 @@ class _EquipmentSetTile extends ConsumerWidget {
       },
       loading: () => ListTile(
         leading: CircleAvatar(
-          backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+          backgroundColor:
+              Theme.of(context).colorScheme.surfaceContainerHighest,
           child: const SizedBox(
             width: 20,
             height: 20,

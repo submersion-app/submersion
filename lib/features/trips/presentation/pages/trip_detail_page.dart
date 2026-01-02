@@ -128,7 +128,10 @@ class _TripDetailContent extends ConsumerWidget {
   }
 
   Widget _buildTripHeader(
-      BuildContext context, Trip trip, DateFormat dateFormat,) {
+    BuildContext context,
+    Trip trip,
+    DateFormat dateFormat,
+  ) {
     return Center(
       child: Column(
         children: [
@@ -270,7 +273,10 @@ class _TripDetailContent extends ConsumerWidget {
   }
 
   Widget _buildDivesSection(
-      BuildContext context, WidgetRef ref, AsyncValue<List<String>> diveIdsAsync,) {
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<List<String>> diveIdsAsync,
+  ) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -346,7 +352,8 @@ class _TripDetailContent extends ConsumerWidget {
           builder: (context) => AlertDialog(
             title: const Text('Delete Trip?'),
             content: Text(
-                'Are you sure you want to delete "${tripWithStats.trip.name}"? This will remove the trip but keep the dives.',),
+              'Are you sure you want to delete "${tripWithStats.trip.name}"? This will remove the trip but keep the dives.',
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),

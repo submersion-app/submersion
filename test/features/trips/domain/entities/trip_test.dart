@@ -57,14 +57,14 @@ void main() {
       final tripWithLiveaboard = baseTrip.copyWith(
         liveaboardName: 'Ocean Explorer',
       );
-      
+
       expect(tripWithLiveaboard.liveaboardName, 'Ocean Explorer');
-      
+
       // Now clear it
       final cleared = tripWithLiveaboard.copyWith(
         liveaboardName: null,
       );
-      
+
       expect(cleared.liveaboardName, isNull);
     });
 
@@ -72,14 +72,14 @@ void main() {
       final tripWithoutLiveaboard = baseTrip.copyWith(
         liveaboardName: null,
       );
-      
+
       expect(tripWithoutLiveaboard.liveaboardName, isNull);
-      
+
       // Now set it
       final updated = tripWithoutLiveaboard.copyWith(
         liveaboardName: 'Sea Spirit',
       );
-      
+
       expect(updated.liveaboardName, 'Sea Spirit');
     });
   });

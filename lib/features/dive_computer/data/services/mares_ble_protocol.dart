@@ -316,9 +316,8 @@ class MaresBleProtocol {
 
     while (data.length < size) {
       final offset = address + data.length;
-      final toRead = (size - data.length) > chunkSize
-          ? chunkSize
-          : (size - data.length);
+      final toRead =
+          (size - data.length) > chunkSize ? chunkSize : (size - data.length);
 
       final command = [
         cmdRead,
@@ -373,7 +372,9 @@ class MaresBleProtocol {
 
       if (parsedDive != null) {
         dives.add(parsedDive);
-        _log.info('Successfully parsed dive with ${parsedDive.profile.length} samples');
+        _log.info(
+          'Successfully parsed dive with ${parsedDive.profile.length} samples',
+        );
       }
     } catch (e, stack) {
       _log.warning('Failed to parse dives: $e', e, stack);

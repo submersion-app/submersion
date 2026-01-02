@@ -801,7 +801,8 @@ class _DiveSiteCard extends StatelessWidget {
                       if (site.maxDepth != null)
                         Chip(
                           avatar: const Icon(Icons.arrow_downward, size: 18),
-                          label: Text('Max ${site.maxDepth!.toStringAsFixed(0)}m'),
+                          label:
+                              Text('Max ${site.maxDepth!.toStringAsFixed(0)}m'),
                         ),
                       if (site.hasCoordinates)
                         Chip(

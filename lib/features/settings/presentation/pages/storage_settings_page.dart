@@ -78,8 +78,8 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
                   title: 'App Default',
                   subtitle: 'Standard app storage location',
                   icon: Icons.phone_android,
-                  isSelected:
-                      storageState.config.mode == StorageLocationMode.appDefault,
+                  isSelected: storageState.config.mode ==
+                      StorageLocationMode.appDefault,
                   onTap: () => _handleSelectAppDefault(storageState),
                 ),
 

@@ -13,23 +13,30 @@ final equipmentRepositoryProvider = Provider<EquipmentRepository>((ref) {
 });
 
 /// Active equipment provider
-final activeEquipmentProvider = FutureProvider<List<EquipmentItem>>((ref) async {
+final activeEquipmentProvider =
+    FutureProvider<List<EquipmentItem>>((ref) async {
   final repository = ref.watch(equipmentRepositoryProvider);
-  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  final validatedDiverId =
+      await ref.watch(validatedCurrentDiverIdProvider.future);
   return repository.getActiveEquipment(diverId: validatedDiverId);
 });
 
 /// Retired equipment provider
-final retiredEquipmentProvider = FutureProvider<List<EquipmentItem>>((ref) async {
+final retiredEquipmentProvider =
+    FutureProvider<List<EquipmentItem>>((ref) async {
   final repository = ref.watch(equipmentRepositoryProvider);
-  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  final validatedDiverId =
+      await ref.watch(validatedCurrentDiverIdProvider.future);
   return repository.getRetiredEquipment(diverId: validatedDiverId);
 });
 
 /// Equipment by status provider
-final equipmentByStatusProvider = FutureProvider.family<List<EquipmentItem>, EquipmentStatus?>((ref, status) async {
+final equipmentByStatusProvider =
+    FutureProvider.family<List<EquipmentItem>, EquipmentStatus?>(
+        (ref, status) async {
   final repository = ref.watch(equipmentRepositoryProvider);
-  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  final validatedDiverId =
+      await ref.watch(validatedCurrentDiverIdProvider.future);
   if (status == null) {
     return repository.getAllEquipment(diverId: validatedDiverId);
   }
@@ -39,26 +46,32 @@ final equipmentByStatusProvider = FutureProvider.family<List<EquipmentItem>, Equ
 /// All equipment provider
 final allEquipmentProvider = FutureProvider<List<EquipmentItem>>((ref) async {
   final repository = ref.watch(equipmentRepositoryProvider);
-  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  final validatedDiverId =
+      await ref.watch(validatedCurrentDiverIdProvider.future);
   return repository.getAllEquipment(diverId: validatedDiverId);
 });
 
 /// Single equipment item provider
-final equipmentItemProvider = FutureProvider.family<EquipmentItem?, String>((ref, id) async {
+final equipmentItemProvider =
+    FutureProvider.family<EquipmentItem?, String>((ref, id) async {
   final repository = ref.watch(equipmentRepositoryProvider);
   return repository.getEquipmentById(id);
 });
 
 /// Equipment with service due provider
-final serviceDueEquipmentProvider = FutureProvider<List<EquipmentItem>>((ref) async {
+final serviceDueEquipmentProvider =
+    FutureProvider<List<EquipmentItem>>((ref) async {
   final repository = ref.watch(equipmentRepositoryProvider);
-  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  final validatedDiverId =
+      await ref.watch(validatedCurrentDiverIdProvider.future);
   return repository.getEquipmentWithServiceDue(diverId: validatedDiverId);
 });
 
 /// Equipment search provider
-final equipmentSearchProvider = FutureProvider.family<List<EquipmentItem>, String>((ref, query) async {
-  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+final equipmentSearchProvider =
+    FutureProvider.family<List<EquipmentItem>, String>((ref, query) async {
+  final validatedDiverId =
+      await ref.watch(validatedCurrentDiverIdProvider.future);
   if (query.isEmpty) {
     return ref.watch(allEquipmentProvider).value ?? [];
   }
@@ -67,12 +80,14 @@ final equipmentSearchProvider = FutureProvider.family<List<EquipmentItem>, Strin
 });
 
 /// Equipment list notifier for mutations
-class EquipmentListNotifier extends StateNotifier<AsyncValue<List<EquipmentItem>>> {
+class EquipmentListNotifier
+    extends StateNotifier<AsyncValue<List<EquipmentItem>>> {
   final EquipmentRepository _repository;
   final Ref _ref;
   String? _validatedDiverId;
 
-  EquipmentListNotifier(this._repository, this._ref) : super(const AsyncValue.loading()) {
+  EquipmentListNotifier(this._repository, this._ref)
+      : super(const AsyncValue.loading()) {
     _initializeAndLoad();
 
     // Listen for diver changes and reload
@@ -96,7 +111,8 @@ class EquipmentListNotifier extends StateNotifier<AsyncValue<List<EquipmentItem>
   Future<void> _loadEquipment() async {
     state = const AsyncValue.loading();
     try {
-      final equipment = await _repository.getActiveEquipment(diverId: _validatedDiverId);
+      final equipment =
+          await _repository.getActiveEquipment(diverId: _validatedDiverId);
       state = AsyncValue.data(equipment);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -158,8 +174,8 @@ class EquipmentListNotifier extends StateNotifier<AsyncValue<List<EquipmentItem>
   }
 }
 
-final equipmentListNotifierProvider =
-    StateNotifierProvider<EquipmentListNotifier, AsyncValue<List<EquipmentItem>>>((ref) {
+final equipmentListNotifierProvider = StateNotifierProvider<
+    EquipmentListNotifier, AsyncValue<List<EquipmentItem>>>((ref) {
   final repository = ref.watch(equipmentRepositoryProvider);
   return EquipmentListNotifier(repository, ref);
 });
@@ -169,13 +185,15 @@ final equipmentListNotifierProvider =
 // ============================================================================
 
 /// Service record repository provider
-final serviceRecordRepositoryProvider = Provider<ServiceRecordRepository>((ref) {
+final serviceRecordRepositoryProvider =
+    Provider<ServiceRecordRepository>((ref) {
   return ServiceRecordRepository();
 });
 
 /// Service records for an equipment item
 final serviceRecordsForEquipmentProvider =
-    FutureProvider.family<List<ServiceRecord>, String>((ref, equipmentId) async {
+    FutureProvider.family<List<ServiceRecord>, String>(
+        (ref, equipmentId) async {
   final repository = ref.watch(serviceRecordRepositoryProvider);
   return repository.getRecordsForEquipment(equipmentId);
 });
@@ -209,7 +227,8 @@ final serviceRecordCountProvider =
 });
 
 /// Service record notifier for mutations
-class ServiceRecordNotifier extends StateNotifier<AsyncValue<List<ServiceRecord>>> {
+class ServiceRecordNotifier
+    extends StateNotifier<AsyncValue<List<ServiceRecord>>> {
   final ServiceRecordRepository _repository;
   final Ref _ref;
   final String equipmentId;
@@ -258,7 +277,9 @@ class ServiceRecordNotifier extends StateNotifier<AsyncValue<List<ServiceRecord>
 }
 
 final serviceRecordNotifierProvider = StateNotifierProvider.family<
-    ServiceRecordNotifier, AsyncValue<List<ServiceRecord>>, String>((ref, equipmentId) {
+    ServiceRecordNotifier,
+    AsyncValue<List<ServiceRecord>>,
+    String>((ref, equipmentId) {
   final repository = ref.watch(serviceRecordRepositoryProvider);
   return ServiceRecordNotifier(repository, ref, equipmentId);
 });
