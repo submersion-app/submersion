@@ -168,15 +168,13 @@ class _ExistingDatabaseDialogState extends State<ExistingDatabaseDialog> {
           ),
           const SizedBox(height: 8),
           if (info != null) ...[
-            Text(
-              '${info.diveCount} dives',
-              style: theme.textTheme.bodyMedium,
-            ),
-            Text(
-              '${info.siteCount} sites',
-              style: theme.textTheme.bodySmall,
-            ),
-            const SizedBox(height: 4),
+            // Primary stats
+            _buildStatRow(context, 'Users', info.userCount),
+            _buildStatRow(context, 'Dives', info.diveCount),
+            _buildStatRow(context, 'Sites', info.siteCount),
+            _buildStatRow(context, 'Trips', info.tripCount),
+            _buildStatRow(context, 'Buddies', info.buddyCount),
+            const SizedBox(height: 6),
             Text(
               info.formattedFileSize,
               style: theme.textTheme.bodySmall?.copyWith(
@@ -191,6 +189,30 @@ class _ExistingDatabaseDialogState extends State<ExistingDatabaseDialog> {
               ),
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatRow(BuildContext context, String label, int count) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          Text(
+            count.toString(),
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
       ),
     );
