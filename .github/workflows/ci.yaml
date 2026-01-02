@@ -91,6 +91,7 @@ jobs:
     name: Build iOS & macOS
     needs: test
     runs-on: macos-14
+    if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
 
@@ -121,6 +122,15 @@ jobs:
           restore-keys: |
             pods-${{ runner.os }}-
 
+      - name: Cache Xcode DerivedData
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Developer/Xcode/DerivedData
+          key: deriveddata-${{ runner.os }}-${{ hashFiles('macos/Podfile.lock') }}
+          restore-keys: |
+            deriveddata-${{ runner.os }}-
+
       - name: Install dependencies
         run: flutter pub get
 
@@ -128,6 +138,7 @@ jobs:
         run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Build iOS
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: flutter build ios --release --no-codesign -v
 
       - name: Build macOS
@@ -135,6 +146,7 @@ jobs:
 
       - name: Upload iOS artifact
         uses: actions/upload-artifact@v4
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         with:
           name: ios-build
           path: build/ios/iphoneos/Runner.app
@@ -142,6 +154,7 @@ jobs:
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         with:
           name: macos-build
           path: build/macos/Build/Products/Release/submersion.app
@@ -151,6 +164,7 @@ jobs:
     name: Build Linux & Android
     needs: test
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
 
@@ -229,6 +243,7 @@ jobs:
     name: Build Windows
     needs: test
     runs-on: windows-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
 
@@ -247,6 +262,15 @@ jobs:
           key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
             pub-${{ runner.os }}-
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            C:\Users\runneradmin\.nuget\packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
 
       - name: Install dependencies
         run: flutter pub get
