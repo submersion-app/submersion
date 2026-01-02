@@ -62,6 +62,8 @@ class DiverSettingsRepository {
         showDepthColoredDiveCards: Value(s.showDepthColoredDiveCards),
         showMapBackgroundOnDiveCards: Value(s.showMapBackgroundOnDiveCards),
         showMapBackgroundOnSiteCards: Value(s.showMapBackgroundOnSiteCards),
+        showMaxDepthMarker: Value(s.showMaxDepthMarker),
+        showPressureThresholdMarkers: Value(s.showPressureThresholdMarkers),
         createdAt: Value(now),
         updatedAt: Value(now),
       ),);
@@ -106,6 +108,8 @@ class DiverSettingsRepository {
           showDepthColoredDiveCards: Value(settings.showDepthColoredDiveCards),
           showMapBackgroundOnDiveCards: Value(settings.showMapBackgroundOnDiveCards),
           showMapBackgroundOnSiteCards: Value(settings.showMapBackgroundOnSiteCards),
+          showMaxDepthMarker: Value(settings.showMaxDepthMarker),
+          showPressureThresholdMarkers: Value(settings.showPressureThresholdMarkers),
           updatedAt: Value(now),
         ),
       );
@@ -167,6 +171,8 @@ class DiverSettingsRepository {
       showDepthColoredDiveCards: row.showDepthColoredDiveCards,
       showMapBackgroundOnDiveCards: row.showMapBackgroundOnDiveCards,
       showMapBackgroundOnSiteCards: row.showMapBackgroundOnSiteCards,
+      showMaxDepthMarker: row.showMaxDepthMarker,
+      showPressureThresholdMarkers: row.showPressureThresholdMarkers,
     );
   }
 

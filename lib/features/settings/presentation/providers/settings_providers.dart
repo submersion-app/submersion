@@ -105,6 +105,13 @@ class AppSettings {
   /// Show dive site map as background on site cards in the site list
   final bool showMapBackgroundOnSiteCards;
 
+  // Dive profile marker settings
+  /// Show max depth marker on dive profile chart
+  final bool showMaxDepthMarker;
+
+  /// Show pressure threshold markers (2/3, 1/2, 1/3) on dive profile chart
+  final bool showPressureThresholdMarkers;
+
   const AppSettings({
     this.depthUnit = DepthUnit.meters,
     this.temperatureUnit = TemperatureUnit.celsius,
@@ -133,6 +140,9 @@ class AppSettings {
     this.showDepthColoredDiveCards = false,
     this.showMapBackgroundOnDiveCards = false,
     this.showMapBackgroundOnSiteCards = false,
+    // Dive profile marker defaults
+    this.showMaxDepthMarker = true,
+    this.showPressureThresholdMarkers = false,
   });
 
   /// Compute the current unit preset based on actual unit values
@@ -190,6 +200,8 @@ class AppSettings {
     bool? showDepthColoredDiveCards,
     bool? showMapBackgroundOnDiveCards,
     bool? showMapBackgroundOnSiteCards,
+    bool? showMaxDepthMarker,
+    bool? showPressureThresholdMarkers,
   }) {
     return AppSettings(
       depthUnit: depthUnit ?? this.depthUnit,
@@ -217,6 +229,8 @@ class AppSettings {
       showDepthColoredDiveCards: showDepthColoredDiveCards ?? this.showDepthColoredDiveCards,
       showMapBackgroundOnDiveCards: showMapBackgroundOnDiveCards ?? this.showMapBackgroundOnDiveCards,
       showMapBackgroundOnSiteCards: showMapBackgroundOnSiteCards ?? this.showMapBackgroundOnSiteCards,
+      showMaxDepthMarker: showMaxDepthMarker ?? this.showMaxDepthMarker,
+      showPressureThresholdMarkers: showPressureThresholdMarkers ?? this.showPressureThresholdMarkers,
     );
   }
 }
@@ -441,6 +455,16 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  Future<void> setShowMaxDepthMarker(bool value) async {
+    state = state.copyWith(showMaxDepthMarker: value);
+    await _saveSettings();
+  }
+
+  Future<void> setShowPressureThresholdMarkers(bool value) async {
+    state = state.copyWith(showPressureThresholdMarkers: value);
+    await _saveSettings();
+  }
+
   /// Set all units to metric
   Future<void> setMetric() async {
     state = state.copyWith(
@@ -561,4 +585,12 @@ final showMapBackgroundOnDiveCardsProvider = Provider<bool>((ref) {
 
 final showMapBackgroundOnSiteCardsProvider = Provider<bool>((ref) {
   return ref.watch(settingsProvider.select((s) => s.showMapBackgroundOnSiteCards));
+});
+
+final showMaxDepthMarkerProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.showMaxDepthMarker));
+});
+
+final showPressureThresholdMarkersProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.showPressureThresholdMarkers));
 });

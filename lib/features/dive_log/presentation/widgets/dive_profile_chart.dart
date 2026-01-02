@@ -9,6 +9,7 @@ import '../../../../core/constants/units.dart';
 import '../../../../core/deco/ascent_rate_calculator.dart';
 import '../../../../core/utils/unit_formatter.dart';
 import '../../../settings/presentation/providers/settings_providers.dart';
+import '../../data/services/profile_markers_service.dart';
 import '../../domain/entities/dive.dart';
 import '../../domain/entities/profile_event.dart';
 
@@ -55,6 +56,15 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// Whether to show SAC curve by default
   final bool showSac;
 
+  /// Profile markers to display (max depth, pressure thresholds)
+  final List<ProfileMarker>? markers;
+
+  /// Whether to show max depth marker (from settings)
+  final bool showMaxDepthMarker;
+
+  /// Whether to show pressure threshold markers (from settings)
+  final bool showPressureThresholdMarkers;
+
   const DiveProfileChart({
     super.key,
     required this.profile,
@@ -74,6 +84,9 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.showAscentRateColors = true,
     this.showEvents = true,
     this.showSac = false,
+    this.markers,
+    this.showMaxDepthMarker = false,
+    this.showPressureThresholdMarkers = false,
   });
 
   @override
@@ -90,6 +103,17 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   bool _showCeiling = true;
   bool _showAscentRateColors = true;
   bool _showEvents = true;
+
+  // Profile marker toggles
+  bool _showMaxDepthMarkerLocal = true;
+  bool _showPressureMarkersLocal = true;
+
+  // Helper getters for marker availability
+  bool get _hasMaxDepthMarker =>
+      widget.markers?.any((m) => m.type == ProfileMarkerType.maxDepth) ?? false;
+
+  bool get _hasPressureMarkers =>
+      widget.markers?.any((m) => m.type != ProfileMarkerType.maxDepth) ?? false;
 
   // Zoom/pan state
   double _zoomLevel = 1.0;
@@ -244,6 +268,28 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   label: 'Events',
                   isEnabled: _showEvents,
                   onTap: () => setState(() => _showEvents = !_showEvents),
+                ),
+              // Max depth marker toggle (if enabled in settings and markers exist)
+              if (widget.showMaxDepthMarker && _hasMaxDepthMarker)
+                _buildMetricToggle(
+                  context,
+                  color: Colors.red,
+                  label: 'Max',
+                  isEnabled: _showMaxDepthMarkerLocal,
+                  onTap: () => setState(
+                    () => _showMaxDepthMarkerLocal = !_showMaxDepthMarkerLocal,
+                  ),
+                ),
+              // Pressure threshold markers toggle (if enabled in settings)
+              if (widget.showPressureThresholdMarkers && _hasPressureMarkers)
+                _buildMetricToggle(
+                  context,
+                  color: Colors.orange,
+                  label: '⅓½⅔',
+                  isEnabled: _showPressureMarkersLocal,
+                  onTap: () => setState(
+                    () => _showPressureMarkersLocal = !_showPressureMarkersLocal,
+                  ),
                 ),
               // Zoom controls (pushed to end)
               _buildZoomControls(context),
@@ -726,6 +772,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           // Ceiling line (if showing and data available)
           if (_showCeiling && widget.ceilingCurve != null)
             _buildCeilingLine(units),
+
+          // Profile markers (max depth, pressure thresholds)
+          ..._buildMarkerLines(units, totalMaxDepth),
         ],
         extraLinesData: ExtraLinesData(
           horizontalLines: _showEvents && widget.events != null
@@ -1172,7 +1221,77 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     return [];
   }
 
+  /// Build marker lines for max depth and pressure thresholds
+  List<LineChartBarData> _buildMarkerLines(
+    UnitFormatter units,
+    double chartMaxDepth,
+  ) {
+    final lines = <LineChartBarData>[];
+    final markers = widget.markers;
+
+    if (markers == null || markers.isEmpty) return lines;
+
+    for (final marker in markers) {
+      // Skip max depth markers if setting is off or locally toggled off
+      if (marker.type == ProfileMarkerType.maxDepth) {
+        if (!widget.showMaxDepthMarker || !_showMaxDepthMarkerLocal) continue;
+      } else {
+        // Skip pressure markers if setting is off or locally toggled off
+        if (!widget.showPressureThresholdMarkers || !_showPressureMarkersLocal) {
+          continue;
+        }
+      }
+
+      lines.add(_buildSingleMarkerLine(marker, units));
+    }
+
+    return lines;
+  }
+
+  /// Build a single marker as a LineChartBarData with a visible dot
+  LineChartBarData _buildSingleMarkerLine(
+    ProfileMarker marker,
+    UnitFormatter units,
+  ) {
+    final color = marker.getColor();
+    final size = marker.markerSize;
+
+    return LineChartBarData(
+      spots: [
+        FlSpot(
+          marker.timestamp.toDouble(),
+          -units.convertDepth(marker.depth),
+        ),
+      ],
+      isCurved: false,
+      color: Colors.transparent,
+      barWidth: 0,
+      dotData: FlDotData(
+        show: true,
+        getDotPainter: (spot, percent, bar, index) {
+          if (marker.type == ProfileMarkerType.maxDepth) {
+            // Max depth: red circle with white border
+            return FlDotCirclePainter(
+              radius: size,
+              color: color,
+              strokeWidth: 2,
+              strokeColor: Colors.white,
+            );
+          } else {
+            // Pressure threshold: colored circle with darker border
+            return FlDotCirclePainter(
+              radius: size,
+              color: color.withValues(alpha: 0.9),
+              strokeWidth: 1.5,
+              strokeColor: color.withValues(alpha: 0.5),
+            );
+          }
+        },
+      ),
+    );
+  }
 }
+
 
 /// Compact version of the dive profile chart for list previews
 class DiveProfileMiniChart extends StatelessWidget {

@@ -388,6 +388,11 @@ class DiverSettings extends Table {
       boolean().withDefault(const Constant(false))();
   BoolColumn get showMapBackgroundOnSiteCards =>
       boolean().withDefault(const Constant(false))();
+  // Dive profile markers
+  BoolColumn get showMaxDepthMarker =>
+      boolean().withDefault(const Constant(true))();
+  BoolColumn get showPressureThresholdMarkers =>
+      boolean().withDefault(const Constant(false))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -687,7 +692,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration {
@@ -786,6 +791,15 @@ class AppDatabase extends _$AppDatabase {
           // Add showDepthColoredDiveCards column to diver_settings (was missing migration)
           await customStatement(
             'ALTER TABLE diver_settings ADD COLUMN show_depth_colored_dive_cards INTEGER NOT NULL DEFAULT 0',
+          );
+        }
+        if (from < 8) {
+          // Add dive profile marker settings
+          await customStatement(
+            'ALTER TABLE diver_settings ADD COLUMN show_max_depth_marker INTEGER NOT NULL DEFAULT 1',
+          );
+          await customStatement(
+            'ALTER TABLE diver_settings ADD COLUMN show_pressure_threshold_markers INTEGER NOT NULL DEFAULT 0',
           );
         }
       },

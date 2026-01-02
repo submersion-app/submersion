@@ -17,6 +17,7 @@ import '../../../marine_life/presentation/providers/species_providers.dart';
 import '../../../settings/presentation/providers/export_providers.dart';
 import '../../../settings/presentation/providers/settings_providers.dart';
 import '../../data/services/profile_analysis_service.dart';
+import '../../data/services/profile_markers_service.dart';
 import '../../domain/entities/dive.dart';
 import '../providers/dive_providers.dart';
 import '../providers/profile_analysis_provider.dart';
@@ -458,6 +459,19 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     // Get profile analysis
     final analysis = ref.watch(diveProfileAnalysisProvider(dive));
 
+    // Get marker settings
+    final showMaxDepthMarker = ref.watch(showMaxDepthMarkerProvider);
+    final showPressureThresholdMarkers =
+        ref.watch(showPressureThresholdMarkersProvider);
+
+    // Calculate profile markers
+    final markers = _calculateProfileMarkers(
+      dive: dive,
+      analysis: analysis,
+      showMaxDepth: showMaxDepthMarker,
+      showPressureThresholds: showPressureThresholdMarkers,
+    );
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -506,6 +520,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   .firstOrNull,
               sacNormalizationFactor:
                   calculateSacNormalizationFactor(dive, analysis),
+              markers: markers,
+              showMaxDepthMarker: showMaxDepthMarker,
+              showPressureThresholdMarkers: showPressureThresholdMarkers,
               onPointSelected: (point) {
                 if (point == null) {
                   setState(() => _selectedPointIndex = null);
@@ -919,6 +936,42 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   bool _hasWeights(Dive dive) {
     return dive.weights.isNotEmpty ||
         (dive.weightAmount != null && dive.weightAmount! > 0);
+  }
+
+  /// Calculate profile markers for max depth and pressure thresholds
+  List<ProfileMarker> _calculateProfileMarkers({
+    required Dive dive,
+    required ProfileAnalysis? analysis,
+    required bool showMaxDepth,
+    required bool showPressureThresholds,
+  }) {
+    final markers = <ProfileMarker>[];
+
+    if (dive.profile.isEmpty) return markers;
+
+    // Add max depth marker
+    if (showMaxDepth && analysis != null) {
+      final maxDepthMarker = ProfileMarkersService.getMaxDepthMarker(
+        profile: dive.profile,
+        maxDepthTimestamp: analysis.maxDepthTimestamp,
+        maxDepth: analysis.maxDepth,
+      );
+      if (maxDepthMarker != null) {
+        markers.add(maxDepthMarker);
+      }
+    }
+
+    // Add pressure threshold markers
+    if (showPressureThresholds && dive.tanks.isNotEmpty) {
+      markers.addAll(
+        ProfileMarkersService.getPressureThresholdMarkers(
+          profile: dive.profile,
+          tanks: dive.tanks,
+        ),
+      );
+    }
+
+    return markers;
   }
 
   Widget _buildConditionsSection(BuildContext context, Dive dive) {
@@ -1659,6 +1712,18 @@ class _FullscreenProfilePageState extends ConsumerState<_FullscreenProfilePage> 
     final dive = widget.dive;
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
 
+    // Get marker settings
+    final showMaxDepthMarker = ref.watch(showMaxDepthMarkerProvider);
+    final showPressureThresholdMarkers =
+        ref.watch(showPressureThresholdMarkersProvider);
+
+    // Calculate profile markers
+    final markers = _calculateMarkers(
+      dive: dive,
+      showMaxDepth: showMaxDepthMarker,
+      showPressureThresholds: showPressureThresholdMarkers,
+    );
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: isLandscape
@@ -1709,6 +1774,9 @@ class _FullscreenProfilePageState extends ConsumerState<_FullscreenProfilePage> 
                           .firstOrNull,
                       sacNormalizationFactor:
                           calculateSacNormalizationFactor(dive, widget.analysis),
+                      markers: markers,
+                      showMaxDepthMarker: showMaxDepthMarker,
+                      showPressureThresholdMarkers: showPressureThresholdMarkers,
                       onPointSelected: (point) {
                         setState(() => _selectedPoint = point);
                       },
@@ -1735,6 +1803,41 @@ class _FullscreenProfilePageState extends ConsumerState<_FullscreenProfilePage> 
         ),
       ),
     );
+  }
+
+  /// Calculate profile markers for fullscreen view
+  List<ProfileMarker> _calculateMarkers({
+    required Dive dive,
+    required bool showMaxDepth,
+    required bool showPressureThresholds,
+  }) {
+    final markers = <ProfileMarker>[];
+
+    if (dive.profile.isEmpty) return markers;
+
+    // Add max depth marker
+    if (showMaxDepth && widget.analysis != null) {
+      final maxDepthMarker = ProfileMarkersService.getMaxDepthMarker(
+        profile: dive.profile,
+        maxDepthTimestamp: widget.analysis!.maxDepthTimestamp,
+        maxDepth: widget.analysis!.maxDepth,
+      );
+      if (maxDepthMarker != null) {
+        markers.add(maxDepthMarker);
+      }
+    }
+
+    // Add pressure threshold markers
+    if (showPressureThresholds && dive.tanks.isNotEmpty) {
+      markers.addAll(
+        ProfileMarkersService.getPressureThresholdMarkers(
+          profile: dive.profile,
+          tanks: dive.tanks,
+        ),
+      );
+    }
+
+    return markers;
   }
 
   Widget _buildMetricsTable(BuildContext context, {bool compact = false}) {
