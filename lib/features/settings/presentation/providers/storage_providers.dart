@@ -34,7 +34,12 @@ class StoragePlatformCapabilities {
 final storagePlatformCapabilitiesProvider =
     Provider<StoragePlatformCapabilities>((ref) {
   return StoragePlatformCapabilities(
-    supportsCustomFolder: true, // Supported on all platforms
+    // Custom folder is supported on all platforms:
+    // - macOS: Uses security-scoped bookmarks for persistent access
+    // - iOS: Uses security-scoped bookmarks for iCloud Drive folders
+    // - Windows/Linux: Standard file system access
+    // - Android: Uses Storage Access Framework (SAF)
+    supportsCustomFolder: true,
     supportsICloud: Platform.isIOS || Platform.isMacOS,
     supportsGoogleDrive: true, // All platforms
     isDesktop: Platform.isMacOS || Platform.isWindows || Platform.isLinux,
@@ -135,7 +140,10 @@ class StorageConfigNotifier extends StateNotifier<StorageConfigState> {
   }
 
   /// Pick a custom folder for database storage
-  Future<String?> pickCustomFolder() async {
+  ///
+  /// Returns a [FolderPickResultWithBookmark] containing the path and optional
+  /// bookmark data (for iOS), or null if cancelled.
+  Future<FolderPickResultWithBookmark?> pickCustomFolder() async {
     return _locationService.pickCustomFolder();
   }
 

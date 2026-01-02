@@ -3,18 +3,21 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
-/// Service for managing security-scoped bookmarks on macOS.
+/// Service for managing security-scoped bookmarks on macOS and iOS.
 ///
-/// Security-scoped bookmarks allow a sandboxed macOS app to persist access
+/// Security-scoped bookmarks allow sandboxed apps to persist access
 /// to user-selected folders across app restarts. Without these bookmarks,
 /// the sandbox revokes folder access when the app quits.
 ///
-/// This service is a no-op on non-macOS platforms.
+/// On iOS, this is essential for accessing iCloud Drive folders or other
+/// document provider locations that the user has selected.
+///
+/// This service is a no-op on non-Apple platforms.
 class SecurityScopedBookmarkService {
   static const _channel = MethodChannel('app.submersion/security_scoped_bookmark');
 
   /// Whether security-scoped bookmarks are supported on this platform
-  static bool get isSupported => Platform.isMacOS;
+  static bool get isSupported => Platform.isMacOS || Platform.isIOS;
 
   /// Creates a security-scoped bookmark for the given folder path.
   ///
@@ -87,7 +90,7 @@ class SecurityScopedBookmarkService {
   /// Stops accessing the currently active security-scoped resource.
   ///
   /// Call this when you no longer need access to the resource.
-  /// On macOS, there's a system limit on active security-scoped resources.
+  /// On macOS/iOS, there's a system limit on active security-scoped resources.
   static Future<void> stopAccessingSecurityScopedResource() async {
     if (!isSupported) return;
 
@@ -97,6 +100,81 @@ class SecurityScopedBookmarkService {
       debugPrint('Failed to stop accessing resource: ${e.message}');
     }
   }
+
+  /// Verifies write access to a folder using security-scoped resource access.
+  ///
+  /// This is specifically for iOS where standard Dart file operations don't work
+  /// with security-scoped URLs. The native code starts security-scoped access,
+  /// attempts to write a test file, and cleans up.
+  ///
+  /// Returns true if write access is verified, false otherwise.
+  /// On non-iOS platforms, returns null (caller should use standard file check).
+  static Future<bool?> verifyWriteAccess(String path) async {
+    // This method is only needed on iOS
+    if (!Platform.isIOS) return null;
+
+    try {
+      final result = await _channel.invokeMethod<bool>(
+        'verifyWriteAccess',
+        {'path': path},
+      );
+      return result ?? false;
+    } on PlatformException catch (e) {
+      debugPrint('Failed to verify write access: ${e.message}');
+      return false;
+    }
+  }
+
+  /// Picks a folder on iOS using native UIDocumentPicker and immediately
+  /// captures the security-scoped URL, creates a bookmark, and verifies access.
+  ///
+  /// This is required on iOS because file_picker returns a path string that
+  /// loses the security scope. By handling the picker natively, we can:
+  /// 1. Capture the security-scoped URL directly
+  /// 2. Immediately call startAccessingSecurityScopedResource()
+  /// 3. Create a bookmark while we have access
+  /// 4. Verify write permissions
+  ///
+  /// Returns a [FolderPickResult] with path and bookmark data, or null if cancelled.
+  /// Only works on iOS - returns null on other platforms.
+  static Future<FolderPickResult?> pickFolderWithSecurityScope() async {
+    if (!Platform.isIOS) return null;
+
+    try {
+      final result = await _channel.invokeMethod<Map<Object?, Object?>>(
+        'pickFolderWithSecurityScope',
+      );
+
+      if (result == null) return null;
+
+      final path = result['path'] as String?;
+      final bookmarkData = result['bookmarkData'] as Uint8List?;
+
+      if (path == null) return null;
+
+      return FolderPickResult(
+        path: path,
+        bookmarkData: bookmarkData,
+      );
+    } on PlatformException catch (e) {
+      debugPrint('Failed to pick folder: ${e.message}');
+      rethrow;
+    }
+  }
+}
+
+/// Result of picking a folder with security scope on iOS.
+class FolderPickResult {
+  /// The folder path
+  final String path;
+
+  /// The bookmark data for persistent access (iOS only)
+  final Uint8List? bookmarkData;
+
+  const FolderPickResult({
+    required this.path,
+    this.bookmarkData,
+  });
 }
 
 /// Result of resolving a security-scoped bookmark.

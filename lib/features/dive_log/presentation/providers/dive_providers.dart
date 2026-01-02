@@ -144,6 +144,12 @@ final diveProvider = FutureProvider.family<domain.Dive?, String>((ref, id) async
   return repository.getDiveById(id);
 });
 
+/// Dive profile provider - for lazy loading profiles in list views
+final diveProfileProvider = FutureProvider.family<List<domain.DiveProfilePoint>, String>((ref, diveId) async {
+  final repository = ref.watch(diveRepositoryProvider);
+  return repository.getDiveProfile(diveId);
+});
+
 /// Statistics provider (filtered by current diver)
 final diveStatisticsProvider = FutureProvider<DiveStatistics>((ref) async {
   final repository = ref.watch(diveRepositoryProvider);
