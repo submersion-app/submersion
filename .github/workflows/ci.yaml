@@ -131,7 +131,7 @@ jobs:
         run: flutter build ios --release --no-codesign -v
 
       - name: Build macOS
-        run: flutter build macos --release --no-codesign -v
+        run: flutter build macos --release -v
 
       - name: Upload iOS artifact
         uses: actions/upload-artifact@v4
@@ -189,7 +189,15 @@ jobs:
       - name: Install Linux dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
+          sudo apt-get install -y \
+            clang \
+            cmake \
+            ninja-build \
+            pkg-config \
+            libgtk-3-dev \
+            liblzma-dev \
+            libstdc++-12-dev \
+            libsecret-1-dev
 
       - name: Install dependencies
         run: flutter pub get
