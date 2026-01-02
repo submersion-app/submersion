@@ -303,6 +303,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
                   siteName: dive.site?.name,
                   maxDepth: dive.maxDepth,
                   duration: dive.duration,
+                  waterTemp: dive.waterTemp,
                   rating: dive.rating,
                   isFavorite: dive.isFavorite,
                   tags: dive.tags,
@@ -597,6 +598,7 @@ class DiveSearchDelegate extends SearchDelegate<Dive?> {
               siteName: dive.site?.name,
               maxDepth: dive.maxDepth,
               duration: dive.duration,
+              waterTemp: dive.waterTemp,
               rating: dive.rating,
               isFavorite: dive.isFavorite,
               tags: dive.tags,
@@ -628,6 +630,7 @@ class DiveListTile extends ConsumerWidget {
   final String? siteName;
   final double? maxDepth;
   final Duration? duration;
+  final double? waterTemp;
   final int? rating;
   final bool isFavorite;
   final List<Tag> tags;
@@ -651,6 +654,7 @@ class DiveListTile extends ConsumerWidget {
     this.siteName,
     this.maxDepth,
     this.duration,
+    this.waterTemp,
     this.rating,
     this.isFavorite = false,
     this.tags = const [],
@@ -848,6 +852,22 @@ class DiveListTile extends ConsumerWidget {
                                   : secondaryTextColor,
                             ),
                       ),
+                      if (waterTemp != null) ...[
+                        const SizedBox(width: 16),
+                        Icon(
+                          Icons.thermostat_outlined,
+                          size: 14,
+                          color: accentColor,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          units.formatTemperature(waterTemp),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: accentColor,
+                              ),
+                        ),
+                      ],
                     ],
                   ),
                   // Tags
