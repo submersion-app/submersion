@@ -6,3 +6,6 @@
 CODE_SIGNING_REQUIRED = NO
 CODE_SIGNING_ALLOWED = NO
 CODE_SIGN_IDENTITY =
+
+// Disable merged UI/platform thread to use the traditional threading model.
+FLUTTER_MERGED_PLATFORM_THREAD = 0
