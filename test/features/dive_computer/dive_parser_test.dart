@@ -77,7 +77,7 @@ void main() {
         expect(result[2].pressure, equals(100.0));
       });
 
-      test('converts timestamps correctly', () {
+      test('stores relative timestamps in seconds from dive start', () {
         final startTime = DateTime(2024, 6, 15, 10, 30);
         final downloadedDive = DownloadedDive(
           diveNumber: 1,
@@ -96,19 +96,11 @@ void main() {
 
         final result = parser.parseProfile(downloadedDive);
 
-        expect(result[0].timestamp, equals(startTime.millisecondsSinceEpoch));
-        expect(
-          result[1].timestamp,
-          equals(
-            startTime.add(const Duration(seconds: 60)).millisecondsSinceEpoch,
-          ),
-        );
-        expect(
-          result[2].timestamp,
-          equals(
-            startTime.add(const Duration(seconds: 120)).millisecondsSinceEpoch,
-          ),
-        );
+        // Timestamps are stored as relative seconds from dive start
+        // (not absolute milliseconds) per dive_parser.dart documentation
+        expect(result[0].timestamp, equals(0));
+        expect(result[1].timestamp, equals(60));
+        expect(result[2].timestamp, equals(120));
       });
     });
 
