@@ -59,6 +59,9 @@ class DiverSettingsRepository {
         showNdlOnProfile: Value(s.showNdlOnProfile),
         lastStopDepth: Value(s.lastStopDepth),
         decoStopIncrement: Value(s.decoStopIncrement),
+        showDepthColoredDiveCards: Value(s.showDepthColoredDiveCards),
+        showMapBackgroundOnDiveCards: Value(s.showMapBackgroundOnDiveCards),
+        showMapBackgroundOnSiteCards: Value(s.showMapBackgroundOnSiteCards),
         createdAt: Value(now),
         updatedAt: Value(now),
       ),);
@@ -100,6 +103,9 @@ class DiverSettingsRepository {
           showNdlOnProfile: Value(settings.showNdlOnProfile),
           lastStopDepth: Value(settings.lastStopDepth),
           decoStopIncrement: Value(settings.decoStopIncrement),
+          showDepthColoredDiveCards: Value(settings.showDepthColoredDiveCards),
+          showMapBackgroundOnDiveCards: Value(settings.showMapBackgroundOnDiveCards),
+          showMapBackgroundOnSiteCards: Value(settings.showMapBackgroundOnSiteCards),
           updatedAt: Value(now),
         ),
       );
@@ -158,6 +164,9 @@ class DiverSettingsRepository {
       showNdlOnProfile: row.showNdlOnProfile,
       lastStopDepth: row.lastStopDepth,
       decoStopIncrement: row.decoStopIncrement,
+      showDepthColoredDiveCards: row.showDepthColoredDiveCards,
+      showMapBackgroundOnDiveCards: row.showMapBackgroundOnDiveCards,
+      showMapBackgroundOnSiteCards: row.showMapBackgroundOnSiteCards,
     );
   }
 
