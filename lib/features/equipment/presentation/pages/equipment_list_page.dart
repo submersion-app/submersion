@@ -167,7 +167,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.inventory_2,
+            Icons.backpack,
             size: 80,
             color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
           ),
@@ -621,7 +621,7 @@ class EquipmentListTile extends StatelessWidget {
       case EquipmentType.camera:
         return Icons.camera_alt;
       default:
-        return Icons.inventory_2;
+        return Icons.backpack;
     }
   }
 }

@@ -143,7 +143,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
                         child: Column(
                           children: [
                             Icon(
-                              Icons.inventory_2_outlined,
+                              Icons.backpack_outlined,
                               size: 48,
                               color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                             ),
@@ -321,7 +321,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
       case EquipmentType.camera:
         return Icons.camera_alt;
       default:
-        return Icons.inventory_2;
+        return Icons.backpack;
     }
   }
 }

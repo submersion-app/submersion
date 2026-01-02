@@ -480,7 +480,7 @@ class EquipmentDetailPage extends ConsumerWidget {
       case EquipmentType.camera:
         return Icons.camera_alt;
       default:
-        return Icons.inventory_2;
+        return Icons.backpack;
     }
   }
 }

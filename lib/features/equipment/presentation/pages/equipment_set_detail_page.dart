@@ -132,7 +132,7 @@ class EquipmentSetDetailPage extends ConsumerWidget {
                     child: Column(
                       children: [
                         Icon(
-                          Icons.inventory_2_outlined,
+                          Icons.backpack_outlined,
                           size: 48,
                           color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                         ),
@@ -247,7 +247,7 @@ class EquipmentSetDetailPage extends ConsumerWidget {
       case EquipmentType.camera:
         return Icons.camera_alt;
       default:
-        return Icons.inventory_2;
+        return Icons.backpack;
     }
   }
 }
