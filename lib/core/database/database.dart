@@ -383,7 +383,7 @@ class DiverSettings extends Table {
   RealColumn get decoStopIncrement => real().withDefault(const Constant(3.0))();
   // Appearance settings
   BoolColumn get showDepthColoredDiveCards =>
-      boolean().withDefault(const Constant(true))();
+      boolean().withDefault(const Constant(false))();
   BoolColumn get showMapBackgroundOnDiveCards =>
       boolean().withDefault(const Constant(false))();
   BoolColumn get showMapBackgroundOnSiteCards =>
@@ -687,7 +687,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration {
@@ -780,6 +780,12 @@ class AppDatabase extends _$AppDatabase {
           // Add showMapBackgroundOnSiteCards column to diver_settings
           await customStatement(
             'ALTER TABLE diver_settings ADD COLUMN show_map_background_on_site_cards INTEGER NOT NULL DEFAULT 0',
+          );
+        }
+        if (from < 7) {
+          // Add showDepthColoredDiveCards column to diver_settings (was missing migration)
+          await customStatement(
+            'ALTER TABLE diver_settings ADD COLUMN show_depth_colored_dive_cards INTEGER NOT NULL DEFAULT 0',
           );
         }
       },
