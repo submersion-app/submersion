@@ -66,7 +66,8 @@ void main() {
       expect(find.text('Appearance'), findsOneWidget);
     });
 
-    testWidgets('should display Manage section with navigation items', (tester) async {
+    testWidgets('should display Manage section with navigation items',
+        (tester) async {
       final prefs = await SharedPreferences.getInstance();
 
       await tester.pumpWidget(
@@ -87,7 +88,7 @@ void main() {
         scrollable: find.byType(Scrollable).first,
       );
       expect(find.text('Manage'), findsOneWidget);
-      
+
       // Scroll to find Buddies which may be off screen
       await tester.scrollUntilVisible(
         find.text('Buddies'),
@@ -95,7 +96,7 @@ void main() {
         scrollable: find.byType(Scrollable).first,
       );
       expect(find.text('Buddies'), findsOneWidget);
-      
+
       // Scroll to find Certifications which may be off screen
       await tester.scrollUntilVisible(
         find.text('Certifications'),
@@ -112,7 +113,6 @@ void main() {
       );
       expect(find.text('Dive Centers'), findsOneWidget);
     });
-
 
     testWidgets('should display metric/imperial toggle', (tester) async {
       final prefs = await SharedPreferences.getInstance();

@@ -11,7 +11,8 @@ class WeightCalculatorPage extends ConsumerStatefulWidget {
   const WeightCalculatorPage({super.key});
 
   @override
-  ConsumerState<WeightCalculatorPage> createState() => _WeightCalculatorPageState();
+  ConsumerState<WeightCalculatorPage> createState() =>
+      _WeightCalculatorPageState();
 }
 
 class _WeightCalculatorPageState extends ConsumerState<WeightCalculatorPage> {
@@ -29,11 +30,12 @@ class _WeightCalculatorPageState extends ConsumerState<WeightCalculatorPage> {
   double _getCalculatedWeightKg() {
     final settings = ref.read(settingsProvider);
     final units = UnitFormatter(settings);
-    
+
     // Convert body weight input from display unit to kg
     final bodyWeightInput = double.tryParse(_bodyWeightController.text);
-    final bodyWeightKg = bodyWeightInput != null ? units.weightToKg(bodyWeightInput) : null;
-    
+    final bodyWeightKg =
+        bodyWeightInput != null ? units.weightToKg(bodyWeightInput) : null;
+
     return WeightCalculator.calculateRecommendedWeight(
       suitType: _selectedSuit,
       tankMaterial: _selectedTank,
@@ -48,17 +50,17 @@ class _WeightCalculatorPageState extends ConsumerState<WeightCalculatorPage> {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
     final isMetric = settings.weightUnit == WeightUnit.kilograms;
-    
+
     final calculatedWeightKg = _getCalculatedWeightKg();
-    
+
     // Primary display in user's preferred unit
     final primaryWeight = units.convertWeight(calculatedWeightKg);
     final primaryUnit = units.weightSymbol;
-    
+
     // Secondary display in the other unit
-    final secondaryWeight = isMetric 
-        ? calculatedWeightKg * 2.205  // kg to lbs
-        : calculatedWeightKg;          // show kg
+    final secondaryWeight = isMetric
+        ? calculatedWeightKg * 2.205 // kg to lbs
+        : calculatedWeightKg; // show kg
     final secondaryUnit = isMetric ? 'lbs' : 'kg';
 
     return Scaffold(
@@ -93,7 +95,8 @@ class _WeightCalculatorPageState extends ConsumerState<WeightCalculatorPage> {
                   Text(
                     '(${secondaryWeight.toStringAsFixed(1)} $secondaryUnit)',
                     style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
+                      color: theme.colorScheme.onPrimaryContainer
+                          .withValues(alpha: 0.7),
                     ),
                   ),
                 ],
@@ -111,7 +114,9 @@ class _WeightCalculatorPageState extends ConsumerState<WeightCalculatorPage> {
                 final isSelected = entry.key == _selectedSuit;
                 return ListTile(
                   title: Text(entry.value),
-                  trailing: isSelected ? Icon(Icons.check, color: theme.colorScheme.primary) : null,
+                  trailing: isSelected
+                      ? Icon(Icons.check, color: theme.colorScheme.primary)
+                      : null,
                   onTap: () => setState(() => _selectedSuit = entry.key),
                 );
               }).toList(),
@@ -127,7 +132,9 @@ class _WeightCalculatorPageState extends ConsumerState<WeightCalculatorPage> {
               children: [
                 ListTile(
                   title: const Text('Not specified'),
-                  trailing: _selectedTank == null ? Icon(Icons.check, color: theme.colorScheme.primary) : null,
+                  trailing: _selectedTank == null
+                      ? Icon(Icons.check, color: theme.colorScheme.primary)
+                      : null,
                   onTap: () => setState(() => _selectedTank = null),
                 ),
                 ...TankMaterial.values.map((material) {
@@ -135,7 +142,9 @@ class _WeightCalculatorPageState extends ConsumerState<WeightCalculatorPage> {
                   return ListTile(
                     title: Text(material.displayName),
                     subtitle: Text(_getTankDescription(material, isMetric)),
-                    trailing: isSelected ? Icon(Icons.check, color: theme.colorScheme.primary) : null,
+                    trailing: isSelected
+                        ? Icon(Icons.check, color: theme.colorScheme.primary)
+                        : null,
                     onTap: () => setState(() => _selectedTank = material),
                   );
                 }),
@@ -152,14 +161,18 @@ class _WeightCalculatorPageState extends ConsumerState<WeightCalculatorPage> {
               children: [
                 ListTile(
                   title: const Text('Not specified'),
-                  trailing: _selectedWater == null ? Icon(Icons.check, color: theme.colorScheme.primary) : null,
+                  trailing: _selectedWater == null
+                      ? Icon(Icons.check, color: theme.colorScheme.primary)
+                      : null,
                   onTap: () => setState(() => _selectedWater = null),
                 ),
                 ...WaterType.values.map((water) {
                   final isSelected = water == _selectedWater;
                   return ListTile(
                     title: Text(water.displayName),
-                    trailing: isSelected ? Icon(Icons.check, color: theme.colorScheme.primary) : null,
+                    trailing: isSelected
+                        ? Icon(Icons.check, color: theme.colorScheme.primary)
+                        : null,
                     onTap: () => setState(() => _selectedWater = water),
                   );
                 }),
@@ -179,11 +192,12 @@ class _WeightCalculatorPageState extends ConsumerState<WeightCalculatorPage> {
                 decoration: InputDecoration(
                   labelText: 'Your weight',
                   suffixText: primaryUnit,
-                  helperText: isMetric 
+                  helperText: isMetric
                       ? 'Adds ~1 kg per 10 kg over 70 kg'
                       : 'Adds ~2 lbs per 22 lbs over 154 lbs',
                 ),
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 onChanged: (_) => setState(() {}),
               ),
             ),
@@ -224,7 +238,7 @@ class _WeightCalculatorPageState extends ConsumerState<WeightCalculatorPage> {
   String _getTankDescription(TankMaterial material, bool isMetric) {
     switch (material) {
       case TankMaterial.aluminum:
-        return isMetric 
+        return isMetric
             ? 'More buoyant when empty (+2 kg)'
             : 'More buoyant when empty (+4 lbs)';
       case TankMaterial.steel:
@@ -232,9 +246,7 @@ class _WeightCalculatorPageState extends ConsumerState<WeightCalculatorPage> {
             ? 'Negatively buoyant (-2 kg)'
             : 'Negatively buoyant (-4 lbs)';
       case TankMaterial.carbonFiber:
-        return isMetric
-            ? 'Very buoyant (+3 kg)'
-            : 'Very buoyant (+7 lbs)';
+        return isMetric ? 'Very buoyant (+3 kg)' : 'Very buoyant (+7 lbs)';
     }
   }
 }

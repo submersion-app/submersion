@@ -17,7 +17,9 @@ class EquipmentRepository {
     try {
       final query = _db.select(_db.equipment)
         ..where((t) => t.isActive.equals(true))
-        ..orderBy([(t) => OrderingTerm.asc(t.type), (t) => OrderingTerm.asc(t.name)]);
+        ..orderBy(
+          [(t) => OrderingTerm.asc(t.type), (t) => OrderingTerm.asc(t.name)],
+        );
 
       if (diverId != null) {
         query.where((t) => t.diverId.equals(diverId));
@@ -54,7 +56,9 @@ class EquipmentRepository {
   Future<List<EquipmentItem>> getAllEquipment({String? diverId}) async {
     try {
       final query = _db.select(_db.equipment)
-        ..orderBy([(t) => OrderingTerm.asc(t.type), (t) => OrderingTerm.asc(t.name)]);
+        ..orderBy(
+          [(t) => OrderingTerm.asc(t.type), (t) => OrderingTerm.asc(t.name)],
+        );
 
       if (diverId != null) {
         query.where((t) => t.diverId.equals(diverId));
@@ -69,11 +73,16 @@ class EquipmentRepository {
   }
 
   /// Get equipment by status
-  Future<List<EquipmentItem>> getEquipmentByStatus(EquipmentStatus status, {String? diverId}) async {
+  Future<List<EquipmentItem>> getEquipmentByStatus(
+    EquipmentStatus status, {
+    String? diverId,
+  }) async {
     try {
       final query = _db.select(_db.equipment)
         ..where((t) => t.status.equals(status.name))
-        ..orderBy([(t) => OrderingTerm.asc(t.type), (t) => OrderingTerm.asc(t.name)]);
+        ..orderBy(
+          [(t) => OrderingTerm.asc(t.type), (t) => OrderingTerm.asc(t.name)],
+        );
 
       if (diverId != null) {
         query.where((t) => t.diverId.equals(diverId));
@@ -82,7 +91,11 @@ class EquipmentRepository {
       final rows = await query.get();
       return rows.map(_mapRowToEquipment).toList();
     } catch (e, stackTrace) {
-      _log.error('Failed to get equipment by status: ${status.name}', e, stackTrace);
+      _log.error(
+        'Failed to get equipment by status: ${status.name}',
+        e,
+        stackTrace,
+      );
       rethrow;
     }
   }
@@ -90,8 +103,7 @@ class EquipmentRepository {
   /// Get equipment by ID
   Future<EquipmentItem?> getEquipmentById(String id) async {
     try {
-      final query = _db.select(_db.equipment)
-        ..where((t) => t.id.equals(id));
+      final query = _db.select(_db.equipment)..where((t) => t.id.equals(id));
 
       final row = await query.getSingleOrNull();
       return row != null ? _mapRowToEquipment(row) : null;
@@ -106,8 +118,7 @@ class EquipmentRepository {
     if (ids.isEmpty) return [];
 
     try {
-      final query = _db.select(_db.equipment)
-        ..where((t) => t.id.isIn(ids));
+      final query = _db.select(_db.equipment)..where((t) => t.id.isIn(ids));
 
       final rows = await query.get();
       return rows.map(_mapRowToEquipment).toList();
@@ -124,31 +135,39 @@ class EquipmentRepository {
       final id = equipment.id.isEmpty ? _uuid.v4() : equipment.id;
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await _db.into(_db.equipment).insert(EquipmentCompanion(
-      id: Value(id),
-      diverId: Value(equipment.diverId),
-      name: Value(equipment.name),
-      type: Value(equipment.type.name),
-      brand: Value(equipment.brand),
-      model: Value(equipment.model),
-      serialNumber: Value(equipment.serialNumber),
-      size: Value(equipment.size),
-      status: Value(equipment.status.name),
-      purchaseDate: Value(equipment.purchaseDate?.millisecondsSinceEpoch),
-      purchasePrice: Value(equipment.purchasePrice),
-      purchaseCurrency: Value(equipment.purchaseCurrency),
-      lastServiceDate: Value(equipment.lastServiceDate?.millisecondsSinceEpoch),
-      serviceIntervalDays: Value(equipment.serviceIntervalDays),
-      notes: Value(equipment.notes),
-      isActive: Value(equipment.isActive),
-      createdAt: Value(now),
-      updatedAt: Value(now),
-    ),);
+      await _db.into(_db.equipment).insert(
+            EquipmentCompanion(
+              id: Value(id),
+              diverId: Value(equipment.diverId),
+              name: Value(equipment.name),
+              type: Value(equipment.type.name),
+              brand: Value(equipment.brand),
+              model: Value(equipment.model),
+              serialNumber: Value(equipment.serialNumber),
+              size: Value(equipment.size),
+              status: Value(equipment.status.name),
+              purchaseDate:
+                  Value(equipment.purchaseDate?.millisecondsSinceEpoch),
+              purchasePrice: Value(equipment.purchasePrice),
+              purchaseCurrency: Value(equipment.purchaseCurrency),
+              lastServiceDate:
+                  Value(equipment.lastServiceDate?.millisecondsSinceEpoch),
+              serviceIntervalDays: Value(equipment.serviceIntervalDays),
+              notes: Value(equipment.notes),
+              isActive: Value(equipment.isActive),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
 
       _log.info('Created equipment with id: $id');
       return equipment.copyWith(id: id);
     } catch (e, stackTrace) {
-      _log.error('Failed to create equipment: ${equipment.name}', e, stackTrace);
+      _log.error(
+        'Failed to create equipment: ${equipment.name}',
+        e,
+        stackTrace,
+      );
       rethrow;
     }
   }
@@ -159,7 +178,8 @@ class EquipmentRepository {
       _log.info('Updating equipment: ${equipment.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await (_db.update(_db.equipment)..where((t) => t.id.equals(equipment.id))).write(
+      await (_db.update(_db.equipment)..where((t) => t.id.equals(equipment.id)))
+          .write(
         EquipmentCompanion(
           name: Value(equipment.name),
           type: Value(equipment.type.name),
@@ -171,7 +191,8 @@ class EquipmentRepository {
           purchaseDate: Value(equipment.purchaseDate?.millisecondsSinceEpoch),
           purchasePrice: Value(equipment.purchasePrice),
           purchaseCurrency: Value(equipment.purchaseCurrency),
-          lastServiceDate: Value(equipment.lastServiceDate?.millisecondsSinceEpoch),
+          lastServiceDate:
+              Value(equipment.lastServiceDate?.millisecondsSinceEpoch),
           serviceIntervalDays: Value(equipment.serviceIntervalDays),
           notes: Value(equipment.notes),
           isActive: Value(equipment.isActive),
@@ -246,13 +267,18 @@ class EquipmentRepository {
   }
 
   /// Get equipment with service due
-  Future<List<EquipmentItem>> getEquipmentWithServiceDue({String? diverId}) async {
+  Future<List<EquipmentItem>> getEquipmentWithServiceDue({
+    String? diverId,
+  }) async {
     final allEquipment = await getActiveEquipment(diverId: diverId);
     return allEquipment.where((g) => g.isServiceDue).toList();
   }
 
   /// Search equipment by name, brand, model, or serial number
-  Future<List<EquipmentItem>> searchEquipment(String query, {String? diverId}) async {
+  Future<List<EquipmentItem>> searchEquipment(
+    String query, {
+    String? diverId,
+  }) async {
     try {
       final searchTerm = '%${query.toLowerCase()}%';
       final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
@@ -264,7 +290,8 @@ class EquipmentRepository {
         if (diverId != null) Variable.withString(diverId),
       ];
 
-      final results = await _db.customSelect('''
+      final results = await _db.customSelect(
+        '''
         SELECT * FROM equipment
         WHERE (LOWER(name) LIKE ?
            OR LOWER(brand) LIKE ?
@@ -272,7 +299,9 @@ class EquipmentRepository {
            OR LOWER(serial_number) LIKE ?)
         $diverFilter
         ORDER BY is_active DESC, type ASC, name ASC
-      ''', variables: variables,).get();
+      ''',
+        variables: variables,
+      ).get();
 
       return results.map((row) {
         return EquipmentItem(
@@ -291,12 +320,16 @@ class EquipmentRepository {
             orElse: () => EquipmentStatus.active,
           ),
           purchaseDate: row.data['purchase_date'] != null
-              ? DateTime.fromMillisecondsSinceEpoch(row.data['purchase_date'] as int)
+              ? DateTime.fromMillisecondsSinceEpoch(
+                  row.data['purchase_date'] as int,
+                )
               : null,
           purchasePrice: (row.data['purchase_price'] as num?)?.toDouble(),
           purchaseCurrency: (row.data['purchase_currency'] as String?) ?? 'USD',
           lastServiceDate: row.data['last_service_date'] != null
-              ? DateTime.fromMillisecondsSinceEpoch(row.data['last_service_date'] as int)
+              ? DateTime.fromMillisecondsSinceEpoch(
+                  row.data['last_service_date'] as int,
+                )
               : null,
           serviceIntervalDays: row.data['service_interval_days'] as int?,
           notes: (row.data['notes'] as String?) ?? '',
@@ -312,15 +345,22 @@ class EquipmentRepository {
   /// Get dive count for equipment item
   Future<int> getDiveCountForEquipment(String equipmentId) async {
     try {
-      final result = await _db.customSelect('''
+      final result = await _db.customSelect(
+        '''
         SELECT COUNT(*) as count
         FROM dive_equipment
         WHERE equipment_id = ?
-      ''', variables: [Variable.withString(equipmentId)],).getSingle();
+      ''',
+        variables: [Variable.withString(equipmentId)],
+      ).getSingle();
 
       return result.data['count'] as int? ?? 0;
     } catch (e, stackTrace) {
-      _log.error('Failed to get dive count for equipment: $equipmentId', e, stackTrace);
+      _log.error(
+        'Failed to get dive count for equipment: $equipmentId',
+        e,
+        stackTrace,
+      );
       rethrow;
     }
   }

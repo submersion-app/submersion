@@ -120,7 +120,8 @@ class SiteDetailPage extends ConsumerWidget {
 
   Widget _buildMapSection(BuildContext context, DiveSite site) {
     final colorScheme = Theme.of(context).colorScheme;
-    final siteLocation = LatLng(site.location!.latitude, site.location!.longitude);
+    final siteLocation =
+        LatLng(site.location!.latitude, site.location!.longitude);
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -130,7 +131,9 @@ class SiteDetailPage extends ConsumerWidget {
           children: [
             FlutterMap(
               // Key forces rebuild when coordinates change (e.g., after editing)
-              key: ValueKey('${site.location!.latitude}_${site.location!.longitude}'),
+              key: ValueKey(
+                '${site.location!.latitude}_${site.location!.longitude}',
+              ),
               options: MapOptions(
                 initialCenter: siteLocation,
                 initialZoom: 14.0,
@@ -210,7 +213,8 @@ class SiteDetailPage extends ConsumerWidget {
 
   void _showFullscreenMap(BuildContext context, DiveSite site) {
     final colorScheme = Theme.of(context).colorScheme;
-    final siteLocation = LatLng(site.location!.latitude, site.location!.longitude);
+    final siteLocation =
+        LatLng(site.location!.latitude, site.location!.longitude);
 
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -318,7 +322,11 @@ class SiteDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildDiveCountSection(BuildContext context, WidgetRef ref, DiveSite site) {
+  Widget _buildDiveCountSection(
+    BuildContext context,
+    WidgetRef ref,
+    DiveSite site,
+  ) {
     final colorScheme = Theme.of(context).colorScheme;
     final diveCountAsync = ref.watch(siteDiveCountProvider(site.id));
 
@@ -330,7 +338,8 @@ class SiteDetailPage extends ConsumerWidget {
             onTap: diveCount > 0
                 ? () {
                     // Set the filter to this site and navigate to dive list
-                    ref.read(diveFilterProvider.notifier).state = DiveFilterState(
+                    ref.read(diveFilterProvider.notifier).state =
+                        DiveFilterState(
                       siteId: site.id,
                     );
                     context.go('/dives');
@@ -365,9 +374,10 @@ class SiteDetailPage extends ConsumerWidget {
                               : diveCount == 1
                                   ? '1 dive logged'
                                   : '$diveCount dives logged',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
                         ),
                       ],
                     ),
@@ -497,7 +507,9 @@ class SiteDetailPage extends ConsumerWidget {
               isEmpty: !site.hasCoordinates,
               onTap: site.hasCoordinates
                   ? () {
-                      Clipboard.setData(ClipboardData(text: site.location.toString()));
+                      Clipboard.setData(
+                        ClipboardData(text: site.location.toString()),
+                      );
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('Coordinates copied to clipboard'),
@@ -572,7 +584,11 @@ class SiteDetailPage extends ConsumerWidget {
         (site.parkingInfo != null && site.parkingInfo!.isNotEmpty);
   }
 
-  Widget _buildDepthSection(BuildContext context, WidgetRef ref, DiveSite site) {
+  Widget _buildDepthSection(
+    BuildContext context,
+    WidgetRef ref,
+    DiveSite site,
+  ) {
     final colorScheme = Theme.of(context).colorScheme;
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
@@ -640,23 +656,28 @@ class SiteDetailPage extends ConsumerWidget {
                         children: [
                           Text(
                             'Minimum',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             '${formatPrimary(site.minDepth!)} $primarySymbol',
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: colorScheme.secondary,
                                 ),
                           ),
                           Text(
                             '${formatSecondary(site.minDepth!)} $secondarySymbol',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
                           ),
                         ],
                       ),
@@ -673,23 +694,28 @@ class SiteDetailPage extends ConsumerWidget {
                         children: [
                           Text(
                             'Maximum',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             '${formatPrimary(site.maxDepth!)} $primarySymbol',
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: colorScheme.primary,
                                 ),
                           ),
                           Text(
                             '${formatSecondary(site.maxDepth!)} $secondarySymbol',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
                           ),
                         ],
                       ),
@@ -754,9 +780,11 @@ class SiteDetailPage extends ConsumerWidget {
             const SizedBox(height: 12),
             Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 decoration: BoxDecoration(
-                  color: getDifficultyColor(site.difficulty!).withValues(alpha: 0.15),
+                  color: getDifficultyColor(site.difficulty!)
+                      .withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
                     color: getDifficultyColor(site.difficulty!),
@@ -858,7 +886,8 @@ class SiteDetailPage extends ConsumerWidget {
                 site.accessNotes!,
               ),
             ],
-            if (site.mooringNumber != null && site.mooringNumber!.isNotEmpty) ...[
+            if (site.mooringNumber != null &&
+                site.mooringNumber!.isNotEmpty) ...[
               _buildDetailRow(
                 context,
                 Icons.anchor,
@@ -913,7 +942,9 @@ class SiteDetailPage extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: Icon(
                     index < rating ? Icons.star : Icons.star_border,
-                    color: hasRating ? Colors.amber : colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                    color: hasRating
+                        ? Colors.amber
+                        : colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                     size: 36,
                   ),
                 );
@@ -922,7 +953,9 @@ class SiteDetailPage extends ConsumerWidget {
             const SizedBox(height: 8),
             Center(
               child: Text(
-                hasRating ? '${rating.toStringAsFixed(1)} out of 5' : 'Not rated',
+                hasRating
+                    ? '${rating.toStringAsFixed(1)} out of 5'
+                    : 'Not rated',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                       fontStyle: hasRating ? null : FontStyle.italic,

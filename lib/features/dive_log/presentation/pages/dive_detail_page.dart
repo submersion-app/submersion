@@ -19,7 +19,9 @@ import '../../../settings/presentation/providers/settings_providers.dart';
 import '../../data/services/profile_analysis_service.dart';
 import '../../data/services/profile_markers_service.dart';
 import '../../domain/entities/dive.dart';
+import '../../domain/entities/gas_switch.dart';
 import '../providers/dive_providers.dart';
+import '../providers/gas_switch_providers.dart';
 import '../providers/profile_analysis_provider.dart';
 import '../widgets/deco_info_panel.dart';
 import '../widgets/dive_profile_chart.dart';
@@ -96,9 +98,16 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 64, color: Theme.of(context).colorScheme.error),
+              Icon(
+                Icons.error_outline,
+                size: 64,
+                color: Theme.of(context).colorScheme.error,
+              ),
               const SizedBox(height: 16),
-              Text('Error loading dive', style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                'Error loading dive',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: 8),
               Text(error.toString()),
             ],
@@ -121,9 +130,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               dive.isFavorite ? Icons.favorite : Icons.favorite_border,
               color: dive.isFavorite ? Colors.red : null,
             ),
-            tooltip: dive.isFavorite ? 'Remove from favorites' : 'Add to favorites',
+            tooltip:
+                dive.isFavorite ? 'Remove from favorites' : 'Add to favorites',
             onPressed: () {
-              ref.read(diveListNotifierProvider.notifier).toggleFavorite(diveId);
+              ref
+                  .read(diveListNotifierProvider.notifier)
+                  .toggleFavorite(diveId);
             },
           ),
           IconButton(
@@ -207,7 +219,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
   }
 
-  Widget _buildHeaderSection(BuildContext context, WidgetRef ref, Dive dive, UnitFormatter units) {
+  Widget _buildHeaderSection(
+    BuildContext context,
+    WidgetRef ref,
+    Dive dive,
+    UnitFormatter units,
+  ) {
     final hasLocation = dive.site?.location != null;
     final colorScheme = Theme.of(context).colorScheme;
     final cardColor = Theme.of(context).cardColor;
@@ -287,7 +304,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               _buildStatItem(
                 context,
                 Icons.timer,
-                dive.duration != null ? '${dive.duration!.inMinutes} min' : '--',
+                dive.duration != null
+                    ? '${dive.duration!.inMinutes} min'
+                    : '--',
                 'Bottom Time',
               ),
               _buildStatItem(
@@ -310,7 +329,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     }
 
     final site = dive.site!;
-    final siteLocation = LatLng(site.location!.latitude, site.location!.longitude);
+    final siteLocation =
+        LatLng(site.location!.latitude, site.location!.longitude);
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -330,7 +350,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 ),
                 children: [
                   TileLayer(
-                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    urlTemplate:
+                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                     userAgentPackageName: 'com.submersion.app',
                     maxZoom: 19,
                   ),
@@ -388,7 +409,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               right: 8,
               top: 8,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(16),
@@ -439,7 +461,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     return '--';
   }
 
-  Widget _buildStatItem(BuildContext context, IconData icon, String value, String label) {
+  Widget _buildStatItem(
+    BuildContext context,
+    IconData icon,
+    String value,
+    String label,
+  ) {
     return Column(
       children: [
         Icon(icon, color: Theme.of(context).colorScheme.primary),
@@ -463,6 +490,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     final showMaxDepthMarker = ref.watch(showMaxDepthMarkerProvider);
     final showPressureThresholdMarkers =
         ref.watch(showPressureThresholdMarkersProvider);
+
+    // Get gas switches for segment coloring
+    final gasSwitchesAsync = ref.watch(gasSwitchesProvider(dive.id));
 
     // Calculate profile markers
     final markers = _calculateProfileMarkers(
@@ -490,7 +520,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     Text(
                       '${dive.profile.length} points',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                     ),
                     const SizedBox(width: 8),
@@ -498,7 +529,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                       icon: const Icon(Icons.fullscreen),
                       tooltip: 'View fullscreen',
                       visualDensity: VisualDensity.compact,
-                      onPressed: () => _showFullscreenProfile(context, ref, dive),
+                      onPressed: () =>
+                          _showFullscreenProfile(context, ref, dive),
                     ),
                   ],
                 ),
@@ -523,6 +555,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               markers: markers,
               showMaxDepthMarker: showMaxDepthMarker,
               showPressureThresholdMarkers: showPressureThresholdMarkers,
+              tanks: dive.tanks,
+              gasSwitches: gasSwitchesAsync.valueOrNull,
               onPointSelected: (point) {
                 if (point == null) {
                   setState(() => _selectedPointIndex = null);
@@ -606,7 +640,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     return '$minutes:${secs.toString().padLeft(2, '0')}';
   }
 
-  Widget _buildO2ToxicitySection(BuildContext context, WidgetRef ref, Dive dive) {
+  Widget _buildO2ToxicitySection(
+    BuildContext context,
+    WidgetRef ref,
+    Dive dive,
+  ) {
     final analysis = ref.watch(diveProfileAnalysisProvider(dive));
 
     // Don't show if no analysis available
@@ -629,7 +667,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             child: Card(
               color: Theme.of(context).colorScheme.primaryContainer,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Row(
                   children: [
                     Icon(
@@ -670,7 +709,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   }
 
   Widget _buildSacSegmentsSection(
-      BuildContext context, WidgetRef ref, Dive dive,) {
+    BuildContext context,
+    WidgetRef ref,
+    Dive dive,
+  ) {
     final analysis = ref.watch(diveProfileAnalysisProvider(dive));
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
@@ -847,14 +889,24 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
   void _showFullscreenProfile(BuildContext context, WidgetRef ref, Dive dive) {
     final analysis = ref.read(diveProfileAnalysisProvider(dive));
+    final gasSwitches = ref.read(gasSwitchesProvider(dive.id)).valueOrNull;
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => _FullscreenProfilePage(dive: dive, analysis: analysis),
+        builder: (context) => _FullscreenProfilePage(
+          dive: dive,
+          analysis: analysis,
+          gasSwitches: gasSwitches,
+        ),
       ),
     );
   }
 
-  Widget _buildDetailsSection(BuildContext context, WidgetRef ref, Dive dive, UnitFormatter units) {
+  Widget _buildDetailsSection(
+    BuildContext context,
+    WidgetRef ref,
+    Dive dive,
+    UnitFormatter units,
+  ) {
     final surfaceIntervalAsync = ref.watch(surfaceIntervalProvider(diveId));
 
     return Card(
@@ -869,56 +921,89 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             ),
             const Divider(),
             _buildDetailRow(context, 'Dive Type', dive.diveTypeName),
-            if (dive.trip != null)
-              _buildTripRow(context, dive),
-            if (dive.diveCenter != null)
-              _buildDiveCenterRow(context, dive),
+            if (dive.trip != null) _buildTripRow(context, dive),
+            if (dive.diveCenter != null) _buildDiveCenterRow(context, dive),
             if (dive.visibility != null)
-              _buildDetailRow(context, 'Visibility', dive.visibility!.displayName),
+              _buildDetailRow(
+                context,
+                'Visibility',
+                dive.visibility!.displayName,
+              ),
             if (dive.avgDepth != null)
-              _buildDetailRow(context, 'Avg Depth', units.formatDepth(dive.avgDepth)),
+              _buildDetailRow(
+                context,
+                'Avg Depth',
+                units.formatDepth(dive.avgDepth),
+              ),
             if (dive.airTemp != null)
-              _buildDetailRow(context, 'Air Temp', units.formatTemperature(dive.airTemp)),
+              _buildDetailRow(
+                context,
+                'Air Temp',
+                units.formatTemperature(dive.airTemp),
+              ),
             if (dive.waterType != null)
-              _buildDetailRow(context, 'Water Type', dive.waterType!.displayName),
+              _buildDetailRow(
+                context,
+                'Water Type',
+                dive.waterType!.displayName,
+              ),
             if (dive.buddy != null && dive.buddy!.isNotEmpty)
               _buildDetailRow(context, 'Buddy', dive.buddy!),
             if (dive.diveMaster != null && dive.diveMaster!.isNotEmpty)
               _buildDetailRow(context, 'Dive Master', dive.diveMaster!),
             _buildSacRow(context, ref, dive, units),
             // Gradient factors (from dive computer)
-            if (dive.gradientFactorLow != null && dive.gradientFactorHigh != null)
-              _buildDetailRow(context, 'Gradient Factors', 'GF ${dive.gradientFactorLow}/${dive.gradientFactorHigh}'),
+            if (dive.gradientFactorLow != null &&
+                dive.gradientFactorHigh != null)
+              _buildDetailRow(
+                context,
+                'Gradient Factors',
+                'GF ${dive.gradientFactorLow}/${dive.gradientFactorHigh}',
+              ),
             // Dive computer info
-            if (dive.diveComputerModel != null && dive.diveComputerModel!.isNotEmpty)
+            if (dive.diveComputerModel != null &&
+                dive.diveComputerModel!.isNotEmpty)
               _buildDetailRow(
                 context,
                 'Dive Computer',
-                dive.diveComputerSerial != null && dive.diveComputerSerial!.isNotEmpty
+                dive.diveComputerSerial != null &&
+                        dive.diveComputerSerial!.isNotEmpty
                     ? '${dive.diveComputerModel} (${dive.diveComputerSerial})'
                     : dive.diveComputerModel!,
               ),
             // Surface interval - prefer imported value, fall back to calculated
             if (dive.surfaceInterval != null)
-              Builder(builder: (context) {
-                final interval = dive.surfaceInterval!;
-                final hours = interval.inHours;
-                final minutes = interval.inMinutes % 60;
-                final intervalText = hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m';
-                return _buildDetailRow(context, 'Surface Interval', intervalText);
-              },)
+              Builder(
+                builder: (context) {
+                  final interval = dive.surfaceInterval!;
+                  final hours = interval.inHours;
+                  final minutes = interval.inMinutes % 60;
+                  final intervalText =
+                      hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m';
+                  return _buildDetailRow(
+                    context,
+                    'Surface Interval',
+                    intervalText,
+                  );
+                },
+              )
             else
               surfaceIntervalAsync.when(
-              data: (interval) {
-                if (interval == null) return const SizedBox.shrink();
-                final hours = interval.inHours;
-                final minutes = interval.inMinutes % 60;
-                final intervalText = hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m';
-                return _buildDetailRow(context, 'Surface Interval', intervalText);
-              },
-              loading: () => const SizedBox.shrink(),
-              error: (_, __) => const SizedBox.shrink(),
-            ),
+                data: (interval) {
+                  if (interval == null) return const SizedBox.shrink();
+                  final hours = interval.inHours;
+                  final minutes = interval.inMinutes % 60;
+                  final intervalText =
+                      hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m';
+                  return _buildDetailRow(
+                    context,
+                    'Surface Interval',
+                    intervalText,
+                  );
+                },
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
+              ),
           ],
         ),
       ),
@@ -991,22 +1076,46 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             ),
             const Divider(),
             if (dive.currentDirection != null)
-              _buildDetailRow(context, 'Current Direction', dive.currentDirection!.displayName),
+              _buildDetailRow(
+                context,
+                'Current Direction',
+                dive.currentDirection!.displayName,
+              ),
             if (dive.currentStrength != null)
-              _buildDetailRow(context, 'Current Strength', dive.currentStrength!.displayName),
+              _buildDetailRow(
+                context,
+                'Current Strength',
+                dive.currentStrength!.displayName,
+              ),
             if (dive.swellHeight != null)
-              _buildDetailRow(context, 'Swell Height', '${dive.swellHeight!.toStringAsFixed(1)}m'),
+              _buildDetailRow(
+                context,
+                'Swell Height',
+                '${dive.swellHeight!.toStringAsFixed(1)}m',
+              ),
             if (dive.entryMethod != null)
-              _buildDetailRow(context, 'Entry Method', dive.entryMethod!.displayName),
+              _buildDetailRow(
+                context,
+                'Entry Method',
+                dive.entryMethod!.displayName,
+              ),
             if (dive.exitMethod != null)
-              _buildDetailRow(context, 'Exit Method', dive.exitMethod!.displayName),
+              _buildDetailRow(
+                context,
+                'Exit Method',
+                dive.exitMethod!.displayName,
+              ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildWeightSection(BuildContext context, Dive dive, UnitFormatter units) {
+  Widget _buildWeightSection(
+    BuildContext context,
+    Dive dive,
+    UnitFormatter units,
+  ) {
     if (!_hasWeights(dive)) return const SizedBox.shrink();
 
     // Combine new weights with legacy single weight for unified display
@@ -1015,21 +1124,25 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
     // Build list of weights to display (new format + legacy if present)
     final displayWeights = <_WeightDisplay>[];
-    
+
     // Add new weights
     for (final weight in dive.weights) {
-      displayWeights.add(_WeightDisplay(
-        type: weight.weightType.displayName,
-        amount: weight.amountKg,
-      ),);
+      displayWeights.add(
+        _WeightDisplay(
+          type: weight.weightType.displayName,
+          amount: weight.amountKg,
+        ),
+      );
     }
-    
+
     // Add legacy weight in same format if no new weights exist
     if (!hasWeights && hasLegacyWeight) {
-      displayWeights.add(_WeightDisplay(
-        type: dive.weightType?.displayName ?? 'Weight',
-        amount: dive.weightAmount!,
-      ),);
+      displayWeights.add(
+        _WeightDisplay(
+          type: dive.weightType?.displayName ?? 'Weight',
+          amount: dive.weightAmount!,
+        ),
+      );
     }
 
     final totalWeight = displayWeights.fold(0.0, (sum, w) => sum + w.amount);
@@ -1050,22 +1163,24 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 Text(
                   'Total: ${units.formatWeight(totalWeight)}',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
               ],
             ),
             const Divider(),
-            ...displayWeights.map((weight) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(weight.type),
-                  Text(units.formatWeight(weight.amount)),
-                ],
+            ...displayWeights.map(
+              (weight) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(weight.type),
+                    Text(units.formatWeight(weight.amount)),
+                  ],
+                ),
               ),
-            ),),
+            ),
           ],
         ),
       ),
@@ -1100,13 +1215,17 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: dive.tags.map((tag) => Chip(
-                    label: Text(tag.name),
-                    backgroundColor: tag.color.withValues(alpha: 0.2),
-                    side: BorderSide(color: tag.color),
-                    labelStyle: TextStyle(color: tag.color),
-                    visualDensity: VisualDensity.compact,
-                  ),).toList(),
+              children: dive.tags
+                  .map(
+                    (tag) => Chip(
+                      label: Text(tag.name),
+                      backgroundColor: tag.color.withValues(alpha: 0.2),
+                      side: BorderSide(color: tag.color),
+                      labelStyle: TextStyle(color: tag.color),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  )
+                  .toList(),
             ),
           ],
         ),
@@ -1114,19 +1233,26 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
   }
 
-  Widget _buildSacRow(BuildContext context, WidgetRef ref, Dive dive, UnitFormatter units) {
+  Widget _buildSacRow(
+    BuildContext context,
+    WidgetRef ref,
+    Dive dive,
+    UnitFormatter units,
+  ) {
     final sacUnit = ref.watch(sacUnitProvider);
 
     // Determine which SAC value to show based on setting
     if (sacUnit == SacUnit.litersPerMin) {
       // Volume-based SAC (L/min) - requires tank volume
       if (dive.sac == null) return const SizedBox.shrink();
-      final value = '${units.convertVolume(dive.sac!).toStringAsFixed(1)} ${units.volumeSymbol}/min';
+      final value =
+          '${units.convertVolume(dive.sac!).toStringAsFixed(1)} ${units.volumeSymbol}/min';
       return _buildDetailRow(context, 'SAC Rate', value);
     } else {
       // Pressure-based SAC (bar/min or psi/min) - doesn't require tank volume
       if (dive.sacPressure == null) return const SizedBox.shrink();
-      final value = '${units.convertPressure(dive.sacPressure!).toStringAsFixed(1)} ${units.pressureSymbol}/min';
+      final value =
+          '${units.convertPressure(dive.sacPressure!).toStringAsFixed(1)} ${units.pressureSymbol}/min';
       return _buildDetailRow(context, 'SAC Rate', value);
     }
   }
@@ -1180,9 +1306,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         if (trip.subtitle != null)
                           Text(
                             trip.subtitle!,
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                ),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
+                                    ),
                             overflow: TextOverflow.ellipsis,
                           ),
                       ],
@@ -1219,7 +1348,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             ),
             Row(
               children: [
-                Text(dive.diveCenter!.name, style: Theme.of(context).textTheme.bodyMedium),
+                Text(
+                  dive.diveCenter!.name,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
                 const SizedBox(width: 4),
                 Icon(
                   Icons.chevron_right,
@@ -1256,7 +1388,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                       Text(
                         '${buddies.length} ${buddies.length == 1 ? 'buddy' : 'buddies'}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
                             ),
                       ),
                   ],
@@ -1268,7 +1402,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     child: Text(
                       'Solo dive or no buddies recorded',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                             fontStyle: FontStyle.italic,
                           ),
                     ),
@@ -1310,7 +1445,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
   }
 
-  Widget _buildTanksSection(BuildContext context, Dive dive, UnitFormatter units) {
+  Widget _buildTanksSection(
+    BuildContext context,
+    Dive dive,
+    UnitFormatter units,
+  ) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -1323,8 +1462,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             ),
             const Divider(),
             ...dive.tanks.map((tank) {
-              final startP = units.formatPressureValue(tank.startPressure?.toDouble());
-              final endP = units.formatPressureValue(tank.endPressure?.toDouble());
+              final startP =
+                  units.formatPressureValue(tank.startPressure?.toDouble());
+              final endP =
+                  units.formatPressureValue(tank.endPressure?.toDouble());
               final used = tank.pressureUsed != null
                   ? ' (${units.formatPressure(tank.pressureUsed!.toDouble())} used)'
                   : '';
@@ -1334,7 +1475,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   : null;
               final tankLabel = preset?.displayName ??
                   (tank.volume != null
-                      ? units.formatTankVolume(tank.volume, tank.workingPressure, decimals: 1)
+                      ? units.formatTankVolume(
+                          tank.volume,
+                          tank.workingPressure,
+                          decimals: 1,
+                        )
                       : null);
               return ListTile(
                 contentPadding: EdgeInsets.zero,
@@ -1380,14 +1525,19 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         ),
                         Text(
                           '${sightings.length} species',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
                         ),
                       ],
                     ),
                     const Divider(),
-                    ...sightings.map((sighting) => _buildSightingTile(context, sighting)),
+                    ...sightings.map(
+                      (sighting) => _buildSightingTile(context, sighting),
+                    ),
                   ],
                 ),
               ),
@@ -1549,7 +1699,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           FilledButton(
             onPressed: () async {
               Navigator.of(dialogContext).pop();
-              await ref.read(diveListNotifierProvider.notifier).deleteDive(diveId);
+              await ref
+                  .read(diveListNotifierProvider.notifier)
+                  .deleteDive(diveId);
               if (context.mounted) {
                 context.go('/dives');
               }
@@ -1588,7 +1740,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 _handleSingleDiveExport(
                   context,
                   ref,
-                  () => ref.read(exportServiceProvider).exportDivesToPdf([dive]),
+                  () =>
+                      ref.read(exportServiceProvider).exportDivesToPdf([dive]),
                 );
               },
             ),
@@ -1601,7 +1754,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 _handleSingleDiveExport(
                   context,
                   ref,
-                  () => ref.read(exportServiceProvider).exportDivesToCsv([dive]),
+                  () =>
+                      ref.read(exportServiceProvider).exportDivesToCsv([dive]),
                 );
               },
             ),
@@ -1676,14 +1830,21 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 class _FullscreenProfilePage extends ConsumerStatefulWidget {
   final Dive dive;
   final ProfileAnalysis? analysis;
+  final List<GasSwitchWithTank>? gasSwitches;
 
-  const _FullscreenProfilePage({required this.dive, this.analysis});
+  const _FullscreenProfilePage({
+    required this.dive,
+    this.analysis,
+    this.gasSwitches,
+  });
 
   @override
-  ConsumerState<_FullscreenProfilePage> createState() => _FullscreenProfilePageState();
+  ConsumerState<_FullscreenProfilePage> createState() =>
+      _FullscreenProfilePageState();
 }
 
-class _FullscreenProfilePageState extends ConsumerState<_FullscreenProfilePage> {
+class _FullscreenProfilePageState
+    extends ConsumerState<_FullscreenProfilePage> {
   DiveProfilePoint? _selectedPoint;
 
   @override
@@ -1710,7 +1871,8 @@ class _FullscreenProfilePageState extends ConsumerState<_FullscreenProfilePage> 
   @override
   Widget build(BuildContext context) {
     final dive = widget.dive;
-    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
 
     // Get marker settings
     final showMaxDepthMarker = ref.watch(showMaxDepthMarkerProvider);
@@ -1772,11 +1934,16 @@ class _FullscreenProfilePageState extends ConsumerState<_FullscreenProfilePage> 
                           .where((t) => t.volume != null && t.volume! > 0)
                           .map((t) => t.volume!)
                           .firstOrNull,
-                      sacNormalizationFactor:
-                          calculateSacNormalizationFactor(dive, widget.analysis),
+                      sacNormalizationFactor: calculateSacNormalizationFactor(
+                        dive,
+                        widget.analysis,
+                      ),
                       markers: markers,
                       showMaxDepthMarker: showMaxDepthMarker,
-                      showPressureThresholdMarkers: showPressureThresholdMarkers,
+                      showPressureThresholdMarkers:
+                          showPressureThresholdMarkers,
+                      tanks: dive.tanks,
+                      gasSwitches: widget.gasSwitches,
                       onPointSelected: (point) {
                         setState(() => _selectedPoint = point);
                       },
@@ -1795,7 +1962,10 @@ class _FullscreenProfilePageState extends ConsumerState<_FullscreenProfilePage> 
                   icon: const Icon(Icons.close),
                   onPressed: () => Navigator.of(context).pop(),
                   style: IconButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
+                    backgroundColor: Theme.of(context)
+                        .colorScheme
+                        .surface
+                        .withValues(alpha: 0.8),
                   ),
                 ),
               ),
@@ -1905,9 +2075,13 @@ class _FullscreenProfilePageState extends ConsumerState<_FullscreenProfilePage> 
                   _buildTableRow(
                     context,
                     point.temperature != null ? 'Temperature' : '',
-                    point.temperature != null ? units.formatTemperature(point.temperature) : '',
+                    point.temperature != null
+                        ? units.formatTemperature(point.temperature)
+                        : '',
                     point.pressure != null ? 'Pressure' : '',
-                    point.pressure != null ? units.formatPressure(point.pressure) : '',
+                    point.pressure != null
+                        ? units.formatPressure(point.pressure)
+                        : '',
                   ),
                 if (point.heartRate != null)
                   _buildTableRow(
@@ -1924,23 +2098,43 @@ class _FullscreenProfilePageState extends ConsumerState<_FullscreenProfilePage> 
     );
   }
 
-  Widget _buildCompactMetrics(BuildContext context, DiveProfilePoint point, UnitFormatter units) {
+  Widget _buildCompactMetrics(
+    BuildContext context,
+    DiveProfilePoint point,
+    UnitFormatter units,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildCompactMetricRow(context, 'Time', _formatTime(point.timestamp)),
-        _buildCompactMetricRow(context, 'Depth', units.formatDepth(point.depth)),
+        _buildCompactMetricRow(
+          context,
+          'Depth',
+          units.formatDepth(point.depth),
+        ),
         if (point.temperature != null)
-          _buildCompactMetricRow(context, 'Temp', units.formatTemperature(point.temperature)),
+          _buildCompactMetricRow(
+            context,
+            'Temp',
+            units.formatTemperature(point.temperature),
+          ),
         if (point.pressure != null)
-          _buildCompactMetricRow(context, 'Pressure', units.formatPressure(point.pressure)),
+          _buildCompactMetricRow(
+            context,
+            'Pressure',
+            units.formatPressure(point.pressure),
+          ),
         if (point.heartRate != null)
           _buildCompactMetricRow(context, 'HR', '${point.heartRate!} bpm'),
       ],
     );
   }
 
-  Widget _buildCompactMetricRow(BuildContext context, String label, String value) {
+  Widget _buildCompactMetricRow(
+    BuildContext context,
+    String label,
+    String value,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
@@ -1980,7 +2174,8 @@ class _FullscreenProfilePageState extends ConsumerState<_FullscreenProfilePage> 
                     Text(
                       '$label1: ',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                     ),
                     Text(
@@ -2001,7 +2196,8 @@ class _FullscreenProfilePageState extends ConsumerState<_FullscreenProfilePage> 
                     Text(
                       '$label2: ',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                     ),
                     Text(

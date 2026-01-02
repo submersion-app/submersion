@@ -33,7 +33,9 @@ class _ApiKeysPageState extends ConsumerState<ApiKeysPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.listen<ApiKeyState>(apiKeyProvider, (previous, next) {
         // Only populate controllers once when loading completes
-        if (previous?.isLoading == true && !next.isLoading && !_controllersInitialized) {
+        if (previous?.isLoading == true &&
+            !next.isLoading &&
+            !_controllersInitialized) {
           _populateControllers(next);
         }
       });
@@ -68,7 +70,9 @@ class _ApiKeysPageState extends ConsumerState<ApiKeysPage> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(success ? 'Weather API key saved' : (error ?? 'Save failed')),
+          content: Text(
+            success ? 'Weather API key saved' : (error ?? 'Save failed'),
+          ),
           backgroundColor: success ? null : Colors.red,
         ),
       );
@@ -83,7 +87,8 @@ class _ApiKeysPageState extends ConsumerState<ApiKeysPage> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(success ? 'Tide API key saved' : (error ?? 'Save failed')),
+          content:
+              Text(success ? 'Tide API key saved' : (error ?? 'Save failed')),
           backgroundColor: success ? null : Colors.red,
         ),
       );
@@ -98,7 +103,8 @@ class _ApiKeysPageState extends ConsumerState<ApiKeysPage> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(success ? 'RapidAPI key saved' : (error ?? 'Save failed')),
+          content:
+              Text(success ? 'RapidAPI key saved' : (error ?? 'Save failed')),
           backgroundColor: success ? null : Colors.red,
         ),
       );
@@ -126,7 +132,9 @@ class _ApiKeysPageState extends ConsumerState<ApiKeysPage> {
       setState(() => _testingRapidApi = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(isValid ? 'API key is valid!' : (errorMessage ?? 'Unknown error')),
+          content: Text(
+            isValid ? 'API key is valid!' : (errorMessage ?? 'Unknown error'),
+          ),
           backgroundColor: isValid ? Colors.green : Colors.red,
           duration: const Duration(seconds: 5),
         ),
@@ -230,7 +238,8 @@ class _ApiKeysPageState extends ConsumerState<ApiKeysPage> {
             icon: Icons.cloud,
             controller: _weatherKeyController,
             isObscured: _weatherKeyObscured,
-            onToggleObscure: () => setState(() => _weatherKeyObscured = !_weatherKeyObscured),
+            onToggleObscure: () =>
+                setState(() => _weatherKeyObscured = !_weatherKeyObscured),
             onSave: _saveWeatherKey,
             onTest: _testWeatherKey,
             isTesting: _testingWeather,
@@ -249,7 +258,8 @@ class _ApiKeysPageState extends ConsumerState<ApiKeysPage> {
             icon: Icons.waves,
             controller: _tideKeyController,
             isObscured: _tideKeyObscured,
-            onToggleObscure: () => setState(() => _tideKeyObscured = !_tideKeyObscured),
+            onToggleObscure: () =>
+                setState(() => _tideKeyObscured = !_tideKeyObscured),
             onSave: _saveTideKey,
             onTest: _testTideKey,
             isTesting: _testingTide,
@@ -268,12 +278,14 @@ class _ApiKeysPageState extends ConsumerState<ApiKeysPage> {
             icon: Icons.scuba_diving,
             controller: _rapidApiKeyController,
             isObscured: _rapidApiKeyObscured,
-            onToggleObscure: () => setState(() => _rapidApiKeyObscured = !_rapidApiKeyObscured),
+            onToggleObscure: () =>
+                setState(() => _rapidApiKeyObscured = !_rapidApiKeyObscured),
             onSave: _saveRapidApiKey,
             onTest: _testRapidApiKey,
             isTesting: _testingRapidApi,
             isConfigured: apiKeys.hasRapidApiKey,
-            getKeyUrl: 'https://rapidapi.com/the-dive-api-the-dive-api-default/api/world-scuba-diving-sites-api',
+            getKeyUrl:
+                'https://rapidapi.com/the-dive-api-the-dive-api-default/api/world-scuba-diving-sites-api',
             getKeyLabel: 'Subscribe on RapidAPI',
           ),
 
@@ -288,7 +300,8 @@ class _ApiKeysPageState extends ConsumerState<ApiKeysPage> {
                   context: context,
                   builder: (dialogContext) => AlertDialog(
                     title: const Text('Clear All API Keys?'),
-                    content: const Text('This will remove all stored API keys.'),
+                    content:
+                        const Text('This will remove all stored API keys.'),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(dialogContext, false),
@@ -384,7 +397,9 @@ class _ApiKeysPageState extends ConsumerState<ApiKeysPage> {
                 labelText: 'API Key',
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
-                  icon: Icon(isObscured ? Icons.visibility : Icons.visibility_off),
+                  icon: Icon(
+                    isObscured ? Icons.visibility : Icons.visibility_off,
+                  ),
                   onPressed: onToggleObscure,
                 ),
               ),

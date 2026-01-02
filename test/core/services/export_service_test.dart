@@ -11,10 +11,10 @@ void main() {
 
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
-    
+
     // Create a temporary directory for tests
     testDir = await Directory.systemTemp.createTemp('submersion_test_');
-    
+
     // Mock the path_provider channel
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
@@ -26,7 +26,7 @@ void main() {
         return null;
       },
     );
-    
+
     // Mock the share_plus channel
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
@@ -37,7 +37,7 @@ void main() {
       },
     );
   });
-  
+
   tearDownAll(() async {
     // Clean up the temp directory
     if (await testDir.exists()) {
@@ -105,7 +105,8 @@ void main() {
       expect(csvOutput, contains("'@ATFORMULA()"));
     });
 
-    test('exportTripsToCsv sanitizes tab and carriage return characters', () async {
+    test('exportTripsToCsv sanitizes tab and carriage return characters',
+        () async {
       final now = DateTime.now();
       final dangerousTrips = [
         Trip(
@@ -154,13 +155,14 @@ void main() {
       expect(csvOutput, contains('Paradise Resort'));
       expect(csvOutput, contains('Ocean Explorer'));
       expect(csvOutput, contains('Great diving conditions'));
-      
+
       // Should NOT have unnecessary quotes
       expect(csvOutput, isNot(contains("'Safe Trip Name")));
       expect(csvOutput, isNot(contains("'Maldives")));
     });
 
-    test('exportTripsToCsv handles strings starting with hyphen in middle', () async {
+    test('exportTripsToCsv handles strings starting with hyphen in middle',
+        () async {
       // A hyphen in the middle of a string should not be prefixed
       final now = DateTime.now();
       final trip = Trip(

@@ -12,7 +12,8 @@ class EmergencyContact extends Equatable {
     this.relation,
   });
 
-  bool get isComplete => name != null && name!.isNotEmpty && phone != null && phone!.isNotEmpty;
+  bool get isComplete =>
+      name != null && name!.isNotEmpty && phone != null && phone!.isNotEmpty;
 
   EmergencyContact copyWith({
     String? name,
@@ -122,9 +123,7 @@ class Diver extends Equatable {
 
   /// Check if diver has medical info
   bool get hasMedicalInfo =>
-      medicalNotes.isNotEmpty ||
-      bloodType != null ||
-      allergies != null;
+      medicalNotes.isNotEmpty || bloodType != null || allergies != null;
 
   Diver copyWith({
     String? id,

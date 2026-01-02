@@ -111,7 +111,9 @@ class ShearwaterBleProtocol {
       final uuid = char.uuid.str.toLowerCase();
       final props = char.properties;
       _log.info('  Characteristic: $uuid');
-      _log.info('    Properties: read=${props.read}, write=${props.write}, writeNoResponse=${props.writeWithoutResponse}, notify=${props.notify}, indicate=${props.indicate}');
+      _log.info(
+        '    Properties: read=${props.read}, write=${props.write}, writeNoResponse=${props.writeWithoutResponse}, notify=${props.notify}, indicate=${props.indicate}',
+      );
 
       if (uuid == shearwaterTxCharUuid.toLowerCase()) {
         _txCharacteristic = char;
@@ -173,7 +175,9 @@ class ShearwaterBleProtocol {
   }
 
   void _onDataReceived(List<int> data) {
-    _log.info('Received ${data.length} bytes: ${data.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}');
+    _log.info(
+      'Received ${data.length} bytes: ${data.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}',
+    );
 
     // For BLE, skip the 2-byte frame header [nframes, frame_index] and
     // stream bytes until a SLIP END marker is found.
@@ -187,7 +191,9 @@ class ShearwaterBleProtocol {
   }
 
   void _tryParseResponse() {
-    _log.info('Parsing response buffer: ${_receivedData.length} bytes: ${_receivedData.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}');
+    _log.info(
+      'Parsing response buffer: ${_receivedData.length} bytes: ${_receivedData.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}',
+    );
 
     // Look for SLIP END byte to find complete frame
     final endIndex = _receivedData.indexOf(slipEnd);
@@ -221,7 +227,9 @@ class ShearwaterBleProtocol {
       return;
     }
 
-    _log.info('Decoded SLIP: ${decoded.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}');
+    _log.info(
+      'Decoded SLIP: ${decoded.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}',
+    );
 
     // Validate Shearwater packet header
     // Response format: [0x01, 0xFF, length, 0x00, ...data]
@@ -231,7 +239,9 @@ class ShearwaterBleProtocol {
     }
 
     if (decoded[0] != 0x01 || decoded[1] != 0xFF || decoded[3] != 0x00) {
-      _log.warning('Invalid packet header: ${decoded.sublist(0, 4).map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}');
+      _log.warning(
+        'Invalid packet header: ${decoded.sublist(0, 4).map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}',
+      );
       return;
     }
 
@@ -240,7 +250,9 @@ class ShearwaterBleProtocol {
 
     // Extract payload (skip 4-byte header)
     final payload = decoded.sublist(4);
-    _log.info('Payload: ${payload.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}');
+    _log.info(
+      'Payload: ${payload.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}',
+    );
 
     if (payload.isNotEmpty) {
       _responseController.add(payload);
@@ -615,8 +627,7 @@ class ShearwaterBleProtocol {
 
     // Check for NAK response
     if (initResponse.isNotEmpty && initResponse[0] == nak) {
-      final errorCode =
-          initResponse.length >= 3 ? initResponse[2] : 0;
+      final errorCode = initResponse.length >= 3 ? initResponse[2] : 0;
       _log.warning(
         'NAK received for RequestDownload: error=0x${errorCode.toRadixString(16)}',
       );
@@ -722,7 +733,8 @@ class ShearwaterBleProtocol {
 
       int value;
       if (byteOffset + 1 < data.length) {
-        value = ((data[byteOffset] << 8) | data[byteOffset + 1]) >> (16 - bitShift - 9);
+        value = ((data[byteOffset] << 8) | data[byteOffset + 1]) >>
+            (16 - bitShift - 9);
       } else {
         value = data[byteOffset] >> (8 - bitShift - 1);
       }
@@ -879,7 +891,8 @@ class DiveManifestEntry {
         if (header == 0x5A23) return null;
 
         final diveNumber = (data[2] << 8) | data[3];
-        final timestamp = (data[8] << 24) | (data[9] << 16) | (data[10] << 8) | data[11];
+        final timestamp =
+            (data[8] << 24) | (data[9] << 16) | (data[10] << 8) | data[11];
         final durationMin = (data[12] << 8) | data[13];
         final maxDepthCm = (data[14] << 8) | data[15];
         final dataAddress =

@@ -322,7 +322,11 @@ class DiveCenterSearchDelegate extends SearchDelegate<DiveCenter?> {
                   ? Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.star, size: 16, color: Colors.amber.shade700),
+                        Icon(
+                          Icons.star,
+                          size: 16,
+                          color: Colors.amber.shade700,
+                        ),
                         const SizedBox(width: 4),
                         Text(center.rating!.toStringAsFixed(1)),
                       ],

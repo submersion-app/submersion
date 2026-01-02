@@ -32,8 +32,7 @@ class SiteRepository {
   /// Get a single site by ID
   Future<domain.DiveSite?> getSiteById(String id) async {
     try {
-      final query = _db.select(_db.diveSites)
-        ..where((t) => t.id.equals(id));
+      final query = _db.select(_db.diveSites)..where((t) => t.id.equals(id));
 
       final row = await query.getSingleOrNull();
       return row != null ? _mapRowToSite(row) : null;
@@ -50,27 +49,29 @@ class SiteRepository {
       final id = site.id.isEmpty ? _uuid.v4() : site.id;
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await _db.into(_db.diveSites).insert(DiveSitesCompanion(
-        id: Value(id),
-        diverId: Value(site.diverId),
-        name: Value(site.name),
-        description: Value(site.description),
-        latitude: Value(site.location?.latitude),
-        longitude: Value(site.location?.longitude),
-        minDepth: Value(site.minDepth),
-        maxDepth: Value(site.maxDepth),
-        difficulty: Value(site.difficulty?.name),
-        country: Value(site.country),
-        region: Value(site.region),
-        rating: Value(site.rating),
-        notes: Value(site.notes),
-        hazards: Value(site.hazards),
-        accessNotes: Value(site.accessNotes),
-        mooringNumber: Value(site.mooringNumber),
-        parkingInfo: Value(site.parkingInfo),
-        createdAt: Value(now),
-        updatedAt: Value(now),
-      ),);
+      await _db.into(_db.diveSites).insert(
+            DiveSitesCompanion(
+              id: Value(id),
+              diverId: Value(site.diverId),
+              name: Value(site.name),
+              description: Value(site.description),
+              latitude: Value(site.location?.latitude),
+              longitude: Value(site.location?.longitude),
+              minDepth: Value(site.minDepth),
+              maxDepth: Value(site.maxDepth),
+              difficulty: Value(site.difficulty?.name),
+              country: Value(site.country),
+              region: Value(site.region),
+              rating: Value(site.rating),
+              notes: Value(site.notes),
+              hazards: Value(site.hazards),
+              accessNotes: Value(site.accessNotes),
+              mooringNumber: Value(site.mooringNumber),
+              parkingInfo: Value(site.parkingInfo),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
 
       _log.info('Created site with id: $id');
       return site.copyWith(id: id);
@@ -86,7 +87,8 @@ class SiteRepository {
       _log.info('Updating site: ${site.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await (_db.update(_db.diveSites)..where((t) => t.id.equals(site.id))).write(
+      await (_db.update(_db.diveSites)..where((t) => t.id.equals(site.id)))
+          .write(
         DiveSitesCompanion(
           name: Value(site.name),
           description: Value(site.description),
@@ -129,8 +131,7 @@ class SiteRepository {
   Future<List<domain.DiveSite>> getSitesByIds(List<String> ids) async {
     if (ids.isEmpty) return [];
     try {
-      final query = _db.select(_db.diveSites)
-        ..where((t) => t.id.isIn(ids));
+      final query = _db.select(_db.diveSites)..where((t) => t.id.isIn(ids));
       final rows = await query.get();
       return rows.map(_mapRowToSite).toList();
     } catch (e, stackTrace) {
@@ -153,13 +154,18 @@ class SiteRepository {
   }
 
   /// Search sites by name or location
-  Future<List<domain.DiveSite>> searchSites(String query, {String? diverId}) async {
+  Future<List<domain.DiveSite>> searchSites(
+    String query, {
+    String? diverId,
+  }) async {
     try {
       final searchQuery = _db.select(_db.diveSites)
-        ..where((t) =>
-            t.name.contains(query) |
-            t.country.contains(query) |
-            t.region.contains(query),)
+        ..where(
+          (t) =>
+              t.name.contains(query) |
+              t.country.contains(query) |
+              t.region.contains(query),
+        )
         ..orderBy([(t) => OrderingTerm.asc(t.name)]);
 
       if (diverId != null) {
@@ -195,15 +201,21 @@ class SiteRepository {
   }
 
   /// Get sites with dive counts
-  Future<List<SiteWithDiveCount>> getSitesWithDiveCounts({String? diverId}) async {
+  Future<List<SiteWithDiveCount>> getSitesWithDiveCounts({
+    String? diverId,
+  }) async {
     try {
       final sites = await getAllSites(diverId: diverId);
       final counts = await getDiveCountsBySite();
 
-      return sites.map((site) => SiteWithDiveCount(
-        site: site,
-        diveCount: counts[site.id] ?? 0,
-      ),).toList()
+      return sites
+          .map(
+            (site) => SiteWithDiveCount(
+              site: site,
+              diveCount: counts[site.id] ?? 0,
+            ),
+          )
+          .toList()
         ..sort((a, b) => b.diveCount.compareTo(a.diveCount));
     } catch (e, stackTrace) {
       _log.error('Failed to get sites with dive counts', e, stackTrace);

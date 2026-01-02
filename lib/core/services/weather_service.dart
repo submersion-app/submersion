@@ -116,8 +116,9 @@ class WeatherService {
     final main = json['main'] as Map<String, dynamic>?;
     final wind = json['wind'] as Map<String, dynamic>?;
     final weatherList = json['weather'] as List?;
-    final weather =
-        weatherList?.isNotEmpty == true ? weatherList!.first as Map<String, dynamic>? : null;
+    final weather = weatherList?.isNotEmpty == true
+        ? weatherList!.first as Map<String, dynamic>?
+        : null;
 
     return WeatherData(
       airTemp: main?['temp']?.toDouble(),
@@ -139,8 +140,9 @@ class WeatherService {
 
     final current = data.first as Map<String, dynamic>;
     final weatherList = current['weather'] as List?;
-    final weather =
-        weatherList?.isNotEmpty == true ? weatherList!.first as Map<String, dynamic>? : null;
+    final weather = weatherList?.isNotEmpty == true
+        ? weatherList!.first as Map<String, dynamic>?
+        : null;
 
     return WeatherData(
       airTemp: current['temp']?.toDouble(),

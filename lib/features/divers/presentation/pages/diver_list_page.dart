@@ -68,7 +68,9 @@ class DiverListPage extends ConsumerWidget {
             isCurrentDiver: isCurrentDiver,
             onTap: () => context.push('/divers/${diver.id}'),
             onSwitchTo: () async {
-              await ref.read(currentDiverIdProvider.notifier).setCurrentDiver(diver.id);
+              await ref
+                  .read(currentDiverIdProvider.notifier)
+                  .setCurrentDiver(diver.id);
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(

@@ -30,7 +30,10 @@ class RankingList extends StatelessWidget {
               Icon(
                 Icons.leaderboard_outlined,
                 size: 48,
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+                color: Theme.of(context)
+                    .colorScheme
+                    .primary
+                    .withValues(alpha: 0.5),
               ),
               const SizedBox(height: 8),
               Text(
@@ -45,7 +48,8 @@ class RankingList extends StatelessWidget {
       );
     }
 
-    final displayItems = maxItems != null ? items.take(maxItems!).toList() : items;
+    final displayItems =
+        maxItems != null ? items.take(maxItems!).toList() : items;
     final maxCount = items.isNotEmpty
         ? items.map((e) => e.count).reduce((a, b) => a > b ? a : b)
         : 1;
@@ -162,7 +166,10 @@ class _RankingTile extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: Theme.of(context).colorScheme.primaryContainer,
                         borderRadius: BorderRadius.circular(12),
@@ -170,7 +177,8 @@ class _RankingTile extends StatelessWidget {
                       child: Text(
                         '${item.count} $countLabel',
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                          color:
+                              Theme.of(context).colorScheme.onPrimaryContainer,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),
@@ -193,8 +201,13 @@ class _RankingTile extends StatelessWidget {
                   borderRadius: BorderRadius.circular(2),
                   child: LinearProgressIndicator(
                     value: percentage,
-                    backgroundColor: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
-                    valueColor: AlwaysStoppedAnimation(Theme.of(context).colorScheme.primary),
+                    backgroundColor: Theme.of(context)
+                        .colorScheme
+                        .primaryContainer
+                        .withValues(alpha: 0.3),
+                    valueColor: AlwaysStoppedAnimation(
+                      Theme.of(context).colorScheme.primary,
+                    ),
                     minHeight: 6,
                   ),
                 ),
@@ -246,7 +259,8 @@ class ValueRankingCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: (iconColor ?? Theme.of(context).colorScheme.primary).withValues(alpha: 0.1),
+                color: (iconColor ?? Theme.of(context).colorScheme.primary)
+                    .withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
@@ -276,7 +290,8 @@ class ValueRankingCard extends StatelessWidget {
                     Text(
                       subtitle!,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                     ),
                 ],

@@ -19,7 +19,8 @@ class DeviceDiscoveryPage extends ConsumerStatefulWidget {
   const DeviceDiscoveryPage({super.key});
 
   @override
-  ConsumerState<DeviceDiscoveryPage> createState() => _DeviceDiscoveryPageState();
+  ConsumerState<DeviceDiscoveryPage> createState() =>
+      _DeviceDiscoveryPageState();
 }
 
 class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
@@ -392,7 +393,9 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
           const SizedBox(height: 12),
           OutlinedButton(
             onPressed: () {
-              ref.read(discoveryNotifierProvider.notifier).goToStep(DiscoveryStep.scan);
+              ref
+                  .read(discoveryNotifierProvider.notifier)
+                  .goToStep(DiscoveryStep.scan);
             },
             child: const Text('Choose Different Device'),
           ),
@@ -429,9 +432,8 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
     );
 
     // Create in database
-    final saved = await ref
-        .read(diveComputerNotifierProvider.notifier)
-        .create(computer);
+    final saved =
+        await ref.read(diveComputerNotifierProvider.notifier).create(computer);
 
     _savedComputer = saved;
 

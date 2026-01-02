@@ -113,7 +113,9 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
         scaffoldMessenger.clearSnackBars();
         scaffoldMessenger.showSnackBar(
           SnackBar(
-            content: Text('Deleted ${deletedDives.length} ${deletedDives.length == 1 ? 'dive' : 'dives'}'),
+            content: Text(
+              'Deleted ${deletedDives.length} ${deletedDives.length == 1 ? 'dive' : 'dives'}',
+            ),
             duration: const Duration(seconds: 5),
             showCloseIcon: true,
             action: SnackBarAction(
@@ -277,18 +279,26 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
     );
   }
 
-  Widget _buildDiveList(BuildContext context, List<Dive> dives, bool hasActiveFilters) {
+  Widget _buildDiveList(
+    BuildContext context,
+    List<Dive> dives,
+    bool hasActiveFilters,
+  ) {
     // Calculate depth range for relative depth coloring
-    final depthsWithValues = dives.where((d) => d.maxDepth != null).map((d) => d.maxDepth!);
-    final minDepth = depthsWithValues.isNotEmpty ? depthsWithValues.reduce((a, b) => a < b ? a : b) : null;
-    final maxDepth = depthsWithValues.isNotEmpty ? depthsWithValues.reduce((a, b) => a > b ? a : b) : null;
+    final depthsWithValues =
+        dives.where((d) => d.maxDepth != null).map((d) => d.maxDepth!);
+    final minDepth = depthsWithValues.isNotEmpty
+        ? depthsWithValues.reduce((a, b) => a < b ? a : b)
+        : null;
+    final maxDepth = depthsWithValues.isNotEmpty
+        ? depthsWithValues.reduce((a, b) => a > b ? a : b)
+        : null;
 
     return RefreshIndicator(
       onRefresh: () => ref.read(diveListNotifierProvider.notifier).refresh(),
       child: Column(
         children: [
-          if (hasActiveFilters)
-            _buildActiveFiltersBar(context),
+          if (hasActiveFilters) _buildActiveFiltersBar(context),
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.only(bottom: 80),
@@ -335,32 +345,44 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
     if (filter.startDate != null || filter.endDate != null) {
       String dateText;
       if (filter.startDate != null && filter.endDate != null) {
-        dateText = '${DateFormat('MMM d').format(filter.startDate!)} - ${DateFormat('MMM d').format(filter.endDate!)}';
+        dateText =
+            '${DateFormat('MMM d').format(filter.startDate!)} - ${DateFormat('MMM d').format(filter.endDate!)}';
       } else if (filter.startDate != null) {
         dateText = 'From ${DateFormat('MMM d').format(filter.startDate!)}';
       } else {
         dateText = 'Until ${DateFormat('MMM d').format(filter.endDate!)}';
       }
-      chips.add(_buildFilterChip(context, dateText, () {
-        ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-          clearStartDate: true,
-          clearEndDate: true,
-        );
-      }),);
+      chips.add(
+        _buildFilterChip(context, dateText, () {
+          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
+            clearStartDate: true,
+            clearEndDate: true,
+          );
+        }),
+      );
     }
 
     if (filter.diveTypeId != null) {
-      final diveTypeName = ref.watch(diveTypeProvider(filter.diveTypeId!)).value?.name ?? filter.diveTypeId!;
-      chips.add(_buildFilterChip(context, diveTypeName, () {
-        ref.read(diveFilterProvider.notifier).state = filter.copyWith(clearDiveType: true);
-      }),);
+      final diveTypeName =
+          ref.watch(diveTypeProvider(filter.diveTypeId!)).value?.name ??
+              filter.diveTypeId!;
+      chips.add(
+        _buildFilterChip(context, diveTypeName, () {
+          ref.read(diveFilterProvider.notifier).state =
+              filter.copyWith(clearDiveType: true);
+        }),
+      );
     }
 
     if (filter.siteId != null) {
-      final siteName = ref.watch(siteProvider(filter.siteId!)).value?.name ?? 'Site';
-      chips.add(_buildFilterChip(context, siteName, () {
-        ref.read(diveFilterProvider.notifier).state = filter.copyWith(clearSiteId: true);
-      }),);
+      final siteName =
+          ref.watch(siteProvider(filter.siteId!)).value?.name ?? 'Site';
+      chips.add(
+        _buildFilterChip(context, siteName, () {
+          ref.read(diveFilterProvider.notifier).state =
+              filter.copyWith(clearSiteId: true);
+        }),
+      );
     }
 
     if (filter.minDepth != null || filter.maxDepth != null) {
@@ -372,25 +394,34 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
       } else {
         depthText = '<${filter.maxDepth!.toInt()}m';
       }
-      chips.add(_buildFilterChip(context, depthText, () {
-        ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-          clearMinDepth: true,
-          clearMaxDepth: true,
-        );
-      }),);
+      chips.add(
+        _buildFilterChip(context, depthText, () {
+          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
+            clearMinDepth: true,
+            clearMaxDepth: true,
+          );
+        }),
+      );
     }
 
     if (filter.favoritesOnly == true) {
-      chips.add(_buildFilterChip(context, 'Favorites', () {
-        ref.read(diveFilterProvider.notifier).state = filter.copyWith(clearFavoritesOnly: true);
-      }),);
+      chips.add(
+        _buildFilterChip(context, 'Favorites', () {
+          ref.read(diveFilterProvider.notifier).state =
+              filter.copyWith(clearFavoritesOnly: true);
+        }),
+      );
     }
 
     if (filter.tagIds.isNotEmpty) {
       final tagCount = filter.tagIds.length;
-      chips.add(_buildFilterChip(context, '$tagCount tag${tagCount > 1 ? 's' : ''}', () {
-        ref.read(diveFilterProvider.notifier).state = filter.copyWith(clearTagIds: true);
-      }),);
+      chips.add(
+        _buildFilterChip(context, '$tagCount tag${tagCount > 1 ? 's' : ''}',
+            () {
+          ref.read(diveFilterProvider.notifier).state =
+              filter.copyWith(clearTagIds: true);
+        }),
+      );
     }
 
     return Container(
@@ -405,7 +436,8 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
           ),
           TextButton(
             onPressed: () {
-              ref.read(diveFilterProvider.notifier).state = const DiveFilterState();
+              ref.read(diveFilterProvider.notifier).state =
+                  const DiveFilterState();
             },
             child: const Text('Clear all'),
           ),
@@ -414,7 +446,11 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
     );
   }
 
-  Widget _buildFilterChip(BuildContext context, String label, VoidCallback onRemove) {
+  Widget _buildFilterChip(
+    BuildContext context,
+    String label,
+    VoidCallback onRemove,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: Chip(
@@ -436,7 +472,8 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
             Icon(
               Icons.filter_list_off,
               size: 80,
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+              color:
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
@@ -453,7 +490,8 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
             const SizedBox(height: 24),
             FilledButton.icon(
               onPressed: () {
-                ref.read(diveFilterProvider.notifier).state = const DiveFilterState();
+                ref.read(diveFilterProvider.notifier).state =
+                    const DiveFilterState();
               },
               icon: const Icon(Icons.clear_all),
               label: const Text('Clear Filters'),
@@ -539,7 +577,10 @@ class DiveSearchDelegate extends SearchDelegate<Dive?> {
             Icon(
               Icons.search,
               size: 64,
-              color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurfaceVariant
+                  .withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
@@ -568,7 +609,10 @@ class DiveSearchDelegate extends SearchDelegate<Dive?> {
                 Icon(
                   Icons.search_off,
                   size: 64,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurfaceVariant
+                      .withValues(alpha: 0.5),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -583,9 +627,14 @@ class DiveSearchDelegate extends SearchDelegate<Dive?> {
         }
 
         // Calculate depth range for relative depth coloring
-        final depthsWithValues = dives.where((d) => d.maxDepth != null).map((d) => d.maxDepth!);
-        final minDepth = depthsWithValues.isNotEmpty ? depthsWithValues.reduce((a, b) => a < b ? a : b) : null;
-        final maxDepth = depthsWithValues.isNotEmpty ? depthsWithValues.reduce((a, b) => a > b ? a : b) : null;
+        final depthsWithValues =
+            dives.where((d) => d.maxDepth != null).map((d) => d.maxDepth!);
+        final minDepth = depthsWithValues.isNotEmpty
+            ? depthsWithValues.reduce((a, b) => a < b ? a : b)
+            : null;
+        final maxDepth = depthsWithValues.isNotEmpty
+            ? depthsWithValues.reduce((a, b) => a > b ? a : b)
+            : null;
 
         return ListView.builder(
           itemCount: dives.length,
@@ -638,10 +687,13 @@ class DiveListTile extends ConsumerWidget {
   final VoidCallback? onLongPress;
   final bool isSelectionMode;
   final bool isSelected;
+
   /// Min depth in the current list (for relative depth coloring)
   final double? minDepthInList;
+
   /// Max depth in the current list (for relative depth coloring)
   final double? maxDepthInList;
+
   /// Site location for map background
   final double? siteLatitude;
   final double? siteLongitude;
@@ -686,7 +738,7 @@ class DiveListTile extends ConsumerWidget {
     // Map to ocean colors: shallow = turquoise (Caribbean), deep = dark navy (abyss)
     // Using Color.lerp for smooth gradient between the two
     const shallowTurquoise = Color(0xFF4DD0E1); // Bright turquoise (Cyan 300)
-    const deepNavy = Color(0xFF0D1B2A);         // Very dark navy (deep ocean)
+    const deepNavy = Color(0xFF0D1B2A); // Very dark navy (deep ocean)
 
     return Color.lerp(shallowTurquoise, deepNavy, normalizedDepth);
   }
@@ -718,7 +770,9 @@ class DiveListTile extends ConsumerWidget {
 
     // Determine card background: selection takes priority, then depth coloring (if enabled)
     // When map is shown, we don't use depth coloring on the card itself
-    final depthColor = (showDepthColors && !shouldShowMap) ? _getDepthBackgroundColor(context) : null;
+    final depthColor = (showDepthColors && !shouldShowMap)
+        ? _getDepthBackgroundColor(context)
+        : null;
     final cardColor = isSelected
         ? colorScheme.primaryContainer.withValues(alpha: 0.3)
         : depthColor;
@@ -732,7 +786,8 @@ class DiveListTile extends ConsumerWidget {
     final primaryTextColor = useLightText ? Colors.white : Colors.black87;
     final secondaryTextColor = useLightText ? Colors.white70 : Colors.black54;
     // Use contrasting accent colors: light cyan on dark backgrounds, dark teal on light backgrounds
-    final accentColor = useLightText ? Colors.cyan.shade200 : Colors.teal.shade800;
+    final accentColor =
+        useLightText ? Colors.cyan.shade200 : Colors.teal.shade800;
 
     // Build the content widget (used in both map and non-map variants)
     Widget buildContent() {
@@ -772,10 +827,11 @@ class DiveListTile extends ConsumerWidget {
                       Expanded(
                         child: Text(
                           siteName ?? 'Unknown Site',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: primaryTextColor,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: primaryTextColor,
+                                  ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -797,10 +853,11 @@ class DiveListTile extends ConsumerWidget {
                         const SizedBox(width: 2),
                         Text(
                           '$rating',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                fontWeight: FontWeight.w500,
-                                color: primaryTextColor,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    fontWeight: FontWeight.w500,
+                                    color: primaryTextColor,
+                                  ),
                         ),
                       ],
                     ],
@@ -820,9 +877,8 @@ class DiveListTile extends ConsumerWidget {
                       Icon(
                         Icons.arrow_downward,
                         size: 14,
-                        color: maxDepth != null
-                            ? accentColor
-                            : secondaryTextColor,
+                        color:
+                            maxDepth != null ? accentColor : secondaryTextColor,
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -838,9 +894,8 @@ class DiveListTile extends ConsumerWidget {
                       Icon(
                         Icons.timer_outlined,
                         size: 14,
-                        color: duration != null
-                            ? accentColor
-                            : secondaryTextColor,
+                        color:
+                            duration != null ? accentColor : secondaryTextColor,
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -862,10 +917,11 @@ class DiveListTile extends ConsumerWidget {
                         const SizedBox(width: 4),
                         Text(
                           units.formatTemperature(waterTemp),
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: accentColor,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: accentColor,
+                                  ),
                         ),
                       ],
                     ],
@@ -946,7 +1002,8 @@ class DiveListTile extends ConsumerWidget {
                   ),
                   children: [
                     TileLayer(
-                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      urlTemplate:
+                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                       userAgentPackageName: 'com.submersion.app',
                       maxZoom: 19,
                     ),
@@ -1082,7 +1139,10 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
               const SizedBox(height: 24),
 
               // Date Range Section
-              Text('Date Range', style: Theme.of(context).textTheme.titleMedium),
+              Text(
+                'Date Range',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
               const SizedBox(height: 8),
               Row(
                 children: [
@@ -1196,7 +1256,10 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
               const SizedBox(height: 24),
 
               // Depth Range Section
-              Text('Depth Range (meters)', style: Theme.of(context).textTheme.titleMedium),
+              Text(
+                'Depth Range (meters)',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
               const SizedBox(height: 8),
               Row(
                 children: [
@@ -1252,42 +1315,43 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
               Text('Tags', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
               ref.watch(tagListNotifierProvider).when(
-                data: (allTags) {
-                  if (allTags.isEmpty) {
-                    return const Text(
-                      'No tags created yet',
-                      style: TextStyle(fontStyle: FontStyle.italic),
-                    );
-                  }
-                  return Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: allTags.map((tag) {
-                      final isSelected = _selectedTagIds.contains(tag.id);
-                      return FilterChip(
-                        label: Text(tag.name),
-                        selected: isSelected,
-                        selectedColor: tag.color.withValues(alpha: 0.3),
-                        checkmarkColor: tag.color,
-                        side: BorderSide(
-                          color: isSelected ? tag.color : Colors.grey.shade300,
-                        ),
-                        onSelected: (selected) {
-                          setState(() {
-                            if (selected) {
-                              _selectedTagIds.add(tag.id);
-                            } else {
-                              _selectedTagIds.remove(tag.id);
-                            }
-                          });
-                        },
+                    data: (allTags) {
+                      if (allTags.isEmpty) {
+                        return const Text(
+                          'No tags created yet',
+                          style: TextStyle(fontStyle: FontStyle.italic),
+                        );
+                      }
+                      return Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: allTags.map((tag) {
+                          final isSelected = _selectedTagIds.contains(tag.id);
+                          return FilterChip(
+                            label: Text(tag.name),
+                            selected: isSelected,
+                            selectedColor: tag.color.withValues(alpha: 0.3),
+                            checkmarkColor: tag.color,
+                            side: BorderSide(
+                              color:
+                                  isSelected ? tag.color : Colors.grey.shade300,
+                            ),
+                            onSelected: (selected) {
+                              setState(() {
+                                if (selected) {
+                                  _selectedTagIds.add(tag.id);
+                                } else {
+                                  _selectedTagIds.remove(tag.id);
+                                }
+                              });
+                            },
+                          );
+                        }).toList(),
                       );
-                    }).toList(),
-                  );
-                },
-                loading: () => const CircularProgressIndicator(),
-                error: (_, __) => const Text('Error loading tags'),
-              ),
+                    },
+                    loading: () => const CircularProgressIndicator(),
+                    error: (_, __) => const Text('Error loading tags'),
+                  ),
               const SizedBox(height: 32),
 
               // Action Buttons
@@ -1319,7 +1383,10 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
     );
   }
 
-  Future<void> _selectDate(BuildContext context, {required bool isStart}) async {
+  Future<void> _selectDate(
+    BuildContext context, {
+    required bool isStart,
+  }) async {
     final initialDate = isStart ? _startDate : _endDate;
     final firstDate = DateTime(2000);
     final lastDate = DateTime.now().add(const Duration(days: 365));

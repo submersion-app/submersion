@@ -99,11 +99,15 @@ void main() {
         expect(result[0].timestamp, equals(startTime.millisecondsSinceEpoch));
         expect(
           result[1].timestamp,
-          equals(startTime.add(const Duration(seconds: 60)).millisecondsSinceEpoch),
+          equals(
+            startTime.add(const Duration(seconds: 60)).millisecondsSinceEpoch,
+          ),
         );
         expect(
           result[2].timestamp,
-          equals(startTime.add(const Duration(seconds: 120)).millisecondsSinceEpoch),
+          equals(
+            startTime.add(const Duration(seconds: 120)).millisecondsSinceEpoch,
+          ),
         );
       });
     });

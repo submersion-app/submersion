@@ -126,7 +126,8 @@ class Dive extends Equatable {
     }
     // Fallback: capitalize the ID (e.g., 'recreational' -> 'Recreational')
     if (diveTypeId.isEmpty) return 'Recreational';
-    return diveTypeId[0].toUpperCase() + diveTypeId.substring(1).replaceAll('_', ' ');
+    return diveTypeId[0].toUpperCase() +
+        diveTypeId.substring(1).replaceAll('_', ' ');
   }
 
   /// Calculated duration from entry/exit times
@@ -218,7 +219,9 @@ class Dive extends Equatable {
   /// - Ascent start: when the diver starts ascending from the bottom
   ///
   /// Returns null if profile data is insufficient for calculation.
-  Duration? calculateBottomTimeFromProfile({double depthThresholdPercent = 0.85}) {
+  Duration? calculateBottomTimeFromProfile({
+    double depthThresholdPercent = 0.85,
+  }) {
     if (profile.isEmpty || profile.length < 3) return null;
 
     // Sort profile by timestamp to ensure correct order
@@ -257,7 +260,9 @@ class Dive extends Equatable {
     }
 
     // Validate we found both points
-    if (descentEndTimestamp == null || ascentStartTimestamp == null) return null;
+    if (descentEndTimestamp == null || ascentStartTimestamp == null) {
+      return null;
+    }
 
     // Ensure ascent start is after descent end
     if (ascentStartTimestamp <= descentEndTimestamp) return null;
@@ -432,7 +437,8 @@ class DiveProfilePoint extends Equatable {
   });
 
   @override
-  List<Object?> get props => [timestamp, depth, pressure, temperature, heartRate];
+  List<Object?> get props =>
+      [timestamp, depth, pressure, temperature, heartRate];
 }
 
 /// Tank configuration for a dive

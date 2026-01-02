@@ -9,7 +9,8 @@ class DiveNumberingDialog extends ConsumerStatefulWidget {
   const DiveNumberingDialog({super.key});
 
   @override
-  ConsumerState<DiveNumberingDialog> createState() => _DiveNumberingDialogState();
+  ConsumerState<DiveNumberingDialog> createState() =>
+      _DiveNumberingDialogState();
 }
 
 class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
@@ -46,7 +47,8 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
               Flexible(
                 child: numberingInfoAsync.when(
                   data: (info) => _buildContent(context, info),
-                  loading: () => const Center(child: CircularProgressIndicator()),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
                   error: (error, _) => Center(
                     child: Text('Error: $error'),
                   ),
@@ -106,7 +108,8 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
                       child: Text(
                         '${info.unnumberedDives} dive(s) without numbers',
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.onTertiaryContainer,
+                          color:
+                              Theme.of(context).colorScheme.onTertiaryContainer,
                         ),
                       ),
                     ),
@@ -153,7 +156,9 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    isHealthy ? 'All dives numbered correctly' : 'Issues detected',
+                    isHealthy
+                        ? 'All dives numbered correctly'
+                        : 'Issues detected',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 4),
@@ -216,7 +221,9 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.add_circle_outline),
                 title: const Text('Assign missing numbers'),
-                subtitle: const Text('Number unnumbered dives starting after the last numbered dive'),
+                subtitle: const Text(
+                  'Number unnumbered dives starting after the last numbered dive',
+                ),
                 trailing: _isRenumbering
                     ? const SizedBox(
                         width: 24,
@@ -224,7 +231,9 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : null,
-                onTap: _isRenumbering ? null : () => _assignMissingNumbers(context),
+                onTap: _isRenumbering
+                    ? null
+                    : () => _assignMissingNumbers(context),
               ),
 
             // Renumber all dives
@@ -232,7 +241,9 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.format_list_numbered),
               title: const Text('Renumber all dives'),
-              subtitle: const Text('Assign sequential numbers based on dive date/time'),
+              subtitle: const Text(
+                'Assign sequential numbers based on dive date/time',
+              ),
               trailing: _isRenumbering
                   ? const SizedBox(
                       width: 24,
@@ -328,7 +339,9 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
       ref.invalidate(diveListNotifierProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('All dives renumbered starting from #$startFrom')),
+          SnackBar(
+            content: Text('All dives renumbered starting from #$startFrom'),
+          ),
         );
       }
     } catch (e) {
@@ -350,4 +363,3 @@ Future<void> showDiveNumberingDialog(BuildContext context) {
     builder: (context) => const DiveNumberingDialog(),
   );
 }
-

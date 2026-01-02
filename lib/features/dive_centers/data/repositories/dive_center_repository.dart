@@ -32,8 +32,7 @@ class DiveCenterRepository {
   /// Get a dive center by ID
   Future<domain.DiveCenter?> getDiveCenterById(String id) async {
     try {
-      final query = _db.select(_db.diveCenters)
-        ..where((t) => t.id.equals(id));
+      final query = _db.select(_db.diveCenters)..where((t) => t.id.equals(id));
 
       final row = await query.getSingleOrNull();
       return row != null ? _mapRowToDiveCenter(row) : null;
@@ -44,7 +43,10 @@ class DiveCenterRepository {
   }
 
   /// Search dive centers by name or location
-  Future<List<domain.DiveCenter>> searchDiveCenters(String query, {String? diverId}) async {
+  Future<List<domain.DiveCenter>> searchDiveCenters(
+    String query, {
+    String? diverId,
+  }) async {
     final searchTerm = '%${query.toLowerCase()}%';
     final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
     final variables = [
@@ -54,20 +56,26 @@ class DiveCenterRepository {
       if (diverId != null) Variable.withString(diverId),
     ];
 
-    final results = await _db.customSelect('''
+    final results = await _db.customSelect(
+      '''
       SELECT * FROM dive_centers
       WHERE (LOWER(name) LIKE ?
          OR LOWER(location) LIKE ?
          OR LOWER(country) LIKE ?)
       $diverFilter
       ORDER BY name ASC
-    ''', variables: variables,).get();
+    ''',
+      variables: variables,
+    ).get();
 
     return results.map(_mapCustomRowToDiveCenter).toList();
   }
 
   /// Get dive centers by country
-  Future<List<domain.DiveCenter>> getDiveCentersByCountry(String country, {String? diverId}) async {
+  Future<List<domain.DiveCenter>> getDiveCentersByCountry(
+    String country, {
+    String? diverId,
+  }) async {
     final query = _db.select(_db.diveCenters)
       ..where((t) => t.country.equals(country))
       ..orderBy([(t) => OrderingTerm.asc(t.name)]);
@@ -81,7 +89,9 @@ class DiveCenterRepository {
   }
 
   /// Get dive centers with coordinates (for map view)
-  Future<List<domain.DiveCenter>> getDiveCentersWithCoordinates({String? diverId}) async {
+  Future<List<domain.DiveCenter>> getDiveCentersWithCoordinates({
+    String? diverId,
+  }) async {
     final query = _db.select(_db.diveCenters)
       ..where((t) => t.latitude.isNotNull() & t.longitude.isNotNull())
       ..orderBy([(t) => OrderingTerm.asc(t.name)]);
@@ -101,23 +111,25 @@ class DiveCenterRepository {
       final id = center.id.isEmpty ? _uuid.v4() : center.id;
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await _db.into(_db.diveCenters).insert(DiveCentersCompanion(
-            id: Value(id),
-            diverId: Value(center.diverId),
-            name: Value(center.name),
-            location: Value(center.location),
-            latitude: Value(center.latitude),
-            longitude: Value(center.longitude),
-            country: Value(center.country),
-            phone: Value(center.phone),
-            email: Value(center.email),
-            website: Value(center.website),
-            affiliations: Value(center.affiliations.join(',')),
-            rating: Value(center.rating),
-            notes: Value(center.notes),
-            createdAt: Value(now),
-            updatedAt: Value(now),
-          ),);
+      await _db.into(_db.diveCenters).insert(
+            DiveCentersCompanion(
+              id: Value(id),
+              diverId: Value(center.diverId),
+              name: Value(center.name),
+              location: Value(center.location),
+              latitude: Value(center.latitude),
+              longitude: Value(center.longitude),
+              country: Value(center.country),
+              phone: Value(center.phone),
+              email: Value(center.email),
+              website: Value(center.website),
+              affiliations: Value(center.affiliations.join(',')),
+              rating: Value(center.rating),
+              notes: Value(center.notes),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
 
       _log.info('Created dive center with id: $id');
       return center.copyWith(id: id);
@@ -171,11 +183,14 @@ class DiveCenterRepository {
 
   /// Get dive count for a dive center
   Future<int> getDiveCountForCenter(String centerId) async {
-    final result = await _db.customSelect('''
+    final result = await _db.customSelect(
+      '''
       SELECT COUNT(*) as count
       FROM dives
       WHERE dive_center_id = ?
-    ''', variables: [Variable.withString(centerId)],).getSingle();
+    ''',
+      variables: [Variable.withString(centerId)],
+    ).getSingle();
 
     return result.data['count'] as int? ?? 0;
   }
@@ -183,14 +198,18 @@ class DiveCenterRepository {
   /// Get all unique countries
   Future<List<String>> getCountries({String? diverId}) async {
     final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
-    final variables = diverId != null ? [Variable.withString(diverId)] : <Variable<Object>>[];
+    final variables =
+        diverId != null ? [Variable.withString(diverId)] : <Variable<Object>>[];
 
-    final results = await _db.customSelect('''
+    final results = await _db.customSelect(
+      '''
       SELECT DISTINCT country FROM dive_centers
       WHERE country IS NOT NULL AND country != ''
       $diverFilter
       ORDER BY country ASC
-    ''', variables: variables,).get();
+    ''',
+      variables: variables,
+    ).get();
 
     return results.map((row) => row.data['country'] as String).toList();
   }
@@ -240,6 +259,10 @@ class DiveCenterRepository {
     if (affiliationsStr == null || affiliationsStr.isEmpty) {
       return [];
     }
-    return affiliationsStr.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+    return affiliationsStr
+        .split(',')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
   }
 }

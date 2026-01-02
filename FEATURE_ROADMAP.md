@@ -267,12 +267,12 @@
 | O₂ %, He %, N₂ balance | ✅ Implemented | MVP | Air, Nitrox, Trimix |
 | Gas naming | ✅ Implemented | v1.1 | "EAN32", "TMX 18/45" auto-generated |
 | Gas mix templates | ✅ Implemented | v1.1 | Air, EAN32/36/40/50, O₂, Trimix blends |
-| Gas changes on profile | 📋 Planned | v1.5 | Mark switch points |
+| Gas changes on profile | ✅ Implemented | v1.5 | Mark switch points |
 
 **v1.5 Tasks:**
-- [ ] Gas switch events on profile (table: `gas_switches` with timestamp, tank_id)
-- [ ] Profile segment coloring based on active gas
-- [ ] Gas switch markers on profile chart
+- [x] Gas switch events on profile (table: `gas_switches` with timestamp, tank_id)
+- [x] Profile segment coloring based on active gas
+- [x] Gas switch markers on profile chart
 
 ---
 

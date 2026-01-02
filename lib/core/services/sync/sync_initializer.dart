@@ -118,7 +118,8 @@ class SyncInitializer {
       if (pendingCount > 0) {
         return SyncCheckResult(
           status: SyncCheckStatus.localChanges,
-          message: '$pendingCount local change${pendingCount == 1 ? '' : 's'} to upload',
+          message:
+              '$pendingCount local change${pendingCount == 1 ? '' : 's'} to upload',
           localLastSync: localLastSync,
           pendingChanges: pendingCount,
         );

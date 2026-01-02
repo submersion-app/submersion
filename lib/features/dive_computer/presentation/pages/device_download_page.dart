@@ -126,8 +126,7 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
     if (computer.manufacturer != null && computer.model != null) {
       final deviceManufacturer =
           device.recognizedModel?.manufacturer.toLowerCase() ?? '';
-      final deviceModelName =
-          device.recognizedModel?.model.toLowerCase() ?? '';
+      final deviceModelName = device.recognizedModel?.model.toLowerCase() ?? '';
       final computerManufacturer = computer.manufacturer!.toLowerCase();
       final computerModelName = computer.model!.toLowerCase();
 
@@ -159,8 +158,8 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
       return;
     }
 
-    final computer =
-        _computer ?? ref.read(diveComputerByIdProvider(widget.computerId)).value;
+    final computer = _computer ??
+        ref.read(diveComputerByIdProvider(widget.computerId)).value;
     if (computer == null) {
       return;
     }

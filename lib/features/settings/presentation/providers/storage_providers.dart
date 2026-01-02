@@ -47,13 +47,15 @@ final storagePlatformCapabilitiesProvider =
 });
 
 /// Database location service provider
-final databaseLocationServiceProvider = Provider<DatabaseLocationService>((ref) {
+final databaseLocationServiceProvider =
+    Provider<DatabaseLocationService>((ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
   return DatabaseLocationService(prefs);
 });
 
 /// Database migration service provider
-final databaseMigrationServiceProvider = Provider<DatabaseMigrationService>((ref) {
+final databaseMigrationServiceProvider =
+    Provider<DatabaseMigrationService>((ref) {
   final locationService = ref.watch(databaseLocationServiceProvider);
   return DatabaseMigrationService(
     DatabaseService.instance,
@@ -237,7 +239,8 @@ class StorageConfigNotifier extends StateNotifier<StorageConfigState> {
     state = state.copyWith(isMigrating: true, clearError: true);
 
     try {
-      final result = await _migrationService.switchToExistingDatabase(folderPath);
+      final result =
+          await _migrationService.switchToExistingDatabase(folderPath);
 
       if (result.success) {
         final newConfig = await _locationService.getStorageConfig();
@@ -273,7 +276,8 @@ class StorageConfigNotifier extends StateNotifier<StorageConfigState> {
     state = state.copyWith(isMigrating: true, clearError: true);
 
     try {
-      final result = await _migrationService.replaceExistingDatabase(folderPath);
+      final result =
+          await _migrationService.replaceExistingDatabase(folderPath);
 
       if (result.success) {
         final newConfig = await _locationService.getStorageConfig();

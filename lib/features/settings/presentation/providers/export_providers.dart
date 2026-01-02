@@ -74,71 +74,129 @@ class ExportNotifier extends StateNotifier<ExportState> {
   ExportNotifier(this._exportService, this._ref) : super(const ExportState());
 
   Future<void> exportDivesToCsv() async {
-    state = state.copyWith(status: ExportStatus.exporting, message: 'Exporting dives to CSV...');
+    state = state.copyWith(
+      status: ExportStatus.exporting,
+      message: 'Exporting dives to CSV...',
+    );
     try {
       final dives = _ref.read(diveListNotifierProvider).value ?? [];
       if (dives.isEmpty) {
-        state = state.copyWith(status: ExportStatus.error, message: 'No dives to export');
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: 'No dives to export',
+        );
         return;
       }
       final path = await _exportService.exportDivesToCsv(dives);
-      state = state.copyWith(status: ExportStatus.success, message: 'Dives exported successfully', filePath: path);
+      state = state.copyWith(
+        status: ExportStatus.success,
+        message: 'Dives exported successfully',
+        filePath: path,
+      );
     } catch (e) {
-      state = state.copyWith(status: ExportStatus.error, message: 'Export failed: $e');
+      state = state.copyWith(
+        status: ExportStatus.error,
+        message: 'Export failed: $e',
+      );
     }
   }
 
   Future<void> exportSitesToCsv() async {
-    state = state.copyWith(status: ExportStatus.exporting, message: 'Exporting sites to CSV...');
+    state = state.copyWith(
+      status: ExportStatus.exporting,
+      message: 'Exporting sites to CSV...',
+    );
     try {
       final sites = _ref.read(sitesProvider).value ?? [];
       if (sites.isEmpty) {
-        state = state.copyWith(status: ExportStatus.error, message: 'No sites to export');
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: 'No sites to export',
+        );
         return;
       }
       final path = await _exportService.exportSitesToCsv(sites);
-      state = state.copyWith(status: ExportStatus.success, message: 'Sites exported successfully', filePath: path);
+      state = state.copyWith(
+        status: ExportStatus.success,
+        message: 'Sites exported successfully',
+        filePath: path,
+      );
     } catch (e) {
-      state = state.copyWith(status: ExportStatus.error, message: 'Export failed: $e');
+      state = state.copyWith(
+        status: ExportStatus.error,
+        message: 'Export failed: $e',
+      );
     }
   }
 
   Future<void> exportEquipmentToCsv() async {
-    state = state.copyWith(status: ExportStatus.exporting, message: 'Exporting equipment to CSV...');
+    state = state.copyWith(
+      status: ExportStatus.exporting,
+      message: 'Exporting equipment to CSV...',
+    );
     try {
       final equipment = _ref.read(allEquipmentProvider).value ?? [];
       if (equipment.isEmpty) {
-        state = state.copyWith(status: ExportStatus.error, message: 'No equipment to export');
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: 'No equipment to export',
+        );
         return;
       }
       final path = await _exportService.exportEquipmentToCsv(equipment);
-      state = state.copyWith(status: ExportStatus.success, message: 'Equipment exported successfully', filePath: path);
+      state = state.copyWith(
+        status: ExportStatus.success,
+        message: 'Equipment exported successfully',
+        filePath: path,
+      );
     } catch (e) {
-      state = state.copyWith(status: ExportStatus.error, message: 'Export failed: $e');
+      state = state.copyWith(
+        status: ExportStatus.error,
+        message: 'Export failed: $e',
+      );
     }
   }
 
   Future<void> exportDivesToPdf() async {
-    state = state.copyWith(status: ExportStatus.exporting, message: 'Generating PDF logbook...');
+    state = state.copyWith(
+      status: ExportStatus.exporting,
+      message: 'Generating PDF logbook...',
+    );
     try {
       final dives = _ref.read(diveListNotifierProvider).value ?? [];
       if (dives.isEmpty) {
-        state = state.copyWith(status: ExportStatus.error, message: 'No dives to export');
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: 'No dives to export',
+        );
         return;
       }
       final path = await _exportService.exportDivesToPdf(dives);
-      state = state.copyWith(status: ExportStatus.success, message: 'PDF logbook generated successfully', filePath: path);
+      state = state.copyWith(
+        status: ExportStatus.success,
+        message: 'PDF logbook generated successfully',
+        filePath: path,
+      );
     } catch (e) {
-      state = state.copyWith(status: ExportStatus.error, message: 'Export failed: $e');
+      state = state.copyWith(
+        status: ExportStatus.error,
+        message: 'Export failed: $e',
+      );
     }
   }
 
   Future<void> exportDivesToUddf() async {
-    state = state.copyWith(status: ExportStatus.exporting, message: 'Generating UDDF file...');
+    state = state.copyWith(
+      status: ExportStatus.exporting,
+      message: 'Generating UDDF file...',
+    );
     try {
       final dives = _ref.read(diveListNotifierProvider).value ?? [];
       if (dives.isEmpty) {
-        state = state.copyWith(status: ExportStatus.error, message: 'No dives to export');
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: 'No dives to export',
+        );
         return;
       }
 
@@ -193,9 +251,16 @@ class ExportNotifier extends StateNotifier<ExportState> {
         diveComputers: diveComputers,
         equipmentSets: equipmentSets,
       );
-      state = state.copyWith(status: ExportStatus.success, message: 'UDDF file generated successfully', filePath: path);
+      state = state.copyWith(
+        status: ExportStatus.success,
+        message: 'UDDF file generated successfully',
+        filePath: path,
+      );
     } catch (e) {
-      state = state.copyWith(status: ExportStatus.error, message: 'Export failed: $e');
+      state = state.copyWith(
+        status: ExportStatus.error,
+        message: 'Export failed: $e',
+      );
     }
   }
 
@@ -204,7 +269,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
   }
 
   Future<void> importDivesFromCsv() async {
-    state = state.copyWith(status: ExportStatus.exporting, message: 'Checking diver profile...');
+    state = state.copyWith(
+      status: ExportStatus.exporting,
+      message: 'Checking diver profile...',
+    );
     try {
       // Verify an active diver profile exists before importing
       final currentDiver = await _ref.read(currentDiverProvider.future);
@@ -226,14 +294,20 @@ class ExportNotifier extends StateNotifier<ExportState> {
       );
 
       if (result == null || result.files.isEmpty) {
-        state = state.copyWith(status: ExportStatus.idle, message: 'Import cancelled');
+        state = state.copyWith(
+          status: ExportStatus.idle,
+          message: 'Import cancelled',
+        );
         return;
       }
 
       state = state.copyWith(message: 'Reading file...');
       final filePath = result.files.first.path;
       if (filePath == null) {
-        state = state.copyWith(status: ExportStatus.error, message: 'Could not access file');
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: 'Could not access file',
+        );
         return;
       }
 
@@ -254,11 +328,15 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final parsedDives = await _exportService.importDivesFromCsv(csvContent);
 
       if (parsedDives.isEmpty) {
-        state = state.copyWith(status: ExportStatus.error, message: 'No dives found in CSV file');
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: 'No dives found in CSV file',
+        );
         return;
       }
 
-      state = state.copyWith(message: 'Importing ${parsedDives.length} dives...');
+      state =
+          state.copyWith(message: 'Importing ${parsedDives.length} dives...');
       const uuid = Uuid();
       final diveNotifier = _ref.read(diveListNotifierProvider.notifier);
 
@@ -310,26 +388,30 @@ class ExportNotifier extends StateNotifier<ExportState> {
         );
 
         await diveNotifier.addDive(dive);
-        
+
         // Link buddy entities to the dive
         if (buddies.isNotEmpty) {
           await _linkBuddiesToDive(diveId, buddies);
           buddiesCreated += buddies.length;
         }
-        
+
         importedCount++;
       }
 
       // Refresh buddies provider
       _ref.invalidate(allBuddiesProvider);
 
-      final buddyMessage = buddiesCreated > 0 ? ' and $buddiesCreated buddy associations' : '';
+      final buddyMessage =
+          buddiesCreated > 0 ? ' and $buddiesCreated buddy associations' : '';
       state = state.copyWith(
         status: ExportStatus.success,
         message: 'Successfully imported $importedCount dives$buddyMessage',
       );
     } catch (e) {
-      state = state.copyWith(status: ExportStatus.error, message: 'Import failed: $e');
+      state = state.copyWith(
+        status: ExportStatus.error,
+        message: 'Import failed: $e',
+      );
     }
   }
 
@@ -381,12 +463,15 @@ class ExportNotifier extends StateNotifier<ExportState> {
     // Parse divemaster/guide field
     if (diveMasterText != null && diveMasterText.trim().isNotEmpty) {
       // Check if already added as buddy (avoid duplicates)
-      final existingNames = result.map((b) => b.buddy.name.toLowerCase()).toSet();
-      
+      final existingNames =
+          result.map((b) => b.buddy.name.toLowerCase()).toSet();
+
       final names = diveMasterText
           .split(RegExp(r'[,;]|\s+and\s+', caseSensitive: false))
           .map((n) => n.trim())
-          .where((n) => n.isNotEmpty && !existingNames.contains(n.toLowerCase()))
+          .where(
+            (n) => n.isNotEmpty && !existingNames.contains(n.toLowerCase()),
+          )
           .toList();
 
       for (final name in names) {
@@ -396,7 +481,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
         BuddyRole role;
         if (lowerName.contains('instructor')) {
           role = BuddyRole.instructor;
-        } else if (lowerName.contains('divemaster') || lowerName.contains('dm')) {
+        } else if (lowerName.contains('divemaster') ||
+            lowerName.contains('dm')) {
           role = BuddyRole.diveMaster;
         } else {
           role = BuddyRole.diveGuide;
@@ -409,9 +495,12 @@ class ExportNotifier extends StateNotifier<ExportState> {
   }
 
   /// Link buddies to a dive after the dive has been created
-  Future<void> _linkBuddiesToDive(String diveId, List<BuddyWithRole> buddies) async {
+  Future<void> _linkBuddiesToDive(
+    String diveId,
+    List<BuddyWithRole> buddies,
+  ) async {
     if (buddies.isEmpty) return;
-    
+
     final buddyRepository = _ref.read(buddyRepositoryProvider);
     for (final buddyWithRole in buddies) {
       await buddyRepository.addBuddyToDive(
@@ -423,7 +512,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
   }
 
   Future<void> importDivesFromUddf() async {
-    state = state.copyWith(status: ExportStatus.exporting, message: 'Checking diver profile...');
+    state = state.copyWith(
+      status: ExportStatus.exporting,
+      message: 'Checking diver profile...',
+    );
     try {
       // Verify an active diver profile exists before importing
       final currentDiver = await _ref.read(currentDiverProvider.future);
@@ -445,14 +537,20 @@ class ExportNotifier extends StateNotifier<ExportState> {
       );
 
       if (result == null || result.files.isEmpty) {
-        state = state.copyWith(status: ExportStatus.idle, message: 'Import cancelled');
+        state = state.copyWith(
+          status: ExportStatus.idle,
+          message: 'Import cancelled',
+        );
         return;
       }
 
       state = state.copyWith(message: 'Reading file...');
       final filePath = result.files.first.path;
       if (filePath == null) {
-        state = state.copyWith(status: ExportStatus.error, message: 'Could not access file');
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: 'Could not access file',
+        );
         return;
       }
 
@@ -471,7 +569,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
 
       state = state.copyWith(message: 'Parsing UDDF data...');
       // Use comprehensive import that parses all data types
-      final importResult = await _exportService.importAllDataFromUddf(uddfContent);
+      final importResult =
+          await _exportService.importAllDataFromUddf(uddfContent);
 
       const uuid = Uuid();
       final now = DateTime.now();
@@ -490,15 +589,21 @@ class ExportNotifier extends StateNotifier<ExportState> {
 
       // Build ID mappings for cross-references
       final tripIdMapping = <String, String>{}; // UDDF trip ID -> new trip ID
-      final equipmentIdMapping = <String, String>{}; // UDDF equipment ID -> new equipment ID
-      final buddyIdMapping = <String, String>{}; // UDDF buddy ID -> new buddy ID
-      final diveCenterIdMapping = <String, String>{}; // UDDF center ID -> new center ID
+      final equipmentIdMapping =
+          <String, String>{}; // UDDF equipment ID -> new equipment ID
+      final buddyIdMapping =
+          <String, String>{}; // UDDF buddy ID -> new buddy ID
+      final diveCenterIdMapping =
+          <String, String>{}; // UDDF center ID -> new center ID
       final tagIdMapping = <String, String>{}; // UDDF tag ID -> new tag ID
-      final siteIdMapping = <String, DiveSite>{}; // UDDF site ID -> new DiveSite
+      final siteIdMapping =
+          <String, DiveSite>{}; // UDDF site ID -> new DiveSite
 
       // 1. Import Trips
       if (importResult.trips.isNotEmpty) {
-        state = state.copyWith(message: 'Importing ${importResult.trips.length} trips...');
+        state = state.copyWith(
+          message: 'Importing ${importResult.trips.length} trips...',
+        );
         final tripRepository = _ref.read(tripRepositoryProvider);
 
         for (final tripData in importResult.trips) {
@@ -533,7 +638,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
 
       // 2. Import Equipment
       if (importResult.equipment.isNotEmpty) {
-        state = state.copyWith(message: 'Importing ${importResult.equipment.length} equipment items...');
+        state = state.copyWith(
+          message:
+              'Importing ${importResult.equipment.length} equipment items...',
+        );
         final equipmentRepository = _ref.read(equipmentRepositoryProvider);
 
         for (final equipData in importResult.equipment) {
@@ -549,7 +657,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
           if (typeValue is EquipmentType) {
             equipType = typeValue;
           } else if (typeValue is String) {
-            equipType = _parseEnumValue(typeValue, EquipmentType.values) ?? EquipmentType.other;
+            equipType = _parseEnumValue(typeValue, EquipmentType.values) ??
+                EquipmentType.other;
           } else {
             equipType = EquipmentType.other;
           }
@@ -560,7 +669,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
           if (statusValue is EquipmentStatus) {
             equipStatus = statusValue;
           } else if (statusValue is String) {
-            equipStatus = _parseEnumValue(statusValue, EquipmentStatus.values) ?? EquipmentStatus.active;
+            equipStatus =
+                _parseEnumValue(statusValue, EquipmentStatus.values) ??
+                    EquipmentStatus.active;
           } else {
             equipStatus = EquipmentStatus.active;
           }
@@ -595,7 +706,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
 
       // 3. Import Buddies
       if (importResult.buddies.isNotEmpty) {
-        state = state.copyWith(message: 'Importing ${importResult.buddies.length} buddies...');
+        state = state.copyWith(
+          message: 'Importing ${importResult.buddies.length} buddies...',
+        );
         final buddyRepository = _ref.read(buddyRepositoryProvider);
 
         for (final buddyData in importResult.buddies) {
@@ -611,8 +724,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
             name: buddyName,
             email: buddyData['email'] as String?,
             phone: buddyData['phone'] as String?,
-            certificationLevel: buddyData['certificationLevel'] as CertificationLevel?,
-            certificationAgency: buddyData['certificationAgency'] as CertificationAgency?,
+            certificationLevel:
+                buddyData['certificationLevel'] as CertificationLevel?,
+            certificationAgency:
+                buddyData['certificationAgency'] as CertificationAgency?,
             notes: buddyData['notes'] as String? ?? '',
             createdAt: now,
             updatedAt: now,
@@ -629,7 +744,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
 
       // 4. Import Dive Centers
       if (importResult.diveCenters.isNotEmpty) {
-        state = state.copyWith(message: 'Importing ${importResult.diveCenters.length} dive centers...');
+        state = state.copyWith(
+          message:
+              'Importing ${importResult.diveCenters.length} dive centers...',
+        );
         final diveCenterRepository = _ref.read(diveCenterRepositoryProvider);
 
         for (final centerData in importResult.diveCenters) {
@@ -643,9 +761,17 @@ class ExportNotifier extends StateNotifier<ExportState> {
           List<String> affiliations = [];
           final affiliationsValue = centerData['affiliations'];
           if (affiliationsValue is List) {
-            affiliations = affiliationsValue.cast<String>().where((s) => s.isNotEmpty).toList();
-          } else if (affiliationsValue is String && affiliationsValue.isNotEmpty) {
-            affiliations = affiliationsValue.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+            affiliations = affiliationsValue
+                .cast<String>()
+                .where((s) => s.isNotEmpty)
+                .toList();
+          } else if (affiliationsValue is String &&
+              affiliationsValue.isNotEmpty) {
+            affiliations = affiliationsValue
+                .split(',')
+                .map((s) => s.trim())
+                .where((s) => s.isNotEmpty)
+                .toList();
           }
 
           final center = DiveCenter(
@@ -677,8 +803,12 @@ class ExportNotifier extends StateNotifier<ExportState> {
 
       // 5. Import Certifications
       if (importResult.certifications.isNotEmpty) {
-        state = state.copyWith(message: 'Importing ${importResult.certifications.length} certifications...');
-        final certificationRepository = _ref.read(certificationRepositoryProvider);
+        state = state.copyWith(
+          message:
+              'Importing ${importResult.certifications.length} certifications...',
+        );
+        final certificationRepository =
+            _ref.read(certificationRepositoryProvider);
 
         for (final certData in importResult.certifications) {
           final certName = certData['name'] as String?;
@@ -692,7 +822,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
           if (agencyValue is CertificationAgency) {
             agency = agencyValue;
           } else if (agencyValue is String) {
-            agency = _parseEnumValue(agencyValue, CertificationAgency.values) ?? CertificationAgency.padi;
+            agency = _parseEnumValue(agencyValue, CertificationAgency.values) ??
+                CertificationAgency.padi;
           } else {
             agency = CertificationAgency.padi;
           }
@@ -729,7 +860,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
 
       // 6. Import Tags
       if (importResult.tags.isNotEmpty) {
-        state = state.copyWith(message: 'Importing ${importResult.tags.length} tags...');
+        state = state.copyWith(
+          message: 'Importing ${importResult.tags.length} tags...',
+        );
         final tagRepository = _ref.read(tagRepositoryProvider);
 
         for (final tagData in importResult.tags) {
@@ -769,7 +902,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
           // Skip built-in types - they should already exist
           if (isBuiltIn || typeName == null || typeName.isEmpty) continue;
 
-          final typeId = typeData['id'] as String? ?? DiveTypeEntity.generateSlug(typeName);
+          final typeId = typeData['id'] as String? ??
+              DiveTypeEntity.generateSlug(typeName);
 
           final diveType = DiveTypeEntity(
             id: typeId,
@@ -792,7 +926,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
 
       // 8. Import Dive Sites
       if (importResult.sites.isNotEmpty) {
-        state = state.copyWith(message: 'Importing ${importResult.sites.length} dive sites...');
+        state = state.copyWith(
+          message: 'Importing ${importResult.sites.length} dive sites...',
+        );
         final siteNotifier = _ref.read(siteListNotifierProvider.notifier);
 
         for (final siteData in importResult.sites) {
@@ -827,8 +963,12 @@ class ExportNotifier extends StateNotifier<ExportState> {
 
       // 9. Import Equipment Sets (after equipment, so we can map IDs)
       if (importResult.equipmentSets.isNotEmpty) {
-        state = state.copyWith(message: 'Importing ${importResult.equipmentSets.length} equipment sets...');
-        final equipmentSetRepository = _ref.read(equipmentSetRepositoryProvider);
+        state = state.copyWith(
+          message:
+              'Importing ${importResult.equipmentSets.length} equipment sets...',
+        );
+        final equipmentSetRepository =
+            _ref.read(equipmentSetRepositoryProvider);
 
         for (final setData in importResult.equipmentSets) {
           final setName = setData['name'] as String?;
@@ -867,20 +1007,28 @@ class ExportNotifier extends StateNotifier<ExportState> {
 
       // 10. Import Dives (after sites, trips, buddies, dive centers so we can link them)
       if (importResult.dives.isNotEmpty) {
-        state = state.copyWith(message: 'Importing ${importResult.dives.length} dives...');
+        state = state.copyWith(
+          message: 'Importing ${importResult.dives.length} dives...',
+        );
         final diveNotifier = _ref.read(diveListNotifierProvider.notifier);
         final buddyRepository = _ref.read(buddyRepositoryProvider);
         final tagRepository = _ref.read(tagRepositoryProvider);
 
         for (final diveData in importResult.dives) {
           // Build profile points if present
-          final profileData = diveData['profile'] as List<Map<String, dynamic>>?;
-          final profile = profileData?.map((p) => DiveProfilePoint(
-            timestamp: p['timestamp'] as int? ?? 0,
-            depth: p['depth'] as double? ?? 0.0,
-            temperature: p['temperature'] as double?,
-            pressure: p['pressure'] as double?,
-          ),).toList() ?? [];
+          final profileData =
+              diveData['profile'] as List<Map<String, dynamic>>?;
+          final profile = profileData
+                  ?.map(
+                    (p) => DiveProfilePoint(
+                      timestamp: p['timestamp'] as int? ?? 0,
+                      depth: p['depth'] as double? ?? 0.0,
+                      temperature: p['temperature'] as double?,
+                      pressure: p['pressure'] as double?,
+                    ),
+                  )
+                  .toList() ??
+              [];
 
           // Build tanks from parsed tank data
           List<DiveTank> tanks = [];
@@ -902,7 +1050,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
               if (roleValue is TankRole) {
                 role = roleValue;
               } else if (roleValue is String) {
-                role = _parseEnumValue(roleValue, TankRole.values) ?? TankRole.backGas;
+                role = _parseEnumValue(roleValue, TankRole.values) ??
+                    TankRole.backGas;
               } else {
                 role = TankRole.backGas;
               }
@@ -1011,7 +1160,11 @@ class ExportNotifier extends StateNotifier<ExportState> {
           for (final buddyRef in buddyRefs) {
             final newBuddyId = buddyIdMapping[buddyRef];
             if (newBuddyId != null) {
-              await buddyRepository.addBuddyToDive(diveId, newBuddyId, BuddyRole.buddy);
+              await buddyRepository.addBuddyToDive(
+                diveId,
+                newBuddyId,
+                BuddyRole.buddy,
+              );
             }
           }
 
@@ -1024,7 +1177,11 @@ class ExportNotifier extends StateNotifier<ExportState> {
           for (final buddyName in unmatchedNames) {
             // Use findOrCreateByName to either find existing or create new buddy
             final buddy = await buddyRepository.findOrCreateByName(buddyName);
-            await buddyRepository.addBuddyToDive(diveId, buddy.id, BuddyRole.buddy);
+            await buddyRepository.addBuddyToDive(
+              diveId,
+              buddy.id,
+              BuddyRole.buddy,
+            );
             buddiesImported++;
           }
 
@@ -1071,21 +1228,33 @@ class ExportNotifier extends StateNotifier<ExportState> {
       if (sitesImported > 0) parts.add('$sitesImported sites');
       if (tripsImported > 0) parts.add('$tripsImported trips');
       if (equipmentImported > 0) parts.add('$equipmentImported equipment');
-      if (equipmentSetsImported > 0) parts.add('$equipmentSetsImported equipment sets');
+      if (equipmentSetsImported > 0) {
+        parts.add('$equipmentSetsImported equipment sets');
+      }
       if (buddiesImported > 0) parts.add('$buddiesImported buddies');
-      if (diveCentersImported > 0) parts.add('$diveCentersImported dive centers');
-      if (certificationsImported > 0) parts.add('$certificationsImported certifications');
-      if (customDiveTypesImported > 0) parts.add('$customDiveTypesImported custom dive types');
+      if (diveCentersImported > 0) {
+        parts.add('$diveCentersImported dive centers');
+      }
+      if (certificationsImported > 0) {
+        parts.add('$certificationsImported certifications');
+      }
+      if (customDiveTypesImported > 0) {
+        parts.add('$customDiveTypesImported custom dive types');
+      }
       if (tagsImported > 0) parts.add('$tagsImported tags');
 
-      final summary = parts.isEmpty ? 'No data imported' : 'Imported ${parts.join(', ')}';
+      final summary =
+          parts.isEmpty ? 'No data imported' : 'Imported ${parts.join(', ')}';
 
       state = state.copyWith(
         status: ExportStatus.success,
         message: summary,
       );
     } catch (e) {
-      state = state.copyWith(status: ExportStatus.error, message: 'Import failed: $e');
+      state = state.copyWith(
+        status: ExportStatus.error,
+        message: 'Import failed: $e',
+      );
     }
   }
 
@@ -1101,7 +1270,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
   }
 
   Future<void> createBackup() async {
-    state = state.copyWith(status: ExportStatus.exporting, message: 'Creating backup...');
+    state = state.copyWith(
+      status: ExportStatus.exporting,
+      message: 'Creating backup...',
+    );
     try {
       final dateFormat = DateFormat('yyyy-MM-dd_HHmmss');
       final timestamp = dateFormat.format(DateTime.now());
@@ -1124,12 +1296,18 @@ class ExportNotifier extends StateNotifier<ExportState> {
         filePath: backupPath,
       );
     } catch (e) {
-      state = state.copyWith(status: ExportStatus.error, message: 'Backup failed: $e');
+      state = state.copyWith(
+        status: ExportStatus.error,
+        message: 'Backup failed: $e',
+      );
     }
   }
 
   Future<void> restoreBackup() async {
-    state = state.copyWith(status: ExportStatus.exporting, message: 'Selecting backup file...');
+    state = state.copyWith(
+      status: ExportStatus.exporting,
+      message: 'Selecting backup file...',
+    );
     try {
       // Use FileType.any on iOS/macOS since custom extensions don't work reliably
       final useAnyType = Platform.isIOS || Platform.isMacOS;
@@ -1140,13 +1318,19 @@ class ExportNotifier extends StateNotifier<ExportState> {
       );
 
       if (result == null || result.files.isEmpty) {
-        state = state.copyWith(status: ExportStatus.idle, message: 'Restore cancelled');
+        state = state.copyWith(
+          status: ExportStatus.idle,
+          message: 'Restore cancelled',
+        );
         return;
       }
 
       final filePath = result.files.first.path;
       if (filePath == null) {
-        state = state.copyWith(status: ExportStatus.error, message: 'Could not access file');
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: 'Could not access file',
+        );
         return;
       }
 
@@ -1173,12 +1357,16 @@ class ExportNotifier extends StateNotifier<ExportState> {
         message: 'Backup restored successfully. Please restart the app.',
       );
     } catch (e) {
-      state = state.copyWith(status: ExportStatus.error, message: 'Restore failed: $e');
+      state = state.copyWith(
+        status: ExportStatus.error,
+        message: 'Restore failed: $e',
+      );
     }
   }
 }
 
-final exportNotifierProvider = StateNotifierProvider<ExportNotifier, ExportState>((ref) {
+final exportNotifierProvider =
+    StateNotifierProvider<ExportNotifier, ExportState>((ref) {
   final exportService = ref.watch(exportServiceProvider);
   return ExportNotifier(exportService, ref);
 });

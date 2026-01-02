@@ -14,26 +14,32 @@ final siteRepositoryProvider = Provider<SiteRepository>((ref) {
 /// All sites provider
 final sitesProvider = FutureProvider<List<domain.DiveSite>>((ref) async {
   final repository = ref.watch(siteRepositoryProvider);
-  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  final validatedDiverId =
+      await ref.watch(validatedCurrentDiverIdProvider.future);
   return repository.getAllSites(diverId: validatedDiverId);
 });
 
 /// Sites with dive counts provider
-final sitesWithCountsProvider = FutureProvider<List<SiteWithDiveCount>>((ref) async {
+final sitesWithCountsProvider =
+    FutureProvider<List<SiteWithDiveCount>>((ref) async {
   final repository = ref.watch(siteRepositoryProvider);
-  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  final validatedDiverId =
+      await ref.watch(validatedCurrentDiverIdProvider.future);
   return repository.getSitesWithDiveCounts(diverId: validatedDiverId);
 });
 
 /// Single site provider
-final siteProvider = FutureProvider.family<domain.DiveSite?, String>((ref, id) async {
+final siteProvider =
+    FutureProvider.family<domain.DiveSite?, String>((ref, id) async {
   final repository = ref.watch(siteRepositoryProvider);
   return repository.getSiteById(id);
 });
 
 /// Site search provider
-final siteSearchProvider = FutureProvider.family<List<domain.DiveSite>, String>((ref, query) async {
-  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+final siteSearchProvider =
+    FutureProvider.family<List<domain.DiveSite>, String>((ref, query) async {
+  final validatedDiverId =
+      await ref.watch(validatedCurrentDiverIdProvider.future);
   if (query.isEmpty) {
     return ref.watch(sitesProvider).value ?? [];
   }
@@ -42,19 +48,23 @@ final siteSearchProvider = FutureProvider.family<List<domain.DiveSite>, String>(
 });
 
 /// Dive count for a specific site
-final siteDiveCountProvider = FutureProvider.family<int, String>((ref, siteId) async {
+final siteDiveCountProvider =
+    FutureProvider.family<int, String>((ref, siteId) async {
   final sitesWithCounts = await ref.watch(sitesWithCountsProvider.future);
-  final siteWithCount = sitesWithCounts.where((s) => s.site.id == siteId).firstOrNull;
+  final siteWithCount =
+      sitesWithCounts.where((s) => s.site.id == siteId).firstOrNull;
   return siteWithCount?.diveCount ?? 0;
 });
 
 /// Site list notifier for mutations
-class SiteListNotifier extends StateNotifier<AsyncValue<List<domain.DiveSite>>> {
+class SiteListNotifier
+    extends StateNotifier<AsyncValue<List<domain.DiveSite>>> {
   final SiteRepository _repository;
   final Ref _ref;
   String? _validatedDiverId;
 
-  SiteListNotifier(this._repository, this._ref) : super(const AsyncValue.loading()) {
+  SiteListNotifier(this._repository, this._ref)
+      : super(const AsyncValue.loading()) {
     _initializeAndLoad();
 
     // Listen for diver changes and reload
@@ -100,9 +110,8 @@ class SiteListNotifier extends StateNotifier<AsyncValue<List<domain.DiveSite>>> 
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
 
     // Always set diverId to the current validated diver for new items
-    final siteWithDiver = validatedId != null
-        ? site.copyWith(diverId: validatedId)
-        : site;
+    final siteWithDiver =
+        validatedId != null ? site.copyWith(diverId: validatedId) : site;
     final newSite = await _repository.createSite(siteWithDiver);
     await _loadSites();
     return newSite;
@@ -142,7 +151,8 @@ class SiteListNotifier extends StateNotifier<AsyncValue<List<domain.DiveSite>>> 
 }
 
 final siteListNotifierProvider =
-    StateNotifierProvider<SiteListNotifier, AsyncValue<List<domain.DiveSite>>>((ref) {
+    StateNotifierProvider<SiteListNotifier, AsyncValue<List<domain.DiveSite>>>(
+        (ref) {
   final repository = ref.watch(siteRepositoryProvider);
   return SiteListNotifier(repository, ref);
 });
@@ -200,7 +210,8 @@ class ExternalSiteSearchState {
 }
 
 /// Notifier for searching external dive site APIs.
-class ExternalSiteSearchNotifier extends StateNotifier<ExternalSiteSearchState> {
+class ExternalSiteSearchNotifier
+    extends StateNotifier<ExternalSiteSearchState> {
   final DiveSiteApiService _apiService;
   final SiteListNotifier _siteListNotifier;
   final SiteRepository _siteRepository;
@@ -250,7 +261,9 @@ class ExternalSiteSearchNotifier extends StateNotifier<ExternalSiteSearchState> 
           isLoading: false,
           result: result,
           localSites: localResults,
-          errorMessage: localResults.isEmpty ? (result.errorMessage ?? 'Search failed') : null,
+          errorMessage: localResults.isEmpty
+              ? (result.errorMessage ?? 'Search failed')
+              : null,
         );
       }
     } catch (e) {
@@ -291,7 +304,9 @@ class ExternalSiteSearchNotifier extends StateNotifier<ExternalSiteSearchState> 
           isLoading: false,
           result: result,
           localSites: localResults,
-          errorMessage: localResults.isEmpty ? (result.errorMessage ?? 'Search failed') : null,
+          errorMessage: localResults.isEmpty
+              ? (result.errorMessage ?? 'Search failed')
+              : null,
         );
       }
     } catch (e) {
@@ -337,6 +352,11 @@ final externalSiteSearchProvider =
     final apiService = ref.watch(diveSiteApiServiceProvider);
     final siteListNotifier = ref.watch(siteListNotifierProvider.notifier);
     final siteRepository = ref.watch(siteRepositoryProvider);
-    return ExternalSiteSearchNotifier(apiService, siteListNotifier, siteRepository, ref);
+    return ExternalSiteSearchNotifier(
+      apiService,
+      siteListNotifier,
+      siteRepository,
+      ref,
+    );
   },
 );

@@ -103,11 +103,9 @@ class ProfileMarkersService {
     }
 
     // If exact match not found, find the deepest point
-    if (maxPoint == null) {
-      maxPoint = profile.reduce(
-        (a, b) => a.depth > b.depth ? a : b,
-      );
-    }
+    maxPoint ??= profile.reduce(
+      (a, b) => a.depth > b.depth ? a : b,
+    );
 
     return ProfileMarker(
       timestamp: maxPoint.timestamp,
@@ -164,20 +162,24 @@ class ProfileMarkersService {
 
       if (tankIndex == 0 && hasProfilePressure) {
         // Use actual profile pressure for primary tank
-        markers.addAll(_findPressureCrossingsFromProfile(
-          profile: profile,
-          thresholds: thresholds,
-          tank: tank,
-          tankIndex: tankIndex,
-        ));
+        markers.addAll(
+          _findPressureCrossingsFromProfile(
+            profile: profile,
+            thresholds: thresholds,
+            tank: tank,
+            tankIndex: tankIndex,
+          ),
+        );
       } else {
         // Estimate for other tanks (or if no profile data)
-        markers.addAll(_estimatePressureCrossings(
-          profile: profile,
-          tank: tank,
-          tankIndex: tankIndex,
-          thresholds: thresholds,
-        ));
+        markers.addAll(
+          _estimatePressureCrossings(
+            profile: profile,
+            tank: tank,
+            tankIndex: tankIndex,
+            thresholds: thresholds,
+          ),
+        );
       }
     }
 
@@ -203,15 +205,17 @@ class ProfileMarkersService {
 
         // Check if pressure has dropped below threshold
         if (point.pressure! <= entry.value) {
-          markers.add(ProfileMarker(
-            timestamp: point.timestamp,
-            depth: point.depth,
-            type: entry.key,
-            tankId: tank.id,
-            tankName: tank.name ?? 'Tank ${tankIndex + 1}',
-            tankIndex: tankIndex,
-            value: entry.value,
-          ));
+          markers.add(
+            ProfileMarker(
+              timestamp: point.timestamp,
+              depth: point.depth,
+              type: entry.key,
+              tankId: tank.id,
+              tankName: tank.name ?? 'Tank ${tankIndex + 1}',
+              tankIndex: tankIndex,
+              value: entry.value,
+            ),
+          );
           foundThresholds.add(entry.key);
         }
       }
@@ -261,15 +265,17 @@ class ProfileMarkersService {
         // Find the profile point nearest to this timestamp
         final nearestPoint = _findNearestPoint(profile, timeToThreshold);
 
-        markers.add(ProfileMarker(
-          timestamp: nearestPoint.timestamp,
-          depth: nearestPoint.depth,
-          type: entry.key,
-          tankId: tank.id,
-          tankName: tank.name ?? 'Tank ${tankIndex + 1}',
-          tankIndex: tankIndex,
-          value: thresholdPressure,
-        ));
+        markers.add(
+          ProfileMarker(
+            timestamp: nearestPoint.timestamp,
+            depth: nearestPoint.depth,
+            type: entry.key,
+            tankId: tank.id,
+            tankName: tank.name ?? 'Tank ${tankIndex + 1}',
+            tankIndex: tankIndex,
+            value: thresholdPressure,
+          ),
+        );
       }
     }
 
@@ -295,12 +301,14 @@ class ProfileMarkersService {
         ProfileMarkerType.pressureOneThird: startPressure * (1 / 3),
       };
 
-      markers.addAll(_estimatePressureCrossings(
-        profile: profile,
-        tank: tank,
-        tankIndex: tankIndex,
-        thresholds: thresholds,
-      ));
+      markers.addAll(
+        _estimatePressureCrossings(
+          profile: profile,
+          tank: tank,
+          tankIndex: tankIndex,
+          thresholds: thresholds,
+        ),
+      );
     }
 
     return markers;

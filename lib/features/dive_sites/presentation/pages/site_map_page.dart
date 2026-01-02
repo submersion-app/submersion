@@ -16,7 +16,8 @@ class SiteMapPage extends ConsumerStatefulWidget {
   ConsumerState<SiteMapPage> createState() => _SiteMapPageState();
 }
 
-class _SiteMapPageState extends ConsumerState<SiteMapPage> with TickerProviderStateMixin {
+class _SiteMapPageState extends ConsumerState<SiteMapPage>
+    with TickerProviderStateMixin {
   final MapController _mapController = MapController();
   DiveSite? _selectedSite;
 
@@ -40,7 +41,9 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage> with TickerProviderSt
           IconButton(
             icon: const Icon(Icons.my_location),
             tooltip: 'Fit All Sites',
-            onPressed: () => _fitAllSites(sitesAsync.value?.map((s) => s.site).toList() ?? []),
+            onPressed: () => _fitAllSites(
+              sitesAsync.value?.map((s) => s.site).toList() ?? [],
+            ),
           ),
         ],
       ),
@@ -71,7 +74,10 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage> with TickerProviderSt
     );
   }
 
-  Widget _buildMap(BuildContext context, List<SiteWithDiveCount> sitesWithCounts) {
+  Widget _buildMap(
+    BuildContext context,
+    List<SiteWithDiveCount> sitesWithCounts,
+  ) {
     // Filter sites with valid coordinates (lat: -90 to 90, lng: -180 to 180)
     final sitesWithLocation = sitesWithCounts.where((s) {
       if (!s.site.hasCoordinates) return false;
@@ -86,7 +92,8 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage> with TickerProviderSt
     double zoom = _defaultZoom;
 
     if (sitesWithLocation.isNotEmpty) {
-      final bounds = _calculateBounds(sitesWithLocation.map((s) => s.site).toList());
+      final bounds =
+          _calculateBounds(sitesWithLocation.map((s) => s.site).toList());
       center = LatLng(
         (bounds.north + bounds.south) / 2,
         (bounds.east + bounds.west) / 2,
@@ -129,7 +136,10 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage> with TickerProviderSt
                   final diveCount = siteWithCount.diveCount;
                   final isSelected = _selectedSite?.id == site.id;
                   return Marker(
-                    point: LatLng(site.location!.latitude, site.location!.longitude),
+                    point: LatLng(
+                      site.location!.latitude,
+                      site.location!.longitude,
+                    ),
                     width: isSelected ? 50 : 40,
                     height: isSelected ? 50 : 40,
                     child: GestureDetector(
@@ -173,7 +183,8 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage> with TickerProviderSt
                     Icon(
                       Icons.location_off,
                       size: 64,
-                      color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                      color:
+                          colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -197,7 +208,12 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage> with TickerProviderSt
     );
   }
 
-  Widget _buildMarker(BuildContext context, DiveSite site, int diveCount, bool isSelected) {
+  Widget _buildMarker(
+    BuildContext context,
+    DiveSite site,
+    int diveCount,
+    bool isSelected,
+  ) {
     final colorScheme = Theme.of(context).colorScheme;
     final markerColor = _getMarkerColor(context, diveCount, site.rating);
 
@@ -331,9 +347,10 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage> with TickerProviderSt
                           const SizedBox(width: 4),
                           Text(
                             '${site.maxDepth!.toStringAsFixed(0)}m max depth',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
                           ),
                         ],
                       ),
@@ -348,7 +365,11 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage> with TickerProviderSt
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.star, size: 16, color: Colors.amber.shade600),
+                        Icon(
+                          Icons.star,
+                          size: 16,
+                          color: Colors.amber.shade600,
+                        ),
                         const SizedBox(width: 2),
                         Text(
                           site.rating!.toStringAsFixed(1),
@@ -405,11 +426,12 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage> with TickerProviderSt
 
     animation.addListener(() {
       final t = animation.value;
-      final lat = startCamera.center.latitude + 
-                  (targetCamera.center.latitude - startCamera.center.latitude) * t;
-      final lng = startCamera.center.longitude + 
-                  (targetCamera.center.longitude - startCamera.center.longitude) * t;
-      final zoom = startCamera.zoom + (targetCamera.zoom - startCamera.zoom) * t;
+      final lat = startCamera.center.latitude +
+          (targetCamera.center.latitude - startCamera.center.latitude) * t;
+      final lng = startCamera.center.longitude +
+          (targetCamera.center.longitude - startCamera.center.longitude) * t;
+      final zoom =
+          startCamera.zoom + (targetCamera.zoom - startCamera.zoom) * t;
 
       _mapController.move(LatLng(lat, lng), zoom);
     });
@@ -426,7 +448,7 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage> with TickerProviderSt
       final lng = s.location!.longitude;
       return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
     }).toList();
-    
+
     if (sitesWithLocation.isEmpty) return;
 
     if (sitesWithLocation.length == 1) {
@@ -455,12 +477,12 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage> with TickerProviderSt
       if (site.location != null) {
         final lat = site.location!.latitude;
         final lng = site.location!.longitude;
-        
+
         // Skip invalid coordinates
         if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
           continue;
         }
-        
+
         if (lat < minLat) minLat = lat;
         if (lat > maxLat) maxLat = lat;
         if (lng < minLng) minLng = lng;

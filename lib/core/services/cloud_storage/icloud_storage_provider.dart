@@ -84,7 +84,9 @@ class ICloudStorageProvider
 
   /// Get the iCloud container directory
   Future<Directory?> _getICloudContainer() async {
-    _log.info('_getICloudContainer called, cached: ${_icloudContainer != null}');
+    _log.info(
+      '_getICloudContainer called, cached: ${_icloudContainer != null}',
+    );
     if (_icloudContainer != null) {
       return _icloudContainer;
     }
@@ -120,7 +122,9 @@ class ICloudStorageProvider
           return container;
         }
       } else if (Platform.isIOS) {
-        _log.warning('iOS: Using local Documents directory (not real iCloud Drive)');
+        _log.warning(
+          'iOS: Using local Documents directory (not real iCloud Drive)',
+        );
         // On iOS, use getApplicationDocumentsDirectory
         // Files here are backed up to iCloud if iCloud backup is enabled
         // For explicit iCloud Drive storage, we need a different approach
@@ -234,12 +238,14 @@ class ICloudStorageProvider
           }
 
           final stat = await entity.stat();
-          files.add(CloudFileInfo(
-            id: entity.path,
-            name: filename,
-            modifiedTime: stat.modified,
-            sizeBytes: stat.size,
-          ),);
+          files.add(
+            CloudFileInfo(
+              id: entity.path,
+              name: filename,
+              modifiedTime: stat.modified,
+              sizeBytes: stat.size,
+            ),
+          );
         }
       }
 
@@ -275,7 +281,10 @@ class ICloudStorageProvider
   }
 
   @override
-  Future<String> createFolder(String folderName, {String? parentFolderId}) async {
+  Future<String> createFolder(
+    String folderName, {
+    String? parentFolderId,
+  }) async {
     try {
       final container = await _getICloudContainer();
       if (container == null) {
@@ -293,7 +302,11 @@ class ICloudStorageProvider
       _log.info('Created folder in iCloud: $folderPath');
       return folderPath;
     } catch (e, stackTrace) {
-      _log.error('Failed to create folder in iCloud: $folderName', e, stackTrace);
+      _log.error(
+        'Failed to create folder in iCloud: $folderName',
+        e,
+        stackTrace,
+      );
       throw CloudStorageException('Create folder failed: $e', e, stackTrace);
     }
   }

@@ -123,7 +123,8 @@ class DatabaseLocationService {
     // On iOS, use native picker to capture security-scoped URL
     if (Platform.isIOS) {
       try {
-        final result = await SecurityScopedBookmarkService.pickFolderWithSecurityScope();
+        final result =
+            await SecurityScopedBookmarkService.pickFolderWithSecurityScope();
         if (result == null) return null;
 
         return FolderPickResultWithBookmark(
@@ -167,7 +168,8 @@ class DatabaseLocationService {
 
       // On iOS, use native security-scoped verification
       if (Platform.isIOS) {
-        final result = await SecurityScopedBookmarkService.verifyWriteAccess(folderPath);
+        final result =
+            await SecurityScopedBookmarkService.verifyWriteAccess(folderPath);
         return result ?? false;
       }
 
@@ -221,7 +223,8 @@ class DatabaseLocationService {
     }
 
     debugPrint('Creating security-scoped bookmark for: $folderPath');
-    final bookmarkData = await SecurityScopedBookmarkService.createBookmark(folderPath);
+    final bookmarkData =
+        await SecurityScopedBookmarkService.createBookmark(folderPath);
 
     if (bookmarkData == null) {
       debugPrint('Failed to create security-scoped bookmark');
@@ -231,7 +234,9 @@ class DatabaseLocationService {
     // Store bookmark as base64 in SharedPreferences
     final base64Data = base64Encode(bookmarkData);
     await _prefs.setString(_bookmarkDataKey, base64Data);
-    debugPrint('Security-scoped bookmark stored successfully (${bookmarkData.length} bytes)');
+    debugPrint(
+      'Security-scoped bookmark stored successfully (${bookmarkData.length} bytes)',
+    );
     return true;
   }
 
@@ -256,7 +261,9 @@ class DatabaseLocationService {
 
     try {
       final bookmarkData = base64Decode(base64Data);
-      debugPrint('Resolving security-scoped bookmark (${bookmarkData.length} bytes)');
+      debugPrint(
+        'Resolving security-scoped bookmark (${bookmarkData.length} bytes)',
+      );
 
       final result = await SecurityScopedBookmarkService.resolveBookmark(
         Uint8List.fromList(bookmarkData),

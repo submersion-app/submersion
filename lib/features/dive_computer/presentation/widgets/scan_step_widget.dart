@@ -283,7 +283,8 @@ class _UsbDevicesTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final usbDevicesByManufacturer = ref.watch(usbDevicesByManufacturerProvider);
+    final usbDevicesByManufacturer =
+        ref.watch(usbDevicesByManufacturerProvider);
     final usbScanner = ref.watch(usbDeviceScannerProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;

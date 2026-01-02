@@ -35,7 +35,11 @@ class StatisticsProfilePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildAscentDescentSection(BuildContext context, WidgetRef ref, UnitFormatter units) {
+  Widget _buildAscentDescentSection(
+    BuildContext context,
+    WidgetRef ref,
+    UnitFormatter units,
+  ) {
     final ratesAsync = ref.watch(ascentDescentRatesProvider);
 
     return StatSectionCard(
@@ -89,7 +93,13 @@ class StatisticsProfilePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildRateStat(BuildContext context, String label, String value, IconData icon, Color color) {
+  Widget _buildRateStat(
+    BuildContext context,
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -236,7 +246,12 @@ class StatisticsProfilePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildDecoStat(BuildContext context, String label, String value, Color color) {
+  Widget _buildDecoStat(
+    BuildContext context,
+    String label,
+    String value,
+    Color color,
+  ) {
     return Column(
       children: [
         Text(

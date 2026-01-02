@@ -18,7 +18,8 @@ void main() {
 
   group('SiteRepository', () {
     group('createSite', () {
-      test('should create a new site with generated ID when ID is empty', () async {
+      test('should create a new site with generated ID when ID is empty',
+          () async {
         const site = DiveSite(
           id: '',
           name: 'Test Reef',
@@ -93,10 +94,12 @@ void main() {
 
     group('getSiteById', () {
       test('should return site when found', () async {
-        final site = await repository.createSite(const DiveSite(
-          id: '',
-          name: 'Find Me Site',
-        ),);
+        final site = await repository.createSite(
+          const DiveSite(
+            id: '',
+            name: 'Find Me Site',
+          ),
+        );
 
         final result = await repository.getSiteById(site.id);
 
@@ -120,7 +123,8 @@ void main() {
 
       test('should return all sites ordered by name', () async {
         await repository.createSite(const DiveSite(id: '', name: 'Zebra Reef'));
-        await repository.createSite(const DiveSite(id: '', name: 'Alpha Point'));
+        await repository
+            .createSite(const DiveSite(id: '', name: 'Alpha Point'));
         await repository.createSite(const DiveSite(id: '', name: 'Manta Bay'));
 
         final result = await repository.getAllSites();
@@ -134,11 +138,13 @@ void main() {
 
     group('updateSite', () {
       test('should update site fields', () async {
-        final site = await repository.createSite(const DiveSite(
-          id: '',
-          name: 'Original Name',
-          description: 'Original description',
-        ),);
+        final site = await repository.createSite(
+          const DiveSite(
+            id: '',
+            name: 'Original Name',
+            description: 'Original description',
+          ),
+        );
 
         final updatedSite = site.copyWith(
           name: 'Updated Name',
@@ -156,10 +162,12 @@ void main() {
       });
 
       test('should update site coordinates', () async {
-        final site = await repository.createSite(const DiveSite(
-          id: '',
-          name: 'Moving Site',
-        ),);
+        final site = await repository.createSite(
+          const DiveSite(
+            id: '',
+            name: 'Moving Site',
+          ),
+        );
 
         final updatedSite = site.copyWith(
           location: const GeoPoint(10.0, 20.0),
@@ -176,10 +184,12 @@ void main() {
 
     group('deleteSite', () {
       test('should delete existing site', () async {
-        final site = await repository.createSite(const DiveSite(
-          id: '',
-          name: 'To Be Deleted',
-        ),);
+        final site = await repository.createSite(
+          const DiveSite(
+            id: '',
+            name: 'To Be Deleted',
+          ),
+        );
 
         await repository.deleteSite(site.id);
         final result = await repository.getSiteById(site.id);
@@ -197,24 +207,30 @@ void main() {
 
     group('searchSites', () {
       setUp(() async {
-        await repository.createSite(const DiveSite(
-          id: '',
-          name: 'Blue Hole',
-          country: 'Belize',
-          region: 'Lighthouse Reef',
-        ),);
-        await repository.createSite(const DiveSite(
-          id: '',
-          name: 'Great White Wall',
-          country: 'Fiji',
-          region: 'Taveuni',
-        ),);
-        await repository.createSite(const DiveSite(
-          id: '',
-          name: 'Coral Garden',
-          country: 'Indonesia',
-          region: 'Bali',
-        ),);
+        await repository.createSite(
+          const DiveSite(
+            id: '',
+            name: 'Blue Hole',
+            country: 'Belize',
+            region: 'Lighthouse Reef',
+          ),
+        );
+        await repository.createSite(
+          const DiveSite(
+            id: '',
+            name: 'Great White Wall',
+            country: 'Fiji',
+            region: 'Taveuni',
+          ),
+        );
+        await repository.createSite(
+          const DiveSite(
+            id: '',
+            name: 'Coral Garden',
+            country: 'Indonesia',
+            region: 'Bali',
+          ),
+        );
       });
 
       test('should find sites by name', () async {
@@ -254,10 +270,12 @@ void main() {
 
     group('getDiveCountsBySite', () {
       test('should return empty map when no dives exist', () async {
-        await repository.createSite(const DiveSite(
-          id: 'site-1',
-          name: 'Empty Site',
-        ),);
+        await repository.createSite(
+          const DiveSite(
+            id: 'site-1',
+            name: 'Empty Site',
+          ),
+        );
 
         final counts = await repository.getDiveCountsBySite();
 
@@ -266,15 +284,20 @@ void main() {
     });
 
     group('getSitesWithDiveCounts', () {
-      test('should return sites with zero counts when no dives exist', () async {
-        await repository.createSite(const DiveSite(
-          id: '',
-          name: 'Site A',
-        ),);
-        await repository.createSite(const DiveSite(
-          id: '',
-          name: 'Site B',
-        ),);
+      test('should return sites with zero counts when no dives exist',
+          () async {
+        await repository.createSite(
+          const DiveSite(
+            id: '',
+            name: 'Site A',
+          ),
+        );
+        await repository.createSite(
+          const DiveSite(
+            id: '',
+            name: 'Site B',
+          ),
+        );
 
         final results = await repository.getSitesWithDiveCounts();
 

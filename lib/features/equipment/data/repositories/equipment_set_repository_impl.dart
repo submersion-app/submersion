@@ -31,9 +31,11 @@ class EquipmentSetRepository {
   }
 
   /// Get set by ID
-  Future<domain.EquipmentSet?> getSetById(String id, {bool includeItems = false}) async {
-    final query = _db.select(_db.equipmentSets)
-      ..where((t) => t.id.equals(id));
+  Future<domain.EquipmentSet?> getSetById(
+    String id, {
+    bool includeItems = false,
+  }) async {
+    final query = _db.select(_db.equipmentSets)..where((t) => t.id.equals(id));
     final row = await query.getSingleOrNull();
     if (row == null) return null;
 
@@ -60,23 +62,25 @@ class EquipmentSetRepository {
     final id = set.id.isEmpty ? _uuid.v4() : set.id;
     final now = DateTime.now().millisecondsSinceEpoch;
 
-    await _db.into(_db.equipmentSets).insert(EquipmentSetsCompanion(
-      id: Value(id),
-      diverId: Value(set.diverId),
-      name: Value(set.name),
-      description: Value(set.description),
-      createdAt: Value(now),
-      updatedAt: Value(now),
-    ),);
+    await _db.into(_db.equipmentSets).insert(
+          EquipmentSetsCompanion(
+            id: Value(id),
+            diverId: Value(set.diverId),
+            name: Value(set.name),
+            description: Value(set.description),
+            createdAt: Value(now),
+            updatedAt: Value(now),
+          ),
+        );
 
     // Add equipment items to set
     for (final equipmentId in set.equipmentIds) {
       await _db.into(_db.equipmentSetItems).insert(
-        EquipmentSetItemsCompanion(
-          setId: Value(id),
-          equipmentId: Value(equipmentId),
-        ),
-      );
+            EquipmentSetItemsCompanion(
+              setId: Value(id),
+              equipmentId: Value(equipmentId),
+            ),
+          );
     }
 
     return set.copyWith(
@@ -91,11 +95,13 @@ class EquipmentSetRepository {
     final now = DateTime.now().millisecondsSinceEpoch;
 
     await (_db.update(_db.equipmentSets)..where((t) => t.id.equals(set.id)))
-        .write(EquipmentSetsCompanion(
-      name: Value(set.name),
-      description: Value(set.description),
-      updatedAt: Value(now),
-    ),);
+        .write(
+      EquipmentSetsCompanion(
+        name: Value(set.name),
+        description: Value(set.description),
+        updatedAt: Value(now),
+      ),
+    );
 
     // Update equipment items: delete and re-insert
     await (_db.delete(_db.equipmentSetItems)
@@ -103,11 +109,11 @@ class EquipmentSetRepository {
         .go();
     for (final equipmentId in set.equipmentIds) {
       await _db.into(_db.equipmentSetItems).insert(
-        EquipmentSetItemsCompanion(
-          setId: Value(set.id),
-          equipmentId: Value(equipmentId),
-        ),
-      );
+            EquipmentSetItemsCompanion(
+              setId: Value(set.id),
+              equipmentId: Value(equipmentId),
+            ),
+          );
     }
   }
 
@@ -119,11 +125,11 @@ class EquipmentSetRepository {
   /// Add equipment item to set
   Future<void> addItemToSet(String setId, String equipmentId) async {
     await _db.into(_db.equipmentSetItems).insert(
-      EquipmentSetItemsCompanion(
-        setId: Value(setId),
-        equipmentId: Value(equipmentId),
-      ),
-    );
+          EquipmentSetItemsCompanion(
+            setId: Value(setId),
+            equipmentId: Value(equipmentId),
+          ),
+        );
     // Update the set's updatedAt timestamp
     final now = DateTime.now().millisecondsSinceEpoch;
     await (_db.update(_db.equipmentSets)..where((t) => t.id.equals(setId)))
@@ -133,7 +139,9 @@ class EquipmentSetRepository {
   /// Remove equipment item from set
   Future<void> removeItemFromSet(String setId, String equipmentId) async {
     await (_db.delete(_db.equipmentSetItems)
-          ..where((t) => t.setId.equals(setId) & t.equipmentId.equals(equipmentId)))
+          ..where(
+            (t) => t.setId.equals(setId) & t.equipmentId.equals(equipmentId),
+          ))
         .go();
     // Update the set's updatedAt timestamp
     final now = DateTime.now().millisecondsSinceEpoch;
@@ -141,7 +149,10 @@ class EquipmentSetRepository {
         .write(EquipmentSetsCompanion(updatedAt: Value(now)));
   }
 
-  domain.EquipmentSet _mapRowToSet(EquipmentSet row, List<String> equipmentIds) {
+  domain.EquipmentSet _mapRowToSet(
+    EquipmentSet row,
+    List<String> equipmentIds,
+  ) {
     return domain.EquipmentSet(
       id: row.id,
       diverId: row.diverId,

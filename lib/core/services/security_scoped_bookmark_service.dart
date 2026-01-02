@@ -14,7 +14,8 @@ import 'package:flutter/services.dart';
 ///
 /// This service is a no-op on non-Apple platforms.
 class SecurityScopedBookmarkService {
-  static const _channel = MethodChannel('app.submersion/security_scoped_bookmark');
+  static const _channel =
+      MethodChannel('app.submersion/security_scoped_bookmark');
 
   /// Whether security-scoped bookmarks are supported on this platform
   static bool get isSupported => Platform.isMacOS || Platform.isIOS;
@@ -46,7 +47,9 @@ class SecurityScopedBookmarkService {
   ///
   /// If the bookmark is stale (folder was moved/renamed), a new bookmark
   /// should be created after the user reselects the folder.
-  static Future<BookmarkResolveResult?> resolveBookmark(Uint8List bookmarkData) async {
+  static Future<BookmarkResolveResult?> resolveBookmark(
+    Uint8List bookmarkData,
+  ) async {
     if (!isSupported) return null;
 
     try {

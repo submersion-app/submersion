@@ -115,7 +115,10 @@ void main() {
         );
 
         final finalStatus = algorithm.getDecoStatus(currentDepth: 30);
-        expect(finalStatus.leadingCompartmentLoading, greaterThan(initialLoading));
+        expect(
+          finalStatus.leadingCompartmentLoading,
+          greaterThan(initialLoading),
+        );
       });
 
       test('should offgas tissues at surface', () {
@@ -222,7 +225,17 @@ void main() {
     group('processProfile', () {
       test('should process a simple dive profile', () {
         final depths = [
-          0.0, 5.0, 10.0, 15.0, 20.0, 20.0, 20.0, 15.0, 10.0, 5.0, 0.0,
+          0.0,
+          5.0,
+          10.0,
+          15.0,
+          20.0,
+          20.0,
+          20.0,
+          15.0,
+          10.0,
+          5.0,
+          0.0,
         ];
         final timestamps = [0, 30, 60, 90, 120, 300, 600, 660, 720, 780, 840];
 
@@ -396,7 +409,8 @@ void main() {
         }
       });
 
-      test('helium half-times should be approximately 2.65x faster than N2', () {
+      test('helium half-times should be approximately 2.65x faster than N2',
+          () {
         for (int i = 0; i < 16; i++) {
           final ratio = zhl16cN2HalfTimes[i] / zhl16cHeHalfTimes[i];
           // Ratio should be approximately 2.65 (helium is ~2.65x faster)

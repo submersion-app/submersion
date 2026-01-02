@@ -67,8 +67,8 @@ class DiveTypesPage extends ConsumerWidget {
       child: Text(
         title,
         style: Theme.of(context).textTheme.titleMedium?.copyWith(
-          color: Theme.of(context).colorScheme.primary,
-        ),
+              color: Theme.of(context).colorScheme.primary,
+            ),
       ),
     );
   }
@@ -97,7 +97,10 @@ class DiveTypesPage extends ConsumerWidget {
     );
   }
 
-  Future<void> _showAddDiveTypeDialog(BuildContext context, WidgetRef ref) async {
+  Future<void> _showAddDiveTypeDialog(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
     final nameController = TextEditingController();
     final formKey = GlobalKey<FormState>();
 
@@ -176,7 +179,9 @@ class DiveTypesPage extends ConsumerWidget {
     if (inUse) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Cannot delete "${diveType.name}" - it is used by existing dives'),
+          content: Text(
+            'Cannot delete "${diveType.name}" - it is used by existing dives',
+          ),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );

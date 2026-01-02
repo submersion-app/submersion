@@ -32,7 +32,11 @@ class RecordsPage extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 64, color: Theme.of(context).colorScheme.error),
+              Icon(
+                Icons.error_outline,
+                size: 64,
+                color: Theme.of(context).colorScheme.error,
+              ),
               const SizedBox(height: 16),
               const Text('Error loading records'),
               const SizedBox(height: 8),
@@ -47,10 +51,14 @@ class RecordsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildContent(BuildContext context, WidgetRef ref, DiveRecords records) {
+  Widget _buildContent(
+    BuildContext context,
+    WidgetRef ref,
+    DiveRecords records,
+  ) {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
-    
+
     final hasRecords = records.deepestDive != null ||
         records.longestDive != null ||
         records.coldestDive != null ||
@@ -64,7 +72,8 @@ class RecordsPage extends ConsumerWidget {
             Icon(
               Icons.emoji_events_outlined,
               size: 80,
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+              color:
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
@@ -199,13 +208,15 @@ class RecordsPage extends ConsumerWidget {
                     Text(
                       record.siteName ?? 'Unknown Site',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                     ),
                     Text(
                       DateFormat('MMM d, yyyy').format(record.dateTime),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                     ),
                   ],
@@ -225,7 +236,8 @@ class RecordsPage extends ConsumerWidget {
                     Text(
                       'Dive #${record.diveNumber}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                     ),
                 ],
@@ -280,7 +292,8 @@ class RecordsPage extends ConsumerWidget {
                     Text(
                       record.siteName ?? 'Unknown Site',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                     ),
                   ],
@@ -297,7 +310,8 @@ class RecordsPage extends ConsumerWidget {
                     Text(
                       'Dive #${record.diveNumber}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                     ),
                 ],

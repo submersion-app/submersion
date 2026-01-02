@@ -58,7 +58,9 @@ class _DiverDetailContent extends ConsumerWidget {
               icon: const Icon(Icons.switch_account),
               tooltip: 'Switch to this diver',
               onPressed: () async {
-                await ref.read(currentDiverIdProvider.notifier).setCurrentDiver(diver.id);
+                await ref
+                    .read(currentDiverIdProvider.notifier)
+                    .setCurrentDiver(diver.id);
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Switched to ${diver.name}')),
@@ -76,7 +78,9 @@ class _DiverDetailContent extends ConsumerWidget {
                 final confirmed = await _showDeleteConfirmation(context);
                 if (confirmed && context.mounted) {
                   try {
-                    await ref.read(diverListNotifierProvider.notifier).deleteDiver(diver.id);
+                    await ref
+                        .read(diverListNotifierProvider.notifier)
+                        .deleteDiver(diver.id);
                     if (context.mounted) {
                       context.pop();
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -92,10 +96,14 @@ class _DiverDetailContent extends ConsumerWidget {
                   }
                 }
               } else if (value == 'set_default') {
-                await ref.read(diverListNotifierProvider.notifier).setAsDefault(diver.id);
+                await ref
+                    .read(diverListNotifierProvider.notifier)
+                    .setAsDefault(diver.id);
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('${diver.name} set as default diver')),
+                    SnackBar(
+                      content: Text('${diver.name} set as default diver'),
+                    ),
                   );
                 }
               }
@@ -236,7 +244,8 @@ class _DiverDetailContent extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.only(top: 4),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
                   color: theme.colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(12),
@@ -275,7 +284,10 @@ class _DiverDetailContent extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatsSection(BuildContext context, AsyncValue<DiverStats> statsAsync) {
+  Widget _buildStatsSection(
+    BuildContext context,
+    AsyncValue<DiverStats> statsAsync,
+  ) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -309,7 +321,8 @@ class _DiverDetailContent extends ConsumerWidget {
                   ),
                 ],
               ),
-              loading: () => const Center(child: CircularProgressIndicator.adaptive()),
+              loading: () =>
+                  const Center(child: CircularProgressIndicator.adaptive()),
               error: (error, _) => const Text('Unable to load stats'),
             ),
           ],
@@ -358,7 +371,8 @@ class _DiverDetailContent extends ConsumerWidget {
     final emergency = diver.emergencyContact;
 
     return Card(
-      color: Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.3),
+      color:
+          Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.3),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -366,7 +380,10 @@ class _DiverDetailContent extends ConsumerWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.emergency, color: Theme.of(context).colorScheme.error),
+                Icon(
+                  Icons.emergency,
+                  color: Theme.of(context).colorScheme.error,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   'Emergency Contact',
@@ -381,7 +398,9 @@ class _DiverDetailContent extends ConsumerWidget {
               ListTile(
                 leading: const Icon(Icons.person),
                 title: Text(emergency.name!),
-                subtitle: emergency.relation != null ? Text(emergency.relation!) : null,
+                subtitle: emergency.relation != null
+                    ? Text(emergency.relation!)
+                    : null,
                 contentPadding: EdgeInsets.zero,
               ),
             if (emergency.phone != null)
@@ -462,7 +481,8 @@ class _DiverDetailContent extends ConsumerWidget {
                 if (isExpired) ...[
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.error,
                       borderRadius: BorderRadius.circular(12),
@@ -486,7 +506,8 @@ class _DiverDetailContent extends ConsumerWidget {
               _InfoRow(
                 label: 'Expires',
                 value: DateFormat.yMMMd().format(insurance.expiryDate!),
-                valueColor: isExpired ? Theme.of(context).colorScheme.error : null,
+                valueColor:
+                    isExpired ? Theme.of(context).colorScheme.error : null,
               ),
           ],
         ),

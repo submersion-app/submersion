@@ -9,7 +9,20 @@ class StatisticsTimePatternsPage extends ConsumerWidget {
   const StatisticsTimePatternsPage({super.key});
 
   static const _dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  static const _monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  static const _monthNames = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -200,7 +213,12 @@ class StatisticsTimePatternsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildSiStat(BuildContext context, String label, String value, Color color) {
+  Widget _buildSiStat(
+    BuildContext context,
+    String label,
+    String value,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(

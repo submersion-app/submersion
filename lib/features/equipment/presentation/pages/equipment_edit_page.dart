@@ -62,7 +62,8 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     _sizeController.text = equipment.size ?? '';
     _purchasePriceController.text = equipment.purchasePrice?.toString() ?? '';
     _purchaseCurrencyController.text = equipment.purchaseCurrency;
-    _serviceIntervalController.text = equipment.serviceIntervalDays?.toString() ?? '';
+    _serviceIntervalController.text =
+        equipment.serviceIntervalDays?.toString() ?? '';
     _notesController.text = equipment.notes;
     _selectedType = equipment.type;
     _selectedStatus = equipment.status;
@@ -73,13 +74,16 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
   @override
   Widget build(BuildContext context) {
     if (widget.isEditing) {
-      final equipmentAsync = ref.watch(equipmentItemProvider(widget.equipmentId!));
+      final equipmentAsync =
+          ref.watch(equipmentItemProvider(widget.equipmentId!));
       return equipmentAsync.when(
         data: (equipment) {
           if (equipment == null) {
             return Scaffold(
               appBar: AppBar(title: const Text('Equipment Not Found')),
-              body: const Center(child: Text('This equipment item no longer exists.')),
+              body: const Center(
+                child: Text('This equipment item no longer exists.'),
+              ),
             );
           }
           _initializeFromEquipment(equipment);
@@ -243,7 +247,8 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
 
             // Save Button
             FilledButton(
-              onPressed: _isLoading ? null : () => _saveEquipment(existingEquipment),
+              onPressed:
+                  _isLoading ? null : () => _saveEquipment(existingEquipment),
               child: _isLoading
                   ? const SizedBox(
                       height: 20,
@@ -265,7 +270,10 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Purchase Information', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              'Purchase Information',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 16),
             Text(
               'Purchase Date',
@@ -302,7 +310,8 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
                       labelText: 'Purchase Price',
                       prefixIcon: Icon(Icons.attach_money),
                     ),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -333,7 +342,10 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
               children: [
                 Icon(Icons.build, color: Theme.of(context).colorScheme.primary),
                 const SizedBox(width: 8),
-                Text('Service Settings', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  'Service Settings',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -417,10 +429,18 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         name: _nameController.text.trim(),
         type: _selectedType,
         status: _selectedStatus,
-        brand: _brandController.text.trim().isEmpty ? null : _brandController.text.trim(),
-        model: _modelController.text.trim().isEmpty ? null : _modelController.text.trim(),
-        serialNumber: _serialController.text.trim().isEmpty ? null : _serialController.text.trim(),
-        size: _sizeController.text.trim().isEmpty ? null : _sizeController.text.trim(),
+        brand: _brandController.text.trim().isEmpty
+            ? null
+            : _brandController.text.trim(),
+        model: _modelController.text.trim().isEmpty
+            ? null
+            : _modelController.text.trim(),
+        serialNumber: _serialController.text.trim().isEmpty
+            ? null
+            : _serialController.text.trim(),
+        size: _sizeController.text.trim().isEmpty
+            ? null
+            : _sizeController.text.trim(),
         purchaseDate: _purchaseDate,
         purchasePrice: _purchasePriceController.text.isNotEmpty
             ? double.tryParse(_purchasePriceController.text)
@@ -449,7 +469,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         context.pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(widget.isEditing ? 'Equipment updated' : 'Equipment added'),
+            content: Text(
+              widget.isEditing ? 'Equipment updated' : 'Equipment added',
+            ),
           ),
         );
       }

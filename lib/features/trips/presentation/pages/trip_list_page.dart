@@ -59,7 +59,10 @@ class TripListPage extends ConsumerWidget {
   }
 
   Widget _buildTripList(
-      BuildContext context, WidgetRef ref, List<TripWithStats> trips,) {
+    BuildContext context,
+    WidgetRef ref,
+    List<TripWithStats> trips,
+  ) {
     return RefreshIndicator(
       onRefresh: () async {
         await ref.read(tripListNotifierProvider.notifier).refresh();
@@ -295,8 +298,7 @@ class TripSearchDelegate extends SearchDelegate<Trip?> {
             final dateFormat = DateFormat.yMMMd();
             return ListTile(
               leading: CircleAvatar(
-                backgroundColor:
-                    Theme.of(context).colorScheme.primaryContainer,
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                 child: Icon(
                   trip.isLiveaboard ? Icons.sailing : Icons.flight_takeoff,
                   color: Theme.of(context).colorScheme.onPrimaryContainer,

@@ -53,8 +53,8 @@ class _TagInputWidgetState extends ConsumerState<TagInputWidget> {
     final tagNotifier = ref.read(tagListNotifierProvider.notifier);
     final newTag = await tagNotifier.getOrCreateTag(
       name.trim(),
-      colorHex: TagColors.predefined[
-          widget.selectedTags.length % TagColors.predefined.length],
+      colorHex: TagColors
+          .predefined[widget.selectedTags.length % TagColors.predefined.length],
     );
     _addTag(newTag);
   }
@@ -140,14 +140,17 @@ class _TagInputWidgetState extends ConsumerState<TagInputWidget> {
               data: (allTags) {
                 final query = _textController.text.toLowerCase();
                 final filteredTags = allTags
-                    .where((tag) =>
-                        tag.name.toLowerCase().contains(query) &&
-                        !widget.selectedTags.any((t) => t.id == tag.id),)
+                    .where(
+                      (tag) =>
+                          tag.name.toLowerCase().contains(query) &&
+                          !widget.selectedTags.any((t) => t.id == tag.id),
+                    )
                     .take(5)
                     .toList();
 
                 final exactMatch = allTags.any(
-                    (tag) => tag.name.toLowerCase() == query.toLowerCase(),);
+                  (tag) => tag.name.toLowerCase() == query.toLowerCase(),
+                );
 
                 if (filteredTags.isEmpty && exactMatch) {
                   return const SizedBox.shrink();
@@ -171,15 +174,17 @@ class _TagInputWidgetState extends ConsumerState<TagInputWidget> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       // Existing tag suggestions
-                      ...filteredTags.map((tag) => ListTile(
-                            dense: true,
-                            leading: CircleAvatar(
-                              radius: 12,
-                              backgroundColor: tag.color,
-                            ),
-                            title: Text(tag.name),
-                            onTap: () => _addTag(tag),
-                          ),),
+                      ...filteredTags.map(
+                        (tag) => ListTile(
+                          dense: true,
+                          leading: CircleAvatar(
+                            radius: 12,
+                            backgroundColor: tag.color,
+                          ),
+                          title: Text(tag.name),
+                          onTap: () => _addTag(tag),
+                        ),
+                      ),
 
                       // Create new tag option
                       if (!exactMatch)
@@ -191,8 +196,11 @@ class _TagInputWidgetState extends ConsumerState<TagInputWidget> {
                               TagColors.predefined[widget.selectedTags.length %
                                   TagColors.predefined.length],
                             ),
-                            child: const Icon(Icons.add,
-                                size: 14, color: Colors.white,),
+                            child: const Icon(
+                              Icons.add,
+                              size: 14,
+                              color: Colors.white,
+                            ),
                           ),
                           title: Text('Create "${_textController.text}"'),
                           onTap: () => _createAndAddTag(_textController.text),
@@ -235,21 +243,23 @@ class TagChips extends StatelessWidget {
       spacing: 4,
       runSpacing: 2,
       children: [
-        ...displayTags.map((tag) => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: tag.color.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: tag.color.withValues(alpha: 0.3)),
+        ...displayTags.map(
+          (tag) => Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: tag.color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: tag.color.withValues(alpha: 0.3)),
+            ),
+            child: Text(
+              tag.name,
+              style: TextStyle(
+                fontSize: 11,
+                color: tag.color,
               ),
-              child: Text(
-                tag.name,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: tag.color,
-                ),
-              ),
-            ),),
+            ),
+          ),
+        ),
         if (remaining > 0)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -328,7 +338,8 @@ class TagManagementDialog extends ConsumerWidget {
       builder: (context) => AlertDialog(
         title: const Text('Delete Tag?'),
         content: Text(
-            'Are you sure you want to delete "${tag.name}"? This will remove it from all dives.',),
+          'Are you sure you want to delete "${tag.name}"? This will remove it from all dives.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -457,9 +468,8 @@ class TagColorPicker extends StatelessWidget {
             decoration: BoxDecoration(
               color: TagColors.fromHex(color),
               shape: BoxShape.circle,
-              border: isSelected
-                  ? Border.all(color: Colors.white, width: 2)
-                  : null,
+              border:
+                  isSelected ? Border.all(color: Colors.white, width: 2) : null,
               boxShadow: isSelected
                   ? [
                       BoxShadow(

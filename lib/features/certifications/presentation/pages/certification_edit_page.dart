@@ -251,7 +251,8 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                         label: 'Expiry Date',
                         value: _expiryDate,
                         icon: Icons.event_busy,
-                        helpText: 'Leave empty for certifications that don\'t expire',
+                        helpText:
+                            'Leave empty for certifications that don\'t expire',
                         onChanged: (date) {
                           setState(() {
                             _expiryDate = date;
@@ -313,7 +314,10 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                               Expanded(
                                 child: Text(
                                   'Photo support coming in v2.0',
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
                                         color: Theme.of(context)
                                             .colorScheme
                                             .onSurfaceVariant,
@@ -359,9 +363,11 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                                 child:
                                     CircularProgressIndicator(strokeWidth: 2),
                               )
-                            : Text(isEditing
-                                ? 'Update Certification'
-                                : 'Add Certification',),
+                            : Text(
+                                isEditing
+                                    ? 'Update Certification'
+                                    : 'Add Certification',
+                              ),
                       ),
 
                       // Cancel button
@@ -395,7 +401,8 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
       builder: (context) => AlertDialog(
         title: const Text('Discard Changes?'),
         content: const Text(
-            'You have unsaved changes. Are you sure you want to leave?',),
+          'You have unsaved changes. Are you sure you want to leave?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -458,9 +465,11 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(isEditing
-                ? 'Certification updated successfully'
-                : 'Certification added successfully',),
+            content: Text(
+              isEditing
+                  ? 'Certification updated successfully'
+                  : 'Certification added successfully',
+            ),
           ),
         );
         context.pop();

@@ -29,7 +29,6 @@ class SettingsPage extends ConsumerWidget {
           _buildSectionHeader(context, 'Diver Profile'),
           _buildDiverProfileSection(context, ref),
           const Divider(),
-
           _buildSectionHeader(context, 'Units'),
           _buildUnitPresetSelector(context, ref, settings),
           _buildUnitTile(
@@ -42,25 +41,29 @@ class SettingsPage extends ConsumerWidget {
             context,
             title: 'Temperature',
             value: '°${settings.temperatureUnit.symbol}',
-            onTap: () => _showTempUnitPicker(context, ref, settings.temperatureUnit),
+            onTap: () =>
+                _showTempUnitPicker(context, ref, settings.temperatureUnit),
           ),
           _buildUnitTile(
             context,
             title: 'Pressure',
             value: settings.pressureUnit.symbol,
-            onTap: () => _showPressureUnitPicker(context, ref, settings.pressureUnit),
+            onTap: () =>
+                _showPressureUnitPicker(context, ref, settings.pressureUnit),
           ),
           _buildUnitTile(
             context,
             title: 'Volume',
             value: settings.volumeUnit.symbol,
-            onTap: () => _showVolumeUnitPicker(context, ref, settings.volumeUnit),
+            onTap: () =>
+                _showVolumeUnitPicker(context, ref, settings.volumeUnit),
           ),
           _buildUnitTile(
             context,
             title: 'Weight',
             value: settings.weightUnit.symbol,
-            onTap: () => _showWeightUnitPicker(context, ref, settings.weightUnit),
+            onTap: () =>
+                _showWeightUnitPicker(context, ref, settings.weightUnit),
           ),
           _buildUnitTile(
             context,
@@ -71,7 +74,6 @@ class SettingsPage extends ConsumerWidget {
             onTap: () => _showSacUnitPicker(context, ref, settings.sacUnit),
           ),
           const Divider(),
-
           _buildSectionHeader(context, 'Appearance'),
           ListTile(
             leading: const Icon(Icons.palette),
@@ -81,7 +83,6 @@ class SettingsPage extends ConsumerWidget {
             onTap: () => context.push('/settings/appearance'),
           ),
           const Divider(),
-
           _buildSectionHeader(context, 'Manage'),
           ListTile(
             leading: const Icon(Icons.flight_takeoff),
@@ -119,7 +120,6 @@ class SettingsPage extends ConsumerWidget {
             onTap: () => context.push('/dive-types'),
           ),
           const Divider(),
-
           _buildSectionHeader(context, 'API Integrations'),
           ListTile(
             leading: const Icon(Icons.cloud),
@@ -144,7 +144,6 @@ class SettingsPage extends ConsumerWidget {
             onTap: () => context.push('/settings/api-keys'),
           ),
           const Divider(),
-
           _buildSectionHeader(context, 'Data'),
           Consumer(
             builder: (context, ref, child) {
@@ -183,7 +182,11 @@ class SettingsPage extends ConsumerWidget {
             title: const Text('Backup'),
             subtitle: const Text('Create a backup of your data'),
             onTap: () {
-              _handleExport(context, ref, () => ref.read(exportNotifierProvider.notifier).createBackup());
+              _handleExport(
+                context,
+                ref,
+                () => ref.read(exportNotifierProvider.notifier).createBackup(),
+              );
             },
           ),
           ListTile(
@@ -201,7 +204,8 @@ class SettingsPage extends ConsumerWidget {
               if (syncState.status == SyncStatus.syncing) {
                 subtitle = 'Syncing...';
               } else if (syncState.lastSync != null) {
-                subtitle = 'Last synced: ${_formatSyncTime(syncState.lastSync!)}';
+                subtitle =
+                    'Last synced: ${_formatSyncTime(syncState.lastSync!)}';
               } else {
                 subtitle = 'Not configured';
               }
@@ -215,9 +219,14 @@ class SettingsPage extends ConsumerWidget {
                     if (syncState.conflicts > 0)
                       Badge(
                         label: Text('${syncState.conflicts}'),
-                        child: const Icon(Icons.warning, color: Colors.orange, size: 20),
+                        child: const Icon(
+                          Icons.warning,
+                          color: Colors.orange,
+                          size: 20,
+                        ),
                       ),
-                    if (syncState.pendingChanges > 0 && syncState.conflicts == 0)
+                    if (syncState.pendingChanges > 0 &&
+                        syncState.conflicts == 0)
                       Badge(
                         label: Text('${syncState.pendingChanges}'),
                         backgroundColor: Theme.of(context).colorScheme.primary,
@@ -231,7 +240,6 @@ class SettingsPage extends ConsumerWidget {
             },
           ),
           const Divider(),
-
           _buildSectionHeader(context, 'Dive Computer'),
           Consumer(
             builder: (context, ref, child) {
@@ -254,7 +262,6 @@ class SettingsPage extends ConsumerWidget {
             },
           ),
           const Divider(),
-
           _buildSectionHeader(context, 'About'),
           ListTile(
             leading: const Icon(Icons.info_outline),
@@ -279,7 +286,9 @@ class SettingsPage extends ConsumerWidget {
             title: const Text('Report an Issue'),
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Visit github.com/submersion/submersion')),
+                const SnackBar(
+                  content: Text('Visit github.com/submersion/submersion'),
+                ),
               );
             },
           ),
@@ -334,7 +343,8 @@ class SettingsPage extends ConsumerWidget {
                     ? Text(
                         diver.initials,
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                          color:
+                              Theme.of(context).colorScheme.onPrimaryContainer,
                           fontWeight: FontWeight.bold,
                         ),
                       )
@@ -405,7 +415,8 @@ class SettingsPage extends ConsumerWidget {
 
                     return ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                        backgroundColor:
+                            Theme.of(context).colorScheme.primaryContainer,
                         backgroundImage: diver.photoPath != null
                             ? AssetImage(diver.photoPath!)
                             : null,
@@ -413,7 +424,9 @@ class SettingsPage extends ConsumerWidget {
                             ? Text(
                                 diver.initials,
                                 style: TextStyle(
-                                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onPrimaryContainer,
                                   fontWeight: FontWeight.bold,
                                 ),
                               )
@@ -421,18 +434,25 @@ class SettingsPage extends ConsumerWidget {
                       ),
                       title: Text(diver.name),
                       trailing: isCurrentDiver
-                          ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
+                          ? Icon(
+                              Icons.check,
+                              color: Theme.of(context).colorScheme.primary,
+                            )
                           : null,
                       onTap: () async {
                         if (!isCurrentDiver) {
-                          await ref.read(currentDiverIdProvider.notifier).setCurrentDiver(diver.id);
+                          await ref
+                              .read(currentDiverIdProvider.notifier)
+                              .setCurrentDiver(diver.id);
                         }
                         if (sheetContext.mounted) {
                           Navigator.of(sheetContext).pop();
                         }
                         if (context.mounted && !isCurrentDiver) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Switched to ${diver.name}')),
+                            SnackBar(
+                              content: Text('Switched to ${diver.name}'),
+                            ),
                           );
                         }
                       },
@@ -468,7 +488,11 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildUnitPresetSelector(BuildContext context, WidgetRef ref, AppSettings settings) {
+  Widget _buildUnitPresetSelector(
+    BuildContext context,
+    WidgetRef ref,
+    AppSettings settings,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: SegmentedButton<UnitPreset>(
@@ -541,7 +565,11 @@ class SettingsPage extends ConsumerWidget {
     }
   }
 
-  void _showDepthUnitPicker(BuildContext context, WidgetRef ref, DepthUnit currentUnit) {
+  void _showDepthUnitPicker(
+    BuildContext context,
+    WidgetRef ref,
+    DepthUnit currentUnit,
+  ) {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -551,8 +579,14 @@ class SettingsPage extends ConsumerWidget {
           children: DepthUnit.values.map((unit) {
             final isSelected = unit == currentUnit;
             return ListTile(
-              title: Text(unit == DepthUnit.meters ? 'Meters (m)' : 'Feet (ft)'),
-              trailing: isSelected ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary) : null,
+              title:
+                  Text(unit == DepthUnit.meters ? 'Meters (m)' : 'Feet (ft)'),
+              trailing: isSelected
+                  ? Icon(
+                      Icons.check,
+                      color: Theme.of(context).colorScheme.primary,
+                    )
+                  : null,
               onTap: () {
                 ref.read(settingsProvider.notifier).setDepthUnit(unit);
                 Navigator.of(dialogContext).pop();
@@ -564,7 +598,11 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  void _showTempUnitPicker(BuildContext context, WidgetRef ref, TemperatureUnit currentUnit) {
+  void _showTempUnitPicker(
+    BuildContext context,
+    WidgetRef ref,
+    TemperatureUnit currentUnit,
+  ) {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -574,10 +612,17 @@ class SettingsPage extends ConsumerWidget {
           children: TemperatureUnit.values.map((unit) {
             final isSelected = unit == currentUnit;
             return ListTile(
-              title: Text(unit == TemperatureUnit.celsius
-                  ? 'Celsius (°C)'
-                  : 'Fahrenheit (°F)',),
-              trailing: isSelected ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary) : null,
+              title: Text(
+                unit == TemperatureUnit.celsius
+                    ? 'Celsius (°C)'
+                    : 'Fahrenheit (°F)',
+              ),
+              trailing: isSelected
+                  ? Icon(
+                      Icons.check,
+                      color: Theme.of(context).colorScheme.primary,
+                    )
+                  : null,
               onTap: () {
                 ref.read(settingsProvider.notifier).setTemperatureUnit(unit);
                 Navigator.of(dialogContext).pop();
@@ -589,7 +634,11 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  void _showPressureUnitPicker(BuildContext context, WidgetRef ref, PressureUnit currentUnit) {
+  void _showPressureUnitPicker(
+    BuildContext context,
+    WidgetRef ref,
+    PressureUnit currentUnit,
+  ) {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -600,7 +649,12 @@ class SettingsPage extends ConsumerWidget {
             final isSelected = unit == currentUnit;
             return ListTile(
               title: Text(unit == PressureUnit.bar ? 'Bar' : 'PSI'),
-              trailing: isSelected ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary) : null,
+              trailing: isSelected
+                  ? Icon(
+                      Icons.check,
+                      color: Theme.of(context).colorScheme.primary,
+                    )
+                  : null,
               onTap: () {
                 ref.read(settingsProvider.notifier).setPressureUnit(unit);
                 Navigator.of(dialogContext).pop();
@@ -612,7 +666,11 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  void _showVolumeUnitPicker(BuildContext context, WidgetRef ref, VolumeUnit currentUnit) {
+  void _showVolumeUnitPicker(
+    BuildContext context,
+    WidgetRef ref,
+    VolumeUnit currentUnit,
+  ) {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -622,8 +680,15 @@ class SettingsPage extends ConsumerWidget {
           children: VolumeUnit.values.map((unit) {
             final isSelected = unit == currentUnit;
             return ListTile(
-              title: Text(unit == VolumeUnit.liters ? 'Liters (L)' : 'Cubic Feet (cuft)'),
-              trailing: isSelected ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary) : null,
+              title: Text(
+                unit == VolumeUnit.liters ? 'Liters (L)' : 'Cubic Feet (cuft)',
+              ),
+              trailing: isSelected
+                  ? Icon(
+                      Icons.check,
+                      color: Theme.of(context).colorScheme.primary,
+                    )
+                  : null,
               onTap: () {
                 ref.read(settingsProvider.notifier).setVolumeUnit(unit);
                 Navigator.of(dialogContext).pop();
@@ -635,7 +700,11 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  void _showWeightUnitPicker(BuildContext context, WidgetRef ref, WeightUnit currentUnit) {
+  void _showWeightUnitPicker(
+    BuildContext context,
+    WidgetRef ref,
+    WeightUnit currentUnit,
+  ) {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -645,8 +714,17 @@ class SettingsPage extends ConsumerWidget {
           children: WeightUnit.values.map((unit) {
             final isSelected = unit == currentUnit;
             return ListTile(
-              title: Text(unit == WeightUnit.kilograms ? 'Kilograms (kg)' : 'Pounds (lbs)'),
-              trailing: isSelected ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary) : null,
+              title: Text(
+                unit == WeightUnit.kilograms
+                    ? 'Kilograms (kg)'
+                    : 'Pounds (lbs)',
+              ),
+              trailing: isSelected
+                  ? Icon(
+                      Icons.check,
+                      color: Theme.of(context).colorScheme.primary,
+                    )
+                  : null,
               onTap: () {
                 ref.read(settingsProvider.notifier).setWeightUnit(unit);
                 Navigator.of(dialogContext).pop();
@@ -658,7 +736,11 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  void _showSacUnitPicker(BuildContext context, WidgetRef ref, SacUnit currentUnit) {
+  void _showSacUnitPicker(
+    BuildContext context,
+    WidgetRef ref,
+    SacUnit currentUnit,
+  ) {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -670,21 +752,32 @@ class SettingsPage extends ConsumerWidget {
               title: const Text('Volume per minute'),
               subtitle: const Text('Requires tank volume (L/min or cuft/min)'),
               trailing: currentUnit == SacUnit.litersPerMin
-                  ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
+                  ? Icon(
+                      Icons.check,
+                      color: Theme.of(context).colorScheme.primary,
+                    )
                   : null,
               onTap: () {
-                ref.read(settingsProvider.notifier).setSacUnit(SacUnit.litersPerMin);
+                ref
+                    .read(settingsProvider.notifier)
+                    .setSacUnit(SacUnit.litersPerMin);
                 Navigator.of(dialogContext).pop();
               },
             ),
             ListTile(
               title: const Text('Pressure per minute'),
-              subtitle: const Text('No tank volume needed (bar/min or psi/min)'),
+              subtitle:
+                  const Text('No tank volume needed (bar/min or psi/min)'),
               trailing: currentUnit == SacUnit.pressurePerMin
-                  ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
+                  ? Icon(
+                      Icons.check,
+                      color: Theme.of(context).colorScheme.primary,
+                    )
                   : null,
               onTap: () {
-                ref.read(settingsProvider.notifier).setSacUnit(SacUnit.pressurePerMin);
+                ref
+                    .read(settingsProvider.notifier)
+                    .setSacUnit(SacUnit.pressurePerMin);
                 Navigator.of(dialogContext).pop();
               },
             ),
@@ -712,7 +805,11 @@ class SettingsPage extends ConsumerWidget {
           FilledButton(
             onPressed: () {
               Navigator.of(dialogContext).pop();
-              _handleImport(context, ref, () => ref.read(exportNotifierProvider.notifier).restoreBackup());
+              _handleImport(
+                context,
+                ref,
+                () => ref.read(exportNotifierProvider.notifier).restoreBackup(),
+              );
             },
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
@@ -745,7 +842,13 @@ class SettingsPage extends ConsumerWidget {
               subtitle: const Text('Import dives from CSV file'),
               onTap: () {
                 Navigator.of(sheetContext).pop();
-                _handleImport(context, ref, () => ref.read(exportNotifierProvider.notifier).importDivesFromCsv());
+                _handleImport(
+                  context,
+                  ref,
+                  () => ref
+                      .read(exportNotifierProvider.notifier)
+                      .importDivesFromCsv(),
+                );
               },
             ),
             ListTile(
@@ -754,7 +857,13 @@ class SettingsPage extends ConsumerWidget {
               subtitle: const Text('Universal Dive Data Format'),
               onTap: () {
                 Navigator.of(sheetContext).pop();
-                _handleImport(context, ref, () => ref.read(exportNotifierProvider.notifier).importDivesFromUddf());
+                _handleImport(
+                  context,
+                  ref,
+                  () => ref
+                      .read(exportNotifierProvider.notifier)
+                      .importDivesFromUddf(),
+                );
               },
             ),
             const SizedBox(height: 8),
@@ -785,7 +894,13 @@ class SettingsPage extends ConsumerWidget {
               subtitle: const Text('Printable dive logbook'),
               onTap: () {
                 Navigator.of(sheetContext).pop();
-                _handleExport(context, ref, () => ref.read(exportNotifierProvider.notifier).exportDivesToPdf());
+                _handleExport(
+                  context,
+                  ref,
+                  () => ref
+                      .read(exportNotifierProvider.notifier)
+                      .exportDivesToPdf(),
+                );
               },
             ),
             ListTile(
@@ -794,7 +909,13 @@ class SettingsPage extends ConsumerWidget {
               subtitle: const Text('Spreadsheet format'),
               onTap: () {
                 Navigator.of(sheetContext).pop();
-                _handleExport(context, ref, () => ref.read(exportNotifierProvider.notifier).exportDivesToCsv());
+                _handleExport(
+                  context,
+                  ref,
+                  () => ref
+                      .read(exportNotifierProvider.notifier)
+                      .exportDivesToCsv(),
+                );
               },
             ),
             ListTile(
@@ -803,7 +924,13 @@ class SettingsPage extends ConsumerWidget {
               subtitle: const Text('Export dive sites'),
               onTap: () {
                 Navigator.of(sheetContext).pop();
-                _handleExport(context, ref, () => ref.read(exportNotifierProvider.notifier).exportSitesToCsv());
+                _handleExport(
+                  context,
+                  ref,
+                  () => ref
+                      .read(exportNotifierProvider.notifier)
+                      .exportSitesToCsv(),
+                );
               },
             ),
             ListTile(
@@ -812,7 +939,13 @@ class SettingsPage extends ConsumerWidget {
               subtitle: const Text('Export equipment inventory'),
               onTap: () {
                 Navigator.of(sheetContext).pop();
-                _handleExport(context, ref, () => ref.read(exportNotifierProvider.notifier).exportEquipmentToCsv());
+                _handleExport(
+                  context,
+                  ref,
+                  () => ref
+                      .read(exportNotifierProvider.notifier)
+                      .exportEquipmentToCsv(),
+                );
               },
             ),
             ListTile(
@@ -821,7 +954,13 @@ class SettingsPage extends ConsumerWidget {
               subtitle: const Text('Universal Dive Data Format'),
               onTap: () {
                 Navigator.of(sheetContext).pop();
-                _handleExport(context, ref, () => ref.read(exportNotifierProvider.notifier).exportDivesToUddf());
+                _handleExport(
+                  context,
+                  ref,
+                  () => ref
+                      .read(exportNotifierProvider.notifier)
+                      .exportDivesToUddf(),
+                );
               },
             ),
             const SizedBox(height: 8),
@@ -832,7 +971,11 @@ class SettingsPage extends ConsumerWidget {
   }
 
   /// Handle export operations that use Share (no file picker)
-  Future<void> _handleExport(BuildContext context, WidgetRef ref, Future<void> Function() exportFn) async {
+  Future<void> _handleExport(
+    BuildContext context,
+    WidgetRef ref,
+    Future<void> Function() exportFn,
+  ) async {
     // Show loading indicator using root navigator to avoid conflicts
     showDialog(
       context: context,
@@ -860,7 +1003,9 @@ class SettingsPage extends ConsumerWidget {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message ?? 'Export completed'),
-                backgroundColor: state.status == ExportStatus.success ? Colors.green : Colors.red,
+                backgroundColor: state.status == ExportStatus.success
+                    ? Colors.green
+                    : Colors.red,
               ),
             );
             ref.read(exportNotifierProvider.notifier).reset();
@@ -886,7 +1031,11 @@ class SettingsPage extends ConsumerWidget {
 
   /// Handle import/restore operations that use native file picker
   /// Don't show loading dialog before file picker to avoid navigator lock
-  Future<void> _handleImport(BuildContext context, WidgetRef ref, Future<void> Function() importFn) async {
+  Future<void> _handleImport(
+    BuildContext context,
+    WidgetRef ref,
+    Future<void> Function() importFn,
+  ) async {
     try {
       await importFn();
       if (context.mounted) {
@@ -896,7 +1045,9 @@ class SettingsPage extends ConsumerWidget {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message ?? 'Operation completed'),
-              backgroundColor: state.status == ExportStatus.success ? Colors.green : Colors.red,
+              backgroundColor: state.status == ExportStatus.success
+                  ? Colors.green
+                  : Colors.red,
             ),
           );
         }

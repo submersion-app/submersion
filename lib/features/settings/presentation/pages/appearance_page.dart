@@ -19,7 +19,6 @@ class AppearancePage extends ConsumerWidget {
           _buildSectionHeader(context, 'Theme'),
           _buildThemeSelector(context, ref, settings.themeMode),
           const Divider(),
-
           _buildSectionHeader(context, 'Dive Log'),
           SwitchListTile(
             title: const Text('Depth-colored dive cards'),
@@ -29,7 +28,9 @@ class AppearancePage extends ConsumerWidget {
             secondary: const Icon(Icons.gradient),
             value: settings.showDepthColoredDiveCards,
             onChanged: (value) {
-              ref.read(settingsProvider.notifier).setShowDepthColoredDiveCards(value);
+              ref
+                  .read(settingsProvider.notifier)
+                  .setShowDepthColoredDiveCards(value);
             },
           ),
           SwitchListTile(
@@ -40,11 +41,12 @@ class AppearancePage extends ConsumerWidget {
             secondary: const Icon(Icons.map),
             value: settings.showMapBackgroundOnDiveCards,
             onChanged: (value) {
-              ref.read(settingsProvider.notifier).setShowMapBackgroundOnDiveCards(value);
+              ref
+                  .read(settingsProvider.notifier)
+                  .setShowMapBackgroundOnDiveCards(value);
             },
           ),
           const SizedBox(height: 8),
-
           _buildSectionHeader(context, 'Dive Sites'),
           SwitchListTile(
             title: const Text('Map background on site cards'),
@@ -54,11 +56,12 @@ class AppearancePage extends ConsumerWidget {
             secondary: const Icon(Icons.map),
             value: settings.showMapBackgroundOnSiteCards,
             onChanged: (value) {
-              ref.read(settingsProvider.notifier).setShowMapBackgroundOnSiteCards(value);
+              ref
+                  .read(settingsProvider.notifier)
+                  .setShowMapBackgroundOnSiteCards(value);
             },
           ),
           const SizedBox(height: 8),
-
           _buildSectionHeader(context, 'Dive Profile'),
           SwitchListTile(
             title: const Text('Max depth marker'),
@@ -79,7 +82,9 @@ class AppearancePage extends ConsumerWidget {
             secondary: const Icon(Icons.propane_tank),
             value: settings.showPressureThresholdMarkers,
             onChanged: (value) {
-              ref.read(settingsProvider.notifier).setShowPressureThresholdMarkers(value);
+              ref
+                  .read(settingsProvider.notifier)
+                  .setShowPressureThresholdMarkers(value);
             },
           ),
           const SizedBox(height: 32),
@@ -101,7 +106,11 @@ class AppearancePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildThemeSelector(BuildContext context, WidgetRef ref, ThemeMode currentMode) {
+  Widget _buildThemeSelector(
+    BuildContext context,
+    WidgetRef ref,
+    ThemeMode currentMode,
+  ) {
     return Column(
       children: ThemeMode.values.map((mode) {
         final isSelected = mode == currentMode;

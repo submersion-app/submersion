@@ -12,7 +12,8 @@ class ServiceRecordRepository {
 
   /// Get all service records for an equipment item
   Future<List<domain.ServiceRecord>> getRecordsForEquipment(
-      String equipmentId,) async {
+    String equipmentId,
+  ) async {
     final query = _db.select(_db.serviceRecords)
       ..where((t) => t.equipmentId.equals(equipmentId))
       ..orderBy([(t) => OrderingTerm.desc(t.serviceDate)]);
@@ -23,8 +24,7 @@ class ServiceRecordRepository {
 
   /// Get a single service record by ID
   Future<domain.ServiceRecord?> getRecordById(String id) async {
-    final query = _db.select(_db.serviceRecords)
-      ..where((t) => t.id.equals(id));
+    final query = _db.select(_db.serviceRecords)..where((t) => t.id.equals(id));
 
     final row = await query.getSingleOrNull();
     return row != null ? _mapRowToServiceRecord(row) : null;
@@ -46,23 +46,28 @@ class ServiceRecordRepository {
     final id = record.id.isEmpty ? _uuid.v4() : record.id;
     final now = DateTime.now();
 
-    await _db.into(_db.serviceRecords).insert(ServiceRecordsCompanion(
-          id: Value(id),
-          equipmentId: Value(record.equipmentId),
-          serviceType: Value(record.serviceType.name),
-          serviceDate: Value(record.serviceDate.millisecondsSinceEpoch),
-          provider: Value(record.provider),
-          cost: Value(record.cost),
-          currency: Value(record.currency),
-          nextServiceDue: Value(record.nextServiceDue?.millisecondsSinceEpoch),
-          notes: Value(record.notes),
-          createdAt: Value(now.millisecondsSinceEpoch),
-          updatedAt: Value(now.millisecondsSinceEpoch),
-        ),);
+    await _db.into(_db.serviceRecords).insert(
+          ServiceRecordsCompanion(
+            id: Value(id),
+            equipmentId: Value(record.equipmentId),
+            serviceType: Value(record.serviceType.name),
+            serviceDate: Value(record.serviceDate.millisecondsSinceEpoch),
+            provider: Value(record.provider),
+            cost: Value(record.cost),
+            currency: Value(record.currency),
+            nextServiceDue:
+                Value(record.nextServiceDue?.millisecondsSinceEpoch),
+            notes: Value(record.notes),
+            createdAt: Value(now.millisecondsSinceEpoch),
+            updatedAt: Value(now.millisecondsSinceEpoch),
+          ),
+        );
 
     // Update the equipment's lastServiceDate
     await _updateEquipmentLastServiceDate(
-        record.equipmentId, record.serviceDate,);
+      record.equipmentId,
+      record.serviceDate,
+    );
 
     return record.copyWith(id: id, createdAt: now, updatedAt: now);
   }
@@ -89,7 +94,9 @@ class ServiceRecordRepository {
     final mostRecent = await getMostRecentRecord(record.equipmentId);
     if (mostRecent != null) {
       await _updateEquipmentLastServiceDate(
-          record.equipmentId, mostRecent.serviceDate,);
+        record.equipmentId,
+        mostRecent.serviceDate,
+      );
     }
   }
 
@@ -105,7 +112,9 @@ class ServiceRecordRepository {
       final mostRecent = await getMostRecentRecord(record.equipmentId);
       if (mostRecent != null) {
         await _updateEquipmentLastServiceDate(
-            record.equipmentId, mostRecent.serviceDate,);
+          record.equipmentId,
+          mostRecent.serviceDate,
+        );
       } else {
         // No more service records, clear the date
         await _clearEquipmentLastServiceDate(record.equipmentId);
@@ -115,21 +124,25 @@ class ServiceRecordRepository {
 
   /// Get all service records with upcoming due dates
   Future<List<domain.ServiceRecord>> getUpcomingServiceDue(
-      int withinDays,) async {
+    int withinDays,
+  ) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     final threshold =
         DateTime.now().add(Duration(days: withinDays)).millisecondsSinceEpoch;
 
-    final results = await _db.customSelect('''
+    final results = await _db.customSelect(
+      '''
       SELECT * FROM service_records
       WHERE next_service_due IS NOT NULL
         AND next_service_due > ?
         AND next_service_due <= ?
       ORDER BY next_service_due ASC
-    ''', variables: [
-      Variable.withInt(now),
-      Variable.withInt(threshold),
-    ],).get();
+    ''',
+      variables: [
+        Variable.withInt(now),
+        Variable.withInt(threshold),
+      ],
+    ).get();
 
     return results.map(_mapCustomRowToServiceRecord).toList();
   }
@@ -138,43 +151,54 @@ class ServiceRecordRepository {
   Future<List<domain.ServiceRecord>> getOverdueServices() async {
     final now = DateTime.now().millisecondsSinceEpoch;
 
-    final results = await _db.customSelect('''
+    final results = await _db.customSelect(
+      '''
       SELECT * FROM service_records
       WHERE next_service_due IS NOT NULL
         AND next_service_due < ?
       ORDER BY next_service_due ASC
-    ''', variables: [
-      Variable.withInt(now),
-    ],).get();
+    ''',
+      variables: [
+        Variable.withInt(now),
+      ],
+    ).get();
 
     return results.map(_mapCustomRowToServiceRecord).toList();
   }
 
   /// Get total cost of services for an equipment item
   Future<double> getTotalServiceCost(String equipmentId) async {
-    final result = await _db.customSelect('''
+    final result = await _db.customSelect(
+      '''
       SELECT COALESCE(SUM(cost), 0) as total
       FROM service_records
       WHERE equipment_id = ?
-    ''', variables: [Variable.withString(equipmentId)],).getSingle();
+    ''',
+      variables: [Variable.withString(equipmentId)],
+    ).getSingle();
 
     return (result.data['total'] as num?)?.toDouble() ?? 0.0;
   }
 
   /// Get service record count for an equipment item
   Future<int> getRecordCount(String equipmentId) async {
-    final result = await _db.customSelect('''
+    final result = await _db.customSelect(
+      '''
       SELECT COUNT(*) as count
       FROM service_records
       WHERE equipment_id = ?
-    ''', variables: [Variable.withString(equipmentId)],).getSingle();
+    ''',
+      variables: [Variable.withString(equipmentId)],
+    ).getSingle();
 
     return result.data['count'] as int? ?? 0;
   }
 
   /// Update the equipment's lastServiceDate field
   Future<void> _updateEquipmentLastServiceDate(
-      String equipmentId, DateTime serviceDate,) async {
+    String equipmentId,
+    DateTime serviceDate,
+  ) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     await (_db.update(_db.equipment)..where((t) => t.id.equals(equipmentId)))
         .write(
@@ -227,7 +251,8 @@ class ServiceRecordRepository {
       currency: row.data['currency'] as String? ?? 'USD',
       nextServiceDue: row.data['next_service_due'] != null
           ? DateTime.fromMillisecondsSinceEpoch(
-              row.data['next_service_due'] as int,)
+              row.data['next_service_due'] as int,
+            )
           : null,
       notes: (row.data['notes'] as String?) ?? '',
       createdAt:

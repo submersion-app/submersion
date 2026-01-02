@@ -37,7 +37,11 @@ class StatisticsProgressionPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildDepthProgressionSection(BuildContext context, WidgetRef ref, UnitFormatter units) {
+  Widget _buildDepthProgressionSection(
+    BuildContext context,
+    WidgetRef ref,
+    UnitFormatter units,
+  ) {
     final depthTrendAsync = ref.watch(depthProgressionTrendProvider);
 
     return StatSectionCard(
@@ -100,7 +104,8 @@ class StatisticsProgressionPage extends ConsumerWidget {
             );
           }
           return CategoryBarChart(
-            data: data.map((d) => (label: '${d.year}', count: d.count)).toList(),
+            data:
+                data.map((d) => (label: '${d.year}', count: d.count)).toList(),
             barColor: Theme.of(context).colorScheme.primary,
           );
         },

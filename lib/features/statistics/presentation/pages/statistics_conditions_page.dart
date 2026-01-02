@@ -123,7 +123,11 @@ class StatisticsConditionsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildTemperatureSection(BuildContext context, WidgetRef ref, UnitFormatter units) {
+  Widget _buildTemperatureSection(
+    BuildContext context,
+    WidgetRef ref,
+    UnitFormatter units,
+  ) {
     final temperatureAsync = ref.watch(temperatureByMonthProvider);
 
     return StatSectionCard(
@@ -138,7 +142,20 @@ class StatisticsConditionsPage extends ConsumerWidget {
             );
           }
 
-          final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          final months = [
+            'Jan',
+            'Feb',
+            'Mar',
+            'Apr',
+            'May',
+            'Jun',
+            'Jul',
+            'Aug',
+            'Sep',
+            'Oct',
+            'Nov',
+            'Dec',
+          ];
 
           List<TrendDataPoint> toTrendData(double? Function(dynamic) selector) {
             return data.where((d) => selector(d) != null).map((d) {

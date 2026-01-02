@@ -120,7 +120,8 @@ class TideService {
 
       // Determine state based on upcoming extreme
       if (nextHigh != null && nextLow != null) {
-        state = nextHigh.isBefore(nextLow) ? TideState.rising : TideState.falling;
+        state =
+            nextHigh.isBefore(nextLow) ? TideState.rising : TideState.falling;
       } else if (nextHigh != null) {
         state = TideState.rising;
       } else if (nextLow != null) {

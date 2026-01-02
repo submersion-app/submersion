@@ -36,7 +36,10 @@ class TrendLineChart extends StatelessWidget {
               Icon(
                 Icons.show_chart,
                 size: 48,
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+                color: Theme.of(context)
+                    .colorScheme
+                    .primary
+                    .withValues(alpha: 0.5),
               ),
               const SizedBox(height: 8),
               Text(
@@ -57,7 +60,8 @@ class TrendLineChart extends StatelessWidget {
     final rawMaxY = values.reduce((a, b) => a > b ? a : b);
     // Ensure we have a valid range even when all values are the same
     final range = rawMaxY - rawMinY;
-    final effectiveRange = range > 0 ? range : (rawMaxY.abs() > 0 ? rawMaxY.abs() * 0.2 : 1.0);
+    final effectiveRange =
+        range > 0 ? range : (rawMaxY.abs() > 0 ? rawMaxY.abs() * 0.2 : 1.0);
     final padding = effectiveRange * 0.1;
     final minY = rawMinY;
     final maxY = rawMaxY;
@@ -66,14 +70,17 @@ class TrendLineChart extends StatelessWidget {
       height: height,
       child: LineChart(
         LineChartData(
-          minY: minY > 0 ? (minY - padding).clamp(0, double.infinity) : minY - padding,
+          minY: minY > 0
+              ? (minY - padding).clamp(0, double.infinity)
+              : minY - padding,
           maxY: maxY + padding,
           lineTouchData: LineTouchData(
             touchTooltipData: LineTouchTooltipData(
               getTooltipItems: (touchedSpots) {
                 return touchedSpots.map((spot) {
                   final point = data[spot.spotIndex];
-                  final formattedValue = valueFormatter?.call(point.value) ?? point.value.toStringAsFixed(1);
+                  final formattedValue = valueFormatter?.call(point.value) ??
+                      point.value.toStringAsFixed(1);
                   return LineTooltipItem(
                     '${point.label}\n$formattedValue',
                     TextStyle(
@@ -101,7 +108,9 @@ class TrendLineChart extends StatelessWidget {
                       return Padding(
                         padding: const EdgeInsets.only(top: 8),
                         child: Text(
-                          data[index].label.split(' ')[0], // Just show month abbr
+                          data[index]
+                              .label
+                              .split(' ')[0], // Just show month abbr
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       );
@@ -123,8 +132,10 @@ class TrendLineChart extends StatelessWidget {
                 },
               ),
             ),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles:
+                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles:
+                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           ),
           borderData: FlBorderData(show: false),
           gridData: FlGridData(
@@ -196,7 +207,10 @@ class DistributionPieChart extends StatelessWidget {
               Icon(
                 Icons.pie_chart_outline,
                 size: 48,
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+                color: Theme.of(context)
+                    .colorScheme
+                    .primary
+                    .withValues(alpha: 0.5),
               ),
               const SizedBox(height: 8),
               Text(
@@ -241,7 +255,9 @@ class DistributionPieChart extends StatelessWidget {
                     final color = chartColors[index % chartColors.length];
                     return PieChartSectionData(
                       value: segment.count.toDouble(),
-                      title: showPercentage ? '${segment.percentage.toStringAsFixed(0)}%' : '${segment.count}',
+                      title: showPercentage
+                          ? '${segment.percentage.toStringAsFixed(0)}%'
+                          : '${segment.count}',
                       color: color,
                       radius: 60,
                       titleStyle: const TextStyle(
@@ -327,7 +343,10 @@ class CategoryBarChart extends StatelessWidget {
               Icon(
                 Icons.bar_chart,
                 size: 48,
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+                color: Theme.of(context)
+                    .colorScheme
+                    .primary
+                    .withValues(alpha: 0.5),
               ),
               const SizedBox(height: 8),
               Text(
@@ -343,7 +362,8 @@ class CategoryBarChart extends StatelessWidget {
     }
 
     final color = barColor ?? Theme.of(context).colorScheme.primary;
-    final maxCount = data.map((e) => e.count).reduce((a, b) => a > b ? a : b).toDouble();
+    final maxCount =
+        data.map((e) => e.count).reduce((a, b) => a > b ? a : b).toDouble();
 
     return SizedBox(
       height: height,
@@ -355,7 +375,8 @@ class CategoryBarChart extends StatelessWidget {
             touchTooltipData: BarTouchTooltipData(
               getTooltipItem: (group, groupIndex, rod, rodIndex) {
                 final item = data[groupIndex];
-                final formattedValue = valueFormatter?.call(item.count) ?? '${item.count}';
+                final formattedValue =
+                    valueFormatter?.call(item.count) ?? '${item.count}';
                 return BarTooltipItem(
                   '${item.label}\n$formattedValue',
                   TextStyle(
@@ -402,8 +423,10 @@ class CategoryBarChart extends StatelessWidget {
                 },
               ),
             ),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles:
+                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles:
+                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           ),
           borderData: FlBorderData(show: false),
           gridData: FlGridData(
@@ -424,7 +447,8 @@ class CategoryBarChart extends StatelessWidget {
                   toY: data[index].count.toDouble(),
                   color: color,
                   width: data.length > 12 ? 12 : 20,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(4)),
                 ),
               ],
             ),
@@ -464,7 +488,10 @@ class MultiTrendLineChart extends StatelessWidget {
               Icon(
                 Icons.show_chart,
                 size: 48,
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+                color: Theme.of(context)
+                    .colorScheme
+                    .primary
+                    .withValues(alpha: 0.5),
               ),
               const SizedBox(height: 8),
               Text(
@@ -491,7 +518,8 @@ class MultiTrendLineChart extends StatelessWidget {
     final maxY = allValues.reduce((a, b) => a > b ? a : b);
     final padding = (maxY - minY) * 0.1;
 
-    final longestSeries = dataSeries.reduce((a, b) => a.length > b.length ? a : b);
+    final longestSeries =
+        dataSeries.reduce((a, b) => a.length > b.length ? a : b);
 
     return Column(
       children: [
@@ -535,8 +563,10 @@ class MultiTrendLineChart extends StatelessWidget {
                     },
                   ),
                 ),
-                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                topTitles:
+                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                rightTitles:
+                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
               ),
               borderData: FlBorderData(show: false),
               gridData: FlGridData(
@@ -552,7 +582,10 @@ class MultiTrendLineChart extends StatelessWidget {
                 (seriesIndex) => LineChartBarData(
                   spots: List.generate(
                     dataSeries[seriesIndex].length,
-                    (index) => FlSpot(index.toDouble(), dataSeries[seriesIndex][index].value),
+                    (index) => FlSpot(
+                      index.toDouble(),
+                      dataSeries[seriesIndex][index].value,
+                    ),
                   ),
                   isCurved: true,
                   color: colors[seriesIndex % colors.length],

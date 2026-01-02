@@ -12,29 +12,34 @@ final equipmentSetRepositoryProvider = Provider<EquipmentSetRepository>((ref) {
 /// All equipment sets provider
 final equipmentSetsProvider = FutureProvider<List<EquipmentSet>>((ref) async {
   final repository = ref.watch(equipmentSetRepositoryProvider);
-  final validatedDiverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  final validatedDiverId =
+      await ref.watch(validatedCurrentDiverIdProvider.future);
   return repository.getAllSets(diverId: validatedDiverId);
 });
 
 /// Single equipment set provider (with items populated)
-final equipmentSetProvider = FutureProvider.family<EquipmentSet?, String>((ref, id) async {
+final equipmentSetProvider =
+    FutureProvider.family<EquipmentSet?, String>((ref, id) async {
   final repository = ref.watch(equipmentSetRepositoryProvider);
   return repository.getSetById(id, includeItems: true);
 });
 
 /// Equipment set with items provider (alias for equipmentSetProvider)
-final equipmentSetWithItemsProvider = FutureProvider.family<EquipmentSet?, String>((ref, id) async {
+final equipmentSetWithItemsProvider =
+    FutureProvider.family<EquipmentSet?, String>((ref, id) async {
   final repository = ref.watch(equipmentSetRepositoryProvider);
   return repository.getSetById(id, includeItems: true);
 });
 
 /// Equipment set list notifier for mutations
-class EquipmentSetListNotifier extends StateNotifier<AsyncValue<List<EquipmentSet>>> {
+class EquipmentSetListNotifier
+    extends StateNotifier<AsyncValue<List<EquipmentSet>>> {
   final EquipmentSetRepository _repository;
   final Ref _ref;
   String? _validatedDiverId;
 
-  EquipmentSetListNotifier(this._repository, this._ref) : super(const AsyncValue.loading()) {
+  EquipmentSetListNotifier(this._repository, this._ref)
+      : super(const AsyncValue.loading()) {
     _initializeAndLoad();
 
     // Listen for diver changes and reload
@@ -78,9 +83,8 @@ class EquipmentSetListNotifier extends StateNotifier<AsyncValue<List<EquipmentSe
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
 
     // Always set diverId to the current validated diver for new items
-    final setWithDiver = validatedId != null
-        ? set.copyWith(diverId: validatedId)
-        : set;
+    final setWithDiver =
+        validatedId != null ? set.copyWith(diverId: validatedId) : set;
     final newSet = await _repository.createSet(setWithDiver);
     await refresh();
     return newSet;
@@ -112,8 +116,8 @@ class EquipmentSetListNotifier extends StateNotifier<AsyncValue<List<EquipmentSe
   }
 }
 
-final equipmentSetListNotifierProvider =
-    StateNotifierProvider<EquipmentSetListNotifier, AsyncValue<List<EquipmentSet>>>((ref) {
+final equipmentSetListNotifierProvider = StateNotifierProvider<
+    EquipmentSetListNotifier, AsyncValue<List<EquipmentSet>>>((ref) {
   final repository = ref.watch(equipmentSetRepositoryProvider);
   return EquipmentSetListNotifier(repository, ref);
 });

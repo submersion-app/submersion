@@ -113,7 +113,12 @@ class GasTemplates {
   static const List<GasTemplate> recreational = [air, ean32, ean36];
   static const List<GasTemplate> nitrox = [ean32, ean36, ean40];
   static const List<GasTemplate> deco = [ean50, oxygen];
-  static const List<GasTemplate> technical = [tmx2135, helitrox2525, tmx1845, tmx1555];
+  static const List<GasTemplate> technical = [
+    tmx2135,
+    helitrox2525,
+    tmx1845,
+    tmx1555,
+  ];
 
   /// All templates
   static const List<GasTemplate> all = [

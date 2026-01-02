@@ -49,7 +49,8 @@ class DiveCenterDetailPage extends ConsumerWidget {
                       builder: (context) => AlertDialog(
                         title: const Text('Delete Dive Center'),
                         content: Text(
-                            'Are you sure you want to delete "${center.name}"?',),
+                          'Are you sure you want to delete "${center.name}"?',
+                        ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(context, false),
@@ -82,12 +83,17 @@ class DiveCenterDetailPage extends ConsumerWidget {
                     value: 'delete',
                     child: Row(
                       children: [
-                        Icon(Icons.delete_outline,
-                            color: Theme.of(context).colorScheme.error,),
+                        Icon(
+                          Icons.delete_outline,
+                          color: Theme.of(context).colorScheme.error,
+                        ),
                         const SizedBox(width: 8),
-                        Text('Delete',
-                            style: TextStyle(
-                                color: Theme.of(context).colorScheme.error,),),
+                        Text(
+                          'Delete',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -247,9 +253,8 @@ class _ContactSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasContact = center.phone != null ||
-        center.email != null ||
-        center.website != null;
+    final hasContact =
+        center.phone != null || center.email != null || center.website != null;
 
     if (!hasContact) return const SizedBox();
 

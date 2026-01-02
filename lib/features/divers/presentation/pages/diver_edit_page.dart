@@ -81,7 +81,8 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
   Future<void> _loadDiver() async {
     setState(() => _isLoading = true);
     try {
-      final diver = await ref.read(diverRepositoryProvider).getDiverById(widget.diverId!);
+      final diver =
+          await ref.read(diverRepositoryProvider).getDiverById(widget.diverId!);
       if (diver != null && mounted) {
         _originalDiver = diver;
         _nameController.text = diver.name;
@@ -89,7 +90,8 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
         _phoneController.text = diver.phone ?? '';
         _emergencyNameController.text = diver.emergencyContact.name ?? '';
         _emergencyPhoneController.text = diver.emergencyContact.phone ?? '';
-        _emergencyRelationController.text = diver.emergencyContact.relation ?? '';
+        _emergencyRelationController.text =
+            diver.emergencyContact.relation ?? '';
         _bloodTypeController.text = diver.bloodType ?? '';
         _allergiesController.text = diver.allergies ?? '';
         _medicalNotesController.text = diver.medicalNotes;
@@ -204,7 +206,8 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
                             ? const SizedBox(
                                 width: 20,
                                 height: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
                               )
                             : Text(isEditing ? 'Update Diver' : 'Add Diver'),
                       ),
@@ -463,8 +466,12 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
       final diver = Diver(
         id: _originalDiver?.id ?? '',
         name: _nameController.text.trim(),
-        email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
-        phone: _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
+        email: _emailController.text.trim().isEmpty
+            ? null
+            : _emailController.text.trim(),
+        phone: _phoneController.text.trim().isEmpty
+            ? null
+            : _phoneController.text.trim(),
         emergencyContact: EmergencyContact(
           name: _emergencyNameController.text.trim().isEmpty
               ? null
@@ -530,7 +537,9 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Discard Changes?'),
-        content: const Text('You have unsaved changes. Are you sure you want to discard them?'),
+        content: const Text(
+          'You have unsaved changes. Are you sure you want to discard them?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),

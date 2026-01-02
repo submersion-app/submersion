@@ -87,7 +87,8 @@ class DownloadState {
       phase: phase ?? this.phase,
       progress: progress ?? this.progress,
       downloadedDives: downloadedDives ?? this.downloadedDives,
-      importResult: clearImportResult ? null : (importResult ?? this.importResult),
+      importResult:
+          clearImportResult ? null : (importResult ?? this.importResult),
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       newDivesOnly: newDivesOnly ?? this.newDivesOnly,
     );

@@ -7,7 +7,8 @@ import '../../../settings/presentation/providers/api_key_providers.dart';
 
 /// Provider for fetching dive conditions from weather and tide APIs.
 final conditionsFetchProvider =
-    StateNotifierProvider.autoDispose<ConditionsFetchNotifier, ConditionsData>((ref) {
+    StateNotifierProvider.autoDispose<ConditionsFetchNotifier, ConditionsData>(
+        (ref) {
   final apiKeys = ref.watch(apiKeyProvider);
   return ConditionsFetchNotifier(apiKeys);
 });

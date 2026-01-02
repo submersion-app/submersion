@@ -24,7 +24,9 @@ class DashboardAlerts {
   });
 
   bool get hasAlerts =>
-      equipmentServiceDue.isNotEmpty || insuranceExpiringSoon || insuranceExpired;
+      equipmentServiceDue.isNotEmpty ||
+      insuranceExpiringSoon ||
+      insuranceExpired;
 
   int get alertCount {
     int count = equipmentServiceDue.length;

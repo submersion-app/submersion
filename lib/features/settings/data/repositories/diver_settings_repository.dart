@@ -28,60 +28,77 @@ class DiverSettingsRepository {
   }
 
   /// Create default settings for a diver
-  Future<AppSettings> createSettingsForDiver(String diverId, {AppSettings? settings}) async {
+  Future<AppSettings> createSettingsForDiver(
+    String diverId, {
+    AppSettings? settings,
+  }) async {
     try {
       final id = _uuid.v4();
       final now = DateTime.now().millisecondsSinceEpoch;
       final s = settings ?? const AppSettings();
 
-      await _db.into(_db.diverSettings).insert(DiverSettingsCompanion(
-        id: Value(id),
-        diverId: Value(diverId),
-        depthUnit: Value(s.depthUnit.name),
-        temperatureUnit: Value(s.temperatureUnit.name),
-        pressureUnit: Value(s.pressureUnit.name),
-        volumeUnit: Value(s.volumeUnit.name),
-        weightUnit: Value(s.weightUnit.name),
-        sacUnit: Value(s.sacUnit.name),
-        themeMode: Value(_themeModeToString(s.themeMode)),
-        defaultDiveType: Value(s.defaultDiveType),
-        defaultTankVolume: Value(s.defaultTankVolume),
-        defaultStartPressure: Value(s.defaultStartPressure),
-        gfLow: Value(s.gfLow),
-        gfHigh: Value(s.gfHigh),
-        ppO2MaxWorking: Value(s.ppO2MaxWorking),
-        ppO2MaxDeco: Value(s.ppO2MaxDeco),
-        cnsWarningThreshold: Value(s.cnsWarningThreshold),
-        ascentRateWarning: Value(s.ascentRateWarning),
-        ascentRateCritical: Value(s.ascentRateCritical),
-        showCeilingOnProfile: Value(s.showCeilingOnProfile),
-        showAscentRateColors: Value(s.showAscentRateColors),
-        showNdlOnProfile: Value(s.showNdlOnProfile),
-        lastStopDepth: Value(s.lastStopDepth),
-        decoStopIncrement: Value(s.decoStopIncrement),
-        showDepthColoredDiveCards: Value(s.showDepthColoredDiveCards),
-        showMapBackgroundOnDiveCards: Value(s.showMapBackgroundOnDiveCards),
-        showMapBackgroundOnSiteCards: Value(s.showMapBackgroundOnSiteCards),
-        showMaxDepthMarker: Value(s.showMaxDepthMarker),
-        showPressureThresholdMarkers: Value(s.showPressureThresholdMarkers),
-        createdAt: Value(now),
-        updatedAt: Value(now),
-      ),);
+      await _db.into(_db.diverSettings).insert(
+            DiverSettingsCompanion(
+              id: Value(id),
+              diverId: Value(diverId),
+              depthUnit: Value(s.depthUnit.name),
+              temperatureUnit: Value(s.temperatureUnit.name),
+              pressureUnit: Value(s.pressureUnit.name),
+              volumeUnit: Value(s.volumeUnit.name),
+              weightUnit: Value(s.weightUnit.name),
+              sacUnit: Value(s.sacUnit.name),
+              themeMode: Value(_themeModeToString(s.themeMode)),
+              defaultDiveType: Value(s.defaultDiveType),
+              defaultTankVolume: Value(s.defaultTankVolume),
+              defaultStartPressure: Value(s.defaultStartPressure),
+              gfLow: Value(s.gfLow),
+              gfHigh: Value(s.gfHigh),
+              ppO2MaxWorking: Value(s.ppO2MaxWorking),
+              ppO2MaxDeco: Value(s.ppO2MaxDeco),
+              cnsWarningThreshold: Value(s.cnsWarningThreshold),
+              ascentRateWarning: Value(s.ascentRateWarning),
+              ascentRateCritical: Value(s.ascentRateCritical),
+              showCeilingOnProfile: Value(s.showCeilingOnProfile),
+              showAscentRateColors: Value(s.showAscentRateColors),
+              showNdlOnProfile: Value(s.showNdlOnProfile),
+              lastStopDepth: Value(s.lastStopDepth),
+              decoStopIncrement: Value(s.decoStopIncrement),
+              showDepthColoredDiveCards: Value(s.showDepthColoredDiveCards),
+              showMapBackgroundOnDiveCards:
+                  Value(s.showMapBackgroundOnDiveCards),
+              showMapBackgroundOnSiteCards:
+                  Value(s.showMapBackgroundOnSiteCards),
+              showMaxDepthMarker: Value(s.showMaxDepthMarker),
+              showPressureThresholdMarkers:
+                  Value(s.showPressureThresholdMarkers),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
 
       _log.info('Created settings for diver: $diverId');
       return s;
     } catch (e, stackTrace) {
-      _log.error('Failed to create settings for diver: $diverId', e, stackTrace);
+      _log.error(
+        'Failed to create settings for diver: $diverId',
+        e,
+        stackTrace,
+      );
       rethrow;
     }
   }
 
   /// Update settings for a diver
-  Future<void> updateSettingsForDiver(String diverId, AppSettings settings) async {
+  Future<void> updateSettingsForDiver(
+    String diverId,
+    AppSettings settings,
+  ) async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await (_db.update(_db.diverSettings)..where((t) => t.diverId.equals(diverId))).write(
+      await (_db.update(_db.diverSettings)
+            ..where((t) => t.diverId.equals(diverId)))
+          .write(
         DiverSettingsCompanion(
           depthUnit: Value(settings.depthUnit.name),
           temperatureUnit: Value(settings.temperatureUnit.name),
@@ -106,22 +123,32 @@ class DiverSettingsRepository {
           lastStopDepth: Value(settings.lastStopDepth),
           decoStopIncrement: Value(settings.decoStopIncrement),
           showDepthColoredDiveCards: Value(settings.showDepthColoredDiveCards),
-          showMapBackgroundOnDiveCards: Value(settings.showMapBackgroundOnDiveCards),
-          showMapBackgroundOnSiteCards: Value(settings.showMapBackgroundOnSiteCards),
+          showMapBackgroundOnDiveCards:
+              Value(settings.showMapBackgroundOnDiveCards),
+          showMapBackgroundOnSiteCards:
+              Value(settings.showMapBackgroundOnSiteCards),
           showMaxDepthMarker: Value(settings.showMaxDepthMarker),
-          showPressureThresholdMarkers: Value(settings.showPressureThresholdMarkers),
+          showPressureThresholdMarkers:
+              Value(settings.showPressureThresholdMarkers),
           updatedAt: Value(now),
         ),
       );
       _log.info('Updated settings for diver: $diverId');
     } catch (e, stackTrace) {
-      _log.error('Failed to update settings for diver: $diverId', e, stackTrace);
+      _log.error(
+        'Failed to update settings for diver: $diverId',
+        e,
+        stackTrace,
+      );
       rethrow;
     }
   }
 
   /// Get or create settings for a diver (ensures settings always exist)
-  Future<AppSettings> getOrCreateSettingsForDiver(String diverId, {AppSettings? defaultSettings}) async {
+  Future<AppSettings> getOrCreateSettingsForDiver(
+    String diverId, {
+    AppSettings? defaultSettings,
+  }) async {
     final existing = await getSettingsForDiver(diverId);
     if (existing != null) {
       return existing;
@@ -132,10 +159,16 @@ class DiverSettingsRepository {
   /// Delete settings for a diver
   Future<void> deleteSettingsForDiver(String diverId) async {
     try {
-      await (_db.delete(_db.diverSettings)..where((t) => t.diverId.equals(diverId))).go();
+      await (_db.delete(_db.diverSettings)
+            ..where((t) => t.diverId.equals(diverId)))
+          .go();
       _log.info('Deleted settings for diver: $diverId');
     } catch (e, stackTrace) {
-      _log.error('Failed to delete settings for diver: $diverId', e, stackTrace);
+      _log.error(
+        'Failed to delete settings for diver: $diverId',
+        e,
+        stackTrace,
+      );
       rethrow;
     }
   }

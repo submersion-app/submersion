@@ -23,7 +23,8 @@ final syncDataSerializerProvider = Provider<SyncDataSerializer>((ref) {
 });
 
 /// Selected cloud provider type
-final selectedCloudProviderTypeProvider = StateProvider<CloudProviderType?>((ref) => null);
+final selectedCloudProviderTypeProvider =
+    StateProvider<CloudProviderType?>((ref) => null);
 
 /// Cloud storage provider singletons
 final _googleDriveProvider = GoogleDriveStorageProvider();

@@ -332,19 +332,22 @@ class _ConflictResolutionDialogState
               ChoiceChip(
                 label: const Text('Keep Local'),
                 selected: selected == ConflictResolution.keepLocal,
-                onSelected: (_) => _selectResolution(key, ConflictResolution.keepLocal),
+                onSelected: (_) =>
+                    _selectResolution(key, ConflictResolution.keepLocal),
                 avatar: const Icon(Icons.phone_android, size: 18),
               ),
               ChoiceChip(
                 label: const Text('Keep Remote'),
                 selected: selected == ConflictResolution.keepRemote,
-                onSelected: (_) => _selectResolution(key, ConflictResolution.keepRemote),
+                onSelected: (_) =>
+                    _selectResolution(key, ConflictResolution.keepRemote),
                 avatar: const Icon(Icons.cloud, size: 18),
               ),
               ChoiceChip(
                 label: const Text('Keep Both'),
                 selected: selected == ConflictResolution.keepBoth,
-                onSelected: (_) => _selectResolution(key, ConflictResolution.keepBoth),
+                onSelected: (_) =>
+                    _selectResolution(key, ConflictResolution.keepBoth),
                 avatar: const Icon(Icons.copy_all, size: 18),
               ),
             ],
@@ -425,7 +428,9 @@ class _ConflictResolutionDialogState
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Resolved ${conflicts.length} conflict${conflicts.length == 1 ? '' : 's'}'),
+          content: Text(
+            'Resolved ${conflicts.length} conflict${conflicts.length == 1 ? '' : 's'}',
+          ),
         ),
       );
     }
@@ -457,9 +462,11 @@ class _ConflictResolutionDialogState
     return entityType
         .replaceAll('_', ' ')
         .split(' ')
-        .map((word) => word.isNotEmpty
-            ? '${word[0].toUpperCase()}${word.substring(1)}'
-            : '',)
+        .map(
+          (word) => word.isNotEmpty
+              ? '${word[0].toUpperCase()}${word.substring(1)}'
+              : '',
+        )
         .join(' ');
   }
 

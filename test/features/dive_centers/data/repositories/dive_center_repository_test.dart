@@ -51,7 +51,8 @@ void main() {
 
   group('DiveCenterRepository', () {
     group('createDiveCenter', () {
-      test('should create a new center with generated ID when ID is empty', () async {
+      test('should create a new center with generated ID when ID is empty',
+          () async {
         final center = createTestCenter(name: 'Ocean Adventures');
 
         final createdCenter = await repository.createDiveCenter(center);
@@ -61,7 +62,8 @@ void main() {
       });
 
       test('should create a center with provided ID', () async {
-        final center = createTestCenter(id: 'custom-center-id', name: 'Reef Divers');
+        final center =
+            createTestCenter(id: 'custom-center-id', name: 'Reef Divers');
 
         final createdCenter = await repository.createDiveCenter(center);
 
@@ -84,7 +86,8 @@ void main() {
         );
 
         final createdCenter = await repository.createDiveCenter(center);
-        final fetchedCenter = await repository.getDiveCenterById(createdCenter.id);
+        final fetchedCenter =
+            await repository.getDiveCenterById(createdCenter.id);
 
         expect(fetchedCenter, isNotNull);
         expect(fetchedCenter!.name, equals('Complete Dive Shop'));
@@ -128,9 +131,12 @@ void main() {
       });
 
       test('should return all centers ordered by name', () async {
-        await repository.createDiveCenter(createTestCenter(name: 'Zephyr Divers'));
-        await repository.createDiveCenter(createTestCenter(name: 'Aqua Adventures'));
-        await repository.createDiveCenter(createTestCenter(name: 'Marine Explorers'));
+        await repository
+            .createDiveCenter(createTestCenter(name: 'Zephyr Divers'));
+        await repository
+            .createDiveCenter(createTestCenter(name: 'Aqua Adventures'));
+        await repository
+            .createDiveCenter(createTestCenter(name: 'Marine Explorers'));
 
         final result = await repository.getAllDiveCenters();
 
@@ -167,7 +173,8 @@ void main() {
           createTestCenter(name: 'Affiliations Center', affiliations: ['PADI']),
         );
 
-        final updatedCenter = center.copyWith(affiliations: ['PADI', 'SSI', 'NAUI']);
+        final updatedCenter =
+            center.copyWith(affiliations: ['PADI', 'SSI', 'NAUI']);
 
         await repository.updateDiveCenter(updatedCenter);
         final result = await repository.getDiveCenterById(center.id);
@@ -198,21 +205,27 @@ void main() {
 
     group('searchDiveCenters', () {
       setUp(() async {
-        await repository.createDiveCenter(createTestCenter(
-          name: 'Ocean Blue Diving',
-          location: 'Miami Beach',
-          country: 'USA',
-        ),);
-        await repository.createDiveCenter(createTestCenter(
-          name: 'Coral Reef Adventures',
-          location: 'Key Largo',
-          country: 'USA',
-        ),);
-        await repository.createDiveCenter(createTestCenter(
-          name: 'Pacific Explorers',
-          location: 'Sydney Harbor',
-          country: 'Australia',
-        ),);
+        await repository.createDiveCenter(
+          createTestCenter(
+            name: 'Ocean Blue Diving',
+            location: 'Miami Beach',
+            country: 'USA',
+          ),
+        );
+        await repository.createDiveCenter(
+          createTestCenter(
+            name: 'Coral Reef Adventures',
+            location: 'Key Largo',
+            country: 'USA',
+          ),
+        );
+        await repository.createDiveCenter(
+          createTestCenter(
+            name: 'Pacific Explorers',
+            location: 'Sydney Harbor',
+            country: 'Australia',
+          ),
+        );
       });
 
       test('should find centers by name', () async {
@@ -252,18 +265,24 @@ void main() {
 
     group('getDiveCentersByCountry', () {
       setUp(() async {
-        await repository.createDiveCenter(createTestCenter(
-          name: 'USA Center 1',
-          country: 'USA',
-        ),);
-        await repository.createDiveCenter(createTestCenter(
-          name: 'USA Center 2',
-          country: 'USA',
-        ),);
-        await repository.createDiveCenter(createTestCenter(
-          name: 'Australia Center',
-          country: 'Australia',
-        ),);
+        await repository.createDiveCenter(
+          createTestCenter(
+            name: 'USA Center 1',
+            country: 'USA',
+          ),
+        );
+        await repository.createDiveCenter(
+          createTestCenter(
+            name: 'USA Center 2',
+            country: 'USA',
+          ),
+        );
+        await repository.createDiveCenter(
+          createTestCenter(
+            name: 'Australia Center',
+            country: 'Australia',
+          ),
+        );
       });
 
       test('should return centers for specified country', () async {
@@ -282,14 +301,18 @@ void main() {
 
     group('getDiveCentersWithCoordinates', () {
       setUp(() async {
-        await repository.createDiveCenter(createTestCenter(
-          name: 'With Coords',
-          latitude: 25.0,
-          longitude: -80.0,
-        ),);
-        await repository.createDiveCenter(createTestCenter(
-          name: 'Without Coords',
-        ),);
+        await repository.createDiveCenter(
+          createTestCenter(
+            name: 'With Coords',
+            latitude: 25.0,
+            longitude: -80.0,
+          ),
+        );
+        await repository.createDiveCenter(
+          createTestCenter(
+            name: 'Without Coords',
+          ),
+        );
       });
 
       test('should return only centers with coordinates', () async {
@@ -321,22 +344,30 @@ void main() {
       });
 
       test('should return unique countries ordered alphabetically', () async {
-        await repository.createDiveCenter(createTestCenter(
-          name: 'Center 1',
-          country: 'USA',
-        ),);
-        await repository.createDiveCenter(createTestCenter(
-          name: 'Center 2',
-          country: 'Australia',
-        ),);
-        await repository.createDiveCenter(createTestCenter(
-          name: 'Center 3',
-          country: 'USA', // duplicate
-        ),);
-        await repository.createDiveCenter(createTestCenter(
-          name: 'Center 4',
-          country: 'Mexico',
-        ),);
+        await repository.createDiveCenter(
+          createTestCenter(
+            name: 'Center 1',
+            country: 'USA',
+          ),
+        );
+        await repository.createDiveCenter(
+          createTestCenter(
+            name: 'Center 2',
+            country: 'Australia',
+          ),
+        );
+        await repository.createDiveCenter(
+          createTestCenter(
+            name: 'Center 3',
+            country: 'USA', // duplicate
+          ),
+        );
+        await repository.createDiveCenter(
+          createTestCenter(
+            name: 'Center 4',
+            country: 'Mexico',
+          ),
+        );
 
         final countries = await repository.getCountries();
 
@@ -344,14 +375,18 @@ void main() {
       });
 
       test('should exclude null and empty countries', () async {
-        await repository.createDiveCenter(createTestCenter(
-          name: 'With Country',
-          country: 'USA',
-        ),);
-        await repository.createDiveCenter(createTestCenter(
-          name: 'No Country',
-          country: null,
-        ),);
+        await repository.createDiveCenter(
+          createTestCenter(
+            name: 'With Country',
+            country: 'USA',
+          ),
+        );
+        await repository.createDiveCenter(
+          createTestCenter(
+            name: 'No Country',
+            country: null,
+          ),
+        );
 
         final countries = await repository.getCountries();
 

@@ -69,7 +69,9 @@ final profileAnalysisProvider =
         }
 
         // Analyze the profile
-        _log.debug('Analyzing profile for dive $diveId with ${depths.length} points');
+        _log.debug(
+          'Analyzing profile for dive $diveId with ${depths.length} points',
+        );
         return service.analyze(
           diveId: diveId,
           depths: depths,

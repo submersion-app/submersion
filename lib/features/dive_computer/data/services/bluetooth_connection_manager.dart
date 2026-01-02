@@ -297,8 +297,7 @@ class BluetoothConnectionManager implements ConnectionManager {
     if (service == null) return null;
 
     return service.characteristics.cast<BluetoothCharacteristic?>().firstWhere(
-          (c) =>
-              c?.uuid.str.toLowerCase() == characteristicUuid.toLowerCase(),
+          (c) => c?.uuid.str.toLowerCase() == characteristicUuid.toLowerCase(),
           orElse: () => null,
         );
   }
