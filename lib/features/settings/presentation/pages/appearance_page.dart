@@ -57,6 +57,31 @@ class AppearancePage extends ConsumerWidget {
               ref.read(settingsProvider.notifier).setShowMapBackgroundOnSiteCards(value);
             },
           ),
+          const SizedBox(height: 8),
+
+          _buildSectionHeader(context, 'Dive Profile'),
+          SwitchListTile(
+            title: const Text('Max depth marker'),
+            subtitle: const Text(
+              'Show a marker at the maximum depth point on dive profiles',
+            ),
+            secondary: const Icon(Icons.vertical_align_bottom),
+            value: settings.showMaxDepthMarker,
+            onChanged: (value) {
+              ref.read(settingsProvider.notifier).setShowMaxDepthMarker(value);
+            },
+          ),
+          SwitchListTile(
+            title: const Text('Pressure threshold markers'),
+            subtitle: const Text(
+              'Show markers when tank pressure crosses 2/3, 1/2, and 1/3 thresholds',
+            ),
+            secondary: const Icon(Icons.propane_tank),
+            value: settings.showPressureThresholdMarkers,
+            onChanged: (value) {
+              ref.read(settingsProvider.notifier).setShowPressureThresholdMarkers(value);
+            },
+          ),
           const SizedBox(height: 32),
         ],
       ),
