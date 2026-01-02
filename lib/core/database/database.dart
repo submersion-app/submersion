@@ -381,6 +381,13 @@ class DiverSettings extends Table {
       boolean().withDefault(const Constant(true))();
   RealColumn get lastStopDepth => real().withDefault(const Constant(3.0))();
   RealColumn get decoStopIncrement => real().withDefault(const Constant(3.0))();
+  // Appearance settings
+  BoolColumn get showDepthColoredDiveCards =>
+      boolean().withDefault(const Constant(true))();
+  BoolColumn get showMapBackgroundOnDiveCards =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get showMapBackgroundOnSiteCards =>
+      boolean().withDefault(const Constant(false))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -680,7 +687,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration {
@@ -762,6 +769,18 @@ class AppDatabase extends _$AppDatabase {
               deleted_at INTEGER NOT NULL
             )
           ''');
+        }
+        if (from < 5) {
+          // Add showMapBackgroundOnDiveCards column to diver_settings
+          await customStatement(
+            'ALTER TABLE diver_settings ADD COLUMN show_map_background_on_dive_cards INTEGER NOT NULL DEFAULT 0',
+          );
+        }
+        if (from < 6) {
+          // Add showMapBackgroundOnSiteCards column to diver_settings
+          await customStatement(
+            'ALTER TABLE diver_settings ADD COLUMN show_map_background_on_site_cards INTEGER NOT NULL DEFAULT 0',
+          );
         }
       },
       beforeOpen: (details) async {

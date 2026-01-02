@@ -46,6 +46,7 @@ import '../../features/statistics/presentation/pages/statistics_equipment_page.d
 import '../../features/statistics/presentation/pages/statistics_profile_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/settings/presentation/pages/api_keys_page.dart';
+import '../../features/settings/presentation/pages/appearance_page.dart';
 import '../../features/settings/presentation/pages/cloud_sync_page.dart';
 import '../../features/settings/presentation/pages/storage_settings_page.dart';
 import '../../features/dive_types/presentation/pages/dive_types_page.dart';
@@ -488,6 +489,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'storage',
                 name: 'storageSettings',
                 builder: (context, state) => const StorageSettingsPage(),
+              ),
+              GoRoute(
+                path: 'appearance',
+                name: 'appearance',
+                builder: (context, state) => const AppearancePage(),
               ),
             ],
           ),

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 
+import '../../../../features/settings/presentation/providers/settings_providers.dart';
 import '../../data/repositories/site_repository_impl.dart';
 import '../../domain/entities/dive_site.dart';
 import '../providers/site_providers.dart';
@@ -259,6 +262,8 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
             rating: site.rating,
             isSelectionMode: _isSelectionMode,
             isSelected: isSelected,
+            latitude: site.location?.latitude,
+            longitude: site.location?.longitude,
             onTap: _isSelectionMode
                 ? () => _toggleSelection(site.id)
                 : () => context.push('/sites/${site.id}'),
@@ -406,6 +411,8 @@ class SiteSearchDelegate extends SearchDelegate<DiveSite?> {
               location: site.locationString.isNotEmpty ? site.locationString : null,
               maxDepth: site.maxDepth,
               rating: site.rating,
+              latitude: site.location?.latitude,
+              longitude: site.location?.longitude,
               onTap: () {
                 close(context, site);
                 context.push('/sites/${site.id}');
@@ -423,7 +430,7 @@ class SiteSearchDelegate extends SearchDelegate<DiveSite?> {
 }
 
 /// List item widget for displaying a dive site summary
-class SiteListTile extends StatelessWidget {
+class SiteListTile extends ConsumerWidget {
   final String name;
   final String? location;
   final double? maxDepth;
@@ -433,6 +440,9 @@ class SiteListTile extends StatelessWidget {
   final VoidCallback? onLongPress;
   final bool isSelectionMode;
   final bool isSelected;
+  /// Site coordinates for map background
+  final double? latitude;
+  final double? longitude;
 
   const SiteListTile({
     super.key,
@@ -445,12 +455,169 @@ class SiteListTile extends StatelessWidget {
     this.onLongPress,
     this.isSelectionMode = false,
     this.isSelected = false,
+    this.latitude,
+    this.longitude,
   });
 
+  /// Check if map background should be shown
+  bool get _hasLocation => latitude != null && longitude != null;
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
 
+    // Check if map background is enabled
+    final showMapBackground = ref.watch(showMapBackgroundOnSiteCardsProvider);
+
+    // Determine if we should show the map (setting enabled + location available)
+    final shouldShowMap = showMapBackground && _hasLocation && !isSelected;
+
+    // Determine text colors based on background
+    final useLightText = shouldShowMap;
+    final primaryTextColor = useLightText ? Colors.white : null;
+    final secondaryTextColor = useLightText ? Colors.white70 : colorScheme.onSurfaceVariant;
+
+    // Build the content widget
+    Widget buildContent() {
+      return Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            // Selection checkbox or location icon
+            if (isSelectionMode)
+              Checkbox(
+                value: isSelected,
+                onChanged: (_) => onTap?.call(),
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                visualDensity: VisualDensity.compact,
+              )
+            else
+              CircleAvatar(
+                backgroundColor: colorScheme.secondaryContainer,
+                child: Icon(
+                  Icons.location_on,
+                  color: colorScheme.onSecondaryContainer,
+                ),
+              ),
+            const SizedBox(width: 12),
+            // Main content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: primaryTextColor,
+                        ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (location != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      location!,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: secondaryTextColor,
+                          ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            // Trailing info
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                if (diveCount > 0)
+                  Text(
+                    '$diveCount dives',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: secondaryTextColor,
+                        ),
+                  ),
+                if (rating != null)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.star, color: Colors.amber, size: 16),
+                      Text(
+                        rating!.toStringAsFixed(1),
+                        style: TextStyle(color: primaryTextColor),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+            if (!isSelectionMode)
+              Icon(
+                Icons.chevron_right,
+                color: secondaryTextColor,
+              ),
+          ],
+        ),
+      );
+    }
+
+    // Build the card with or without map background
+    if (shouldShowMap) {
+      final siteLocation = LatLng(latitude!, longitude!);
+      return Card(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          onLongPress: onLongPress,
+          child: Stack(
+            children: [
+              // Map background layer
+              Positioned.fill(
+                child: FlutterMap(
+                  options: MapOptions(
+                    initialCenter: siteLocation,
+                    initialZoom: 13.0,
+                    interactionOptions: const InteractionOptions(
+                      flags: InteractiveFlag.none, // Non-interactive
+                    ),
+                  ),
+                  children: [
+                    TileLayer(
+                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      userAgentPackageName: 'com.submersion.app',
+                      maxZoom: 19,
+                    ),
+                  ],
+                ),
+              ),
+              // Gradient overlay for text readability
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      stops: const [0.0, 0.3, 0.7, 1.0],
+                      colors: [
+                        Colors.black.withValues(alpha: 0.4),
+                        Colors.black.withValues(alpha: 0.5),
+                        Colors.black.withValues(alpha: 0.7),
+                        Colors.black.withValues(alpha: 0.85),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              // Content layer
+              buildContent(),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Standard card without map
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       color: isSelected ? colorScheme.primaryContainer.withValues(alpha: 0.3) : null,
@@ -458,80 +625,7 @@ class SiteListTile extends StatelessWidget {
         onTap: onTap,
         onLongPress: onLongPress,
         borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              // Selection checkbox or location icon
-              if (isSelectionMode)
-                Checkbox(
-                  value: isSelected,
-                  onChanged: (_) => onTap?.call(),
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  visualDensity: VisualDensity.compact,
-                )
-              else
-                CircleAvatar(
-                  backgroundColor: colorScheme.secondaryContainer,
-                  child: Icon(
-                    Icons.location_on,
-                    color: colorScheme.onSecondaryContainer,
-                  ),
-                ),
-              const SizedBox(width: 12),
-              // Main content
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (location != null) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        location!,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              // Trailing info
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  if (diveCount > 0)
-                    Text(
-                      '$diveCount dives',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  if (rating != null)
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.star, color: Colors.amber, size: 16),
-                        Text(rating!.toStringAsFixed(1)),
-                      ],
-                    ),
-                ],
-              ),
-              if (!isSelectionMode)
-                Icon(
-                  Icons.chevron_right,
-                  color: colorScheme.onSurfaceVariant,
-                ),
-            ],
-          ),
-        ),
+        child: buildContent(),
       ),
     );
   }

@@ -73,7 +73,13 @@ class SettingsPage extends ConsumerWidget {
           const Divider(),
 
           _buildSectionHeader(context, 'Appearance'),
-          _buildThemeSelector(context, ref, settings.themeMode),
+          ListTile(
+            leading: const Icon(Icons.palette),
+            title: const Text('Theme & Display'),
+            subtitle: Text(_getThemeModeName(settings.themeMode)),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/settings/appearance'),
+          ),
           const Divider(),
 
           _buildSectionHeader(context, 'Manage'),
@@ -524,15 +530,6 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildThemeSelector(BuildContext context, WidgetRef ref, ThemeMode currentMode) {
-    return ListTile(
-      title: const Text('Theme'),
-      subtitle: Text(_getThemeModeName(currentMode)),
-      trailing: const Icon(Icons.chevron_right),
-      onTap: () => _showThemePicker(context, ref, currentMode),
-    );
-  }
-
   String _getThemeModeName(ThemeMode mode) {
     switch (mode) {
       case ThemeMode.system:
@@ -541,41 +538,6 @@ class SettingsPage extends ConsumerWidget {
         return 'Light';
       case ThemeMode.dark:
         return 'Dark';
-    }
-  }
-
-  void _showThemePicker(BuildContext context, WidgetRef ref, ThemeMode currentMode) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Theme'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: ThemeMode.values.map((mode) {
-            final isSelected = mode == currentMode;
-            return ListTile(
-              leading: Icon(_getThemeModeIcon(mode)),
-              title: Text(_getThemeModeName(mode)),
-              trailing: isSelected ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary) : null,
-              onTap: () {
-                ref.read(settingsProvider.notifier).setThemeMode(mode);
-                Navigator.of(dialogContext).pop();
-              },
-            );
-          }).toList(),
-        ),
-      ),
-    );
-  }
-
-  IconData _getThemeModeIcon(ThemeMode mode) {
-    switch (mode) {
-      case ThemeMode.system:
-        return Icons.brightness_auto;
-      case ThemeMode.light:
-        return Icons.light_mode;
-      case ThemeMode.dark:
-        return Icons.dark_mode;
     }
   }
 

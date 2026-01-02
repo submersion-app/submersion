@@ -95,6 +95,16 @@ class AppSettings {
   /// Deco stop increment in meters (typically 3)
   final double decoStopIncrement;
 
+  // Appearance settings
+  /// Show depth-based colored backgrounds on dive cards in the dive list
+  final bool showDepthColoredDiveCards;
+
+  /// Show dive site map as background on dive cards in the dive list
+  final bool showMapBackgroundOnDiveCards;
+
+  /// Show dive site map as background on site cards in the site list
+  final bool showMapBackgroundOnSiteCards;
+
   const AppSettings({
     this.depthUnit = DepthUnit.meters,
     this.temperatureUnit = TemperatureUnit.celsius,
@@ -119,6 +129,10 @@ class AppSettings {
     this.showNdlOnProfile = true,
     this.lastStopDepth = 3.0,
     this.decoStopIncrement = 3.0,
+    // Appearance defaults
+    this.showDepthColoredDiveCards = true,
+    this.showMapBackgroundOnDiveCards = false,
+    this.showMapBackgroundOnSiteCards = false,
   });
 
   /// Compute the current unit preset based on actual unit values
@@ -173,6 +187,9 @@ class AppSettings {
     bool? showNdlOnProfile,
     double? lastStopDepth,
     double? decoStopIncrement,
+    bool? showDepthColoredDiveCards,
+    bool? showMapBackgroundOnDiveCards,
+    bool? showMapBackgroundOnSiteCards,
   }) {
     return AppSettings(
       depthUnit: depthUnit ?? this.depthUnit,
@@ -197,6 +214,9 @@ class AppSettings {
       showNdlOnProfile: showNdlOnProfile ?? this.showNdlOnProfile,
       lastStopDepth: lastStopDepth ?? this.lastStopDepth,
       decoStopIncrement: decoStopIncrement ?? this.decoStopIncrement,
+      showDepthColoredDiveCards: showDepthColoredDiveCards ?? this.showDepthColoredDiveCards,
+      showMapBackgroundOnDiveCards: showMapBackgroundOnDiveCards ?? this.showMapBackgroundOnDiveCards,
+      showMapBackgroundOnSiteCards: showMapBackgroundOnSiteCards ?? this.showMapBackgroundOnSiteCards,
     );
   }
 }
@@ -404,6 +424,23 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  // Appearance setters
+
+  Future<void> setShowDepthColoredDiveCards(bool value) async {
+    state = state.copyWith(showDepthColoredDiveCards: value);
+    await _saveSettings();
+  }
+
+  Future<void> setShowMapBackgroundOnDiveCards(bool value) async {
+    state = state.copyWith(showMapBackgroundOnDiveCards: value);
+    await _saveSettings();
+  }
+
+  Future<void> setShowMapBackgroundOnSiteCards(bool value) async {
+    state = state.copyWith(showMapBackgroundOnSiteCards: value);
+    await _saveSettings();
+  }
+
   /// Set all units to metric
   Future<void> setMetric() async {
     state = state.copyWith(
@@ -511,4 +548,17 @@ final lastStopDepthProvider = Provider<double>((ref) {
 
 final decoStopIncrementProvider = Provider<double>((ref) {
   return ref.watch(settingsProvider.select((s) => s.decoStopIncrement));
+});
+
+/// Appearance settings convenience providers
+final showDepthColoredDiveCardsProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.showDepthColoredDiveCards));
+});
+
+final showMapBackgroundOnDiveCardsProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.showMapBackgroundOnDiveCards));
+});
+
+final showMapBackgroundOnSiteCardsProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.showMapBackgroundOnSiteCards));
 });
