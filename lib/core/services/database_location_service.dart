@@ -101,8 +101,10 @@ class DatabaseLocationService {
 
   /// Check if custom folder mode is supported on this platform
   ///
-  /// Custom folder is supported on all platforms, but with limitations on mobile:
-  /// - iOS: Limited to app sandbox + iCloud Drive documents
+  /// Custom folder is supported on all platforms:
+  /// - macOS: Full support with security-scoped bookmarks
+  /// - iOS: Full support with security-scoped bookmarks for iCloud Drive
+  /// - Windows/Linux: Full support with standard file system access
   /// - Android: Uses Storage Access Framework (SAF)
   bool get isCustomFolderSupported => true;
 
@@ -112,15 +114,37 @@ class DatabaseLocationService {
 
   /// Pick a custom folder for database storage
   ///
-  /// Returns the selected folder path, or null if cancelled
-  Future<String?> pickCustomFolder() async {
+  /// On iOS, uses native picker to properly handle security-scoped URLs.
+  /// On other platforms, uses file_picker plugin.
+  ///
+  /// Returns a [FolderPickResultWithBookmark] containing the path and optional
+  /// bookmark data (iOS only), or null if cancelled.
+  Future<FolderPickResultWithBookmark?> pickCustomFolder() async {
+    // On iOS, use native picker to capture security-scoped URL
+    if (Platform.isIOS) {
+      try {
+        final result = await SecurityScopedBookmarkService.pickFolderWithSecurityScope();
+        if (result == null) return null;
+
+        return FolderPickResultWithBookmark(
+          path: result.path,
+          bookmarkData: result.bookmarkData,
+        );
+      } catch (e) {
+        debugPrint('iOS folder picker failed: $e');
+        return null;
+      }
+    }
+
+    // On other platforms, use file_picker
     try {
       final result = await FilePicker.platform.getDirectoryPath(
         dialogTitle: 'Choose Database Storage Location',
         lockParentWindow: true,
       );
 
-      return result;
+      if (result == null) return null;
+      return FolderPickResultWithBookmark(path: result);
     } catch (e) {
       // Handle any errors from file picker
       return null;
@@ -128,6 +152,10 @@ class DatabaseLocationService {
   }
 
   /// Verify that a folder is accessible and writable
+  ///
+  /// On iOS, this uses security-scoped resource access via native code
+  /// because standard Dart file operations don't work with iOS's
+  /// security-scoped URLs from the document picker.
   Future<bool> verifyFolderAccessible(String folderPath) async {
     try {
       final dir = Directory(folderPath);
@@ -137,7 +165,13 @@ class DatabaseLocationService {
         return false;
       }
 
-      // Try to create a test file to verify write access
+      // On iOS, use native security-scoped verification
+      if (Platform.isIOS) {
+        final result = await SecurityScopedBookmarkService.verifyWriteAccess(folderPath);
+        return result ?? false;
+      }
+
+      // On other platforms, try to create a test file to verify write access
       final testFile = File(p.join(folderPath, '.submersion_test'));
       try {
         await testFile.writeAsString('test');
@@ -256,4 +290,19 @@ class DatabaseLocationService {
     await SecurityScopedBookmarkService.stopAccessingSecurityScopedResource();
     await _prefs.remove(_bookmarkDataKey);
   }
+}
+
+/// Result of picking a folder, with optional bookmark data for iOS.
+class FolderPickResultWithBookmark {
+  /// The folder path
+  final String path;
+
+  /// Bookmark data for persistent security-scoped access (iOS only).
+  /// If provided, this should be stored and used to restore access after app restart.
+  final Uint8List? bookmarkData;
+
+  const FolderPickResultWithBookmark({
+    required this.path,
+    this.bookmarkData,
+  });
 }

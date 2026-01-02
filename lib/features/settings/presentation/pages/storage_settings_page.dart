@@ -424,9 +424,12 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
   Future<void> _selectAndMigrateToCustomFolder() async {
     // Pick a folder
     final notifier = ref.read(storageConfigNotifierProvider.notifier);
-    final folderPath = await notifier.pickCustomFolder();
+    final pickResult = await notifier.pickCustomFolder();
 
-    if (folderPath == null || !mounted) return;
+    if (pickResult == null || !mounted) return;
+
+    // Extract path from the result
+    final folderPath = pickResult.path;
 
     // Check for existing database
     final existingDb = await notifier.checkForExistingDatabase(folderPath);

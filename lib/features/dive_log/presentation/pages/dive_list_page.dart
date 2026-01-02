@@ -13,6 +13,7 @@ import '../../../tags/presentation/widgets/tag_input_widget.dart';
 import '../../domain/entities/dive.dart';
 import '../providers/dive_providers.dart';
 import '../widgets/dive_numbering_dialog.dart';
+import '../widgets/dive_profile_chart.dart';
 
 class DiveListPage extends ConsumerStatefulWidget {
   const DiveListPage({super.key});
@@ -289,6 +290,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
                 final dive = dives[index];
                 final isSelected = _selectedIds.contains(dive.id);
                 return DiveListTile(
+                  diveId: dive.id,
                   diveNumber: dive.diveNumber ?? index + 1,
                   dateTime: dive.dateTime,
                   siteName: dive.site?.name,
@@ -573,6 +575,7 @@ class DiveSearchDelegate extends SearchDelegate<Dive?> {
           itemBuilder: (context, index) {
             final dive = dives[index];
             return DiveListTile(
+              diveId: dive.id,
               diveNumber: dive.diveNumber ?? index + 1,
               dateTime: dive.dateTime,
               siteName: dive.site?.name,
@@ -599,6 +602,7 @@ class DiveSearchDelegate extends SearchDelegate<Dive?> {
 
 /// List item widget for displaying a dive summary
 class DiveListTile extends ConsumerWidget {
+  final String diveId;
   final int diveNumber;
   final DateTime dateTime;
   final String? siteName;
@@ -614,6 +618,7 @@ class DiveListTile extends ConsumerWidget {
 
   const DiveListTile({
     super.key,
+    required this.diveId,
     required this.diveNumber,
     required this.dateTime,
     this.siteName,
@@ -633,6 +638,7 @@ class DiveListTile extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
+    final profileAsync = ref.watch(diveProfileProvider(diveId));
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -764,6 +770,41 @@ class DiveListTile extends ConsumerWidget {
                     ],
                   ],
                 ),
+              ),
+              // Dive profile mini chart (right side)
+              profileAsync.when(
+                data: (profile) => profile.isNotEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: SizedBox(
+                          width: 80,
+                          height: 50,
+                          child: DiveProfileMiniChart(
+                            profile: profile,
+                            height: 50,
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+                loading: () => Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: SizedBox(
+                    width: 80,
+                    height: 50,
+                    child: Center(
+                      child: SizedBox(
+                        height: 16,
+                        width: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: colorScheme.primary.withValues(alpha: 0.5),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                error: (_, __) => const SizedBox.shrink(),
               ),
               // Chevron
               Icon(

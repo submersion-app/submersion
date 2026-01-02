@@ -180,6 +180,31 @@ class DiveRepository {
     }
   }
 
+  /// Get profile data for a single dive (for lazy loading in list views)
+  Future<List<domain.DiveProfilePoint>> getDiveProfile(String diveId) async {
+    try {
+      final profileQuery = _db.select(_db.diveProfiles)
+        ..where((t) => t.diveId.equals(diveId))
+        ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]);
+      final profileRows = await profileQuery.get();
+
+      return profileRows
+          .map(
+            (p) => domain.DiveProfilePoint(
+              timestamp: p.timestamp,
+              depth: p.depth,
+              pressure: p.pressure,
+              temperature: p.temperature,
+              heartRate: p.heartRate,
+            ),
+          )
+          .toList();
+    } catch (e, stackTrace) {
+      _log.error('Failed to get profile for dive: $diveId', e, stackTrace);
+      return [];
+    }
+  }
+
   /// Create a new dive
   Future<domain.Dive> createDive(domain.Dive dive) async {
     try {

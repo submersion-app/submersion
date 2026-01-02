@@ -51,6 +51,14 @@ class SecurityScopedBookmarkHandler: NSObject {
         case "stopAccessingSecurityScopedResource":
             stopAccessing(result: result)
 
+        case "verifyWriteAccess":
+            guard let args = call.arguments as? [String: Any],
+                  let path = args["path"] as? String else {
+                result(FlutterError(code: "INVALID_ARGS", message: "Missing path argument", details: nil))
+                return
+            }
+            verifyWriteAccess(path: path, result: result)
+
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -138,6 +146,34 @@ class SecurityScopedBookmarkHandler: NSObject {
         activeSecurityScopedURL?.stopAccessingSecurityScopedResource()
         activeSecurityScopedURL = nil
         result(nil)
+    }
+
+    /// Verifies write access to a folder by creating and deleting a test file.
+    /// This must be done from native code while security-scoped access is active.
+    private func verifyWriteAccess(path: String, result: @escaping FlutterResult) {
+        let url = URL(fileURLWithPath: path)
+
+        // First, ensure we have security-scoped access
+        let didStartAccessing = url.startAccessingSecurityScopedResource()
+
+        defer {
+            // Only stop accessing if we started it here
+            if didStartAccessing {
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
+
+        // Try to create a test file
+        let testFileURL = url.appendingPathComponent(".submersion_test")
+        let testData = "test".data(using: .utf8)!
+
+        do {
+            try testData.write(to: testFileURL)
+            try FileManager.default.removeItem(at: testFileURL)
+            result(true)
+        } catch {
+            result(false)
+        }
     }
 
     /// Call this when the app is terminating to clean up resources.
