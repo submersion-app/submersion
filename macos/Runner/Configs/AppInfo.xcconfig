@@ -12,3 +12,6 @@ PRODUCT_BUNDLE_IDENTIFIER = app.submersion
 
 // The copyright displayed in application information
 PRODUCT_COPYRIGHT = Copyright © 2025 Eric Griffin. All rights reserved.
+
+// Use the traditional (separate) platform/UI threads for macOS builds.
+FLUTTER_MERGED_PLATFORM_THREAD = 0
