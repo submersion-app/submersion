@@ -1002,7 +1002,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       final gasColor = (tanks != null && tanks.isNotEmpty)
           ? GasColors.forGasMix(tanks.first.gasMix)
           : colorScheme.primary;
-      return [_buildSingleDepthSegment(gasColor, units, 0, widget.profile.length, showFill: true)];
+      return [
+        _buildSingleDepthSegment(gasColor, units, 0, widget.profile.length,
+            showFill: true)
+      ];
     }
 
     final lines = <LineChartBarData>[];
@@ -1052,7 +1055,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           units,
           segmentStart,
           widget.profile.length,
-          showFill: segmentStart == 0, // Only show fill if this is the only segment
+          showFill:
+              segmentStart == 0, // Only show fill if this is the only segment
         ),
       );
     }
@@ -1146,8 +1150,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         // Simple interpolation
         final prev = widget.profile[i - 1];
         final curr = widget.profile[i];
-        final ratio = (timestamp - prev.timestamp) /
-            (curr.timestamp - prev.timestamp);
+        final ratio =
+            (timestamp - prev.timestamp) / (curr.timestamp - prev.timestamp);
         return prev.depth + (curr.depth - prev.depth) * ratio;
       }
     }
