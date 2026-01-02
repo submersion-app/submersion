@@ -131,7 +131,7 @@ jobs:
         run: flutter build ios --release --no-codesign
 
       - name: Build macOS
-        run: flutter build macos --release
+        run: flutter build macos --release --no-codesign
 
       - name: Upload iOS artifact
         uses: actions/upload-artifact@v4
