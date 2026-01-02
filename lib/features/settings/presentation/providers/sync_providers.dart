@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/data/repositories/sync_repository.dart';
@@ -319,6 +321,9 @@ final restoreLastProviderProvider = FutureProvider<void>((ref) async {
   final initializer = ref.watch(syncInitializerProvider);
   final lastProvider = initializer.getLastProvider();
   if (lastProvider != null) {
-    ref.read(selectedCloudProviderTypeProvider.notifier).state = lastProvider;
+    // Defer mutation to avoid changing provider state during initialization.
+    await Future<void>.microtask(() {
+      ref.read(selectedCloudProviderTypeProvider.notifier).state = lastProvider;
+    });
   }
 });
