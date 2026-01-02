@@ -5,6 +5,15 @@
 </div>
 <br clear="all"/>
 
+[![License: GPL-3.0](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+[![Build macOS](https://img.shields.io/github/actions/workflow/status/submersion-app/submersion/ci.yaml?branch=main&label=macOS&logo=apple)](https://github.com/submersion-app/submersion/actions/workflows/ci.yaml)
+[![Build Windows](https://img.shields.io/github/actions/workflow/status/submersion-app/submersion/ci.yaml?branch=main&label=Windows&logo=windows)](https://github.com/submersion-app/submersion/actions/workflows/ci.yaml)
+[![Build Linux](https://img.shields.io/github/actions/workflow/status/submersion-app/submersion/ci.yaml?branch=main&label=Linux&logo=linux)](https://github.com/submersion-app/submersion/actions/workflows/ci.yaml)
+[![Build Android](https://img.shields.io/github/actions/workflow/status/submersion-app/submersion/ci.yaml?branch=main&label=Android&logo=android)](https://github.com/submersion-app/submersion/actions/workflows/ci.yaml)
+[![Build iOS](https://img.shields.io/github/actions/workflow/status/submersion-app/submersion/ci.yaml?branch=main&label=iOS&logo=apple)](https://github.com/submersion-app/submersion/actions/workflows/ci.yaml)
+
+
+
 Submersion gives scuba divers full ownership of their logbooks — no proprietary formats, no cloud lock-in, no subscription fees. Track analytics, stats, records, and trends across your dives, all stored locally and exportable to open standards. Free and open-source, forever.
 
 ## Why Submersion?
