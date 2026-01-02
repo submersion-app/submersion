@@ -14,8 +14,8 @@ dependencies:
   cupertino_icons: ^1.0.8
 
   # State Management
-  flutter_riverpod: ^2.5.1
-  riverpod_annotation: ^2.3.5
+  flutter_riverpod: ^3.1.0
+  riverpod_annotation: ^4.0.0
 
   # Database
   drift: ^2.20.0
@@ -25,16 +25,16 @@ dependencies:
   path: ^1.9.0
 
   # Serialization
-  freezed_annotation: ^2.4.4
+  freezed_annotation: ^3.1.0
   json_annotation: ^4.9.0
 
   # Navigation
-  go_router: ^14.3.0
+  go_router: ^17.0.1
 
   # UI Components
-  fl_chart: ^0.68.0
-  flutter_map: ^7.0.2
-  flutter_map_marker_cluster: ^1.3.6
+  fl_chart: ^1.1.1
+  flutter_map: ^8.2.2
+  flutter_map_marker_cluster: ^8.2.2
   latlong2: ^0.9.1
   cached_network_image: ^3.4.1
   photo_view: ^0.15.0
@@ -43,31 +43,31 @@ dependencies:
   http: ^1.2.2
 
   # Cloud Storage
-  google_sign_in: ^6.2.2
-  googleapis: ^13.2.0
-  extension_google_sign_in_as_googleapis_auth: ^2.0.12
+  google_sign_in: ^7.2.0
+  googleapis: ^15.0.0
+  extension_google_sign_in_as_googleapis_auth: ^3.0.0
 
   # Platform Integration
-  flutter_blue_plus: ^1.32.12
+  flutter_blue_plus: ^2.1.0
   dive_computer: ^0.1.0-dev.2  # libdivecomputer FFI wrapper
-  permission_handler: ^11.3.1
+  permission_handler: ^12.0.1
   file_picker: ^10.3.8
   image_picker: ^1.1.2
-  share_plus: ^10.0.2
+  share_plus: ^12.0.1
   url_launcher: ^6.3.0
   flutter_contacts: ^1.1.9+2
-  geolocator: ^13.0.2
-  geocoding: ^3.0.0
+  geolocator: ^14.0.2
+  geocoding: ^4.0.0
 
   # Storage
   shared_preferences: ^2.3.2
-  flutter_secure_storage: ^9.2.2
+  flutter_secure_storage: ^10.0.0
 
   # FFI
   ffi: ^2.1.0
 
   # Utilities
-  intl: ^0.19.0
+  intl: ^0.20.2
   uuid: ^4.5.0
   xml: ^6.5.0
   pdf: ^3.11.1
@@ -80,13 +80,13 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  flutter_lints: ^4.0.0
+  flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.2
   build_runner: ^2.4.12
   drift_dev: ^2.20.1
-  freezed: ^2.5.7
+  freezed: ^3.2.3
   json_serializable: ^6.8.0
-  riverpod_generator: ^2.4.3
+  riverpod_generator: ^4.0.0+1
   mockito: ^5.4.6
 
 
