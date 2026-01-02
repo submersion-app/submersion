@@ -130,7 +130,7 @@ class AppSettings {
     this.lastStopDepth = 3.0,
     this.decoStopIncrement = 3.0,
     // Appearance defaults
-    this.showDepthColoredDiveCards = true,
+    this.showDepthColoredDiveCards = false,
     this.showMapBackgroundOnDiveCards = false,
     this.showMapBackgroundOnSiteCards = false,
   });
