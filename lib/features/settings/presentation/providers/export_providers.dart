@@ -1362,7 +1362,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
 
             if (pressuresByTank.isNotEmpty) {
               await tankPressureRepo.insertTankPressures(
-                  diveId, pressuresByTank);
+                diveId,
+                pressuresByTank,
+              );
             }
           }
 
