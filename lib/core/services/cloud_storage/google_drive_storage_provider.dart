@@ -66,8 +66,8 @@ class GoogleDriveStorageProvider
       final account = await futureAccount;
       if (account == null) return false;
 
-      final authorization = await account.authorizationClient
-          .authorizationForScopes(_scopes);
+      final authorization =
+          await account.authorizationClient.authorizationForScopes(_scopes);
       if (authorization == null) return false;
 
       await _initDriveApi(account, authorization);
@@ -84,8 +84,7 @@ class GoogleDriveStorageProvider
   Future<void> authenticate() async {
     try {
       await _ensureInitialized();
-      final account =
-          await _googleSignIn.authenticate(scopeHint: _scopes);
+      final account = await _googleSignIn.authenticate(scopeHint: _scopes);
       final authorization =
           await account.authorizationClient.authorizeScopes(_scopes);
 
