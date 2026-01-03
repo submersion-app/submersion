@@ -207,6 +207,7 @@ class BluetoothConnectionManager implements ConnectionManager {
 
       // Connect
       await _bluetoothDevice!.connect(
+        license: License.free,
         timeout: const Duration(seconds: 15),
         autoConnect: false,
       );

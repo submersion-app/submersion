@@ -4695,9 +4695,11 @@ class ExportService {
     final file = File('${directory.path}/$fileName');
     await file.writeAsString(content);
 
-    await Share.shareXFiles(
-      [XFile(file.path, mimeType: mimeType)],
-      subject: fileName,
+    await SharePlus.instance.share(
+      ShareParams(
+        files: [XFile(file.path, mimeType: mimeType)],
+        subject: fileName,
+      ),
     );
 
     return file.path;
@@ -4712,9 +4714,11 @@ class ExportService {
     final file = File('${directory.path}/$fileName');
     await file.writeAsBytes(bytes);
 
-    await Share.shareXFiles(
-      [XFile(file.path, mimeType: mimeType)],
-      subject: fileName,
+    await SharePlus.instance.share(
+      ShareParams(
+        files: [XFile(file.path, mimeType: mimeType)],
+        subject: fileName,
+      ),
     );
 
     return file.path;

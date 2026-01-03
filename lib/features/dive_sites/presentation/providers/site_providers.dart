@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/providers/provider.dart';
 
 import '../../../../features/settings/presentation/providers/api_key_providers.dart';
 import '../../../divers/presentation/providers/diver_providers.dart';

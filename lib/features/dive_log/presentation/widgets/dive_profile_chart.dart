@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/providers/provider.dart';
 
 import '../../../../core/constants/units.dart';
 import '../../../../core/deco/ascent_rate_calculator.dart';
@@ -828,7 +828,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           },
           touchTooltipData: LineTouchTooltipData(
             getTooltipColor: (spot) => colorScheme.inverseSurface,
-            tooltipRoundedRadius: 8,
             getTooltipItems: (touchedSpots) {
               // Build tooltip showing all enabled metrics for the touched point
               // Only process the depth line (barIndex 0) and build combined tooltip
