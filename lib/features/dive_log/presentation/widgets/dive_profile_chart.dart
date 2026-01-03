@@ -179,9 +179,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       _showTankPressure.putIfAbsent(tankId, () => true);
 
       // Get color based on gas mix
-      final color = tank != null
-          ? GasColors.forGasMix(tank.gasMix)
-          : _getTankColor(i);
+      final color =
+          tank != null ? GasColors.forGasMix(tank.gasMix) : _getTankColor(i);
 
       // Build label
       final label = tank?.name ?? 'Tank ${i + 1}';
@@ -1385,9 +1384,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       final tank = _getTankById(tankId);
 
       // Use gas color or fallback
-      final color = tank != null
-          ? GasColors.forGasMix(tank.gasMix)
-          : _getTankColor(i);
+      final color =
+          tank != null ? GasColors.forGasMix(tank.gasMix) : _getTankColor(i);
       final dashPattern = _getTankDashPattern(i);
 
       lines.add(
