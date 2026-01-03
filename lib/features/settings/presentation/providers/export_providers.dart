@@ -663,8 +663,22 @@ class ExportNotifier extends StateNotifier<ExportState> {
           <String, DiveSite>{}; // UDDF site ID -> new DiveSite
 
       // Helper to yield to UI thread periodically
+      // Uses a small delay to ensure the UI actually has time to repaint
       Future<void> yieldToUI() async {
-        await Future<void>.delayed(Duration.zero);
+        await Future<void>.delayed(const Duration(milliseconds: 16));
+      }
+
+      // Track when we last yielded to avoid excessive delays
+      var lastYieldTime = DateTime.now();
+      const yieldInterval = Duration(milliseconds: 100);
+
+      // Helper to yield if enough time has passed (for high-frequency updates)
+      Future<void> maybeYieldToUI() async {
+        final now = DateTime.now();
+        if (now.difference(lastYieldTime) >= yieldInterval) {
+          await yieldToUI();
+          lastYieldTime = now;
+        }
       }
 
       // 1. Import Trips
@@ -709,6 +723,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
           }
           tripsImported++;
           state = state.copyWith(currentItem: state.currentItem + 1);
+          await maybeYieldToUI();
         }
       }
 
@@ -784,6 +799,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
           }
           equipmentImported++;
           state = state.copyWith(currentItem: state.currentItem + 1);
+          await maybeYieldToUI();
         }
       }
 
@@ -830,6 +846,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
           }
           buddiesImported++;
           state = state.copyWith(currentItem: state.currentItem + 1);
+          await maybeYieldToUI();
         }
       }
 
@@ -896,6 +913,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
           }
           diveCentersImported++;
           state = state.copyWith(currentItem: state.currentItem + 1);
+          await maybeYieldToUI();
         }
       }
 
@@ -960,6 +978,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
           await certificationRepository.createCertification(certification);
           certificationsImported++;
           state = state.copyWith(currentItem: state.currentItem + 1);
+          await maybeYieldToUI();
         }
       }
 
@@ -1000,6 +1019,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
           }
           tagsImported++;
           state = state.copyWith(currentItem: state.currentItem + 1);
+          await maybeYieldToUI();
         }
       }
 
@@ -1044,6 +1064,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
             // Ignore duplicates - dive type might already exist
           }
           state = state.copyWith(currentItem: state.currentItem + 1);
+          await maybeYieldToUI();
         }
       }
 
@@ -1089,6 +1110,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
           }
           sitesImported++;
           state = state.copyWith(currentItem: state.currentItem + 1);
+          await maybeYieldToUI();
         }
       }
 
@@ -1140,6 +1162,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
           await equipmentSetRepository.createSet(equipmentSet);
           equipmentSetsImported++;
           state = state.copyWith(currentItem: state.currentItem + 1);
+          await maybeYieldToUI();
         }
       }
 
@@ -1158,9 +1181,6 @@ class ExportNotifier extends StateNotifier<ExportState> {
 
         for (var i = 0; i < importResult.dives.length; i++) {
           final diveData = importResult.dives[i];
-
-          // Yield periodically to keep UI responsive
-          if (i % 5 == 0) await yieldToUI();
           // Build profile points if present
           final profileData =
               diveData['profile'] as List<Map<String, dynamic>>?;
@@ -1389,6 +1409,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
 
           divesImported++;
           state = state.copyWith(currentItem: state.currentItem + 1);
+          await maybeYieldToUI();
         }
       }
 
