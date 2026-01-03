@@ -3097,6 +3097,12 @@ class ExportService {
     for (final tankDataElement in diveElement.findElements('tankdata')) {
       final tankInfo = <String, dynamic>{};
 
+      // Capture tank ID for reference mapping (used by waypoint tankpressure refs)
+      final tankId = tankDataElement.getAttribute('id');
+      if (tankId != null) {
+        tankInfo['uddfTankId'] = tankId;
+      }
+
       // Get tank volume (in liters)
       final volumeText = _getElementText(tankDataElement, 'tankvolume');
       if (volumeText != null) {
@@ -3181,14 +3187,19 @@ class ExportService {
       // Only add tank if it has meaningful and valid data:
       // - Has valid pressure data (tank was actually used with realistic values)
       // - Or has volume with working pressure (physical tank specification)
+      // - Or has a UDDF ID (might be referenced by waypoint pressure data)
       // Tanks with zero pressures or only gas mix references are often
       // placeholders from dive computers and should be skipped
+      final hasUddfId = tankInfo['uddfTankId'] != null;
       final hasMeaningfulData = hasValidPressure ||
           (volume != null && volume > 0) ||
-          (workingPressure != null && workingPressure > 0);
+          (workingPressure != null && workingPressure > 0) ||
+          hasUddfId; // Tank might be referenced by waypoint pressures
 
       // Skip tanks with both pressures at 0 or very low (unusable data)
-      final hasBadPressureData = startPressure != null &&
+      // But keep tanks with UDDF IDs as they may have waypoint pressure data
+      final hasBadPressureData = !hasUddfId &&
+          startPressure != null &&
           endPressure != null &&
           startPressure <= 10 &&
           endPressure <= 10;
@@ -3209,6 +3220,16 @@ class ExportService {
             break;
           }
         }
+      }
+    }
+
+    // Build mapping from UDDF tank ref IDs to final tank indices
+    // (after filtering, so indices match the actual tanks list order)
+    final tankRefToIndex = <String, int>{};
+    for (var i = 0; i < tanks.length; i++) {
+      final uddfTankId = tanks[i]['uddfTankId'] as String?;
+      if (uddfTankId != null) {
+        tankRefToIndex[uddfTankId] = i;
       }
     }
 
@@ -3247,13 +3268,44 @@ class ExportService {
           }
         }
 
-        final pressureText = _getElementText(waypoint, 'tankpressure');
-        if (pressureText != null) {
+        // Parse tank pressure(s) with optional tank reference for multi-tank support
+        // UDDF can have multiple tankpressure elements per waypoint (one per tank)
+        final tankPressureElements = waypoint.findElements('tankpressure');
+        final allTankPressures = <Map<String, dynamic>>[];
+
+        for (final tankPressureElement in tankPressureElements) {
+          final pressureText = tankPressureElement.innerText;
           // UDDF stores pressure in Pascal, convert to bar
           final pascal = double.tryParse(pressureText);
           if (pascal != null) {
-            point['pressure'] = pascal / 100000;
+            final pressure = pascal / 100000;
+
+            // Extract tank reference to determine which tank this pressure belongs to
+            final tankRef = tankPressureElement.getAttribute('ref');
+            int tankIdx;
+            if (tankRef != null && tankRefToIndex.containsKey(tankRef)) {
+              tankIdx = tankRefToIndex[tankRef]!;
+            } else {
+              // Default to primary tank (index 0) when no ref attribute
+              tankIdx = 0;
+            }
+
+            allTankPressures.add({
+              'pressure': pressure,
+              'tankIndex': tankIdx,
+            });
+
+            // Store first tank's pressure in legacy fields for backward compatibility
+            if (!point.containsKey('pressure')) {
+              point['pressure'] = pressure;
+              point['tankIndex'] = tankIdx;
+            }
           }
+        }
+
+        // Store all tank pressures for multi-tank visualization
+        if (allTankPressures.length > 1) {
+          point['allTankPressures'] = allTankPressures;
         }
 
         // Get heart rate

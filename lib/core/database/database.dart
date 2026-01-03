@@ -596,6 +596,21 @@ class GasSwitches extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Per-tank time-series pressure data for multi-tank dives
+/// Enables visualization of pressure curves for each tank (AI transmitters)
+class TankPressureProfiles extends Table {
+  TextColumn get id => text()();
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  TextColumn get tankId =>
+      text().references(DiveTanks, #id, onDelete: KeyAction.cascade)();
+  IntColumn get timestamp => integer()(); // seconds from dive start
+  RealColumn get pressure => real()(); // bar
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 // ============================================================================
 // Sync Tables
 // ============================================================================
@@ -682,6 +697,7 @@ class DeletionLog extends Table {
     DiveComputers,
     DiveProfileEvents,
     GasSwitches,
+    TankPressureProfiles,
     // Sync tables
     SyncMetadata,
     SyncRecords,
@@ -692,7 +708,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration {
@@ -801,6 +817,23 @@ class AppDatabase extends _$AppDatabase {
           await customStatement(
             'ALTER TABLE diver_settings ADD COLUMN show_pressure_threshold_markers INTEGER NOT NULL DEFAULT 0',
           );
+        }
+        if (from < 9) {
+          // Add per-tank pressure profiles for multi-tank visualization
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS tank_pressure_profiles (
+              id TEXT NOT NULL PRIMARY KEY,
+              dive_id TEXT NOT NULL REFERENCES dives(id) ON DELETE CASCADE,
+              tank_id TEXT NOT NULL REFERENCES dive_tanks(id) ON DELETE CASCADE,
+              timestamp INTEGER NOT NULL,
+              pressure REAL NOT NULL
+            )
+          ''');
+          // Index for efficient queries by dive and tank
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_tank_pressure_dive_tank
+            ON tank_pressure_profiles(dive_id, tank_id, timestamp)
+          ''');
         }
       },
       beforeOpen: (details) async {

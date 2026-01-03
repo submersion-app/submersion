@@ -73,6 +73,10 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// Tanks for determining initial gas color (before first switch)
   final List<DiveTank>? tanks;
 
+  /// Per-tank time-series pressure data (keyed by tank ID)
+  /// Used for multi-tank pressure visualization
+  final Map<String, List<TankPressurePoint>>? tankPressures;
+
   const DiveProfileChart({
     super.key,
     required this.profile,
@@ -97,6 +101,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.showPressureThresholdMarkers = false,
     this.gasSwitches,
     this.tanks,
+    this.tankPressures,
   });
 
   @override
@@ -108,6 +113,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   bool _showPressure = false;
   bool _showHeartRate = false;
   bool _showSac = false;
+
+  // Per-tank pressure visibility (keyed by tank ID)
+  // Defaults to all visible; populated on first build if multi-tank data exists
+  final Map<String, bool> _showTankPressure = {};
 
   // Decompression visualization toggles
   bool _showCeiling = true;
@@ -127,6 +136,94 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
   bool get _hasPressureMarkers =>
       widget.markers?.any((m) => m.type != ProfileMarkerType.maxDepth) ?? false;
+
+  /// Whether multi-tank pressure data is available
+  bool get _hasMultiTankPressure =>
+      widget.tankPressures != null && widget.tankPressures!.isNotEmpty;
+
+  /// Get tank by ID for display purposes
+  DiveTank? _getTankById(String tankId) {
+    return widget.tanks?.firstWhere(
+      (t) => t.id == tankId,
+      orElse: () => DiveTank(id: tankId),
+    );
+  }
+
+  /// Build per-tank pressure toggles
+  List<Widget> _buildTankPressureToggles(BuildContext context) {
+    if (!_hasMultiTankPressure) return [];
+
+    final tanks = widget.tanks ?? [];
+    final tankPressures = widget.tankPressures!;
+    final toggles = <Widget>[];
+
+    // Sort tank IDs by tank order
+    final sortedTankIds = tankPressures.keys.toList()
+      ..sort((a, b) {
+        final tankA = tanks.firstWhere((t) => t.id == a, orElse: () => DiveTank(id: a, order: 999));
+        final tankB = tanks.firstWhere((t) => t.id == b, orElse: () => DiveTank(id: b, order: 999));
+        return tankA.order.compareTo(tankB.order);
+      });
+
+    for (var i = 0; i < sortedTankIds.length; i++) {
+      final tankId = sortedTankIds[i];
+      final tank = _getTankById(tankId);
+
+      // Initialize visibility if not set
+      _showTankPressure.putIfAbsent(tankId, () => true);
+
+      // Get color based on gas mix
+      final color = tank != null
+          ? GasColors.forGasMix(tank.gasMix)
+          : _getTankColor(i);
+
+      // Build label
+      final label = tank?.name ?? 'Tank ${i + 1}';
+
+      toggles.add(
+        _buildMetricToggle(
+          context,
+          color: color,
+          label: label,
+          isEnabled: _showTankPressure[tankId] ?? true,
+          onTap: () => setState(() {
+            _showTankPressure[tankId] = !(_showTankPressure[tankId] ?? true);
+          }),
+        ),
+      );
+    }
+
+    return toggles;
+  }
+
+  /// Get color for tank by index (fallback when no gas mix info)
+  Color _getTankColor(int index) {
+    const colors = [
+      Colors.orange,
+      Colors.amber,
+      Colors.green,
+      Colors.cyan,
+      Colors.purple,
+      Colors.pink,
+    ];
+    return colors[index % colors.length];
+  }
+
+  /// Get dash pattern for tank by index
+  List<int>? _getTankDashPattern(int index) {
+    switch (index) {
+      case 0:
+        return [8, 4]; // Primary: long dash
+      case 1:
+        return [4, 4]; // Secondary: medium dash
+      case 2:
+        return [2, 2]; // Tertiary: short dash
+      case 3:
+        return [8, 2, 2, 2]; // Fourth: dash-dot
+      default:
+        return [4, 2];
+    }
+  }
 
   // Zoom/pan state
   double _zoomLevel = 1.0;
@@ -226,8 +323,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   onTap: () =>
                       setState(() => _showTemperature = !_showTemperature),
                 ),
-              // Pressure toggle
-              if (hasPressureData)
+              // Pressure toggles - per-tank if multi-tank data, legacy otherwise
+              if (_hasMultiTankPressure)
+                ..._buildTankPressureToggles(context)
+              else if (hasPressureData)
                 _buildMetricToggle(
                   context,
                   color: pressureColor,
@@ -774,8 +873,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               units,
             ),
 
-          // Pressure line (if showing)
-          if (_showPressure &&
+          // Pressure lines - multi-tank if available, legacy single otherwise
+          if (_hasMultiTankPressure)
+            ..._buildMultiTankPressureLines(totalMaxDepth)
+          else if (_showPressure &&
               hasPressureData &&
               minPressure != null &&
               maxPressure != null)
@@ -1224,6 +1325,99 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       dotData: const FlDotData(show: false),
       dashArray: [8, 4],
     );
+  }
+
+  /// Build multiple pressure lines for multi-tank visualization
+  List<LineChartBarData> _buildMultiTankPressureLines(double chartMaxDepth) {
+    if (!_hasMultiTankPressure) return [];
+
+    final tankPressures = widget.tankPressures!;
+    final tanks = widget.tanks ?? [];
+    final lines = <LineChartBarData>[];
+
+    // Calculate global min/max pressure across all tanks for consistent scaling
+    double? globalMinPressure;
+    double? globalMaxPressure;
+
+    for (final pressurePoints in tankPressures.values) {
+      for (final point in pressurePoints) {
+        if (globalMinPressure == null || point.pressure < globalMinPressure) {
+          globalMinPressure = point.pressure;
+        }
+        if (globalMaxPressure == null || point.pressure > globalMaxPressure) {
+          globalMaxPressure = point.pressure;
+        }
+      }
+    }
+
+    if (globalMinPressure == null || globalMaxPressure == null) return [];
+
+    // Add some padding to the pressure range
+    final pressureRange = globalMaxPressure - globalMinPressure;
+    final minPressure = globalMinPressure - (pressureRange * 0.05);
+    final maxPressure = globalMaxPressure + (pressureRange * 0.05);
+
+    // Sort tank IDs by tank order
+    final sortedTankIds = tankPressures.keys.toList()
+      ..sort((a, b) {
+        final tankA = tanks.firstWhere(
+          (t) => t.id == a,
+          orElse: () => DiveTank(id: a, order: 999),
+        );
+        final tankB = tanks.firstWhere(
+          (t) => t.id == b,
+          orElse: () => DiveTank(id: b, order: 999),
+        );
+        return tankA.order.compareTo(tankB.order);
+      });
+
+    // Build a line for each visible tank
+    for (var i = 0; i < sortedTankIds.length; i++) {
+      final tankId = sortedTankIds[i];
+
+      // Skip if tank is hidden
+      if (!(_showTankPressure[tankId] ?? true)) continue;
+
+      final pressurePoints = tankPressures[tankId]!;
+      if (pressurePoints.isEmpty) continue;
+
+      // Get tank for color
+      final tank = tanks.firstWhere(
+        (t) => t.id == tankId,
+        orElse: () => DiveTank(id: tankId),
+      );
+
+      // Use gas color or fallback
+      final color = GasColors.forGasMix(tank.gasMix);
+      final dashPattern = _getTankDashPattern(i);
+
+      lines.add(
+        LineChartBarData(
+          spots: pressurePoints
+              .map(
+                (p) => FlSpot(
+                  p.timestamp.toDouble(),
+                  -_mapValueToDepth(
+                    p.pressure,
+                    chartMaxDepth,
+                    minPressure,
+                    maxPressure,
+                  ),
+                ),
+              )
+              .toList(),
+          isCurved: true,
+          curveSmoothness: 0.2,
+          color: color,
+          barWidth: 2,
+          isStrokeCapRound: true,
+          dotData: const FlDotData(show: false),
+          dashArray: dashPattern,
+        ),
+      );
+    }
+
+    return lines;
   }
 
   LineChartBarData _buildHeartRateLine(

@@ -1,6 +1,7 @@
 import 'package:submersion/core/providers/provider.dart';
 
 import '../../data/repositories/dive_repository_impl.dart';
+import '../../data/repositories/tank_pressure_repository.dart';
 import '../../domain/entities/dive.dart' as domain;
 import '../../../dive_centers/presentation/providers/dive_center_providers.dart';
 import '../../../divers/presentation/providers/diver_providers.dart';
@@ -357,4 +358,20 @@ final diveNumberingInfoProvider =
   final validatedDiverId =
       await ref.watch(validatedCurrentDiverIdProvider.future);
   return repository.getDiveNumberingInfo(diverId: validatedDiverId);
+});
+
+/// Repository provider for tank pressure data
+final tankPressureRepositoryProvider = Provider<TankPressureRepository>((ref) {
+  return TankPressureRepository();
+});
+
+/// Provider for per-tank time-series pressure data
+///
+/// Returns a map where keys are tank IDs and values are lists of
+/// pressure points sorted by timestamp. Used for multi-tank pressure
+/// visualization in the dive profile chart.
+final tankPressuresProvider = FutureProvider.family<
+    Map<String, List<domain.TankPressurePoint>>, String>((ref, diveId) async {
+  final repository = ref.watch(tankPressureRepositoryProvider);
+  return repository.getTankPressuresForDive(diveId);
 });

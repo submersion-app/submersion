@@ -120,12 +120,13 @@ class ProfileMarkersService {
   /// Scans the profile pressure data to find when pressure crosses
   /// 2/3, 1/2, and 1/3 of the starting pressure for each tank.
   ///
-  /// Note: Currently uses the single pressure field in DiveProfilePoint,
-  /// which represents the primary tank. For multi-tank support with
-  /// per-tank time-series data, the data model would need to be extended.
+  /// If [tankPressures] is provided, uses per-tank time-series data for
+  /// accurate threshold detection. Otherwise falls back to legacy single
+  /// pressure field or linear estimation.
   static List<ProfileMarker> getPressureThresholdMarkers({
     required List<DiveProfilePoint> profile,
     required List<DiveTank> tanks,
+    Map<String, List<TankPressurePoint>>? tankPressures,
   }) {
     final markers = <ProfileMarker>[];
 
@@ -138,17 +139,18 @@ class ProfileMarkersService {
       return markers;
     }
 
-    // Check if we have pressure data in the profile
+    // Check if we have per-tank pressure data
+    final hasMultiTankData =
+        tankPressures != null && tankPressures.isNotEmpty;
+
+    // Check if we have legacy pressure data in the profile
     final hasProfilePressure = profile.any((p) => p.pressure != null);
 
-    if (!hasProfilePressure) {
+    if (!hasMultiTankData && !hasProfilePressure) {
       // No time-series pressure data - estimate based on linear consumption
       return _estimatePressureMarkersLinear(profile, tanksWithPressure);
     }
 
-    // For single tank or primary tank: use profile pressure directly
-    // For multi-tank: we'll use profile pressure for the first tank
-    // and estimate for others based on consumption proportions
     for (var tankIndex = 0; tankIndex < tanksWithPressure.length; tankIndex++) {
       final tank = tanksWithPressure[tankIndex];
       final startPressure = tank.startPressure!.toDouble();
@@ -160,8 +162,20 @@ class ProfileMarkersService {
         ProfileMarkerType.pressureOneThird: startPressure * (1 / 3),
       };
 
-      if (tankIndex == 0 && hasProfilePressure) {
-        // Use actual profile pressure for primary tank
+      // Try to use per-tank pressure data first
+      if (hasMultiTankData && tankPressures.containsKey(tank.id)) {
+        final tankPressurePoints = tankPressures[tank.id]!;
+        markers.addAll(
+          _findPressureCrossingsFromTankData(
+            profile: profile,
+            tankPressurePoints: tankPressurePoints,
+            thresholds: thresholds,
+            tank: tank,
+            tankIndex: tankIndex,
+          ),
+        );
+      } else if (tankIndex == 0 && hasProfilePressure) {
+        // Fall back to legacy profile pressure for primary tank
         markers.addAll(
           _findPressureCrossingsFromProfile(
             profile: profile,
@@ -184,6 +198,77 @@ class ProfileMarkersService {
     }
 
     return markers;
+  }
+
+  /// Find exact timestamps when pressure crosses thresholds using per-tank data
+  static List<ProfileMarker> _findPressureCrossingsFromTankData({
+    required List<DiveProfilePoint> profile,
+    required List<TankPressurePoint> tankPressurePoints,
+    required Map<ProfileMarkerType, double> thresholds,
+    required DiveTank tank,
+    required int tankIndex,
+  }) {
+    final markers = <ProfileMarker>[];
+    final foundThresholds = <ProfileMarkerType>{};
+
+    if (tankPressurePoints.isEmpty) return markers;
+
+    // Sort by timestamp to ensure chronological order
+    final sortedPoints = List<TankPressurePoint>.from(tankPressurePoints)
+      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+    // Scan chronologically to find first crossing of each threshold
+    for (final point in sortedPoints) {
+      for (final entry in thresholds.entries) {
+        if (foundThresholds.contains(entry.key)) continue;
+
+        // Check if pressure has dropped below threshold
+        if (point.pressure <= entry.value) {
+          // Find the corresponding depth from the dive profile
+          final depth = _findDepthAtTimestamp(profile, point.timestamp);
+
+          markers.add(
+            ProfileMarker(
+              timestamp: point.timestamp,
+              depth: depth,
+              type: entry.key,
+              tankId: tank.id,
+              tankName: tank.name ?? 'Tank ${tankIndex + 1}',
+              tankIndex: tankIndex,
+              value: entry.value,
+            ),
+          );
+          foundThresholds.add(entry.key);
+        }
+      }
+
+      // If all thresholds found, stop scanning
+      if (foundThresholds.length == thresholds.length) break;
+    }
+
+    return markers;
+  }
+
+  /// Find depth at a given timestamp from the profile
+  static double _findDepthAtTimestamp(
+    List<DiveProfilePoint> profile,
+    int timestamp,
+  ) {
+    // Find the closest profile point
+    DiveProfilePoint? closest;
+    int minDiff = 999999;
+
+    for (final point in profile) {
+      final diff = (point.timestamp - timestamp).abs();
+      if (diff < minDiff) {
+        minDiff = diff;
+        closest = point;
+      }
+      // Early exit if we've passed the target
+      if (point.timestamp > timestamp && diff > minDiff) break;
+    }
+
+    return closest?.depth ?? 0.0;
   }
 
   /// Find exact timestamps when pressure crosses thresholds using profile data

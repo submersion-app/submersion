@@ -11,7 +11,8 @@ import '../../../../core/database/database.dart'
         DivesCompanion,
         DiveTanksCompanion,
         DiveProfile,
-        DiveProfileEvent;
+        DiveProfileEvent,
+        TankPressureProfilesCompanion;
 import '../../../../core/services/database_service.dart';
 import '../../../../core/services/logger_service.dart';
 import '../../domain/entities/dive_computer.dart' as domain;
@@ -642,7 +643,7 @@ class DiveComputerRepository {
         isPrimary = true;
       }
 
-      // Insert profile points
+      // Insert profile points (keeping legacy pressure for backward compatibility)
       for (final point in points) {
         await _db.into(_db.diveProfiles).insert(
               DiveProfilesCompanion(
@@ -651,7 +652,12 @@ class DiveComputerRepository {
                 computerId: Value(computerId),
                 timestamp: Value(point.timestamp),
                 depth: Value(point.depth),
-                pressure: Value(point.pressure),
+                // Store primary tank pressure for legacy compatibility
+                pressure: Value(
+                  point.tankIndex == 0 || point.tankIndex == null
+                      ? point.pressure
+                      : null,
+                ),
                 temperature: Value(point.temperature),
                 heartRate: Value(point.heartRate),
                 isPrimary: Value(isPrimary),
@@ -659,13 +665,19 @@ class DiveComputerRepository {
             );
       }
 
+      // Map to track tank index → tank ID for pressure data
+      final tankIdsByIndex = <int, String>{};
+
       // Insert tanks for new dives
       if (isNewDive && tanks != null && tanks.isNotEmpty) {
         _log.info('Importing ${tanks.length} tanks for dive $diveId');
         for (final tank in tanks) {
+          final tankId = _uuid.v4();
+          tankIdsByIndex[tank.index] = tankId;
+
           await _db.into(_db.diveTanks).insert(
                 DiveTanksCompanion(
-                  id: Value(_uuid.v4()),
+                  id: Value(tankId),
                   diveId: Value(diveId),
                   volume: Value(tank.volumeLiters),
                   startPressure: Value(tank.startPressure?.round()),
@@ -681,6 +693,50 @@ class DiveComputerRepository {
             'O2=${tank.o2Percent}%, start=${tank.startPressure} bar, '
             'end=${tank.endPressure} bar',
           );
+        }
+      } else if (!isNewDive) {
+        // For existing dives, fetch tank IDs
+        final existingTanks = await (_db.select(_db.diveTanks)
+              ..where((t) => t.diveId.equals(diveId!))
+              ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]))
+            .get();
+        for (final tank in existingTanks) {
+          tankIdsByIndex[tank.tankOrder] = tank.id;
+        }
+      }
+
+      // Insert per-tank pressure time-series data
+      if (tankIdsByIndex.isNotEmpty) {
+        // Group pressure readings by tank index
+        final pressuresByTank = <int, List<({int timestamp, double pressure})>>{};
+        for (final point in points) {
+          if (point.pressure != null) {
+            final tankIdx = point.tankIndex ?? 0;
+            pressuresByTank.putIfAbsent(tankIdx, () => []);
+            pressuresByTank[tankIdx]!
+                .add((timestamp: point.timestamp, pressure: point.pressure!));
+          }
+        }
+
+        // Insert pressure data for each tank
+        for (final entry in pressuresByTank.entries) {
+          final tankId = tankIdsByIndex[entry.key];
+          if (tankId != null) {
+            for (final point in entry.value) {
+              await _db.into(_db.tankPressureProfiles).insert(
+                    TankPressureProfilesCompanion(
+                      id: Value(_uuid.v4()),
+                      diveId: Value(diveId),
+                      tankId: Value(tankId),
+                      timestamp: Value(point.timestamp),
+                      pressure: Value(point.pressure),
+                    ),
+                  );
+            }
+            _log.info(
+              'Imported ${entry.value.length} pressure points for tank ${entry.key}',
+            );
+          }
         }
       }
 
@@ -837,6 +893,8 @@ class ProfilePointData {
   final double? pressure;
   final double? temperature;
   final int? heartRate;
+  /// Tank index for pressure (0-based), used for multi-tank pressure tracking
+  final int? tankIndex;
 
   const ProfilePointData({
     required this.timestamp,
@@ -844,6 +902,7 @@ class ProfilePointData {
     this.pressure,
     this.temperature,
     this.heartRate,
+    this.tankIndex,
   });
 }
 
