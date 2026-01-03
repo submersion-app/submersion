@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
+import 'package:googleapis_auth/googleapis_auth.dart' as gapis_auth;
 
 import '../logger_service.dart';
 import 'cloud_storage_provider.dart';
@@ -16,12 +17,12 @@ class GoogleDriveStorageProvider
     implements CloudStorageProvider {
   static final _log = LoggerService.forClass(GoogleDriveStorageProvider);
 
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: [
-      drive.DriveApi.driveAppdataScope, // Access to app-specific folder
-    ],
-  );
+  static const _scopes = [drive.DriveApi.driveAppdataScope];
 
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
+  bool _initialized = false;
+  bool _allowSilentAuth = false;
+  gapis_auth.AuthClient? _authClient;
   drive.DriveApi? _driveApi;
   GoogleSignInAccount? _currentUser;
   String? _syncFolderId;
@@ -38,16 +39,41 @@ class GoogleDriveStorageProvider
     return true;
   }
 
+  Future<void> _ensureInitialized() async {
+    if (_initialized) return;
+    await _googleSignIn.initialize();
+    _initialized = true;
+  }
+
   @override
   Future<bool> isAuthenticated() async {
     try {
-      // Try silent sign in first
-      _currentUser = await _googleSignIn.signInSilently();
-      if (_currentUser != null) {
-        await _initDriveApi();
+      // If we already have an authenticated session in memory, reuse it.
+      if (_currentUser != null && _authClient != null) {
         return true;
       }
-      return false;
+
+      // Defer any silent sign-in (which triggers Keychain access) until the user
+      // has explicitly opted in by signing in once.
+      if (!_allowSilentAuth) {
+        return false;
+      }
+
+      await _ensureInitialized();
+      final futureAccount = _googleSignIn.attemptLightweightAuthentication();
+      if (futureAccount == null) return false;
+
+      final account = await futureAccount;
+      if (account == null) return false;
+
+      final authorization = await account.authorizationClient
+          .authorizationForScopes(_scopes);
+      if (authorization == null) return false;
+
+      await _initDriveApi(account, authorization);
+      // The user has already opted in, keep allowing silent auth.
+      _allowSilentAuth = true;
+      return true;
     } catch (e) {
       _log.warning('Silent sign-in failed: $e');
       return false;
@@ -57,12 +83,15 @@ class GoogleDriveStorageProvider
   @override
   Future<void> authenticate() async {
     try {
-      _currentUser = await _googleSignIn.signIn();
-      if (_currentUser == null) {
-        throw const CloudStorageException('Sign-in was cancelled');
-      }
-      await _initDriveApi();
-      _log.info('Authenticated with Google Drive as ${_currentUser!.email}');
+      await _ensureInitialized();
+      final account =
+          await _googleSignIn.authenticate(scopeHint: _scopes);
+      final authorization =
+          await account.authorizationClient.authorizeScopes(_scopes);
+
+      await _initDriveApi(account, authorization);
+      _allowSilentAuth = true;
+      _log.info('Authenticated with Google Drive as ${account.email}');
     } catch (e, stackTrace) {
       _log.error('Google Sign-In failed', e, stackTrace);
       throw CloudStorageException('Google Sign-In failed: $e', e, stackTrace);
@@ -72,9 +101,13 @@ class GoogleDriveStorageProvider
   @override
   Future<void> signOut() async {
     await _googleSignIn.signOut();
+    // Close the auth client if it exists; close is synchronous.
+    _authClient?.close();
+    _authClient = null;
     _currentUser = null;
     _driveApi = null;
     _syncFolderId = null;
+    _allowSilentAuth = false;
     _log.info('Signed out from Google Drive');
   }
 
@@ -83,12 +116,14 @@ class GoogleDriveStorageProvider
     return _currentUser?.email;
   }
 
-  Future<void> _initDriveApi() async {
-    final httpClient = await _googleSignIn.authenticatedClient();
-    if (httpClient == null) {
-      throw const CloudStorageException('Failed to get authenticated client');
-    }
-    _driveApi = drive.DriveApi(httpClient);
+  Future<void> _initDriveApi(
+    GoogleSignInAccount account,
+    GoogleSignInClientAuthorization authorization,
+  ) async {
+    _authClient?.close();
+    _authClient = authorization.authClient(scopes: _scopes);
+    _driveApi = drive.DriveApi(_authClient!);
+    _currentUser = account;
   }
 
   drive.DriveApi get _api {

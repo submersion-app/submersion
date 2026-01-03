@@ -18,10 +18,10 @@ dependencies:
   riverpod_annotation: ^4.0.0
 
   # Database
-  drift: ^2.28.2
-  sqlite3: ^2.9.4
+  drift: ^2.30.0
+  sqlite3: ^2.4.6
   sqlite3_flutter_libs: ^0.5.41
-  path_provider: ^2.1.4
+  path_provider: ^2.1.5
   path: ^1.9.0
 
   # Serialization
@@ -43,25 +43,25 @@ dependencies:
   http: ^1.2.2
 
   # Cloud Storage
-  google_sign_in: ^6.3.0
-  googleapis: ^13.2.0
-  extension_google_sign_in_as_googleapis_auth: ^2.0.13
+  google_sign_in: ^7.2.0
+  googleapis: ^15.0.0
+  extension_google_sign_in_as_googleapis_auth: ^3.0.0
 
   # Platform Integration
-  flutter_blue_plus: ^1.36.8
+  flutter_blue_plus: ^2.1.0
   dive_computer: ^0.1.0-dev.2  # libdivecomputer FFI wrapper
-  permission_handler: ^11.4.0
+  permission_handler: ^12.0.1
   file_picker: ^10.3.8
   image_picker: ^1.1.2
   share_plus: ^10.1.4
   url_launcher: ^6.3.0
   flutter_contacts: ^1.1.9+2
-  geolocator: ^13.0.4
-  geocoding: ^3.0.0
+  geolocator: ^14.0.2
+  geocoding: ^4.0.0
 
   # Storage
   shared_preferences: ^2.3.2
-  flutter_secure_storage: ^9.2.4
+  flutter_secure_storage: ^10.0.0
 
   # FFI
   ffi: ^2.1.0
@@ -80,14 +80,14 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  flutter_lints: ^4.0.0
+  flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.2
-  build_runner: ^2.4.15
-  drift_dev: ^2.28.0
+  build_runner: ^2.10.4
+  drift_dev: ^2.30.0
   freezed: ^3.2.3
-  json_serializable: ^6.9.5
+  json_serializable: ^6.10.0
   riverpod_generator: ^4.0.0+1
-  mockito: ^5.4.6
+  mockito: ^5.6.1
 
 
 flutter:
