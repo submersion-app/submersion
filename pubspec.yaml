@@ -16,6 +16,7 @@ dependencies:
   # State Management
   flutter_riverpod: ^3.1.0
   riverpod_annotation: ^4.0.0
+  riverpod: ^3.1.0
 
   # Database
   drift: ^2.30.0
@@ -47,6 +48,7 @@ dependencies:
   google_sign_in: ^7.2.0
   googleapis: ^15.0.0
   extension_google_sign_in_as_googleapis_auth: ^3.0.0
+  googleapis_auth: ^2.0.0
 
   # Platform Integration
   flutter_blue_plus: ^2.1.0

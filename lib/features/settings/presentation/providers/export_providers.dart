@@ -1285,9 +1285,13 @@ class ExportNotifier extends StateNotifier<ExportState> {
       await DatabaseService.instance.backup(backupPath);
 
       // Share the backup file
-      await Share.shareXFiles(
-        [XFile(backupPath, mimeType: 'application/octet-stream')],
-        subject: 'Submersion Backup',
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [
+            XFile(backupPath, mimeType: 'application/octet-stream'),
+          ],
+          subject: 'Submersion Backup',
+        ),
       );
 
       state = state.copyWith(
