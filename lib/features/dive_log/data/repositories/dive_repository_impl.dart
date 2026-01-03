@@ -261,11 +261,12 @@ class DiveRepository {
             ),
           );
 
-      // Insert tanks
+      // Insert tanks (preserve provided IDs if not empty, otherwise generate new ones)
       for (final tank in dive.tanks) {
+        final tankId = tank.id.isNotEmpty ? tank.id : _uuid.v4();
         await _db.into(_db.diveTanks).insert(
               DiveTanksCompanion(
-                id: Value(_uuid.v4()),
+                id: Value(tankId),
                 diveId: Value(id),
                 volume: Value(tank.volume),
                 workingPressure: Value(tank.workingPressure),

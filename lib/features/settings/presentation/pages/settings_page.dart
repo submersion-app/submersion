@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -12,6 +14,7 @@ import '../providers/export_providers.dart';
 import '../providers/settings_providers.dart';
 import '../providers/storage_providers.dart';
 import '../providers/sync_providers.dart';
+import '../widgets/import_progress_dialog.dart';
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
@@ -1030,14 +1033,40 @@ class SettingsPage extends ConsumerWidget {
   }
 
   /// Handle import/restore operations that use native file picker
-  /// Don't show loading dialog before file picker to avoid navigator lock
+  /// Shows progress dialog during import to prevent UI appearing frozen
   Future<void> _handleImport(
     BuildContext context,
     WidgetRef ref,
     Future<void> Function() importFn,
   ) async {
+    var dialogShown = false;
+
+    void showDialogIfNeeded(ExportState state) {
+      if (!dialogShown &&
+          state.importPhase != null &&
+          state.status == ExportStatus.exporting &&
+          context.mounted) {
+        dialogShown = true;
+        ImportProgressDialog.show(context);
+      }
+    }
+
     try {
-      await importFn();
+      // Set up listener BEFORE starting import to catch all state changes
+      final subscription = ref.listenManual(
+        exportNotifierProvider,
+        (previous, next) => showDialogIfNeeded(next),
+        fireImmediately: true,
+      );
+
+      // Now start the import
+      try {
+        await importFn();
+      } finally {
+        // Always clean up subscription, even on errors.
+        subscription.close();
+      }
+
       if (context.mounted) {
         final state = ref.read(exportNotifierProvider);
         // Only show snackbar if not cancelled (idle status means user cancelled)
