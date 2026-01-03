@@ -1060,10 +1060,12 @@ class SettingsPage extends ConsumerWidget {
       );
 
       // Now start the import
-      await importFn();
-
-      // Clean up subscription
-      subscription.close();
+      try {
+        await importFn();
+      } finally {
+        // Always clean up subscription, even on errors.
+        subscription.close();
+      }
 
       if (context.mounted) {
         final state = ref.read(exportNotifierProvider);

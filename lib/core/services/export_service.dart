@@ -3274,7 +3274,7 @@ class ExportService {
         final allTankPressures = <Map<String, dynamic>>[];
 
         for (final tankPressureElement in tankPressureElements) {
-          final pressureText = tankPressureElement.innerText;
+          final pressureText = tankPressureElement.text.trim();
           // UDDF stores pressure in Pascal, convert to bar
           final pascal = double.tryParse(pressureText);
           if (pascal != null) {
@@ -3303,8 +3303,8 @@ class ExportService {
           }
         }
 
-        // Store all tank pressures for multi-tank visualization
-        if (allTankPressures.length > 1) {
+          // Store all tank pressures for visualization and analysis
+          if (allTankPressures.isNotEmpty) {
           point['allTankPressures'] = allTankPressures;
         }
 

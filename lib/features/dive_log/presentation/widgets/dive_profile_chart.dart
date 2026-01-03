@@ -143,10 +143,23 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
   /// Get tank by ID for display purposes
   DiveTank? _getTankById(String tankId) {
-    return widget.tanks?.firstWhere(
-      (t) => t.id == tankId,
-      orElse: () => DiveTank(id: tankId),
-    );
+    final tanks = widget.tanks;
+    if (tanks == null) return null;
+    for (final tank in tanks) {
+      if (tank.id == tankId) return tank;
+    }
+    return null;
+  }
+
+  /// Sort tank IDs by tank order
+  List<String> _sortedTankIds(Iterable<String> tankIds) {
+    final ids = tankIds.toList();
+    ids.sort((a, b) {
+      final orderA = _getTankById(a)?.order ?? 999;
+      final orderB = _getTankById(b)?.order ?? 999;
+      return orderA.compareTo(orderB);
+    });
+    return ids;
   }
 
   /// Build per-tank pressure toggles
@@ -157,13 +170,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final tankPressures = widget.tankPressures!;
     final toggles = <Widget>[];
 
-    // Sort tank IDs by tank order
-    final sortedTankIds = tankPressures.keys.toList()
-      ..sort((a, b) {
-        final tankA = tanks.firstWhere((t) => t.id == a, orElse: () => DiveTank(id: a, order: 999));
-        final tankB = tanks.firstWhere((t) => t.id == b, orElse: () => DiveTank(id: b, order: 999));
-        return tankA.order.compareTo(tankB.order);
-      });
+    final sortedTankIds = _sortedTankIds(tankPressures.keys);
 
     for (var i = 0; i < sortedTankIds.length; i++) {
       final tankId = sortedTankIds[i];
@@ -1357,19 +1364,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final minPressure = globalMinPressure - (pressureRange * 0.05);
     final maxPressure = globalMaxPressure + (pressureRange * 0.05);
 
-    // Sort tank IDs by tank order
-    final sortedTankIds = tankPressures.keys.toList()
-      ..sort((a, b) {
-        final tankA = tanks.firstWhere(
-          (t) => t.id == a,
-          orElse: () => DiveTank(id: a, order: 999),
-        );
-        final tankB = tanks.firstWhere(
-          (t) => t.id == b,
-          orElse: () => DiveTank(id: b, order: 999),
-        );
-        return tankA.order.compareTo(tankB.order);
-      });
+    final sortedTankIds = _sortedTankIds(tankPressures.keys);
 
     // Build a line for each visible tank
     for (var i = 0; i < sortedTankIds.length; i++) {
@@ -1382,13 +1377,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       if (pressurePoints.isEmpty) continue;
 
       // Get tank for color
-      final tank = tanks.firstWhere(
-        (t) => t.id == tankId,
-        orElse: () => DiveTank(id: tankId),
-      );
+      final tank = _getTankById(tankId);
 
       // Use gas color or fallback
-      final color = GasColors.forGasMix(tank.gasMix);
+      final color = tank != null
+          ? GasColors.forGasMix(tank.gasMix)
+          : _getTankColor(i);
       final dashPattern = _getTankDashPattern(i);
 
       lines.add(

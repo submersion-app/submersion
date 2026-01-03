@@ -1335,7 +1335,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
                 for (final tp in allTankPressures) {
                   final pressure = tp['pressure'] as double?;
                   final tankIdx = tp['tankIndex'] as int? ?? 0;
-                  if (pressure != null && tankIdx < tanks.length) {
+                  if (pressure != null &&
+                      tankIdx >= 0 &&
+                      tankIdx < tanks.length) {
                     final tankId = tanks[tankIdx].id;
                     pressuresByTank.putIfAbsent(tankId, () => []).add(
                           (timestamp: timestamp, pressure: pressure),
@@ -1348,7 +1350,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
                 // Default to tank 0 if no tankIndex is specified
                 final tankIdx = (p['tankIndex'] as int?) ?? 0;
 
-                if (pressure != null && tankIdx < tanks.length) {
+                if (pressure != null && tankIdx >= 0 && tankIdx < tanks.length) {
                   final tankId = tanks[tankIdx].id;
                   pressuresByTank.putIfAbsent(tankId, () => []).add(
                         (timestamp: timestamp, pressure: pressure),

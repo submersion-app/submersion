@@ -718,25 +718,31 @@ class DiveComputerRepository {
           }
         }
 
-        // Insert pressure data for each tank
-        for (final entry in pressuresByTank.entries) {
-          final tankId = tankIdsByIndex[entry.key];
-          if (tankId != null) {
+        // Batch insert pressure data for each tank.
+        final insertEntries = pressuresByTank.entries
+            .where((entry) => tankIdsByIndex.containsKey(entry.key))
+            .toList();
+        await _db.batch((batch) {
+          for (final entry in insertEntries) {
+            final tankId = tankIdsByIndex[entry.key]!;
             for (final point in entry.value) {
-              await _db.into(_db.tankPressureProfiles).insert(
-                    TankPressureProfilesCompanion(
-                      id: Value(_uuid.v4()),
-                      diveId: Value(diveId),
-                      tankId: Value(tankId),
-                      timestamp: Value(point.timestamp),
-                      pressure: Value(point.pressure),
-                    ),
-                  );
+              batch.insert(
+                _db.tankPressureProfiles,
+                TankPressureProfilesCompanion.insert(
+                  id: _uuid.v4(),
+                  diveId: diveId!,
+                  tankId: tankId,
+                  timestamp: point.timestamp,
+                  pressure: point.pressure,
+                ),
+              );
             }
-            _log.info(
-              'Imported ${entry.value.length} pressure points for tank ${entry.key}',
-            );
           }
+        });
+        for (final entry in insertEntries) {
+          _log.info(
+            'Imported ${entry.value.length} pressure points for tank ${entry.key}',
+          );
         }
       }
 
