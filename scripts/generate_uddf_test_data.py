@@ -25,7 +25,7 @@ Features:
 import random
 import math
 from datetime import datetime, timedelta
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict, Tuple
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
@@ -153,6 +153,151 @@ GAS_MIXES = [
     {"id": "tx21_35", "name": "Trimix 21/35", "o2": 0.21, "he": 0.35},
     {"id": "tx15_55", "name": "Trimix 15/55", "o2": 0.15, "he": 0.55},
     {"id": "hx25_25", "name": "Helitrox 25/25", "o2": 0.25, "he": 0.25},
+]
+
+# Trip destinations with associated dive centers and nearby sites
+# Each destination maps to dive center indices and site indices for consistency
+TRIP_DESTINATIONS = [
+    {
+        "name": "Cozumel Adventure",
+        "location": "Cozumel, Mexico",
+        "center_indices": [0, 1],  # Aqua Safari, Scuba Du
+        "site_indices": [1, 2, 3, 4],  # Palancar Gardens, Santa Rosa Wall, Columbia Deep, Paso del Cedral
+        "resort_name": "Casa del Mar Cozumel",
+    },
+    {
+        "name": "Red Sea Expedition",
+        "location": "Sharm el-Sheikh, Egypt",
+        "center_indices": [2],  # Camel Dive Club
+        "site_indices": [10, 11, 12],  # SS Thistlegorm, Ras Mohammed, Jackson Reef
+        "liveaboard_name": "MY Blue Force One",
+    },
+    {
+        "name": "Thailand Similan Safari",
+        "location": "Similan Islands, Thailand",
+        "center_indices": [4, 5],  # Sea Bees, Khao Lak Scuba
+        "site_indices": [15, 16],  # Richelieu Rock, Koh Bon Pinnacle
+        "liveaboard_name": "MV Sawasdee Fasai",
+    },
+    {
+        "name": "Sipadan Dreams",
+        "location": "Sipadan, Malaysia",
+        "center_indices": [6],  # Sipadan Scuba
+        "site_indices": [20, 21],  # Barracuda Point, Turtle Tomb
+        "resort_name": "Sipadan Mabul Resort",
+    },
+    {
+        "name": "Palau Shark Safari",
+        "location": "Palau",
+        "center_indices": [7, 8],  # Sams Tours, Fish n Fins
+        "site_indices": [22, 23],  # Blue Corner, German Channel
+        "resort_name": "Palau Pacific Resort",
+    },
+    {
+        "name": "Great Barrier Reef Explorer",
+        "location": "Cairns, Australia",
+        "center_indices": [9, 10],  # Pro Dive Cairns, Mike Ball
+        "site_indices": [24, 25],  # SS Yongala, Cod Hole
+        "liveaboard_name": "Spirit of Freedom",
+    },
+    {
+        "name": "Malta Wreck Week",
+        "location": "Malta",
+        "center_indices": [11],  # Maltaqua
+        "site_indices": [29, 30],  # MV Um El Faroud, Blue Grotto Malta
+        "resort_name": "The Westin Dragonara Resort",
+    },
+    {
+        "name": "Cyprus Zenobia Experience",
+        "location": "Larnaca, Cyprus",
+        "center_indices": [12],  # Cydive
+        "site_indices": [28],  # MV Zenobia
+        "resort_name": "Golden Bay Beach Hotel",
+    },
+    {
+        "name": "Florida Keys Diving",
+        "location": "Key Largo, Florida",
+        "center_indices": [13, 14],  # Rainbow Reef, Abyss
+        "site_indices": [31, 32, 33],  # Molasses Reef, Spiegel Grove, Blue Heron Bridge
+        "resort_name": "Ocean Pointe Suites",
+    },
+    {
+        "name": "Maldives Liveaboard",
+        "location": "Maldives",
+        "center_indices": [15],  # Maldives Scuba Tours
+        "site_indices": [38, 39, 40],  # Manta Point, Fish Head, Maaya Thila
+        "liveaboard_name": "MV Carpe Vita",
+    },
+    {
+        "name": "Galapagos Ultimate",
+        "location": "Galapagos, Ecuador",
+        "center_indices": [16],  # Scuba Iguana
+        "site_indices": [41, 42, 43],  # Darwin Arch, Wolf Island, Gordon Rocks
+        "liveaboard_name": "Galapagos Aggressor III",
+    },
+    {
+        "name": "Bonaire Shore Diving",
+        "location": "Bonaire",
+        "center_indices": [17],  # Buddy Dive Resort
+        "site_indices": [8, 9],  # 1000 Steps, Salt Pier
+        "resort_name": "Buddy Dive Resort",
+    },
+    {
+        "name": "Dahab Freediving & Scuba",
+        "location": "Dahab, Egypt",
+        "center_indices": [3],  # Emperor Divers (Hurghada, but close enough)
+        "site_indices": [13, 14],  # Blue Hole Dahab, Elphinstone Reef
+        "resort_name": "Le Meridien Dahab Resort",
+    },
+    {
+        "name": "Komodo Dragons & Diving",
+        "location": "Komodo, Indonesia",
+        "center_indices": [4],  # Reusing Thailand center as placeholder
+        "site_indices": [17],  # Manta Point Komodo
+        "liveaboard_name": "MV Mermaid I",
+    },
+    {
+        "name": "Bali Diving Escape",
+        "location": "Bali, Indonesia",
+        "center_indices": [4],  # Reusing
+        "site_indices": [18, 19],  # Crystal Bay, USAT Liberty
+        "resort_name": "Alam Batu Beach Bungalow Resort",
+    },
+    {
+        "name": "California Kelp Forests",
+        "location": "Monterey, California",
+        "center_indices": [19],  # Blue Water Divers
+        "site_indices": [34, 35],  # Monterey Breakwater, Catalina Casino Point
+        "resort_name": "Monterey Plaza Hotel",
+    },
+    {
+        "name": "Cenote Cave Diving",
+        "location": "Riviera Maya, Mexico",
+        "center_indices": [0, 1],  # Cozumel centers
+        "site_indices": [36, 37],  # Cenote Dos Ojos, Cenote Angelita
+        "resort_name": "Grand Palladium White Sand",
+    },
+    {
+        "name": "Cayman Islands Week",
+        "location": "Grand Cayman",
+        "center_indices": [18],  # Stuart Coves (Bahamas, but close)
+        "site_indices": [5, 6, 7],  # Stingray City, Bloody Bay Wall, USS Kittiwake
+        "resort_name": "The Ritz-Carlton Grand Cayman",
+    },
+    {
+        "name": "Belize Blue Hole",
+        "location": "Belize",
+        "center_indices": [18],  # Reusing
+        "site_indices": [0],  # Blue Hole
+        "resort_name": "Hamanasi Adventure & Dive Resort",
+    },
+    {
+        "name": "New Zealand Adventure",
+        "location": "Northland, New Zealand",
+        "center_indices": [9],  # Reusing Australia
+        "site_indices": [27],  # Poor Knights Islands
+        "resort_name": "Paihia Beach Resort",
+    },
 ]
 
 # Tank configurations for different dive types
@@ -365,6 +510,37 @@ def prettify_xml(elem):
     return reparsed.toprettyxml(indent="  ")
 
 
+def generate_trips(start_date: datetime, num_trips: int = 20) -> List[Dict]:
+    """Generate trip data with dates spread across the dive date range."""
+    trips = []
+
+    # Space trips throughout the date range (about 2018-2025)
+    # Each trip is 4-7 days
+    date_cursor = start_date + timedelta(days=random.randint(14, 30))
+
+    for i in range(num_trips):
+        dest = TRIP_DESTINATIONS[i % len(TRIP_DESTINATIONS)]
+        duration = random.randint(4, 7)
+
+        trip = {
+            "id": f"trip{i+1:03d}",
+            "name": dest["name"],
+            "location": dest["location"],
+            "start_date": date_cursor,
+            "end_date": date_cursor + timedelta(days=duration - 1),
+            "center_indices": dest["center_indices"],
+            "site_indices": dest.get("site_indices", []),
+            "resort_name": dest.get("resort_name"),
+            "liveaboard_name": dest.get("liveaboard_name"),
+        }
+        trips.append(trip)
+
+        # Move to next trip (skip 2-6 weeks between trips)
+        date_cursor = trip["end_date"] + timedelta(days=random.randint(14, 45))
+
+    return trips
+
+
 def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
     """Generate UDDF 3.2.1 compliant file."""
 
@@ -381,6 +557,10 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
             "lastname": last,
             "email": f"{first.lower()}.{last.lower()}@email.com"
         })
+
+    # Generate trips
+    start_date = datetime(2018, 1, 1)
+    trips = generate_trips(start_date, num_trips=20)
 
     # Create root element with namespace
     root = ET.Element("uddf")
@@ -455,6 +635,28 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
         contact = ET.SubElement(b, "contact")
         ET.SubElement(contact, "email").text = buddy["email"]
 
+    # Dive trips (UDDF standard divetrip elements)
+    for trip in trips:
+        divetrip = ET.SubElement(root, "divetrip")
+        divetrip.set("id", f"trip_{trip['id']}")
+        ET.SubElement(divetrip, "name").text = trip["name"]
+
+        dateoftrip = ET.SubElement(divetrip, "dateoftrip")
+        startdate = ET.SubElement(dateoftrip, "startdate")
+        ET.SubElement(startdate, "datetime").text = trip["start_date"].strftime("%Y-%m-%dT00:00:00")
+        enddate = ET.SubElement(dateoftrip, "enddate")
+        ET.SubElement(enddate, "datetime").text = trip["end_date"].strftime("%Y-%m-%dT23:59:59")
+
+        geo = ET.SubElement(divetrip, "geography")
+        ET.SubElement(geo, "location").text = trip["location"]
+
+        notes_text = f"Dive trip to {trip['location']}."
+        if trip.get("resort_name"):
+            notes_text += f" Staying at {trip['resort_name']}."
+        if trip.get("liveaboard_name"):
+            notes_text += f" Aboard {trip['liveaboard_name']}."
+        ET.SubElement(divetrip, "notes").text = notes_text
+
     # Profile data (dives)
     profiledata = ET.SubElement(root, "profiledata")
     repgroup = ET.SubElement(profiledata, "repetitiongroup")
@@ -476,6 +678,9 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
         ("tec_deep", 0.03),
     ]
 
+    # Track trip dive counts for multiple dives per trip day
+    trip_dive_counts = {trip["id"]: 0 for trip in trips}
+
     for dive_idx in range(num_dives):
         # Pick dive type
         r = random.random()
@@ -488,10 +693,51 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
                 break
 
         tank_config = [tc.copy() for tc in TANK_CONFIGS[dive_type]]
-        site = random.choice(DIVE_SITES)
-        site_idx = DIVE_SITES.index(site)
-        center = random.choice(DIVE_CENTERS)
-        center_idx = DIVE_CENTERS.index(center)
+
+        # Check if we should do a trip dive (40% chance if there's an upcoming trip)
+        active_trip = None
+        site = None
+        site_idx = None
+        center = None
+        center_idx = None
+
+        # Find next trip that hasn't had enough dives yet
+        for trip in trips:
+            # Target ~3-4 dives per day for 4-7 day trips = 12-28 dives per trip
+            max_dives_per_trip = random.randint(12, 20)
+            if trip_dive_counts[trip["id"]] < max_dives_per_trip:
+                if trip["start_date"] > current_date:
+                    # Jump to this trip's start date
+                    if random.random() < 0.4:  # 40% chance to do a trip dive
+                        current_date = trip["start_date"] + timedelta(
+                            days=random.randint(0, (trip["end_date"] - trip["start_date"]).days)
+                        )
+                        active_trip = trip
+                        break
+                elif trip["start_date"] <= current_date <= trip["end_date"]:
+                    active_trip = trip
+                    break
+
+        if active_trip:
+            # Pick site from trip's site list
+            valid_site_indices = [i for i in active_trip["site_indices"] if i < len(DIVE_SITES)]
+            if valid_site_indices:
+                site_idx = random.choice(valid_site_indices)
+                site = DIVE_SITES[site_idx]
+            # Pick center from trip's center list
+            valid_center_indices = [i for i in active_trip["center_indices"] if i < len(DIVE_CENTERS)]
+            if valid_center_indices:
+                center_idx = random.choice(valid_center_indices)
+                center = DIVE_CENTERS[center_idx]
+            trip_dive_counts[active_trip["id"]] += 1
+
+        # Fall back to random site/center if not in a trip
+        if site is None:
+            site = random.choice(DIVE_SITES)
+            site_idx = DIVE_SITES.index(site)
+        if center is None:
+            center = random.choice(DIVE_CENTERS)
+            center_idx = DIVE_CENTERS.index(center)
 
         num_buddies = random.randint(1, 3)
         dive_buddies = random.sample(buddies, num_buddies)
@@ -537,8 +783,16 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
         currents = ["none", "light", "moderate", "strong"]
         current_strength = random.choice(currents)
 
-        if random.random() > 0.3:
-            current_date += timedelta(days=random.randint(1, 14))
+        # Move date forward if not in a trip, or sometimes within a trip
+        if active_trip is None:
+            if random.random() > 0.3:
+                current_date += timedelta(days=random.randint(1, 14))
+        else:
+            # Multiple dives per day during trips (30% chance to move to next day)
+            if random.random() < 0.3:
+                current_date += timedelta(days=1)
+                if current_date > active_trip["end_date"]:
+                    current_date = active_trip["end_date"]
 
         hour = random.choice([7, 8, 9, 10, 11, 14, 15, 16])
         minute = random.choice([0, 15, 30, 45])
@@ -557,6 +811,10 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
         site_link.set("ref", f"site{site_idx+1:03d}")
         center_link = ET.SubElement(before, "link")
         center_link.set("ref", f"center{center_idx+1:03d}")
+        # Link to trip if this dive is part of one
+        if active_trip:
+            trip_link = ET.SubElement(before, "link")
+            trip_link.set("ref", f"trip_{active_trip['id']}")
         ET.SubElement(before, "divenumber").text = str(dive_number)
         ET.SubElement(before, "datetime").text = dive_datetime.strftime("%Y-%m-%dT%H:%M:%S")
         ET.SubElement(before, "airtemperature").text = f"{air_temp_kelvin:.2f}"
@@ -633,6 +891,23 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
         if (dive_idx + 1) % 50 == 0:
             print(f"Generated {dive_idx + 1} / {num_dives} dives...")
 
+    # Application data section for Submersion-specific extensions
+    appdata = ET.SubElement(root, "applicationdata")
+    submersion = ET.SubElement(appdata, "submersion")
+    submersion.set("xmlns", SUBMERSION_NS)
+
+    # Trip extended data (resort/liveaboard names - not in UDDF standard)
+    trips_with_extended = [t for t in trips if t.get("resort_name") or t.get("liveaboard_name")]
+    if trips_with_extended:
+        tripext = ET.SubElement(submersion, "tripextended")
+        for trip in trips_with_extended:
+            trip_elem = ET.SubElement(tripext, "trip")
+            trip_elem.set("tripref", f"trip_{trip['id']}")
+            if trip.get("resort_name"):
+                ET.SubElement(trip_elem, "resortname").text = trip["resort_name"]
+            if trip.get("liveaboard_name"):
+                ET.SubElement(trip_elem, "liveaboardname").text = trip["liveaboard_name"]
+
     # Write file
     tree = ET.ElementTree(root)
     with open(output_path, 'wb') as f:
@@ -642,16 +917,27 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
     # with open(output_path, 'w', encoding='utf-8') as f:
     #     f.write(prettify_xml(root))
 
+    # Count dives per trip
+    trip_dives_total = sum(trip_dive_counts.values())
+
     print(f"\nGenerated UDDF 3.2.1 compliant file: {output_path}")
-    print(f"- {num_dives} dives")
+    print(f"- {num_dives} dives ({trip_dives_total} on trips)")
+    print(f"- {len(trips)} trips (4-7 days each)")
     print(f"- {len(DIVE_SITES)} dive sites with GPS")
     print(f"- {len(DIVE_CENTERS)} dive centers")
     print(f"- {len(buddies)} buddies")
     print(f"- Multi-tank configs with AI pressure refs")
+    print(f"\nTrip breakdown:")
+    for trip in trips:
+        count = trip_dive_counts[trip["id"]]
+        if count > 0:
+            dates = f"{trip['start_date'].strftime('%Y-%m-%d')} to {trip['end_date'].strftime('%Y-%m-%d')}"
+            print(f"  - {trip['name']}: {count} dives ({dates})")
     print(f"\nKey features for multi-tank testing:")
     print(f"- <tankdata id='...'> with unique IDs per tank")
     print(f"- <tankpressure ref='...'> linking to tank IDs")
     print(f"- Multiple pressure readings per waypoint for multi-tank dives")
+    print(f"- <divetrip> elements with dive links")
 
 
 if __name__ == "__main__":
