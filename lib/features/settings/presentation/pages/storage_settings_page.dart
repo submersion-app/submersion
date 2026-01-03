@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/providers/provider.dart';
 
 import '../../../../core/domain/entities/storage_config.dart';
 import '../../../../core/services/database_migration_service.dart';

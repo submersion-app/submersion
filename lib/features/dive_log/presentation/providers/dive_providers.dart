@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/providers/provider.dart';
 
 import '../../data/repositories/dive_repository_impl.dart';
 import '../../domain/entities/dive.dart' as domain;

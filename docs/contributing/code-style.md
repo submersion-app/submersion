@@ -19,7 +19,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 // Third-party packages
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 // Local imports (relative)
