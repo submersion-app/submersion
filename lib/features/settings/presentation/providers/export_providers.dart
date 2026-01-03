@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -1285,9 +1285,13 @@ class ExportNotifier extends StateNotifier<ExportState> {
       await DatabaseService.instance.backup(backupPath);
 
       // Share the backup file
-      await Share.shareXFiles(
-        [XFile(backupPath, mimeType: 'application/octet-stream')],
-        subject: 'Submersion Backup',
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [
+            XFile(backupPath, mimeType: 'application/octet-stream'),
+          ],
+          subject: 'Submersion Backup',
+        ),
       );
 
       state = state.copyWith(

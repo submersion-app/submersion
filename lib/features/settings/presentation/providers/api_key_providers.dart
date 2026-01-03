@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Keys for storage of API credentials.

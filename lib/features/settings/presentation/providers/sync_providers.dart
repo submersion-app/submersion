@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/providers/provider.dart';
 
 import '../../../../core/data/repositories/sync_repository.dart';
 import '../../../../core/domain/entities/storage_config.dart';

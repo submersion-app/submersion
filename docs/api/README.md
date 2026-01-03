@@ -70,7 +70,7 @@ Future<Dive> queryDive() { ... }
 ### Provider Access
 
 ```dart
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/providers/provider.dart';
 import '../presentation/providers/dive_providers.dart';
 
 class MyWidget extends ConsumerWidget {

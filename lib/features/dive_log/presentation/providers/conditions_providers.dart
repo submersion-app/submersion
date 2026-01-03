@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/providers/provider.dart';
 
 import '../../../../core/models/weather_data.dart';
 import '../../../../core/services/tide_service.dart';
