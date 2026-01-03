@@ -86,15 +86,27 @@ class GoogleDriveStorageProvider
     try {
       await _ensureInitialized();
       final account = await _googleSignIn.authenticate(scopeHint: _scopes);
-      if (account == null) {
-        throw const CloudStorageException('Google Sign-In was cancelled');
-      }
       final authorization =
           await account.authorizationClient.authorizeScopes(_scopes);
 
       await _initDriveApi(account, authorization);
       _allowSilentAuth = true;
       _log.info('Authenticated with Google Drive as ${account.email}');
+    } on GoogleSignInException catch (e, stackTrace) {
+      if (e.code == GoogleSignInExceptionCode.canceled) {
+        _log.info('Google Sign-In was cancelled by the user');
+        throw CloudStorageException(
+          'Google Sign-In was cancelled',
+          e,
+          stackTrace,
+        );
+      }
+      _log.error('Google Sign-In failed', e, stackTrace);
+      throw CloudStorageException(
+        'Google Sign-In failed: ${e.description ?? e.code.name}',
+        e,
+        stackTrace,
+      );
     } catch (e, stackTrace) {
       _log.error('Google Sign-In failed', e, stackTrace);
       throw CloudStorageException('Google Sign-In failed: $e', e, stackTrace);
