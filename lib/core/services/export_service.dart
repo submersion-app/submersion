@@ -3274,7 +3274,11 @@ class ExportService {
         final allTankPressures = <Map<String, dynamic>>[];
 
         for (final tankPressureElement in tankPressureElements) {
-          final pressureText = tankPressureElement.text.trim();
+          final pressureText = tankPressureElement.descendants
+              .whereType<XmlText>()
+              .map((node) => node.value)
+              .join()
+              .trim();
           // UDDF stores pressure in Pascal, convert to bar
           final pascal = double.tryParse(pressureText);
           if (pascal != null) {

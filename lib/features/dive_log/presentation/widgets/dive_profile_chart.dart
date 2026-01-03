@@ -166,7 +166,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   List<Widget> _buildTankPressureToggles(BuildContext context) {
     if (!_hasMultiTankPressure) return [];
 
-    final tanks = widget.tanks ?? [];
     final tankPressures = widget.tankPressures!;
     final toggles = <Widget>[];
 
@@ -1339,7 +1338,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     if (!_hasMultiTankPressure) return [];
 
     final tankPressures = widget.tankPressures!;
-    final tanks = widget.tanks ?? [];
     final lines = <LineChartBarData>[];
 
     // Calculate global min/max pressure across all tanks for consistent scaling
