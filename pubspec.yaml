@@ -93,6 +93,9 @@ dev_dependencies:
   riverpod_generator: ^4.0.0+1
   mockito: ^5.6.1
 
+dependency_overrides:
+  flutter_blue_plus_winrt:
+    path: third_party/flutter_blue_plus_winrt
 
 flutter:
   uses-material-design: true
