@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/providers/provider.dart';
 
 import '../../domain/entities/gas_switch.dart';
 import 'dive_providers.dart';
