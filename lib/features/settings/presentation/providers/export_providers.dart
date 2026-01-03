@@ -42,26 +42,79 @@ final exportServiceProvider = Provider<ExportService>((ref) {
 /// Export state for tracking export operations
 enum ExportStatus { idle, exporting, success, error }
 
+/// Import phases for progress tracking
+enum ImportPhase {
+  parsing,
+  trips,
+  equipment,
+  equipmentSets,
+  buddies,
+  diveCenters,
+  certifications,
+  diveTypes,
+  tags,
+  sites,
+  dives,
+  complete,
+}
+
 class ExportState {
   final ExportStatus status;
   final String? message;
   final String? filePath;
 
+  /// Current import phase (for progress dialog)
+  final ImportPhase? importPhase;
+
+  /// Current item being processed (1-based for display)
+  final int currentItem;
+
+  /// Total items to process in current phase
+  final int totalItems;
+
   const ExportState({
     this.status = ExportStatus.idle,
     this.message,
     this.filePath,
+    this.importPhase,
+    this.currentItem = 0,
+    this.totalItems = 0,
   });
+
+  /// Whether an import is actively in progress with progress tracking
+  bool get isImporting =>
+      status == ExportStatus.exporting && importPhase != null;
+
+  /// Progress ratio for the current phase (0.0 to 1.0)
+  double get progress => totalItems > 0 ? currentItem / totalItems : 0.0;
 
   ExportState copyWith({
     ExportStatus? status,
     String? message,
     String? filePath,
+    ImportPhase? importPhase,
+    int? currentItem,
+    int? totalItems,
   }) {
     return ExportState(
       status: status ?? this.status,
       message: message ?? this.message,
       filePath: filePath ?? this.filePath,
+      importPhase: importPhase ?? this.importPhase,
+      currentItem: currentItem ?? this.currentItem,
+      totalItems: totalItems ?? this.totalItems,
+    );
+  }
+
+  /// Reset progress tracking (call when starting a new operation)
+  ExportState resetProgress() {
+    return ExportState(
+      status: status,
+      message: message,
+      filePath: filePath,
+      importPhase: null,
+      currentItem: 0,
+      totalItems: 0,
     );
   }
 }
@@ -567,7 +620,16 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final file = File(filePath);
       final uddfContent = await file.readAsString();
 
-      state = state.copyWith(message: 'Parsing UDDF data...');
+      state = state.copyWith(
+        message: 'Parsing UDDF data...',
+        importPhase: ImportPhase.parsing,
+        currentItem: 0,
+        totalItems: 0,
+      );
+
+      // Allow UI to update and show progress dialog before heavy parsing
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
       // Use comprehensive import that parses all data types
       final importResult =
           await _exportService.importAllDataFromUddf(uddfContent);
@@ -599,16 +661,42 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final siteIdMapping =
           <String, DiveSite>{}; // UDDF site ID -> new DiveSite
 
+      // Helper to yield to UI thread periodically
+      // Uses a small delay to ensure the UI actually has time to repaint
+      Future<void> yieldToUI() async {
+        await Future<void>.delayed(const Duration(milliseconds: 16));
+      }
+
+      // Track when we last yielded to avoid excessive delays
+      var lastYieldTime = DateTime.now();
+      const yieldInterval = Duration(milliseconds: 100);
+
+      // Helper to yield if enough time has passed (for high-frequency updates)
+      Future<void> maybeYieldToUI() async {
+        final now = DateTime.now();
+        if (now.difference(lastYieldTime) >= yieldInterval) {
+          await yieldToUI();
+          lastYieldTime = now;
+        }
+      }
+
       // 1. Import Trips
       if (importResult.trips.isNotEmpty) {
         state = state.copyWith(
-          message: 'Importing ${importResult.trips.length} trips...',
+          message: 'Importing trips...',
+          importPhase: ImportPhase.trips,
+          currentItem: 0,
+          totalItems: importResult.trips.length,
         );
+        await yieldToUI();
         final tripRepository = _ref.read(tripRepositoryProvider);
 
         for (final tripData in importResult.trips) {
           final tripName = tripData['name'] as String?;
-          if (tripName == null || tripName.isEmpty) continue;
+          if (tripName == null || tripName.isEmpty) {
+            state = state.copyWith(currentItem: state.currentItem + 1);
+            continue;
+          }
 
           final uddfId = tripData['uddfId'] as String?;
           final newId = uuid.v4();
@@ -633,20 +721,28 @@ class ExportNotifier extends StateNotifier<ExportState> {
             tripIdMapping[uddfId] = newId;
           }
           tripsImported++;
+          state = state.copyWith(currentItem: state.currentItem + 1);
+          await maybeYieldToUI();
         }
       }
 
       // 2. Import Equipment
       if (importResult.equipment.isNotEmpty) {
         state = state.copyWith(
-          message:
-              'Importing ${importResult.equipment.length} equipment items...',
+          message: 'Importing equipment...',
+          importPhase: ImportPhase.equipment,
+          currentItem: 0,
+          totalItems: importResult.equipment.length,
         );
+        await yieldToUI();
         final equipmentRepository = _ref.read(equipmentRepositoryProvider);
 
         for (final equipData in importResult.equipment) {
           final equipName = equipData['name'] as String?;
-          if (equipName == null || equipName.isEmpty) continue;
+          if (equipName == null || equipName.isEmpty) {
+            state = state.copyWith(currentItem: state.currentItem + 1);
+            continue;
+          }
 
           final uddfId = equipData['uddfId'] as String?;
           final newId = uuid.v4();
@@ -701,19 +797,28 @@ class ExportNotifier extends StateNotifier<ExportState> {
             equipmentIdMapping[uddfId] = newId;
           }
           equipmentImported++;
+          state = state.copyWith(currentItem: state.currentItem + 1);
+          await maybeYieldToUI();
         }
       }
 
       // 3. Import Buddies
       if (importResult.buddies.isNotEmpty) {
         state = state.copyWith(
-          message: 'Importing ${importResult.buddies.length} buddies...',
+          message: 'Importing buddies...',
+          importPhase: ImportPhase.buddies,
+          currentItem: 0,
+          totalItems: importResult.buddies.length,
         );
+        await yieldToUI();
         final buddyRepository = _ref.read(buddyRepositoryProvider);
 
         for (final buddyData in importResult.buddies) {
           final buddyName = buddyData['name'] as String?;
-          if (buddyName == null || buddyName.isEmpty) continue;
+          if (buddyName == null || buddyName.isEmpty) {
+            state = state.copyWith(currentItem: state.currentItem + 1);
+            continue;
+          }
 
           final uddfId = buddyData['uddfId'] as String?;
           final newId = uuid.v4();
@@ -739,20 +844,28 @@ class ExportNotifier extends StateNotifier<ExportState> {
             buddyIdMapping[uddfId] = newId;
           }
           buddiesImported++;
+          state = state.copyWith(currentItem: state.currentItem + 1);
+          await maybeYieldToUI();
         }
       }
 
       // 4. Import Dive Centers
       if (importResult.diveCenters.isNotEmpty) {
         state = state.copyWith(
-          message:
-              'Importing ${importResult.diveCenters.length} dive centers...',
+          message: 'Importing dive centers...',
+          importPhase: ImportPhase.diveCenters,
+          currentItem: 0,
+          totalItems: importResult.diveCenters.length,
         );
+        await yieldToUI();
         final diveCenterRepository = _ref.read(diveCenterRepositoryProvider);
 
         for (final centerData in importResult.diveCenters) {
           final centerName = centerData['name'] as String?;
-          if (centerName == null || centerName.isEmpty) continue;
+          if (centerName == null || centerName.isEmpty) {
+            state = state.copyWith(currentItem: state.currentItem + 1);
+            continue;
+          }
 
           final uddfId = centerData['uddfId'] as String?;
           final newId = uuid.v4();
@@ -798,21 +911,29 @@ class ExportNotifier extends StateNotifier<ExportState> {
             diveCenterIdMapping[uddfId] = newId;
           }
           diveCentersImported++;
+          state = state.copyWith(currentItem: state.currentItem + 1);
+          await maybeYieldToUI();
         }
       }
 
       // 5. Import Certifications
       if (importResult.certifications.isNotEmpty) {
         state = state.copyWith(
-          message:
-              'Importing ${importResult.certifications.length} certifications...',
+          message: 'Importing certifications...',
+          importPhase: ImportPhase.certifications,
+          currentItem: 0,
+          totalItems: importResult.certifications.length,
         );
+        await yieldToUI();
         final certificationRepository =
             _ref.read(certificationRepositoryProvider);
 
         for (final certData in importResult.certifications) {
           final certName = certData['name'] as String?;
-          if (certName == null || certName.isEmpty) continue;
+          if (certName == null || certName.isEmpty) {
+            state = state.copyWith(currentItem: state.currentItem + 1);
+            continue;
+          }
 
           final newId = uuid.v4();
 
@@ -855,19 +976,28 @@ class ExportNotifier extends StateNotifier<ExportState> {
 
           await certificationRepository.createCertification(certification);
           certificationsImported++;
+          state = state.copyWith(currentItem: state.currentItem + 1);
+          await maybeYieldToUI();
         }
       }
 
       // 6. Import Tags
       if (importResult.tags.isNotEmpty) {
         state = state.copyWith(
-          message: 'Importing ${importResult.tags.length} tags...',
+          message: 'Importing tags...',
+          importPhase: ImportPhase.tags,
+          currentItem: 0,
+          totalItems: importResult.tags.length,
         );
+        await yieldToUI();
         final tagRepository = _ref.read(tagRepositoryProvider);
 
         for (final tagData in importResult.tags) {
           final tagName = tagData['name'] as String?;
-          if (tagName == null || tagName.isEmpty) continue;
+          if (tagName == null || tagName.isEmpty) {
+            state = state.copyWith(currentItem: state.currentItem + 1);
+            continue;
+          }
 
           final uddfId = tagData['uddfId'] as String?;
           final newId = uuid.v4();
@@ -887,12 +1017,20 @@ class ExportNotifier extends StateNotifier<ExportState> {
             tagIdMapping[uddfId] = newId;
           }
           tagsImported++;
+          state = state.copyWith(currentItem: state.currentItem + 1);
+          await maybeYieldToUI();
         }
       }
 
       // 7. Import Custom Dive Types (only non-built-in types)
       if (importResult.customDiveTypes.isNotEmpty) {
-        state = state.copyWith(message: 'Importing custom dive types...');
+        state = state.copyWith(
+          message: 'Importing dive types...',
+          importPhase: ImportPhase.diveTypes,
+          currentItem: 0,
+          totalItems: importResult.customDiveTypes.length,
+        );
+        await yieldToUI();
         final diveTypeRepository = _ref.read(diveTypeRepositoryProvider);
 
         for (final typeData in importResult.customDiveTypes) {
@@ -900,7 +1038,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
           final isBuiltIn = typeData['isBuiltIn'] as bool? ?? false;
 
           // Skip built-in types - they should already exist
-          if (isBuiltIn || typeName == null || typeName.isEmpty) continue;
+          if (isBuiltIn || typeName == null || typeName.isEmpty) {
+            state = state.copyWith(currentItem: state.currentItem + 1);
+            continue;
+          }
 
           final typeId = typeData['id'] as String? ??
               DiveTypeEntity.generateSlug(typeName);
@@ -921,19 +1062,28 @@ class ExportNotifier extends StateNotifier<ExportState> {
           } catch (e) {
             // Ignore duplicates - dive type might already exist
           }
+          state = state.copyWith(currentItem: state.currentItem + 1);
+          await maybeYieldToUI();
         }
       }
 
       // 8. Import Dive Sites
       if (importResult.sites.isNotEmpty) {
         state = state.copyWith(
-          message: 'Importing ${importResult.sites.length} dive sites...',
+          message: 'Importing dive sites...',
+          importPhase: ImportPhase.sites,
+          currentItem: 0,
+          totalItems: importResult.sites.length,
         );
+        await yieldToUI();
         final siteNotifier = _ref.read(siteListNotifierProvider.notifier);
 
         for (final siteData in importResult.sites) {
           final siteName = siteData['name'] as String?;
-          if (siteName == null || siteName.isEmpty) continue;
+          if (siteName == null || siteName.isEmpty) {
+            state = state.copyWith(currentItem: state.currentItem + 1);
+            continue;
+          }
 
           final uddfId = siteData['uddfId'] as String?;
           final lat = siteData['latitude'] as double?;
@@ -958,21 +1108,29 @@ class ExportNotifier extends StateNotifier<ExportState> {
             siteIdMapping[uddfId] = createdSite;
           }
           sitesImported++;
+          state = state.copyWith(currentItem: state.currentItem + 1);
+          await maybeYieldToUI();
         }
       }
 
       // 9. Import Equipment Sets (after equipment, so we can map IDs)
       if (importResult.equipmentSets.isNotEmpty) {
         state = state.copyWith(
-          message:
-              'Importing ${importResult.equipmentSets.length} equipment sets...',
+          message: 'Importing equipment sets...',
+          importPhase: ImportPhase.equipmentSets,
+          currentItem: 0,
+          totalItems: importResult.equipmentSets.length,
         );
+        await yieldToUI();
         final equipmentSetRepository =
             _ref.read(equipmentSetRepositoryProvider);
 
         for (final setData in importResult.equipmentSets) {
           final setName = setData['name'] as String?;
-          if (setName == null || setName.isEmpty) continue;
+          if (setName == null || setName.isEmpty) {
+            state = state.copyWith(currentItem: state.currentItem + 1);
+            continue;
+          }
 
           final newId = uuid.v4();
 
@@ -1002,19 +1160,26 @@ class ExportNotifier extends StateNotifier<ExportState> {
 
           await equipmentSetRepository.createSet(equipmentSet);
           equipmentSetsImported++;
+          state = state.copyWith(currentItem: state.currentItem + 1);
+          await maybeYieldToUI();
         }
       }
 
       // 10. Import Dives (after sites, trips, buddies, dive centers so we can link them)
       if (importResult.dives.isNotEmpty) {
         state = state.copyWith(
-          message: 'Importing ${importResult.dives.length} dives...',
+          message: 'Importing dives...',
+          importPhase: ImportPhase.dives,
+          currentItem: 0,
+          totalItems: importResult.dives.length,
         );
+        await yieldToUI();
         final diveNotifier = _ref.read(diveListNotifierProvider.notifier);
         final buddyRepository = _ref.read(buddyRepositoryProvider);
         final tagRepository = _ref.read(tagRepositoryProvider);
 
-        for (final diveData in importResult.dives) {
+        for (var i = 0; i < importResult.dives.length; i++) {
+          final diveData = importResult.dives[i];
           // Build profile points if present
           final profileData =
               diveData['profile'] as List<Map<String, dynamic>>?;
@@ -1152,6 +1317,57 @@ class ExportNotifier extends StateNotifier<ExportState> {
 
           await diveNotifier.addDive(dive);
 
+          // Store per-tank pressure data if profile has pressure information
+          if (profileData != null && tanks.isNotEmpty) {
+            final tankPressureRepo = _ref.read(tankPressureRepositoryProvider);
+            final pressuresByTank =
+                <String, List<({int timestamp, double pressure})>>{};
+
+            for (final p in profileData) {
+              final timestamp = p['timestamp'] as int? ?? 0;
+
+              // Check for multi-tank pressure data first (new format)
+              final allTankPressures =
+                  p['allTankPressures'] as List<Map<String, dynamic>>?;
+              if (allTankPressures != null && allTankPressures.isNotEmpty) {
+                // Process all tank pressures from this waypoint
+                for (final tp in allTankPressures) {
+                  final pressure = tp['pressure'] as double?;
+                  final tankIdx = tp['tankIndex'] as int? ?? 0;
+                  if (pressure != null &&
+                      tankIdx >= 0 &&
+                      tankIdx < tanks.length) {
+                    final tankId = tanks[tankIdx].id;
+                    pressuresByTank.putIfAbsent(tankId, () => []).add(
+                      (timestamp: timestamp, pressure: pressure),
+                    );
+                  }
+                }
+              } else {
+                // Fall back to legacy single pressure field
+                final pressure = p['pressure'] as double?;
+                // Default to tank 0 if no tankIndex is specified
+                final tankIdx = (p['tankIndex'] as int?) ?? 0;
+
+                if (pressure != null &&
+                    tankIdx >= 0 &&
+                    tankIdx < tanks.length) {
+                  final tankId = tanks[tankIdx].id;
+                  pressuresByTank.putIfAbsent(tankId, () => []).add(
+                    (timestamp: timestamp, pressure: pressure),
+                  );
+                }
+              }
+            }
+
+            if (pressuresByTank.isNotEmpty) {
+              await tankPressureRepo.insertTankPressures(
+                diveId,
+                pressuresByTank,
+              );
+            }
+          }
+
           // Link buddies to the dive
           final buddyRefsValue = diveData['buddyRefs'];
           final buddyRefs = buddyRefsValue is List
@@ -1198,8 +1414,16 @@ class ExportNotifier extends StateNotifier<ExportState> {
           }
 
           divesImported++;
+          state = state.copyWith(currentItem: state.currentItem + 1);
+          await maybeYieldToUI();
         }
       }
+
+      // Set complete phase
+      state = state.copyWith(
+        importPhase: ImportPhase.complete,
+        message: 'Finalizing...',
+      );
 
       // Invalidate all relevant providers to refresh data
       _ref.invalidate(sitesProvider);
