@@ -19,6 +19,7 @@ class GoogleDriveStorageProvider
 
   static const _scopes = [drive.DriveApi.driveAppdataScope];
 
+  // Use the shared instance; configuration is provided per-call via scope hints.
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   bool _initialized = false;
   bool _allowSilentAuth = false;
@@ -85,6 +86,9 @@ class GoogleDriveStorageProvider
     try {
       await _ensureInitialized();
       final account = await _googleSignIn.authenticate(scopeHint: _scopes);
+      if (account == null) {
+        throw const CloudStorageException('Google Sign-In was cancelled');
+      }
       final authorization =
           await account.authorizationClient.authorizeScopes(_scopes);
 
