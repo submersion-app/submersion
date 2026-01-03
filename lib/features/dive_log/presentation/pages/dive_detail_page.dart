@@ -494,12 +494,17 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     // Get gas switches for segment coloring
     final gasSwitchesAsync = ref.watch(gasSwitchesProvider(dive.id));
 
-    // Calculate profile markers
+    // Get per-tank pressure data for multi-tank visualization
+    final tankPressuresAsync = ref.watch(tankPressuresProvider(dive.id));
+    final tankPressures = tankPressuresAsync.valueOrNull;
+
+    // Calculate profile markers (with tank pressure data for accurate thresholds)
     final markers = _calculateProfileMarkers(
       dive: dive,
       analysis: analysis,
       showMaxDepth: showMaxDepthMarker,
       showPressureThresholds: showPressureThresholdMarkers,
+      tankPressures: tankPressures,
     );
 
     return Card(
@@ -556,6 +561,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               showMaxDepthMarker: showMaxDepthMarker,
               showPressureThresholdMarkers: showPressureThresholdMarkers,
               tanks: dive.tanks,
+              tankPressures: tankPressures,
               gasSwitches: gasSwitchesAsync.valueOrNull,
               onPointSelected: (point) {
                 if (point == null) {
@@ -890,12 +896,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   void _showFullscreenProfile(BuildContext context, WidgetRef ref, Dive dive) {
     final analysis = ref.read(diveProfileAnalysisProvider(dive));
     final gasSwitches = ref.read(gasSwitchesProvider(dive.id)).valueOrNull;
+    final tankPressures = ref.read(tankPressuresProvider(dive.id)).valueOrNull;
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => _FullscreenProfilePage(
           dive: dive,
           analysis: analysis,
           gasSwitches: gasSwitches,
+          tankPressures: tankPressures,
         ),
       ),
     );
@@ -1029,6 +1037,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     required ProfileAnalysis? analysis,
     required bool showMaxDepth,
     required bool showPressureThresholds,
+    Map<String, List<TankPressurePoint>>? tankPressures,
   }) {
     final markers = <ProfileMarker>[];
 
@@ -1046,12 +1055,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       }
     }
 
-    // Add pressure threshold markers
+    // Add pressure threshold markers (using per-tank data when available)
     if (showPressureThresholds && dive.tanks.isNotEmpty) {
       markers.addAll(
         ProfileMarkersService.getPressureThresholdMarkers(
           profile: dive.profile,
           tanks: dive.tanks,
+          tankPressures: tankPressures,
         ),
       );
     }
@@ -1831,11 +1841,13 @@ class _FullscreenProfilePage extends ConsumerStatefulWidget {
   final Dive dive;
   final ProfileAnalysis? analysis;
   final List<GasSwitchWithTank>? gasSwitches;
+  final Map<String, List<TankPressurePoint>>? tankPressures;
 
   const _FullscreenProfilePage({
     required this.dive,
     this.analysis,
     this.gasSwitches,
+    this.tankPressures,
   });
 
   @override
@@ -1943,6 +1955,7 @@ class _FullscreenProfilePageState
                       showPressureThresholdMarkers:
                           showPressureThresholdMarkers,
                       tanks: dive.tanks,
+                      tankPressures: widget.tankPressures,
                       gasSwitches: widget.gasSwitches,
                       onPointSelected: (point) {
                         setState(() => _selectedPoint = point);
@@ -1997,12 +2010,13 @@ class _FullscreenProfilePageState
       }
     }
 
-    // Add pressure threshold markers
+    // Add pressure threshold markers (using per-tank data when available)
     if (showPressureThresholds && dive.tanks.isNotEmpty) {
       markers.addAll(
         ProfileMarkersService.getPressureThresholdMarkers(
           profile: dive.profile,
           tanks: dive.tanks,
+          tankPressures: widget.tankPressures,
         ),
       );
     }
