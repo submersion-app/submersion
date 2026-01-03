@@ -86,8 +86,7 @@ class ExportState {
       status == ExportStatus.exporting && importPhase != null;
 
   /// Progress ratio for the current phase (0.0 to 1.0)
-  double get progress =>
-      totalItems > 0 ? currentItem / totalItems : 0.0;
+  double get progress => totalItems > 0 ? currentItem / totalItems : 0.0;
 
   ExportState copyWith({
     ExportStatus? status,
@@ -1340,8 +1339,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
                       tankIdx < tanks.length) {
                     final tankId = tanks[tankIdx].id;
                     pressuresByTank.putIfAbsent(tankId, () => []).add(
-                          (timestamp: timestamp, pressure: pressure),
-                        );
+                      (timestamp: timestamp, pressure: pressure),
+                    );
                   }
                 }
               } else {
@@ -1350,17 +1349,20 @@ class ExportNotifier extends StateNotifier<ExportState> {
                 // Default to tank 0 if no tankIndex is specified
                 final tankIdx = (p['tankIndex'] as int?) ?? 0;
 
-                if (pressure != null && tankIdx >= 0 && tankIdx < tanks.length) {
+                if (pressure != null &&
+                    tankIdx >= 0 &&
+                    tankIdx < tanks.length) {
                   final tankId = tanks[tankIdx].id;
                   pressuresByTank.putIfAbsent(tankId, () => []).add(
-                        (timestamp: timestamp, pressure: pressure),
-                      );
+                    (timestamp: timestamp, pressure: pressure),
+                  );
                 }
               }
             }
 
             if (pressuresByTank.isNotEmpty) {
-              await tankPressureRepo.insertTankPressures(diveId, pressuresByTank);
+              await tankPressureRepo.insertTankPressures(
+                  diveId, pressuresByTank);
             }
           }
 

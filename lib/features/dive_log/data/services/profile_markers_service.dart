@@ -140,8 +140,7 @@ class ProfileMarkersService {
     }
 
     // Check if we have per-tank pressure data
-    final hasMultiTankData =
-        tankPressures != null && tankPressures.isNotEmpty;
+    final hasMultiTankData = tankPressures != null && tankPressures.isNotEmpty;
 
     // Check if we have legacy pressure data in the profile
     final hasProfilePressure = profile.any((p) => p.pressure != null);

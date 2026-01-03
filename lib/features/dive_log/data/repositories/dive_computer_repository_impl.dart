@@ -708,7 +708,8 @@ class DiveComputerRepository {
       // Insert per-tank pressure time-series data
       if (tankIdsByIndex.isNotEmpty) {
         // Group pressure readings by tank index
-        final pressuresByTank = <int, List<({int timestamp, double pressure})>>{};
+        final pressuresByTank =
+            <int, List<({int timestamp, double pressure})>>{};
         for (final point in points) {
           if (point.pressure != null) {
             final tankIdx = point.tankIndex ?? 0;
@@ -899,6 +900,7 @@ class ProfilePointData {
   final double? pressure;
   final double? temperature;
   final int? heartRate;
+
   /// Tank index for pressure (0-based), used for multi-tank pressure tracking
   final int? tankIndex;
 

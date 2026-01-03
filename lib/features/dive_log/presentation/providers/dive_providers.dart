@@ -370,8 +370,9 @@ final tankPressureRepositoryProvider = Provider<TankPressureRepository>((ref) {
 /// Returns a map where keys are tank IDs and values are lists of
 /// pressure points sorted by timestamp. Used for multi-tank pressure
 /// visualization in the dive profile chart.
-final tankPressuresProvider = FutureProvider.family<
-    Map<String, List<domain.TankPressurePoint>>, String>((ref, diveId) async {
+final tankPressuresProvider =
+    FutureProvider.family<Map<String, List<domain.TankPressurePoint>>, String>(
+        (ref, diveId) async {
   final repository = ref.watch(tankPressureRepositoryProvider);
   return repository.getTankPressuresForDive(diveId);
 });

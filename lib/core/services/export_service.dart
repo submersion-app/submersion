@@ -3307,8 +3307,8 @@ class ExportService {
           }
         }
 
-          // Store all tank pressures for visualization and analysis
-          if (allTankPressures.isNotEmpty) {
+        // Store all tank pressures for visualization and analysis
+        if (allTankPressures.isNotEmpty) {
           point['allTankPressures'] = allTankPressures;
         }
 
