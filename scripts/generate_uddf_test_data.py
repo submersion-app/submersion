@@ -606,11 +606,13 @@ def map_cert_level(padi_level: str) -> str:
         "Advanced Open Water Diver": "advancedOpenWater",
         "Rescue Diver": "rescue",
         "Enriched Air Diver": "nitrox",
-        "Deep Diver": "decompression",
+        "Deep Diver": "other",  # Recreational specialty, not technical decompression
         "Wreck Diver": "wreck",
-        "Master Scuba Diver": "diveMaster",
+        "Master Scuba Diver": "other",  # Highest recreational rating, not professional Divemaster
+        "Divemaster": "diveMaster",  # Actual professional-level certification
         "Tec 40": "techDiver",
         "Tec 45": "techDiver",
+        "Tec 50": "decompression",  # Tec 50 involves planned deco diving
         "Dry Suit Diver": "other",
         "Sidemount Diver": "sidemount",
     }
