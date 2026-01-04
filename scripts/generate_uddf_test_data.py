@@ -339,6 +339,32 @@ TANK_CONFIGS = {
 }
 
 
+def get_tank_config_type(tank_configs: List[Dict]) -> str:
+    """Determine the tank configuration type for consumption logic."""
+    main_tanks = [tc for tc in tank_configs if tc.get("role") == "main"]
+    stage_tanks = [tc for tc in tank_configs if tc.get("role") == "stage"]
+
+    if len(main_tanks) == 2 and len(stage_tanks) == 0:
+        # Check if it's sidemount (AL80s) or backmount doubles (steel 12L)
+        volumes = [tc["volume"] for tc in main_tanks]
+        if all(v < 12 for v in volumes):  # AL80s are ~11.1L
+            return "sidemount"
+        return "doubles"
+    elif len(main_tanks) == 2 and len(stage_tanks) > 0:
+        return "doubles_staged"
+    elif len(main_tanks) == 1 and len(stage_tanks) > 0:
+        return "single_staged"
+    else:
+        return "single"
+
+
+def calculate_mod(o2_fraction: float, max_ppo2: float = 1.4) -> float:
+    """Calculate Maximum Operating Depth for a gas mix."""
+    if o2_fraction <= 0:
+        return 0
+    return ((max_ppo2 / o2_fraction) - 1) * 10
+
+
 def generate_dive_profile(
     max_depth: float,
     duration_minutes: int,
@@ -347,7 +373,14 @@ def generate_dive_profile(
     tank_configs: List[Dict],
     is_tech: bool = False
 ) -> Tuple[List[Dict], List[Dict]]:
-    """Generate realistic depth, temperature, and pressure profiles."""
+    """Generate realistic depth, temperature, and pressure profiles.
+
+    Consumption patterns by configuration:
+    - Single tank: straightforward consumption
+    - Sidemount: alternate between tanks every ~15-20 bar for balance
+    - Doubles (manifolded): consume both tanks equally
+    - Staged deco: use bottom gas until ascent, then switch to appropriate deco gas based on MOD
+    """
 
     profile_points = []
     sample_interval = 60  # 1-minute samples (UDDF uses seconds)
@@ -378,28 +411,68 @@ def generate_dive_profile(
         bottom_time -= stop[1]
     bottom_time = max(bottom_time, 60)
 
-    # Initialize tank states
+    # Determine tank configuration type
+    config_type = get_tank_config_type(tank_configs)
+
+    # Initialize tank states with realistic SAC rates
+    # Tech divers typically have better SAC rates (12-18 L/min)
+    # Recreational divers: 15-25 L/min
     tank_states = []
-    for tank in tank_configs:
-        start_pressure_bar = random.randint(190, 210)
+    base_sac = random.uniform(12, 18) if is_tech else random.uniform(15, 22)
+
+    # For manifolded doubles, use same starting pressure for both main tanks
+    # since they equalize through the manifold
+    manifold_start_pressure = random.randint(198, 207)
+
+    for i, tank in enumerate(tank_configs):
+        # Get gas mix info for MOD calculation
+        mix_id = tank.get("mix_id", "air")
+        gas_mix = next((m for m in GAS_MIXES if m["id"] == mix_id), {"o2": 0.21, "he": 0})
+        mod = calculate_mod(gas_mix["o2"])
+
+        # Determine starting pressure based on config type
+        if config_type in ["doubles", "doubles_staged"] and tank.get("role") == "main":
+            # Manifolded tanks start at same pressure (equalized)
+            start_pressure_bar = manifold_start_pressure
+            # Same SAC rate for manifolded tanks (gas flows between them)
+            sac_rate = base_sac
+        else:
+            # Independent tanks have slight variation
+            start_pressure_bar = random.randint(195, 210)
+            sac_rate = base_sac + random.uniform(-2, 2)
+
         tank_states.append({
             "start_pressure": start_pressure_bar * 100000,  # Pascal
             "current_pressure": start_pressure_bar * 100000,
-            "sac_rate": random.uniform(15, 22),  # L/min at surface
-            "active": tank.get("role") == "main",
+            "sac_rate": sac_rate,
+            "role": tank.get("role", "main"),
+            "mix_id": mix_id,
+            "o2": gas_mix["o2"],
+            "mod": mod,
+            "volume": tank["volume"],
         })
 
     current_time = 0
     current_depth = 0
-    current_tank_index = 0
 
-    # Find first main tank
-    for i, tc in enumerate(tank_configs):
-        if tc.get("role") == "main":
-            current_tank_index = i
-            break
+    # Track active tank(s) - for sidemount, we alternate; for doubles, both active
+    main_tank_indices = [i for i, tc in enumerate(tank_configs) if tc.get("role") == "main"]
+    stage_tank_indices = [i for i, tc in enumerate(tank_configs) if tc.get("role") == "stage"]
 
+    # For sidemount: start with first tank, track pressure difference for switching
+    sidemount_active_tank = 0 if main_tank_indices else 0
+    sidemount_switch_threshold = random.uniform(12, 18)  # Switch every 12-18 bar difference
+    last_sidemount_switch_pressure = tank_states[main_tank_indices[0]]["current_pressure"] if main_tank_indices else 0
+
+    # Track which tanks have been used (for gas switches display)
     gas_switches = []
+    active_stage_tank = None  # Track current stage tank during deco
+
+    # Sort stage tanks by O2 content (lower O2 = deeper MOD, use first)
+    stage_tank_indices_sorted = sorted(
+        stage_tank_indices,
+        key=lambda i: tank_states[i]["o2"]
+    )
 
     while current_time <= total_seconds:
         # Calculate current depth
@@ -422,22 +495,6 @@ def generate_dive_profile(
                     if time_since_ascent >= cumulative_stop:
                         in_stop = True
                         stop_depth = stop[0]
-
-                        # Gas switch logic for tech dives
-                        if stop[0] <= 21 and len(tank_configs) > 2:
-                            for i, tc in enumerate(tank_configs):
-                                if tc.get("role") == "stage" and i != current_tank_index:
-                                    mix = next((m for m in GAS_MIXES if m["id"] == tc["mix_id"]), None)
-                                    if mix and mix["o2"] >= 0.50:
-                                        if i not in [gs["tank"] for gs in gas_switches]:
-                                            gas_switches.append({
-                                                "time": current_time,
-                                                "tank": i,
-                                                "depth": stop_depth,
-                                                "mix_id": tc["mix_id"]
-                                            })
-                                            current_tank_index = i
-                                            break
                         break
                 cumulative_stop += stop[1]
 
@@ -465,17 +522,91 @@ def generate_dive_profile(
         current_temp += random.uniform(-0.2, 0.2)
         current_temp_kelvin = round(current_temp + 273.15, 2)
 
-        # Pressure consumption
+        # Determine dive phase for gas selection
+        is_ascending = current_time > descent_time + bottom_time
         ambient_pressure = 1 + (current_depth / 10)
 
-        for i, ts in enumerate(tank_states):
-            if i == current_tank_index and ts["current_pressure"] > 50 * 100000:
+        # ============================================================
+        # REALISTIC MULTI-TANK GAS CONSUMPTION LOGIC
+        # ============================================================
+
+        # Determine which tanks to consume from based on configuration and dive phase
+        tanks_to_consume = []
+
+        if is_ascending and stage_tank_indices:
+            # During ascent with stage tanks: check if we should switch to deco gas
+            # Find the best stage tank for current depth (highest O2 that's within MOD)
+            best_stage = None
+            for idx in stage_tank_indices_sorted:
+                ts = tank_states[idx]
+                # Check if this gas is safe at current depth (with 3m safety margin)
+                if current_depth <= ts["mod"] - 3 and ts["current_pressure"] > 50 * 100000:
+                    # Prefer higher O2 content for faster deco
+                    if best_stage is None or ts["o2"] > tank_states[best_stage]["o2"]:
+                        best_stage = idx
+
+            if best_stage is not None:
+                # Switch to or continue using stage gas
+                if active_stage_tank != best_stage:
+                    # Record gas switch
+                    if best_stage not in [gs["tank"] for gs in gas_switches]:
+                        gas_switches.append({
+                            "time": current_time,
+                            "tank": best_stage,
+                            "depth": current_depth,
+                            "mix_id": tank_states[best_stage]["mix_id"]
+                        })
+                    active_stage_tank = best_stage
+                tanks_to_consume = [best_stage]
+            else:
+                # No suitable stage gas, continue on main tanks
+                active_stage_tank = None
+                if config_type == "sidemount":
+                    tanks_to_consume = [main_tank_indices[sidemount_active_tank % len(main_tank_indices)]]
+                elif config_type in ["doubles", "doubles_staged"]:
+                    tanks_to_consume = main_tank_indices  # Both tanks (manifolded)
+                else:
+                    tanks_to_consume = main_tank_indices[:1] if main_tank_indices else [0]
+        else:
+            # Descent or bottom phase: use main tanks
+            active_stage_tank = None
+
+            if config_type == "sidemount":
+                # Sidemount: alternate tanks to maintain balance
+                current_main_idx = main_tank_indices[sidemount_active_tank % len(main_tank_indices)]
+                current_pressure_bar = tank_states[current_main_idx]["current_pressure"] / 100000
+
+                # Check if we should switch (pressure dropped enough since last switch)
+                last_pressure_bar = last_sidemount_switch_pressure / 100000
+                if last_pressure_bar - current_pressure_bar >= sidemount_switch_threshold:
+                    sidemount_active_tank = (sidemount_active_tank + 1) % len(main_tank_indices)
+                    last_sidemount_switch_pressure = tank_states[main_tank_indices[sidemount_active_tank]]["current_pressure"]
+
+                tanks_to_consume = [main_tank_indices[sidemount_active_tank % len(main_tank_indices)]]
+
+            elif config_type in ["doubles", "doubles_staged"]:
+                # Doubles (manifolded): consume from both tanks equally
+                tanks_to_consume = main_tank_indices
+
+            else:
+                # Single tank (with or without stage)
+                tanks_to_consume = main_tank_indices[:1] if main_tank_indices else [0]
+
+        # Apply gas consumption to selected tanks
+        for tank_idx in tanks_to_consume:
+            ts = tank_states[tank_idx]
+            if ts["current_pressure"] > 40 * 100000:  # Reserve pressure ~40 bar
                 consumption = ts["sac_rate"] * ambient_pressure
-                volume = tank_configs[i]["volume"]
+
+                # For manifolded doubles, each tank provides half the gas
+                if config_type in ["doubles", "doubles_staged"] and len(tanks_to_consume) == 2:
+                    consumption = consumption / 2
+
+                volume = ts["volume"]
                 pressure_drop = (consumption * sample_interval / 60) / volume
                 pressure_drop_pascal = pressure_drop * 100000
                 ts["current_pressure"] -= pressure_drop_pascal
-                ts["current_pressure"] = max(ts["current_pressure"], 40 * 100000)
+                ts["current_pressure"] = max(ts["current_pressure"], 35 * 100000)
 
         # Build profile point
         point = {
