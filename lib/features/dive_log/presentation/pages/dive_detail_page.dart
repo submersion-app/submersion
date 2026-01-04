@@ -1010,7 +1010,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   );
                 },
                 loading: () => const SizedBox.shrink(),
-                error: (_, __) => const SizedBox.shrink(),
+                error: (_, _) => const SizedBox.shrink(),
               ),
           ],
         ),
@@ -1431,7 +1431,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           child: Center(child: CircularProgressIndicator()),
         ),
       ),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 
@@ -1556,7 +1556,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         );
       },
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 

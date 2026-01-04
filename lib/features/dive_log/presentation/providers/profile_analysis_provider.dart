@@ -147,7 +147,7 @@ final profileQuickStatsProvider =
       return ProfileQuickStats.fromAnalysis(analysis);
     },
     loading: () => null,
-    error: (_, __) => null,
+    error: (_, _) => null,
   );
 });
 

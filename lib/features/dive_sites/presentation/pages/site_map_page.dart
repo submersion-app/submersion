@@ -111,7 +111,7 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
             initialZoom: zoom,
             minZoom: 2.0,
             maxZoom: 18.0,
-            onTap: (_, __) {
+            onTap: (_, _) {
               setState(() => _selectedSite = null);
             },
             cameraConstraint: CameraConstraint.contain(

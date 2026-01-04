@@ -85,7 +85,7 @@ class StatisticsProfilePage extends ConsumerWidget {
           height: 100,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, __) => const StatEmptyState(
+        error: (_, _) => const StatEmptyState(
           icon: Icons.error_outline,
           message: 'Failed to load rate data',
         ),
@@ -153,7 +153,7 @@ class StatisticsProfilePage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, __) => const StatEmptyState(
+        error: (_, _) => const StatEmptyState(
           icon: Icons.error_outline,
           message: 'Failed to load depth range data',
         ),
@@ -238,7 +238,7 @@ class StatisticsProfilePage extends ConsumerWidget {
           height: 100,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, __) => const StatEmptyState(
+        error: (_, _) => const StatEmptyState(
           icon: Icons.error_outline,
           message: 'Failed to load deco data',
         ),

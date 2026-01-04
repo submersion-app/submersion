@@ -27,7 +27,7 @@ class DashboardPage extends ConsumerWidget {
                 : 'Dashboard',
           ),
           loading: () => const Text('Dashboard'),
-          error: (_, __) => const Text('Dashboard'),
+          error: (_, _) => const Text('Dashboard'),
         ),
       ),
       body: RefreshIndicator(

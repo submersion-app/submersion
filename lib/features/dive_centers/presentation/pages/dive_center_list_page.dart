@@ -215,7 +215,7 @@ class _DiveCenterCard extends ConsumerWidget {
                       height: 12,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     ),
-                    error: (_, __) => const SizedBox(),
+                    error: (_, _) => const SizedBox(),
                   ),
                 ],
               ),

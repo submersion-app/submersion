@@ -104,7 +104,7 @@ class _TripPickerState extends ConsumerState<TripPicker> {
         );
       },
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 

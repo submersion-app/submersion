@@ -243,7 +243,7 @@ class DiverListTile extends ConsumerWidget {
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      error: (_, __) => Text(
+                      error: (_, _) => Text(
                         'Error loading stats',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.error,

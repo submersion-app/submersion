@@ -967,7 +967,7 @@ class DiveListTile extends ConsumerWidget {
                   ),
                 ),
               ),
-              error: (_, __) => const SizedBox.shrink(),
+              error: (_, _) => const SizedBox.shrink(),
             ),
             // Chevron
             Icon(
@@ -1251,7 +1251,7 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                   },
                 ),
                 loading: () => const LinearProgressIndicator(),
-                error: (_, __) => const Text('Error loading sites'),
+                error: (_, _) => const Text('Error loading sites'),
               ),
               const SizedBox(height: 24),
 
@@ -1350,7 +1350,7 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                       );
                     },
                     loading: () => const CircularProgressIndicator(),
-                    error: (_, __) => const Text('Error loading tags'),
+                    error: (_, _) => const Text('Error loading tags'),
                   ),
               const SizedBox(height: 32),
 

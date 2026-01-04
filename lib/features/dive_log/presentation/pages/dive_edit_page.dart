@@ -555,7 +555,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         );
       },
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 
@@ -767,7 +767,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         );
       },
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 
@@ -3410,7 +3410,7 @@ class _EquipmentSetTile extends ConsumerWidget {
         title: Text(set.name),
         subtitle: const Text('Loading...'),
       ),
-      error: (_, __) => ListTile(
+      error: (_, _) => ListTile(
         leading: CircleAvatar(
           backgroundColor: Theme.of(context).colorScheme.errorContainer,
           child: Icon(

@@ -257,7 +257,7 @@ class SettingsPage extends ConsumerWidget {
                         : '${computers.length} saved ${computers.length == 1 ? 'computer' : 'computers'}',
                   ),
                   loading: () => const Text('Loading...'),
-                  error: (_, __) => const Text('Error loading computers'),
+                  error: (_, _) => const Text('Error loading computers'),
                 ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => context.push('/dive-computers'),

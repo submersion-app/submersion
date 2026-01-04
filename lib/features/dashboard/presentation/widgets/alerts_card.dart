@@ -22,7 +22,7 @@ class AlertsCard extends ConsumerWidget {
         return _AlertsCardContent(alerts: alerts);
       },
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 }
