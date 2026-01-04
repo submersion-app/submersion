@@ -1177,6 +1177,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
         final diveNotifier = _ref.read(diveListNotifierProvider.notifier);
         final buddyRepository = _ref.read(buddyRepositoryProvider);
         final tagRepository = _ref.read(tagRepositoryProvider);
+        final diveCenterRepository = _ref.read(diveCenterRepositoryProvider);
+        final equipmentRepository = _ref.read(equipmentRepositoryProvider);
 
         for (var i = 0; i < importResult.dives.length; i++) {
           final diveData = importResult.dives[i];
@@ -1258,6 +1260,35 @@ class ExportNotifier extends StateNotifier<ExportState> {
             linkedTripId = tripIdMapping[tripRef];
           }
 
+          // Link to imported dive center
+          DiveCenter? linkedDiveCenter;
+          final diveCenterRef = diveData['diveCenterRef'] as String?;
+          if (diveCenterRef != null &&
+              diveCenterIdMapping.containsKey(diveCenterRef)) {
+            final newCenterId = diveCenterIdMapping[diveCenterRef]!;
+            linkedDiveCenter =
+                await diveCenterRepository.getDiveCenterById(newCenterId);
+          }
+
+          // Link to imported equipment
+          final linkedEquipment = <EquipmentItem>[];
+          final equipmentRefsRaw = diveData['equipmentRefs'];
+          if (equipmentRefsRaw != null) {
+            final equipmentRefs = equipmentRefsRaw is List
+                ? equipmentRefsRaw.whereType<String>().toList()
+                : <String>[];
+            for (final oldRef in equipmentRefs) {
+              final newEquipmentId = equipmentIdMapping[oldRef];
+              if (newEquipmentId != null) {
+                final equipment =
+                    await equipmentRepository.getEquipmentById(newEquipmentId);
+                if (equipment != null) {
+                  linkedEquipment.add(equipment);
+                }
+              }
+            }
+          }
+
           // Parse dive type
           final diveTypeId = diveData['diveType'] as String? ?? 'recreational';
 
@@ -1305,6 +1336,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
             tanks: tanks,
             site: linkedSite,
             tripId: linkedTripId,
+            diveCenter: linkedDiveCenter,
+            equipment: linkedEquipment,
           );
 
           // Auto-calculate bottom time from profile if not set and profile exists

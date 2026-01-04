@@ -3024,7 +3024,7 @@ class ExportService {
         }
       }
 
-      // Parse equipment used (e.g., lead weight, dive computer)
+      // Parse equipment used (e.g., lead weight, dive computer, equipment refs)
       final equipmentElement =
           beforeElement.findElements('equipmentused').firstOrNull;
       if (equipmentElement != null) {
@@ -3034,6 +3034,18 @@ class ExportService {
           if (leadKg != null) {
             diveData['weightUsed'] = leadKg;
           }
+        }
+
+        // Parse equipment references
+        final equipmentRefs = <String>[];
+        for (final equipRef in equipmentElement.findElements('equipmentref')) {
+          final ref = equipRef.innerText.trim();
+          if (ref.isNotEmpty) {
+            equipmentRefs.add(ref);
+          }
+        }
+        if (equipmentRefs.isNotEmpty) {
+          diveData['equipmentRefs'] = equipmentRefs;
         }
       }
 
