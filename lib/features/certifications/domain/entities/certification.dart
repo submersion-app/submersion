@@ -119,20 +119,20 @@ class Certification extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        diverId,
-        name,
-        agency,
-        level,
-        cardNumber,
-        issueDate,
-        expiryDate,
-        instructorName,
-        instructorNumber,
-        photoFrontPath,
-        photoBackPath,
-        notes,
-        createdAt,
-        updatedAt,
-      ];
+    id,
+    diverId,
+    name,
+    agency,
+    level,
+    cardNumber,
+    issueDate,
+    expiryDate,
+    instructorName,
+    instructorNumber,
+    photoFrontPath,
+    photoBackPath,
+    notes,
+    createdAt,
+    updatedAt,
+  ];
 }

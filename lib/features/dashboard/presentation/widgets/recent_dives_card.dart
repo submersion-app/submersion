@@ -43,8 +43,9 @@ class RecentDivesCard extends ConsumerWidget {
                   return _buildEmptyState(context);
                 }
                 return Column(
-                  children:
-                      dives.map((dive) => _DiveListTile(dive: dive)).toList(),
+                  children: dives
+                      .map((dive) => _DiveListTile(dive: dive))
+                      .toList(),
                 );
               },
               loading: () => const Center(

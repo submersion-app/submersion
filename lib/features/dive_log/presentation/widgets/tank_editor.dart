@@ -72,22 +72,22 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     _workingPressureController = TextEditingController(
       text: widget.tank.workingPressure != null
           ? units
-              .convertPressure(widget.tank.workingPressure!.toDouble())
-              .toStringAsFixed(0)
+                .convertPressure(widget.tank.workingPressure!.toDouble())
+                .toStringAsFixed(0)
           : '',
     );
     _startPressureController = TextEditingController(
       text: widget.tank.startPressure != null
           ? units
-              .convertPressure(widget.tank.startPressure!.toDouble())
-              .toStringAsFixed(0)
+                .convertPressure(widget.tank.startPressure!.toDouble())
+                .toStringAsFixed(0)
           : '',
     );
     _endPressureController = TextEditingController(
       text: widget.tank.endPressure != null
           ? units
-              .convertPressure(widget.tank.endPressure!.toDouble())
-              .toStringAsFixed(0)
+                .convertPressure(widget.tank.endPressure!.toDouble())
+                .toStringAsFixed(0)
           : '',
     );
     _o2Controller = TextEditingController(
@@ -129,8 +129,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
 
     // Convert from user's preferred units back to metric for storage
     final volumeDisplay = double.tryParse(_volumeController.text);
-    final workingPressureDisplay =
-        double.tryParse(_workingPressureController.text);
+    final workingPressureDisplay = double.tryParse(
+      _workingPressureController.text,
+    );
     final startPressureDisplay = double.tryParse(_startPressureController.text);
     final endPressureDisplay = double.tryParse(_endPressureController.text);
 
@@ -245,9 +246,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
               Text(
                 gasMix.name,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),
@@ -302,10 +303,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         Expanded(
           child: DropdownButtonFormField<TankRole>(
             initialValue: _role,
-            decoration: const InputDecoration(
-              labelText: 'Role',
-              isDense: true,
-            ),
+            decoration: const InputDecoration(labelText: 'Role', isDense: true),
             items: TankRole.values
                 .map(
                   (role) => DropdownMenuItem(
@@ -361,10 +359,8 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                 child: Text('Not specified'),
               ),
               ...TankMaterial.values.map(
-                (mat) => DropdownMenuItem(
-                  value: mat,
-                  child: Text(mat.displayName),
-                ),
+                (mat) =>
+                    DropdownMenuItem(value: mat, child: Text(mat.displayName)),
               ),
             ],
             onChanged: (value) {
@@ -399,10 +395,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Gas Mix',
-          style: Theme.of(context).textTheme.titleSmall,
-        ),
+        Text('Gas Mix', style: Theme.of(context).textTheme.titleSmall),
         const SizedBox(height: 8),
         // Gas template chips
         Wrap(
@@ -426,8 +419,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                   suffixText: '%',
                   isDense: true,
                 ),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 onChanged: (_) {
                   setState(() {});
                   _notifyChange();
@@ -443,8 +437,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                   suffixText: '%',
                   isDense: true,
                 ),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 onChanged: (_) {
                   setState(() {});
                   _notifyChange();
@@ -533,8 +528,8 @@ class _TankEditorState extends ConsumerState<TankEditor> {
           Text(
             'MOD: $modDepth (ppO2 1.4)',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.tertiary,
-                ),
+              color: Theme.of(context).colorScheme.tertiary,
+            ),
           ),
         ],
       ),

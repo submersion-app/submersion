@@ -168,8 +168,9 @@ class DatabaseLocationService {
 
       // On iOS, use native security-scoped verification
       if (Platform.isIOS) {
-        final result =
-            await SecurityScopedBookmarkService.verifyWriteAccess(folderPath);
+        final result = await SecurityScopedBookmarkService.verifyWriteAccess(
+          folderPath,
+        );
         return result ?? false;
       }
 
@@ -196,9 +197,7 @@ class DatabaseLocationService {
   /// Update the last verified timestamp for the current config
   Future<void> updateLastVerified() async {
     final config = await getStorageConfig();
-    await saveStorageConfig(
-      config.copyWith(lastVerified: DateTime.now()),
-    );
+    await saveStorageConfig(config.copyWith(lastVerified: DateTime.now()));
   }
 
   /// Clear the storage configuration and reset to default
@@ -223,8 +222,9 @@ class DatabaseLocationService {
     }
 
     debugPrint('Creating security-scoped bookmark for: $folderPath');
-    final bookmarkData =
-        await SecurityScopedBookmarkService.createBookmark(folderPath);
+    final bookmarkData = await SecurityScopedBookmarkService.createBookmark(
+      folderPath,
+    );
 
     if (bookmarkData == null) {
       debugPrint('Failed to create security-scoped bookmark');
@@ -308,8 +308,5 @@ class FolderPickResultWithBookmark {
   /// If provided, this should be stored and used to restore access after app restart.
   final Uint8List? bookmarkData;
 
-  const FolderPickResultWithBookmark({
-    required this.path,
-    this.bookmarkData,
-  });
+  const FolderPickResultWithBookmark({required this.path, this.bookmarkData});
 }

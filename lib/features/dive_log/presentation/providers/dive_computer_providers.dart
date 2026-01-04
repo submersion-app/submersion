@@ -10,17 +10,21 @@ final diveComputerRepositoryProvider = Provider<DiveComputerRepository>((ref) {
 });
 
 /// All dive computers
-final allDiveComputersProvider =
-    FutureProvider<List<DiveComputer>>((ref) async {
+final allDiveComputersProvider = FutureProvider<List<DiveComputer>>((
+  ref,
+) async {
   final repository = ref.watch(diveComputerRepositoryProvider);
-  final validatedDiverId =
-      await ref.watch(validatedCurrentDiverIdProvider.future);
+  final validatedDiverId = await ref.watch(
+    validatedCurrentDiverIdProvider.future,
+  );
   return repository.getAllComputers(diverId: validatedDiverId);
 });
 
 /// Get a dive computer by ID
-final diveComputerByIdProvider =
-    FutureProvider.family<DiveComputer?, String>((ref, id) async {
+final diveComputerByIdProvider = FutureProvider.family<DiveComputer?, String>((
+  ref,
+  id,
+) async {
   final repository = ref.watch(diveComputerRepositoryProvider);
   return repository.getComputerById(id);
 });
@@ -28,21 +32,24 @@ final diveComputerByIdProvider =
 /// Get the favorite (primary) dive computer
 final favoriteDiveComputerProvider = FutureProvider<DiveComputer?>((ref) async {
   final repository = ref.watch(diveComputerRepositoryProvider);
-  final validatedDiverId =
-      await ref.watch(validatedCurrentDiverIdProvider.future);
+  final validatedDiverId = await ref.watch(
+    validatedCurrentDiverIdProvider.future,
+  );
   return repository.getFavoriteComputer(diverId: validatedDiverId);
 });
 
 /// Get dive computers for a specific dive
 final computersForDiveProvider =
     FutureProvider.family<List<DiveComputer>, String>((ref, diveId) async {
-  final repository = ref.watch(diveComputerRepositoryProvider);
-  return repository.getComputersForDive(diveId);
-});
+      final repository = ref.watch(diveComputerRepositoryProvider);
+      return repository.getComputersForDive(diveId);
+    });
 
 /// Get the primary computer ID for a dive
-final primaryComputerIdProvider =
-    FutureProvider.family<String?, String>((ref, diveId) async {
+final primaryComputerIdProvider = FutureProvider.family<String?, String>((
+  ref,
+  diveId,
+) async {
   final repository = ref.watch(diveComputerRepositoryProvider);
   return repository.getPrimaryComputerId(diveId);
 });
@@ -81,11 +88,13 @@ class SelectedComputerNotifier extends StateNotifier<String?> {
 
 /// Provider for selected computer on dive detail view
 final selectedComputerProvider =
-    StateNotifierProvider.family<SelectedComputerNotifier, String?, String>(
-        (ref, diveId) {
-  final repository = ref.watch(diveComputerRepositoryProvider);
-  return SelectedComputerNotifier(repository, diveId);
-});
+    StateNotifierProvider.family<SelectedComputerNotifier, String?, String>((
+      ref,
+      diveId,
+    ) {
+      final repository = ref.watch(diveComputerRepositoryProvider);
+      return SelectedComputerNotifier(repository, diveId);
+    });
 
 /// State notifier for managing dive computers
 class DiveComputerNotifier
@@ -95,7 +104,7 @@ class DiveComputerNotifier
   String? _validatedDiverId;
 
   DiveComputerNotifier(this._repository, this._ref)
-      : super(const AsyncValue.loading()) {
+    : super(const AsyncValue.loading()) {
     _initializeAndLoad();
 
     // Listen for diver changes and reload
@@ -118,8 +127,9 @@ class DiveComputerNotifier
 
   Future<void> _load() async {
     try {
-      final computers =
-          await _repository.getAllComputers(diverId: _validatedDiverId);
+      final computers = await _repository.getAllComputers(
+        diverId: _validatedDiverId,
+      );
       state = AsyncValue.data(computers);
     } catch (e, stackTrace) {
       state = AsyncValue.error(e, stackTrace);
@@ -166,10 +176,11 @@ class DiveComputerNotifier
 /// Provider for dive computer management
 final diveComputerNotifierProvider =
     StateNotifierProvider<DiveComputerNotifier, AsyncValue<List<DiveComputer>>>(
-        (ref) {
-  final repository = ref.watch(diveComputerRepositoryProvider);
-  return DiveComputerNotifier(repository, ref);
-});
+      (ref) {
+        final repository = ref.watch(diveComputerRepositoryProvider);
+        return DiveComputerNotifier(repository, ref);
+      },
+    );
 
 /// State for dive profile viewing (which computer's profile to display)
 class DiveProfileViewState {
@@ -271,7 +282,11 @@ class DiveProfileViewNotifier extends StateNotifier<DiveProfileViewState> {
 }
 
 /// Provider for dive profile view state
-final diveProfileViewProvider = StateNotifierProvider.family<
-    DiveProfileViewNotifier, DiveProfileViewState, String>((ref, diveId) {
-  return DiveProfileViewNotifier();
-});
+final diveProfileViewProvider =
+    StateNotifierProvider.family<
+      DiveProfileViewNotifier,
+      DiveProfileViewState,
+      String
+    >((ref, diveId) {
+      return DiveProfileViewNotifier();
+    });

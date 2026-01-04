@@ -37,7 +37,9 @@ class DiverSettingsRepository {
       final now = DateTime.now().millisecondsSinceEpoch;
       final s = settings ?? const AppSettings();
 
-      await _db.into(_db.diverSettings).insert(
+      await _db
+          .into(_db.diverSettings)
+          .insert(
             DiverSettingsCompanion(
               id: Value(id),
               diverId: Value(diverId),
@@ -64,13 +66,16 @@ class DiverSettingsRepository {
               lastStopDepth: Value(s.lastStopDepth),
               decoStopIncrement: Value(s.decoStopIncrement),
               showDepthColoredDiveCards: Value(s.showDepthColoredDiveCards),
-              showMapBackgroundOnDiveCards:
-                  Value(s.showMapBackgroundOnDiveCards),
-              showMapBackgroundOnSiteCards:
-                  Value(s.showMapBackgroundOnSiteCards),
+              showMapBackgroundOnDiveCards: Value(
+                s.showMapBackgroundOnDiveCards,
+              ),
+              showMapBackgroundOnSiteCards: Value(
+                s.showMapBackgroundOnSiteCards,
+              ),
               showMaxDepthMarker: Value(s.showMaxDepthMarker),
-              showPressureThresholdMarkers:
-                  Value(s.showPressureThresholdMarkers),
+              showPressureThresholdMarkers: Value(
+                s.showPressureThresholdMarkers,
+              ),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -96,9 +101,9 @@ class DiverSettingsRepository {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await (_db.update(_db.diverSettings)
-            ..where((t) => t.diverId.equals(diverId)))
-          .write(
+      await (_db.update(
+        _db.diverSettings,
+      )..where((t) => t.diverId.equals(diverId))).write(
         DiverSettingsCompanion(
           depthUnit: Value(settings.depthUnit.name),
           temperatureUnit: Value(settings.temperatureUnit.name),
@@ -123,13 +128,16 @@ class DiverSettingsRepository {
           lastStopDepth: Value(settings.lastStopDepth),
           decoStopIncrement: Value(settings.decoStopIncrement),
           showDepthColoredDiveCards: Value(settings.showDepthColoredDiveCards),
-          showMapBackgroundOnDiveCards:
-              Value(settings.showMapBackgroundOnDiveCards),
-          showMapBackgroundOnSiteCards:
-              Value(settings.showMapBackgroundOnSiteCards),
+          showMapBackgroundOnDiveCards: Value(
+            settings.showMapBackgroundOnDiveCards,
+          ),
+          showMapBackgroundOnSiteCards: Value(
+            settings.showMapBackgroundOnSiteCards,
+          ),
           showMaxDepthMarker: Value(settings.showMaxDepthMarker),
-          showPressureThresholdMarkers:
-              Value(settings.showPressureThresholdMarkers),
+          showPressureThresholdMarkers: Value(
+            settings.showPressureThresholdMarkers,
+          ),
           updatedAt: Value(now),
         ),
       );
@@ -159,9 +167,9 @@ class DiverSettingsRepository {
   /// Delete settings for a diver
   Future<void> deleteSettingsForDiver(String diverId) async {
     try {
-      await (_db.delete(_db.diverSettings)
-            ..where((t) => t.diverId.equals(diverId)))
-          .go();
+      await (_db.delete(
+        _db.diverSettings,
+      )..where((t) => t.diverId.equals(diverId))).go();
       _log.info('Deleted settings for diver: $diverId');
     } catch (e, stackTrace) {
       _log.error(

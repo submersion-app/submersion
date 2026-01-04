@@ -118,12 +118,7 @@ class BuhlmannAlgorithm {
         comp.halfTimeHe,
       );
 
-      newCompartments.add(
-        comp.copyWith(
-          currentPN2: newN2,
-          currentPHe: newHe,
-        ),
-      );
+      newCompartments.add(comp.copyWith(currentPN2: newN2, currentPHe: newHe));
     }
 
     _compartments = newCompartments;
@@ -317,8 +312,9 @@ class BuhlmannAlgorithm {
 
   /// Calculate time required at a stop depth.
   int _calculateStopTime(double stopDepth, double fN2, double fHe) {
-    final nextStopDepth =
-        stopDepth <= lastStopDepth ? 0.0 : stopDepth - stopIncrement;
+    final nextStopDepth = stopDepth <= lastStopDepth
+        ? 0.0
+        : stopDepth - stopIncrement;
     int stopTime = 0;
     const maxStopTime = 120 * 60; // 2 hours max per stop
 
@@ -474,13 +470,7 @@ class BuhlmannAlgorithm {
         );
       }
 
-      results.add(
-        getDecoStatus(
-          currentDepth: depths[i],
-          fN2: fN2,
-          fHe: fHe,
-        ),
-      );
+      results.add(getDecoStatus(currentDepth: depths[i], fN2: fN2, fHe: fHe));
     }
 
     return results;

@@ -55,8 +55,9 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
   Future<void> _loadTrip() async {
     setState(() => _isLoading = true);
     try {
-      final trip =
-          await ref.read(tripRepositoryProvider).getTripById(widget.tripId!);
+      final trip = await ref
+          .read(tripRepositoryProvider)
+          .getTripById(widget.tripId!);
       if (trip != null && mounted) {
         _originalTrip = trip;
         _nameController.text = trip.name;
@@ -74,9 +75,9 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading trip: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error loading trip: $e')));
       }
     }
   }
@@ -121,10 +122,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                 ),
               )
             else
-              TextButton(
-                onPressed: _saveTrip,
-                child: const Text('Save'),
-              ),
+              TextButton(onPressed: _saveTrip, child: const Text('Save')),
           ],
         ),
         body: _isLoading
@@ -157,10 +155,8 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                       // Date section header
                       Text(
                         'Trip Dates',
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 12),
 
@@ -189,9 +185,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                         padding: const EdgeInsets.only(left: 40),
                         child: Text(
                           '${_endDate.difference(_startDate).inDays + 1} days',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
+                          style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
                                 color: Theme.of(context).colorScheme.primary,
                               ),
@@ -202,10 +196,8 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                       // Location section header
                       Text(
                         'Location',
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 12),
 
@@ -248,10 +240,8 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                       // Notes section header
                       Text(
                         'Notes',
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 12),
 
@@ -275,8 +265,9 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                             ? const SizedBox(
                                 height: 20,
                                 width: 20,
-                                child:
-                                    CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
                             : Text(isEditing ? 'Update Trip' : 'Add Trip'),
                       ),
@@ -372,7 +363,8 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
 
     try {
       // Get the current diver ID - preserve existing for edits, get fresh for new trips
-      final diverId = _originalTrip?.diverId ??
+      final diverId =
+          _originalTrip?.diverId ??
           await ref.read(validatedCurrentDiverIdProvider.future);
 
       final now = DateTime.now();

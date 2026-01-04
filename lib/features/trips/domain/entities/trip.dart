@@ -72,8 +72,9 @@ class Trip extends Equatable {
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
       location: location == _undefined ? this.location : location as String?,
-      resortName:
-          resortName == _undefined ? this.resortName : resortName as String?,
+      resortName: resortName == _undefined
+          ? this.resortName
+          : resortName as String?,
       liveaboardName: liveaboardName == _undefined
           ? this.liveaboardName
           : liveaboardName as String?,
@@ -85,18 +86,18 @@ class Trip extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        diverId,
-        name,
-        startDate,
-        endDate,
-        location,
-        resortName,
-        liveaboardName,
-        notes,
-        createdAt,
-        updatedAt,
-      ];
+    id,
+    diverId,
+    name,
+    startDate,
+    endDate,
+    location,
+    resortName,
+    liveaboardName,
+    notes,
+    createdAt,
+    updatedAt,
+  ];
 }
 
 // Sentinel value for distinguishing null from undefined in copyWith
@@ -130,10 +131,10 @@ class TripWithStats extends Equatable {
 
   @override
   List<Object?> get props => [
-        trip,
-        diveCount,
-        totalBottomTime,
-        maxDepth,
-        avgDepth,
-      ];
+    trip,
+    diveCount,
+    totalBottomTime,
+    maxDepth,
+    avgDepth,
+  ];
 }

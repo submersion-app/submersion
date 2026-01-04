@@ -11,10 +11,7 @@ import '../providers/equipment_providers.dart';
 class EquipmentDetailPage extends ConsumerWidget {
   final String equipmentId;
 
-  const EquipmentDetailPage({
-    super.key,
-    required this.equipmentId,
-  });
+  const EquipmentDetailPage({super.key, required this.equipmentId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -150,20 +147,19 @@ class EquipmentDetailPage extends ConsumerWidget {
                       Text(
                         equipment.type.displayName,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
-                            ),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                       if (!equipment.isActive)
                         Chip(
                           label: const Text('Retired'),
-                          backgroundColor: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerHighest,
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest,
                           labelStyle: TextStyle(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                           ),
                         ),
                     ],
@@ -212,10 +208,7 @@ class EquipmentDetailPage extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Details',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text('Details', style: Theme.of(context).textTheme.titleMedium),
             const Divider(),
             _buildDetailRow(context, 'Status', equipment.status.displayName),
             if (equipment.brand != null)
@@ -266,10 +259,7 @@ class EquipmentDetailPage extends ConsumerWidget {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.build,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+                Icon(Icons.build, color: Theme.of(context).colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
                   'Service Information',
@@ -299,16 +289,16 @@ class EquipmentDetailPage extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: isOverdue
                         ? Theme.of(context).colorScheme.errorContainer
                         : daysUntil < 30
-                            ? Theme.of(context).colorScheme.tertiaryContainer
-                            : Theme.of(context)
-                                .colorScheme
-                                .surfaceContainerHighest,
+                        ? Theme.of(context).colorScheme.tertiaryContainer
+                        : Theme.of(context).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -358,10 +348,7 @@ class EquipmentDetailPage extends ConsumerWidget {
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  'Notes',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
+                Text('Notes', style: Theme.of(context).textTheme.titleMedium),
               ],
             ),
             const SizedBox(height: 8),
@@ -384,8 +371,8 @@ class EquipmentDetailPage extends ConsumerWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           Text(value, style: Theme.of(context).textTheme.bodyMedium),
         ],
@@ -416,9 +403,9 @@ class EquipmentDetailPage extends ConsumerWidget {
         await notifier.markAsServiced(equipmentId);
         ref.invalidate(equipmentItemProvider(equipmentId));
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Marked as serviced')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Marked as serviced')));
         }
         break;
 
@@ -426,9 +413,9 @@ class EquipmentDetailPage extends ConsumerWidget {
         await notifier.retireEquipment(equipmentId);
         ref.invalidate(equipmentItemProvider(equipmentId));
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Equipment retired')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Equipment retired')));
         }
         break;
 
@@ -470,9 +457,9 @@ class EquipmentDetailPage extends ConsumerWidget {
           await notifier.deleteEquipment(equipmentId);
           if (context.mounted) {
             context.go('/equipment');
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Equipment deleted')),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('Equipment deleted')));
           }
         }
         break;
@@ -517,8 +504,9 @@ class _ServiceHistorySection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final recordsAsync = ref.watch(serviceRecordNotifierProvider(equipmentId));
-    final totalCostAsync =
-        ref.watch(serviceRecordTotalCostProvider(equipmentId));
+    final totalCostAsync = ref.watch(
+      serviceRecordTotalCostProvider(equipmentId),
+    );
 
     return Card(
       child: Padding(
@@ -569,13 +557,11 @@ class _ServiceHistorySection extends ConsumerWidget {
                           const SizedBox(height: 8),
                           Text(
                             'No service records yet',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
+                            style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurfaceVariant,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
                                 ),
                           ),
                         ],
@@ -594,9 +580,9 @@ class _ServiceHistorySection extends ConsumerWidget {
                             padding: const EdgeInsets.all(12),
                             margin: const EdgeInsets.only(bottom: 12),
                             decoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .surfaceContainerHighest,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
@@ -608,12 +594,8 @@ class _ServiceHistorySection extends ConsumerWidget {
                                 ),
                                 Text(
                                   '\$${totalCost.toStringAsFixed(2)}',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.bold),
                                 ),
                               ],
                             ),
@@ -622,7 +604,7 @@ class _ServiceHistorySection extends ConsumerWidget {
                         return const SizedBox.shrink();
                       },
                       loading: () => const SizedBox.shrink(),
-                      error: (_, __) => const SizedBox.shrink(),
+                      error: (_, _) => const SizedBox.shrink(),
                     ),
                     // Service records list
                     ...records.map(
@@ -643,9 +625,7 @@ class _ServiceHistorySection extends ConsumerWidget {
                   child: CircularProgressIndicator(),
                 ),
               ),
-              error: (error, _) => Center(
-                child: Text('Error: $error'),
-              ),
+              error: (error, _) => Center(child: Text('Error: $error')),
             ),
           ],
         ),
@@ -719,9 +699,9 @@ class _ServiceHistorySection extends ConsumerWidget {
           .read(serviceRecordNotifierProvider(equipmentId).notifier)
           .deleteRecord(record.id);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Service record deleted')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Service record deleted')));
       }
     }
   }
@@ -769,9 +749,9 @@ class _ServiceRecordTile extends StatelessWidget {
           if (record.cost != null)
             Text(
               '\$${record.cost!.toStringAsFixed(2)}',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
           PopupMenuButton<String>(
             onSelected: (value) {
@@ -940,8 +920,9 @@ class _ServiceRecordDialogState extends State<ServiceRecordDialog> {
                     prefixIcon: Icon(Icons.attach_money),
                     hintText: '0.00',
                   ),
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   validator: (value) {
                     if (value != null && value.isNotEmpty) {
                       final parsed = double.tryParse(value);
@@ -1081,9 +1062,9 @@ class _ServiceRecordDialogState extends State<ServiceRecordDialog> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
         setState(() => _isSaving = false);
       }
     }

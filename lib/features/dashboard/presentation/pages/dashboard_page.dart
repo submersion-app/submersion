@@ -27,7 +27,7 @@ class DashboardPage extends ConsumerWidget {
                 : 'Dashboard',
           ),
           loading: () => const Text('Dashboard'),
-          error: (_, __) => const Text('Dashboard'),
+          error: (_, _) => const Text('Dashboard'),
         ),
       ),
       body: RefreshIndicator(
@@ -110,8 +110,9 @@ class DashboardPage extends ConsumerWidget {
       StatSummaryCard(
         icon: Icons.arrow_downward,
         label: 'Max Depth',
-        value:
-            stats.maxDepth > 0 ? '${stats.maxDepth.toStringAsFixed(1)}m' : '-',
+        value: stats.maxDepth > 0
+            ? '${stats.maxDepth.toStringAsFixed(1)}m'
+            : '-',
         iconColor: Colors.indigo,
       ),
       StatSummaryCard(
@@ -123,9 +124,7 @@ class DashboardPage extends ConsumerWidget {
     ];
 
     if (isWide) {
-      return Row(
-        children: cards.map((card) => Expanded(child: card)).toList(),
-      );
+      return Row(children: cards.map((card) => Expanded(child: card)).toList());
     }
 
     return GridView.count(
@@ -142,11 +141,7 @@ class DashboardPage extends ConsumerWidget {
   Widget _buildStatsGridLoading(bool isWide) {
     final placeholders = List.generate(
       4,
-      (_) => const Card(
-        child: Center(
-          child: CircularProgressIndicator(),
-        ),
-      ),
+      (_) => const Card(child: Center(child: CircularProgressIndicator())),
     );
 
     if (isWide) {

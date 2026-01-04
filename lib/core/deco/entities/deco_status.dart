@@ -129,16 +129,16 @@ class DecoStatus extends Equatable {
 
   @override
   List<Object?> get props => [
-        compartments,
-        ndlSeconds,
-        ceilingMeters,
-        ttsSeconds,
-        gfLow,
-        gfHigh,
-        decoStops,
-        currentDepthMeters,
-        ambientPressureBar,
-      ];
+    compartments,
+    ndlSeconds,
+    ceilingMeters,
+    ttsSeconds,
+    gfLow,
+    gfHigh,
+    decoStops,
+    currentDepthMeters,
+    ambientPressureBar,
+  ];
 }
 
 /// Represents a single decompression stop.
@@ -179,6 +179,10 @@ class DecoStop extends Equatable {
   }
 
   @override
-  List<Object?> get props =>
-      [depthMeters, durationSeconds, gasName, isDeepStop];
+  List<Object?> get props => [
+    depthMeters,
+    durationSeconds,
+    gasName,
+    isDeepStop,
+  ];
 }

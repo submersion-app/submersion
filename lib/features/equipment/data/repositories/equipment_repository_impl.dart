@@ -17,9 +17,10 @@ class EquipmentRepository {
     try {
       final query = _db.select(_db.equipment)
         ..where((t) => t.isActive.equals(true))
-        ..orderBy(
-          [(t) => OrderingTerm.asc(t.type), (t) => OrderingTerm.asc(t.name)],
-        );
+        ..orderBy([
+          (t) => OrderingTerm.asc(t.type),
+          (t) => OrderingTerm.asc(t.name),
+        ]);
 
       if (diverId != null) {
         query.where((t) => t.diverId.equals(diverId));
@@ -56,9 +57,10 @@ class EquipmentRepository {
   Future<List<EquipmentItem>> getAllEquipment({String? diverId}) async {
     try {
       final query = _db.select(_db.equipment)
-        ..orderBy(
-          [(t) => OrderingTerm.asc(t.type), (t) => OrderingTerm.asc(t.name)],
-        );
+        ..orderBy([
+          (t) => OrderingTerm.asc(t.type),
+          (t) => OrderingTerm.asc(t.name),
+        ]);
 
       if (diverId != null) {
         query.where((t) => t.diverId.equals(diverId));
@@ -80,9 +82,10 @@ class EquipmentRepository {
     try {
       final query = _db.select(_db.equipment)
         ..where((t) => t.status.equals(status.name))
-        ..orderBy(
-          [(t) => OrderingTerm.asc(t.type), (t) => OrderingTerm.asc(t.name)],
-        );
+        ..orderBy([
+          (t) => OrderingTerm.asc(t.type),
+          (t) => OrderingTerm.asc(t.name),
+        ]);
 
       if (diverId != null) {
         query.where((t) => t.diverId.equals(diverId));
@@ -135,7 +138,9 @@ class EquipmentRepository {
       final id = equipment.id.isEmpty ? _uuid.v4() : equipment.id;
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await _db.into(_db.equipment).insert(
+      await _db
+          .into(_db.equipment)
+          .insert(
             EquipmentCompanion(
               id: Value(id),
               diverId: Value(equipment.diverId),
@@ -146,12 +151,14 @@ class EquipmentRepository {
               serialNumber: Value(equipment.serialNumber),
               size: Value(equipment.size),
               status: Value(equipment.status.name),
-              purchaseDate:
-                  Value(equipment.purchaseDate?.millisecondsSinceEpoch),
+              purchaseDate: Value(
+                equipment.purchaseDate?.millisecondsSinceEpoch,
+              ),
               purchasePrice: Value(equipment.purchasePrice),
               purchaseCurrency: Value(equipment.purchaseCurrency),
-              lastServiceDate:
-                  Value(equipment.lastServiceDate?.millisecondsSinceEpoch),
+              lastServiceDate: Value(
+                equipment.lastServiceDate?.millisecondsSinceEpoch,
+              ),
               serviceIntervalDays: Value(equipment.serviceIntervalDays),
               notes: Value(equipment.notes),
               isActive: Value(equipment.isActive),
@@ -178,8 +185,9 @@ class EquipmentRepository {
       _log.info('Updating equipment: ${equipment.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await (_db.update(_db.equipment)..where((t) => t.id.equals(equipment.id)))
-          .write(
+      await (_db.update(
+        _db.equipment,
+      )..where((t) => t.id.equals(equipment.id))).write(
         EquipmentCompanion(
           name: Value(equipment.name),
           type: Value(equipment.type.name),
@@ -191,8 +199,9 @@ class EquipmentRepository {
           purchaseDate: Value(equipment.purchaseDate?.millisecondsSinceEpoch),
           purchasePrice: Value(equipment.purchasePrice),
           purchaseCurrency: Value(equipment.purchaseCurrency),
-          lastServiceDate:
-              Value(equipment.lastServiceDate?.millisecondsSinceEpoch),
+          lastServiceDate: Value(
+            equipment.lastServiceDate?.millisecondsSinceEpoch,
+          ),
           serviceIntervalDays: Value(equipment.serviceIntervalDays),
           notes: Value(equipment.notes),
           isActive: Value(equipment.isActive),
@@ -239,10 +248,7 @@ class EquipmentRepository {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
       await (_db.update(_db.equipment)..where((t) => t.id.equals(id))).write(
-        EquipmentCompanion(
-          isActive: const Value(false),
-          updatedAt: Value(now),
-        ),
+        EquipmentCompanion(isActive: const Value(false), updatedAt: Value(now)),
       );
     } catch (e, stackTrace) {
       _log.error('Failed to retire equipment: $id', e, stackTrace);
@@ -255,10 +261,7 @@ class EquipmentRepository {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
       await (_db.update(_db.equipment)..where((t) => t.id.equals(id))).write(
-        EquipmentCompanion(
-          isActive: const Value(true),
-          updatedAt: Value(now),
-        ),
+        EquipmentCompanion(isActive: const Value(true), updatedAt: Value(now)),
       );
     } catch (e, stackTrace) {
       _log.error('Failed to reactivate equipment: $id', e, stackTrace);
@@ -290,8 +293,7 @@ class EquipmentRepository {
         if (diverId != null) Variable.withString(diverId),
       ];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT * FROM equipment
         WHERE (LOWER(name) LIKE ?
            OR LOWER(brand) LIKE ?
@@ -299,9 +301,7 @@ class EquipmentRepository {
            OR LOWER(serial_number) LIKE ?)
         $diverFilter
         ORDER BY is_active DESC, type ASC, name ASC
-      ''',
-        variables: variables,
-      ).get();
+      ''', variables: variables).get();
 
       return results.map((row) {
         return EquipmentItem(
@@ -345,14 +345,16 @@ class EquipmentRepository {
   /// Get dive count for equipment item
   Future<int> getDiveCountForEquipment(String equipmentId) async {
     try {
-      final result = await _db.customSelect(
-        '''
+      final result = await _db
+          .customSelect(
+            '''
         SELECT COUNT(*) as count
         FROM dive_equipment
         WHERE equipment_id = ?
       ''',
-        variables: [Variable.withString(equipmentId)],
-      ).getSingle();
+            variables: [Variable.withString(equipmentId)],
+          )
+          .getSingle();
 
       return result.data['count'] as int? ?? 0;
     } catch (e, stackTrace) {

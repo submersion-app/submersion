@@ -18,30 +18,29 @@ void main() {
 
   group('SiteRepository', () {
     group('createSite', () {
-      test('should create a new site with generated ID when ID is empty',
-          () async {
-        const site = DiveSite(
-          id: '',
-          name: 'Test Reef',
-          description: 'A beautiful reef',
-          country: 'Australia',
-          region: 'Great Barrier Reef',
-        );
+      test(
+        'should create a new site with generated ID when ID is empty',
+        () async {
+          const site = DiveSite(
+            id: '',
+            name: 'Test Reef',
+            description: 'A beautiful reef',
+            country: 'Australia',
+            region: 'Great Barrier Reef',
+          );
 
-        final createdSite = await repository.createSite(site);
+          final createdSite = await repository.createSite(site);
 
-        expect(createdSite.id, isNotEmpty);
-        expect(createdSite.name, equals('Test Reef'));
-        expect(createdSite.description, equals('A beautiful reef'));
-        expect(createdSite.country, equals('Australia'));
-        expect(createdSite.region, equals('Great Barrier Reef'));
-      });
+          expect(createdSite.id, isNotEmpty);
+          expect(createdSite.name, equals('Test Reef'));
+          expect(createdSite.description, equals('A beautiful reef'));
+          expect(createdSite.country, equals('Australia'));
+          expect(createdSite.region, equals('Great Barrier Reef'));
+        },
+      );
 
       test('should create a site with provided ID', () async {
-        const site = DiveSite(
-          id: 'custom-id-123',
-          name: 'Custom Site',
-        );
+        const site = DiveSite(id: 'custom-id-123', name: 'Custom Site');
 
         final createdSite = await repository.createSite(site);
 
@@ -95,10 +94,7 @@ void main() {
     group('getSiteById', () {
       test('should return site when found', () async {
         final site = await repository.createSite(
-          const DiveSite(
-            id: '',
-            name: 'Find Me Site',
-          ),
+          const DiveSite(id: '', name: 'Find Me Site'),
         );
 
         final result = await repository.getSiteById(site.id);
@@ -123,8 +119,9 @@ void main() {
 
       test('should return all sites ordered by name', () async {
         await repository.createSite(const DiveSite(id: '', name: 'Zebra Reef'));
-        await repository
-            .createSite(const DiveSite(id: '', name: 'Alpha Point'));
+        await repository.createSite(
+          const DiveSite(id: '', name: 'Alpha Point'),
+        );
         await repository.createSite(const DiveSite(id: '', name: 'Manta Bay'));
 
         final result = await repository.getAllSites();
@@ -163,15 +160,10 @@ void main() {
 
       test('should update site coordinates', () async {
         final site = await repository.createSite(
-          const DiveSite(
-            id: '',
-            name: 'Moving Site',
-          ),
+          const DiveSite(id: '', name: 'Moving Site'),
         );
 
-        final updatedSite = site.copyWith(
-          location: const GeoPoint(10.0, 20.0),
-        );
+        final updatedSite = site.copyWith(location: const GeoPoint(10.0, 20.0));
 
         await repository.updateSite(updatedSite);
         final result = await repository.getSiteById(site.id);
@@ -185,10 +177,7 @@ void main() {
     group('deleteSite', () {
       test('should delete existing site', () async {
         final site = await repository.createSite(
-          const DiveSite(
-            id: '',
-            name: 'To Be Deleted',
-          ),
+          const DiveSite(id: '', name: 'To Be Deleted'),
         );
 
         await repository.deleteSite(site.id);
@@ -198,10 +187,7 @@ void main() {
       });
 
       test('should not throw when deleting non-existent site', () async {
-        await expectLater(
-          repository.deleteSite('non-existent-id'),
-          completes,
-        );
+        await expectLater(repository.deleteSite('non-existent-id'), completes);
       });
     });
 
@@ -271,10 +257,7 @@ void main() {
     group('getDiveCountsBySite', () {
       test('should return empty map when no dives exist', () async {
         await repository.createSite(
-          const DiveSite(
-            id: 'site-1',
-            name: 'Empty Site',
-          ),
+          const DiveSite(id: 'site-1', name: 'Empty Site'),
         );
 
         final counts = await repository.getDiveCountsBySite();
@@ -284,27 +267,19 @@ void main() {
     });
 
     group('getSitesWithDiveCounts', () {
-      test('should return sites with zero counts when no dives exist',
-          () async {
-        await repository.createSite(
-          const DiveSite(
-            id: '',
-            name: 'Site A',
-          ),
-        );
-        await repository.createSite(
-          const DiveSite(
-            id: '',
-            name: 'Site B',
-          ),
-        );
+      test(
+        'should return sites with zero counts when no dives exist',
+        () async {
+          await repository.createSite(const DiveSite(id: '', name: 'Site A'));
+          await repository.createSite(const DiveSite(id: '', name: 'Site B'));
 
-        final results = await repository.getSitesWithDiveCounts();
+          final results = await repository.getSitesWithDiveCounts();
 
-        expect(results.length, equals(2));
-        expect(results[0].diveCount, equals(0));
-        expect(results[1].diveCount, equals(0));
-      });
+          expect(results.length, equals(2));
+          expect(results[0].diveCount, equals(0));
+          expect(results[1].diveCount, equals(0));
+        },
+      );
     });
   });
 }

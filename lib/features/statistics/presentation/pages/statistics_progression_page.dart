@@ -16,9 +16,7 @@ class StatisticsProgressionPage extends ConsumerWidget {
     final units = UnitFormatter(settings);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dive Progression'),
-      ),
+      appBar: AppBar(title: const Text('Dive Progression')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -57,7 +55,7 @@ class StatisticsProgressionPage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, __) => const StatEmptyState(
+        error: (_, _) => const StatEmptyState(
           icon: Icons.error_outline,
           message: 'Failed to load depth progression',
         ),
@@ -81,7 +79,7 @@ class StatisticsProgressionPage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, __) => const StatEmptyState(
+        error: (_, _) => const StatEmptyState(
           icon: Icons.error_outline,
           message: 'Failed to load bottom time trend',
         ),
@@ -104,8 +102,9 @@ class StatisticsProgressionPage extends ConsumerWidget {
             );
           }
           return CategoryBarChart(
-            data:
-                data.map((d) => (label: '${d.year}', count: d.count)).toList(),
+            data: data
+                .map((d) => (label: '${d.year}', count: d.count))
+                .toList(),
             barColor: Theme.of(context).colorScheme.primary,
           );
         },
@@ -113,7 +112,7 @@ class StatisticsProgressionPage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, __) => const StatEmptyState(
+        error: (_, _) => const StatEmptyState(
           icon: Icons.error_outline,
           message: 'Failed to load yearly data',
         ),
@@ -137,7 +136,7 @@ class StatisticsProgressionPage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, __) => const StatEmptyState(
+        error: (_, _) => const StatEmptyState(
           icon: Icons.error_outline,
           message: 'Failed to load cumulative data',
         ),

@@ -70,7 +70,9 @@ class TagRepository {
       final id = tag.id.isEmpty ? _uuid.v4() : tag.id;
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await _db.into(_db.tags).insert(
+      await _db
+          .into(_db.tags)
+          .insert(
             TagsCompanion(
               id: Value(id),
               diverId: Value(tag.diverId),
@@ -159,15 +161,17 @@ class TagRepository {
   /// Get tags for a specific dive
   Future<List<domain.Tag>> getTagsForDive(String diveId) async {
     try {
-      final result = await _db.customSelect(
-        '''
+      final result = await _db
+          .customSelect(
+            '''
         SELECT t.* FROM tags t
         INNER JOIN dive_tags dt ON t.id = dt.tag_id
         WHERE dt.dive_id = ?
         ORDER BY t.name
       ''',
-        variables: [Variable.withString(diveId)],
-      ).get();
+            variables: [Variable.withString(diveId)],
+          )
+          .get();
 
       return result
           .map(
@@ -243,13 +247,16 @@ class TagRepository {
       final removedTagIds = existingTagIds.difference(newTagIds);
 
       // Delete existing tags for this dive
-      await (_db.delete(_db.diveTags)..where((t) => t.diveId.equals(diveId)))
-          .go();
+      await (_db.delete(
+        _db.diveTags,
+      )..where((t) => t.diveId.equals(diveId))).go();
 
       // Insert new tags
       final now = DateTime.now().millisecondsSinceEpoch;
       for (final tag in tags) {
-        await _db.into(_db.diveTags).insert(
+        await _db
+            .into(_db.diveTags)
+            .insert(
               DiveTagsCompanion(
                 id: Value(_uuid.v4()),
                 diveId: Value(diveId),
@@ -277,7 +284,9 @@ class TagRepository {
       _log.info('Adding tag $tagId to dive: $diveId');
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await _db.into(_db.diveTags).insert(
+      await _db
+          .into(_db.diveTags)
+          .insert(
             DiveTagsCompanion(
               id: Value(_uuid.v4()),
               diveId: Value(diveId),
@@ -297,9 +306,9 @@ class TagRepository {
   Future<void> removeTagFromDive(String diveId, String tagId) async {
     try {
       _log.info('Removing tag $tagId from dive: $diveId');
-      await (_db.delete(_db.diveTags)
-            ..where((t) => t.diveId.equals(diveId) & t.tagId.equals(tagId)))
-          .go();
+      await (_db.delete(
+        _db.diveTags,
+      )..where((t) => t.diveId.equals(diveId) & t.tagId.equals(tagId))).go();
 
       // Clean up the tag if it's no longer used
       await _deleteTagIfUnused(tagId);
@@ -331,12 +340,14 @@ class TagRepository {
 
   /// Get the number of dives using a specific tag
   Future<int> _getTagUsageCount(String tagId) async {
-    final result = await _db.customSelect(
-      '''
+    final result = await _db
+        .customSelect(
+          '''
       SELECT COUNT(*) as count FROM dive_tags WHERE tag_id = ?
     ''',
-      variables: [Variable.withString(tagId)],
-    ).getSingle();
+          variables: [Variable.withString(tagId)],
+        )
+        .getSingle();
     return result.data['count'] as int;
   }
 
@@ -368,17 +379,14 @@ class TagRepository {
           ? [Variable.withString(diverId)]
           : <Variable<Object>>[];
 
-      final result = await _db.customSelect(
-        '''
+      final result = await _db.customSelect('''
         SELECT t.*, COUNT(dt.dive_id) as dive_count
         FROM tags t
         LEFT JOIN dive_tags dt ON t.id = dt.tag_id
         $diverFilter
         GROUP BY t.id
         ORDER BY dive_count DESC, t.name
-      ''',
-        variables: variables,
-      ).get();
+      ''', variables: variables).get();
 
       return result
           .map(

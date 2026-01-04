@@ -14,45 +14,55 @@ final siteRepositoryProvider = Provider<SiteRepository>((ref) {
 /// All sites provider
 final sitesProvider = FutureProvider<List<domain.DiveSite>>((ref) async {
   final repository = ref.watch(siteRepositoryProvider);
-  final validatedDiverId =
-      await ref.watch(validatedCurrentDiverIdProvider.future);
+  final validatedDiverId = await ref.watch(
+    validatedCurrentDiverIdProvider.future,
+  );
   return repository.getAllSites(diverId: validatedDiverId);
 });
 
 /// Sites with dive counts provider
-final sitesWithCountsProvider =
-    FutureProvider<List<SiteWithDiveCount>>((ref) async {
+final sitesWithCountsProvider = FutureProvider<List<SiteWithDiveCount>>((
+  ref,
+) async {
   final repository = ref.watch(siteRepositoryProvider);
-  final validatedDiverId =
-      await ref.watch(validatedCurrentDiverIdProvider.future);
+  final validatedDiverId = await ref.watch(
+    validatedCurrentDiverIdProvider.future,
+  );
   return repository.getSitesWithDiveCounts(diverId: validatedDiverId);
 });
 
 /// Single site provider
-final siteProvider =
-    FutureProvider.family<domain.DiveSite?, String>((ref, id) async {
+final siteProvider = FutureProvider.family<domain.DiveSite?, String>((
+  ref,
+  id,
+) async {
   final repository = ref.watch(siteRepositoryProvider);
   return repository.getSiteById(id);
 });
 
 /// Site search provider
-final siteSearchProvider =
-    FutureProvider.family<List<domain.DiveSite>, String>((ref, query) async {
-  final validatedDiverId =
-      await ref.watch(validatedCurrentDiverIdProvider.future);
-  if (query.isEmpty) {
-    return ref.watch(sitesProvider).value ?? [];
-  }
-  final repository = ref.watch(siteRepositoryProvider);
-  return repository.searchSites(query, diverId: validatedDiverId);
-});
+final siteSearchProvider = FutureProvider.family<List<domain.DiveSite>, String>(
+  (ref, query) async {
+    final validatedDiverId = await ref.watch(
+      validatedCurrentDiverIdProvider.future,
+    );
+    if (query.isEmpty) {
+      return ref.watch(sitesProvider).value ?? [];
+    }
+    final repository = ref.watch(siteRepositoryProvider);
+    return repository.searchSites(query, diverId: validatedDiverId);
+  },
+);
 
 /// Dive count for a specific site
-final siteDiveCountProvider =
-    FutureProvider.family<int, String>((ref, siteId) async {
+final siteDiveCountProvider = FutureProvider.family<int, String>((
+  ref,
+  siteId,
+) async {
   final sitesWithCounts = await ref.watch(sitesWithCountsProvider.future);
-  final siteWithCount =
-      sitesWithCounts.where((s) => s.site.id == siteId).firstOrNull;
+  final siteWithCount = sitesWithCounts
+      .where((s) => s.site.id == siteId)
+      .firstOrNull;
   return siteWithCount?.diveCount ?? 0;
 });
 
@@ -64,7 +74,7 @@ class SiteListNotifier
   String? _validatedDiverId;
 
   SiteListNotifier(this._repository, this._ref)
-      : super(const AsyncValue.loading()) {
+    : super(const AsyncValue.loading()) {
     _initializeAndLoad();
 
     // Listen for diver changes and reload
@@ -110,8 +120,9 @@ class SiteListNotifier
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
 
     // Always set diverId to the current validated diver for new items
-    final siteWithDiver =
-        validatedId != null ? site.copyWith(diverId: validatedId) : site;
+    final siteWithDiver = validatedId != null
+        ? site.copyWith(diverId: validatedId)
+        : site;
     final newSite = await _repository.createSite(siteWithDiver);
     await _loadSites();
     return newSite;
@@ -151,11 +162,12 @@ class SiteListNotifier
 }
 
 final siteListNotifierProvider =
-    StateNotifierProvider<SiteListNotifier, AsyncValue<List<domain.DiveSite>>>(
-        (ref) {
-  final repository = ref.watch(siteRepositoryProvider);
-  return SiteListNotifier(repository, ref);
-});
+    StateNotifierProvider<SiteListNotifier, AsyncValue<List<domain.DiveSite>>>((
+      ref,
+    ) {
+      final repository = ref.watch(siteRepositoryProvider);
+      return SiteListNotifier(repository, ref);
+    });
 
 // ============================================================================
 // External Dive Site API Providers
@@ -231,16 +243,13 @@ class ExternalSiteSearchNotifier
       return;
     }
 
-    state = state.copyWith(
-      query: query,
-      isLoading: true,
-      clearError: true,
-    );
+    state = state.copyWith(query: query, isLoading: true, clearError: true);
 
     try {
       // Search local database first
-      final validatedDiverId =
-          await _ref.read(validatedCurrentDiverIdProvider.future);
+      final validatedDiverId = await _ref.read(
+        validatedCurrentDiverIdProvider.future,
+      );
       final localResults = await _siteRepository.searchSites(
         query,
         diverId: validatedDiverId,
@@ -276,16 +285,13 @@ class ExternalSiteSearchNotifier
 
   /// Search for dive sites by country.
   Future<void> searchByCountry(String country) async {
-    state = state.copyWith(
-      query: country,
-      isLoading: true,
-      clearError: true,
-    );
+    state = state.copyWith(query: country, isLoading: true, clearError: true);
 
     try {
       // Search local database first
-      final validatedDiverId =
-          await _ref.read(validatedCurrentDiverIdProvider.future);
+      final validatedDiverId = await _ref.read(
+        validatedCurrentDiverIdProvider.future,
+      );
       final localResults = await _siteRepository.searchSites(
         country,
         diverId: validatedDiverId,
@@ -321,8 +327,9 @@ class ExternalSiteSearchNotifier
   Future<domain.DiveSite?> importSite(ExternalDiveSite externalSite) async {
     try {
       // Get the validated diver ID
-      final validatedDiverId =
-          await _ref.read(validatedCurrentDiverIdProvider.future);
+      final validatedDiverId = await _ref.read(
+        validatedCurrentDiverIdProvider.future,
+      );
 
       // Convert to local dive site
       final site = externalSite.toDiveSite(diverId: validatedDiverId);
@@ -332,9 +339,7 @@ class ExternalSiteSearchNotifier
 
       return savedSite;
     } catch (e) {
-      state = state.copyWith(
-        errorMessage: 'Failed to import site: $e',
-      );
+      state = state.copyWith(errorMessage: 'Failed to import site: $e');
       return null;
     }
   }
@@ -347,16 +352,16 @@ class ExternalSiteSearchNotifier
 
 /// Provider for external site search.
 final externalSiteSearchProvider =
-    StateNotifierProvider<ExternalSiteSearchNotifier, ExternalSiteSearchState>(
-  (ref) {
-    final apiService = ref.watch(diveSiteApiServiceProvider);
-    final siteListNotifier = ref.watch(siteListNotifierProvider.notifier);
-    final siteRepository = ref.watch(siteRepositoryProvider);
-    return ExternalSiteSearchNotifier(
-      apiService,
-      siteListNotifier,
-      siteRepository,
+    StateNotifierProvider<ExternalSiteSearchNotifier, ExternalSiteSearchState>((
       ref,
-    );
-  },
-);
+    ) {
+      final apiService = ref.watch(diveSiteApiServiceProvider);
+      final siteListNotifier = ref.watch(siteListNotifierProvider.notifier);
+      final siteRepository = ref.watch(siteRepositoryProvider);
+      return ExternalSiteSearchNotifier(
+        apiService,
+        siteListNotifier,
+        siteRepository,
+        ref,
+      );
+    });

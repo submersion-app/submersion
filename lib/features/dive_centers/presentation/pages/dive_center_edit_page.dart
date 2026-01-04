@@ -100,7 +100,8 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
       final existingCenter = widget.centerId != null
           ? ref.read(diveCenterByIdProvider(widget.centerId!)).valueOrNull
           : null;
-      final diverId = existingCenter?.diverId ??
+      final diverId =
+          existingCenter?.diverId ??
           await ref.read(validatedCurrentDiverIdProvider.future);
 
       final now = DateTime.now();
@@ -149,9 +150,9 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving dive center: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error saving dive center: $e')));
       }
     } finally {
       if (mounted) {
@@ -268,8 +269,8 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
             Text(
               'Select training agencies this center is affiliated with',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
+                color: Theme.of(context).colorScheme.outline,
+              ),
             ),
             const SizedBox(height: 12),
             Wrap(
@@ -324,8 +325,9 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
               validator: (value) {
                 if (value != null &&
                     value.isNotEmpty &&
-                    !RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                        .hasMatch(value)) {
+                    !RegExp(
+                      r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                    ).hasMatch(value)) {
                   return 'Please enter a valid email';
                 }
                 return null;
@@ -354,8 +356,8 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
             Text(
               'Optional - for map display',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
+                color: Theme.of(context).colorScheme.outline,
+              ),
             ),
             const SizedBox(height: 16),
             Row(
@@ -368,8 +370,9 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
                       hintText: '10.4613',
                       border: OutlineInputBorder(),
                     ),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     validator: (value) {
                       if (value != null && value.isNotEmpty) {
                         final lat = double.tryParse(value);
@@ -390,8 +393,9 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
                       hintText: '99.8359',
                       border: OutlineInputBorder(),
                     ),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     validator: (value) {
                       if (value != null && value.isNotEmpty) {
                         final lng = double.tryParse(value);
@@ -409,10 +413,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
             const SizedBox(height: 24),
 
             // Notes Section
-            Text(
-              'Notes',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text('Notes', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 16),
             TextFormField(
               controller: _notesController,
@@ -435,10 +436,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Rating',
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
+        Text('Rating', style: Theme.of(context).textTheme.bodyMedium),
         const SizedBox(height: 8),
         Row(
           children: [

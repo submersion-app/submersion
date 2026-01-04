@@ -56,14 +56,14 @@ class SacSegment extends Equatable {
 
   @override
   List<Object?> get props => [
-        startTimestamp,
-        endTimestamp,
-        avgDepth,
-        minDepth,
-        maxDepth,
-        sacRate,
-        gasConsumed,
-      ];
+    startTimestamp,
+    endTimestamp,
+    avgDepth,
+    minDepth,
+    maxDepth,
+    sacRate,
+    gasConsumed,
+  ];
 }
 
 /// Type of segmentation for SAC calculation.
@@ -213,22 +213,22 @@ class ProfileAnalysisService {
     double gfHigh = 0.70,
     double lastStopDepth = 3.0,
     double decoStopIncrement = 3.0,
-  })  : _ascentRateCalculator = AscentRateCalculator(
-          warningThreshold: ascentRateWarning,
-          criticalThreshold: ascentRateCritical,
-        ),
-        _o2ToxicityCalculator = O2ToxicityCalculator(
-          ppO2WarningThreshold: ppO2WarningThreshold,
-          ppO2CriticalThreshold: ppO2CriticalThreshold,
-          cnsWarningThreshold: cnsWarningThreshold,
-        ),
-        _buhlmannAlgorithm = BuhlmannAlgorithm(
-          gfLow: gfLow,
-          gfHigh: gfHigh,
-          lastStopDepth: lastStopDepth,
-          stopIncrement: decoStopIncrement,
-        ),
-        _uuid = const Uuid();
+  }) : _ascentRateCalculator = AscentRateCalculator(
+         warningThreshold: ascentRateWarning,
+         criticalThreshold: ascentRateCritical,
+       ),
+       _o2ToxicityCalculator = O2ToxicityCalculator(
+         ppO2WarningThreshold: ppO2WarningThreshold,
+         ppO2CriticalThreshold: ppO2CriticalThreshold,
+         cnsWarningThreshold: cnsWarningThreshold,
+       ),
+       _buhlmannAlgorithm = BuhlmannAlgorithm(
+         gfLow: gfLow,
+         gfHigh: gfHigh,
+         lastStopDepth: lastStopDepth,
+         stopIncrement: decoStopIncrement,
+       ),
+       _uuid = const Uuid();
 
   /// Analyze a complete dive profile.
   ///
@@ -260,8 +260,9 @@ class ProfileAnalysisService {
       timestamps,
     );
     final ascentRateStats = _ascentRateCalculator.getStats(ascentRates);
-    final ascentRateViolations =
-        _ascentRateCalculator.findViolations(ascentRates);
+    final ascentRateViolations = _ascentRateCalculator.findViolations(
+      ascentRates,
+    );
 
     // Calculate decompression data
     _buhlmannAlgorithm.reset();
@@ -283,8 +284,10 @@ class ProfileAnalysisService {
     );
 
     // Calculate ppO2 curve
-    final ppO2Curve =
-        _o2ToxicityCalculator.calculatePpO2Curve(depths, o2Fraction);
+    final ppO2Curve = _o2ToxicityCalculator.calculatePpO2Curve(
+      depths,
+      o2Fraction,
+    );
 
     // Calculate basic stats
     double maxDepth = 0;
@@ -300,8 +303,9 @@ class ProfileAnalysisService {
     }
 
     final averageDepth = depthSum / depths.length;
-    final durationSeconds =
-        timestamps.isNotEmpty ? timestamps.last - timestamps.first : 0;
+    final durationSeconds = timestamps.isNotEmpty
+        ? timestamps.last - timestamps.first
+        : 0;
 
     // Auto-detect events
     final events = _detectEvents(
@@ -811,7 +815,8 @@ class ProfileAnalysisService {
     int? ndl,
     double? ppO2,
     DecoStatus? decoStatus,
-  })? getAnalysisAt(ProfileAnalysis analysis, int timestamp) {
+  })?
+  getAnalysisAt(ProfileAnalysis analysis, int timestamp) {
     // Find index of timestamp
     int? index;
     for (int i = 0; i < analysis.ascentRates.length; i++) {

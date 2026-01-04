@@ -12,9 +12,7 @@ class StatisticsMarineLifePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Marine Life'),
-      ),
+      appBar: AppBar(title: const Text('Marine Life')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -53,7 +51,7 @@ class StatisticsMarineLifePage extends ConsumerWidget {
           child: Center(child: CircularProgressIndicator()),
         ),
       ),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 
@@ -64,16 +62,13 @@ class StatisticsMarineLifePage extends ConsumerWidget {
       title: 'Most Common Sightings',
       subtitle: 'Species spotted most often',
       child: sightingsAsync.when(
-        data: (data) => RankingList(
-          items: data,
-          countLabel: 'sightings',
-          maxItems: 10,
-        ),
+        data: (data) =>
+            RankingList(items: data, countLabel: 'sightings', maxItems: 10),
         loading: () => const SizedBox(
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, __) => const StatEmptyState(
+        error: (_, _) => const StatEmptyState(
           icon: Icons.error_outline,
           message: 'Failed to load sighting data',
         ),
@@ -98,7 +93,7 @@ class StatisticsMarineLifePage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, __) => const StatEmptyState(
+        error: (_, _) => const StatEmptyState(
           icon: Icons.error_outline,
           message: 'Failed to load site data',
         ),

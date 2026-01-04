@@ -161,10 +161,7 @@ class ICloudStorageProvider
 
       _log.info('Uploaded file to iCloud: ${file.path}');
 
-      return UploadResult(
-        fileId: file.path,
-        uploadTime: DateTime.now(),
-      );
+      return UploadResult(fileId: file.path, uploadTime: DateTime.now());
     } catch (e, stackTrace) {
       _log.error('Failed to upload file to iCloud: $filename', e, stackTrace);
       throw CloudStorageException('Upload failed: $e', e, stackTrace);

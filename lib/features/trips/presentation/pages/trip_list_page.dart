@@ -20,10 +20,7 @@ class TripListPage extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
-              showSearch(
-                context: context,
-                delegate: TripSearchDelegate(ref),
-              );
+              showSearch(context: context, delegate: TripSearchDelegate(ref));
             },
           ),
         ],
@@ -100,8 +97,8 @@ class TripListPage extends ConsumerWidget {
           Text(
             'Create trips to group your dives by destination',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
@@ -121,11 +118,7 @@ class TripListTile extends StatelessWidget {
   final TripWithStats tripWithStats;
   final VoidCallback? onTap;
 
-  const TripListTile({
-    super.key,
-    required this.tripWithStats,
-    this.onTap,
-  });
+  const TripListTile({super.key, required this.tripWithStats, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -155,8 +148,8 @@ class TripListTile extends StatelessWidget {
               Text(
                 trip.subtitle!,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             const SizedBox(height: 4),
             Row(
@@ -170,8 +163,8 @@ class TripListTile extends StatelessWidget {
                 Text(
                   '${tripWithStats.diveCount} dives',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                 ),
                 if (tripWithStats.totalBottomTime > 0) ...[
                   const SizedBox(width: 12),
@@ -184,8 +177,8 @@ class TripListTile extends StatelessWidget {
                   Text(
                     tripWithStats.formattedBottomTime,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                 ],
               ],
@@ -212,10 +205,7 @@ class TripSearchDelegate extends SearchDelegate<Trip?> {
   List<Widget> buildActions(BuildContext context) {
     return [
       if (query.isNotEmpty)
-        IconButton(
-          icon: const Icon(Icons.clear),
-          onPressed: () => query = '',
-        ),
+        IconButton(icon: const Icon(Icons.clear), onPressed: () => query = ''),
     ];
   }
 
@@ -242,17 +232,16 @@ class TripSearchDelegate extends SearchDelegate<Trip?> {
             Icon(
               Icons.search,
               size: 64,
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurfaceVariant
-                  .withValues(alpha: 0.5),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
               'Search by name, location, or resort',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -274,17 +263,16 @@ class TripSearchDelegate extends SearchDelegate<Trip?> {
                 Icon(
                   Icons.search_off,
                   size: 64,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurfaceVariant
-                      .withValues(alpha: 0.5),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                 ),
                 const SizedBox(height: 16),
                 Text(
                   'No trips found for "$query"',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -317,9 +305,7 @@ class TripSearchDelegate extends SearchDelegate<Trip?> {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(
-        child: Text('Error: $error'),
-      ),
+      error: (error, _) => Center(child: Text('Error: $error')),
     );
   }
 }

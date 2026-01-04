@@ -131,8 +131,8 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
             Text(
               'Choose the equipment items to include in this set.',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 16),
 
@@ -156,25 +156,21 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
                             const SizedBox(height: 8),
                             Text(
                               'No equipment available',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
+                              style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
                                   ),
                             ),
                             const SizedBox(height: 8),
                             Text(
                               'Add equipment first before creating a set.',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
+                              style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
                                   ),
                               textAlign: TextAlign.center,
                             ),
@@ -202,12 +198,11 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
                             padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                             child: Text(
                               entry.key.displayName,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelLarge
+                              style: Theme.of(context).textTheme.labelLarge
                                   ?.copyWith(
-                                    color:
-                                        Theme.of(context).colorScheme.primary,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
                                   ),
                             ),
                           ),
@@ -274,7 +269,8 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
 
     try {
       // Get the current diver ID - preserve existing for edits, get fresh for new sets
-      final diverId = existingSet?.diverId ??
+      final diverId =
+          existingSet?.diverId ??
           await ref.read(validatedCurrentDiverIdProvider.future);
 
       final set = EquipmentSet(

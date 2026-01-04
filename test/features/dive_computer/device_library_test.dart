@@ -12,8 +12,9 @@ void main() {
   group('DeviceLibrary', () {
     group('allModels', () {
       test('contains expected manufacturers', () {
-        final manufacturers =
-            library.allModels.map((m) => m.manufacturer).toSet();
+        final manufacturers = library.allModels
+            .map((m) => m.manufacturer)
+            .toSet();
 
         expect(manufacturers, contains('Shearwater'));
         expect(manufacturers, contains('Suunto'));
@@ -32,8 +33,9 @@ void main() {
       });
 
       test('BLE models have service UUID', () {
-        final bleModels = library.allModels
-            .where((m) => m.connectionTypes.contains(DeviceConnectionType.ble));
+        final bleModels = library.allModels.where(
+          (m) => m.connectionTypes.contains(DeviceConnectionType.ble),
+        );
 
         for (final model in bleModels) {
           // Note: Some BLE models may not have UUIDs specified yet
@@ -50,8 +52,9 @@ void main() {
       });
 
       test('USB models have VID/PID when specified', () {
-        final usbModels = library.allModels
-            .where((m) => m.connectionTypes.contains(DeviceConnectionType.usb));
+        final usbModels = library.allModels.where(
+          (m) => m.connectionTypes.contains(DeviceConnectionType.usb),
+        );
 
         for (final model in usbModels) {
           // Some USB models may not have VID/PID specified
@@ -162,10 +165,7 @@ void main() {
       test('returns all Shearwater models', () {
         final models = library.getByManufacturer('Shearwater');
         expect(models, isNotEmpty);
-        expect(
-          models.every((m) => m.manufacturer == 'Shearwater'),
-          isTrue,
-        );
+        expect(models.every((m) => m.manufacturer == 'Shearwater'), isTrue);
       });
 
       test('returns empty for unknown manufacturer', () {

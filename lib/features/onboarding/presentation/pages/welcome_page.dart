@@ -42,8 +42,9 @@ class _WelcomePageState extends ConsumerState<WelcomePage> {
         updatedAt: now,
       );
 
-      final newDiver =
-          await ref.read(diverListNotifierProvider.notifier).addDiver(diver);
+      final newDiver = await ref
+          .read(diverListNotifierProvider.notifier)
+          .addDiver(diver);
 
       // Set as current diver
       await ref
@@ -56,9 +57,9 @@ class _WelcomePageState extends ConsumerState<WelcomePage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error creating profile: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error creating profile: $e')));
         setState(() => _isSaving = false);
       }
     }

@@ -92,8 +92,9 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
     double zoom = _defaultZoom;
 
     if (sitesWithLocation.isNotEmpty) {
-      final bounds =
-          _calculateBounds(sitesWithLocation.map((s) => s.site).toList());
+      final bounds = _calculateBounds(
+        sitesWithLocation.map((s) => s.site).toList(),
+      );
       center = LatLng(
         (bounds.north + bounds.south) / 2,
         (bounds.east + bounds.west) / 2,
@@ -111,7 +112,7 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
             initialZoom: zoom,
             minZoom: 2.0,
             maxZoom: 18.0,
-            onTap: (_, __) {
+            onTap: (_, _) {
               setState(() => _selectedSite = null);
             },
             cameraConstraint: CameraConstraint.contain(
@@ -183,8 +184,9 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
                     Icon(
                       Icons.location_off,
                       size: 64,
-                      color:
-                          colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                      color: colorScheme.onSurfaceVariant.withValues(
+                        alpha: 0.5,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -195,8 +197,8 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
                     Text(
                       'Add coordinates to your dive sites to see them on the map',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -251,10 +253,7 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
       decoration: BoxDecoration(
         color: colorScheme.secondary,
         shape: BoxShape.circle,
-        border: Border.all(
-          color: Colors.white,
-          width: 2,
-        ),
+        border: Border.all(color: Colors.white, width: 2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.3),
@@ -309,10 +308,7 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
             children: [
               CircleAvatar(
                 backgroundColor: colorScheme.primaryContainer,
-                child: Icon(
-                  Icons.location_on,
-                  color: colorScheme.primary,
-                ),
+                child: Icon(Icons.location_on, color: colorScheme.primary),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -323,16 +319,16 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
                     Text(
                       site.name,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     if (site.locationString.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Text(
                         site.locationString,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ],
                     if (site.maxDepth != null) ...[
@@ -347,10 +343,8 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
                           const SizedBox(width: 4),
                           Text(
                             '${site.maxDepth!.toStringAsFixed(0)}m max depth',
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: colorScheme.onSurfaceVariant,
-                                    ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: colorScheme.onSurfaceVariant),
                           ),
                         ],
                       ),
@@ -426,9 +420,11 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
 
     animation.addListener(() {
       final t = animation.value;
-      final lat = startCamera.center.latitude +
+      final lat =
+          startCamera.center.latitude +
           (targetCamera.center.latitude - startCamera.center.latitude) * t;
-      final lng = startCamera.center.longitude +
+      final lng =
+          startCamera.center.longitude +
           (targetCamera.center.longitude - startCamera.center.longitude) * t;
       final zoom =
           startCamera.zoom + (targetCamera.zoom - startCamera.zoom) * t;
@@ -462,10 +458,7 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
 
     final bounds = _calculateBounds(sitesWithLocation);
     _mapController.fitCamera(
-      CameraFit.bounds(
-        bounds: bounds,
-        padding: const EdgeInsets.all(50),
-      ),
+      CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(50)),
     );
   }
 
@@ -500,9 +493,6 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
     final west = (minLng - lngPadding).clamp(-180.0, 180.0);
     final east = (maxLng + lngPadding).clamp(-180.0, 180.0);
 
-    return LatLngBounds(
-      LatLng(south, west),
-      LatLng(north, east),
-    );
+    return LatLngBounds(LatLng(south, west), LatLng(north, east));
   }
 }

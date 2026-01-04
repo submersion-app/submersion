@@ -6,17 +6,10 @@ import '../../services/database_service.dart';
 import '../../services/logger_service.dart';
 
 /// Sync status for individual records
-enum SyncStatus {
-  synced,
-  pending,
-  conflict,
-}
+enum SyncStatus { synced, pending, conflict }
 
 /// Cloud provider types
-enum CloudProviderType {
-  icloud,
-  googledrive,
-}
+enum CloudProviderType { icloud, googledrive }
 
 /// Repository for managing sync metadata and tracking
 class SyncRepository {
@@ -45,7 +38,9 @@ class SyncRepository {
       final now = DateTime.now().millisecondsSinceEpoch;
       final deviceId = _uuid.v4();
 
-      await _db.into(_db.syncMetadata).insert(
+      await _db
+          .into(_db.syncMetadata)
+          .insert(
             SyncMetadataCompanion(
               id: const Value(_globalMetadataId),
               deviceId: Value(deviceId),
@@ -82,9 +77,9 @@ class SyncRepository {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await (_db.update(_db.syncMetadata)
-            ..where((t) => t.id.equals(_globalMetadataId)))
-          .write(
+      await (_db.update(
+        _db.syncMetadata,
+      )..where((t) => t.id.equals(_globalMetadataId))).write(
         SyncMetadataCompanion(
           lastSyncTimestamp: Value(syncTime.millisecondsSinceEpoch),
           updatedAt: Value(now),
@@ -103,9 +98,9 @@ class SyncRepository {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await (_db.update(_db.syncMetadata)
-            ..where((t) => t.id.equals(_globalMetadataId)))
-          .write(
+      await (_db.update(
+        _db.syncMetadata,
+      )..where((t) => t.id.equals(_globalMetadataId))).write(
         SyncMetadataCompanion(
           syncProvider: Value(provider?.name),
           updatedAt: Value(now),
@@ -135,9 +130,9 @@ class SyncRepository {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await (_db.update(_db.syncMetadata)
-            ..where((t) => t.id.equals(_globalMetadataId)))
-          .write(
+      await (_db.update(
+        _db.syncMetadata,
+      )..where((t) => t.id.equals(_globalMetadataId))).write(
         SyncMetadataCompanion(
           remoteFileId: Value(fileId),
           updatedAt: Value(now),
@@ -171,7 +166,9 @@ class SyncRepository {
       final now = DateTime.now().millisecondsSinceEpoch;
       final id = '${entityType}_$recordId';
 
-      await _db.into(_db.syncRecords).insertOnConflictUpdate(
+      await _db
+          .into(_db.syncRecords)
+          .insertOnConflictUpdate(
             SyncRecordsCompanion(
               id: Value(id),
               entityType: Value(entityType),
@@ -337,7 +334,9 @@ class SyncRepository {
       final id = _uuid.v4();
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await _db.into(_db.deletionLog).insert(
+      await _db
+          .into(_db.deletionLog)
+          .insert(
             DeletionLogCompanion(
               id: Value(id),
               entityType: Value(entityType),
@@ -388,9 +387,9 @@ class SyncRepository {
           .subtract(Duration(days: olderThanDays))
           .millisecondsSinceEpoch;
 
-      await (_db.delete(_db.deletionLog)
-            ..where((t) => t.deletedAt.isSmallerThanValue(cutoff)))
-          .go();
+      await (_db.delete(
+        _db.deletionLog,
+      )..where((t) => t.deletedAt.isSmallerThanValue(cutoff))).go();
 
       _log.info('Cleared deletions older than $olderThanDays days');
     } catch (e, stackTrace) {
@@ -435,9 +434,9 @@ class SyncRepository {
       await clearAllDeletions();
 
       final now = DateTime.now().millisecondsSinceEpoch;
-      await (_db.update(_db.syncMetadata)
-            ..where((t) => t.id.equals(_globalMetadataId)))
-          .write(
+      await (_db.update(
+        _db.syncMetadata,
+      )..where((t) => t.id.equals(_globalMetadataId))).write(
         SyncMetadataCompanion(
           lastSyncTimestamp: const Value(null),
           remoteFileId: const Value(null),

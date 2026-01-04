@@ -225,10 +225,8 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                       // Dates section header
                       Text(
                         'Dates',
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 12),
 
@@ -265,10 +263,8 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                       // Instructor section header
                       Text(
                         'Instructor Information',
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 12),
 
@@ -298,10 +294,8 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                       // Card photos section
                       Text(
                         'Card Photos',
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 12),
                       Card(
@@ -314,13 +308,11 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                               Expanded(
                                 child: Text(
                                   'Photo support coming in v2.0',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
+                                  style: Theme.of(context).textTheme.bodyMedium
                                       ?.copyWith(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurfaceVariant,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
                                       ),
                                 ),
                               ),
@@ -333,10 +325,8 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                       // Notes section header
                       Text(
                         'Notes',
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 12),
 
@@ -360,8 +350,9 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                             ? const SizedBox(
                                 height: 20,
                                 width: 20,
-                                child:
-                                    CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
                             : Text(
                                 isEditing
@@ -424,7 +415,8 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
 
     try {
       // Get the current diver ID - preserve existing for edits, get fresh for new certs
-      final diverId = _originalCertification?.diverId ??
+      final diverId =
+          _originalCertification?.diverId ??
           await ref.read(validatedCurrentDiverIdProvider.future);
 
       final now = DateTime.now();
@@ -539,8 +531,8 @@ class _DatePickerField extends StatelessWidget {
             child: Text(
               helpText!,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
       ],
