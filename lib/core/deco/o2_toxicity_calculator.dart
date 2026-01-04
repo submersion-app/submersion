@@ -222,10 +222,7 @@ class O2ToxicityCalculator {
   /// Calculate ppO2 curve for a dive profile.
   ///
   /// Returns a list of ppO2 values corresponding to each depth point.
-  List<double> calculatePpO2Curve(
-    List<double> depths,
-    double o2Fraction,
-  ) {
+  List<double> calculatePpO2Curve(List<double> depths, double o2Fraction) {
     return depths.map((d) => calculatePpO2(d, o2Fraction)).toList();
   }
 

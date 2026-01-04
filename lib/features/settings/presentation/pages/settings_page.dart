@@ -24,9 +24,7 @@ class SettingsPage extends ConsumerWidget {
     final settings = ref.watch(settingsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
+      appBar: AppBar(title: const Text('Settings')),
       body: ListView(
         children: [
           _buildSectionHeader(context, 'Diver Profile'),
@@ -257,7 +255,7 @@ class SettingsPage extends ConsumerWidget {
                         : '${computers.length} saved ${computers.length == 1 ? 'computer' : 'computers'}',
                   ),
                   loading: () => const Text('Loading...'),
-                  error: (_, __) => const Text('Error loading computers'),
+                  error: (_, _) => const Text('Error loading computers'),
                 ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => context.push('/dive-computers'),
@@ -307,9 +305,9 @@ class SettingsPage extends ConsumerWidget {
       child: Text(
         title,
         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.bold,
-            ),
+          color: Theme.of(context).colorScheme.primary,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
@@ -346,8 +344,9 @@ class SettingsPage extends ConsumerWidget {
                     ? Text(
                         diver.initials,
                         style: TextStyle(
-                          color:
-                              Theme.of(context).colorScheme.onPrimaryContainer,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onPrimaryContainer,
                           fontWeight: FontWeight.bold,
                         ),
                       )
@@ -370,9 +369,7 @@ class SettingsPage extends ConsumerWidget {
         );
       },
       loading: () => const ListTile(
-        leading: CircleAvatar(
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
+        leading: CircleAvatar(child: CircularProgressIndicator(strokeWidth: 2)),
         title: Text('Loading...'),
       ),
       error: (error, _) => ListTile(
@@ -418,8 +415,9 @@ class SettingsPage extends ConsumerWidget {
 
                     return ListTile(
                       leading: CircleAvatar(
-                        backgroundColor:
-                            Theme.of(context).colorScheme.primaryContainer,
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.primaryContainer,
                         backgroundImage: diver.photoPath != null
                             ? AssetImage(diver.photoPath!)
                             : null,
@@ -427,9 +425,9 @@ class SettingsPage extends ConsumerWidget {
                             ? Text(
                                 diver.initials,
                                 style: TextStyle(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onPrimaryContainer,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimaryContainer,
                                   fontWeight: FontWeight.bold,
                                 ),
                               )
@@ -500,18 +498,9 @@ class SettingsPage extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: SegmentedButton<UnitPreset>(
         segments: const [
-          ButtonSegment(
-            value: UnitPreset.metric,
-            label: Text('Metric'),
-          ),
-          ButtonSegment(
-            value: UnitPreset.imperial,
-            label: Text('Imperial'),
-          ),
-          ButtonSegment(
-            value: UnitPreset.custom,
-            label: Text('Custom'),
-          ),
+          ButtonSegment(value: UnitPreset.metric, label: Text('Metric')),
+          ButtonSegment(value: UnitPreset.imperial, label: Text('Imperial')),
+          ButtonSegment(value: UnitPreset.custom, label: Text('Custom')),
         ],
         selected: {settings.unitPreset},
         onSelectionChanged: (selected) {
@@ -547,8 +536,8 @@ class SettingsPage extends ConsumerWidget {
           Text(
             value,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
           const Icon(Icons.chevron_right),
         ],
@@ -582,8 +571,9 @@ class SettingsPage extends ConsumerWidget {
           children: DepthUnit.values.map((unit) {
             final isSelected = unit == currentUnit;
             return ListTile(
-              title:
-                  Text(unit == DepthUnit.meters ? 'Meters (m)' : 'Feet (ft)'),
+              title: Text(
+                unit == DepthUnit.meters ? 'Meters (m)' : 'Feet (ft)',
+              ),
               trailing: isSelected
                   ? Icon(
                       Icons.check,
@@ -769,8 +759,9 @@ class SettingsPage extends ConsumerWidget {
             ),
             ListTile(
               title: const Text('Pressure per minute'),
-              subtitle:
-                  const Text('No tank volume needed (bar/min or psi/min)'),
+              subtitle: const Text(
+                'No tank volume needed (bar/min or psi/min)',
+              ),
               trailing: currentUnit == SacUnit.pressurePerMin
                   ? Icon(
                       Icons.check,
@@ -1105,13 +1096,9 @@ class SettingsPage extends ConsumerWidget {
         color: Theme.of(context).colorScheme.primary,
       ),
       children: const [
-        Text(
-          'An open-source dive logging application.',
-        ),
+        Text('An open-source dive logging application.'),
         SizedBox(height: 16),
-        Text(
-          'Track your dives, manage gear, and explore dive sites.',
-        ),
+        Text('Track your dives, manage gear, and explore dive sites.'),
       ],
     );
   }

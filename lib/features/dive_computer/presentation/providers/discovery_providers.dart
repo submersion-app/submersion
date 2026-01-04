@@ -13,18 +13,20 @@ final deviceLibraryProvider = Provider<DeviceLibrary>((ref) {
 });
 
 /// Provider for the permissions service.
-final permissionsServiceProvider =
-    Provider<DiveComputerPermissionsService>((ref) {
+final permissionsServiceProvider = Provider<DiveComputerPermissionsService>((
+  ref,
+) {
   return DiveComputerPermissionsService();
 });
 
 /// Provider for the Bluetooth connection manager.
-final bluetoothConnectionManagerProvider =
-    Provider<BluetoothConnectionManager>((ref) {
-  final manager = BluetoothConnectionManager();
-  ref.onDispose(() => manager.dispose());
-  return manager;
-});
+final bluetoothConnectionManagerProvider = Provider<BluetoothConnectionManager>(
+  (ref) {
+    final manager = BluetoothConnectionManager();
+    ref.onDispose(() => manager.dispose());
+    return manager;
+  },
+);
 
 /// Stream provider for the connection state.
 final connectionStateProvider = StreamProvider<ConnectionState>((ref) {
@@ -55,13 +57,14 @@ final usbDeviceModelsProvider = Provider<List<DeviceModel>>((ref) {
 /// Provider for USB devices grouped by manufacturer.
 final usbDevicesByManufacturerProvider =
     Provider<Map<String, List<DeviceModel>>>((ref) {
-  final scanner = ref.watch(usbDeviceScannerProvider);
-  return scanner.getUsbDevicesByManufacturer();
-});
+      final scanner = ref.watch(usbDeviceScannerProvider);
+      return scanner.getUsbDevicesByManufacturer();
+    });
 
 /// Provider for Bluetooth availability check.
-final bluetoothAvailabilityProvider =
-    FutureProvider<BluetoothAvailability>((ref) async {
+final bluetoothAvailabilityProvider = FutureProvider<BluetoothAvailability>((
+  ref,
+) async {
   final service = ref.watch(permissionsServiceProvider);
   return await service.checkBluetoothAvailability();
 });
@@ -99,8 +102,9 @@ class DiscoveryState {
   }) {
     return DiscoveryState(
       currentStep: currentStep ?? this.currentStep,
-      selectedDevice:
-          clearDevice ? null : (selectedDevice ?? this.selectedDevice),
+      selectedDevice: clearDevice
+          ? null
+          : (selectedDevice ?? this.selectedDevice),
       isScanning: isScanning ?? this.isScanning,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       customDeviceName: customDeviceName ?? this.customDeviceName,
@@ -109,14 +113,7 @@ class DiscoveryState {
 }
 
 /// Steps in the device discovery wizard.
-enum DiscoveryStep {
-  scan,
-  select,
-  pair,
-  confirm,
-  download,
-  summary,
-}
+enum DiscoveryStep { scan, select, pair, confirm, download, summary }
 
 /// Notifier for managing the discovery wizard state.
 class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
@@ -126,9 +123,9 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
   DiscoveryNotifier({
     required BluetoothConnectionManager connectionManager,
     required DiveComputerPermissionsService permissionsService,
-  })  : _connectionManager = connectionManager,
-        _permissionsService = permissionsService,
-        super(const DiscoveryState());
+  }) : _connectionManager = connectionManager,
+       _permissionsService = permissionsService,
+       super(const DiscoveryState());
 
   /// Start scanning for devices.
   Future<void> startScan() async {
@@ -149,8 +146,8 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
       }
 
       // Check Bluetooth availability
-      final availability =
-          await _permissionsService.checkBluetoothAvailability();
+      final availability = await _permissionsService
+          .checkBluetoothAvailability();
       if (availability != BluetoothAvailability.available) {
         state = state.copyWith(
           isScanning: false,
@@ -255,14 +252,14 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
 /// Provider for the discovery notifier.
 final discoveryNotifierProvider =
     StateNotifierProvider<DiscoveryNotifier, DiscoveryState>((ref) {
-  final connectionManager = ref.watch(bluetoothConnectionManagerProvider);
-  final permissionsService = ref.watch(permissionsServiceProvider);
+      final connectionManager = ref.watch(bluetoothConnectionManagerProvider);
+      final permissionsService = ref.watch(permissionsServiceProvider);
 
-  return DiscoveryNotifier(
-    connectionManager: connectionManager,
-    permissionsService: permissionsService,
-  );
-});
+      return DiscoveryNotifier(
+        connectionManager: connectionManager,
+        permissionsService: permissionsService,
+      );
+    });
 
 /// Provider for getting the list of manufacturers from the device library.
 final deviceManufacturersProvider = Provider<List<String>>((ref) {
@@ -273,6 +270,6 @@ final deviceManufacturersProvider = Provider<List<String>>((ref) {
 /// Provider for getting devices by manufacturer.
 final devicesByManufacturerProvider =
     Provider.family<List<DeviceModel>, String>((ref, manufacturer) {
-  final library = ref.watch(deviceLibraryProvider);
-  return library.getByManufacturer(manufacturer);
-});
+      final library = ref.watch(deviceLibraryProvider);
+      return library.getByManufacturer(manufacturer);
+    });

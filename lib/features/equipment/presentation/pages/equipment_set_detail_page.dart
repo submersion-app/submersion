@@ -10,10 +10,7 @@ import '../providers/equipment_set_providers.dart';
 class EquipmentSetDetailPage extends ConsumerWidget {
   final String setId;
 
-  const EquipmentSetDetailPage({
-    super.key,
-    required this.setId,
-  });
+  const EquipmentSetDetailPage({super.key, required this.setId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -79,8 +76,9 @@ class EquipmentSetDetailPage extends ConsumerWidget {
                   children: [
                     CircleAvatar(
                       radius: 32,
-                      backgroundColor:
-                          Theme.of(context).colorScheme.primaryContainer,
+                      backgroundColor: Theme.of(
+                        context,
+                      ).colorScheme.primaryContainer,
                       child: Icon(
                         Icons.folder,
                         size: 32,
@@ -100,22 +98,18 @@ class EquipmentSetDetailPage extends ConsumerWidget {
                             const SizedBox(height: 4),
                             Text(
                               set.description,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
+                              style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
                                   ),
                             ),
                           ],
                           const SizedBox(height: 4),
                           Text(
                             '${set.itemCount} ${set.itemCount == 1 ? 'item' : 'items'}',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
+                            style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
                                   color: Theme.of(context).colorScheme.primary,
                                 ),
@@ -145,20 +139,19 @@ class EquipmentSetDetailPage extends ConsumerWidget {
                         Icon(
                           Icons.backpack_outlined,
                           size: 48,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurfaceVariant
-                              .withValues(alpha: 0.5),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'No equipment in this set',
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant,
-                                  ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
                         ),
                         const SizedBox(height: 16),
                         OutlinedButton.icon(

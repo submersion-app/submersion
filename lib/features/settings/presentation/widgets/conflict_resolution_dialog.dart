@@ -24,10 +24,7 @@ class _ConflictResolutionDialogState
 
     return Dialog(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(
-          maxWidth: 500,
-          maxHeight: 600,
-        ),
+        constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),
         child: conflictsAsync.when(
           data: (conflicts) => _buildContent(context, conflicts),
           loading: () => const Padding(
@@ -36,9 +33,7 @@ class _ConflictResolutionDialogState
           ),
           error: (error, _) => Padding(
             padding: const EdgeInsets.all(32),
-            child: Center(
-              child: Text('Error loading conflicts: $error'),
-            ),
+            child: Center(child: Text('Error loading conflicts: $error')),
           ),
         ),
       ),
@@ -54,10 +49,7 @@ class _ConflictResolutionDialogState
           children: [
             const Icon(Icons.check_circle, size: 64, color: Colors.green),
             const SizedBox(height: 16),
-            Text(
-              'No Conflicts',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
+            Text('No Conflicts', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
             const Text('All sync conflicts have been resolved.'),
             const SizedBox(height: 24),
@@ -168,9 +160,7 @@ class _ConflictResolutionDialogState
         // Local version
         Text(
           'Local Version',
-          style: theme.textTheme.labelLarge?.copyWith(
-            color: Colors.blue,
-          ),
+          style: theme.textTheme.labelLarge?.copyWith(color: Colors.blue),
         ),
         const SizedBox(height: 8),
         Card(
@@ -201,9 +191,7 @@ class _ConflictResolutionDialogState
         // Remote version
         Text(
           'Remote Version',
-          style: theme.textTheme.labelLarge?.copyWith(
-            color: Colors.green,
-          ),
+          style: theme.textTheme.labelLarge?.copyWith(color: Colors.green),
         ),
         const SizedBox(height: 8),
         Card(
@@ -237,9 +225,9 @@ class _ConflictResolutionDialogState
     if (data.isEmpty) {
       return Text(
         'No data available',
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              fontStyle: FontStyle.italic,
-            ),
+        style: Theme.of(
+          context,
+        ).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
       );
     }
 
@@ -257,9 +245,9 @@ class _ConflictResolutionDialogState
                 width: 100,
                 child: Text(
                   '${entry.key}:',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ),
               Expanded(

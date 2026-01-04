@@ -12,9 +12,7 @@ class StatisticsGeographicPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Geographic'),
-      ),
+      appBar: AppBar(title: const Text('Geographic')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -38,16 +36,13 @@ class StatisticsGeographicPage extends ConsumerWidget {
       title: 'Countries Visited',
       subtitle: 'Dives by country',
       child: countriesAsync.when(
-        data: (data) => RankingList(
-          items: data,
-          countLabel: 'dives',
-          maxItems: 10,
-        ),
+        data: (data) =>
+            RankingList(items: data, countLabel: 'dives', maxItems: 10),
         loading: () => const SizedBox(
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, __) => const StatEmptyState(
+        error: (_, _) => const StatEmptyState(
           icon: Icons.error_outline,
           message: 'Failed to load country data',
         ),
@@ -62,16 +57,13 @@ class StatisticsGeographicPage extends ConsumerWidget {
       title: 'Regions Explored',
       subtitle: 'Dives by region',
       child: regionsAsync.when(
-        data: (data) => RankingList(
-          items: data,
-          countLabel: 'dives',
-          maxItems: 10,
-        ),
+        data: (data) =>
+            RankingList(items: data, countLabel: 'dives', maxItems: 10),
         loading: () => const SizedBox(
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, __) => const StatEmptyState(
+        error: (_, _) => const StatEmptyState(
           icon: Icons.error_outline,
           message: 'Failed to load region data',
         ),
@@ -96,7 +88,7 @@ class StatisticsGeographicPage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, __) => const StatEmptyState(
+        error: (_, _) => const StatEmptyState(
           icon: Icons.error_outline,
           message: 'Failed to load trip data',
         ),

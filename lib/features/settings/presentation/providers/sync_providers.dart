@@ -25,8 +25,9 @@ final syncDataSerializerProvider = Provider<SyncDataSerializer>((ref) {
 });
 
 /// Selected cloud provider type
-final selectedCloudProviderTypeProvider =
-    StateProvider<CloudProviderType?>((ref) => null);
+final selectedCloudProviderTypeProvider = StateProvider<CloudProviderType?>(
+  (ref) => null,
+);
 
 /// Cloud storage provider singletons
 final _googleDriveProvider = GoogleDriveStorageProvider();
@@ -64,13 +65,7 @@ final syncServiceProvider = Provider<SyncService>((ref) {
 });
 
 /// Sync status enum
-enum SyncStatus {
-  idle,
-  syncing,
-  success,
-  error,
-  hasConflicts,
-}
+enum SyncStatus { idle, syncing, success, error, hasConflicts }
 
 /// Sync state
 class SyncState {
@@ -242,10 +237,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
 
 /// Sync state provider
 final syncStateProvider = StateNotifierProvider<SyncNotifier, SyncState>((ref) {
-  return SyncNotifier(
-    ref.watch(syncRepositoryProvider),
-    ref,
-  );
+  return SyncNotifier(ref.watch(syncRepositoryProvider), ref);
 });
 
 /// Last sync time provider (for display)

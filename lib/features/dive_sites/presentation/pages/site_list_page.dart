@@ -262,8 +262,9 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
           final isSelected = _selectedIds.contains(site.id);
           return SiteListTile(
             name: site.name,
-            location:
-                site.locationString.isNotEmpty ? site.locationString : null,
+            location: site.locationString.isNotEmpty
+                ? site.locationString
+                : null,
             maxDepth: site.maxDepth,
             diveCount: siteData.diveCount,
             rating: site.rating,
@@ -274,8 +275,9 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
             onTap: _isSelectionMode
                 ? () => _toggleSelection(site.id)
                 : () => context.push('/sites/${site.id}'),
-            onLongPress:
-                _isSelectionMode ? null : () => _enterSelectionMode(site.id),
+            onLongPress: _isSelectionMode
+                ? null
+                : () => _enterSelectionMode(site.id),
           );
         },
       ),
@@ -301,8 +303,8 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
           Text(
             'Add dive sites to track your favorite locations',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 24),
           FilledButton.icon(
@@ -335,10 +337,7 @@ class SiteSearchDelegate extends SearchDelegate<DiveSite?> {
   List<Widget> buildActions(BuildContext context) {
     return [
       if (query.isNotEmpty)
-        IconButton(
-          icon: const Icon(Icons.clear),
-          onPressed: () => query = '',
-        ),
+        IconButton(icon: const Icon(Icons.clear), onPressed: () => query = ''),
     ];
   }
 
@@ -365,17 +364,16 @@ class SiteSearchDelegate extends SearchDelegate<DiveSite?> {
             Icon(
               Icons.search,
               size: 64,
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurfaceVariant
-                  .withValues(alpha: 0.5),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
               'Search by site name, country, or region',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -397,17 +395,16 @@ class SiteSearchDelegate extends SearchDelegate<DiveSite?> {
                 Icon(
                   Icons.search_off,
                   size: 64,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurfaceVariant
-                      .withValues(alpha: 0.5),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                 ),
                 const SizedBox(height: 16),
                 Text(
                   'No sites found for "$query"',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -420,8 +417,9 @@ class SiteSearchDelegate extends SearchDelegate<DiveSite?> {
             final site = sites[index];
             return SiteListTile(
               name: site.name,
-              location:
-                  site.locationString.isNotEmpty ? site.locationString : null,
+              location: site.locationString.isNotEmpty
+                  ? site.locationString
+                  : null,
               maxDepth: site.maxDepth,
               rating: site.rating,
               latitude: site.location?.latitude,
@@ -435,9 +433,7 @@ class SiteSearchDelegate extends SearchDelegate<DiveSite?> {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(
-        child: Text('Error: $error'),
-      ),
+      error: (error, _) => Center(child: Text('Error: $error')),
     );
   }
 }
@@ -489,8 +485,9 @@ class SiteListTile extends ConsumerWidget {
     // Determine text colors based on background
     final useLightText = shouldShowMap;
     final primaryTextColor = useLightText ? Colors.white : null;
-    final secondaryTextColor =
-        useLightText ? Colors.white70 : colorScheme.onSurfaceVariant;
+    final secondaryTextColor = useLightText
+        ? Colors.white70
+        : colorScheme.onSurfaceVariant;
 
     // Build the content widget
     Widget buildContent() {
@@ -523,9 +520,9 @@ class SiteListTile extends ConsumerWidget {
                   Text(
                     name,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: primaryTextColor,
-                        ),
+                      fontWeight: FontWeight.w600,
+                      color: primaryTextColor,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                   if (location != null) ...[
@@ -533,8 +530,8 @@ class SiteListTile extends ConsumerWidget {
                     Text(
                       location!,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: secondaryTextColor,
-                          ),
+                        color: secondaryTextColor,
+                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
@@ -549,9 +546,9 @@ class SiteListTile extends ConsumerWidget {
                 if (diveCount > 0)
                   Text(
                     '$diveCount dives',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: secondaryTextColor,
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: secondaryTextColor),
                   ),
                 if (rating != null)
                   Row(
@@ -567,10 +564,7 @@ class SiteListTile extends ConsumerWidget {
               ],
             ),
             if (!isSelectionMode)
-              Icon(
-                Icons.chevron_right,
-                color: secondaryTextColor,
-              ),
+              Icon(Icons.chevron_right, color: secondaryTextColor),
           ],
         ),
       );

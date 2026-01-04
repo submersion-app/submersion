@@ -36,17 +36,16 @@ class TrendLineChart extends StatelessWidget {
               Icon(
                 Icons.show_chart,
                 size: 48,
-                color: Theme.of(context)
-                    .colorScheme
-                    .primary
-                    .withValues(alpha: 0.5),
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.5),
               ),
               const SizedBox(height: 8),
               Text(
                 'No trend data available',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),
@@ -60,8 +59,9 @@ class TrendLineChart extends StatelessWidget {
     final rawMaxY = values.reduce((a, b) => a > b ? a : b);
     // Ensure we have a valid range even when all values are the same
     final range = rawMaxY - rawMinY;
-    final effectiveRange =
-        range > 0 ? range : (rawMaxY.abs() > 0 ? rawMaxY.abs() * 0.2 : 1.0);
+    final effectiveRange = range > 0
+        ? range
+        : (rawMaxY.abs() > 0 ? rawMaxY.abs() * 0.2 : 1.0);
     final padding = effectiveRange * 0.1;
     final minY = rawMinY;
     final maxY = rawMaxY;
@@ -79,7 +79,8 @@ class TrendLineChart extends StatelessWidget {
               getTooltipItems: (touchedSpots) {
                 return touchedSpots.map((spot) {
                   final point = data[spot.spotIndex];
-                  final formattedValue = valueFormatter?.call(point.value) ??
+                  final formattedValue =
+                      valueFormatter?.call(point.value) ??
                       point.value.toStringAsFixed(1);
                   return LineTooltipItem(
                     '${point.label}\n$formattedValue',
@@ -108,9 +109,9 @@ class TrendLineChart extends StatelessWidget {
                       return Padding(
                         padding: const EdgeInsets.only(top: 8),
                         child: Text(
-                          data[index]
-                              .label
-                              .split(' ')[0], // Just show month abbr
+                          data[index].label.split(
+                            ' ',
+                          )[0], // Just show month abbr
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       );
@@ -132,10 +133,12 @@ class TrendLineChart extends StatelessWidget {
                 },
               ),
             ),
-            topTitles:
-                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles:
-                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
           ),
           borderData: FlBorderData(show: false),
           gridData: FlGridData(
@@ -207,17 +210,16 @@ class DistributionPieChart extends StatelessWidget {
               Icon(
                 Icons.pie_chart_outline,
                 size: 48,
-                color: Theme.of(context)
-                    .colorScheme
-                    .primary
-                    .withValues(alpha: 0.5),
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.5),
               ),
               const SizedBox(height: 8),
               Text(
                 'No distribution data available',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),
@@ -248,26 +250,23 @@ class DistributionPieChart extends StatelessWidget {
               PieChartData(
                 sectionsSpace: 2,
                 centerSpaceRadius: 30,
-                sections: List.generate(
-                  data.length,
-                  (index) {
-                    final segment = data[index];
-                    final color = chartColors[index % chartColors.length];
-                    return PieChartSectionData(
-                      value: segment.count.toDouble(),
-                      title: showPercentage
-                          ? '${segment.percentage.toStringAsFixed(0)}%'
-                          : '${segment.count}',
-                      color: color,
-                      radius: 60,
-                      titleStyle: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    );
-                  },
-                ),
+                sections: List.generate(data.length, (index) {
+                  final segment = data[index];
+                  final color = chartColors[index % chartColors.length];
+                  return PieChartSectionData(
+                    value: segment.count.toDouble(),
+                    title: showPercentage
+                        ? '${segment.percentage.toStringAsFixed(0)}%'
+                        : '${segment.count}',
+                    color: color,
+                    radius: 60,
+                    titleStyle: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  );
+                }),
               ),
             ),
           ),
@@ -277,36 +276,33 @@ class DistributionPieChart extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: List.generate(
-                  data.length,
-                  (index) {
-                    final segment = data[index];
-                    final color = chartColors[index % chartColors.length];
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 2),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 12,
-                            height: 12,
-                            decoration: BoxDecoration(
-                              color: color,
-                              borderRadius: BorderRadius.circular(2),
-                            ),
+                children: List.generate(data.length, (index) {
+                  final segment = data[index];
+                  final color = chartColors[index % chartColors.length];
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 12,
+                          height: 12,
+                          decoration: BoxDecoration(
+                            color: color,
+                            borderRadius: BorderRadius.circular(2),
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              segment.label,
-                              style: Theme.of(context).textTheme.bodySmall,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            segment.label,
+                            style: Theme.of(context).textTheme.bodySmall,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
               ),
             ),
           ],
@@ -343,17 +339,16 @@ class CategoryBarChart extends StatelessWidget {
               Icon(
                 Icons.bar_chart,
                 size: 48,
-                color: Theme.of(context)
-                    .colorScheme
-                    .primary
-                    .withValues(alpha: 0.5),
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.5),
               ),
               const SizedBox(height: 8),
               Text(
                 'No data available',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),
@@ -362,8 +357,10 @@ class CategoryBarChart extends StatelessWidget {
     }
 
     final color = barColor ?? Theme.of(context).colorScheme.primary;
-    final maxCount =
-        data.map((e) => e.count).reduce((a, b) => a > b ? a : b).toDouble();
+    final maxCount = data
+        .map((e) => e.count)
+        .reduce((a, b) => a > b ? a : b)
+        .toDouble();
 
     return SizedBox(
       height: height,
@@ -423,10 +420,12 @@ class CategoryBarChart extends StatelessWidget {
                 },
               ),
             ),
-            topTitles:
-                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles:
-                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
           ),
           borderData: FlBorderData(show: false),
           gridData: FlGridData(
@@ -447,8 +446,9 @@ class CategoryBarChart extends StatelessWidget {
                   toY: data[index].count.toDouble(),
                   color: color,
                   width: data.length > 12 ? 12 : 20,
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(4)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(4),
+                  ),
                 ),
               ],
             ),
@@ -488,17 +488,16 @@ class MultiTrendLineChart extends StatelessWidget {
               Icon(
                 Icons.show_chart,
                 size: 48,
-                color: Theme.of(context)
-                    .colorScheme
-                    .primary
-                    .withValues(alpha: 0.5),
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.5),
               ),
               const SizedBox(height: 8),
               Text(
                 'No trend data available',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),
@@ -518,8 +517,9 @@ class MultiTrendLineChart extends StatelessWidget {
     final maxY = allValues.reduce((a, b) => a > b ? a : b);
     final padding = (maxY - minY) * 0.1;
 
-    final longestSeries =
-        dataSeries.reduce((a, b) => a.length > b.length ? a : b);
+    final longestSeries = dataSeries.reduce(
+      (a, b) => a.length > b.length ? a : b,
+    );
 
     return Column(
       children: [
@@ -563,10 +563,12 @@ class MultiTrendLineChart extends StatelessWidget {
                     },
                   ),
                 ),
-                topTitles:
-                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                rightTitles:
-                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                topTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                rightTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
               ),
               borderData: FlBorderData(show: false),
               gridData: FlGridData(

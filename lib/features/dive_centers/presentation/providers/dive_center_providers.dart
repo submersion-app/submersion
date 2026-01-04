@@ -12,59 +12,72 @@ final diveCenterRepositoryProvider = Provider<DiveCenterRepository>((ref) {
 /// All dive centers provider
 final allDiveCentersProvider = FutureProvider<List<DiveCenter>>((ref) async {
   final repository = ref.watch(diveCenterRepositoryProvider);
-  final validatedDiverId =
-      await ref.watch(validatedCurrentDiverIdProvider.future);
+  final validatedDiverId = await ref.watch(
+    validatedCurrentDiverIdProvider.future,
+  );
   return repository.getAllDiveCenters(diverId: validatedDiverId);
 });
 
 /// Single dive center provider
-final diveCenterByIdProvider =
-    FutureProvider.family<DiveCenter?, String>((ref, id) async {
+final diveCenterByIdProvider = FutureProvider.family<DiveCenter?, String>((
+  ref,
+  id,
+) async {
   final repository = ref.watch(diveCenterRepositoryProvider);
   return repository.getDiveCenterById(id);
 });
 
 /// Dive centers with coordinates (for map view)
-final diveCentersWithCoordinatesProvider =
-    FutureProvider<List<DiveCenter>>((ref) async {
+final diveCentersWithCoordinatesProvider = FutureProvider<List<DiveCenter>>((
+  ref,
+) async {
   final repository = ref.watch(diveCenterRepositoryProvider);
-  final validatedDiverId =
-      await ref.watch(validatedCurrentDiverIdProvider.future);
+  final validatedDiverId = await ref.watch(
+    validatedCurrentDiverIdProvider.future,
+  );
   return repository.getDiveCentersWithCoordinates(diverId: validatedDiverId);
 });
 
 /// Dive center search provider
 final diveCenterSearchProvider =
     FutureProvider.family<List<DiveCenter>, String>((ref, query) async {
-  final validatedDiverId =
-      await ref.watch(validatedCurrentDiverIdProvider.future);
-  if (query.isEmpty) {
-    return ref.watch(allDiveCentersProvider).value ?? [];
-  }
-  final repository = ref.watch(diveCenterRepositoryProvider);
-  return repository.searchDiveCenters(query, diverId: validatedDiverId);
-});
+      final validatedDiverId = await ref.watch(
+        validatedCurrentDiverIdProvider.future,
+      );
+      if (query.isEmpty) {
+        return ref.watch(allDiveCentersProvider).value ?? [];
+      }
+      final repository = ref.watch(diveCenterRepositoryProvider);
+      return repository.searchDiveCenters(query, diverId: validatedDiverId);
+    });
 
 /// Dive centers by country provider
 final diveCentersByCountryProvider =
     FutureProvider.family<List<DiveCenter>, String>((ref, country) async {
-  final repository = ref.watch(diveCenterRepositoryProvider);
-  final validatedDiverId =
-      await ref.watch(validatedCurrentDiverIdProvider.future);
-  return repository.getDiveCentersByCountry(country, diverId: validatedDiverId);
-});
+      final repository = ref.watch(diveCenterRepositoryProvider);
+      final validatedDiverId = await ref.watch(
+        validatedCurrentDiverIdProvider.future,
+      );
+      return repository.getDiveCentersByCountry(
+        country,
+        diverId: validatedDiverId,
+      );
+    });
 
 /// All countries with dive centers
 final diveCenterCountriesProvider = FutureProvider<List<String>>((ref) async {
   final repository = ref.watch(diveCenterRepositoryProvider);
-  final validatedDiverId =
-      await ref.watch(validatedCurrentDiverIdProvider.future);
+  final validatedDiverId = await ref.watch(
+    validatedCurrentDiverIdProvider.future,
+  );
   return repository.getCountries(diverId: validatedDiverId);
 });
 
 /// Dive count for a center
-final diveCenterDiveCountProvider =
-    FutureProvider.family<int, String>((ref, centerId) async {
+final diveCenterDiveCountProvider = FutureProvider.family<int, String>((
+  ref,
+  centerId,
+) async {
   final repository = ref.watch(diveCenterRepositoryProvider);
   return repository.getDiveCountForCenter(centerId);
 });
@@ -77,7 +90,7 @@ class DiveCenterListNotifier
   String? _validatedDiverId;
 
   DiveCenterListNotifier(this._repository, this._ref)
-      : super(const AsyncValue.loading()) {
+    : super(const AsyncValue.loading()) {
     _initializeAndLoad();
 
     // Listen for diver changes and reload
@@ -101,8 +114,9 @@ class DiveCenterListNotifier
   Future<void> _loadDiveCenters() async {
     state = const AsyncValue.loading();
     try {
-      final centers =
-          await _repository.getAllDiveCenters(diverId: _validatedDiverId);
+      final centers = await _repository.getAllDiveCenters(
+        diverId: _validatedDiverId,
+      );
       state = AsyncValue.data(centers);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -124,8 +138,9 @@ class DiveCenterListNotifier
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
 
     // Always set diverId to the current validated diver for new items
-    final centerWithDiver =
-        validatedId != null ? center.copyWith(diverId: validatedId) : center;
+    final centerWithDiver = validatedId != null
+        ? center.copyWith(diverId: validatedId)
+        : center;
     final newCenter = await _repository.createDiveCenter(centerWithDiver);
     await refresh();
     return newCenter;
@@ -145,7 +160,8 @@ class DiveCenterListNotifier
 
 final diveCenterListNotifierProvider =
     StateNotifierProvider<DiveCenterListNotifier, AsyncValue<List<DiveCenter>>>(
-        (ref) {
-  final repository = ref.watch(diveCenterRepositoryProvider);
-  return DiveCenterListNotifier(repository, ref);
-});
+      (ref) {
+        final repository = ref.watch(diveCenterRepositoryProvider);
+        return DiveCenterListNotifier(repository, ref);
+      },
+    );

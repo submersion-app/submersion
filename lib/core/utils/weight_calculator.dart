@@ -114,13 +114,13 @@ class WeightCalculator {
 
   /// Available suit types with display names
   static Map<String, String> get suitTypes => {
-        'none': 'No Suit',
-        'rashguard': 'Rashguard Only',
-        'shorty_3mm': '3mm Shorty',
-        'wetsuit_3mm': '3mm Full Wetsuit',
-        'wetsuit_5mm': '5mm Wetsuit',
-        'wetsuit_7mm': '7mm Wetsuit',
-        'semidry': 'Semi-dry Suit',
-        'drysuit': 'Drysuit',
-      };
+    'none': 'No Suit',
+    'rashguard': 'Rashguard Only',
+    'shorty_3mm': '3mm Shorty',
+    'wetsuit_3mm': '3mm Full Wetsuit',
+    'wetsuit_5mm': '5mm Wetsuit',
+    'wetsuit_7mm': '7mm Wetsuit',
+    'semidry': 'Semi-dry Suit',
+    'drysuit': 'Drysuit',
+  };
 }

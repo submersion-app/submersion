@@ -46,15 +46,17 @@ void main() {
 
   group('CertificationRepository', () {
     group('createCertification', () {
-      test('should create a new cert with generated ID when ID is empty',
-          () async {
-        final cert = createTestCert(name: 'Advanced Open Water');
+      test(
+        'should create a new cert with generated ID when ID is empty',
+        () async {
+          final cert = createTestCert(name: 'Advanced Open Water');
 
-        final createdCert = await repository.createCertification(cert);
+          final createdCert = await repository.createCertification(cert);
 
-        expect(createdCert.id, isNotEmpty);
-        expect(createdCert.name, equals('Advanced Open Water'));
-      });
+          expect(createdCert.id, isNotEmpty);
+          expect(createdCert.name, equals('Advanced Open Water'));
+        },
+      );
 
       test('should create a cert with provided ID', () async {
         final cert = createTestCert(id: 'custom-cert-id', name: 'Rescue Diver');
@@ -79,8 +81,9 @@ void main() {
         );
 
         final createdCert = await repository.createCertification(cert);
-        final fetchedCert =
-            await repository.getCertificationById(createdCert.id);
+        final fetchedCert = await repository.getCertificationById(
+          createdCert.id,
+        );
 
         expect(fetchedCert, isNotNull);
         expect(fetchedCert!.name, equals('Nitrox Diver'));
@@ -121,34 +124,30 @@ void main() {
         expect(result, isEmpty);
       });
 
-      test('should return all certs ordered by issue date (newest first)',
-          () async {
-        await repository.createCertification(
-          createTestCert(
-            name: 'Old Cert',
-            issueDate: DateTime(2020, 1, 1),
-          ),
-        );
-        await repository.createCertification(
-          createTestCert(
-            name: 'New Cert',
-            issueDate: DateTime(2023, 6, 1),
-          ),
-        );
-        await repository.createCertification(
-          createTestCert(
-            name: 'Middle Cert',
-            issueDate: DateTime(2022, 3, 1),
-          ),
-        );
+      test(
+        'should return all certs ordered by issue date (newest first)',
+        () async {
+          await repository.createCertification(
+            createTestCert(name: 'Old Cert', issueDate: DateTime(2020, 1, 1)),
+          );
+          await repository.createCertification(
+            createTestCert(name: 'New Cert', issueDate: DateTime(2023, 6, 1)),
+          );
+          await repository.createCertification(
+            createTestCert(
+              name: 'Middle Cert',
+              issueDate: DateTime(2022, 3, 1),
+            ),
+          );
 
-        final result = await repository.getAllCertifications();
+          final result = await repository.getAllCertifications();
 
-        expect(result.length, equals(3));
-        expect(result[0].name, equals('New Cert'));
-        expect(result[1].name, equals('Middle Cert'));
-        expect(result[2].name, equals('Old Cert'));
-      });
+          expect(result.length, equals(3));
+          expect(result[0].name, equals('New Cert'));
+          expect(result[1].name, equals('Middle Cert'));
+          expect(result[2].name, equals('Old Cert'));
+        },
+      );
     });
 
     group('updateCertification', () {
@@ -277,28 +276,20 @@ void main() {
     group('getCertificationsByAgency', () {
       setUp(() async {
         await repository.createCertification(
-          createTestCert(
-            name: 'PADI Cert 1',
-            agency: CertificationAgency.padi,
-          ),
+          createTestCert(name: 'PADI Cert 1', agency: CertificationAgency.padi),
         );
         await repository.createCertification(
-          createTestCert(
-            name: 'PADI Cert 2',
-            agency: CertificationAgency.padi,
-          ),
+          createTestCert(name: 'PADI Cert 2', agency: CertificationAgency.padi),
         );
         await repository.createCertification(
-          createTestCert(
-            name: 'SSI Cert',
-            agency: CertificationAgency.ssi,
-          ),
+          createTestCert(name: 'SSI Cert', agency: CertificationAgency.ssi),
         );
       });
 
       test('should return certs for specified agency', () async {
-        final results = await repository
-            .getCertificationsByAgency(CertificationAgency.padi);
+        final results = await repository.getCertificationsByAgency(
+          CertificationAgency.padi,
+        );
 
         expect(results.length, equals(2));
         expect(
@@ -308,8 +299,9 @@ void main() {
       });
 
       test('should return empty list when no certs for agency', () async {
-        final results =
-            await repository.getCertificationsByAgency(CertificationAgency.gue);
+        final results = await repository.getCertificationsByAgency(
+          CertificationAgency.gue,
+        );
 
         expect(results, isEmpty);
       });
@@ -337,10 +329,7 @@ void main() {
 
         // Cert with no expiry
         await repository.createCertification(
-          createTestCert(
-            name: 'No Expiry',
-            expiryDate: null,
-          ),
+          createTestCert(name: 'No Expiry', expiryDate: null),
         );
 
         final results = await repository.getExpiringCertifications(30);
@@ -397,10 +386,7 @@ void main() {
 
         // No expiry cert
         await repository.createCertification(
-          createTestCert(
-            name: 'No Expiry Cert',
-            expiryDate: null,
-          ),
+          createTestCert(name: 'No Expiry Cert', expiryDate: null),
         );
 
         final results = await repository.getExpiredCertifications();

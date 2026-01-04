@@ -64,17 +64,14 @@ class CertificationRepository {
       if (diverId != null) Variable.withString(diverId),
     ];
 
-    final results = await _db.customSelect(
-      '''
+    final results = await _db.customSelect('''
       SELECT * FROM certifications
       WHERE (LOWER(name) LIKE ?
          OR LOWER(agency) LIKE ?
          OR LOWER(card_number) LIKE ?)
       $diverFilter
       ORDER BY issue_date DESC, name ASC
-    ''',
-      variables: variables,
-    ).get();
+    ''', variables: variables).get();
 
     return results.map((row) {
       return domain.Certification(
@@ -91,10 +88,12 @@ class CertificationRepository {
         photoFrontPath: row.data['photo_front_path'] as String?,
         photoBackPath: row.data['photo_back_path'] as String?,
         notes: (row.data['notes'] as String?) ?? '',
-        createdAt:
-            DateTime.fromMillisecondsSinceEpoch(row.data['created_at'] as int),
-        updatedAt:
-            DateTime.fromMillisecondsSinceEpoch(row.data['updated_at'] as int),
+        createdAt: DateTime.fromMillisecondsSinceEpoch(
+          row.data['created_at'] as int,
+        ),
+        updatedAt: DateTime.fromMillisecondsSinceEpoch(
+          row.data['updated_at'] as int,
+        ),
       );
     }).toList();
   }
@@ -108,7 +107,9 @@ class CertificationRepository {
       final id = cert.id.isEmpty ? _uuid.v4() : cert.id;
       final now = DateTime.now();
 
-      await _db.into(_db.certifications).insert(
+      await _db
+          .into(_db.certifications)
+          .insert(
             CertificationsCompanion(
               id: Value(id),
               diverId: Value(cert.diverId),
@@ -142,8 +143,9 @@ class CertificationRepository {
       _log.info('Updating certification: ${cert.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await (_db.update(_db.certifications)..where((t) => t.id.equals(cert.id)))
-          .write(
+      await (_db.update(
+        _db.certifications,
+      )..where((t) => t.id.equals(cert.id))).write(
         CertificationsCompanion(
           name: Value(cert.name),
           agency: Value(cert.agency.name),
@@ -170,8 +172,9 @@ class CertificationRepository {
   Future<void> deleteCertification(String id) async {
     try {
       _log.info('Deleting certification: $id');
-      await (_db.delete(_db.certifications)..where((t) => t.id.equals(id)))
-          .go();
+      await (_db.delete(
+        _db.certifications,
+      )..where((t) => t.id.equals(id))).go();
       _log.info('Deleted certification: $id');
     } catch (e, stackTrace) {
       _log.error('Failed to delete certification: $id', e, stackTrace);
@@ -185,8 +188,9 @@ class CertificationRepository {
     String? diverId,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    final threshold =
-        DateTime.now().add(Duration(days: withinDays)).millisecondsSinceEpoch;
+    final threshold = DateTime.now()
+        .add(Duration(days: withinDays))
+        .millisecondsSinceEpoch;
 
     final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
     final variables = [
@@ -195,17 +199,14 @@ class CertificationRepository {
       if (diverId != null) Variable.withString(diverId),
     ];
 
-    final results = await _db.customSelect(
-      '''
+    final results = await _db.customSelect('''
       SELECT * FROM certifications
       WHERE expiry_date IS NOT NULL
         AND expiry_date > ?
         AND expiry_date <= ?
         $diverFilter
       ORDER BY expiry_date ASC
-    ''',
-      variables: variables,
-    ).get();
+    ''', variables: variables).get();
 
     return results.map((row) {
       return domain.Certification(
@@ -222,10 +223,12 @@ class CertificationRepository {
         photoFrontPath: row.data['photo_front_path'] as String?,
         photoBackPath: row.data['photo_back_path'] as String?,
         notes: (row.data['notes'] as String?) ?? '',
-        createdAt:
-            DateTime.fromMillisecondsSinceEpoch(row.data['created_at'] as int),
-        updatedAt:
-            DateTime.fromMillisecondsSinceEpoch(row.data['updated_at'] as int),
+        createdAt: DateTime.fromMillisecondsSinceEpoch(
+          row.data['created_at'] as int,
+        ),
+        updatedAt: DateTime.fromMillisecondsSinceEpoch(
+          row.data['updated_at'] as int,
+        ),
       );
     }).toList();
   }
@@ -242,16 +245,13 @@ class CertificationRepository {
       if (diverId != null) Variable.withString(diverId),
     ];
 
-    final results = await _db.customSelect(
-      '''
+    final results = await _db.customSelect('''
       SELECT * FROM certifications
       WHERE expiry_date IS NOT NULL
         AND expiry_date <= ?
         $diverFilter
       ORDER BY expiry_date DESC
-    ''',
-      variables: variables,
-    ).get();
+    ''', variables: variables).get();
 
     return results.map((row) {
       return domain.Certification(
@@ -268,10 +268,12 @@ class CertificationRepository {
         photoFrontPath: row.data['photo_front_path'] as String?,
         photoBackPath: row.data['photo_back_path'] as String?,
         notes: (row.data['notes'] as String?) ?? '',
-        createdAt:
-            DateTime.fromMillisecondsSinceEpoch(row.data['created_at'] as int),
-        updatedAt:
-            DateTime.fromMillisecondsSinceEpoch(row.data['updated_at'] as int),
+        createdAt: DateTime.fromMillisecondsSinceEpoch(
+          row.data['created_at'] as int,
+        ),
+        updatedAt: DateTime.fromMillisecondsSinceEpoch(
+          row.data['updated_at'] as int,
+        ),
       );
     }).toList();
   }

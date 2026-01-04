@@ -10,10 +10,7 @@ import '../providers/discovery_providers.dart';
 class ScanStepWidget extends ConsumerStatefulWidget {
   final void Function(DiscoveredDevice device) onDeviceSelected;
 
-  const ScanStepWidget({
-    super.key,
-    required this.onDeviceSelected,
-  });
+  const ScanStepWidget({super.key, required this.onDeviceSelected});
 
   @override
   ConsumerState<ScanStepWidget> createState() => _ScanStepWidgetState();
@@ -182,9 +179,7 @@ class _BluetoothScanTab extends ConsumerWidget {
               return _buildDeviceList(context, devices);
             },
             loading: () => _buildEmptyState(context, colorScheme),
-            error: (error, stack) => Center(
-              child: Text('Error: $error'),
-            ),
+            error: (error, stack) => Center(child: Text('Error: $error')),
           ),
         ),
 
@@ -236,10 +231,7 @@ class _BluetoothScanTab extends ConsumerWidget {
               color: colorScheme.primary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 24),
-            Text(
-              'Looking for Devices',
-              style: theme.textTheme.titleLarge,
-            ),
+            Text('Looking for Devices', style: theme.textTheme.titleLarge),
             const SizedBox(height: 12),
             Text(
               'Make sure your dive computer is:\n'
@@ -283,8 +275,9 @@ class _UsbDevicesTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final usbDevicesByManufacturer =
-        ref.watch(usbDevicesByManufacturerProvider);
+    final usbDevicesByManufacturer = ref.watch(
+      usbDevicesByManufacturerProvider,
+    );
     final usbScanner = ref.watch(usbDeviceScannerProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -310,10 +303,7 @@ class _UsbDevicesTab extends ConsumerWidget {
           ),
           child: Row(
             children: [
-              Icon(
-                Icons.info_outline,
-                color: colorScheme.primary,
-              ),
+              Icon(Icons.info_outline, color: colorScheme.primary),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -333,8 +323,9 @@ class _UsbDevicesTab extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             itemCount: usbDevicesByManufacturer.length,
             itemBuilder: (context, index) {
-              final manufacturer =
-                  usbDevicesByManufacturer.keys.elementAt(index);
+              final manufacturer = usbDevicesByManufacturer.keys.elementAt(
+                index,
+              );
               final devices = usbDevicesByManufacturer[manufacturer]!;
 
               return Column(
@@ -356,8 +347,8 @@ class _UsbDevicesTab extends ConsumerWidget {
                     (model) => _UsbDeviceListTile(
                       model: model,
                       onTap: () {
-                        final discoveredDevice =
-                            usbScanner.createDiscoveredDevice(model);
+                        final discoveredDevice = usbScanner
+                            .createDiscoveredDevice(model);
                         onDeviceSelected(discoveredDevice);
                       },
                     ),
@@ -378,10 +369,7 @@ class _UsbDeviceListTile extends StatelessWidget {
   final DeviceModel model;
   final VoidCallback onTap;
 
-  const _UsbDeviceListTile({
-    required this.model,
-    required this.onTap,
-  });
+  const _UsbDeviceListTile({required this.model, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -405,10 +393,7 @@ class _UsbDeviceListTile extends StatelessWidget {
                   color: colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
-                  Icons.usb,
-                  color: colorScheme.onPrimaryContainer,
-                ),
+                child: Icon(Icons.usb, color: colorScheme.onPrimaryContainer),
               ),
               const SizedBox(width: 16),
               // Info
@@ -416,10 +401,7 @@ class _UsbDeviceListTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      model.model,
-                      style: theme.textTheme.titleMedium,
-                    ),
+                    Text(model.model, style: theme.textTheme.titleMedium),
                     const SizedBox(height: 4),
                     Text(
                       'USB Cable',
@@ -431,10 +413,7 @@ class _UsbDeviceListTile extends StatelessWidget {
                 ),
               ),
               // Chevron
-              Icon(
-                Icons.chevron_right,
-                color: colorScheme.onSurfaceVariant,
-              ),
+              Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
             ],
           ),
         ),
@@ -448,10 +427,7 @@ class _DeviceListTile extends StatelessWidget {
   final DiscoveredDevice device;
   final VoidCallback onTap;
 
-  const _DeviceListTile({
-    required this.device,
-    required this.onTap,
-  });
+  const _DeviceListTile({required this.device, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -540,10 +516,7 @@ class _DeviceListTile extends StatelessWidget {
                 ),
               ),
               // Chevron
-              Icon(
-                Icons.chevron_right,
-                color: colorScheme.onSurfaceVariant,
-              ),
+              Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
             ],
           ),
         ),

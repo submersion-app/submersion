@@ -30,11 +30,7 @@ class O2ToxicityCard extends StatelessWidget {
             // Header
             Row(
               children: [
-                Icon(
-                  Icons.air,
-                  size: 20,
-                  color: colorScheme.primary,
-                ),
+                Icon(Icons.air, size: 20, color: colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
                   'Oxygen Toxicity',
@@ -105,10 +101,7 @@ class O2ToxicityCard extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'CNS Oxygen Clock',
-              style: textTheme.bodyMedium,
-            ),
+            Text('CNS Oxygen Clock', style: textTheme.bodyMedium),
             Text(
               exposure.cnsFormatted,
               style: textTheme.titleMedium?.copyWith(
@@ -168,10 +161,7 @@ class O2ToxicityCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Oxygen Tolerance Units',
-                style: textTheme.bodyMedium,
-              ),
+              Text('Oxygen Tolerance Units', style: textTheme.bodyMedium),
               const SizedBox(height: 4),
               Text(
                 exposure.otuFormatted,
@@ -220,9 +210,7 @@ class O2ToxicityCard extends StatelessWidget {
       children: [
         Text(
           'Details',
-          style: textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
         _buildDetailRow(
@@ -233,8 +221,8 @@ class O2ToxicityCard extends StatelessWidget {
           valueColor: exposure.ppO2Critical
               ? colorScheme.error
               : exposure.ppO2Warning
-                  ? Colors.orange
-                  : null,
+              ? Colors.orange
+              : null,
         ),
         _buildDetailRow(
           context,
@@ -277,11 +265,7 @@ class O2ToxicityCard extends StatelessWidget {
       child: Row(
         children: [
           if (icon != null) ...[
-            Icon(
-              icon,
-              size: 16,
-              color: colorScheme.onSurfaceVariant,
-            ),
+            Icon(icon, size: 16, color: colorScheme.onSurfaceVariant),
             const SizedBox(width: 8),
           ],
           Expanded(
@@ -317,10 +301,7 @@ class O2ToxicityCard extends StatelessWidget {
 class O2ToxicityBadge extends StatelessWidget {
   final O2Exposure exposure;
 
-  const O2ToxicityBadge({
-    super.key,
-    required this.exposure,
-  });
+  const O2ToxicityBadge({super.key, required this.exposure});
 
   @override
   Widget build(BuildContext context) {
@@ -342,18 +323,14 @@ class O2ToxicityBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.air,
-            size: 14,
-            color: getBadgeColor(),
-          ),
+          Icon(Icons.air, size: 14, color: getBadgeColor()),
           const SizedBox(width: 4),
           Text(
             'CNS ${exposure.cnsFormatted}',
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: getBadgeColor(),
-                  fontWeight: FontWeight.w600,
-                ),
+              color: getBadgeColor(),
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),

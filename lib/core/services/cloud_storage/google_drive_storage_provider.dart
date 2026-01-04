@@ -67,8 +67,8 @@ class GoogleDriveStorageProvider
       final account = await futureAccount;
       if (account == null) return false;
 
-      final authorization =
-          await account.authorizationClient.authorizationForScopes(_scopes);
+      final authorization = await account.authorizationClient
+          .authorizationForScopes(_scopes);
       if (authorization == null) return false;
 
       await _initDriveApi(account, authorization);
@@ -86,8 +86,9 @@ class GoogleDriveStorageProvider
     try {
       await _ensureInitialized();
       final account = await _googleSignIn.authenticate(scopeHint: _scopes);
-      final authorization =
-          await account.authorizationClient.authorizeScopes(_scopes);
+      final authorization = await account.authorizationClient.authorizeScopes(
+        _scopes,
+      );
 
       await _initDriveApi(account, authorization);
       _allowSilentAuth = true;
@@ -162,10 +163,7 @@ class GoogleDriveStorageProvider
       final existingFile = await _findFile(filename, targetFolder);
 
       drive.File result;
-      final media = drive.Media(
-        Stream.fromIterable([data]),
-        data.length,
-      );
+      final media = drive.Media(Stream.fromIterable([data]), data.length);
 
       if (existingFile != null) {
         // Update existing file
@@ -181,17 +179,11 @@ class GoogleDriveStorageProvider
           ..name = filename
           ..parents = [targetFolder];
 
-        result = await _api.files.create(
-          fileMetadata,
-          uploadMedia: media,
-        );
+        result = await _api.files.create(fileMetadata, uploadMedia: media);
         _log.info('Created file: $filename (${result.id})');
       }
 
-      return UploadResult(
-        fileId: result.id!,
-        uploadTime: DateTime.now(),
-      );
+      return UploadResult(fileId: result.id!, uploadTime: DateTime.now());
     } catch (e, stackTrace) {
       _log.error('Failed to upload file: $filename', e, stackTrace);
       throw CloudStorageException('Upload failed: $e', e, stackTrace);
@@ -227,10 +219,9 @@ class GoogleDriveStorageProvider
   @override
   Future<CloudFileInfo?> getFileInfo(String fileId) async {
     try {
-      final file = await _api.files.get(
-        fileId,
-        $fields: 'id,name,modifiedTime,size',
-      ) as drive.File;
+      final file =
+          await _api.files.get(fileId, $fields: 'id,name,modifiedTime,size')
+              as drive.File;
 
       return CloudFileInfo(
         id: file.id!,
@@ -330,7 +321,8 @@ class GoogleDriveStorageProvider
 
     try {
       // Look for existing sync folder
-      const query = "name = '${CloudStorageProviderMixin.syncFolderName}' "
+      const query =
+          "name = '${CloudStorageProviderMixin.syncFolderName}' "
           "and mimeType = 'application/vnd.google-apps.folder' "
           "and 'appDataFolder' in parents "
           "and trashed = false";
@@ -366,7 +358,8 @@ class GoogleDriveStorageProvider
   /// Find a file by name in a specific folder
   Future<drive.File?> _findFile(String filename, String folderId) async {
     try {
-      final query = "name = '$filename' "
+      final query =
+          "name = '$filename' "
           "and '$folderId' in parents "
           "and trashed = false";
 

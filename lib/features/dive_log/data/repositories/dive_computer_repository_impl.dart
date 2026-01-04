@@ -90,7 +90,9 @@ class DiveComputerRepository {
       final id = computer.id.isEmpty ? _uuid.v4() : computer.id;
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await _db.into(_db.diveComputers).insert(
+      await _db
+          .into(_db.diveComputers)
+          .insert(
             DiveComputersCompanion(
               id: Value(id),
               diverId: Value(computer.diverId),
@@ -100,8 +102,9 @@ class DiveComputerRepository {
               serialNumber: Value(computer.serialNumber),
               connectionType: Value(computer.connectionType),
               bluetoothAddress: Value(computer.bluetoothAddress),
-              lastDownloadTimestamp:
-                  Value(computer.lastDownload?.millisecondsSinceEpoch),
+              lastDownloadTimestamp: Value(
+                computer.lastDownload?.millisecondsSinceEpoch,
+              ),
               diveCount: Value(computer.diveCount),
               isFavorite: Value(computer.isFavorite),
               notes: Value(computer.notes),
@@ -128,9 +131,9 @@ class DiveComputerRepository {
       _log.info('Updating dive computer: ${computer.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await (_db.update(_db.diveComputers)
-            ..where((t) => t.id.equals(computer.id)))
-          .write(
+      await (_db.update(
+        _db.diveComputers,
+      )..where((t) => t.id.equals(computer.id))).write(
         DiveComputersCompanion(
           name: Value(computer.name),
           manufacturer: Value(computer.manufacturer),
@@ -138,8 +141,9 @@ class DiveComputerRepository {
           serialNumber: Value(computer.serialNumber),
           connectionType: Value(computer.connectionType),
           bluetoothAddress: Value(computer.bluetoothAddress),
-          lastDownloadTimestamp:
-              Value(computer.lastDownload?.millisecondsSinceEpoch),
+          lastDownloadTimestamp: Value(
+            computer.lastDownload?.millisecondsSinceEpoch,
+          ),
           diveCount: Value(computer.diveCount),
           isFavorite: Value(computer.isFavorite),
           notes: Value(computer.notes),
@@ -179,18 +183,17 @@ class DiveComputerRepository {
       if (diverId != null) {
         await (_db.update(_db.diveComputers)
               ..where((t) => t.diverId.equals(diverId)))
-            .write(
-          const DiveComputersCompanion(isFavorite: Value(false)),
-        );
+            .write(const DiveComputersCompanion(isFavorite: Value(false)));
       } else {
-        await (_db.update(_db.diveComputers)).write(
-          const DiveComputersCompanion(isFavorite: Value(false)),
-        );
+        await (_db.update(
+          _db.diveComputers,
+        )).write(const DiveComputersCompanion(isFavorite: Value(false)));
       }
 
       // Set the new favorite
-      await (_db.update(_db.diveComputers)..where((t) => t.id.equals(id)))
-          .write(
+      await (_db.update(
+        _db.diveComputers,
+      )..where((t) => t.id.equals(id))).write(
         DiveComputersCompanion(
           isFavorite: const Value(true),
           updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
@@ -226,8 +229,9 @@ class DiveComputerRepository {
   Future<void> updateLastDownload(String id) async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
-      await (_db.update(_db.diveComputers)..where((t) => t.id.equals(id)))
-          .write(
+      await (_db.update(
+        _db.diveComputers,
+      )..where((t) => t.id.equals(id))).write(
         DiveComputersCompanion(
           lastDownloadTimestamp: Value(now),
           updatedAt: Value(now),
@@ -267,14 +271,16 @@ class DiveComputerRepository {
   /// Get all computer IDs that have profiles for a given dive
   Future<List<String>> getComputerIdsForDive(String diveId) async {
     try {
-      final result = await _db.customSelect(
-        '''
+      final result = await _db
+          .customSelect(
+            '''
         SELECT DISTINCT computer_id
         FROM dive_profiles
         WHERE dive_id = ? AND computer_id IS NOT NULL
       ''',
-        variables: [Variable(diveId)],
-      ).get();
+            variables: [Variable(diveId)],
+          )
+          .get();
 
       return result
           .map((row) => row.data['computer_id'] as String?)
@@ -306,15 +312,17 @@ class DiveComputerRepository {
   /// Get the primary profile's computer for a dive
   Future<String?> getPrimaryComputerId(String diveId) async {
     try {
-      final result = await _db.customSelect(
-        '''
+      final result = await _db
+          .customSelect(
+            '''
         SELECT DISTINCT computer_id
         FROM dive_profiles
         WHERE dive_id = ? AND is_primary = 1 AND computer_id IS NOT NULL
         LIMIT 1
       ''',
-        variables: [Variable(diveId)],
-      ).getSingleOrNull();
+            variables: [Variable(diveId)],
+          )
+          .getSingleOrNull();
 
       return result?.data['computer_id'] as String?;
     } catch (e, stackTrace) {
@@ -410,8 +418,9 @@ class DiveComputerRepository {
       final toleranceMs = toleranceMinutes * 60 * 1000;
 
       // Search for dives within the tolerance window
-      final result = await _db.customSelect(
-        '''
+      final result = await _db
+          .customSelect(
+            '''
         SELECT id, dive_date_time, entry_time, duration, max_depth,
           COALESCE(entry_time, dive_date_time) as effective_time,
           ABS(COALESCE(entry_time, dive_date_time) - ?) as time_diff
@@ -420,12 +429,13 @@ class DiveComputerRepository {
         ORDER BY time_diff ASC
         LIMIT 10
       ''',
-        variables: [
-          Variable(startMs),
-          Variable(startMs),
-          Variable(toleranceMs),
-        ],
-      ).get();
+            variables: [
+              Variable(startMs),
+              Variable(startMs),
+              Variable(toleranceMs),
+            ],
+          )
+          .get();
 
       if (result.isEmpty) return null;
 
@@ -493,8 +503,9 @@ class DiveComputerRepository {
   Future<DiveComputerStats> getComputerStats(String computerId) async {
     try {
       // Get dives that have profiles from this computer
-      final statsResult = await _db.customSelect(
-        '''
+      final statsResult = await _db
+          .customSelect(
+            '''
         SELECT
           COUNT(DISTINCT d.id) as dive_count,
           MIN(d.dive_date_time) as first_dive,
@@ -511,8 +522,9 @@ class DiveComputerRepository {
         WHERE dp.computer_id = ?
         GROUP BY dp.computer_id
       ''',
-        variables: [Variable(computerId)],
-      ).getSingleOrNull();
+            variables: [Variable(computerId)],
+          )
+          .getSingleOrNull();
 
       if (statsResult == null) {
         return DiveComputerStats.empty();
@@ -547,7 +559,8 @@ class DiveComputerRepository {
     int? limit,
   }) async {
     try {
-      final query = '''
+      final query =
+          '''
         SELECT DISTINCT d.id, d.dive_date_time
         FROM dives d
         INNER JOIN dive_profiles dp ON d.id = dp.dive_id
@@ -556,10 +569,9 @@ class DiveComputerRepository {
         ${limit != null ? 'LIMIT $limit' : ''}
       ''';
 
-      final result = await _db.customSelect(
-        query,
-        variables: [Variable(computerId)],
-      ).get();
+      final result = await _db
+          .customSelect(query, variables: [Variable(computerId)])
+          .get();
 
       return result.map((row) => row.data['id'] as String).toList();
     } catch (e, stackTrace) {
@@ -601,7 +613,9 @@ class DiveComputerRepository {
         diveId = _uuid.v4();
         final now = DateTime.now().millisecondsSinceEpoch;
 
-        await _db.into(_db.dives).insert(
+        await _db
+            .into(_db.dives)
+            .insert(
               DivesCompanion(
                 id: Value(diveId),
                 diverId: Value(diverId),
@@ -619,14 +633,16 @@ class DiveComputerRepository {
       }
 
       // Check if this computer already has a profile for this dive
-      final existingProfiles = await _db.customSelect(
-        '''
+      final existingProfiles = await _db
+          .customSelect(
+            '''
         SELECT COUNT(*) as count
         FROM dive_profiles
         WHERE dive_id = ? AND computer_id = ?
       ''',
-        variables: [Variable(diveId), Variable(computerId)],
-      ).getSingle();
+            variables: [Variable(diveId), Variable(computerId)],
+          )
+          .getSingle();
 
       if ((existingProfiles.data['count'] as int) > 0) {
         _log.info('Profile from this computer already exists for dive $diveId');
@@ -634,10 +650,12 @@ class DiveComputerRepository {
       }
 
       // If this dive has no profiles yet, make this one primary
-      final hasProfiles = await _db.customSelect(
-        'SELECT COUNT(*) as count FROM dive_profiles WHERE dive_id = ?',
-        variables: [Variable(diveId)],
-      ).getSingle();
+      final hasProfiles = await _db
+          .customSelect(
+            'SELECT COUNT(*) as count FROM dive_profiles WHERE dive_id = ?',
+            variables: [Variable(diveId)],
+          )
+          .getSingle();
 
       if ((hasProfiles.data['count'] as int) == 0) {
         isPrimary = true;
@@ -645,7 +663,9 @@ class DiveComputerRepository {
 
       // Insert profile points (keeping legacy pressure for backward compatibility)
       for (final point in points) {
-        await _db.into(_db.diveProfiles).insert(
+        await _db
+            .into(_db.diveProfiles)
+            .insert(
               DiveProfilesCompanion(
                 id: Value(_uuid.v4()),
                 diveId: Value(diveId),
@@ -675,7 +695,9 @@ class DiveComputerRepository {
           final tankId = _uuid.v4();
           tankIdsByIndex[tank.index] = tankId;
 
-          await _db.into(_db.diveTanks).insert(
+          await _db
+              .into(_db.diveTanks)
+              .insert(
                 DiveTanksCompanion(
                   id: Value(tankId),
                   diveId: Value(diveId),
@@ -696,10 +718,11 @@ class DiveComputerRepository {
         }
       } else if (!isNewDive) {
         // For existing dives, fetch tank IDs
-        final existingTanks = await (_db.select(_db.diveTanks)
-              ..where((t) => t.diveId.equals(diveId!))
-              ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]))
-            .get();
+        final existingTanks =
+            await (_db.select(_db.diveTanks)
+                  ..where((t) => t.diveId.equals(diveId!))
+                  ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]))
+                .get();
         for (final tank in existingTanks) {
           tankIdsByIndex[tank.tankOrder] = tank.id;
         }
@@ -714,8 +737,10 @@ class DiveComputerRepository {
           if (point.pressure != null) {
             final tankIdx = point.tankIndex ?? 0;
             pressuresByTank.putIfAbsent(tankIdx, () => []);
-            pressuresByTank[tankIdx]!
-                .add((timestamp: point.timestamp, pressure: point.pressure!));
+            pressuresByTank[tankIdx]!.add((
+              timestamp: point.timestamp,
+              pressure: point.pressure!,
+            ));
           }
         }
 
@@ -836,7 +861,9 @@ class DiveComputerRepository {
     String? tankId,
   }) async {
     try {
-      await _db.into(_db.diveProfileEvents).insert(
+      await _db
+          .into(_db.diveProfileEvents)
+          .insert(
             DiveProfileEventsCompanion(
               id: Value(_uuid.v4()),
               diveId: Value(diveId),
@@ -858,9 +885,9 @@ class DiveComputerRepository {
   /// Delete all events for a dive
   Future<void> clearEventsForDive(String diveId) async {
     try {
-      await (_db.delete(_db.diveProfileEvents)
-            ..where((t) => t.diveId.equals(diveId)))
-          .go();
+      await (_db.delete(
+        _db.diveProfileEvents,
+      )..where((t) => t.diveId.equals(diveId))).go();
     } catch (e, stackTrace) {
       _log.error('Failed to clear events for dive: $diveId', e, stackTrace);
       rethrow;

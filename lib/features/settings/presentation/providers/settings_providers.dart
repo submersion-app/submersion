@@ -147,13 +147,15 @@ class AppSettings {
 
   /// Compute the current unit preset based on actual unit values
   UnitPreset get unitPreset {
-    final isAllMetric = depthUnit == DepthUnit.meters &&
+    final isAllMetric =
+        depthUnit == DepthUnit.meters &&
         temperatureUnit == TemperatureUnit.celsius &&
         pressureUnit == PressureUnit.bar &&
         volumeUnit == VolumeUnit.liters &&
         weightUnit == WeightUnit.kilograms;
 
-    final isAllImperial = depthUnit == DepthUnit.feet &&
+    final isAllImperial =
+        depthUnit == DepthUnit.feet &&
         temperatureUnit == TemperatureUnit.fahrenheit &&
         pressureUnit == PressureUnit.psi &&
         volumeUnit == VolumeUnit.cubicFeet &&
@@ -245,8 +247,9 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
 });
 
 /// Repository provider for diver settings
-final diverSettingsRepositoryProvider =
-    Provider<DiverSettingsRepository>((ref) {
+final diverSettingsRepositoryProvider = Provider<DiverSettingsRepository>((
+  ref,
+) {
   return DiverSettingsRepository();
 });
 
@@ -497,8 +500,9 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 }
 
 /// Settings provider
-final settingsProvider =
-    StateNotifierProvider<SettingsNotifier, AppSettings>((ref) {
+final settingsProvider = StateNotifierProvider<SettingsNotifier, AppSettings>((
+  ref,
+) {
   final repository = ref.watch(diverSettingsRepositoryProvider);
   return SettingsNotifier(repository, ref);
 });
@@ -587,13 +591,15 @@ final showDepthColoredDiveCardsProvider = Provider<bool>((ref) {
 });
 
 final showMapBackgroundOnDiveCardsProvider = Provider<bool>((ref) {
-  return ref
-      .watch(settingsProvider.select((s) => s.showMapBackgroundOnDiveCards));
+  return ref.watch(
+    settingsProvider.select((s) => s.showMapBackgroundOnDiveCards),
+  );
 });
 
 final showMapBackgroundOnSiteCardsProvider = Provider<bool>((ref) {
-  return ref
-      .watch(settingsProvider.select((s) => s.showMapBackgroundOnSiteCards));
+  return ref.watch(
+    settingsProvider.select((s) => s.showMapBackgroundOnSiteCards),
+  );
 });
 
 final showMaxDepthMarkerProvider = Provider<bool>((ref) {
@@ -601,6 +607,7 @@ final showMaxDepthMarkerProvider = Provider<bool>((ref) {
 });
 
 final showPressureThresholdMarkersProvider = Provider<bool>((ref) {
-  return ref
-      .watch(settingsProvider.select((s) => s.showPressureThresholdMarkers));
+  return ref.watch(
+    settingsProvider.select((s) => s.showPressureThresholdMarkers),
+  );
 });

@@ -13,8 +13,9 @@ class CertificationDetailPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final certificationAsync =
-        ref.watch(certificationByIdProvider(certificationId));
+    final certificationAsync = ref.watch(
+      certificationByIdProvider(certificationId),
+    );
 
     return certificationAsync.when(
       data: (certification) {
@@ -250,8 +251,8 @@ class _CertificationDetailContent extends ConsumerWidget {
           Text(
             certification.agency.displayName,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),
@@ -267,9 +268,9 @@ class _CertificationDetailContent extends ConsumerWidget {
           children: [
             Text(
               'Certification Details',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             _InfoRow(
@@ -309,9 +310,9 @@ class _CertificationDetailContent extends ConsumerWidget {
           children: [
             Text(
               'Dates',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             if (certification.issueDate != null)
@@ -328,8 +329,8 @@ class _CertificationDetailContent extends ConsumerWidget {
                 valueColor: certification.isExpired
                     ? Colors.red
                     : certification.expiresWithin(90)
-                        ? Colors.orange
-                        : null,
+                    ? Colors.orange
+                    : null,
               ),
             if (certification.expiryDate == null)
               const _InfoRow(
@@ -352,9 +353,9 @@ class _CertificationDetailContent extends ConsumerWidget {
           children: [
             Text(
               'Instructor',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             if (certification.instructorName != null)
@@ -384,9 +385,9 @@ class _CertificationDetailContent extends ConsumerWidget {
           children: [
             Text(
               'Card Photos',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             Row(
@@ -398,9 +399,9 @@ class _CertificationDetailContent extends ConsumerWidget {
                         Container(
                           height: 100,
                           decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .surfaceContainerHighest,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Center(
@@ -422,9 +423,9 @@ class _CertificationDetailContent extends ConsumerWidget {
                         Container(
                           height: 100,
                           decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .surfaceContainerHighest,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Center(
@@ -453,9 +454,9 @@ class _CertificationDetailContent extends ConsumerWidget {
           children: [
             Text(
               'Notes',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             Text(certification.notes),
@@ -514,17 +515,14 @@ class _InfoRow extends StatelessWidget {
           Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
+            child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
           ),
           Text(
             value,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: valueColor,
-                ),
+              fontWeight: FontWeight.bold,
+              color: valueColor,
+            ),
           ),
         ],
       ),

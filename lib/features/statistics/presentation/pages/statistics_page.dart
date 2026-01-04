@@ -252,17 +252,17 @@ class StatisticsPage extends ConsumerWidget {
               fit: BoxFit.scaleDown,
               child: Text(
                 value,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
             ),
             const SizedBox(height: 2),
             Text(
               label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -277,9 +277,9 @@ class StatisticsPage extends ConsumerWidget {
     final hasData = stats.divesByMonth.isNotEmpty;
     final maxCount = hasData
         ? stats.divesByMonth
-            .map((e) => e.count)
-            .reduce((a, b) => a > b ? a : b)
-            .toDouble()
+              .map((e) => e.count)
+              .reduce((a, b) => a > b ? a : b)
+              .toDouble()
         : 5.0;
 
     return Card(
@@ -307,8 +307,9 @@ class StatisticsPage extends ConsumerWidget {
                               return BarTooltipItem(
                                 '${data.fullLabel}\n${data.count} dives',
                                 TextStyle(
-                                  color:
-                                      Theme.of(context).colorScheme.onPrimary,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimary,
                                   fontWeight: FontWeight.bold,
                                 ),
                               );
@@ -328,8 +329,9 @@ class StatisticsPage extends ConsumerWidget {
                                     padding: const EdgeInsets.only(top: 8),
                                     child: Text(
                                       stats.divesByMonth[index].label,
-                                      style:
-                                          Theme.of(context).textTheme.bodySmall,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodySmall,
                                     ),
                                   );
                                 }
@@ -346,8 +348,9 @@ class StatisticsPage extends ConsumerWidget {
                                 if (value == value.roundToDouble()) {
                                   return Text(
                                     value.toInt().toString(),
-                                    style:
-                                        Theme.of(context).textTheme.bodySmall,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
                                   );
                                 }
                                 return const Text('');
@@ -396,21 +399,18 @@ class StatisticsPage extends ConsumerWidget {
                           Icon(
                             Icons.bar_chart,
                             size: 48,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .primary
-                                .withValues(alpha: 0.5),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primary.withValues(alpha: 0.5),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             'Chart will appear when you log dives',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
+                            style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurfaceVariant,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
                                 ),
                           ),
                         ],
@@ -501,8 +501,9 @@ class StatisticsPage extends ConsumerWidget {
                                     ? '$minDisplay${units.depthSymbol}+'
                                     : '$minDisplay-$maxDisplay${units.depthSymbol}';
                                 return Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 2),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 2,
+                                  ),
                                   child: Row(
                                     children: [
                                       Container(
@@ -510,17 +511,18 @@ class StatisticsPage extends ConsumerWidget {
                                         height: 12,
                                         decoration: BoxDecoration(
                                           color: colors[index % colors.length],
-                                          borderRadius:
-                                              BorderRadius.circular(2),
+                                          borderRadius: BorderRadius.circular(
+                                            2,
+                                          ),
                                         ),
                                       ),
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
                                           label,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall,
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.bodySmall,
                                         ),
                                       ),
                                     ],
@@ -539,21 +541,18 @@ class StatisticsPage extends ConsumerWidget {
                           Icon(
                             Icons.pie_chart,
                             size: 48,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .primary
-                                .withValues(alpha: 0.5),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primary.withValues(alpha: 0.5),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             'Chart will appear when you log dives',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
+                            style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurfaceVariant,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
                                 ),
                           ),
                         ],
@@ -590,15 +589,15 @@ class StatisticsPage extends ConsumerWidget {
       children: [
         Text(
           value,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
       ],
     );
@@ -624,8 +623,8 @@ class StatisticsPage extends ConsumerWidget {
                   Text(
                     '${stats.totalSites} total',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
               ],
             ),
@@ -650,19 +649,16 @@ class StatisticsPage extends ConsumerWidget {
                       Icon(
                         Icons.location_on,
                         size: 48,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .primary
-                            .withValues(alpha: 0.5),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primary.withValues(alpha: 0.5),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'No dive sites yet',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
-                            ),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),
@@ -767,33 +763,28 @@ class StatisticsPage extends ConsumerWidget {
                               Icon(
                                 Icons.label_outline,
                                 size: 48,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .primary
-                                    .withValues(alpha: 0.5),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withValues(alpha: 0.5),
                               ),
                               const SizedBox(height: 8),
                               Text(
                                 'No tags created yet',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
+                                style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurfaceVariant,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
                                     ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 'Add tags to dives to see statistics',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
+                                style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurfaceVariant,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
                                     ),
                               ),
                             ],
@@ -825,17 +816,19 @@ class StatisticsPage extends ConsumerWidget {
                         ),
                         Text(
                           '${tagStats.length} tags',
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant,
-                                  ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
                         ),
                       ],
                     ),
                     const Divider(),
-                    ...tagStats.take(10).map(
+                    ...tagStats
+                        .take(10)
+                        .map(
                           (stat) => _buildTagStatTile(
                             context,
                             stat.tag.name,
@@ -849,12 +842,12 @@ class StatisticsPage extends ConsumerWidget {
                       Center(
                         child: Text(
                           'and ${tagStats.length - 10} more tags',
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant,
-                                  ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
                         ),
                       ),
                     ],
@@ -869,7 +862,7 @@ class StatisticsPage extends ConsumerWidget {
               child: Center(child: CircularProgressIndicator()),
             ),
           ),
-          error: (_, __) => const SizedBox.shrink(),
+          error: (_, _) => const SizedBox.shrink(),
         );
       },
     );
@@ -911,9 +904,8 @@ class StatisticsPage extends ConsumerWidget {
                     Text(
                       '$diveCount ${diveCount == 1 ? 'dive' : 'dives'}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),

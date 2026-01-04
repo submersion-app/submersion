@@ -40,19 +40,12 @@ class SummaryStepWidget extends ConsumerWidget {
               shape: BoxShape.circle,
               color: colorScheme.primaryContainer,
             ),
-            child: Icon(
-              Icons.check,
-              size: 56,
-              color: colorScheme.primary,
-            ),
+            child: Icon(Icons.check, size: 56, color: colorScheme.primary),
           ),
           const SizedBox(height: 24),
 
           // Title
-          Text(
-            'Download Complete!',
-            style: theme.textTheme.headlineSmall,
-          ),
+          Text('Download Complete!', style: theme.textTheme.headlineSmall),
           const SizedBox(height: 8),
 
           // Summary
@@ -101,10 +94,7 @@ class SummaryStepWidget extends ConsumerWidget {
                         ],
                       ),
                     ),
-                    Icon(
-                      Icons.check_circle,
-                      color: colorScheme.primary,
-                    ),
+                    Icon(Icons.check_circle, color: colorScheme.primary),
                   ],
                 ),
               ),
@@ -154,10 +144,7 @@ class SummaryStepWidget extends ConsumerWidget {
             label: const Text('View Dives'),
           ),
           const SizedBox(height: 12),
-          OutlinedButton(
-            onPressed: onDone,
-            child: const Text('Done'),
-          ),
+          OutlinedButton(onPressed: onDone, child: const Text('Done')),
         ],
       ),
     );
@@ -178,10 +165,7 @@ class SummaryStepWidget extends ConsumerWidget {
         children: [
           Icon(icon, color: iconColor, size: 20),
           const SizedBox(width: 12),
-          Text(
-            label,
-            style: theme.textTheme.bodyMedium,
-          ),
+          Text(label, style: theme.textTheme.bodyMedium),
           const Spacer(),
           Text(
             value,

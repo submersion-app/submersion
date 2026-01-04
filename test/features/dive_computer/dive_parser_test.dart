@@ -322,11 +322,7 @@ void main() {
 
   group('SafetyStopInfo', () {
     test('holds safety stop data', () {
-      const info = SafetyStopInfo(
-        startTime: 600,
-        duration: 180,
-        depth: 5.0,
-      );
+      const info = SafetyStopInfo(startTime: 600, duration: 180, depth: 5.0);
 
       expect(info.startTime, equals(600));
       expect(info.duration, equals(180));
@@ -411,10 +407,7 @@ void main() {
     });
 
     test('can be created with minimal data', () {
-      const sample = ProfileSample(
-        timeSeconds: 60,
-        depth: 10.0,
-      );
+      const sample = ProfileSample(timeSeconds: 60, depth: 10.0);
 
       expect(sample.timeSeconds, equals(60));
       expect(sample.depth, equals(10.0));

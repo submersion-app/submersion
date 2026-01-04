@@ -12,17 +12,20 @@ final tripRepositoryProvider = Provider<TripRepository>((ref) {
 /// All trips provider
 final allTripsProvider = FutureProvider<List<Trip>>((ref) async {
   final repository = ref.watch(tripRepositoryProvider);
-  final validatedDiverId =
-      await ref.watch(validatedCurrentDiverIdProvider.future);
+  final validatedDiverId = await ref.watch(
+    validatedCurrentDiverIdProvider.future,
+  );
   return repository.getAllTrips(diverId: validatedDiverId);
 });
 
 /// All trips with stats provider
-final allTripsWithStatsProvider =
-    FutureProvider<List<TripWithStats>>((ref) async {
+final allTripsWithStatsProvider = FutureProvider<List<TripWithStats>>((
+  ref,
+) async {
   final repository = ref.watch(tripRepositoryProvider);
-  final validatedDiverId =
-      await ref.watch(validatedCurrentDiverIdProvider.future);
+  final validatedDiverId = await ref.watch(
+    validatedCurrentDiverIdProvider.future,
+  );
   return repository.getAllTripsWithStats(diverId: validatedDiverId);
 });
 
@@ -33,24 +36,31 @@ final tripByIdProvider = FutureProvider.family<Trip?, String>((ref, id) async {
 });
 
 /// Trip with stats provider
-final tripWithStatsProvider =
-    FutureProvider.family<TripWithStats, String>((ref, tripId) async {
+final tripWithStatsProvider = FutureProvider.family<TripWithStats, String>((
+  ref,
+  tripId,
+) async {
   final repository = ref.watch(tripRepositoryProvider);
   return repository.getTripWithStats(tripId);
 });
 
 /// Dives for a trip provider
-final diveIdsForTripProvider =
-    FutureProvider.family<List<String>, String>((ref, tripId) async {
+final diveIdsForTripProvider = FutureProvider.family<List<String>, String>((
+  ref,
+  tripId,
+) async {
   final repository = ref.watch(tripRepositoryProvider);
   return repository.getDiveIdsForTrip(tripId);
 });
 
 /// Trip search provider
-final tripSearchProvider =
-    FutureProvider.family<List<Trip>, String>((ref, query) async {
-  final validatedDiverId =
-      await ref.watch(validatedCurrentDiverIdProvider.future);
+final tripSearchProvider = FutureProvider.family<List<Trip>, String>((
+  ref,
+  query,
+) async {
+  final validatedDiverId = await ref.watch(
+    validatedCurrentDiverIdProvider.future,
+  );
   if (query.isEmpty) {
     return ref.watch(allTripsProvider).value ?? [];
   }
@@ -59,11 +69,14 @@ final tripSearchProvider =
 });
 
 /// Find trip for a specific date
-final tripForDateProvider =
-    FutureProvider.family<Trip?, DateTime>((ref, date) async {
+final tripForDateProvider = FutureProvider.family<Trip?, DateTime>((
+  ref,
+  date,
+) async {
   final repository = ref.watch(tripRepositoryProvider);
-  final validatedDiverId =
-      await ref.watch(validatedCurrentDiverIdProvider.future);
+  final validatedDiverId = await ref.watch(
+    validatedCurrentDiverIdProvider.future,
+  );
   return repository.findTripForDate(date, diverId: validatedDiverId);
 });
 
@@ -74,7 +87,7 @@ class TripListNotifier extends StateNotifier<AsyncValue<List<TripWithStats>>> {
   String? _validatedDiverId;
 
   TripListNotifier(this._repository, this._ref)
-      : super(const AsyncValue.loading()) {
+    : super(const AsyncValue.loading()) {
     _initializeAndLoad();
 
     // Listen for diver changes and reload
@@ -90,8 +103,9 @@ class TripListNotifier extends StateNotifier<AsyncValue<List<TripWithStats>>> {
   Future<void> _initializeAndLoad() async {
     state = const AsyncValue.loading();
     try {
-      final validatedId =
-          await _ref.read(validatedCurrentDiverIdProvider.future);
+      final validatedId = await _ref.read(
+        validatedCurrentDiverIdProvider.future,
+      );
       _validatedDiverId = validatedId;
       await _loadTrips();
     } catch (e, st) {
@@ -102,8 +116,9 @@ class TripListNotifier extends StateNotifier<AsyncValue<List<TripWithStats>>> {
   Future<void> _loadTrips() async {
     state = const AsyncValue.loading();
     try {
-      final trips =
-          await _repository.getAllTripsWithStats(diverId: _validatedDiverId);
+      final trips = await _repository.getAllTripsWithStats(
+        diverId: _validatedDiverId,
+      );
       state = AsyncValue.data(trips);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -113,8 +128,9 @@ class TripListNotifier extends StateNotifier<AsyncValue<List<TripWithStats>>> {
   Future<void> refresh() async {
     try {
       // Get fresh validated diver ID before loading
-      final validatedId =
-          await _ref.read(validatedCurrentDiverIdProvider.future);
+      final validatedId = await _ref.read(
+        validatedCurrentDiverIdProvider.future,
+      );
       _validatedDiverId = validatedId;
       await _loadTrips();
       _ref.invalidate(allTripsProvider);
@@ -130,8 +146,9 @@ class TripListNotifier extends StateNotifier<AsyncValue<List<TripWithStats>>> {
 
     // Always set diverId to the current validated diver for new trips
     // This ensures the trip's diverId matches the filter used to display it
-    final tripWithDiver =
-        validatedId != null ? trip.copyWith(diverId: validatedId) : trip;
+    final tripWithDiver = validatedId != null
+        ? trip.copyWith(diverId: validatedId)
+        : trip;
     final newTrip = await _repository.createTrip(tripWithDiver);
     await refresh();
     return newTrip;
@@ -165,8 +182,9 @@ class TripListNotifier extends StateNotifier<AsyncValue<List<TripWithStats>>> {
 }
 
 final tripListNotifierProvider =
-    StateNotifierProvider<TripListNotifier, AsyncValue<List<TripWithStats>>>(
-        (ref) {
-  final repository = ref.watch(tripRepositoryProvider);
-  return TripListNotifier(repository, ref);
-});
+    StateNotifierProvider<TripListNotifier, AsyncValue<List<TripWithStats>>>((
+      ref,
+    ) {
+      final repository = ref.watch(tripRepositoryProvider);
+      return TripListNotifier(repository, ref);
+    });

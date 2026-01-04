@@ -96,18 +96,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/dashboard',
             name: 'dashboard',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: DashboardPage(),
-            ),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: DashboardPage()),
           ),
 
           // Dive Log
           GoRoute(
             path: '/dives',
             name: 'dives',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: DiveListPage(),
-            ),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: DiveListPage()),
             routes: [
               GoRoute(
                 path: 'new',
@@ -117,16 +115,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':diveId',
                 name: 'diveDetail',
-                builder: (context, state) => DiveDetailPage(
-                  diveId: state.pathParameters['diveId']!,
-                ),
+                builder: (context, state) =>
+                    DiveDetailPage(diveId: state.pathParameters['diveId']!),
                 routes: [
                   GoRoute(
                     path: 'edit',
                     name: 'editDive',
-                    builder: (context, state) => DiveEditPage(
-                      diveId: state.pathParameters['diveId'],
-                    ),
+                    builder: (context, state) =>
+                        DiveEditPage(diveId: state.pathParameters['diveId']),
                   ),
                 ],
               ),
@@ -137,9 +133,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/sites',
             name: 'sites',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: SiteListPage(),
-            ),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: SiteListPage()),
             routes: [
               GoRoute(
                 path: 'map',
@@ -159,16 +154,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':siteId',
                 name: 'siteDetail',
-                builder: (context, state) => SiteDetailPage(
-                  siteId: state.pathParameters['siteId']!,
-                ),
+                builder: (context, state) =>
+                    SiteDetailPage(siteId: state.pathParameters['siteId']!),
                 routes: [
                   GoRoute(
                     path: 'edit',
                     name: 'editSite',
-                    builder: (context, state) => SiteEditPage(
-                      siteId: state.pathParameters['siteId'],
-                    ),
+                    builder: (context, state) =>
+                        SiteEditPage(siteId: state.pathParameters['siteId']),
                   ),
                 ],
               ),
@@ -179,9 +172,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/equipment',
             name: 'equipment',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: EquipmentListPage(),
-            ),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: EquipmentListPage()),
             routes: [
               GoRoute(
                 path: 'new',
@@ -239,9 +231,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/buddies',
             name: 'buddies',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: BuddyListPage(),
-            ),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: BuddyListPage()),
             routes: [
               GoRoute(
                 path: 'new',
@@ -258,16 +249,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':buddyId',
                 name: 'buddyDetail',
-                builder: (context, state) => BuddyDetailPage(
-                  buddyId: state.pathParameters['buddyId']!,
-                ),
+                builder: (context, state) =>
+                    BuddyDetailPage(buddyId: state.pathParameters['buddyId']!),
                 routes: [
                   GoRoute(
                     path: 'edit',
                     name: 'editBuddy',
-                    builder: (context, state) => BuddyEditPage(
-                      buddyId: state.pathParameters['buddyId'],
-                    ),
+                    builder: (context, state) =>
+                        BuddyEditPage(buddyId: state.pathParameters['buddyId']),
                   ),
                 ],
               ),
@@ -278,9 +267,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/divers',
             name: 'divers',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: DiverListPage(),
-            ),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: DiverListPage()),
             routes: [
               GoRoute(
                 path: 'new',
@@ -290,16 +278,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':diverId',
                 name: 'diverDetail',
-                builder: (context, state) => DiverDetailPage(
-                  diverId: state.pathParameters['diverId']!,
-                ),
+                builder: (context, state) =>
+                    DiverDetailPage(diverId: state.pathParameters['diverId']!),
                 routes: [
                   GoRoute(
                     path: 'edit',
                     name: 'editDiver',
-                    builder: (context, state) => DiverEditPage(
-                      diverId: state.pathParameters['diverId'],
-                    ),
+                    builder: (context, state) =>
+                        DiverEditPage(diverId: state.pathParameters['diverId']),
                   ),
                 ],
               ),
@@ -310,9 +296,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/certifications',
             name: 'certifications',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: CertificationListPage(),
-            ),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: CertificationListPage()),
             routes: [
               GoRoute(
                 path: 'new',
@@ -342,9 +327,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/dive-centers',
             name: 'diveCenters',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: DiveCenterListPage(),
-            ),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: DiveCenterListPage()),
             routes: [
               GoRoute(
                 path: 'new',
@@ -374,9 +358,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/trips',
             name: 'trips',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: TripListPage(),
-            ),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: TripListPage()),
             routes: [
               GoRoute(
                 path: 'new',
@@ -386,16 +369,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':tripId',
                 name: 'tripDetail',
-                builder: (context, state) => TripDetailPage(
-                  tripId: state.pathParameters['tripId']!,
-                ),
+                builder: (context, state) =>
+                    TripDetailPage(tripId: state.pathParameters['tripId']!),
                 routes: [
                   GoRoute(
                     path: 'edit',
                     name: 'editTrip',
-                    builder: (context, state) => TripEditPage(
-                      tripId: state.pathParameters['tripId'],
-                    ),
+                    builder: (context, state) =>
+                        TripEditPage(tripId: state.pathParameters['tripId']),
                   ),
                 ],
               ),
@@ -406,9 +387,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/statistics',
             name: 'statistics',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: StatisticsPage(),
-            ),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: StatisticsPage()),
             routes: [
               GoRoute(
                 path: 'gas',
@@ -462,18 +442,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/records',
             name: 'records',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: RecordsPage(),
-            ),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: RecordsPage()),
           ),
 
           // Settings
           GoRoute(
             path: '/settings',
             name: 'settings',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: SettingsPage(),
-            ),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: SettingsPage()),
             routes: [
               GoRoute(
                 path: 'api-keys',

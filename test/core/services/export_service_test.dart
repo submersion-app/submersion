@@ -18,24 +18,24 @@ void main() {
     // Mock the path_provider channel
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('plugins.flutter.io/path_provider'),
-      (MethodCall methodCall) async {
-        if (methodCall.method == 'getApplicationDocumentsDirectory') {
-          return testDir.path;
-        }
-        return null;
-      },
-    );
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          (MethodCall methodCall) async {
+            if (methodCall.method == 'getApplicationDocumentsDirectory') {
+              return testDir.path;
+            }
+            return null;
+          },
+        );
 
     // Mock the share_plus channel
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('dev.fluttercommunity.plus/share'),
-      (MethodCall methodCall) async {
-        // Return success for shareFiles
-        return null;
-      },
-    );
+          const MethodChannel('dev.fluttercommunity.plus/share'),
+          (MethodCall methodCall) async {
+            // Return success for shareFiles
+            return null;
+          },
+        );
   });
 
   tearDownAll(() async {
@@ -105,31 +105,33 @@ void main() {
       expect(csvOutput, contains("'@ATFORMULA()"));
     });
 
-    test('exportTripsToCsv sanitizes tab and carriage return characters',
-        () async {
-      final now = DateTime.now();
-      final dangerousTrips = [
-        Trip(
-          id: 'test-1',
-          name: '\tTABFORMULA()',
-          startDate: DateTime(2024, 1, 1),
-          endDate: DateTime(2024, 1, 2),
-          location: '\rCRFORMULA()',
-          resortName: '|PIPEFORMULA()',
-          notes: '',
-          createdAt: now,
-          updatedAt: now,
-        ),
-      ];
+    test(
+      'exportTripsToCsv sanitizes tab and carriage return characters',
+      () async {
+        final now = DateTime.now();
+        final dangerousTrips = [
+          Trip(
+            id: 'test-1',
+            name: '\tTABFORMULA()',
+            startDate: DateTime(2024, 1, 1),
+            endDate: DateTime(2024, 1, 2),
+            location: '\rCRFORMULA()',
+            resortName: '|PIPEFORMULA()',
+            notes: '',
+            createdAt: now,
+            updatedAt: now,
+          ),
+        ];
 
-      final filePath = await exportService.exportTripsToCsv(dangerousTrips);
-      final csvOutput = await readCsvFromPath(filePath);
+        final filePath = await exportService.exportTripsToCsv(dangerousTrips);
+        final csvOutput = await readCsvFromPath(filePath);
 
-      // Tab, carriage return, and pipe characters should be prefixed with single quote
-      expect(csvOutput, contains("'\tTABFORMULA()"));
-      expect(csvOutput, contains("'\rCRFORMULA()"));
-      expect(csvOutput, contains("'|PIPEFORMULA()"));
-    });
+        // Tab, carriage return, and pipe characters should be prefixed with single quote
+        expect(csvOutput, contains("'\tTABFORMULA()"));
+        expect(csvOutput, contains("'\rCRFORMULA()"));
+        expect(csvOutput, contains("'|PIPEFORMULA()"));
+      },
+    );
 
     test('exportTripsToCsv does not modify safe strings', () async {
       final now = DateTime.now();
@@ -161,28 +163,30 @@ void main() {
       expect(csvOutput, isNot(contains("'Maldives")));
     });
 
-    test('exportTripsToCsv handles strings starting with hyphen in middle',
-        () async {
-      // A hyphen in the middle of a string should not be prefixed
-      final now = DateTime.now();
-      final trip = Trip(
-        id: 'test-1',
-        name: 'Red Sea - Best Diving',
-        startDate: DateTime(2024, 1, 1),
-        endDate: DateTime(2024, 1, 7),
-        location: 'Egypt',
-        notes: '',
-        createdAt: now,
-        updatedAt: now,
-      );
+    test(
+      'exportTripsToCsv handles strings starting with hyphen in middle',
+      () async {
+        // A hyphen in the middle of a string should not be prefixed
+        final now = DateTime.now();
+        final trip = Trip(
+          id: 'test-1',
+          name: 'Red Sea - Best Diving',
+          startDate: DateTime(2024, 1, 1),
+          endDate: DateTime(2024, 1, 7),
+          location: 'Egypt',
+          notes: '',
+          createdAt: now,
+          updatedAt: now,
+        );
 
-      final filePath = await exportService.exportTripsToCsv([trip]);
-      final csvOutput = await readCsvFromPath(filePath);
+        final filePath = await exportService.exportTripsToCsv([trip]);
+        final csvOutput = await readCsvFromPath(filePath);
 
-      // The hyphen is not at the start, so no sanitization needed
-      expect(csvOutput, contains('Red Sea - Best Diving'));
-      expect(csvOutput, isNot(contains("'Red Sea - Best Diving")));
-    });
+        // The hyphen is not at the start, so no sanitization needed
+        expect(csvOutput, contains('Red Sea - Best Diving'));
+        expect(csvOutput, isNot(contains("'Red Sea - Best Diving")));
+      },
+    );
 
     test('exportTripsToCsv sanitizes notes field', () async {
       final now = DateTime.now();

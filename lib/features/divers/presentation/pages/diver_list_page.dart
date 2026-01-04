@@ -14,9 +14,7 @@ class DiverListPage extends ConsumerWidget {
     final currentDiverId = ref.watch(currentDiverIdProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Diver Profiles'),
-      ),
+      appBar: AppBar(title: const Text('Diver Profiles')),
       body: diversAsync.when(
         data: (divers) => divers.isEmpty
             ? _buildEmptyState(context)
@@ -105,8 +103,8 @@ class DiverListPage extends ConsumerWidget {
           Text(
             'Add diver profiles to track dive logs for multiple people',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
@@ -243,7 +241,7 @@ class DiverListTile extends ConsumerWidget {
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      error: (_, __) => Text(
+                      error: (_, _) => Text(
                         'Error loading stats',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.error,

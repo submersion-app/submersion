@@ -12,10 +12,7 @@ import '../providers/download_providers.dart';
 class DeviceDetailPage extends ConsumerWidget {
   final String computerId;
 
-  const DeviceDetailPage({
-    super.key,
-    required this.computerId,
-  });
+  const DeviceDetailPage({super.key, required this.computerId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -168,11 +165,7 @@ class DeviceDetailPage extends ConsumerWidget {
               'Manufacturer',
               computer.manufacturer ?? 'Unknown',
             ),
-            _buildInfoRow(
-              context,
-              'Model',
-              computer.model ?? 'Unknown',
-            ),
+            _buildInfoRow(context, 'Model', computer.model ?? 'Unknown'),
             _buildInfoRow(
               context,
               'Connection',
@@ -203,10 +196,7 @@ class DeviceDetailPage extends ConsumerWidget {
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
-          Text(
-            value,
-            style: theme.textTheme.bodyMedium,
-          ),
+          Text(value, style: theme.textTheme.bodyMedium),
         ],
       ),
     );
@@ -227,10 +217,7 @@ class DeviceDetailPage extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Statistics',
-              style: theme.textTheme.titleMedium,
-            ),
+            Text('Statistics', style: theme.textTheme.titleMedium),
             const SizedBox(height: 16),
             // Basic stats row
             Row(
@@ -280,7 +267,7 @@ class DeviceDetailPage extends ConsumerWidget {
                   ),
                 ),
               ),
-              error: (_, __) => const SizedBox.shrink(),
+              error: (_, _) => const SizedBox.shrink(),
             ),
           ],
         ),
@@ -525,15 +512,9 @@ class DeviceDetailPage extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Notes',
-              style: theme.textTheme.titleMedium,
-            ),
+            Text('Notes', style: theme.textTheme.titleMedium),
             const SizedBox(height: 8),
-            Text(
-              computer.notes,
-              style: theme.textTheme.bodyMedium,
-            ),
+            Text(computer.notes, style: theme.textTheme.bodyMedium),
           ],
         ),
       ),

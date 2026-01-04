@@ -104,20 +104,20 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
       state = state.copyWith(showPressureThresholdMarkers: value);
   @override
   Future<void> setMetric() async => state = state.copyWith(
-        depthUnit: DepthUnit.meters,
-        temperatureUnit: TemperatureUnit.celsius,
-        pressureUnit: PressureUnit.bar,
-        volumeUnit: VolumeUnit.liters,
-        weightUnit: WeightUnit.kilograms,
-      );
+    depthUnit: DepthUnit.meters,
+    temperatureUnit: TemperatureUnit.celsius,
+    pressureUnit: PressureUnit.bar,
+    volumeUnit: VolumeUnit.liters,
+    weightUnit: WeightUnit.kilograms,
+  );
   @override
   Future<void> setImperial() async => state = state.copyWith(
-        depthUnit: DepthUnit.feet,
-        temperatureUnit: TemperatureUnit.fahrenheit,
-        pressureUnit: PressureUnit.psi,
-        volumeUnit: VolumeUnit.cubicFeet,
-        weightUnit: WeightUnit.pounds,
-      );
+    depthUnit: DepthUnit.feet,
+    temperatureUnit: TemperatureUnit.fahrenheit,
+    pressureUnit: PressureUnit.psi,
+    volumeUnit: VolumeUnit.cubicFeet,
+    weightUnit: WeightUnit.pounds,
+  );
 }
 
 /// Mock CurrentDiverIdNotifier that doesn't access the database
@@ -157,8 +157,9 @@ void main() {
         // Mock the settingsProvider to avoid database access
         settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
         // Mock the currentDiverIdProvider to avoid database access
-        currentDiverIdProvider
-            .overrideWith((ref) => _MockCurrentDiverIdNotifier()),
+        currentDiverIdProvider.overrideWith(
+          (ref) => _MockCurrentDiverIdNotifier(),
+        ),
       ];
     }
 
@@ -166,23 +167,20 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: getOverrides(),
-          child: const MaterialApp(
-            home: RecordsPage(),
-          ),
+          child: const MaterialApp(home: RecordsPage()),
         ),
       );
 
       expect(find.text('Dive Records'), findsOneWidget);
     });
 
-    testWidgets('should display empty state when no records exist',
-        (tester) async {
+    testWidgets('should display empty state when no records exist', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: getOverrides(),
-          child: const MaterialApp(
-            home: RecordsPage(),
-          ),
+          child: const MaterialApp(home: RecordsPage()),
         ),
       );
       await tester.pumpAndSettle();
@@ -198,9 +196,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: getOverrides(),
-          child: const MaterialApp(
-            home: RecordsPage(),
-          ),
+          child: const MaterialApp(home: RecordsPage()),
         ),
       );
       await tester.pumpAndSettle();
@@ -208,8 +204,9 @@ void main() {
       expect(find.byIcon(Icons.refresh), findsOneWidget);
     });
 
-    testWidgets('should display record cards when records exist',
-        (tester) async {
+    testWidgets('should display record cards when records exist', (
+      tester,
+    ) async {
       final records = DiveRecords(
         deepestDive: DiveRecord(
           diveId: '1',
@@ -229,12 +226,8 @@ void main() {
 
       await tester.pumpWidget(
         ProviderScope(
-          overrides: getOverrides(
-            diveRecordsOverride: (ref) async => records,
-          ),
-          child: const MaterialApp(
-            home: RecordsPage(),
-          ),
+          overrides: getOverrides(diveRecordsOverride: (ref) async => records),
+          child: const MaterialApp(home: RecordsPage()),
         ),
       );
       await tester.pumpAndSettle();
@@ -252,9 +245,7 @@ void main() {
               throw Exception('Failed to load records');
             },
           ),
-          child: const MaterialApp(
-            home: RecordsPage(),
-          ),
+          child: const MaterialApp(home: RecordsPage()),
         ),
       );
       await tester.pumpAndSettle();

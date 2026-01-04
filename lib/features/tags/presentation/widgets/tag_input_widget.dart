@@ -226,11 +226,7 @@ class TagChips extends StatelessWidget {
   final List<Tag> tags;
   final int maxTags;
 
-  const TagChips({
-    super.key,
-    required this.tags,
-    this.maxTags = 3,
-  });
+  const TagChips({super.key, required this.tags, this.maxTags = 3});
 
   @override
   Widget build(BuildContext context) {
@@ -253,10 +249,7 @@ class TagChips extends StatelessWidget {
             ),
             child: Text(
               tag.name,
-              style: TextStyle(
-                fontSize: 11,
-                color: tag.color,
-              ),
+              style: TextStyle(fontSize: 11, color: tag.color),
             ),
           ),
         ),
@@ -269,10 +262,7 @@ class TagChips extends StatelessWidget {
             ),
             child: Text(
               '+$remaining',
-              style: TextStyle(
-                fontSize: 11,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 11, color: Colors.grey[600]),
             ),
           ),
       ],
@@ -305,10 +295,7 @@ class TagManagementDialog extends ConsumerWidget {
               itemBuilder: (context, index) {
                 final tag = tags[index];
                 return ListTile(
-                  leading: CircleAvatar(
-                    radius: 16,
-                    backgroundColor: tag.color,
-                  ),
+                  leading: CircleAvatar(radius: 16, backgroundColor: tag.color),
                   title: Text(tag.name),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete_outline),
@@ -394,16 +381,14 @@ class TagManagementDialog extends ConsumerWidget {
                         color: TagColors.fromHex(color),
                         shape: BoxShape.circle,
                         border: isSelected
-                            ? Border.all(
-                                color: Colors.white,
-                                width: 3,
-                              )
+                            ? Border.all(color: Colors.white, width: 3)
                             : null,
                         boxShadow: isSelected
                             ? [
                                 BoxShadow(
-                                  color: TagColors.fromHex(color)
-                                      .withValues(alpha: 0.5),
+                                  color: TagColors.fromHex(
+                                    color,
+                                  ).withValues(alpha: 0.5),
                                   blurRadius: 8,
                                 ),
                               ]
@@ -423,7 +408,9 @@ class TagManagementDialog extends ConsumerWidget {
             TextButton(
               onPressed: () {
                 if (controller.text.trim().isNotEmpty) {
-                  ref.read(tagListNotifierProvider.notifier).updateTag(
+                  ref
+                      .read(tagListNotifierProvider.notifier)
+                      .updateTag(
                         tag.copyWith(
                           name: controller.text.trim(),
                           colorHex: selectedColor,
@@ -468,8 +455,9 @@ class TagColorPicker extends StatelessWidget {
             decoration: BoxDecoration(
               color: TagColors.fromHex(color),
               shape: BoxShape.circle,
-              border:
-                  isSelected ? Border.all(color: Colors.white, width: 2) : null,
+              border: isSelected
+                  ? Border.all(color: Colors.white, width: 2)
+                  : null,
               boxShadow: isSelected
                   ? [
                       BoxShadow(

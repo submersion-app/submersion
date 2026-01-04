@@ -141,8 +141,9 @@ class ApiKeyNotifier extends StateNotifier<ApiKeyState> {
 }
 
 /// Provider for API key state.
-final apiKeyProvider =
-    StateNotifierProvider<ApiKeyNotifier, ApiKeyState>((ref) {
+final apiKeyProvider = StateNotifierProvider<ApiKeyNotifier, ApiKeyState>((
+  ref,
+) {
   return ApiKeyNotifier();
 });
 

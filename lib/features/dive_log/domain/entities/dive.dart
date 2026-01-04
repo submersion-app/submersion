@@ -371,53 +371,53 @@ class Dive extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        diverId,
-        diveNumber,
-        dateTime,
-        entryTime,
-        exitTime,
-        duration,
-        runtime,
-        maxDepth,
-        avgDepth,
-        site,
-        diveCenter,
-        trip,
-        tripId,
-        tanks,
-        profile,
-        equipment,
-        notes,
-        photoIds,
-        sightings,
-        waterTemp,
-        airTemp,
-        visibility,
-        diveTypeId,
-        diveType,
-        buddy,
-        diveMaster,
-        rating,
-        currentDirection,
-        currentStrength,
-        swellHeight,
-        entryMethod,
-        exitMethod,
-        waterType,
-        altitude,
-        surfacePressure,
-        surfaceInterval,
-        gradientFactorLow,
-        gradientFactorHigh,
-        diveComputerModel,
-        diveComputerSerial,
-        weightAmount,
-        weightType,
-        weights,
-        isFavorite,
-        tags,
-      ];
+    id,
+    diverId,
+    diveNumber,
+    dateTime,
+    entryTime,
+    exitTime,
+    duration,
+    runtime,
+    maxDepth,
+    avgDepth,
+    site,
+    diveCenter,
+    trip,
+    tripId,
+    tanks,
+    profile,
+    equipment,
+    notes,
+    photoIds,
+    sightings,
+    waterTemp,
+    airTemp,
+    visibility,
+    diveTypeId,
+    diveType,
+    buddy,
+    diveMaster,
+    rating,
+    currentDirection,
+    currentStrength,
+    swellHeight,
+    entryMethod,
+    exitMethod,
+    waterType,
+    altitude,
+    surfacePressure,
+    surfaceInterval,
+    gradientFactorLow,
+    gradientFactorHigh,
+    diveComputerModel,
+    diveComputerSerial,
+    weightAmount,
+    weightType,
+    weights,
+    isFavorite,
+    tags,
+  ];
 }
 
 /// Single point in the dive profile time series
@@ -437,8 +437,13 @@ class DiveProfilePoint extends Equatable {
   });
 
   @override
-  List<Object?> get props =>
-      [timestamp, depth, pressure, temperature, heartRate];
+  List<Object?> get props => [
+    timestamp,
+    depth,
+    pressure,
+    temperature,
+    heartRate,
+  ];
 }
 
 /// Per-tank pressure reading at a specific timestamp
@@ -527,18 +532,18 @@ class DiveTank extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        name,
-        volume,
-        workingPressure,
-        startPressure,
-        endPressure,
-        gasMix,
-        role,
-        material,
-        order,
-        presetName,
-      ];
+    id,
+    name,
+    volume,
+    workingPressure,
+    startPressure,
+    endPressure,
+    gasMix,
+    role,
+    material,
+    order,
+    presetName,
+  ];
 }
 
 /// Gas mixture (Air, Nitrox, Trimix)
@@ -546,10 +551,7 @@ class GasMix extends Equatable {
   final double o2; // percentage 0-100
   final double he; // percentage 0-100
 
-  const GasMix({
-    this.o2 = 21.0,
-    this.he = 0.0,
-  });
+  const GasMix({this.o2 = 21.0, this.he = 0.0});
 
   double get n2 => 100.0 - o2 - he;
 

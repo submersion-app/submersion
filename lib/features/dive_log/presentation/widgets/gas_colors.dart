@@ -62,9 +62,6 @@ class GasColors {
 
   /// Get gradient colors for a gas type (for chart fills)
   static List<Color> gradientColors(Color gasColor) {
-    return [
-      gasColor.withValues(alpha: 0.05),
-      gasColor.withValues(alpha: 0.3),
-    ];
+    return [gasColor.withValues(alpha: 0.05), gasColor.withValues(alpha: 0.3)];
   }
 }

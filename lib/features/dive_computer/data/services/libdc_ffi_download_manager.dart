@@ -244,9 +244,7 @@ class LibdcFfiDownloadManager implements DownloadManager {
         downloadedDives.add(convertedDive);
         _divesController.add(convertedDive);
 
-        _updateProgress(
-          DownloadProgress.downloading(i + 1, libdcDives.length),
-        );
+        _updateProgress(DownloadProgress.downloading(i + 1, libdcDives.length));
       }
 
       if (_isCancelled) {

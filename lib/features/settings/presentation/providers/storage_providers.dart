@@ -33,34 +33,33 @@ class StoragePlatformCapabilities {
 /// Platform capabilities provider
 final storagePlatformCapabilitiesProvider =
     Provider<StoragePlatformCapabilities>((ref) {
-  return StoragePlatformCapabilities(
-    // Custom folder is supported on all platforms:
-    // - macOS: Uses security-scoped bookmarks for persistent access
-    // - iOS: Uses security-scoped bookmarks for iCloud Drive folders
-    // - Windows/Linux: Standard file system access
-    // - Android: Uses Storage Access Framework (SAF)
-    supportsCustomFolder: true,
-    supportsICloud: Platform.isIOS || Platform.isMacOS,
-    supportsGoogleDrive: true, // All platforms
-    isDesktop: Platform.isMacOS || Platform.isWindows || Platform.isLinux,
-  );
-});
+      return StoragePlatformCapabilities(
+        // Custom folder is supported on all platforms:
+        // - macOS: Uses security-scoped bookmarks for persistent access
+        // - iOS: Uses security-scoped bookmarks for iCloud Drive folders
+        // - Windows/Linux: Standard file system access
+        // - Android: Uses Storage Access Framework (SAF)
+        supportsCustomFolder: true,
+        supportsICloud: Platform.isIOS || Platform.isMacOS,
+        supportsGoogleDrive: true, // All platforms
+        isDesktop: Platform.isMacOS || Platform.isWindows || Platform.isLinux,
+      );
+    });
 
 /// Database location service provider
-final databaseLocationServiceProvider =
-    Provider<DatabaseLocationService>((ref) {
+final databaseLocationServiceProvider = Provider<DatabaseLocationService>((
+  ref,
+) {
   final prefs = ref.watch(sharedPreferencesProvider);
   return DatabaseLocationService(prefs);
 });
 
 /// Database migration service provider
-final databaseMigrationServiceProvider =
-    Provider<DatabaseMigrationService>((ref) {
+final databaseMigrationServiceProvider = Provider<DatabaseMigrationService>((
+  ref,
+) {
   final locationService = ref.watch(databaseLocationServiceProvider);
-  return DatabaseMigrationService(
-    DatabaseService.instance,
-    locationService,
-  );
+  return DatabaseMigrationService(DatabaseService.instance, locationService);
 });
 
 /// Current storage configuration provider
@@ -111,15 +110,10 @@ class StorageConfigNotifier extends StateNotifier<StorageConfigState> {
   final DatabaseLocationService _locationService;
   final DatabaseMigrationService _migrationService;
 
-  StorageConfigNotifier(
-    this._locationService,
-    this._migrationService,
-  ) : super(
-          const StorageConfigState(
-            config: StorageConfig(),
-            isLoading: true,
-          ),
-        ) {
+  StorageConfigNotifier(this._locationService, this._migrationService)
+    : super(
+        const StorageConfigState(config: StorageConfig(), isLoading: true),
+      ) {
     _loadConfig();
   }
 
@@ -239,8 +233,9 @@ class StorageConfigNotifier extends StateNotifier<StorageConfigState> {
     state = state.copyWith(isMigrating: true, clearError: true);
 
     try {
-      final result =
-          await _migrationService.switchToExistingDatabase(folderPath);
+      final result = await _migrationService.switchToExistingDatabase(
+        folderPath,
+      );
 
       if (result.success) {
         final newConfig = await _locationService.getStorageConfig();
@@ -276,8 +271,9 @@ class StorageConfigNotifier extends StateNotifier<StorageConfigState> {
     state = state.copyWith(isMigrating: true, clearError: true);
 
     try {
-      final result =
-          await _migrationService.replaceExistingDatabase(folderPath);
+      final result = await _migrationService.replaceExistingDatabase(
+        folderPath,
+      );
 
       if (result.success) {
         final newConfig = await _locationService.getStorageConfig();
@@ -322,10 +318,10 @@ class StorageConfigNotifier extends StateNotifier<StorageConfigState> {
 /// Storage configuration notifier provider
 final storageConfigNotifierProvider =
     StateNotifierProvider<StorageConfigNotifier, StorageConfigState>((ref) {
-  final locationService = ref.watch(databaseLocationServiceProvider);
-  final migrationService = ref.watch(databaseMigrationServiceProvider);
-  return StorageConfigNotifier(locationService, migrationService);
-});
+      final locationService = ref.watch(databaseLocationServiceProvider);
+      final migrationService = ref.watch(databaseMigrationServiceProvider);
+      return StorageConfigNotifier(locationService, migrationService);
+    });
 
 /// Current database path provider
 final currentDatabasePathProvider = FutureProvider<String>((ref) async {

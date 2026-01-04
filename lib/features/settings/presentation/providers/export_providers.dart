@@ -388,8 +388,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
         return;
       }
 
-      state =
-          state.copyWith(message: 'Importing ${parsedDives.length} dives...');
+      state = state.copyWith(
+        message: 'Importing ${parsedDives.length} dives...',
+      );
       const uuid = Uuid();
       final diveNotifier = _ref.read(diveListNotifierProvider.notifier);
 
@@ -454,8 +455,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
       // Refresh buddies provider
       _ref.invalidate(allBuddiesProvider);
 
-      final buddyMessage =
-          buddiesCreated > 0 ? ' and $buddiesCreated buddy associations' : '';
+      final buddyMessage = buddiesCreated > 0
+          ? ' and $buddiesCreated buddy associations'
+          : '';
       state = state.copyWith(
         status: ExportStatus.success,
         message: 'Successfully imported $importedCount dives$buddyMessage',
@@ -516,8 +518,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
     // Parse divemaster/guide field
     if (diveMasterText != null && diveMasterText.trim().isNotEmpty) {
       // Check if already added as buddy (avoid duplicates)
-      final existingNames =
-          result.map((b) => b.buddy.name.toLowerCase()).toSet();
+      final existingNames = result
+          .map((b) => b.buddy.name.toLowerCase())
+          .toSet();
 
       final names = diveMasterText
           .split(RegExp(r'[,;]|\s+and\s+', caseSensitive: false))
@@ -631,8 +634,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
       await Future<void>.delayed(const Duration(milliseconds: 50));
 
       // Use comprehensive import that parses all data types
-      final importResult =
-          await _exportService.importAllDataFromUddf(uddfContent);
+      final importResult = await _exportService.importAllDataFromUddf(
+        uddfContent,
+      );
 
       const uuid = Uuid();
       final now = DateTime.now();
@@ -753,7 +757,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
           if (typeValue is EquipmentType) {
             equipType = typeValue;
           } else if (typeValue is String) {
-            equipType = _parseEnumValue(typeValue, EquipmentType.values) ??
+            equipType =
+                _parseEnumValue(typeValue, EquipmentType.values) ??
                 EquipmentType.other;
           } else {
             equipType = EquipmentType.other;
@@ -767,7 +772,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
           } else if (statusValue is String) {
             equipStatus =
                 _parseEnumValue(statusValue, EquipmentStatus.values) ??
-                    EquipmentStatus.active;
+                EquipmentStatus.active;
           } else {
             equipStatus = EquipmentStatus.active;
           }
@@ -925,8 +930,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
           totalItems: importResult.certifications.length,
         );
         await yieldToUI();
-        final certificationRepository =
-            _ref.read(certificationRepositoryProvider);
+        final certificationRepository = _ref.read(
+          certificationRepositoryProvider,
+        );
 
         for (final certData in importResult.certifications) {
           final certName = certData['name'] as String?;
@@ -943,7 +949,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
           if (agencyValue is CertificationAgency) {
             agency = agencyValue;
           } else if (agencyValue is String) {
-            agency = _parseEnumValue(agencyValue, CertificationAgency.values) ??
+            agency =
+                _parseEnumValue(agencyValue, CertificationAgency.values) ??
                 CertificationAgency.padi;
           } else {
             agency = CertificationAgency.padi;
@@ -1043,7 +1050,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
             continue;
           }
 
-          final typeId = typeData['id'] as String? ??
+          final typeId =
+              typeData['id'] as String? ??
               DiveTypeEntity.generateSlug(typeName);
 
           final diveType = DiveTypeEntity(
@@ -1122,8 +1130,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
           totalItems: importResult.equipmentSets.length,
         );
         await yieldToUI();
-        final equipmentSetRepository =
-            _ref.read(equipmentSetRepositoryProvider);
+        final equipmentSetRepository = _ref.read(
+          equipmentSetRepositoryProvider,
+        );
 
         for (final setData in importResult.equipmentSets) {
           final setName = setData['name'] as String?;
@@ -1185,7 +1194,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
           // Build profile points if present
           final profileData =
               diveData['profile'] as List<Map<String, dynamic>>?;
-          final profile = profileData
+          final profile =
+              profileData
                   ?.map(
                     (p) => DiveProfilePoint(
                       timestamp: p['timestamp'] as int? ?? 0,
@@ -1217,7 +1227,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
               if (roleValue is TankRole) {
                 role = roleValue;
               } else if (roleValue is String) {
-                role = _parseEnumValue(roleValue, TankRole.values) ??
+                role =
+                    _parseEnumValue(roleValue, TankRole.values) ??
                     TankRole.backGas;
               } else {
                 role = TankRole.backGas;
@@ -1266,8 +1277,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
           if (diveCenterRef != null &&
               diveCenterIdMapping.containsKey(diveCenterRef)) {
             final newCenterId = diveCenterIdMapping[diveCenterRef]!;
-            linkedDiveCenter =
-                await diveCenterRepository.getDiveCenterById(newCenterId);
+            linkedDiveCenter = await diveCenterRepository.getDiveCenterById(
+              newCenterId,
+            );
           }
 
           // Link to imported equipment
@@ -1280,8 +1292,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
             for (final oldRef in equipmentRefs) {
               final newEquipmentId = equipmentIdMapping[oldRef];
               if (newEquipmentId != null) {
-                final equipment =
-                    await equipmentRepository.getEquipmentById(newEquipmentId);
+                final equipment = await equipmentRepository.getEquipmentById(
+                  newEquipmentId,
+                );
                 if (equipment != null) {
                   linkedEquipment.add(equipment);
                 }
@@ -1371,9 +1384,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
                       tankIdx >= 0 &&
                       tankIdx < tanks.length) {
                     final tankId = tanks[tankIdx].id;
-                    pressuresByTank.putIfAbsent(tankId, () => []).add(
-                      (timestamp: timestamp, pressure: pressure),
-                    );
+                    pressuresByTank.putIfAbsent(tankId, () => []).add((
+                      timestamp: timestamp,
+                      pressure: pressure,
+                    ));
                   }
                 }
               } else {
@@ -1386,9 +1400,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
                     tankIdx >= 0 &&
                     tankIdx < tanks.length) {
                   final tankId = tanks[tankIdx].id;
-                  pressuresByTank.putIfAbsent(tankId, () => []).add(
-                    (timestamp: timestamp, pressure: pressure),
-                  );
+                  pressuresByTank.putIfAbsent(tankId, () => []).add((
+                    timestamp: timestamp,
+                    pressure: pressure,
+                  ));
                 }
               }
             }
@@ -1500,13 +1515,11 @@ class ExportNotifier extends StateNotifier<ExportState> {
       }
       if (tagsImported > 0) parts.add('$tagsImported tags');
 
-      final summary =
-          parts.isEmpty ? 'No data imported' : 'Imported ${parts.join(', ')}';
+      final summary = parts.isEmpty
+          ? 'No data imported'
+          : 'Imported ${parts.join(', ')}';
 
-      state = state.copyWith(
-        status: ExportStatus.success,
-        message: summary,
-      );
+      state = state.copyWith(status: ExportStatus.success, message: summary);
     } catch (e) {
       state = state.copyWith(
         status: ExportStatus.error,
@@ -1544,9 +1557,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       // Share the backup file
       await SharePlus.instance.share(
         ShareParams(
-          files: [
-            XFile(backupPath, mimeType: 'application/octet-stream'),
-          ],
+          files: [XFile(backupPath, mimeType: 'application/octet-stream')],
           subject: 'Submersion Backup',
         ),
       );
@@ -1628,6 +1639,6 @@ class ExportNotifier extends StateNotifier<ExportState> {
 
 final exportNotifierProvider =
     StateNotifierProvider<ExportNotifier, ExportState>((ref) {
-  final exportService = ref.watch(exportServiceProvider);
-  return ExportNotifier(exportService, ref);
-});
+      final exportService = ref.watch(exportServiceProvider);
+      return ExportNotifier(exportService, ref);
+    });

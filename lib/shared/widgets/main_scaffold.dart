@@ -4,10 +4,7 @@ import 'package:go_router/go_router.dart';
 class MainScaffold extends StatelessWidget {
   final Widget child;
 
-  const MainScaffold({
-    super.key,
-    required this.child,
-  });
+  const MainScaffold({super.key, required this.child});
 
   // Routes that appear in the "More" menu on mobile
   static const _moreRoutes = [
@@ -123,10 +120,7 @@ class MainScaffold extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  Text(
-                    'More',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
+                  Text('More', style: Theme.of(context).textTheme.titleLarge),
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.close),
@@ -194,8 +188,10 @@ class MainScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isWideScreen = MediaQuery.of(context).size.width >= 800;
-    final selectedIndex =
-        _calculateSelectedIndex(context, isWideScreen: isWideScreen);
+    final selectedIndex = _calculateSelectedIndex(
+      context,
+      isWideScreen: isWideScreen,
+    );
 
     if (isWideScreen) {
       // Desktop/Tablet layout with NavigationRail

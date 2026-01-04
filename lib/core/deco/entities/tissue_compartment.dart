@@ -109,14 +109,14 @@ class TissueCompartment extends Equatable {
 
   @override
   List<Object?> get props => [
-        compartmentNumber,
-        halfTimeN2,
-        halfTimeHe,
-        mValueAN2,
-        mValueBN2,
-        mValueAHe,
-        mValueBHe,
-        currentPN2,
-        currentPHe,
-      ];
+    compartmentNumber,
+    halfTimeN2,
+    halfTimeHe,
+    mValueAN2,
+    mValueBN2,
+    mValueAHe,
+    mValueBHe,
+    currentPN2,
+    currentPHe,
+  ];
 }

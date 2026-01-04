@@ -13,9 +13,7 @@ class EquipmentSetListPage extends ConsumerWidget {
     final setsAsync = ref.watch(equipmentSetListNotifierProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Equipment Sets'),
-      ),
+      appBar: AppBar(title: const Text('Equipment Sets')),
       body: setsAsync.when(
         data: (sets) => sets.isEmpty
             ? _buildEmptyState(context)
@@ -57,8 +55,9 @@ class EquipmentSetListPage extends ConsumerWidget {
             Icon(
               Icons.folder_outlined,
               size: 80,
-              color:
-                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
@@ -69,8 +68,8 @@ class EquipmentSetListPage extends ConsumerWidget {
             Text(
               'Create equipment sets to quickly add commonly used combinations of equipment to your dives.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),

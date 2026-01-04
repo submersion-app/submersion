@@ -90,8 +90,8 @@ class _TripPickerState extends ConsumerState<TripPicker> {
                   child: Text(
                     'Suggested: ${suggestedTrip.name}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                 ),
                 TextButton(
@@ -104,7 +104,7 @@ class _TripPickerState extends ConsumerState<TripPicker> {
         );
       },
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 
@@ -155,10 +155,9 @@ class TripPickerSheet extends ConsumerWidget {
           width: 40,
           height: 4,
           decoration: BoxDecoration(
-            color: Theme.of(context)
-                .colorScheme
-                .onSurfaceVariant
-                .withValues(alpha: 0.4),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
             borderRadius: BorderRadius.circular(2),
           ),
         ),
@@ -257,9 +256,8 @@ class TripPickerSheet extends ConsumerWidget {
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) => Center(
-              child: Text('Error loading trips: $error'),
-            ),
+            error: (error, _) =>
+                Center(child: Text('Error loading trips: $error')),
           ),
         ),
       ],

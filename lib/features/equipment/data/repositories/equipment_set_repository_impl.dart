@@ -62,7 +62,9 @@ class EquipmentSetRepository {
     final id = set.id.isEmpty ? _uuid.v4() : set.id;
     final now = DateTime.now().millisecondsSinceEpoch;
 
-    await _db.into(_db.equipmentSets).insert(
+    await _db
+        .into(_db.equipmentSets)
+        .insert(
           EquipmentSetsCompanion(
             id: Value(id),
             diverId: Value(set.diverId),
@@ -75,7 +77,9 @@ class EquipmentSetRepository {
 
     // Add equipment items to set
     for (final equipmentId in set.equipmentIds) {
-      await _db.into(_db.equipmentSetItems).insert(
+      await _db
+          .into(_db.equipmentSetItems)
+          .insert(
             EquipmentSetItemsCompanion(
               setId: Value(id),
               equipmentId: Value(equipmentId),
@@ -94,8 +98,9 @@ class EquipmentSetRepository {
   Future<void> updateSet(domain.EquipmentSet set) async {
     final now = DateTime.now().millisecondsSinceEpoch;
 
-    await (_db.update(_db.equipmentSets)..where((t) => t.id.equals(set.id)))
-        .write(
+    await (_db.update(
+      _db.equipmentSets,
+    )..where((t) => t.id.equals(set.id))).write(
       EquipmentSetsCompanion(
         name: Value(set.name),
         description: Value(set.description),
@@ -104,11 +109,13 @@ class EquipmentSetRepository {
     );
 
     // Update equipment items: delete and re-insert
-    await (_db.delete(_db.equipmentSetItems)
-          ..where((t) => t.setId.equals(set.id)))
-        .go();
+    await (_db.delete(
+      _db.equipmentSetItems,
+    )..where((t) => t.setId.equals(set.id))).go();
     for (final equipmentId in set.equipmentIds) {
-      await _db.into(_db.equipmentSetItems).insert(
+      await _db
+          .into(_db.equipmentSetItems)
+          .insert(
             EquipmentSetItemsCompanion(
               setId: Value(set.id),
               equipmentId: Value(equipmentId),
@@ -124,7 +131,9 @@ class EquipmentSetRepository {
 
   /// Add equipment item to set
   Future<void> addItemToSet(String setId, String equipmentId) async {
-    await _db.into(_db.equipmentSetItems).insert(
+    await _db
+        .into(_db.equipmentSetItems)
+        .insert(
           EquipmentSetItemsCompanion(
             setId: Value(setId),
             equipmentId: Value(equipmentId),
@@ -138,10 +147,9 @@ class EquipmentSetRepository {
 
   /// Remove equipment item from set
   Future<void> removeItemFromSet(String setId, String equipmentId) async {
-    await (_db.delete(_db.equipmentSetItems)
-          ..where(
-            (t) => t.setId.equals(setId) & t.equipmentId.equals(equipmentId),
-          ))
+    await (_db.delete(_db.equipmentSetItems)..where(
+          (t) => t.setId.equals(setId) & t.equipmentId.equals(equipmentId),
+        ))
         .go();
     // Update the set's updatedAt timestamp
     final now = DateTime.now().millisecondsSinceEpoch;

@@ -49,7 +49,9 @@ class SiteRepository {
       final id = site.id.isEmpty ? _uuid.v4() : site.id;
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await _db.into(_db.diveSites).insert(
+      await _db
+          .into(_db.diveSites)
+          .insert(
             DiveSitesCompanion(
               id: Value(id),
               diverId: Value(site.diverId),
@@ -87,8 +89,9 @@ class SiteRepository {
       _log.info('Updating site: ${site.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await (_db.update(_db.diveSites)..where((t) => t.id.equals(site.id)))
-          .write(
+      await (_db.update(
+        _db.diveSites,
+      )..where((t) => t.id.equals(site.id))).write(
         DiveSitesCompanion(
           name: Value(site.name),
           description: Value(site.description),
@@ -210,10 +213,8 @@ class SiteRepository {
 
       return sites
           .map(
-            (site) => SiteWithDiveCount(
-              site: site,
-              diveCount: counts[site.id] ?? 0,
-            ),
+            (site) =>
+                SiteWithDiveCount(site: site, diveCount: counts[site.id] ?? 0),
           )
           .toList()
         ..sort((a, b) => b.diveCount.compareTo(a.diveCount));

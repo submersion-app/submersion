@@ -17,15 +17,19 @@ final allSpeciesProvider = FutureProvider<List<Species>>((ref) async {
 
 /// Species by category provider
 final speciesByCategoryProvider =
-    FutureProvider.family<List<Species>, SpeciesCategory>(
-        (ref, category) async {
-  final repository = ref.watch(speciesRepositoryProvider);
-  return repository.getSpeciesByCategory(category);
-});
+    FutureProvider.family<List<Species>, SpeciesCategory>((
+      ref,
+      category,
+    ) async {
+      final repository = ref.watch(speciesRepositoryProvider);
+      return repository.getSpeciesByCategory(category);
+    });
 
 /// Species search provider
-final speciesSearchProvider =
-    FutureProvider.family<List<Species>, String>((ref, query) async {
+final speciesSearchProvider = FutureProvider.family<List<Species>, String>((
+  ref,
+  query,
+) async {
   if (query.isEmpty) {
     return ref.watch(allSpeciesProvider).value ?? [];
   }
@@ -34,15 +38,19 @@ final speciesSearchProvider =
 });
 
 /// Single species provider
-final speciesProvider =
-    FutureProvider.family<Species?, String>((ref, id) async {
+final speciesProvider = FutureProvider.family<Species?, String>((
+  ref,
+  id,
+) async {
   final repository = ref.watch(speciesRepositoryProvider);
   return repository.getSpeciesById(id);
 });
 
 /// Sightings for a dive provider
-final diveSightingsProvider =
-    FutureProvider.family<List<Sighting>, String>((ref, diveId) async {
+final diveSightingsProvider = FutureProvider.family<List<Sighting>, String>((
+  ref,
+  diveId,
+) async {
   final repository = ref.watch(speciesRepositoryProvider);
   return repository.getSightingsForDive(diveId);
 });
@@ -129,11 +137,13 @@ class SightingsNotifier extends StateNotifier<List<Sighting>> {
 
 /// Sightings notifier provider (for editing)
 final sightingsNotifierProvider =
-    StateNotifierProvider.family<SightingsNotifier, List<Sighting>, String?>(
-        (ref, diveId) {
-  final repository = ref.watch(speciesRepositoryProvider);
-  return SightingsNotifier(repository, diveId);
-});
+    StateNotifierProvider.family<SightingsNotifier, List<Sighting>, String?>((
+      ref,
+      diveId,
+    ) {
+      final repository = ref.watch(speciesRepositoryProvider);
+      return SightingsNotifier(repository, diveId);
+    });
 
 /// Initialize species database with common species
 final seedSpeciesProvider = FutureProvider<void>((ref) async {
