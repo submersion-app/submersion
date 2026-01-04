@@ -71,10 +71,8 @@ class DuplicateResult {
   });
 
   /// No duplicate found
-  factory DuplicateResult.noMatch() => const DuplicateResult(
-        confidence: DuplicateConfidence.none,
-        score: 0.0,
-      );
+  factory DuplicateResult.noMatch() =>
+      const DuplicateResult(confidence: DuplicateConfidence.none, score: 0.0);
 
   /// Whether a duplicate was found
   bool get isDuplicate => matchingDiveId != null;
@@ -143,24 +141,23 @@ class ImportResult {
     required int updated,
     required List<String> importedDiveIds,
     List<ImportConflict> conflicts = const [],
-  }) =>
-      ImportResult(
-        imported: imported,
-        skipped: skipped,
-        updated: updated,
-        conflicts: conflicts,
-        importedDiveIds: importedDiveIds,
-      );
+  }) => ImportResult(
+    imported: imported,
+    skipped: skipped,
+    updated: updated,
+    conflicts: conflicts,
+    importedDiveIds: importedDiveIds,
+  );
 
   /// Create a failed result
   factory ImportResult.failure(String error) => ImportResult(
-        imported: 0,
-        skipped: 0,
-        updated: 0,
-        conflicts: [],
-        importedDiveIds: [],
-        errorMessage: error,
-      );
+    imported: 0,
+    skipped: 0,
+    updated: 0,
+    conflicts: [],
+    importedDiveIds: [],
+    errorMessage: error,
+  );
 
   /// Whether the import was successful
   bool get isSuccess => errorMessage == null;
@@ -180,8 +177,8 @@ class DiveImportService {
   DiveImportService({
     required DiveComputerRepository repository,
     DiveParser? parser,
-  })  : _repository = repository,
-        _parser = parser ?? const DiveParser();
+  }) : _repository = repository,
+       _parser = parser ?? const DiveParser();
 
   /// Import a list of downloaded dives.
   ///
@@ -387,11 +384,7 @@ class DiveImportService {
         return conflict.existingDiveId;
 
       case ConflictResolution.importAsNew:
-        return await _importNewDive(
-          conflict.downloaded,
-          computerId,
-          diverId,
-        );
+        return await _importNewDive(conflict.downloaded, computerId, diverId);
 
       case ConflictResolution.askUser:
         // This shouldn't be called with askUser

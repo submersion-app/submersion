@@ -56,17 +56,14 @@ class DiveCenterRepository {
       if (diverId != null) Variable.withString(diverId),
     ];
 
-    final results = await _db.customSelect(
-      '''
+    final results = await _db.customSelect('''
       SELECT * FROM dive_centers
       WHERE (LOWER(name) LIKE ?
          OR LOWER(location) LIKE ?
          OR LOWER(country) LIKE ?)
       $diverFilter
       ORDER BY name ASC
-    ''',
-      variables: variables,
-    ).get();
+    ''', variables: variables).get();
 
     return results.map(_mapCustomRowToDiveCenter).toList();
   }
@@ -111,7 +108,9 @@ class DiveCenterRepository {
       final id = center.id.isEmpty ? _uuid.v4() : center.id;
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await _db.into(_db.diveCenters).insert(
+      await _db
+          .into(_db.diveCenters)
+          .insert(
             DiveCentersCompanion(
               id: Value(id),
               diverId: Value(center.diverId),
@@ -145,8 +144,9 @@ class DiveCenterRepository {
       _log.info('Updating dive center: ${center.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await (_db.update(_db.diveCenters)..where((t) => t.id.equals(center.id)))
-          .write(
+      await (_db.update(
+        _db.diveCenters,
+      )..where((t) => t.id.equals(center.id))).write(
         DiveCentersCompanion(
           name: Value(center.name),
           location: Value(center.location),
@@ -183,14 +183,16 @@ class DiveCenterRepository {
 
   /// Get dive count for a dive center
   Future<int> getDiveCountForCenter(String centerId) async {
-    final result = await _db.customSelect(
-      '''
+    final result = await _db
+        .customSelect(
+          '''
       SELECT COUNT(*) as count
       FROM dives
       WHERE dive_center_id = ?
     ''',
-      variables: [Variable.withString(centerId)],
-    ).getSingle();
+          variables: [Variable.withString(centerId)],
+        )
+        .getSingle();
 
     return result.data['count'] as int? ?? 0;
   }
@@ -198,18 +200,16 @@ class DiveCenterRepository {
   /// Get all unique countries
   Future<List<String>> getCountries({String? diverId}) async {
     final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
-    final variables =
-        diverId != null ? [Variable.withString(diverId)] : <Variable<Object>>[];
+    final variables = diverId != null
+        ? [Variable.withString(diverId)]
+        : <Variable<Object>>[];
 
-    final results = await _db.customSelect(
-      '''
+    final results = await _db.customSelect('''
       SELECT DISTINCT country FROM dive_centers
       WHERE country IS NOT NULL AND country != ''
       $diverFilter
       ORDER BY country ASC
-    ''',
-      variables: variables,
-    ).get();
+    ''', variables: variables).get();
 
     return results.map((row) => row.data['country'] as String).toList();
   }
@@ -248,10 +248,12 @@ class DiveCenterRepository {
       affiliations: _parseAffiliations(row.data['affiliations'] as String?),
       rating: (row.data['rating'] as num?)?.toDouble(),
       notes: (row.data['notes'] as String?) ?? '',
-      createdAt:
-          DateTime.fromMillisecondsSinceEpoch(row.data['created_at'] as int),
-      updatedAt:
-          DateTime.fromMillisecondsSinceEpoch(row.data['updated_at'] as int),
+      createdAt: DateTime.fromMillisecondsSinceEpoch(
+        row.data['created_at'] as int,
+      ),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(
+        row.data['updated_at'] as int,
+      ),
     );
   }
 

@@ -41,9 +41,8 @@ class LibdcDownloadManager implements DownloadManager {
   /// If not set and a PIN is required, the download will fail.
   PinRequestCallback? onPinRequired;
 
-  LibdcDownloadManager({
-    required BluetoothConnectionManager connectionManager,
-  }) : _connectionManager = connectionManager;
+  LibdcDownloadManager({required BluetoothConnectionManager connectionManager})
+    : _connectionManager = connectionManager;
 
   @override
   Stream<DownloadProgress> get progress => _progressController.stream;
@@ -130,10 +129,7 @@ class LibdcDownloadManager implements DownloadManager {
         _divesController.add(dive);
 
         _updateProgress(
-          DownloadProgress.downloading(
-            downloadedDives.length,
-            dives.length,
-          ),
+          DownloadProgress.downloading(downloadedDives.length, dives.length),
         );
       }
 

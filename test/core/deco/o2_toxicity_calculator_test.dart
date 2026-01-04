@@ -476,9 +476,7 @@ void main() {
       });
 
       test('should respect custom warning threshold', () {
-        const conservativeCalc = O2ToxicityCalculator(
-          cnsWarningThreshold: 60,
-        );
+        const conservativeCalc = O2ToxicityCalculator(cnsWarningThreshold: 60);
 
         expect(conservativeCalc.getCnsStatus(60), equals(CnsStatus.warning));
         expect(calculator.getCnsStatus(60), equals(CnsStatus.safe));
@@ -546,11 +544,7 @@ void main() {
     });
 
     test('should format values correctly', () {
-      const exposure = O2Exposure(
-        cnsEnd: 45.6,
-        otu: 123.4,
-        maxPpO2: 1.38,
-      );
+      const exposure = O2Exposure(cnsEnd: 45.6, otu: 123.4, maxPpO2: 1.38);
       expect(exposure.cnsFormatted, equals('46%'));
       expect(exposure.otuFormatted, equals('123 OTU'));
       expect(exposure.maxPpO2Formatted, equals('1.38 bar'));

@@ -114,21 +114,21 @@ class EquipmentItem extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        diverId,
-        name,
-        type,
-        brand,
-        model,
-        serialNumber,
-        size,
-        status,
-        purchaseDate,
-        purchasePrice,
-        purchaseCurrency,
-        lastServiceDate,
-        serviceIntervalDays,
-        notes,
-        isActive,
-      ];
+    id,
+    diverId,
+    name,
+    type,
+    brand,
+    model,
+    serialNumber,
+    size,
+    status,
+    purchaseDate,
+    purchasePrice,
+    purchaseCurrency,
+    lastServiceDate,
+    serviceIntervalDays,
+    notes,
+    isActive,
+  ];
 }

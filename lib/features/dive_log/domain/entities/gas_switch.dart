@@ -68,14 +68,7 @@ class GasSwitch extends Equatable {
   }
 
   @override
-  List<Object?> get props => [
-        id,
-        diveId,
-        timestamp,
-        tankId,
-        depth,
-        createdAt,
-      ];
+  List<Object?> get props => [id, diveId, timestamp, tankId, depth, createdAt];
 }
 
 /// Extended gas switch info including tank details (for display purposes).
@@ -148,10 +141,10 @@ class GasSwitchWithTank extends Equatable {
 
   @override
   List<Object?> get props => [
-        gasSwitch,
-        tankName,
-        gasMix,
-        o2Fraction,
-        heFraction,
-      ];
+    gasSwitch,
+    tankName,
+    gasMix,
+    o2Fraction,
+    heFraction,
+  ];
 }

@@ -59,8 +59,9 @@ class DiveCenterDetailPage extends ConsumerWidget {
                           TextButton(
                             onPressed: () => Navigator.pop(context, true),
                             style: TextButton.styleFrom(
-                              foregroundColor:
-                                  Theme.of(context).colorScheme.error,
+                              foregroundColor: Theme.of(
+                                context,
+                              ).colorScheme.error,
                             ),
                             child: const Text('Delete'),
                           ),
@@ -231,8 +232,9 @@ class _HeaderSection extends StatelessWidget {
               children: center.affiliations.map((affiliation) {
                 return Chip(
                   label: Text(affiliation),
-                  backgroundColor:
-                      Theme.of(context).colorScheme.secondaryContainer,
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.secondaryContainer,
                   labelStyle: TextStyle(
                     color: Theme.of(context).colorScheme.onSecondaryContainer,
                   ),
@@ -263,10 +265,7 @@ class _ContactSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Contact',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
+          Text('Contact', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 12),
           if (center.phone != null)
             _ContactTile(
@@ -324,9 +323,9 @@ class _ContactSection extends StatelessWidget {
 
   void _copyToClipboard(BuildContext context, String text) {
     Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Copied to clipboard')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Copied to clipboard')));
   }
 }
 
@@ -354,11 +353,7 @@ class _ContactTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
           children: [
-            Icon(
-              icon,
-              size: 24,
-              color: Theme.of(context).colorScheme.primary,
-            ),
+            Icon(icon, size: 24, color: Theme.of(context).colorScheme.primary),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -367,14 +362,14 @@ class _ContactTile extends StatelessWidget {
                   Text(
                     label,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
                   ),
                   Text(
                     value,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                 ],
               ),
@@ -402,15 +397,9 @@ class _NotesSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Notes',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
+          Text('Notes', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
-          Text(
-            notes,
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
+          Text(notes, style: Theme.of(context).textTheme.bodyMedium),
         ],
       ),
     );
@@ -431,10 +420,7 @@ class _DivesSection extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Statistics',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
+          Text('Statistics', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 12),
           Card(
             child: Padding(
@@ -460,8 +446,8 @@ class _DivesSection extends ConsumerWidget {
                       Text(
                         'Dives Logged',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.outline,
-                            ),
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
                       ),
                       diveCountAsync.when(
                         data: (count) => Text(

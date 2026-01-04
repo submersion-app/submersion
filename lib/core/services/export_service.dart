@@ -528,8 +528,10 @@ class ExportService {
               pw.SizedBox(height: 40),
               pw.Text(
                 'Generated on ${_dateTimeFormat.format(DateTime.now())}',
-                style:
-                    const pw.TextStyle(fontSize: 12, color: PdfColors.grey600),
+                style: const pw.TextStyle(
+                  fontSize: 12,
+                  color: PdfColors.grey600,
+                ),
               ),
             ],
           ),
@@ -549,10 +551,10 @@ class ExportService {
       final avgDepth = dives.where((d) => d.avgDepth != null).isEmpty
           ? 0.0
           : dives
-                  .where((d) => d.avgDepth != null)
-                  .map((d) => d.avgDepth!)
-                  .reduce((a, b) => a + b) /
-              dives.where((d) => d.avgDepth != null).length;
+                    .where((d) => d.avgDepth != null)
+                    .map((d) => d.avgDepth!)
+                    .reduce((a, b) => a + b) /
+                dives.where((d) => d.avgDepth != null).length;
 
       pdf.addPage(
         pw.Page(
@@ -562,8 +564,10 @@ class ExportService {
             children: [
               pw.Text(
                 'Summary',
-                style:
-                    pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+                style: pw.TextStyle(
+                  fontSize: 24,
+                  fontWeight: pw.FontWeight.bold,
+                ),
               ),
               pw.SizedBox(height: 20),
               pw.Divider(),
@@ -655,13 +659,17 @@ class ExportService {
             children: [
               pw.Text(
                 '#${dive.diveNumber ?? '-'} - ${dive.site?.name ?? 'Unknown Site'}',
-                style:
-                    pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+                style: pw.TextStyle(
+                  fontSize: 14,
+                  fontWeight: pw.FontWeight.bold,
+                ),
               ),
               pw.Text(
                 _dateTimeFormat.format(dive.dateTime),
-                style:
-                    const pw.TextStyle(fontSize: 12, color: PdfColors.grey600),
+                style: const pw.TextStyle(
+                  fontSize: 12,
+                  color: PdfColors.grey600,
+                ),
               ),
             ],
           ),
@@ -765,7 +773,8 @@ class ExportService {
           builder.element(
             'divesite',
             nest: () {
-              final allSites = sites ??
+              final allSites =
+                  sites ??
                   dives
                       .map((d) => d.site)
                       .whereType<DiveSite>()
@@ -908,8 +917,8 @@ class ExportService {
                               // UDDF stores pressure in Pascal (bar * 100000)
                               builder.element(
                                 'atmosphericpressure',
-                                nest:
-                                    (dive.surfacePressure! * 100000).toString(),
+                                nest: (dive.surfacePressure! * 100000)
+                                    .toString(),
                               );
                             }
                             // Surface interval before dive
@@ -962,8 +971,9 @@ class ExportService {
                         builder.element(
                           'samples',
                           nest: () {
-                            final tank =
-                                dive.tanks.isNotEmpty ? dive.tanks.first : null;
+                            final tank = dive.tanks.isNotEmpty
+                                ? dive.tanks.first
+                                : null;
                             final mixId = tank != null
                                 ? 'mix_${tank.gasMix.o2.toInt()}_${tank.gasMix.he.toInt()}'
                                 : 'mix_21_0';
@@ -1018,8 +1028,8 @@ class ExportService {
                                   dive.duration?.inSeconds ?? 0;
                               if (dive.maxDepth != null && durationSecs > 0) {
                                 // Descent to max depth (assume 1/5 of dive)
-                                final descentTime =
-                                    (durationSecs * 0.2).toInt();
+                                final descentTime = (durationSecs * 0.2)
+                                    .toInt();
                                 builder.element(
                                   'waypoint',
                                   nest: () {
@@ -1052,9 +1062,10 @@ class ExportService {
                                     );
                                     builder.element(
                                       'depth',
-                                      nest: (dive.avgDepth ??
-                                              dive.maxDepth! * 0.7)
-                                          .toString(),
+                                      nest:
+                                          (dive.avgDepth ??
+                                                  dive.maxDepth! * 0.7)
+                                              .toString(),
                                     );
                                   },
                                 );
@@ -1440,7 +1451,8 @@ class ExportService {
         }
 
         // Dive sites
-        final allSites = sites ??
+        final allSites =
+            sites ??
             dives.map((d) => d.site).whereType<DiveSite>().toSet().toList();
         if (allSites.isNotEmpty) {
           builder.element(
@@ -1711,9 +1723,9 @@ class ExportService {
     Trip? diveTrip;
     if (trips != null && dive.tripId != null) {
       diveTrip = trips.cast<Trip?>().firstWhere(
-            (t) => t?.id == dive.tripId,
-            orElse: () => null,
-          );
+        (t) => t?.id == dive.tripId,
+        orElse: () => null,
+      );
     }
 
     builder.element(
@@ -1781,13 +1793,16 @@ class ExportService {
             }
             // Link to trip
             if (diveTrip != null) {
-              builder
-                  .element('link', attributes: {'ref': 'trip_${diveTrip.id}'});
+              builder.element(
+                'link',
+                attributes: {'ref': 'trip_${diveTrip.id}'},
+              );
             }
             // Export guides/divemasters/instructors in the divemaster field
             if (guidesAndDivemasters.isNotEmpty) {
-              final names =
-                  guidesAndDivemasters.map((b) => b.buddy.name).join(', ');
+              final names = guidesAndDivemasters
+                  .map((b) => b.buddy.name)
+                  .join(', ');
               builder.element('divemaster', nest: names);
             } else if (dive.diveMaster != null && dive.diveMaster!.isNotEmpty) {
               // Fallback to legacy field if no linked buddies
@@ -2238,7 +2253,8 @@ class ExportService {
     List<EquipmentSet>? equipmentSets,
     List<Trip>? trips,
   }) {
-    final hasData = (equipment?.isNotEmpty ?? false) ||
+    final hasData =
+        (equipment?.isNotEmpty ?? false) ||
         (certifications?.isNotEmpty ?? false) ||
         (diveCenters?.isNotEmpty ?? false) ||
         (species?.isNotEmpty ?? false) ||
@@ -2802,16 +2818,16 @@ class ExportService {
       for (final buddyElement in diverElement.findElements('buddy')) {
         final buddyId = buddyElement.getAttribute('id');
         if (buddyId != null) {
-          final personalElement =
-              buddyElement.findElements('personal').firstOrNull;
+          final personalElement = buddyElement
+              .findElements('personal')
+              .firstOrNull;
           if (personalElement != null) {
             final firstName = _getElementText(personalElement, 'firstname');
             final lastName = _getElementText(personalElement, 'lastname');
-            final buddyName = [firstName, lastName]
-                .whereType<String>()
-                .where((s) => s.isNotEmpty)
-                .join(' ')
-                .trim();
+            final buddyName = [
+              firstName,
+              lastName,
+            ].whereType<String>().where((s) => s.isNotEmpty).join(' ').trim();
             if (buddyName.isNotEmpty) {
               buddies[buddyId] = {'name': buddyName};
             }
@@ -2836,8 +2852,9 @@ class ExportService {
 
     // Parse gas definitions
     final gasMixes = <String, GasMix>{};
-    final gasDefsElement =
-        uddfElement.findElements('gasdefinitions').firstOrNull;
+    final gasDefsElement = uddfElement
+        .findElements('gasdefinitions')
+        .firstOrNull;
     if (gasDefsElement != null) {
       for (final mixElement in gasDefsElement.findElements('mix')) {
         final mixId = mixElement.getAttribute('id');
@@ -2852,14 +2869,19 @@ class ExportService {
     final decoModelElement = uddfElement.findElements('decomodel').firstOrNull;
     if (decoModelElement != null) {
       // Check for Bühlmann model with gradient factors
-      for (final buehlmannElement
-          in decoModelElement.findElements('buehlmann')) {
+      for (final buehlmannElement in decoModelElement.findElements(
+        'buehlmann',
+      )) {
         final modelId = buehlmannElement.getAttribute('id');
         if (modelId != null) {
-          final gfLowText =
-              _getElementText(buehlmannElement, 'gradientfactorlow');
-          final gfHighText =
-              _getElementText(buehlmannElement, 'gradientfactorhigh');
+          final gfLowText = _getElementText(
+            buehlmannElement,
+            'gradientfactorlow',
+          );
+          final gfHighText = _getElementText(
+            buehlmannElement,
+            'gradientfactorhigh',
+          );
           decoModels[modelId] = {
             'gfLow': gfLowText != null ? int.tryParse(gfLowText) ?? 0 : 0,
             'gfHigh': gfHighText != null ? int.tryParse(gfHighText) ?? 0 : 0,
@@ -2873,11 +2895,13 @@ class ExportService {
     if (diverElement != null) {
       final ownerElement = diverElement.findElements('owner').firstOrNull;
       if (ownerElement != null) {
-        final equipmentElement =
-            ownerElement.findElements('equipment').firstOrNull;
+        final equipmentElement = ownerElement
+            .findElements('equipment')
+            .firstOrNull;
         if (equipmentElement != null) {
-          for (final computerElement
-              in equipmentElement.findElements('divecomputer')) {
+          for (final computerElement in equipmentElement.findElements(
+            'divecomputer',
+          )) {
             final computerId = computerElement.getAttribute('id');
             if (computerId != null) {
               final model = _getElementText(computerElement, 'model');
@@ -2894,11 +2918,13 @@ class ExportService {
 
     // Parse dives from profile data
     final dives = <Map<String, dynamic>>[];
-    final profileDataElement =
-        uddfElement.findElements('profiledata').firstOrNull;
+    final profileDataElement = uddfElement
+        .findElements('profiledata')
+        .firstOrNull;
     if (profileDataElement != null) {
-      for (final repGroup
-          in profileDataElement.findElements('repetitiongroup')) {
+      for (final repGroup in profileDataElement.findElements(
+        'repetitiongroup',
+      )) {
         for (final diveElement in repGroup.findElements('dive')) {
           final diveData = _parseUddfDive(
             diveElement,
@@ -2916,10 +2942,7 @@ class ExportService {
     }
 
     // Return both dives and unique sites
-    return {
-      'dives': dives,
-      'sites': sites.values.toList(),
-    };
+    return {'dives': dives, 'sites': sites.values.toList()};
   }
 
   Map<String, dynamic> _parseUddfSite(XmlElement siteElement) {
@@ -2971,8 +2994,9 @@ class ExportService {
     final buddyNames = <String>[];
 
     // Parse information before dive
-    final beforeElement =
-        diveElement.findElements('informationbeforedive').firstOrNull;
+    final beforeElement = diveElement
+        .findElements('informationbeforedive')
+        .firstOrNull;
     if (beforeElement != null) {
       final dateTimeText = _getElementText(beforeElement, 'datetime');
       if (dateTimeText != null) {
@@ -2999,8 +3023,10 @@ class ExportService {
       }
 
       // Check for atmospheric/surface pressure (standard UDDF uses 'atmosphericpressure', Shearwater uses 'surfacepressure')
-      var atmPressureText =
-          _getElementText(beforeElement, 'atmosphericpressure');
+      var atmPressureText = _getElementText(
+        beforeElement,
+        'atmosphericpressure',
+      );
       atmPressureText ??= _getElementText(beforeElement, 'surfacepressure');
       if (atmPressureText != null) {
         // UDDF stores pressure in Pascal, convert to bar
@@ -3011,11 +3037,14 @@ class ExportService {
       }
 
       // Parse surface interval before dive
-      final surfaceIntervalElement =
-          beforeElement.findElements('surfaceintervalbeforedive').firstOrNull;
+      final surfaceIntervalElement = beforeElement
+          .findElements('surfaceintervalbeforedive')
+          .firstOrNull;
       if (surfaceIntervalElement != null) {
-        final passedTimeText =
-            _getElementText(surfaceIntervalElement, 'passedtime');
+        final passedTimeText = _getElementText(
+          surfaceIntervalElement,
+          'passedtime',
+        );
         if (passedTimeText != null) {
           final seconds = int.tryParse(passedTimeText);
           if (seconds != null && seconds > 0) {
@@ -3025,8 +3054,9 @@ class ExportService {
       }
 
       // Parse equipment used (e.g., lead weight, dive computer, equipment refs)
-      final equipmentElement =
-          beforeElement.findElements('equipmentused').firstOrNull;
+      final equipmentElement = beforeElement
+          .findElements('equipmentused')
+          .firstOrNull;
       if (equipmentElement != null) {
         final leadText = _getElementText(equipmentElement, 'leadquantity');
         if (leadText != null) {
@@ -3131,8 +3161,10 @@ class ExportService {
       }
 
       // Get start/end pressure if available
-      final startPressureText =
-          _getElementText(tankDataElement, 'tankpressurebegin');
+      final startPressureText = _getElementText(
+        tankDataElement,
+        'tankpressurebegin',
+      );
       if (startPressureText != null) {
         // UDDF stores in Pascal, convert to bar
         final pascal = double.tryParse(startPressureText);
@@ -3141,8 +3173,10 @@ class ExportService {
         }
       }
 
-      final endPressureText =
-          _getElementText(tankDataElement, 'tankpressureend');
+      final endPressureText = _getElementText(
+        tankDataElement,
+        'tankpressureend',
+      );
       if (endPressureText != null) {
         final pascal = double.tryParse(endPressureText);
         if (pascal != null) {
@@ -3157,8 +3191,10 @@ class ExportService {
       }
 
       // Get working pressure
-      final workingPressureText =
-          _getElementText(tankDataElement, 'tankworkingpressure');
+      final workingPressureText = _getElementText(
+        tankDataElement,
+        'tankworkingpressure',
+      );
       if (workingPressureText != null) {
         final pascal = double.tryParse(workingPressureText);
         if (pascal != null) {
@@ -3191,7 +3227,8 @@ class ExportService {
       final workingPressure = tankInfo['workingPressure'] as int?;
 
       // Check if pressure data is valid (not both zero or nonsensical)
-      final hasValidPressure = startPressure != null &&
+      final hasValidPressure =
+          startPressure != null &&
           endPressure != null &&
           startPressure > 10 && // Minimum reasonable start pressure (10 bar)
           startPressure >= endPressure; // Start should be >= end
@@ -3203,14 +3240,16 @@ class ExportService {
       // Tanks with zero pressures or only gas mix references are often
       // placeholders from dive computers and should be skipped
       final hasUddfId = tankInfo['uddfTankId'] != null;
-      final hasMeaningfulData = hasValidPressure ||
+      final hasMeaningfulData =
+          hasValidPressure ||
           (volume != null && volume > 0) ||
           (workingPressure != null && workingPressure > 0) ||
           hasUddfId; // Tank might be referenced by waypoint pressures
 
       // Skip tanks with both pressures at 0 or very low (unusable data)
       // But keep tanks with UDDF IDs as they may have waypoint pressure data
-      final hasBadPressureData = !hasUddfId &&
+      final hasBadPressureData =
+          !hasUddfId &&
           startPressure != null &&
           endPressure != null &&
           startPressure <= 10 &&
@@ -3306,10 +3345,7 @@ class ExportService {
               tankIdx = 0;
             }
 
-            allTankPressures.add({
-              'pressure': pressure,
-              'tankIndex': tankIdx,
-            });
+            allTankPressures.add({'pressure': pressure, 'tankIndex': tankIdx});
 
             // Store first tank's pressure in legacy fields for backward compatibility
             if (!point.containsKey('pressure')) {
@@ -3354,8 +3390,9 @@ class ExportService {
     }
 
     // Parse information after dive
-    final afterElement =
-        diveElement.findElements('informationafterdive').firstOrNull;
+    final afterElement = diveElement
+        .findElements('informationafterdive')
+        .firstOrNull;
     if (afterElement != null) {
       final maxDepthText = _getElementText(afterElement, 'greatestdepth');
       if (maxDepthText != null) {
@@ -3438,16 +3475,16 @@ class ExportService {
       if (buddyNames.isEmpty) {
         final buddyElement = afterElement.findElements('buddy').firstOrNull;
         if (buddyElement != null) {
-          final personalElement =
-              buddyElement.findElements('personal').firstOrNull;
+          final personalElement = buddyElement
+              .findElements('personal')
+              .firstOrNull;
           if (personalElement != null) {
             final firstName = _getElementText(personalElement, 'firstname');
             final lastName = _getElementText(personalElement, 'lastname');
-            final buddyName = [firstName, lastName]
-                .whereType<String>()
-                .where((s) => s.isNotEmpty)
-                .join(' ')
-                .trim();
+            final buddyName = [
+              firstName,
+              lastName,
+            ].whereType<String>().where((s) => s.isNotEmpty).join(' ').trim();
             if (buddyName.isNotEmpty) {
               buddyNames.add(buddyName);
             }
@@ -3577,8 +3614,9 @@ class ExportService {
 
     // Parse gas definitions
     final gasMixes = <String, GasMix>{};
-    final gasDefsElement =
-        uddfElement.findElements('gasdefinitions').firstOrNull;
+    final gasDefsElement = uddfElement
+        .findElements('gasdefinitions')
+        .firstOrNull;
     if (gasDefsElement != null) {
       for (final mixElement in gasDefsElement.findElements('mix')) {
         final mixId = mixElement.getAttribute('id');
@@ -3592,14 +3630,19 @@ class ExportService {
     final decoModels = <String, Map<String, int>>{};
     final decoModelElement = uddfElement.findElements('decomodel').firstOrNull;
     if (decoModelElement != null) {
-      for (final buehlmannElement
-          in decoModelElement.findElements('buehlmann')) {
+      for (final buehlmannElement in decoModelElement.findElements(
+        'buehlmann',
+      )) {
         final modelId = buehlmannElement.getAttribute('id');
         if (modelId != null) {
-          final gfLowText =
-              _getElementText(buehlmannElement, 'gradientfactorlow');
-          final gfHighText =
-              _getElementText(buehlmannElement, 'gradientfactorhigh');
+          final gfLowText = _getElementText(
+            buehlmannElement,
+            'gradientfactorlow',
+          );
+          final gfHighText = _getElementText(
+            buehlmannElement,
+            'gradientfactorhigh',
+          );
           decoModels[modelId] = {
             'gfLow': gfLowText != null ? int.tryParse(gfLowText) ?? 0 : 0,
             'gfHigh': gfHighText != null ? int.tryParse(gfHighText) ?? 0 : 0,
@@ -3613,11 +3656,13 @@ class ExportService {
     if (diverElement != null) {
       final ownerElement = diverElement.findElements('owner').firstOrNull;
       if (ownerElement != null) {
-        final equipmentElement =
-            ownerElement.findElements('equipment').firstOrNull;
+        final equipmentElement = ownerElement
+            .findElements('equipment')
+            .firstOrNull;
         if (equipmentElement != null) {
-          for (final computerElement
-              in equipmentElement.findElements('divecomputer')) {
+          for (final computerElement in equipmentElement.findElements(
+            'divecomputer',
+          )) {
             final computerId = computerElement.getAttribute('id');
             if (computerId != null) {
               final model = _getElementText(computerElement, 'model');
@@ -3635,11 +3680,13 @@ class ExportService {
     // Parse dives with extended fields
     final dives = <Map<String, dynamic>>[];
     final sightings = <Map<String, dynamic>>[];
-    final profileDataElement =
-        uddfElement.findElements('profiledata').firstOrNull;
+    final profileDataElement = uddfElement
+        .findElements('profiledata')
+        .firstOrNull;
     if (profileDataElement != null) {
-      for (final repGroup
-          in profileDataElement.findElements('repetitiongroup')) {
+      for (final repGroup in profileDataElement.findElements(
+        'repetitiongroup',
+      )) {
         for (final diveElement in repGroup.findElements('dive')) {
           final diveData = _parseFullDive(
             diveElement,
@@ -3680,15 +3727,18 @@ class ExportService {
     final diveComputers = <Map<String, dynamic>>[];
     final equipmentSets = <Map<String, dynamic>>[];
 
-    final appDataElement =
-        uddfElement.findElements('applicationdata').firstOrNull;
+    final appDataElement = uddfElement
+        .findElements('applicationdata')
+        .firstOrNull;
     if (appDataElement != null) {
-      final submersionElement =
-          appDataElement.findElements('submersion').firstOrNull;
+      final submersionElement = appDataElement
+          .findElements('submersion')
+          .firstOrNull;
       if (submersionElement != null) {
         // Parse equipment
-        final equipmentSection =
-            submersionElement.findElements('equipment').firstOrNull;
+        final equipmentSection = submersionElement
+            .findElements('equipment')
+            .firstOrNull;
         if (equipmentSection != null) {
           for (final itemElement in equipmentSection.findElements('item')) {
             final itemData = _parseEquipmentItem(itemElement);
@@ -3699,8 +3749,9 @@ class ExportService {
         }
 
         // Parse certifications
-        final certsSection =
-            submersionElement.findElements('certifications').firstOrNull;
+        final certsSection = submersionElement
+            .findElements('certifications')
+            .firstOrNull;
         if (certsSection != null) {
           for (final certElement in certsSection.findElements('cert')) {
             final certData = _parseCertification(certElement);
@@ -3711,8 +3762,9 @@ class ExportService {
         }
 
         // Parse dive centers
-        final centersSection =
-            submersionElement.findElements('divecenters').firstOrNull;
+        final centersSection = submersionElement
+            .findElements('divecenters')
+            .firstOrNull;
         if (centersSection != null) {
           for (final centerElement in centersSection.findElements('center')) {
             final centerData = _parseDiveCenter(centerElement);
@@ -3723,8 +3775,9 @@ class ExportService {
         }
 
         // Parse species
-        final speciesSection =
-            submersionElement.findElements('species').firstOrNull;
+        final speciesSection = submersionElement
+            .findElements('species')
+            .firstOrNull;
         if (speciesSection != null) {
           for (final specElement in speciesSection.findElements('spec')) {
             final specData = _parseSpecies(specElement);
@@ -3735,8 +3788,9 @@ class ExportService {
         }
 
         // Parse service records
-        final serviceSection =
-            submersionElement.findElements('servicerecords').firstOrNull;
+        final serviceSection = submersionElement
+            .findElements('servicerecords')
+            .firstOrNull;
         if (serviceSection != null) {
           for (final recordElement in serviceSection.findElements('record')) {
             final recordData = _parseServiceRecord(recordElement);
@@ -3747,11 +3801,13 @@ class ExportService {
         }
 
         // Parse settings
-        final settingsSection =
-            submersionElement.findElements('settings').firstOrNull;
+        final settingsSection = submersionElement
+            .findElements('settings')
+            .firstOrNull;
         if (settingsSection != null) {
-          for (final settingElement
-              in settingsSection.findElements('setting')) {
+          for (final settingElement in settingsSection.findElements(
+            'setting',
+          )) {
             final key = settingElement.getAttribute('key');
             final value = settingElement.innerText.trim();
             if (key != null && value.isNotEmpty) {
@@ -3772,8 +3828,9 @@ class ExportService {
         }
 
         // Parse custom dive types
-        final diveTypesSection =
-            submersionElement.findElements('divetypes').firstOrNull;
+        final diveTypesSection = submersionElement
+            .findElements('divetypes')
+            .firstOrNull;
         if (diveTypesSection != null) {
           for (final typeElement in diveTypesSection.findElements('divetype')) {
             final typeData = _parseDiveTypeElement(typeElement);
@@ -3784,11 +3841,13 @@ class ExportService {
         }
 
         // Parse dive computers
-        final computersSection =
-            submersionElement.findElements('divecomputers').firstOrNull;
+        final computersSection = submersionElement
+            .findElements('divecomputers')
+            .firstOrNull;
         if (computersSection != null) {
-          for (final computerElement
-              in computersSection.findElements('computer')) {
+          for (final computerElement in computersSection.findElements(
+            'computer',
+          )) {
             final computerData = _parseDiveComputer(computerElement);
             if (computerData.isNotEmpty) {
               diveComputers.add(computerData);
@@ -3797,8 +3856,9 @@ class ExportService {
         }
 
         // Parse equipment sets
-        final setsSection =
-            submersionElement.findElements('equipmentsets').firstOrNull;
+        final setsSection = submersionElement
+            .findElements('equipmentsets')
+            .firstOrNull;
         if (setsSection != null) {
           for (final setElement in setsSection.findElements('set')) {
             final setData = _parseEquipmentSet(setElement);
@@ -3809,15 +3869,17 @@ class ExportService {
         }
 
         // Parse owner extended data (medical, emergency, insurance)
-        final ownerExtSection =
-            submersionElement.findElements('ownerextended').firstOrNull;
+        final ownerExtSection = submersionElement
+            .findElements('ownerextended')
+            .firstOrNull;
         if (ownerExtSection != null && owner != null) {
           _parseOwnerExtended(ownerExtSection, owner);
         }
 
         // Parse trip extended data (resort/liveaboard names)
-        final tripExtSection =
-            submersionElement.findElements('tripextended').firstOrNull;
+        final tripExtSection = submersionElement
+            .findElements('tripextended')
+            .firstOrNull;
         if (tripExtSection != null) {
           for (final tripExtElement in tripExtSection.findElements('trip')) {
             final tripRef = tripExtElement.getAttribute('tripref');
@@ -3860,11 +3922,10 @@ class ExportService {
     if (personalElement != null) {
       final firstName = _getElementText(personalElement, 'firstname');
       final lastName = _getElementText(personalElement, 'lastname');
-      final name = [firstName, lastName]
-          .whereType<String>()
-          .where((s) => s.isNotEmpty)
-          .join(' ')
-          .trim();
+      final name = [
+        firstName,
+        lastName,
+      ].whereType<String>().where((s) => s.isNotEmpty).join(' ').trim();
       if (name.isNotEmpty) {
         buddy['name'] = name;
       }
@@ -3876,13 +3937,17 @@ class ExportService {
     if (certElement != null) {
       final level = _getElementText(certElement, 'level');
       if (level != null) {
-        buddy['certificationLevel'] =
-            _parseEnumValue(level, enums.CertificationLevel.values);
+        buddy['certificationLevel'] = _parseEnumValue(
+          level,
+          enums.CertificationLevel.values,
+        );
       }
       final agency = _getElementText(certElement, 'agency');
       if (agency != null) {
-        buddy['certificationAgency'] =
-            _parseEnumValue(agency, enums.CertificationAgency.values);
+        buddy['certificationAgency'] = _parseEnumValue(
+          agency,
+          enums.CertificationAgency.values,
+        );
       }
     }
 
@@ -3927,8 +3992,9 @@ class ExportService {
     );
 
     // Parse additional fields from informationbeforedive
-    final beforeElement =
-        diveElement.findElements('informationbeforedive').firstOrNull;
+    final beforeElement = diveElement
+        .findElements('informationbeforedive')
+        .firstOrNull;
     if (beforeElement != null) {
       diveData['diveMaster'] = _getElementText(beforeElement, 'divemaster');
 
@@ -3939,8 +4005,10 @@ class ExportService {
 
       final entryType = _getElementText(beforeElement, 'entrytype');
       if (entryType != null) {
-        diveData['entryMethod'] =
-            _parseEnumValue(entryType, enums.EntryMethod.values);
+        diveData['entryMethod'] = _parseEnumValue(
+          entryType,
+          enums.EntryMethod.values,
+        );
       }
 
       // Extract link references for trip, dive center, and buddies
@@ -3962,16 +4030,16 @@ class ExportService {
 
       // Also parse inline buddy elements in informationbeforedive
       for (final buddyElement in beforeElement.findElements('buddy')) {
-        final personalElement =
-            buddyElement.findElements('personal').firstOrNull;
+        final personalElement = buddyElement
+            .findElements('personal')
+            .firstOrNull;
         if (personalElement != null) {
           final firstName = _getElementText(personalElement, 'firstname');
           final lastName = _getElementText(personalElement, 'lastname');
-          final buddyName = [firstName, lastName]
-              .whereType<String>()
-              .where((s) => s.isNotEmpty)
-              .join(' ')
-              .trim();
+          final buddyName = [
+            firstName,
+            lastName,
+          ].whereType<String>().where((s) => s.isNotEmpty).join(' ').trim();
           if (buddyName.isNotEmpty) {
             // Find matching buddy record by name
             bool found = false;
@@ -4002,25 +4070,32 @@ class ExportService {
     }
 
     // Parse additional fields from informationafterdive
-    final afterElement =
-        diveElement.findElements('informationafterdive').firstOrNull;
+    final afterElement = diveElement
+        .findElements('informationafterdive')
+        .firstOrNull;
     if (afterElement != null) {
       final waterType = _getElementText(afterElement, 'watertype');
       if (waterType != null) {
-        diveData['waterType'] =
-            _parseEnumValue(waterType, enums.WaterType.values);
+        diveData['waterType'] = _parseEnumValue(
+          waterType,
+          enums.WaterType.values,
+        );
       }
 
       final currentDir = _getElementText(afterElement, 'currentdirection');
       if (currentDir != null) {
-        diveData['currentDirection'] =
-            _parseEnumValue(currentDir, enums.CurrentDirection.values);
+        diveData['currentDirection'] = _parseEnumValue(
+          currentDir,
+          enums.CurrentDirection.values,
+        );
       }
 
       final currentStrength = _getElementText(afterElement, 'currentstrength');
       if (currentStrength != null) {
-        diveData['currentStrength'] =
-            _parseEnumValue(currentStrength, enums.CurrentStrength.values);
+        diveData['currentStrength'] = _parseEnumValue(
+          currentStrength,
+          enums.CurrentStrength.values,
+        );
       }
 
       final swellHeight = _getElementText(afterElement, 'swellheight');
@@ -4030,8 +4105,10 @@ class ExportService {
 
       final exitType = _getElementText(afterElement, 'exittype');
       if (exitType != null) {
-        diveData['exitMethod'] =
-            _parseEnumValue(exitType, enums.EntryMethod.values);
+        diveData['exitMethod'] = _parseEnumValue(
+          exitType,
+          enums.EntryMethod.values,
+        );
       }
 
       // Parse weight used
@@ -4043,23 +4120,28 @@ class ExportService {
         }
         final weightType = _getElementText(weightElement, 'type');
         if (weightType != null) {
-          diveData['weightType'] =
-              _parseEnumValue(weightType, enums.WeightType.values);
+          diveData['weightType'] = _parseEnumValue(
+            weightType,
+            enums.WeightType.values,
+          );
         }
       }
 
       // Parse sightings
-      final sightingsElement =
-          afterElement.findElements('sightings').firstOrNull;
+      final sightingsElement = afterElement
+          .findElements('sightings')
+          .firstOrNull;
       if (sightingsElement != null) {
         final sightingsList = <Map<String, dynamic>>[];
-        for (final sightingElement
-            in sightingsElement.findElements('sighting')) {
+        for (final sightingElement in sightingsElement.findElements(
+          'sighting',
+        )) {
           final sighting = <String, dynamic>{};
           sighting['speciesRef'] = sightingElement.getAttribute('speciesref');
           final countStr = sightingElement.getAttribute('count');
-          sighting['count'] =
-              countStr != null ? int.tryParse(countStr) ?? 1 : 1;
+          sighting['count'] = countStr != null
+              ? int.tryParse(countStr) ?? 1
+              : 1;
           sighting['notes'] = _getElementText(sightingElement, 'notes') ?? '';
           sightingsList.add(sighting);
         }
@@ -4091,16 +4173,16 @@ class ExportService {
       final buddyRefs = List<String>.from(existingBuddyRefs);
       final unmatchedBuddyNames = List<String>.from(existingUnmatched);
       for (final buddyElement in afterElement.findElements('buddy')) {
-        final personalElement =
-            buddyElement.findElements('personal').firstOrNull;
+        final personalElement = buddyElement
+            .findElements('personal')
+            .firstOrNull;
         if (personalElement != null) {
           final firstName = _getElementText(personalElement, 'firstname');
           final lastName = _getElementText(personalElement, 'lastname');
-          final buddyName = [firstName, lastName]
-              .whereType<String>()
-              .where((s) => s.isNotEmpty)
-              .join(' ')
-              .trim();
+          final buddyName = [
+            firstName,
+            lastName,
+          ].whereType<String>().where((s) => s.isNotEmpty).join(' ').trim();
           if (buddyName.isNotEmpty) {
             // Find matching buddy record by name
             bool found = false;
@@ -4198,14 +4280,18 @@ class ExportService {
 
     final agencyStr = _getElementText(certElement, 'agency');
     if (agencyStr != null) {
-      cert['agency'] =
-          _parseEnumValue(agencyStr, enums.CertificationAgency.values);
+      cert['agency'] = _parseEnumValue(
+        agencyStr,
+        enums.CertificationAgency.values,
+      );
     }
 
     final levelStr = _getElementText(certElement, 'level');
     if (levelStr != null) {
-      cert['level'] =
-          _parseEnumValue(levelStr, enums.CertificationLevel.values);
+      cert['level'] = _parseEnumValue(
+        levelStr,
+        enums.CertificationLevel.values,
+      );
     }
 
     cert['cardNumber'] = _getElementText(certElement, 'cardnumber');
@@ -4253,8 +4339,10 @@ class ExportService {
 
     final affiliations = _getElementText(centerElement, 'affiliations');
     if (affiliations != null && affiliations.isNotEmpty) {
-      center['affiliations'] =
-          affiliations.split(',').map((s) => s.trim()).toList();
+      center['affiliations'] = affiliations
+          .split(',')
+          .map((s) => s.trim())
+          .toList();
     }
 
     final rating = _getElementText(centerElement, 'rating');
@@ -4279,8 +4367,10 @@ class ExportService {
 
     final categoryStr = _getElementText(specElement, 'category');
     if (categoryStr != null) {
-      spec['category'] =
-          _parseEnumValue(categoryStr, enums.SpeciesCategory.values);
+      spec['category'] = _parseEnumValue(
+        categoryStr,
+        enums.SpeciesCategory.values,
+      );
     }
 
     spec['description'] = _getElementText(specElement, 'description');
@@ -4299,8 +4389,10 @@ class ExportService {
 
     final serviceType = _getElementText(recordElement, 'servicetype');
     if (serviceType != null) {
-      record['serviceType'] =
-          _parseEnumValue(serviceType, enums.ServiceType.values);
+      record['serviceType'] = _parseEnumValue(
+        serviceType,
+        enums.ServiceType.values,
+      );
     }
 
     final serviceDate = _getElementText(recordElement, 'servicedate');
@@ -4350,11 +4442,10 @@ class ExportService {
     if (personalElement != null) {
       final firstName = _getElementText(personalElement, 'firstname');
       final lastName = _getElementText(personalElement, 'lastname');
-      final name = [firstName, lastName]
-          .whereType<String>()
-          .where((s) => s.isNotEmpty)
-          .join(' ')
-          .trim();
+      final name = [
+        firstName,
+        lastName,
+      ].whereType<String>().where((s) => s.isNotEmpty).join(' ').trim();
       if (name.isNotEmpty) {
         owner['name'] = name;
       }
@@ -4443,10 +4534,14 @@ class ExportService {
     computer['manufacturer'] = _getElementText(computerElement, 'manufacturer');
     computer['model'] = _getElementText(computerElement, 'model');
     computer['serialNumber'] = _getElementText(computerElement, 'serialnumber');
-    computer['connectionType'] =
-        _getElementText(computerElement, 'connectiontype');
-    computer['bluetoothAddress'] =
-        _getElementText(computerElement, 'bluetoothaddress');
+    computer['connectionType'] = _getElementText(
+      computerElement,
+      'connectiontype',
+    );
+    computer['bluetoothAddress'] = _getElementText(
+      computerElement,
+      'bluetoothaddress',
+    );
 
     final isFavorite = _getElementText(computerElement, 'isfavorite');
     computer['isFavorite'] = isFavorite?.toLowerCase() == 'true';
@@ -4494,24 +4589,34 @@ class ExportService {
     owner['notes'] = _getElementText(ownerExtElement, 'notes') ?? '';
 
     // Parse emergency contact
-    final emergencyElement =
-        ownerExtElement.findElements('emergencycontact').firstOrNull;
+    final emergencyElement = ownerExtElement
+        .findElements('emergencycontact')
+        .firstOrNull;
     if (emergencyElement != null) {
       owner['emergencyContactName'] = _getElementText(emergencyElement, 'name');
-      owner['emergencyContactPhone'] =
-          _getElementText(emergencyElement, 'phone');
-      owner['emergencyContactRelation'] =
-          _getElementText(emergencyElement, 'relationship');
+      owner['emergencyContactPhone'] = _getElementText(
+        emergencyElement,
+        'phone',
+      );
+      owner['emergencyContactRelation'] = _getElementText(
+        emergencyElement,
+        'relationship',
+      );
     }
 
     // Parse insurance
-    final insuranceElement =
-        ownerExtElement.findElements('insurance').firstOrNull;
+    final insuranceElement = ownerExtElement
+        .findElements('insurance')
+        .firstOrNull;
     if (insuranceElement != null) {
-      owner['insuranceProvider'] =
-          _getElementText(insuranceElement, 'provider');
-      owner['insurancePolicyNumber'] =
-          _getElementText(insuranceElement, 'policynumber');
+      owner['insuranceProvider'] = _getElementText(
+        insuranceElement,
+        'provider',
+      );
+      owner['insurancePolicyNumber'] = _getElementText(
+        insuranceElement,
+        'policynumber',
+      );
       final expiryDate = _getElementText(insuranceElement, 'expirydate');
       if (expiryDate != null) {
         owner['insuranceExpiryDate'] = DateTime.tryParse(expiryDate);
@@ -4539,8 +4644,9 @@ class ExportService {
       throw const FormatException('CSV file is empty');
     }
 
-    final headers =
-        rows.first.map((e) => e.toString().toLowerCase().trim()).toList();
+    final headers = rows.first
+        .map((e) => e.toString().toLowerCase().trim())
+        .toList();
     final dataRows = rows.skip(1);
 
     final dives = <Map<String, dynamic>>[];

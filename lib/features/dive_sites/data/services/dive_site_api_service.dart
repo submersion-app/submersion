@@ -80,10 +80,7 @@ class DiveSiteSearchResult {
   });
 
   factory DiveSiteSearchResult.error(String message) {
-    return DiveSiteSearchResult(
-      sites: [],
-      errorMessage: message,
-    );
+    return DiveSiteSearchResult(sites: [], errorMessage: message);
   }
 
   bool get isSuccess => errorMessage == null;
@@ -102,16 +99,17 @@ class DiveSiteApiService {
   Future<(bool, String?)> testApiKeyWithDetails(String key) async {
     try {
       // Use GPS bounding box search - testing with a small area in the UK
-      final uri = Uri.parse(
-        'https://world-scuba-diving-sites-api.p.rapidapi.com/divesites/gps',
-      ).replace(
-        queryParameters: {
-          'southWestLat': '50.0',
-          'northEastLat': '51.0',
-          'southWestLng': '-1.0',
-          'northEastLng': '0.0',
-        },
-      );
+      final uri =
+          Uri.parse(
+            'https://world-scuba-diving-sites-api.p.rapidapi.com/divesites/gps',
+          ).replace(
+            queryParameters: {
+              'southWestLat': '50.0',
+              'northEastLat': '51.0',
+              'southWestLng': '-1.0',
+              'northEastLng': '0.0',
+            },
+          );
 
       final response = await http.get(
         uri,
@@ -355,9 +353,7 @@ class DiveSiteApiService {
   Future<DiveSiteSearchResult> _searchByLocation(String location) async {
     final uri = Uri.parse(
       'https://world-scuba-diving-sites-api.p.rapidapi.com/divesites',
-    ).replace(
-      queryParameters: {'location': location},
-    );
+    ).replace(queryParameters: {'location': location});
 
     final response = await http.get(
       uri,
@@ -370,10 +366,7 @@ class DiveSiteApiService {
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       final sites = _parseGpsApiResponse(data);
-      return DiveSiteSearchResult(
-        sites: sites,
-        totalResults: sites.length,
-      );
+      return DiveSiteSearchResult(sites: sites, totalResults: sites.length);
     } else {
       throw Exception('Location search returned ${response.statusCode}');
     }
@@ -386,16 +379,17 @@ class DiveSiteApiService {
     required double southWestLng,
     required double northEastLng,
   }) async {
-    final uri = Uri.parse(
-      'https://world-scuba-diving-sites-api.p.rapidapi.com/divesites/gps',
-    ).replace(
-      queryParameters: {
-        'southWestLat': southWestLat.toString(),
-        'northEastLat': northEastLat.toString(),
-        'southWestLng': southWestLng.toString(),
-        'northEastLng': northEastLng.toString(),
-      },
-    );
+    final uri =
+        Uri.parse(
+          'https://world-scuba-diving-sites-api.p.rapidapi.com/divesites/gps',
+        ).replace(
+          queryParameters: {
+            'southWestLat': southWestLat.toString(),
+            'northEastLat': northEastLat.toString(),
+            'southWestLng': southWestLng.toString(),
+            'northEastLng': northEastLng.toString(),
+          },
+        );
 
     final response = await http.get(
       uri,
@@ -408,10 +402,7 @@ class DiveSiteApiService {
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       final sites = _parseGpsApiResponse(data);
-      return DiveSiteSearchResult(
-        sites: sites,
-        totalResults: sites.length,
-      );
+      return DiveSiteSearchResult(sites: sites, totalResults: sites.length);
     } else {
       throw Exception('API returned ${response.statusCode}');
     }
@@ -463,7 +454,8 @@ class DiveSiteApiService {
         sites.add(
           ExternalDiveSite(
             externalId: '${item['id'] ?? sites.length}',
-            name: item['name'] as String? ??
+            name:
+                item['name'] as String? ??
                 item['site_name'] as String? ??
                 'Unknown',
             description: item['description'] as String?,
@@ -492,8 +484,9 @@ class DiveSiteApiService {
     if (_bundledSites != null) return _bundledSites!;
 
     try {
-      final jsonString =
-          await rootBundle.loadString('assets/data/dive_sites.json');
+      final jsonString = await rootBundle.loadString(
+        'assets/data/dive_sites.json',
+      );
       final data = json.decode(jsonString) as Map<String, dynamic>;
       final sitesList = data['sites'] as List<dynamic>;
 
@@ -616,7 +609,8 @@ class DiveSiteApiService {
     final dLat = _degreesToRadians(lat2 - lat1);
     final dLon = _degreesToRadians(lon2 - lon1);
 
-    final a = sin(dLat / 2) * sin(dLat / 2) +
+    final a =
+        sin(dLat / 2) * sin(dLat / 2) +
         cos(_degreesToRadians(lat1)) *
             cos(_degreesToRadians(lat2)) *
             sin(dLon / 2) *

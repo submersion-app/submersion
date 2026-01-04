@@ -15,9 +15,7 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: const MaterialApp(
-            home: TripListPage(),
-          ),
+          child: const MaterialApp(home: TripListPage()),
         ),
       );
 
@@ -33,9 +31,7 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: const MaterialApp(
-            home: TripListPage(),
-          ),
+          child: const MaterialApp(home: TripListPage()),
         ),
       );
 
@@ -51,9 +47,7 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: const MaterialApp(
-            home: TripListPage(),
-          ),
+          child: const MaterialApp(home: TripListPage()),
         ),
       );
 
@@ -74,9 +68,7 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: const MaterialApp(
-            home: TripListPage(),
-          ),
+          child: const MaterialApp(home: TripListPage()),
         ),
       );
 
@@ -122,9 +114,7 @@ void main() {
               return _MockTripListNotifier(testTrips);
             }),
           ],
-          child: const MaterialApp(
-            home: TripListPage(),
-          ),
+          child: const MaterialApp(home: TripListPage()),
         ),
       );
 
@@ -156,9 +146,7 @@ void main() {
               return _MockTripListNotifier(testTrips);
             }),
           ],
-          child: const MaterialApp(
-            home: TripListPage(),
-          ),
+          child: const MaterialApp(home: TripListPage()),
         ),
       );
 
@@ -166,8 +154,9 @@ void main() {
       expect(find.text('15 dives'), findsOneWidget);
     });
 
-    testWidgets('should show sailing icon for liveaboard trips',
-        (tester) async {
+    testWidgets('should show sailing icon for liveaboard trips', (
+      tester,
+    ) async {
       final testTrips = [
         TripWithStats(
           trip: Trip(
@@ -190,9 +179,7 @@ void main() {
               return _MockTripListNotifier(testTrips);
             }),
           ],
-          child: const MaterialApp(
-            home: TripListPage(),
-          ),
+          child: const MaterialApp(home: TripListPage()),
         ),
       );
 
@@ -208,9 +195,7 @@ void main() {
               return _LoadingTripListNotifier();
             }),
           ],
-          child: const MaterialApp(
-            home: TripListPage(),
-          ),
+          child: const MaterialApp(home: TripListPage()),
         ),
       );
 
@@ -225,7 +210,7 @@ class _MockTripListNotifier
     extends StateNotifier<AsyncValue<List<TripWithStats>>>
     implements TripListNotifier {
   _MockTripListNotifier(List<TripWithStats> trips)
-      : super(AsyncValue.data(trips));
+    : super(AsyncValue.data(trips));
 
   @override
   Future<void> refresh() async {}

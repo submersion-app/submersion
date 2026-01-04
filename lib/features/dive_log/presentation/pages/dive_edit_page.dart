@@ -38,10 +38,7 @@ import '../widgets/tank_editor.dart';
 class DiveEditPage extends ConsumerStatefulWidget {
   final String? diveId;
 
-  const DiveEditPage({
-    super.key,
-    this.diveId,
-  });
+  const DiveEditPage({super.key, this.diveId});
 
   bool get isEditing => diveId != null;
 
@@ -164,16 +161,17 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             // Auto-calculate from profile if no stored duration
             final calculatedDuration = dive.calculateBottomTimeFromProfile();
             if (calculatedDuration != null) {
-              _durationController.text =
-                  calculatedDuration.inMinutes.toString();
+              _durationController.text = calculatedDuration.inMinutes
+                  .toString();
             }
           }
           // Runtime: use stored value, or calculate from entry/exit times
           if (dive.runtime != null) {
             _runtimeController.text = dive.runtime!.inMinutes.toString();
           } else if (dive.entryTime != null && dive.exitTime != null) {
-            final calculatedRuntime =
-                dive.exitTime!.difference(dive.entryTime!);
+            final calculatedRuntime = dive.exitTime!.difference(
+              dive.entryTime!,
+            );
             _runtimeController.text = calculatedRuntime.inMinutes.toString();
           }
           // Convert stored metric values to user's preferred units
@@ -218,8 +216,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               ? units.convertDepth(dive.altitude!).toStringAsFixed(0)
               : '';
           _surfacePressureController.text = dive.surfacePressure != null
-              ? (dive.surfacePressure! * 1000)
-                  .toStringAsFixed(0) // Convert bar to mbar
+              ? (dive.surfacePressure! * 1000).toStringAsFixed(
+                  0,
+                ) // Convert bar to mbar
               : '';
 
           // Load weight entries (weights already stored in kg, conversion happens in display)
@@ -477,8 +476,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             if (calculatedDuration != null) ...[
               const SizedBox(height: 12),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(8),
@@ -513,8 +514,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   }
 
   Widget _buildSurfaceIntervalDisplay() {
-    final surfaceIntervalAsync =
-        ref.watch(surfaceIntervalProvider(widget.diveId!));
+    final surfaceIntervalAsync = ref.watch(
+      surfaceIntervalProvider(widget.diveId!),
+    );
 
     return surfaceIntervalAsync.when(
       data: (interval) {
@@ -522,8 +524,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
         final hours = interval.inHours;
         final minutes = interval.inMinutes % 60;
-        final intervalText =
-            hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m';
+        final intervalText = hours > 0
+            ? '${hours}h ${minutes}m'
+            : '${minutes}m';
 
         return Padding(
           padding: const EdgeInsets.only(top: 12),
@@ -587,9 +590,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   const SizedBox(width: 4),
                   Text(
                     'Getting location...',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colorScheme.primary,
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: colorScheme.primary),
                   ),
                 ] else if (_currentLocation != null && !widget.isEditing) ...[
                   const SizedBox(width: 8),
@@ -597,9 +600,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   const SizedBox(width: 4),
                   Text(
                     'Nearby sites first',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colorScheme.primary,
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: colorScheme.primary),
                   ),
                 ],
               ],
@@ -637,8 +640,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 child: Text(
                   _selectedSite!.locationString,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
           ],
@@ -717,8 +720,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 child: Text(
                   '${DateFormat.yMMMd().format(_selectedTrip!.startDate)} - ${DateFormat.yMMMd().format(_selectedTrip!.endDate)}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
             // Show suggested trip if no trip selected and dive date matches a trip
@@ -752,8 +755,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   child: Text(
                     'Suggested: ${suggestedTrip.name}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                 ),
                 TextButton(
@@ -832,8 +835,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 child: Text(
                   _selectedDiveCenter!.displayLocation!,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
           ],
@@ -884,8 +887,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                       labelText: 'Max Depth',
                       suffixText: units.depthSymbol,
                     ),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -896,8 +900,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                       labelText: 'Avg Depth',
                       suffixText: units.depthSymbol,
                     ),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                   ),
                 ),
               ],
@@ -1085,28 +1090,23 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                       Icon(
                         Icons.inventory_2_outlined,
                         size: 48,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurfaceVariant
-                            .withValues(alpha: 0.5),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'No equipment selected',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
-                            ),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Tap "Use Set" or "Add" to select equipment',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
-                            ),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),
@@ -1119,8 +1119,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 return ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: CircleAvatar(
-                    backgroundColor:
-                        Theme.of(context).colorScheme.primaryContainer,
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer,
                     child: Icon(
                       _getEquipmentIcon(item.type),
                       color: Theme.of(context).colorScheme.onPrimaryContainer,
@@ -1384,8 +1385,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : const Icon(Icons.cloud_download, size: 18),
-                      label:
-                          Text(conditions.isLoading ? 'Fetching...' : 'Fetch'),
+                      label: Text(
+                        conditions.isLoading ? 'Fetching...' : 'Fetch',
+                      ),
                     );
                   },
                 ),
@@ -1400,19 +1402,19 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   error: (e, st) => Text('Error loading dive types: $e'),
                   data: (diveTypes) {
                     // Ensure selected dive type exists in the list
-                    final selectedExists =
-                        diveTypes.any((t) => t.id == _selectedDiveTypeId);
-                    final effectiveValue =
-                        selectedExists ? _selectedDiveTypeId : 'recreational';
+                    final selectedExists = diveTypes.any(
+                      (t) => t.id == _selectedDiveTypeId,
+                    );
+                    final effectiveValue = selectedExists
+                        ? _selectedDiveTypeId
+                        : 'recreational';
 
                     return DropdownButtonFormField<String>(
                       key: ValueKey(
                         'dive_type_${diveTypes.length}_$effectiveValue',
                       ),
                       initialValue: effectiveValue,
-                      decoration: const InputDecoration(
-                        labelText: 'Dive Type',
-                      ),
+                      decoration: const InputDecoration(labelText: 'Dive Type'),
                       items: diveTypes.map((type) {
                         return DropdownMenuItem(
                           value: type.id,
@@ -1455,8 +1457,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                       labelText: 'Water Temp',
                       suffixText: units.temperatureSymbol,
                     ),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -1467,8 +1470,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                       labelText: 'Air Temp',
                       suffixText: units.temperatureSymbol,
                     ),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                   ),
                 ),
               ],
@@ -1499,8 +1503,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 Expanded(
                   child: DropdownButtonFormField<CurrentDirection>(
                     initialValue: _currentDirection,
-                    decoration:
-                        const InputDecoration(labelText: 'Current Direction'),
+                    decoration: const InputDecoration(
+                      labelText: 'Current Direction',
+                    ),
                     isExpanded: true,
                     items: [
                       const DropdownMenuItem<CurrentDirection>(
@@ -1523,8 +1528,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 Expanded(
                   child: DropdownButtonFormField<CurrentStrength>(
                     initialValue: _currentStrength,
-                    decoration:
-                        const InputDecoration(labelText: 'Current Strength'),
+                    decoration: const InputDecoration(
+                      labelText: 'Current Strength',
+                    ),
                     isExpanded: true,
                     items: [
                       const DropdownMenuItem<CurrentStrength>(
@@ -1555,8 +1561,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                       labelText: 'Swell Height',
                       suffixText: units.depthSymbol,
                     ),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -1571,8 +1578,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                         color: _isAltitudeDive(units) ? Colors.orange : null,
                       ),
                     ),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: false),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: false,
+                    ),
                     onChanged: (_) => setState(() {}),
                   ),
                 ),
@@ -1597,8 +1605,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 Expanded(
                   child: DropdownButtonFormField<EntryMethod>(
                     initialValue: _entryMethod,
-                    decoration:
-                        const InputDecoration(labelText: 'Entry Method'),
+                    decoration: const InputDecoration(
+                      labelText: 'Entry Method',
+                    ),
                     isExpanded: true,
                     items: [
                       const DropdownMenuItem<EntryMethod>(
@@ -1664,8 +1673,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   Text(
                     'Total: ${units.formatWeight(totalWeight)}',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
               ],
             ),
@@ -1737,14 +1746,16 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           Expanded(
             flex: 1,
             child: TextFormField(
-              initialValue:
-                  displayAmount > 0 ? displayAmount.toStringAsFixed(1) : '',
+              initialValue: displayAmount > 0
+                  ? displayAmount.toStringAsFixed(1)
+                  : '',
               decoration: InputDecoration(
                 labelText: units.weightSymbol,
                 isDense: true,
               ),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               onChanged: (value) {
                 final displayValue = double.tryParse(value) ?? 0;
                 // Convert back to kg for storage
@@ -1843,28 +1854,23 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                       Icon(
                         Icons.water,
                         size: 48,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurfaceVariant
-                            .withValues(alpha: 0.5),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'No marine life logged',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
-                            ),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Tap "Add" to record sightings',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
-                            ),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),
@@ -1877,8 +1883,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 return ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: CircleAvatar(
-                    backgroundColor:
-                        _getCategoryColor(sighting.speciesCategory),
+                    backgroundColor: _getCategoryColor(
+                      sighting.speciesCategory,
+                    ),
                     child: Icon(
                       _getCategoryIcon(sighting.speciesCategory),
                       color: Colors.white,
@@ -1903,16 +1910,17 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color:
-                                Theme.of(context).colorScheme.primaryContainer,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primaryContainer,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
                             'x${sighting.count}',
                             style: TextStyle(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onPrimaryContainer,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onPrimaryContainer,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -2104,10 +2112,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   Future<void> _selectExitTime() async {
     final time = await showTimePicker(
       context: context,
-      initialTime: _exitTime ??
-          TimeOfDay.fromDateTime(
-            DateTime.now().add(const Duration(hours: 1)),
-          ),
+      initialTime:
+          _exitTime ??
+          TimeOfDay.fromDateTime(DateTime.now().add(const Duration(hours: 1))),
     );
     if (time != null) {
       setState(() {
@@ -2183,7 +2190,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           : null;
       final surfacePressure = _surfacePressureController.text.isNotEmpty
           ? double.parse(_surfacePressureController.text) /
-              1000 // Convert mbar to bar
+                1000 // Convert mbar to bar
           : null;
 
       // Create dive entity
@@ -2330,7 +2337,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       _entryTime.minute,
     );
 
-    await ref.read(conditionsFetchProvider.notifier).fetchConditions(
+    await ref
+        .read(conditionsFetchProvider.notifier)
+        .fetchConditions(
           latitude: _selectedSite!.location!.latitude,
           longitude: _selectedSite!.location!.longitude,
           dateTime: diveDateTime,
@@ -2507,10 +2516,8 @@ class _SitePickerSheet extends ConsumerWidget {
                         const SizedBox(width: 4),
                         Text(
                           'Sorted by distance',
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.primary,
-                                  ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: colorScheme.primary),
                         ),
                       ],
                     ),
@@ -2574,8 +2581,9 @@ class _SitePickerSheet extends ConsumerWidget {
                   return a.distance!.compareTo(b.distance!);
                 });
               } else {
-                sortedSites =
-                    sites.map((site) => _SiteWithDistance(site, null)).toList();
+                sortedSites = sites
+                    .map((site) => _SiteWithDistance(site, null))
+                    .toList();
               }
 
               return ListView.builder(
@@ -2594,15 +2602,15 @@ class _SitePickerSheet extends ConsumerWidget {
                       backgroundColor: isSelected
                           ? colorScheme.primaryContainer
                           : isNearby
-                              ? colorScheme.tertiaryContainer
-                              : colorScheme.surfaceContainerHighest,
+                          ? colorScheme.tertiaryContainer
+                          : colorScheme.surfaceContainerHighest,
                       child: Icon(
                         isNearby ? Icons.near_me : Icons.location_on,
                         color: isSelected
                             ? colorScheme.onPrimaryContainer
                             : isNearby
-                                ? colorScheme.onTertiaryContainer
-                                : colorScheme.onSurfaceVariant,
+                            ? colorScheme.onTertiaryContainer
+                            : colorScheme.onSurfaceVariant,
                       ),
                     ),
                     title: Text(site.name),
@@ -2614,9 +2622,7 @@ class _SitePickerSheet extends ConsumerWidget {
                         if (distance != null)
                           Text(
                             _formatDistance(distance),
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
+                            style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
                                   color: isNearby
                                       ? colorScheme.tertiary
@@ -2627,10 +2633,7 @@ class _SitePickerSheet extends ConsumerWidget {
                       ],
                     ),
                     trailing: isSelected
-                        ? Icon(
-                            Icons.check_circle,
-                            color: colorScheme.primary,
-                          )
+                        ? Icon(Icons.check_circle, color: colorScheme.primary)
                         : null,
                     onTap: () => onSiteSelected(site),
                   );
@@ -2638,9 +2641,8 @@ class _SitePickerSheet extends ConsumerWidget {
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) => Center(
-              child: Text('Error loading sites: $error'),
-            ),
+            error: (error, _) =>
+                Center(child: Text('Error loading sites: $error')),
           ),
         ),
       ],
@@ -2660,7 +2662,7 @@ class _SiteWithDistance {
 class _SpeciesPickerSheet extends ConsumerStatefulWidget {
   final ScrollController scrollController;
   final void Function(Species species, int count, String notes)
-      onSpeciesSelected;
+  onSpeciesSelected;
 
   const _SpeciesPickerSheet({
     required this.scrollController,
@@ -2688,8 +2690,8 @@ class _SpeciesPickerSheetState extends ConsumerState<_SpeciesPickerSheet> {
     final speciesAsync = _searchQuery.isEmpty && _selectedCategory == null
         ? ref.watch(allSpeciesProvider)
         : _selectedCategory != null
-            ? ref.watch(speciesByCategoryProvider(_selectedCategory!))
-            : ref.watch(speciesSearchProvider(_searchQuery));
+        ? ref.watch(speciesByCategoryProvider(_selectedCategory!))
+        : ref.watch(speciesSearchProvider(_searchQuery));
 
     return Column(
       children: [
@@ -2816,9 +2818,8 @@ class _SpeciesPickerSheetState extends ConsumerState<_SpeciesPickerSheet> {
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) => Center(
-              child: Text('Error loading species: $error'),
-            ),
+            error: (error, _) =>
+                Center(child: Text('Error loading species: $error')),
           ),
         ),
       ],
@@ -2908,12 +2909,15 @@ class _SpeciesPickerSheetState extends ConsumerState<_SpeciesPickerSheet> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.remove_circle_outline),
-                    onPressed:
-                        count > 1 ? () => setDialogState(() => count--) : null,
+                    onPressed: count > 1
+                        ? () => setDialogState(() => count--)
+                        : null,
                   ),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       border: Border.all(
                         color: Theme.of(context).colorScheme.outline,
@@ -3047,8 +3051,9 @@ class _EditSightingSheetState extends State<_EditSightingSheet> {
                             widget.onDelete();
                           },
                           style: FilledButton.styleFrom(
-                            backgroundColor:
-                                Theme.of(context).colorScheme.error,
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.error,
                           ),
                           child: const Text('Remove'),
                         ),
@@ -3060,10 +3065,7 @@ class _EditSightingSheetState extends State<_EditSightingSheet> {
             ],
           ),
           const SizedBox(height: 24),
-          Text(
-            'Count',
-            style: Theme.of(context).textTheme.labelLarge,
-          ),
+          Text('Count', style: Theme.of(context).textTheme.labelLarge),
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -3074,11 +3076,14 @@ class _EditSightingSheetState extends State<_EditSightingSheet> {
               ),
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 24),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
-                  border:
-                      Border.all(color: Theme.of(context).colorScheme.outline),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -3186,10 +3191,8 @@ class _EquipmentPickerSheet extends ConsumerWidget {
                             ? 'Add equipment from the Equipment tab'
                             : 'Remove items to add different ones',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
-                            ),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),
@@ -3203,8 +3206,9 @@ class _EquipmentPickerSheet extends ConsumerWidget {
                   final equipment = available[index];
                   return ListTile(
                     leading: CircleAvatar(
-                      backgroundColor:
-                          Theme.of(context).colorScheme.surfaceContainerHighest,
+                      backgroundColor: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
                       child: Icon(
                         _getEquipmentIcon(equipment.type),
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -3218,9 +3222,8 @@ class _EquipmentPickerSheet extends ConsumerWidget {
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) => Center(
-              child: Text('Error loading equipment: $error'),
-            ),
+            error: (error, _) =>
+                Center(child: Text('Error loading equipment: $error')),
           ),
         ),
       ],
@@ -3272,7 +3275,7 @@ class _EquipmentPickerSheet extends ConsumerWidget {
 class _EquipmentSetPickerSheet extends ConsumerWidget {
   final ScrollController scrollController;
   final void Function(EquipmentSet set, List<EquipmentItem> items)
-      onSetSelected;
+  onSetSelected;
 
   const _EquipmentSetPickerSheet({
     required this.scrollController,
@@ -3324,10 +3327,8 @@ class _EquipmentSetPickerSheet extends ConsumerWidget {
                       Text(
                         'Create sets in Equipment > Sets',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
-                            ),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),
@@ -3347,9 +3348,8 @@ class _EquipmentSetPickerSheet extends ConsumerWidget {
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) => Center(
-              child: Text('Error loading equipment sets: $error'),
-            ),
+            error: (error, _) =>
+                Center(child: Text('Error loading equipment sets: $error')),
           ),
         ),
       ],
@@ -3362,10 +3362,7 @@ class _EquipmentSetTile extends ConsumerWidget {
   final EquipmentSet set;
   final void Function(List<EquipmentItem> items) onTap;
 
-  const _EquipmentSetTile({
-    required this.set,
-    required this.onTap,
-  });
+  const _EquipmentSetTile({required this.set, required this.onTap});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -3399,8 +3396,9 @@ class _EquipmentSetTile extends ConsumerWidget {
       },
       loading: () => ListTile(
         leading: CircleAvatar(
-          backgroundColor:
-              Theme.of(context).colorScheme.surfaceContainerHighest,
+          backgroundColor: Theme.of(
+            context,
+          ).colorScheme.surfaceContainerHighest,
           child: const SizedBox(
             width: 20,
             height: 20,

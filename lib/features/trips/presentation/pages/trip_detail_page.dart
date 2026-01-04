@@ -154,14 +154,14 @@ class _TripDetailContent extends ConsumerWidget {
           Text(
             '${dateFormat.format(trip.startDate)} - ${dateFormat.format(trip.endDate)}',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           Text(
             '${trip.durationDays} days',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
         ],
       ),
@@ -177,9 +177,9 @@ class _TripDetailContent extends ConsumerWidget {
           children: [
             Text(
               'Trip Details',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             if (trip.location != null)
@@ -218,9 +218,9 @@ class _TripDetailContent extends ConsumerWidget {
           children: [
             Text(
               'Trip Statistics',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             _StatRow(
@@ -260,9 +260,9 @@ class _TripDetailContent extends ConsumerWidget {
           children: [
             Text(
               'Notes',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             Text(trip.notes),
@@ -289,8 +289,8 @@ class _TripDetailContent extends ConsumerWidget {
                 Text(
                   'Dives',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 diveIdsAsync.when(
                   data: (ids) => TextButton(
@@ -312,9 +312,7 @@ class _TripDetailContent extends ConsumerWidget {
                 if (ids.isEmpty) {
                   return const Padding(
                     padding: EdgeInsets.symmetric(vertical: 16),
-                    child: Center(
-                      child: Text('No dives in this trip yet'),
-                    ),
+                    child: Center(child: Text('No dives in this trip yet')),
                   );
                 }
                 // Show first 5 dive IDs as tappable items
@@ -428,16 +426,13 @@ class _StatRow extends StatelessWidget {
           Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
+            child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
           ),
           Text(
             value,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
         ],
       ),

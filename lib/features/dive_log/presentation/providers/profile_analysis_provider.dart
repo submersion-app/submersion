@@ -36,67 +36,70 @@ final profileAnalysisServiceProvider = Provider<ProfileAnalysisService>((ref) {
 });
 
 /// Provider for profile analysis of a specific dive
-final profileAnalysisProvider =
-    FutureProvider.family<ProfileAnalysis?, String>((ref, diveId) async {
-  try {
-    // Get the dive with profile data
-    final diveAsync = ref.watch(diveProvider(diveId));
+final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
+  (ref, diveId) async {
+    try {
+      // Get the dive with profile data
+      final diveAsync = ref.watch(diveProvider(diveId));
 
-    return diveAsync.when(
-      data: (dive) {
-        if (dive == null || dive.profile.isEmpty) {
-          _log.debug('No profile data for dive $diveId');
+      return diveAsync.when(
+        data: (dive) {
+          if (dive == null || dive.profile.isEmpty) {
+            _log.debug('No profile data for dive $diveId');
+            return null;
+          }
+
+          final service = ref.watch(profileAnalysisServiceProvider);
+
+          // Extract profile data
+          final depths = dive.profile.map((p) => p.depth).toList();
+          final timestamps = dive.profile.map((p) => p.timestamp).toList();
+          final pressures = dive.profile
+              .where((p) => p.pressure != null)
+              .map((p) => p.pressure!)
+              .toList();
+
+          // Get gas mix from primary tank
+          double o2Fraction = 0.21; // Default to air
+          double heFraction = 0.0;
+          if (dive.tanks.isNotEmpty) {
+            final primaryTank = dive.tanks.first;
+            o2Fraction = primaryTank.gasMix.o2 / 100.0;
+            heFraction = primaryTank.gasMix.he / 100.0;
+          }
+
+          // Analyze the profile
+          _log.debug(
+            'Analyzing profile for dive $diveId with ${depths.length} points',
+          );
+          return service.analyze(
+            diveId: diveId,
+            depths: depths,
+            timestamps: timestamps,
+            o2Fraction: o2Fraction,
+            heFraction: heFraction,
+            startCns: 0.0, // TODO: Calculate from previous dive
+            pressures: pressures.length == depths.length ? pressures : null,
+          );
+        },
+        loading: () => null,
+        error: (e, st) {
+          _log.error('Error loading dive for analysis: $diveId', e, st);
           return null;
-        }
-
-        final service = ref.watch(profileAnalysisServiceProvider);
-
-        // Extract profile data
-        final depths = dive.profile.map((p) => p.depth).toList();
-        final timestamps = dive.profile.map((p) => p.timestamp).toList();
-        final pressures = dive.profile
-            .where((p) => p.pressure != null)
-            .map((p) => p.pressure!)
-            .toList();
-
-        // Get gas mix from primary tank
-        double o2Fraction = 0.21; // Default to air
-        double heFraction = 0.0;
-        if (dive.tanks.isNotEmpty) {
-          final primaryTank = dive.tanks.first;
-          o2Fraction = primaryTank.gasMix.o2 / 100.0;
-          heFraction = primaryTank.gasMix.he / 100.0;
-        }
-
-        // Analyze the profile
-        _log.debug(
-          'Analyzing profile for dive $diveId with ${depths.length} points',
-        );
-        return service.analyze(
-          diveId: diveId,
-          depths: depths,
-          timestamps: timestamps,
-          o2Fraction: o2Fraction,
-          heFraction: heFraction,
-          startCns: 0.0, // TODO: Calculate from previous dive
-          pressures: pressures.length == depths.length ? pressures : null,
-        );
-      },
-      loading: () => null,
-      error: (e, st) {
-        _log.error('Error loading dive for analysis: $diveId', e, st);
-        return null;
-      },
-    );
-  } catch (e, stackTrace) {
-    _log.error('Failed to analyze profile for dive: $diveId', e, stackTrace);
-    return null;
-  }
-});
+        },
+      );
+    } catch (e, stackTrace) {
+      _log.error('Failed to analyze profile for dive: $diveId', e, stackTrace);
+      return null;
+    }
+  },
+);
 
 /// Provider for profile analysis using a Dive object directly
-final diveProfileAnalysisProvider =
-    Provider.family<ProfileAnalysis?, Dive>((ref, dive) {
+final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
+  ref,
+  dive,
+) {
   if (dive.profile.isEmpty) {
     return null;
   }
@@ -137,8 +140,10 @@ final diveProfileAnalysisProvider =
 });
 
 /// Provider for quick stats from profile analysis
-final profileQuickStatsProvider =
-    Provider.family<ProfileQuickStats?, String>((ref, diveId) {
+final profileQuickStatsProvider = Provider.family<ProfileQuickStats?, String>((
+  ref,
+  diveId,
+) {
   final analysisAsync = ref.watch(profileAnalysisProvider(diveId));
 
   return analysisAsync.when(

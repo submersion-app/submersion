@@ -42,12 +42,12 @@ class StatSectionCard extends StatelessWidget {
                         const SizedBox(height: 2),
                         Text(
                           subtitle!,
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant,
-                                  ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
                         ),
                       ],
                     ],
@@ -116,17 +116,17 @@ class StatValueCard extends StatelessWidget {
               fit: BoxFit.scaleDown,
               child: Text(
                 value,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
             ),
             const SizedBox(height: 2),
             Text(
               label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -201,18 +201,18 @@ class StatCategoryCard extends StatelessWidget {
               const SizedBox(height: 12),
               Text(
                 title,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
               ),
               if (headline != null) ...[
                 const SizedBox(height: 4),
                 Text(
                   headline!,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: cardColor,
-                      ),
+                    fontWeight: FontWeight.bold,
+                    color: cardColor,
+                  ),
                 ),
               ],
               if (subtitle != null) ...[
@@ -220,8 +220,8 @@ class StatCategoryCard extends StatelessWidget {
                 Text(
                   subtitle!,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -260,23 +260,21 @@ class StatEmptyState extends StatelessWidget {
             Icon(
               icon,
               size: 48,
-              color:
-                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 8),
             Text(
               message,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
               textAlign: TextAlign.center,
             ),
             if (action != null && onAction != null) ...[
               const SizedBox(height: 12),
-              TextButton(
-                onPressed: onAction,
-                child: Text(action!),
-              ),
+              TextButton(onPressed: onAction, child: Text(action!)),
             ],
           ],
         ),

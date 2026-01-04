@@ -262,15 +262,15 @@ class ProfileEvent extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        diveId,
-        timestamp,
-        eventType,
-        severity,
-        description,
-        depth,
-        value,
-        tankId,
-        createdAt,
-      ];
+    id,
+    diveId,
+    timestamp,
+    eventType,
+    severity,
+    description,
+    depth,
+    value,
+    tankId,
+    createdAt,
+  ];
 }

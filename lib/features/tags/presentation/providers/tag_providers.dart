@@ -12,8 +12,9 @@ final tagRepositoryProvider = Provider<TagRepository>((ref) {
 /// All tags list provider
 final tagsProvider = FutureProvider<List<Tag>>((ref) async {
   final repository = ref.watch(tagRepositoryProvider);
-  final validatedDiverId =
-      await ref.watch(validatedCurrentDiverIdProvider.future);
+  final validatedDiverId = await ref.watch(
+    validatedCurrentDiverIdProvider.future,
+  );
   return repository.getAllTags(diverId: validatedDiverId);
 });
 
@@ -26,24 +27,30 @@ final tagProvider = FutureProvider.family<Tag?, String>((ref, id) async {
 /// Tag statistics provider
 final tagStatisticsProvider = FutureProvider<List<TagStatistic>>((ref) async {
   final repository = ref.watch(tagRepositoryProvider);
-  final validatedDiverId =
-      await ref.watch(validatedCurrentDiverIdProvider.future);
+  final validatedDiverId = await ref.watch(
+    validatedCurrentDiverIdProvider.future,
+  );
   return repository.getTagStatistics(diverId: validatedDiverId);
 });
 
 /// Tags for a specific dive provider
-final tagsForDiveProvider =
-    FutureProvider.family<List<Tag>, String>((ref, diveId) async {
+final tagsForDiveProvider = FutureProvider.family<List<Tag>, String>((
+  ref,
+  diveId,
+) async {
   final repository = ref.watch(tagRepositoryProvider);
   return repository.getTagsForDive(diveId);
 });
 
 /// Search tags provider
-final tagSearchProvider =
-    FutureProvider.family<List<Tag>, String>((ref, query) async {
+final tagSearchProvider = FutureProvider.family<List<Tag>, String>((
+  ref,
+  query,
+) async {
   final repository = ref.watch(tagRepositoryProvider);
-  final validatedDiverId =
-      await ref.watch(validatedCurrentDiverIdProvider.future);
+  final validatedDiverId = await ref.watch(
+    validatedCurrentDiverIdProvider.future,
+  );
   return repository.searchTags(query, diverId: validatedDiverId);
 });
 
@@ -54,7 +61,7 @@ class TagListNotifier extends StateNotifier<AsyncValue<List<Tag>>> {
   String? _validatedDiverId;
 
   TagListNotifier(this._repository, this._ref)
-      : super(const AsyncValue.loading()) {
+    : super(const AsyncValue.loading()) {
     _initializeAndLoad();
 
     // Listen for diver changes and reload
@@ -99,8 +106,9 @@ class TagListNotifier extends StateNotifier<AsyncValue<List<Tag>>> {
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
 
     // Always set diverId to the current validated diver for new items
-    final tagWithDiver =
-        validatedId != null ? tag.copyWith(diverId: validatedId) : tag;
+    final tagWithDiver = validatedId != null
+        ? tag.copyWith(diverId: validatedId)
+        : tag;
     final newTag = await _repository.createTag(tagWithDiver);
     await _loadTags();
     _ref.invalidate(tagStatisticsProvider);
@@ -149,6 +157,6 @@ class TagListNotifier extends StateNotifier<AsyncValue<List<Tag>>> {
 
 final tagListNotifierProvider =
     StateNotifierProvider<TagListNotifier, AsyncValue<List<Tag>>>((ref) {
-  final repository = ref.watch(tagRepositoryProvider);
-  return TagListNotifier(repository, ref);
-});
+      final repository = ref.watch(tagRepositoryProvider);
+      return TagListNotifier(repository, ref);
+    });

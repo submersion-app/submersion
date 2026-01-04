@@ -51,7 +51,8 @@ class ProfileMarker {
     }
 
     // Default tank colors
-    final colors = tankColors ??
+    final colors =
+        tankColors ??
         [
           Colors.orange,
           Colors.amber,
@@ -103,9 +104,7 @@ class ProfileMarkersService {
     }
 
     // If exact match not found, find the deepest point
-    maxPoint ??= profile.reduce(
-      (a, b) => a.depth > b.depth ? a : b,
-    );
+    maxPoint ??= profile.reduce((a, b) => a.depth > b.depth ? a : b);
 
     return ProfileMarker(
       timestamp: maxPoint.timestamp,

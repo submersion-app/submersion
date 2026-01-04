@@ -103,20 +103,20 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
       state = state.copyWith(showPressureThresholdMarkers: value);
   @override
   Future<void> setMetric() async => state = state.copyWith(
-        depthUnit: DepthUnit.meters,
-        temperatureUnit: TemperatureUnit.celsius,
-        pressureUnit: PressureUnit.bar,
-        volumeUnit: VolumeUnit.liters,
-        weightUnit: WeightUnit.kilograms,
-      );
+    depthUnit: DepthUnit.meters,
+    temperatureUnit: TemperatureUnit.celsius,
+    pressureUnit: PressureUnit.bar,
+    volumeUnit: VolumeUnit.liters,
+    weightUnit: WeightUnit.kilograms,
+  );
   @override
   Future<void> setImperial() async => state = state.copyWith(
-        depthUnit: DepthUnit.feet,
-        temperatureUnit: TemperatureUnit.fahrenheit,
-        pressureUnit: PressureUnit.psi,
-        volumeUnit: VolumeUnit.cubicFeet,
-        weightUnit: WeightUnit.pounds,
-      );
+    depthUnit: DepthUnit.feet,
+    temperatureUnit: TemperatureUnit.fahrenheit,
+    pressureUnit: PressureUnit.psi,
+    volumeUnit: VolumeUnit.cubicFeet,
+    weightUnit: WeightUnit.pounds,
+  );
 }
 
 /// Mock CurrentDiverIdNotifier that doesn't access the database
@@ -168,8 +168,9 @@ void main() {
       // Mock the settingsProvider to avoid database access
       settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
       // Mock the currentDiverIdProvider to avoid database access
-      currentDiverIdProvider
-          .overrideWith((ref) => _MockCurrentDiverIdNotifier()),
+      currentDiverIdProvider.overrideWith(
+        (ref) => _MockCurrentDiverIdNotifier(),
+      ),
       // Mock currentDiverProvider
       currentDiverProvider.overrideWith((ref) async => null),
       // Mock diverListNotifierProvider
@@ -182,9 +183,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: getOverrides(),
-          child: const MaterialApp(
-            home: SettingsPage(),
-          ),
+          child: const MaterialApp(home: SettingsPage()),
         ),
       );
 
@@ -195,9 +194,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: getOverrides(),
-          child: const MaterialApp(
-            home: SettingsPage(),
-          ),
+          child: const MaterialApp(home: SettingsPage()),
         ),
       );
 
@@ -211,9 +208,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: getOverrides(),
-          child: const MaterialApp(
-            home: SettingsPage(),
-          ),
+          child: const MaterialApp(home: SettingsPage()),
         ),
       );
       await tester.pumpAndSettle();
@@ -227,14 +222,13 @@ void main() {
       expect(find.text('Appearance'), findsOneWidget);
     });
 
-    testWidgets('should display Manage section with navigation items',
-        (tester) async {
+    testWidgets('should display Manage section with navigation items', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: getOverrides(),
-          child: const MaterialApp(
-            home: SettingsPage(),
-          ),
+          child: const MaterialApp(home: SettingsPage()),
         ),
       );
 
@@ -275,9 +269,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: getOverrides(),
-          child: const MaterialApp(
-            home: SettingsPage(),
-          ),
+          child: const MaterialApp(home: SettingsPage()),
         ),
       );
 
@@ -290,9 +282,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: getOverrides(),
-          child: const MaterialApp(
-            home: SettingsPage(),
-          ),
+          child: const MaterialApp(home: SettingsPage()),
         ),
       );
 
@@ -302,14 +292,13 @@ void main() {
       expect(find.text('°C'), findsOneWidget);
     });
 
-    testWidgets('should display Theme & Display navigation item',
-        (tester) async {
+    testWidgets('should display Theme & Display navigation item', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: getOverrides(),
-          child: const MaterialApp(
-            home: SettingsPage(),
-          ),
+          child: const MaterialApp(home: SettingsPage()),
         ),
       );
       await tester.pumpAndSettle();

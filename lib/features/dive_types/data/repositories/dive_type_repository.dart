@@ -141,15 +141,18 @@ class DiveTypeRepository {
 
       // Ensure the slug is unique
       final existing = await getDiveTypeById(id);
-      final uniqueId =
-          existing != null ? '${id}_${_uuid.v4().substring(0, 8)}' : id;
+      final uniqueId = existing != null
+          ? '${id}_${_uuid.v4().substring(0, 8)}'
+          : id;
 
       final now = DateTime.now().millisecondsSinceEpoch;
 
       // Get the next sort order
       final maxSortOrder = await _getMaxSortOrder();
 
-      await _db.into(_db.diveTypes).insert(
+      await _db
+          .into(_db.diveTypes)
+          .insert(
             DiveTypesCompanion(
               id: Value(uniqueId),
               diverId: Value(diveType.diverId),
@@ -168,8 +171,9 @@ class DiveTypeRepository {
       );
       return diveType.copyWith(
         id: uniqueId,
-        sortOrder:
-            diveType.sortOrder > 0 ? diveType.sortOrder : maxSortOrder + 1,
+        sortOrder: diveType.sortOrder > 0
+            ? diveType.sortOrder
+            : maxSortOrder + 1,
       );
     } catch (e, stackTrace) {
       _log.error('Failed to create dive type', e, stackTrace);
@@ -189,8 +193,9 @@ class DiveTypeRepository {
       _log.info('Updating dive type: ${diveType.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await (_db.update(_db.diveTypes)..where((t) => t.id.equals(diveType.id)))
-          .write(
+      await (_db.update(
+        _db.diveTypes,
+      )..where((t) => t.id.equals(diveType.id))).write(
         DiveTypesCompanion(
           name: Value(diveType.name),
           sortOrder: Value(diveType.sortOrder),
@@ -247,17 +252,14 @@ class DiveTypeRepository {
         variables = [];
       }
 
-      final result = await _db.customSelect(
-        '''
+      final result = await _db.customSelect('''
         SELECT dt.*, COUNT(d.id) as dive_count
         FROM dive_types dt
         LEFT JOIN dives d ON dt.id = d.dive_type
         $whereClause
         GROUP BY dt.id
         ORDER BY dt.sort_order, dt.name
-      ''',
-        variables: variables,
-      ).get();
+      ''', variables: variables).get();
 
       return result
           .map(
@@ -288,12 +290,14 @@ class DiveTypeRepository {
   /// Check if a dive type is in use
   Future<bool> isDiveTypeInUse(String id) async {
     try {
-      final result = await _db.customSelect(
-        '''
+      final result = await _db
+          .customSelect(
+            '''
         SELECT COUNT(*) as count FROM dives WHERE dive_type = ?
       ''',
-        variables: [Variable.withString(id)],
-      ).getSingle();
+            variables: [Variable.withString(id)],
+          )
+          .getSingle();
       return (result.data['count'] as int) > 0;
     } catch (e, stackTrace) {
       _log.error('Failed to check if dive type is in use: $id', e, stackTrace);

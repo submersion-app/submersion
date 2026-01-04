@@ -236,16 +236,15 @@ class _DiverDetailContent extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 16),
-          Text(
-            diver.name,
-            style: theme.textTheme.headlineMedium,
-          ),
+          Text(diver.name, style: theme.textTheme.headlineMedium),
           if (isCurrentDiver)
             Padding(
               padding: const EdgeInsets.only(top: 4),
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: theme.colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(12),
@@ -264,11 +263,7 @@ class _DiverDetailContent extends ConsumerWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    Icons.star,
-                    size: 14,
-                    color: theme.colorScheme.primary,
-                  ),
+                  Icon(Icons.star, size: 14, color: theme.colorScheme.primary),
                   const SizedBox(width: 4),
                   Text(
                     'Default',
@@ -296,9 +291,9 @@ class _DiverDetailContent extends ConsumerWidget {
           children: [
             Text(
               'Dive Statistics',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             statsAsync.when(
@@ -340,9 +335,9 @@ class _DiverDetailContent extends ConsumerWidget {
           children: [
             Text(
               'Contact',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             if (diver.email != null)
@@ -371,8 +366,9 @@ class _DiverDetailContent extends ConsumerWidget {
     final emergency = diver.emergencyContact;
 
     return Card(
-      color:
-          Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.3),
+      color: Theme.of(
+        context,
+      ).colorScheme.errorContainer.withValues(alpha: 0.3),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -388,8 +384,8 @@ class _DiverDetailContent extends ConsumerWidget {
                 Text(
                   'Emergency Contact',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -431,8 +427,8 @@ class _DiverDetailContent extends ConsumerWidget {
                 Text(
                   'Medical Information',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -446,8 +442,8 @@ class _DiverDetailContent extends ConsumerWidget {
               Text(
                 'Notes',
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 4),
               Text(diver.medicalNotes),
@@ -475,14 +471,16 @@ class _DiverDetailContent extends ConsumerWidget {
                 Text(
                   'Dive Insurance',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 if (isExpired) ...[
                   const SizedBox(width: 8),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.error,
                       borderRadius: BorderRadius.circular(12),
@@ -490,8 +488,8 @@ class _DiverDetailContent extends ConsumerWidget {
                     child: Text(
                       'Expired',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onError,
-                          ),
+                        color: Theme.of(context).colorScheme.onError,
+                      ),
                     ),
                   ),
                 ],
@@ -506,8 +504,9 @@ class _DiverDetailContent extends ConsumerWidget {
               _InfoRow(
                 label: 'Expires',
                 value: DateFormat.yMMMd().format(insurance.expiryDate!),
-                valueColor:
-                    isExpired ? Theme.of(context).colorScheme.error : null,
+                valueColor: isExpired
+                    ? Theme.of(context).colorScheme.error
+                    : null,
               ),
           ],
         ),
@@ -524,9 +523,9 @@ class _DiverDetailContent extends ConsumerWidget {
           children: [
             Text(
               'Notes',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             Text(diver.notes),
@@ -625,11 +624,7 @@ class _InfoRow extends StatelessWidget {
   final String value;
   final Color? valueColor;
 
-  const _InfoRow({
-    required this.label,
-    required this.value,
-    this.valueColor,
-  });
+  const _InfoRow({required this.label, required this.value, this.valueColor});
 
   @override
   Widget build(BuildContext context) {
@@ -643,17 +638,17 @@ class _InfoRow extends StatelessWidget {
             child: Text(
               label,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
           Expanded(
             child: Text(
               value,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                    color: valueColor,
-                  ),
+                fontWeight: FontWeight.w500,
+                color: valueColor,
+              ),
             ),
           ),
         ],

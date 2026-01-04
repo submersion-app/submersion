@@ -33,18 +33,18 @@ class DeviceLibrary {
   DeviceModel? findByBleServiceUuid(String uuid) {
     final normalizedUuid = uuid.toLowerCase();
     return _models.cast<DeviceModel?>().firstWhere(
-          (m) => m?.bleServiceUuid?.toLowerCase() == normalizedUuid,
-          orElse: () => null,
-        );
+      (m) => m?.bleServiceUuid?.toLowerCase() == normalizedUuid,
+      orElse: () => null,
+    );
   }
 
   /// Find a model by Bluetooth Classic service UUID
   DeviceModel? findByBtServiceUuid(String uuid) {
     final normalizedUuid = uuid.toLowerCase();
     return _models.cast<DeviceModel?>().firstWhere(
-          (m) => m?.btServiceUuid?.toLowerCase() == normalizedUuid,
-          orElse: () => null,
-        );
+      (m) => m?.btServiceUuid?.toLowerCase() == normalizedUuid,
+      orElse: () => null,
+    );
   }
 
   /// Find a model by USB VID/PID
@@ -52,11 +52,11 @@ class DeviceLibrary {
     final normalizedVid = vendorId.toLowerCase();
     final normalizedPid = productId.toLowerCase();
     return _models.cast<DeviceModel?>().firstWhere(
-          (m) =>
-              m?.usbVendorId?.toLowerCase() == normalizedVid &&
-              m?.usbProductId?.toLowerCase() == normalizedPid,
-          orElse: () => null,
-        );
+      (m) =>
+          m?.usbVendorId?.toLowerCase() == normalizedVid &&
+          m?.usbProductId?.toLowerCase() == normalizedPid,
+      orElse: () => null,
+    );
   }
 
   /// Find a model by device name (fuzzy match)
@@ -65,18 +65,18 @@ class DeviceLibrary {
 
     // First try exact match
     final exact = _models.cast<DeviceModel?>().firstWhere(
-          (m) => m?.fullName.toLowerCase() == normalizedName,
-          orElse: () => null,
-        );
+      (m) => m?.fullName.toLowerCase() == normalizedName,
+      orElse: () => null,
+    );
     if (exact != null) return exact;
 
     // Then try partial match on model name
     return _models.cast<DeviceModel?>().firstWhere(
-          (m) =>
-              normalizedName.contains(m?.model.toLowerCase() ?? '') ||
-              normalizedName.contains(m?.manufacturer.toLowerCase() ?? ''),
-          orElse: () => null,
-        );
+      (m) =>
+          normalizedName.contains(m?.model.toLowerCase() ?? '') ||
+          normalizedName.contains(m?.manufacturer.toLowerCase() ?? ''),
+      orElse: () => null,
+    );
   }
 
   /// Match a discovered device against the library

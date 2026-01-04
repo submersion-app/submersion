@@ -16,9 +16,7 @@ class StatisticsProgressionPage extends ConsumerWidget {
     final units = UnitFormatter(settings);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dive Progression'),
-      ),
+      appBar: AppBar(title: const Text('Dive Progression')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -104,8 +102,9 @@ class StatisticsProgressionPage extends ConsumerWidget {
             );
           }
           return CategoryBarChart(
-            data:
-                data.map((d) => (label: '${d.year}', count: d.count)).toList(),
+            data: data
+                .map((d) => (label: '${d.year}', count: d.count))
+                .toList(),
             barColor: Theme.of(context).colorScheme.primary,
           );
         },

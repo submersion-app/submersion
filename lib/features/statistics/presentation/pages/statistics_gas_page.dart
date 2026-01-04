@@ -19,9 +19,7 @@ class StatisticsGasPage extends ConsumerWidget {
     final units = UnitFormatter(settings);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Air Consumption'),
-      ),
+      appBar: AppBar(title: const Text('Air Consumption')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(

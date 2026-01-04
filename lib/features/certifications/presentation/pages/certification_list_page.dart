@@ -126,18 +126,15 @@ class CertificationListPage extends ConsumerWidget {
           Container(
             width: 12,
             height: 12,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
           const SizedBox(width: 8),
           Text(
             title,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.bold,
-                ),
+              color: color,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),
@@ -163,8 +160,8 @@ class CertificationListPage extends ConsumerWidget {
           Text(
             'Add your dive certifications to keep track\nof your training and qualifications',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
@@ -294,10 +291,7 @@ class CertificationSearchDelegate extends SearchDelegate<Certification?> {
   List<Widget> buildActions(BuildContext context) {
     return [
       if (query.isNotEmpty)
-        IconButton(
-          icon: const Icon(Icons.clear),
-          onPressed: () => query = '',
-        ),
+        IconButton(icon: const Icon(Icons.clear), onPressed: () => query = ''),
     ];
   }
 
@@ -324,17 +318,16 @@ class CertificationSearchDelegate extends SearchDelegate<Certification?> {
             Icon(
               Icons.search,
               size: 64,
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurfaceVariant
-                  .withValues(alpha: 0.5),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
               'Search by name, agency, or card number',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -356,17 +349,16 @@ class CertificationSearchDelegate extends SearchDelegate<Certification?> {
                 Icon(
                   Icons.search_off,
                   size: 64,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurfaceVariant
-                      .withValues(alpha: 0.5),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                 ),
                 const SizedBox(height: 16),
                 Text(
                   'No certifications found for "$query"',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -388,9 +380,7 @@ class CertificationSearchDelegate extends SearchDelegate<Certification?> {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(
-        child: Text('Error: $error'),
-      ),
+      error: (error, _) => Center(child: Text('Error: $error')),
     );
   }
 }

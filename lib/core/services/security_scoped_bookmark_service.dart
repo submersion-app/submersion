@@ -14,8 +14,9 @@ import 'package:flutter/services.dart';
 ///
 /// This service is a no-op on non-Apple platforms.
 class SecurityScopedBookmarkService {
-  static const _channel =
-      MethodChannel('app.submersion/security_scoped_bookmark');
+  static const _channel = MethodChannel(
+    'app.submersion/security_scoped_bookmark',
+  );
 
   /// Whether security-scoped bookmarks are supported on this platform
   static bool get isSupported => Platform.isMacOS || Platform.isIOS;
@@ -28,10 +29,9 @@ class SecurityScopedBookmarkService {
     if (!isSupported) return null;
 
     try {
-      final result = await _channel.invokeMethod<Uint8List>(
-        'createBookmark',
-        {'path': path},
-      );
+      final result = await _channel.invokeMethod<Uint8List>('createBookmark', {
+        'path': path,
+      });
       return result;
     } on PlatformException catch (e) {
       debugPrint('Failed to create bookmark: ${e.message}');
@@ -53,10 +53,9 @@ class SecurityScopedBookmarkService {
     if (!isSupported) return null;
 
     try {
-      final result = await _channel.invokeMethod<Map>(
-        'resolveBookmark',
-        {'bookmarkData': bookmarkData},
-      );
+      final result = await _channel.invokeMethod<Map>('resolveBookmark', {
+        'bookmarkData': bookmarkData,
+      });
 
       if (result == null) return null;
 
@@ -117,10 +116,9 @@ class SecurityScopedBookmarkService {
     if (!Platform.isIOS) return null;
 
     try {
-      final result = await _channel.invokeMethod<bool>(
-        'verifyWriteAccess',
-        {'path': path},
-      );
+      final result = await _channel.invokeMethod<bool>('verifyWriteAccess', {
+        'path': path,
+      });
       return result ?? false;
     } on PlatformException catch (e) {
       debugPrint('Failed to verify write access: ${e.message}');
@@ -155,10 +153,7 @@ class SecurityScopedBookmarkService {
 
       if (path == null) return null;
 
-      return FolderPickResult(
-        path: path,
-        bookmarkData: bookmarkData,
-      );
+      return FolderPickResult(path: path, bookmarkData: bookmarkData);
     } on PlatformException catch (e) {
       debugPrint('Failed to pick folder: ${e.message}');
       rethrow;
@@ -174,10 +169,7 @@ class FolderPickResult {
   /// The bookmark data for persistent access (iOS only)
   final Uint8List? bookmarkData;
 
-  const FolderPickResult({
-    required this.path,
-    this.bookmarkData,
-  });
+  const FolderPickResult({required this.path, this.bookmarkData});
 }
 
 /// Result of resolving a security-scoped bookmark.
@@ -192,10 +184,7 @@ class BookmarkResolveResult {
   /// be valid, but a new bookmark should be created for future use.
   final bool isStale;
 
-  const BookmarkResolveResult({
-    required this.path,
-    required this.isStale,
-  });
+  const BookmarkResolveResult({required this.path, required this.isStale});
 
   @override
   String toString() => 'BookmarkResolveResult(path: $path, isStale: $isStale)';

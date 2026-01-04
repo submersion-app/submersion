@@ -44,8 +44,9 @@ class StorageConfig {
       customFolderPath: clearCustomFolderPath
           ? null
           : (customFolderPath ?? this.customFolderPath),
-      lastVerified:
-          clearLastVerified ? null : (lastVerified ?? this.lastVerified),
+      lastVerified: clearLastVerified
+          ? null
+          : (lastVerified ?? this.lastVerified),
     );
   }
 

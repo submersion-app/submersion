@@ -27,9 +27,7 @@ class StatisticsTimePatternsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Time Patterns'),
-      ),
+      appBar: AppBar(title: const Text('Time Patterns')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -70,10 +68,7 @@ class StatisticsTimePatternsPage extends ConsumerWidget {
             );
             return (label: _dayNames[day], count: existing.count);
           });
-          return CategoryBarChart(
-            data: fullData,
-            barColor: Colors.blue,
-          );
+          return CategoryBarChart(data: fullData, barColor: Colors.blue);
         },
         loading: () => const SizedBox(
           height: 200,
@@ -138,10 +133,7 @@ class StatisticsTimePatternsPage extends ConsumerWidget {
             );
             return (label: _monthNames[month], count: existing.count);
           });
-          return CategoryBarChart(
-            data: fullData,
-            barColor: Colors.teal,
-          );
+          return CategoryBarChart(data: fullData, barColor: Colors.teal);
         },
         loading: () => const SizedBox(
           height: 200,
@@ -230,16 +222,16 @@ class StatisticsTimePatternsPage extends ConsumerWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
             value,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                ),
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
           ),
         ],
       ),

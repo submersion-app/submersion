@@ -93,14 +93,14 @@ class O2Exposure extends Equatable {
 
   @override
   List<Object?> get props => [
-        cnsStart,
-        cnsEnd,
-        otu,
-        maxPpO2,
-        maxPpO2Depth,
-        timeAboveWarning,
-        timeAboveCritical,
-      ];
+    cnsStart,
+    cnsEnd,
+    otu,
+    maxPpO2,
+    maxPpO2Depth,
+    timeAboveWarning,
+    timeAboveCritical,
+  ];
 }
 
 /// NOAA CNS clock table for calculating CNS% per minute at given ppO2.
@@ -176,8 +176,8 @@ class OtuCalculator {
     // Use dart:math exp
     return x.isFinite
         ? (2.718281828459045 * x).abs() < 700
-            ? _expImpl(x)
-            : 0
+              ? _expImpl(x)
+              : 0
         : 0;
   }
 

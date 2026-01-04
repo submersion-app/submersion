@@ -53,17 +53,11 @@ class ProfileSelectorWidget extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.watch,
-            size: 16,
-            color: colorScheme.primary,
-          ),
+          Icon(Icons.watch, size: 16, color: colorScheme.primary),
           const SizedBox(width: 8),
           Text(
             computer.displayName,
-            style: textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w500,
-            ),
+            style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
           ),
           if (computer.model != null) ...[
             const SizedBox(width: 4),
@@ -139,12 +133,14 @@ class ProfileSelectorWidget extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color:
-              isSelected ? colorScheme.primaryContainer : colorScheme.surface,
+          color: isSelected
+              ? colorScheme.primaryContainer
+              : colorScheme.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color:
-                isSelected ? colorScheme.primary : colorScheme.outlineVariant,
+            color: isSelected
+                ? colorScheme.primary
+                : colorScheme.outlineVariant,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -171,10 +167,7 @@ class ProfileSelectorWidget extends StatelessWidget {
             if (isPrimary) ...[
               const SizedBox(width: 4),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 6,
-                  vertical: 2,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: colorScheme.tertiary,
                   borderRadius: BorderRadius.circular(8),
@@ -242,20 +235,13 @@ class ProfileSelectorDropdown extends StatelessWidget {
             }
           : null,
       underline: const SizedBox.shrink(),
-      icon: Icon(
-        Icons.arrow_drop_down,
-        color: colorScheme.onSurfaceVariant,
-      ),
+      icon: Icon(Icons.arrow_drop_down, color: colorScheme.onSurfaceVariant),
       selectedItemBuilder: (context) {
         return computers.map((computer) {
           return Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.watch,
-                size: 16,
-                color: colorScheme.primary,
-              ),
+              Icon(Icons.watch, size: 16, color: colorScheme.primary),
               const SizedBox(width: 8),
               Text(
                 computer.displayName,
@@ -295,21 +281,14 @@ class ProfileSelectorDropdown extends StatelessWidget {
           value: computer.id,
           child: Row(
             children: [
-              Icon(
-                Icons.watch,
-                size: 16,
-                color: colorScheme.onSurface,
-              ),
+              Icon(Icons.watch, size: 16, color: colorScheme.onSurface),
               const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      computer.displayName,
-                      style: textTheme.bodyMedium,
-                    ),
+                    Text(computer.displayName, style: textTheme.bodyMedium),
                     if (computer.model != null)
                       Text(
                         computer.model!,

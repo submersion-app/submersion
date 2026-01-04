@@ -45,19 +45,23 @@ void main() {
 
   group('TripRepository', () {
     group('createTrip', () {
-      test('should create a new trip with generated ID when ID is empty',
-          () async {
-        final trip = createTestTrip(name: 'Maldives Adventure');
+      test(
+        'should create a new trip with generated ID when ID is empty',
+        () async {
+          final trip = createTestTrip(name: 'Maldives Adventure');
 
-        final createdTrip = await repository.createTrip(trip);
+          final createdTrip = await repository.createTrip(trip);
 
-        expect(createdTrip.id, isNotEmpty);
-        expect(createdTrip.name, equals('Maldives Adventure'));
-      });
+          expect(createdTrip.id, isNotEmpty);
+          expect(createdTrip.name, equals('Maldives Adventure'));
+        },
+      );
 
       test('should create a trip with provided ID', () async {
-        final trip =
-            createTestTrip(id: 'custom-trip-id', name: 'Red Sea Expedition');
+        final trip = createTestTrip(
+          id: 'custom-trip-id',
+          name: 'Red Sea Expedition',
+        );
 
         final createdTrip = await repository.createTrip(trip);
 
@@ -105,8 +109,9 @@ void main() {
 
     group('getTripById', () {
       test('should return trip when found', () async {
-        final trip =
-            await repository.createTrip(createTestTrip(name: 'Find Me Trip'));
+        final trip = await repository.createTrip(
+          createTestTrip(name: 'Find Me Trip'),
+        );
 
         final result = await repository.getTripById(trip.id);
 
@@ -128,44 +133,43 @@ void main() {
         expect(result, isEmpty);
       });
 
-      test('should return all trips ordered by start date (newest first)',
-          () async {
-        final trip1 = createTestTrip(
-          name: 'January Trip',
-          startDate: DateTime(2024, 1, 1),
-          endDate: DateTime(2024, 1, 7),
-        );
-        final trip2 = createTestTrip(
-          name: 'June Trip',
-          startDate: DateTime(2024, 6, 1),
-          endDate: DateTime(2024, 6, 7),
-        );
-        final trip3 = createTestTrip(
-          name: 'March Trip',
-          startDate: DateTime(2024, 3, 1),
-          endDate: DateTime(2024, 3, 7),
-        );
+      test(
+        'should return all trips ordered by start date (newest first)',
+        () async {
+          final trip1 = createTestTrip(
+            name: 'January Trip',
+            startDate: DateTime(2024, 1, 1),
+            endDate: DateTime(2024, 1, 7),
+          );
+          final trip2 = createTestTrip(
+            name: 'June Trip',
+            startDate: DateTime(2024, 6, 1),
+            endDate: DateTime(2024, 6, 7),
+          );
+          final trip3 = createTestTrip(
+            name: 'March Trip',
+            startDate: DateTime(2024, 3, 1),
+            endDate: DateTime(2024, 3, 7),
+          );
 
-        await repository.createTrip(trip1);
-        await repository.createTrip(trip2);
-        await repository.createTrip(trip3);
+          await repository.createTrip(trip1);
+          await repository.createTrip(trip2);
+          await repository.createTrip(trip3);
 
-        final result = await repository.getAllTrips();
+          final result = await repository.getAllTrips();
 
-        expect(result.length, equals(3));
-        expect(result[0].name, equals('June Trip'));
-        expect(result[1].name, equals('March Trip'));
-        expect(result[2].name, equals('January Trip'));
-      });
+          expect(result.length, equals(3));
+          expect(result[0].name, equals('June Trip'));
+          expect(result[1].name, equals('March Trip'));
+          expect(result[2].name, equals('January Trip'));
+        },
+      );
     });
 
     group('updateTrip', () {
       test('should update trip fields', () async {
         final trip = await repository.createTrip(
-          createTestTrip(
-            name: 'Original Name',
-            location: 'Original Location',
-          ),
+          createTestTrip(name: 'Original Name', location: 'Original Location'),
         );
 
         final updatedTrip = trip.copyWith(
@@ -211,8 +215,9 @@ void main() {
 
     group('deleteTrip', () {
       test('should delete existing trip', () async {
-        final trip =
-            await repository.createTrip(createTestTrip(name: 'To Delete'));
+        final trip = await repository.createTrip(
+          createTestTrip(name: 'To Delete'),
+        );
 
         await repository.deleteTrip(trip.id);
         final result = await repository.getTripById(trip.id);
@@ -221,10 +226,7 @@ void main() {
       });
 
       test('should not throw when deleting non-existent trip', () async {
-        await expectLater(
-          repository.deleteTrip('non-existent-id'),
-          completes,
-        );
+        await expectLater(repository.deleteTrip('non-existent-id'), completes);
       });
     });
 
@@ -358,8 +360,9 @@ void main() {
 
     group('getDiveCountForTrip', () {
       test('should return 0 when trip has no dives', () async {
-        final trip =
-            await repository.createTrip(createTestTrip(name: 'Empty Trip'));
+        final trip = await repository.createTrip(
+          createTestTrip(name: 'Empty Trip'),
+        );
 
         final count = await repository.getDiveCountForTrip(trip.id);
 
@@ -368,19 +371,22 @@ void main() {
     });
 
     group('getTripWithStats', () {
-      test('should return stats with zero values for trip with no dives',
-          () async {
-        final trip =
-            await repository.createTrip(createTestTrip(name: 'Stats Trip'));
+      test(
+        'should return stats with zero values for trip with no dives',
+        () async {
+          final trip = await repository.createTrip(
+            createTestTrip(name: 'Stats Trip'),
+          );
 
-        final stats = await repository.getTripWithStats(trip.id);
+          final stats = await repository.getTripWithStats(trip.id);
 
-        expect(stats.trip.id, equals(trip.id));
-        expect(stats.diveCount, equals(0));
-        expect(stats.totalBottomTime, equals(0));
-        expect(stats.maxDepth, isNull);
-        expect(stats.avgDepth, isNull);
-      });
+          expect(stats.trip.id, equals(trip.id));
+          expect(stats.diveCount, equals(0));
+          expect(stats.totalBottomTime, equals(0));
+          expect(stats.maxDepth, isNull);
+          expect(stats.avgDepth, isNull);
+        },
+      );
 
       test('should throw when trip not found', () async {
         expect(
@@ -410,8 +416,9 @@ void main() {
 
     group('getDiveIdsForTrip', () {
       test('should return empty list when trip has no dives', () async {
-        final trip =
-            await repository.createTrip(createTestTrip(name: 'No Dives Trip'));
+        final trip = await repository.createTrip(
+          createTestTrip(name: 'No Dives Trip'),
+        );
 
         final diveIds = await repository.getDiveIdsForTrip(trip.id);
 

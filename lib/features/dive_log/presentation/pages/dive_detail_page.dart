@@ -59,10 +59,7 @@ double calculateSacNormalizationFactor(Dive dive, ProfileAnalysis? analysis) {
 class DiveDetailPage extends ConsumerStatefulWidget {
   final String diveId;
 
-  const DiveDetailPage({
-    super.key,
-    required this.diveId,
-  });
+  const DiveDetailPage({super.key, required this.diveId});
 
   @override
   ConsumerState<DiveDetailPage> createState() => _DiveDetailPageState();
@@ -130,8 +127,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               dive.isFavorite ? Icons.favorite : Icons.favorite_border,
               color: dive.isFavorite ? Colors.red : null,
             ),
-            tooltip:
-                dive.isFavorite ? 'Remove from favorites' : 'Add to favorites',
+            tooltip: dive.isFavorite
+                ? 'Remove from favorites'
+                : 'Add to favorites',
             onPressed: () {
               ref
                   .read(diveListNotifierProvider.notifier)
@@ -259,15 +257,15 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     Text(
                       'Entry: ${DateFormat('MMM d, y • h:mm a').format(dive.effectiveEntryTime)}',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                     ),
                     if (dive.exitTime != null)
                       Text(
                         'Exit: ${DateFormat('MMM d, y • h:mm a').format(dive.exitTime!)}',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
                   ],
                 ),
@@ -322,15 +320,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
 
     if (!hasLocation) {
-      return Card(
-        clipBehavior: Clip.antiAlias,
-        child: content,
-      );
+      return Card(clipBehavior: Clip.antiAlias, child: content);
     }
 
     final site = dive.site!;
-    final siteLocation =
-        LatLng(site.location!.latitude, site.location!.longitude);
+    final siteLocation = LatLng(
+      site.location!.latitude,
+      site.location!.longitude,
+    );
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -409,8 +406,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               right: 8,
               top: 8,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(16),
@@ -434,9 +433,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     Text(
                       'View Site',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: colorScheme.onPrimaryContainer,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        color: colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -475,8 +474,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
       ],
     );
@@ -488,8 +487,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
     // Get marker settings
     final showMaxDepthMarker = ref.watch(showMaxDepthMarkerProvider);
-    final showPressureThresholdMarkers =
-        ref.watch(showPressureThresholdMarkersProvider);
+    final showPressureThresholdMarkers = ref.watch(
+      showPressureThresholdMarkersProvider,
+    );
 
     // Get gas switches for segment coloring
     final gasSwitchesAsync = ref.watch(gasSwitchesProvider(dive.id));
@@ -525,9 +525,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     Text(
                       '${dive.profile.length} points',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                     const SizedBox(width: 8),
                     IconButton(
@@ -555,8 +554,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   .where((t) => t.volume != null && t.volume! > 0)
                   .map((t) => t.volume!)
                   .firstOrNull,
-              sacNormalizationFactor:
-                  calculateSacNormalizationFactor(dive, analysis),
+              sacNormalizationFactor: calculateSacNormalizationFactor(
+                dive,
+                analysis,
+              ),
               markers: markers,
               showMaxDepthMarker: showMaxDepthMarker,
               showPressureThresholdMarkers: showPressureThresholdMarkers,
@@ -592,7 +593,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     }
 
     // Use selected point or default to final status
-    final index = _selectedPointIndex != null &&
+    final index =
+        _selectedPointIndex != null &&
             _selectedPointIndex! < analysis.decoStatuses.length
         ? _selectedPointIndex!
         : analysis.decoStatuses.length - 1;
@@ -615,9 +617,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 Text(
                   'At ${_formatTimestamp(dive.profile[_selectedPointIndex!].timestamp)}',
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const Spacer(),
                 TextButton.icon(
@@ -659,7 +661,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     }
 
     // Show ppO2 at selected point if available
-    final selectedPpO2 = _selectedPointIndex != null &&
+    final selectedPpO2 =
+        _selectedPointIndex != null &&
             _selectedPointIndex! < analysis.ppO2Curve.length
         ? analysis.ppO2Curve[_selectedPointIndex!]
         : null;
@@ -673,8 +676,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             child: Card(
               color: Theme.of(context).colorScheme.primaryContainer,
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 child: Row(
                   children: [
                     Icon(
@@ -691,19 +696,16 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     Text(
                       '${selectedPpO2.toStringAsFixed(2)} bar',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: _getPpO2Color(selectedPpO2),
-                          ),
+                        fontWeight: FontWeight.bold,
+                        color: _getPpO2Color(selectedPpO2),
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
           ),
-        O2ToxicityCard(
-          exposure: analysis.o2Exposure,
-          showDetails: true,
-        ),
+        O2ToxicityCard(exposure: analysis.o2Exposure, showDetails: true),
       ],
     );
   }
@@ -788,8 +790,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 Text(
                   '5-minute intervals',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 ...segments.asMap().entries.map((entry) {
@@ -826,10 +828,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                           width: 90,
                           child: Text(
                             formatSacValue(segment.sacRate),
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(fontWeight: FontWeight.bold),
                             textAlign: TextAlign.right,
                           ),
                         ),
@@ -838,12 +838,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                           width: 50,
                           child: Text(
                             avgDepthDisplay,
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurfaceVariant,
-                                    ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
                             textAlign: TextAlign.right,
                           ),
                         ),
@@ -923,10 +923,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Details',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text('Details', style: Theme.of(context).textTheme.titleMedium),
             const Divider(),
             _buildDetailRow(context, 'Dive Type', dive.diveTypeName),
             if (dive.trip != null) _buildTripRow(context, dive),
@@ -986,8 +983,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   final interval = dive.surfaceInterval!;
                   final hours = interval.inHours;
                   final minutes = interval.inMinutes % 60;
-                  final intervalText =
-                      hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m';
+                  final intervalText = hours > 0
+                      ? '${hours}h ${minutes}m'
+                      : '${minutes}m';
                   return _buildDetailRow(
                     context,
                     'Surface Interval',
@@ -1001,8 +999,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   if (interval == null) return const SizedBox.shrink();
                   final hours = interval.inHours;
                   final minutes = interval.inMinutes % 60;
-                  final intervalText =
-                      hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m';
+                  final intervalText = hours > 0
+                      ? '${hours}h ${minutes}m'
+                      : '${minutes}m';
                   return _buildDetailRow(
                     context,
                     'Surface Interval',
@@ -1080,10 +1079,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Conditions',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text('Conditions', style: Theme.of(context).textTheme.titleMedium),
             const Divider(),
             if (dive.currentDirection != null)
               _buildDetailRow(
@@ -1166,15 +1162,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Weight',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
+                Text('Weight', style: Theme.of(context).textTheme.titleMedium),
                 Text(
                   'Total: ${units.formatWeight(totalWeight)}',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -1209,15 +1202,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Tags',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
+                Text('Tags', style: Theme.of(context).textTheme.titleMedium),
                 Text(
                   '${dive.tags.length} ${dive.tags.length == 1 ? 'tag' : 'tags'}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -1276,8 +1266,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           Text(
             label,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           Text(value, style: Theme.of(context).textTheme.bodyMedium),
         ],
@@ -1297,8 +1287,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             Text(
               'Trip',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             Flexible(
               child: Row(
@@ -1316,12 +1306,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         if (trip.subtitle != null)
                           Text(
                             trip.subtitle!,
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurfaceVariant,
-                                    ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
                             overflow: TextOverflow.ellipsis,
                           ),
                       ],
@@ -1353,8 +1343,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             Text(
               'Dive Center',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             Row(
               children: [
@@ -1398,10 +1388,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                       Text(
                         '${buddies.length} ${buddies.length == 1 ? 'buddy' : 'buddies'}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
-                            ),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                   ],
                 ),
@@ -1412,10 +1400,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     child: Text(
                       'Solo dive or no buddies recorded',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                            fontStyle: FontStyle.italic,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
                   )
                 else
@@ -1466,16 +1453,15 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Tanks',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text('Tanks', style: Theme.of(context).textTheme.titleMedium),
             const Divider(),
             ...dive.tanks.map((tank) {
-              final startP =
-                  units.formatPressureValue(tank.startPressure?.toDouble());
-              final endP =
-                  units.formatPressureValue(tank.endPressure?.toDouble());
+              final startP = units.formatPressureValue(
+                tank.startPressure?.toDouble(),
+              );
+              final endP = units.formatPressureValue(
+                tank.endPressure?.toDouble(),
+              );
               final used = tank.pressureUsed != null
                   ? ' (${units.formatPressure(tank.pressureUsed!.toDouble())} used)'
                   : '';
@@ -1483,7 +1469,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               final preset = tank.presetName != null
                   ? TankPresets.byName(tank.presetName!)
                   : null;
-              final tankLabel = preset?.displayName ??
+              final tankLabel =
+                  preset?.displayName ??
                   (tank.volume != null
                       ? units.formatTankVolume(
                           tank.volume,
@@ -1535,12 +1522,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         ),
                         Text(
                           '${sightings.length} species',
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant,
-                                  ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
                         ),
                       ],
                     ),
@@ -1581,16 +1568,16 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               children: [
                 Text(
                   sighting.speciesName,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
                 ),
                 if (sighting.notes.isNotEmpty)
                   Text(
                     sighting.notes,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -1673,19 +1660,16 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Notes',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text('Notes', style: Theme.of(context).textTheme.titleMedium),
             const Divider(),
             Text(
               dive.notes.isNotEmpty ? dive.notes : 'No notes for this dive.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: dive.notes.isEmpty
-                        ? Theme.of(context).colorScheme.onSurfaceVariant
-                        : null,
-                    fontStyle: dive.notes.isEmpty ? FontStyle.italic : null,
-                  ),
+                color: dive.notes.isEmpty
+                    ? Theme.of(context).colorScheme.onSurfaceVariant
+                    : null,
+                fontStyle: dive.notes.isEmpty ? FontStyle.italic : null,
+              ),
             ),
           ],
         ),
@@ -1778,10 +1762,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 _handleSingleDiveExport(
                   context,
                   ref,
-                  () => ref.read(exportServiceProvider).exportDivesToUddf(
-                    [dive],
-                    sites: dive.site != null ? [dive.site!] : [],
-                  ),
+                  () => ref.read(exportServiceProvider).exportDivesToUddf([
+                    dive,
+                  ], sites: dive.site != null ? [dive.site!] : []),
                 );
               },
             ),
@@ -1874,9 +1857,7 @@ class _FullscreenProfilePageState
   @override
   void dispose() {
     // Reset to portrait only when leaving fullscreen
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-    ]);
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     super.dispose();
   }
 
@@ -1888,8 +1869,9 @@ class _FullscreenProfilePageState
 
     // Get marker settings
     final showMaxDepthMarker = ref.watch(showMaxDepthMarkerProvider);
-    final showPressureThresholdMarkers =
-        ref.watch(showPressureThresholdMarkersProvider);
+    final showPressureThresholdMarkers = ref.watch(
+      showPressureThresholdMarkersProvider,
+    );
 
     // Calculate profile markers
     final markers = _calculateMarkers(
@@ -1975,10 +1957,9 @@ class _FullscreenProfilePageState
                   icon: const Icon(Icons.close),
                   onPressed: () => Navigator.of(context).pop(),
                   style: IconButton.styleFrom(
-                    backgroundColor: Theme.of(context)
-                        .colorScheme
-                        .surface
-                        .withValues(alpha: 0.8),
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.surface.withValues(alpha: 0.8),
                   ),
                 ),
               ),
@@ -2052,9 +2033,9 @@ class _FullscreenProfilePageState
                 child: Text(
                   point == null ? 'Touch chart' : 'Sample Data',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                        fontSize: compact ? 12 : null,
-                      ),
+                    color: colorScheme.onSurfaceVariant,
+                    fontSize: compact ? 12 : null,
+                  ),
                 ),
               ),
             ],
@@ -2066,8 +2047,8 @@ class _FullscreenProfilePageState
                   ? 'Tap chart to see sample data'
                   : 'Tap or drag on the dive profile to see detailed metrics for each sample point.',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+                color: colorScheme.onSurfaceVariant,
+              ),
             )
           else if (compact)
             _buildCompactMetrics(context, point, units)
@@ -2157,14 +2138,14 @@ class _FullscreenProfilePageState
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           Text(
             value,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
           ),
         ],
       ),
@@ -2188,15 +2169,14 @@ class _FullscreenProfilePageState
                     Text(
                       '$label1: ',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                     Text(
                       value1,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 )
@@ -2210,15 +2190,14 @@ class _FullscreenProfilePageState
                     Text(
                       '$label2: ',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                     Text(
                       value2,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 )

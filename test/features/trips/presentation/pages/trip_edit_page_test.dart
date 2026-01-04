@@ -17,9 +17,7 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: const MaterialApp(
-            home: TripEditPage(),
-          ),
+          child: const MaterialApp(home: TripEditPage()),
         ),
       );
 
@@ -36,9 +34,7 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: const MaterialApp(
-            home: TripEditPage(),
-          ),
+          child: const MaterialApp(home: TripEditPage()),
         ),
       );
 
@@ -55,9 +51,7 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: const MaterialApp(
-            home: TripEditPage(),
-          ),
+          child: const MaterialApp(home: TripEditPage()),
         ),
       );
 
@@ -76,9 +70,7 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: const MaterialApp(
-            home: TripEditPage(),
-          ),
+          child: const MaterialApp(home: TripEditPage()),
         ),
       );
 
@@ -102,9 +94,7 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: const MaterialApp(
-            home: TripEditPage(),
-          ),
+          child: const MaterialApp(home: TripEditPage()),
         ),
       );
 
@@ -127,9 +117,7 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: const MaterialApp(
-            home: TripEditPage(),
-          ),
+          child: const MaterialApp(home: TripEditPage()),
         ),
       );
 
@@ -152,9 +140,7 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: const MaterialApp(
-            home: TripEditPage(),
-          ),
+          child: const MaterialApp(home: TripEditPage()),
         ),
       );
 
@@ -177,9 +163,7 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: const MaterialApp(
-            home: TripEditPage(),
-          ),
+          child: const MaterialApp(home: TripEditPage()),
         ),
       );
 
@@ -196,9 +180,7 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: const MaterialApp(
-            home: TripEditPage(),
-          ),
+          child: const MaterialApp(home: TripEditPage()),
         ),
       );
 
@@ -212,8 +194,9 @@ void main() {
       expect(find.text('Cancel'), findsOneWidget);
     });
 
-    testWidgets('should show validation error when name is empty',
-        (tester) async {
+    testWidgets('should show validation error when name is empty', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -222,9 +205,7 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: const MaterialApp(
-            home: TripEditPage(),
-          ),
+          child: const MaterialApp(home: TripEditPage()),
         ),
       );
 
@@ -246,9 +227,7 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: const MaterialApp(
-            home: TripEditPage(),
-          ),
+          child: const MaterialApp(home: TripEditPage()),
         ),
       );
 
@@ -269,15 +248,14 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            tripRepositoryProvider
-                .overrideWithValue(_MockTripRepositoryWithTrip()),
+            tripRepositoryProvider.overrideWithValue(
+              _MockTripRepositoryWithTrip(),
+            ),
             tripListNotifierProvider.overrideWith((ref) {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: const MaterialApp(
-            home: TripEditPage(tripId: 'test-id'),
-          ),
+          child: const MaterialApp(home: TripEditPage(tripId: 'test-id')),
         ),
       );
 
@@ -289,15 +267,14 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            tripRepositoryProvider
-                .overrideWithValue(_MockTripRepositoryWithTrip()),
+            tripRepositoryProvider.overrideWithValue(
+              _MockTripRepositoryWithTrip(),
+            ),
             tripListNotifierProvider.overrideWith((ref) {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: const MaterialApp(
-            home: TripEditPage(tripId: 'test-id'),
-          ),
+          child: const MaterialApp(home: TripEditPage(tripId: 'test-id')),
         ),
       );
 
@@ -412,7 +389,7 @@ class _MockTripListNotifier
     extends StateNotifier<AsyncValue<List<TripWithStats>>>
     implements TripListNotifier {
   _MockTripListNotifier(List<TripWithStats> trips)
-      : super(AsyncValue.data(trips));
+    : super(AsyncValue.data(trips));
 
   @override
   Future<void> refresh() async {}

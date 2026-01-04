@@ -14,9 +14,7 @@ class StatisticsSocialPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Social & Buddies'),
-      ),
+      appBar: AppBar(title: const Text('Social & Buddies')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(

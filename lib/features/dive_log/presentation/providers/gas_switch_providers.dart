@@ -7,16 +7,12 @@ import 'dive_providers.dart';
 /// Returns gas switches with full tank info for display purposes
 final gasSwitchesProvider =
     FutureProvider.family<List<GasSwitchWithTank>, String>((ref, diveId) async {
-  final repository = ref.watch(diveRepositoryProvider);
-  return repository.getGasSwitchesForDive(diveId);
-});
+      final repository = ref.watch(diveRepositoryProvider);
+      return repository.getGasSwitchesForDive(diveId);
+    });
 
 /// Gas type classification for coloring
-enum GasType {
-  air,
-  nitrox,
-  trimix,
-}
+enum GasType { air, nitrox, trimix }
 
 /// Extension to determine gas type from GasSwitchWithTank
 extension GasSwitchWithTankGasType on GasSwitchWithTank {

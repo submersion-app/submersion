@@ -18,9 +18,7 @@ class StatisticsEquipmentPage extends ConsumerWidget {
     final units = UnitFormatter(settings);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Equipment'),
-      ),
+      appBar: AppBar(title: const Text('Equipment')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(

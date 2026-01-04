@@ -6,20 +6,12 @@ class EmergencyContact extends Equatable {
   final String? phone;
   final String? relation;
 
-  const EmergencyContact({
-    this.name,
-    this.phone,
-    this.relation,
-  });
+  const EmergencyContact({this.name, this.phone, this.relation});
 
   bool get isComplete =>
       name != null && name!.isNotEmpty && phone != null && phone!.isNotEmpty;
 
-  EmergencyContact copyWith({
-    String? name,
-    String? phone,
-    String? relation,
-  }) {
+  EmergencyContact copyWith({String? name, String? phone, String? relation}) {
     return EmergencyContact(
       name: name ?? this.name,
       phone: phone ?? this.phone,
@@ -37,11 +29,7 @@ class DiverInsurance extends Equatable {
   final String? policyNumber;
   final DateTime? expiryDate;
 
-  const DiverInsurance({
-    this.provider,
-    this.policyNumber,
-    this.expiryDate,
-  });
+  const DiverInsurance({this.provider, this.policyNumber, this.expiryDate});
 
   bool get isExpired {
     if (expiryDate == null) return false;
@@ -161,19 +149,19 @@ class Diver extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        name,
-        email,
-        phone,
-        photoPath,
-        emergencyContact,
-        medicalNotes,
-        bloodType,
-        allergies,
-        insurance,
-        notes,
-        isDefault,
-        createdAt,
-        updatedAt,
-      ];
+    id,
+    name,
+    email,
+    phone,
+    photoPath,
+    emergencyContact,
+    medicalNotes,
+    bloodType,
+    allergies,
+    insurance,
+    notes,
+    isDefault,
+    createdAt,
+    updatedAt,
+  ];
 }

@@ -77,9 +77,7 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
                   // Scan step
-                  ScanStepWidget(
-                    onDeviceSelected: _onDeviceSelected,
-                  ),
+                  ScanStepWidget(onDeviceSelected: _onDeviceSelected),
                   // Select step (combined with scan)
                   const SizedBox.shrink(),
                   // Pair step (handled automatically)
@@ -218,8 +216,8 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
           Text(
             'Please wait while we establish a connection',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),
@@ -432,8 +430,9 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
     );
 
     // Create in database
-    final saved =
-        await ref.read(diveComputerNotifierProvider.notifier).create(computer);
+    final saved = await ref
+        .read(diveComputerNotifierProvider.notifier)
+        .create(computer);
 
     _savedComputer = saved;
 
@@ -455,8 +454,9 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
 
       // Use validatedCurrentDiverIdProvider to ensure we have a valid diver ID
       // (falls back to default diver if no diver is selected)
-      final validatedDiverId =
-          await ref.read(validatedCurrentDiverIdProvider.future);
+      final validatedDiverId = await ref.read(
+        validatedCurrentDiverIdProvider.future,
+      );
 
       await downloadNotifier.importDives(
         computer: _savedComputer!,

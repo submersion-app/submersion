@@ -95,11 +95,7 @@ class SyncConflict {
 }
 
 /// Resolution choice for a conflict
-enum ConflictResolution {
-  keepLocal,
-  keepRemote,
-  keepBoth,
-}
+enum ConflictResolution { keepLocal, keepRemote, keepBoth }
 
 /// Core sync service that orchestrates cloud sync operations
 class SyncService {
@@ -114,9 +110,9 @@ class SyncService {
     required SyncRepository syncRepository,
     required SyncDataSerializer serializer,
     CloudStorageProvider? cloudProvider,
-  })  : _syncRepository = syncRepository,
-        _serializer = serializer,
-        _cloudProvider = cloudProvider;
+  }) : _syncRepository = syncRepository,
+       _serializer = serializer,
+       _cloudProvider = cloudProvider;
 
   /// Set a callback to receive progress updates during sync
   void setProgressCallback(SyncProgressCallback? callback) {
@@ -125,11 +121,7 @@ class SyncService {
 
   void _reportProgress(SyncPhase phase, double progress, [String? message]) {
     _progressCallback?.call(
-      SyncProgress(
-        phase: phase,
-        progress: progress,
-        message: message,
-      ),
+      SyncProgress(phase: phase, progress: progress, message: message),
     );
   }
 
@@ -173,8 +165,9 @@ class SyncService {
               recordId: record.recordId,
               localData: {}, // Would need to fetch from database
               remoteData: remoteData,
-              localModified:
-                  DateTime.fromMillisecondsSinceEpoch(record.localUpdatedAt),
+              localModified: DateTime.fromMillisecondsSinceEpoch(
+                record.localUpdatedAt,
+              ),
               remoteModified: DateTime.now(), // Would come from remote data
             ),
           );
@@ -342,10 +335,7 @@ class SyncService {
       );
     } catch (e, stackTrace) {
       _log.error('Sync failed', e, stackTrace);
-      return SyncResult(
-        status: SyncResultStatus.error,
-        message: e.toString(),
-      );
+      return SyncResult(status: SyncResultStatus.error, message: e.toString());
     }
   }
 
