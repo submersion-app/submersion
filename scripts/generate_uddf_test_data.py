@@ -155,6 +155,236 @@ GAS_MIXES = [
     {"id": "hx25_25", "name": "Helitrox 25/25", "o2": 0.25, "he": 0.25},
 ]
 
+# Equipment sets - warm water and cold water configurations
+# UDDF equipment types: mask, fins, suit, bcd, regulator, computer, camera, light, tank, weight, etc.
+EQUIPMENT_SETS = {
+    "warm_water": [
+        # Exposure protection
+        {"id": "suit_warm", "type": "suit", "name": "Mares Reef 3mm Shorty", "manufacturer": "Mares",
+         "model": "Reef Shorty", "serial": "MR3S-2019-4521", "purchase_date": "2019-03-15",
+         "notes": "3mm shorty wetsuit for tropical waters"},
+        {"id": "boots_warm", "type": "boots", "name": "Cressi Low Boot 3mm", "manufacturer": "Cressi",
+         "model": "Low Boot", "serial": "CLB3-2019-1122", "purchase_date": "2019-03-15",
+         "notes": "Low-cut 3mm neoprene boots"},
+        {"id": "gloves_warm", "type": "gloves", "name": "Mares Flexa Touch 2mm", "manufacturer": "Mares",
+         "model": "Flexa Touch", "serial": "MFT2-2020-0892", "purchase_date": "2020-01-10",
+         "notes": "Thin reef gloves for warm water"},
+        # Mask & Fins
+        {"id": "mask_main", "type": "mask", "name": "Scubapro Synergy Twin", "manufacturer": "Scubapro",
+         "model": "Synergy Twin Trufit", "serial": "SST-2018-7823", "purchase_date": "2018-06-20",
+         "notes": "Low-volume twin lens mask with Trufit skirt"},
+        {"id": "fins_warm", "type": "fins", "name": "Mares Avanti Quattro+", "manufacturer": "Mares",
+         "model": "Avanti Quattro+", "serial": "MAQ-2019-3345", "purchase_date": "2019-03-15",
+         "notes": "Open heel paddle fins"},
+        {"id": "snorkel", "type": "snorkel", "name": "Scubapro Spectra Dry", "manufacturer": "Scubapro",
+         "model": "Spectra Dry", "serial": "SSD-2018-0091", "purchase_date": "2018-06-20",
+         "notes": "Dry-top snorkel"},
+        # BCD
+        {"id": "bcd_travel", "type": "bcd", "name": "Scubapro Hydros Pro", "manufacturer": "Scubapro",
+         "model": "Hydros Pro", "serial": "SHP-2020-5567", "purchase_date": "2020-02-28",
+         "notes": "Travel BCD with Monprene construction, 18kg lift"},
+        # Regulators
+        {"id": "reg_primary", "type": "regulator", "name": "Scubapro MK25 EVO/A700", "manufacturer": "Scubapro",
+         "model": "MK25 EVO/A700", "serial": "SMA-2019-8834", "purchase_date": "2019-05-10",
+         "notes": "Primary regulator, balanced piston first stage, air-balanced second stage"},
+        {"id": "reg_octo", "type": "regulator", "name": "Scubapro R195 Octopus", "manufacturer": "Scubapro",
+         "model": "R195", "serial": "SR1-2019-8835", "purchase_date": "2019-05-10",
+         "notes": "Backup second stage, high-viz yellow"},
+        # Computer
+        {"id": "computer_main", "type": "computer", "name": "Shearwater Perdix AI", "manufacturer": "Shearwater",
+         "model": "Perdix AI", "serial": "SPAI-2021-12045", "purchase_date": "2021-01-15",
+         "notes": "Air-integrated dive computer with multiple transmitter support"},
+        {"id": "transmitter1", "type": "computer", "name": "Shearwater Swift Transmitter", "manufacturer": "Shearwater",
+         "model": "Swift", "serial": "SSW-2021-22341", "purchase_date": "2021-01-15",
+         "notes": "Tank 1 AI transmitter"},
+        # Accessories
+        {"id": "light_primary", "type": "light", "name": "BigBlue AL1200NP", "manufacturer": "BigBlue",
+         "model": "AL1200NP", "serial": "BB12-2020-4456", "purchase_date": "2020-06-01",
+         "notes": "1200 lumen primary dive light"},
+        {"id": "smb", "type": "buoy", "name": "Halcyon Diver's Alert Marker", "manufacturer": "Halcyon",
+         "model": "DAM", "serial": "HDAM-2019-0023", "purchase_date": "2019-03-15",
+         "notes": "Surface marker buoy, orange, 1.4m"},
+        {"id": "reel", "type": "reel", "name": "Halcyon Mini Reel", "manufacturer": "Halcyon",
+         "model": "Mini Reel", "serial": "HMR-2019-0024", "purchase_date": "2019-03-15",
+         "notes": "Finger spool with 30m line"},
+        {"id": "knife", "type": "knife", "name": "Atomic Aquatics Ti6", "manufacturer": "Atomic Aquatics",
+         "model": "Ti6", "serial": "AATI-2018-1123", "purchase_date": "2018-06-20",
+         "notes": "Titanium dive knife with line cutter"},
+        {"id": "camera", "type": "camera", "name": "Olympus TG-6 + Housing", "manufacturer": "Olympus",
+         "model": "TG-6 with PT-059", "serial": "OTG6-2021-89012", "purchase_date": "2021-04-01",
+         "notes": "Compact underwater camera system"},
+    ],
+    "cold_water": [
+        # Exposure protection - Drysuit system
+        {"id": "suit_dry", "type": "suit", "name": "Santi E.Motion+ Drysuit", "manufacturer": "Santi",
+         "model": "E.Motion+", "serial": "SEM-2020-1892", "purchase_date": "2020-09-15",
+         "notes": "Trilaminate drysuit with TEK zipper, custom fit"},
+        {"id": "undersuit", "type": "undergarment", "name": "Santi BZ400X", "manufacturer": "Santi",
+         "model": "BZ400X", "serial": "SBZ-2020-1893", "purchase_date": "2020-09-15",
+         "notes": "400g insulation undersuit"},
+        {"id": "undersuit_light", "type": "undergarment", "name": "Santi Flex 190", "manufacturer": "Santi",
+         "model": "Flex 190", "serial": "SFL-2020-1894", "purchase_date": "2020-09-15",
+         "notes": "Light insulation layer for layering"},
+        {"id": "hood_cold", "type": "hood", "name": "Waterproof H1 5/7mm", "manufacturer": "Waterproof",
+         "model": "H1", "serial": "WPH1-2020-0445", "purchase_date": "2020-09-15",
+         "notes": "Cold water hood with bib, 5/7mm"},
+        {"id": "gloves_dry", "type": "gloves", "name": "Santi Dry Gloves", "manufacturer": "Santi",
+         "model": "Dry Gloves with Ring System", "serial": "SDG-2020-0446", "purchase_date": "2020-09-15",
+         "notes": "Drysuit glove system with Si-Tech rings"},
+        {"id": "boots_dry", "type": "boots", "name": "Rock Boots", "manufacturer": "Santi",
+         "model": "Rock Boots", "serial": "SRB-2020-0447", "purchase_date": "2020-09-15",
+         "notes": "Drysuit rock boots, integrated"},
+        # Fins for drysuit
+        {"id": "fins_cold", "type": "fins", "name": "Hollis F1 LT", "manufacturer": "Hollis",
+         "model": "F1 LT", "serial": "HF1-2020-5567", "purchase_date": "2020-09-20",
+         "notes": "Spring strap fins for dry boots"},
+        # Technical BCD
+        {"id": "bcd_tech", "type": "bcd", "name": "Halcyon Evolve Wing", "manufacturer": "Halcyon",
+         "model": "Evolve 40lb Wing", "serial": "HEW-2020-3312", "purchase_date": "2020-10-01",
+         "notes": "Backplate and wing system, 40lb single tank wing"},
+        {"id": "backplate", "type": "bcd", "name": "Halcyon Stainless Backplate", "manufacturer": "Halcyon",
+         "model": "Stainless Steel Backplate", "serial": "HSB-2020-3313", "purchase_date": "2020-10-01",
+         "notes": "6lb stainless steel backplate"},
+        {"id": "harness", "type": "bcd", "name": "Halcyon Cinch Harness", "manufacturer": "Halcyon",
+         "model": "Cinch Quick-Adjust Harness", "serial": "HCH-2020-3314", "purchase_date": "2020-10-01",
+         "notes": "Adjustable webbing harness"},
+        # Cold water regulator
+        {"id": "reg_cold", "type": "regulator", "name": "Apeks XTX200 Tungsten", "manufacturer": "Apeks",
+         "model": "XTX200 Tungsten", "serial": "AXT-2020-7789", "purchase_date": "2020-10-15",
+         "notes": "Cold water rated regulator, environmentally sealed"},
+        {"id": "reg_cold_octo", "type": "regulator", "name": "Apeks XTX40 Octopus", "manufacturer": "Apeks",
+         "model": "XTX40", "serial": "AX4-2020-7790", "purchase_date": "2020-10-15",
+         "notes": "Cold water rated backup"},
+        # Additional cold water gear
+        {"id": "light_canister", "type": "light", "name": "Light Monkey 32W HID", "manufacturer": "Light Monkey",
+         "model": "32W HID", "serial": "LM32-2021-0089", "purchase_date": "2021-03-01",
+         "notes": "Canister light for cold water/cave diving"},
+        {"id": "argon_system", "type": "tank", "name": "Argon Bottle System", "manufacturer": "DGX",
+         "model": "13cf Argon Kit", "serial": "DGX13-2020-1234", "purchase_date": "2020-11-01",
+         "notes": "Drysuit inflation argon system"},
+        {"id": "stage_rigging", "type": "rigging", "name": "Stage Bottle Rigging Kit", "manufacturer": "Halcyon",
+         "model": "Stage Kit", "serial": "HSK-2020-4456", "purchase_date": "2020-11-15",
+         "notes": "Complete stage bottle rigging with bolt snaps"},
+        {"id": "wetnotes", "type": "wetnotes", "name": "Halcyon Wet Notes", "manufacturer": "Halcyon",
+         "model": "Wet Notes", "serial": "HWN-2020-0012", "purchase_date": "2020-10-01",
+         "notes": "Underwater writing slate"},
+    ]
+}
+
+# PADI Certifications with realistic progression dates
+PADI_CERTIFICATIONS = [
+    {
+        "id": "cert_ow",
+        "level": "Open Water Diver",
+        "organization": "PADI",
+        "cert_number": "1803US12345",
+        "date": "2018-03-15",
+        "instructor": "John Smith",
+        "facility": "Blue Water Divers",
+        "facility_number": "S-12345",
+    },
+    {
+        "id": "cert_aow",
+        "level": "Advanced Open Water Diver",
+        "organization": "PADI",
+        "cert_number": "1806US12346",
+        "date": "2018-06-20",
+        "instructor": "Maria Garcia",
+        "facility": "Blue Water Divers",
+        "facility_number": "S-12345",
+    },
+    {
+        "id": "cert_rescue",
+        "level": "Rescue Diver",
+        "organization": "PADI",
+        "cert_number": "1812US12347",
+        "date": "2018-12-10",
+        "instructor": "David Chen",
+        "facility": "Aqua Adventures",
+        "facility_number": "S-23456",
+    },
+    {
+        "id": "cert_ean",
+        "level": "Enriched Air Diver",
+        "organization": "PADI",
+        "cert_number": "1903US12348",
+        "date": "2019-03-05",
+        "instructor": "Maria Garcia",
+        "facility": "Blue Water Divers",
+        "facility_number": "S-12345",
+    },
+    {
+        "id": "cert_deep",
+        "level": "Deep Diver",
+        "organization": "PADI",
+        "cert_number": "1905US12349",
+        "date": "2019-05-22",
+        "instructor": "James Wilson",
+        "facility": "Deep Blue Diving",
+        "facility_number": "S-34567",
+    },
+    {
+        "id": "cert_wreck",
+        "level": "Wreck Diver",
+        "organization": "PADI",
+        "cert_number": "1908US12350",
+        "date": "2019-08-14",
+        "instructor": "Robert Taylor",
+        "facility": "Wreck Diving Specialists",
+        "facility_number": "S-45678",
+    },
+    {
+        "id": "cert_msd",
+        "level": "Master Scuba Diver",
+        "organization": "PADI",
+        "cert_number": "2001US12351",
+        "date": "2020-01-30",
+        "instructor": "David Chen",
+        "facility": "Aqua Adventures",
+        "facility_number": "S-23456",
+    },
+    {
+        "id": "cert_tec40",
+        "level": "Tec 40",
+        "organization": "PADI",
+        "cert_number": "2009US12352",
+        "date": "2020-09-18",
+        "instructor": "Michael Brown",
+        "facility": "Technical Diving Center",
+        "facility_number": "S-56789",
+    },
+    {
+        "id": "cert_tec45",
+        "level": "Tec 45",
+        "organization": "PADI",
+        "cert_number": "2103US12353",
+        "date": "2021-03-25",
+        "instructor": "Michael Brown",
+        "facility": "Technical Diving Center",
+        "facility_number": "S-56789",
+    },
+    {
+        "id": "cert_drysuit",
+        "level": "Dry Suit Diver",
+        "organization": "PADI",
+        "cert_number": "2010US12354",
+        "date": "2020-10-05",
+        "instructor": "Sarah Johnson",
+        "facility": "Cold Water Diving",
+        "facility_number": "S-67890",
+    },
+    {
+        "id": "cert_sidemount",
+        "level": "Sidemount Diver",
+        "organization": "PADI",
+        "cert_number": "2106US12355",
+        "date": "2021-06-12",
+        "instructor": "Michael Brown",
+        "facility": "Technical Diving Center",
+        "facility_number": "S-56789",
+    },
+]
+
 # Trip destinations with associated dive centers and nearby sites
 # Each destination maps to dive center indices and site indices for consistency
 TRIP_DESTINATIONS = [
@@ -337,6 +567,73 @@ TANK_CONFIGS = {
         {"volume": 11.1, "working_pressure": 207, "mix_id": "ean32", "role": "main"},
     ],
 }
+
+
+def map_equipment_type(script_type: str, item_name: str = "") -> str:
+    """Map script equipment types to Submersion enum values."""
+    # Check for drysuit explicitly (it uses 'suit' type but is a drysuit)
+    if script_type == "suit" and "drysuit" in item_name.lower():
+        return "drysuit"
+
+    mapping = {
+        "suit": "wetsuit",
+        "boots": "boots",
+        "gloves": "gloves",
+        "mask": "mask",
+        "fins": "fins",
+        "snorkel": "other",
+        "bcd": "bcd",
+        "regulator": "regulator",
+        "computer": "computer",
+        "light": "light",
+        "buoy": "smb",
+        "reel": "reel",
+        "knife": "knife",
+        "camera": "camera",
+        "undergarment": "other",
+        "tank": "tank",
+        "rigging": "other",
+        "wetnotes": "other",
+        "hood": "hood",
+    }
+    return mapping.get(script_type, "other")
+
+
+def map_cert_level(padi_level: str) -> str:
+    """Map PADI certification names to Submersion CertificationLevel enum values."""
+    mapping = {
+        "Open Water Diver": "openWater",
+        "Advanced Open Water Diver": "advancedOpenWater",
+        "Rescue Diver": "rescue",
+        "Enriched Air Diver": "nitrox",
+        "Deep Diver": "decompression",
+        "Wreck Diver": "wreck",
+        "Master Scuba Diver": "diveMaster",
+        "Tec 40": "techDiver",
+        "Tec 45": "techDiver",
+        "Dry Suit Diver": "other",
+        "Sidemount Diver": "sidemount",
+    }
+    return mapping.get(padi_level, "other")
+
+
+def calculate_service_date(purchase_date: str) -> str:
+    """Calculate a realistic last service date based on purchase date."""
+    if not purchase_date:
+        return "2024-01-15"
+
+    try:
+        purchase = datetime.strptime(purchase_date, "%Y-%m-%d")
+        # Service every year, last service is most recent anniversary
+        now = datetime(2025, 1, 1)  # Reference date for test data
+        years_owned = (now - purchase).days // 365
+        if years_owned > 0:
+            last_service = purchase.replace(year=purchase.year + years_owned)
+            return last_service.strftime("%Y-%m-%d")
+        else:
+            return purchase_date  # Not yet due for service
+    except ValueError:
+        return "2024-01-15"
 
 
 def get_tank_config_type(tank_configs: List[Dict]) -> str:
@@ -732,18 +1029,23 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
         sitedata = ET.SubElement(s, "sitedata")
         ET.SubElement(sitedata, "watertype").text = site.get("water_type", "saltwater")
 
-    # Dive operators (centers)
+    # Dive operators (centers) - Standard UDDF format
+    # Note: Submersion also uses custom format in applicationdata/submersion/divecenters
     diveops = ET.SubElement(root, "diveoperator")
     for i, center in enumerate(DIVE_CENTERS):
         db = ET.SubElement(diveops, "divebase")
-        db.set("id", f"center{i+1:03d}")
+        db.set("id", f"center_{i+1:03d}")  # Matches Submersion's expected format
         ET.SubElement(db, "name").text = center["name"]
         addr = ET.SubElement(db, "address")
+        ET.SubElement(addr, "street").text = f"Main Street, {center['city']}"
         ET.SubElement(addr, "city").text = center["city"]
         ET.SubElement(addr, "country").text = center["country"]
         contact = ET.SubElement(db, "contact")
         ET.SubElement(contact, "phone").text = center["phone"]
         ET.SubElement(contact, "email").text = center["email"]
+        # Add website
+        website_domain = center["email"].split("@")[1] if "@" in center["email"] else "example.com"
+        ET.SubElement(contact, "url").text = f"https://www.{website_domain}"
         geo = ET.SubElement(db, "geography")
         ET.SubElement(geo, "latitude").text = str(center["lat"])
         ET.SubElement(geo, "longitude").text = str(center["lon"])
@@ -756,6 +1058,64 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
     personal = ET.SubElement(owner, "personal")
     ET.SubElement(personal, "firstname").text = "Test"
     ET.SubElement(personal, "lastname").text = "Diver"
+    ET.SubElement(personal, "birthdate").text = "1985-07-22"
+    # Add address for completeness
+    address = ET.SubElement(personal, "address")
+    ET.SubElement(address, "street").text = "123 Ocean Drive"
+    ET.SubElement(address, "city").text = "San Diego"
+    ET.SubElement(address, "postcode").text = "92109"
+    ET.SubElement(address, "state").text = "California"
+    ET.SubElement(address, "country").text = "USA"
+    # Contact info
+    contact = ET.SubElement(owner, "contact")
+    ET.SubElement(contact, "email").text = "test.diver@email.com"
+    ET.SubElement(contact, "phone").text = "+1 619 555 0123"
+
+    # Add certifications to owner
+    for cert in PADI_CERTIFICATIONS:
+        cert_elem = ET.SubElement(owner, "certification")
+        cert_elem.set("id", cert["id"])
+        ET.SubElement(cert_elem, "level").text = cert["level"]
+        ET.SubElement(cert_elem, "organization").text = cert["organization"]
+        ET.SubElement(cert_elem, "certificationnumber").text = cert["cert_number"]
+        ET.SubElement(cert_elem, "issuedate").text = cert["date"]
+        # Add instructor info
+        instructor = ET.SubElement(cert_elem, "instructor")
+        ET.SubElement(instructor, "name").text = cert["instructor"]
+        # Add facility info
+        facility = ET.SubElement(cert_elem, "facility")
+        ET.SubElement(facility, "name").text = cert["facility"]
+        ET.SubElement(facility, "facilitynumber").text = cert["facility_number"]
+
+    # Add equipment sets to owner
+    equipment = ET.SubElement(owner, "equipment")
+
+    # Create equipment configuration groups
+    for set_name, items in EQUIPMENT_SETS.items():
+        # Create a configuration for this set
+        config = ET.SubElement(equipment, "equipmentconfiguration")
+        config.set("id", f"config_{set_name}")
+        ET.SubElement(config, "name").text = f"{set_name.replace('_', ' ').title()} Set"
+
+        for item in items:
+            # Create individual equipment piece
+            piece = ET.SubElement(equipment, "piece")
+            piece.set("id", item["id"])
+
+            ET.SubElement(piece, "name").text = item["name"]
+            ET.SubElement(piece, "equipmenttype").text = item["type"]
+            ET.SubElement(piece, "manufacturer").text = item["manufacturer"]
+            ET.SubElement(piece, "model").text = item["model"]
+            if item.get("serial"):
+                ET.SubElement(piece, "serialnumber").text = item["serial"]
+            if item.get("purchase_date"):
+                ET.SubElement(piece, "dateofpurchase").text = item["purchase_date"]
+            if item.get("notes"):
+                ET.SubElement(piece, "notes").text = item["notes"]
+
+            # Link to configuration
+            link = ET.SubElement(config, "link")
+            link.set("ref", item["id"])
 
     for buddy in buddies:
         b = ET.SubElement(diver_section, "buddy")
@@ -941,7 +1301,7 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
         site_link = ET.SubElement(before, "link")
         site_link.set("ref", f"site{site_idx+1:03d}")
         center_link = ET.SubElement(before, "link")
-        center_link.set("ref", f"center{center_idx+1:03d}")
+        center_link.set("ref", f"center_{center_idx+1:03d}")
         # Link to trip if this dive is part of one
         if active_trip:
             trip_link = ET.SubElement(before, "link")
@@ -953,6 +1313,17 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
         equipused = ET.SubElement(before, "equipmentused")
         weight = random.uniform(4, 8)
         ET.SubElement(equipused, "leadquantity").text = f"{weight:.1f}"
+
+        # Determine which equipment set to use based on water temperature
+        is_cold_water = site["country"] == "New Zealand" or \
+                        (site["country"] == "USA" and "California" in site.get("region", ""))
+        equipment_set_name = "cold_water" if is_cold_water else "warm_water"
+        equipment_items = EQUIPMENT_SETS[equipment_set_name]
+
+        # Add equipment references
+        for item in equipment_items:
+            equip_ref = ET.SubElement(equipused, "equipmentref")
+            equip_ref.text = item["id"]
 
         # tankdata elements with IDs (critical for multi-tank pressure refs)
         for i, tc in enumerate(tank_config):
@@ -1039,6 +1410,87 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
             if trip.get("liveaboard_name"):
                 ET.SubElement(trip_elem, "liveaboardname").text = trip["liveaboard_name"]
 
+    # Dive centers in Submersion's expected format
+    divecenters_elem = ET.SubElement(submersion, "divecenters")
+    for i, center in enumerate(DIVE_CENTERS):
+        center_elem = ET.SubElement(divecenters_elem, "center")
+        center_elem.set("id", f"center_{i+1:03d}")
+        ET.SubElement(center_elem, "name").text = center["name"]
+        ET.SubElement(center_elem, "location").text = center["city"]
+        ET.SubElement(center_elem, "latitude").text = str(center["lat"])
+        ET.SubElement(center_elem, "longitude").text = str(center["lon"])
+        ET.SubElement(center_elem, "country").text = center["country"]
+        ET.SubElement(center_elem, "phone").text = center["phone"]
+        ET.SubElement(center_elem, "email").text = center["email"]
+        # Add website
+        website_domain = center["email"].split("@")[1] if "@" in center["email"] else "example.com"
+        ET.SubElement(center_elem, "website").text = f"https://www.{website_domain}"
+        # Add some affiliations for realism
+        affiliations = []
+        if "Egypt" in center["country"] or "Thailand" in center["country"]:
+            affiliations.append("PADI")
+        if "USA" in center["country"]:
+            affiliations.append("PADI")
+            affiliations.append("SSI")
+        if "Australia" in center["country"]:
+            affiliations.append("PADI")
+            affiliations.append("SSI")
+        if affiliations:
+            ET.SubElement(center_elem, "affiliations").text = ",".join(affiliations)
+        # Rating
+        ET.SubElement(center_elem, "rating").text = str(random.uniform(4.0, 5.0))
+        ET.SubElement(center_elem, "notes").text = f"Dive center in {center['city']}, {center['country']}"
+
+    # Equipment in Submersion's expected format
+    equipment_elem = ET.SubElement(submersion, "equipment")
+    for set_name, items in EQUIPMENT_SETS.items():
+        for item in items:
+            item_elem = ET.SubElement(equipment_elem, "item")
+            item_elem.set("id", item["id"])
+            ET.SubElement(item_elem, "name").text = item["name"]
+            ET.SubElement(item_elem, "type").text = map_equipment_type(item["type"], item["name"])
+            ET.SubElement(item_elem, "brand").text = item["manufacturer"]
+            ET.SubElement(item_elem, "model").text = item["model"]
+            if item.get("serial"):
+                ET.SubElement(item_elem, "serialnumber").text = item["serial"]
+            if item.get("purchase_date"):
+                ET.SubElement(item_elem, "purchasedate").text = item["purchase_date"]
+            # Add service tracking for regulators and BCDs
+            if item["type"] in ["regulator", "bcd"]:
+                ET.SubElement(item_elem, "lastservicedate").text = calculate_service_date(item.get("purchase_date", ""))
+                ET.SubElement(item_elem, "serviceintervaldays").text = "365"
+            ET.SubElement(item_elem, "status").text = "active"
+            if item.get("notes"):
+                ET.SubElement(item_elem, "notes").text = item["notes"]
+
+    # Equipment Sets in Submersion's expected format
+    # Groups equipment items into logical sets (warm water, cold water)
+    equipmentsets_elem = ET.SubElement(submersion, "equipmentsets")
+    for set_name, items in EQUIPMENT_SETS.items():
+        set_elem = ET.SubElement(equipmentsets_elem, "set")
+        set_elem.set("id", f"set_{set_name}")
+        ET.SubElement(set_elem, "name").text = set_name.replace("_", " ").title()
+        ET.SubElement(set_elem, "description").text = f"Equipment configuration for {set_name.replace('_', ' ')} diving"
+        items_elem = ET.SubElement(set_elem, "items")
+        for item in items:
+            itemref = ET.SubElement(items_elem, "itemref")
+            itemref.text = item["id"]
+
+    # Certifications in Submersion's expected format
+    certs_elem = ET.SubElement(submersion, "certifications")
+    for cert in PADI_CERTIFICATIONS:
+        cert_elem = ET.SubElement(certs_elem, "cert")
+        cert_elem.set("id", cert["id"])
+        ET.SubElement(cert_elem, "name").text = cert["level"]
+        ET.SubElement(cert_elem, "agency").text = "padi"  # lowercase enum value
+        ET.SubElement(cert_elem, "level").text = map_cert_level(cert["level"])
+        ET.SubElement(cert_elem, "cardnumber").text = cert["cert_number"]
+        ET.SubElement(cert_elem, "issuedate").text = cert["date"]
+        ET.SubElement(cert_elem, "instructorname").text = cert["instructor"]
+        # Add facility number as instructor number for reference
+        if cert.get("facility_number"):
+            ET.SubElement(cert_elem, "instructornumber").text = cert["facility_number"]
+
     # Write file
     tree = ET.ElementTree(root)
     with open(output_path, 'wb') as f:
@@ -1051,12 +1503,18 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
     # Count dives per trip
     trip_dives_total = sum(trip_dive_counts.values())
 
+    # Count equipment
+    total_equipment = sum(len(items) for items in EQUIPMENT_SETS.values())
+
     print(f"\nGenerated UDDF 3.2.1 compliant file: {output_path}")
     print(f"- {num_dives} dives ({trip_dives_total} on trips)")
     print(f"- {len(trips)} trips (4-7 days each)")
     print(f"- {len(DIVE_SITES)} dive sites with GPS")
     print(f"- {len(DIVE_CENTERS)} dive centers")
     print(f"- {len(buddies)} buddies")
+    print(f"- {total_equipment} equipment items in {len(EQUIPMENT_SETS)} sets")
+    print(f"- {len(PADI_CERTIFICATIONS)} certifications (PADI)")
+    print(f"- Equipment sets: {', '.join(EQUIPMENT_SETS.keys())}")
     print(f"- Multi-tank configs with AI pressure refs")
     print(f"\nTrip breakdown:")
     for trip in trips:
