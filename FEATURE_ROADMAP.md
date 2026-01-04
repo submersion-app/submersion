@@ -114,6 +114,10 @@
 | ppO₂ curve, CNS/OTU | ✅ Implemented | v1.5 | O2ToxicityCard with NOAA tables |
 | SAC/RMV overlay | ✅ Implemented | v1.5 | Instantaneous gas consumption |
 | Profile export as PNG | 📋 Planned | v2.0 | Export chart image for sharing |
+| Range analysis | 📋 Planned | v2.0 | Select portion of dive for min/max/avg stats |
+| Step-through playback | 📋 Planned | v2.0 | Step through dive in 10-second increments |
+| Heart rate overlay | 📋 Planned | v2.0 | From compatible dive computers |
+| O2/He/N2 saturation display | 📋 Planned | v2.0 | Tissue gas saturation visualization |
 
 **v1.5 Tasks:**
 - [x] Profile event markers (ProfileEvent entity with type, timestamp, severity)
@@ -136,6 +140,7 @@
 | Profile selector UI | ✅ Implemented | v1.5 | ProfileSelectorWidget for switching |
 | Profile comparison (buddies) | 📋 Planned | v2.0 | Side-by-side view |
 | Profile merging | 📋 Planned | v2.0 | Combine multiple sources |
+| Multi-transmitter support | 📋 Planned | v2.0 | Track multiple tank transmitters (sidemount) |
 
 **v1.5 Tasks:**
 - [x] DiveComputer entity (name, manufacturer, model, serial)
@@ -313,6 +318,7 @@
 | Deco stop schedule | ✅ Implemented | v1.5 | Stop depth/time with deep stop support |
 | Calculated vs DC ceiling | 📋 Planned | v1.5 | Compare app calc with computer |
 | OC/CCR support | 📋 Planned | v1.5 | Open Circuit / Closed Circuit Rebreather |
+| SCR support | 📋 Planned | v2.0 | Semi-Closed Rebreather |
 | Setpoints, diluent, bailout | 📋 Planned | v1.5 | CCR-specific fields |
 
 **v1.5 Tasks (Deco Algorithm Implementation):**
@@ -344,6 +350,9 @@
 | Repetitive dive planning | 📋 Planned | v1.5 | Surface interval, tissue loading |
 | Gas consumption projections | 📋 Planned | v1.5 | Based on SAC history |
 | What-if scenarios | 📋 Planned | v2.0 | Deeper/longer/different gas |
+| Lost gas scenarios | 📋 Planned | v2.0 | Plan for lost decompression gas |
+| Turn pressure planning | 📋 Planned | v2.0 | Calculate gas turn pressures for penetration dives |
+| Range plans | 📋 Planned | v2.0 | Multiple profiles with different depths/times |
 
 **v1.5 Tasks:**
 - [ ] Dive Planner page with depth/time segment editor
@@ -624,6 +633,8 @@
 | Taxonomy, photos | 📋 Planned | v1.5 | Scientific names, images |
 | Stats per species | 📋 Planned | v1.5 | First/last seen, depth range |
 | Distribution map | 📋 Planned | v2.0 | Map of sightings |
+| AI species identification | 📋 Planned | v2.0 | Upload photo, AI identifies species |
+| Offline species ID | 📋 Planned | v2.0 | Works without internet connection |
 
 **v1.5 Tasks:**
 - [ ] Add `scientific_name`, `taxonomy_class`, `image_url` to species table
@@ -635,6 +646,9 @@
 - [ ] Species distribution map (heatmap of sightings)
 - [ ] "Life list" progress tracker (total species seen)
 - [ ] Rare species badges
+- [ ] AI-powered species identification from photos (ML model)
+- [ ] Offline species recognition database
+- [ ] Species identification confidence scores
 
 ---
 
@@ -643,9 +657,11 @@
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
 | Attach photos/videos to dives | 📋 Planned | v2.0 | Media table exists, needs UI |
+| Video support in logs | 📋 Planned | v2.0 | Attach and play videos |
 | Auto-match by timestamp | 📋 Planned | v2.0 | EXIF datetime matching |
 | Tag species in photos | 📋 Planned | v2.0 | Image annotation |
 | Color correction | 📋 Planned | v2.0 | Blue filter removal |
+| Shareable dive cards | 📋 Planned | v2.0 | Generate visual summary for social media |
 | Depth/time overlay | 🔮 Future | v3.0 | Requires camera integration |
 
 **v2.0 Tasks:**
@@ -891,6 +907,7 @@
 | DAN DL7 export | 📋 Planned | v1.5 | Research data format |
 | Excel export | 📋 Planned | v1.5 | .xlsx format |
 | Google Earth KML export | 📋 Planned | v1.5 | Map all dive sites |
+| ePub export | 📋 Planned | v2.0 | Electronic book format for travel |
 | HTML export | 📋 Planned | v2.0 | Web-viewable logbook |
 
 **v1.5 Tasks:**
@@ -899,6 +916,7 @@
 - [ ] KML export (placemark per dive site with description bubble)
 
 **v2.0 Tasks:**
+- [ ] ePub export (electronic book for showing experience digitally)
 - [ ] HTML export (static website with CSS, images, interactive map)
 - [ ] MySQL dump export (for migration to other systems)
 
@@ -913,6 +931,10 @@
 | Import from other apps | 📋 Planned | v1.5 | Diving Log, DiveMate, etc. |
 | Upload to divelogs.de | 📋 Planned | v2.0 | API integration |
 | Garmin Connect integration | 📋 Planned | v2.0 | Import Garmin watch dives |
+| Shearwater Cloud import | 📋 Planned | v2.0 | Import from Shearwater cloud |
+| Suunto app import | 📋 Planned | v2.0 | Import via Suunto cloud/Movescount |
+| Diviac import | 📋 Planned | v2.0 | Import from Diviac online logbook |
+| Deepblu import | 📋 Planned | v2.0 | Import from Deepblu platform |
 
 **v1.5 Tasks:**
 - [ ] Import wizard with app selection (Subsurface, MacDive, Diving Log, etc.)
@@ -923,6 +945,10 @@
 - [ ] divelogs.de API integration (upload/download dives)
 - [ ] Garmin Connect API (import dive activity FIT files)
 - [ ] Automatic conversion from Garmin Descent dive computers
+- [ ] Shearwater Cloud API integration
+- [ ] Suunto app/Movescount API integration
+- [ ] Diviac API integration
+- [ ] Deepblu API integration
 
 ---
 
@@ -949,6 +975,7 @@
 | Share dives to social media | 📋 Planned | v2.0 | FB, Instagram, Twitter |
 | Generate composite images | 📋 Planned | v2.0 | Profile + photo + stats |
 | Share links | 📋 Planned | v2.0 | Web view of dive (requires backend) |
+| Shareable dive cards | 📋 Planned | v2.0 | Visual summary image for social |
 
 **v2.0 Tasks:**
 - [ ] "Share Dive" action with platform picker
@@ -965,6 +992,7 @@
 | View community dive sites | 📋 Planned | v2.0 | Requires backend |
 | Explore nearby sites | 📋 Planned | v2.0 | GPS-based search |
 | User-submitted site photos | 📋 Planned | v2.0 | Photo gallery per site |
+| Dive site reviews & ratings | 📋 Planned | v2.0 | Rate and review sites |
 
 **v2.0 Tasks:**
 - [ ] Community backend (user accounts, public profiles)
@@ -974,7 +1002,30 @@
 
 ---
 
-## 14.3 Booking & Commerce
+## 14.3 Diver Social Network
+
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Diver profiles | 📋 Planned | v2.0 | Public profile with stats, certs, dive count |
+| Follow buddies | 📋 Planned | v2.0 | Activity feed from followed divers |
+| Buddy activity feed | 📋 Planned | v2.0 | New dives, photos, certs from buddies |
+| Community groups | 📋 Planned | v2.0 | Dive clubs, schools, interest groups |
+| In-app messaging | 📋 Planned | v2.0 | Chat between buddies |
+| Public dive feed | 📋 Planned | v2.0 | Discover dive logs from community |
+| Digital instructor signatures | 📋 Planned | v2.0 | Instructors verify/sign training logs |
+
+**v2.0 Tasks:**
+- [ ] Diver profile page (public view with stats, certifications, dive count)
+- [ ] Follow/unfollow other divers
+- [ ] Activity feed (new dives, photos, certifications from followed divers)
+- [ ] Community groups with forums, events, shared stats
+- [ ] In-app messaging between buddies
+- [ ] Public dive feed ("Discover" section)
+- [ ] Privacy controls (public/private/buddies-only)
+
+---
+
+## 14.4 Booking & Commerce
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
@@ -1010,11 +1061,10 @@
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Multiple divers per database | ✅ Done | v2.0 | DiveMate-style |
-| Account switching | ✅ Done | v2.0 | Shared devices |
-| Family subscription | 🔮 Future | v3.0 | Monetization strategy |
+| Multiple divers per database | ✅ Done | v1.5 | DiveMate-style |
+| Account switching | ✅ Done | v1.5 | Shared devices |
 
-**v2.0 Tasks:**
+**v1.5 Tasks (Complete):**
 - [x] Diver entity (name, certs, profile)
 - [x] Add `diver_id` to dives table
 - [x] Diver switcher in settings or main nav
@@ -1043,6 +1093,63 @@
 - [ ] Localized date/time/number formats
 - [ ] RTL language support (Arabic, Hebrew)
 - [ ] Translation management workflow (POEditor, Crowdin)
+
+---
+
+## 15.4 Gamification & Achievements
+
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Achievement badges | 📋 Planned | v2.0 | Earn badges for milestones |
+| Dive milestones | 📋 Planned | v2.0 | 100 dives, 1000m depth, etc. |
+| Species life list | 📋 Planned | v2.0 | Track total unique species seen |
+| Depth achievements | 📋 Planned | v2.0 | First 20m, 30m, 40m dives |
+| Streak tracking | 📋 Planned | v2.0 | Monthly/yearly dive streaks |
+| Progress visualization | 📋 Planned | v2.0 | Journey timeline with milestones |
+
+**v2.0 Tasks:**
+- [ ] Achievement system with badge definitions
+- [ ] Milestone tracking (dive count, depths, locations, species)
+- [ ] Badge unlock notifications
+- [ ] Achievement showcase on diver profile
+- [ ] Progress towards next milestone display
+- [ ] Life list tracker (species collection progress)
+
+---
+
+## 15.5 Wearable Integration
+
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Apple Watch Ultra import | 📋 Planned | v2.0 | Import dives via HealthKit |
+| Apple HealthKit integration | 📋 Planned | v2.0 | Read depth/temperature data |
+| Garmin Connect import | 📋 Planned | v2.0 | Import Descent dive activities |
+| Suunto app integration | 📋 Planned | v2.0 | Import via UDDF/Movescount |
+
+**v2.0 Tasks:**
+- [ ] HealthKit permission and data reading
+- [ ] Import Apple Watch Ultra dives (depth, temperature, time)
+- [ ] Garmin Connect API integration
+- [ ] Automatic sync from connected wearables
+- [ ] Merge wearable data with dive computer data
+
+---
+
+## 15.6 Well-being & Safety
+
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Pre-dive feeling monitor | 📋 Planned | v2.0 | Track readiness before dive |
+| Post-dive feeling monitor | 📋 Planned | v2.0 | Track condition after dive |
+| Breathing technique analysis | 📋 Planned | v2.0 | SAC improvement suggestions |
+| Hydration reminders | 📋 Planned | v2.0 | DCS prevention |
+| No-fly countdown | ✅ Implemented | v1.5 | Based on deco status |
+
+**v2.0 Tasks:**
+- [ ] Pre/post dive well-being questionnaire
+- [ ] Correlation analysis (feeling vs dive parameters)
+- [ ] Breathing efficiency tips based on SAC trends
+- [ ] Health trend visualization over time
 
 ---
 
@@ -1201,5 +1308,5 @@
 
 ---
 
-**Document Version:** 2.4
+**Document Version:** 2.5
 **Last Updated:** 2026-01-04
