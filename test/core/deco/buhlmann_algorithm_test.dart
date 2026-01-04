@@ -20,10 +20,7 @@ void main() {
       });
 
       test('should initialize with custom gradient factors', () {
-        final customAlgorithm = BuhlmannAlgorithm(
-          gfLow: 0.30,
-          gfHigh: 0.70,
-        );
+        final customAlgorithm = BuhlmannAlgorithm(gfLow: 0.30, gfHigh: 0.70);
         expect(customAlgorithm, isNotNull);
       });
 
@@ -194,10 +191,7 @@ void main() {
           gfHigh: 0.70,
         );
 
-        final liberalAlgorithm = BuhlmannAlgorithm(
-          gfLow: 0.70,
-          gfHigh: 0.90,
-        );
+        final liberalAlgorithm = BuhlmannAlgorithm(gfLow: 0.70, gfHigh: 0.90);
 
         // Same dive for both
         void doDive(BuhlmannAlgorithm algo) {
@@ -213,10 +207,12 @@ void main() {
         doDive(liberalAlgorithm);
 
         // Conservative should have higher ceiling (deeper deco stop)
-        final conservativeCeiling =
-            conservativeAlgorithm.calculateCeiling(currentDepth: 40);
-        final liberalCeiling =
-            liberalAlgorithm.calculateCeiling(currentDepth: 40);
+        final conservativeCeiling = conservativeAlgorithm.calculateCeiling(
+          currentDepth: 40,
+        );
+        final liberalCeiling = liberalAlgorithm.calculateCeiling(
+          currentDepth: 40,
+        );
 
         expect(conservativeCeiling, greaterThanOrEqualTo(liberalCeiling));
       });
@@ -409,14 +405,16 @@ void main() {
         }
       });
 
-      test('helium half-times should be approximately 2.65x faster than N2',
-          () {
-        for (int i = 0; i < 16; i++) {
-          final ratio = zhl16cN2HalfTimes[i] / zhl16cHeHalfTimes[i];
-          // Ratio should be approximately 2.65 (helium is ~2.65x faster)
-          expect(ratio, closeTo(2.65, 0.1));
-        }
-      });
+      test(
+        'helium half-times should be approximately 2.65x faster than N2',
+        () {
+          for (int i = 0; i < 16; i++) {
+            final ratio = zhl16cN2HalfTimes[i] / zhl16cHeHalfTimes[i];
+            // Ratio should be approximately 2.65 (helium is ~2.65x faster)
+            expect(ratio, closeTo(2.65, 0.1));
+          }
+        },
+      );
     });
 
     group('helper functions', () {

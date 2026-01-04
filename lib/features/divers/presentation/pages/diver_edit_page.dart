@@ -81,8 +81,9 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
   Future<void> _loadDiver() async {
     setState(() => _isLoading = true);
     try {
-      final diver =
-          await ref.read(diverRepositoryProvider).getDiverById(widget.diverId!);
+      final diver = await ref
+          .read(diverRepositoryProvider)
+          .getDiverById(widget.diverId!);
       if (diver != null && mounted) {
         _originalDiver = diver;
         _nameController.text = diver.name;
@@ -107,9 +108,9 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading diver: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error loading diver: $e')));
       }
     }
   }
@@ -159,10 +160,7 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
                 ),
               )
             else
-              TextButton(
-                onPressed: _saveDiver,
-                child: const Text('Save'),
-              ),
+              TextButton(onPressed: _saveDiver, child: const Text('Save')),
           ],
         ),
         body: _isLoading
@@ -206,8 +204,9 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
                             ? const SizedBox(
                                 width: 20,
                                 height: 20,
-                                child:
-                                    CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
                             : Text(isEditing ? 'Update Diver' : 'Add Diver'),
                       ),
@@ -226,9 +225,9 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
       child: Text(
         title,
         style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.primary,
-            ),
+          fontWeight: FontWeight.bold,
+          color: Theme.of(context).colorScheme.primary,
+        ),
       ),
     );
   }
@@ -514,16 +513,14 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
       if (mounted) {
         context.pop();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(isEditing ? 'Diver updated' : 'Diver added'),
-          ),
+          SnackBar(content: Text(isEditing ? 'Diver updated' : 'Diver added')),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving diver: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error saving diver: $e')));
       }
     } finally {
       if (mounted) {

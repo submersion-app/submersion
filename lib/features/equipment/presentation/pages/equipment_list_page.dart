@@ -42,9 +42,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
       body: Column(
         children: [
           _buildFilterChips(),
-          Expanded(
-            child: _buildEquipmentList(),
-          ),
+          Expanded(child: _buildEquipmentList()),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -71,18 +69,17 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
           Text(
             'Filter:',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(width: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
               border: Border.all(
-                color: Theme.of(context)
-                    .colorScheme
-                    .outline
-                    .withValues(alpha: 0.5),
+                color: Theme.of(
+                  context,
+                ).colorScheme.outline.withValues(alpha: 0.5),
               ),
               borderRadius: BorderRadius.circular(8),
             ),
@@ -113,8 +110,9 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
   }
 
   Widget _buildEquipmentList() {
-    final equipmentAsync =
-        ref.watch(equipmentByStatusProvider(_selectedStatus));
+    final equipmentAsync = ref.watch(
+      equipmentByStatusProvider(_selectedStatus),
+    );
 
     return equipmentAsync.when(
       data: (equipment) => equipment.isEmpty
@@ -193,8 +191,8 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
                 ? 'Add your diving equipment to track usage and service'
                 : 'No equipment with this status',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
             textAlign: TextAlign.center,
           ),
           if (_selectedStatus == null) ...[
@@ -377,8 +375,8 @@ class _AddEquipmentSheetState extends ConsumerState<AddEquipmentSheet> {
                 Text(
                   'Purchase Information',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Row(
@@ -395,9 +393,9 @@ class _AddEquipmentSheetState extends ConsumerState<AddEquipmentSheet> {
                           style: TextStyle(
                             color: _purchaseDate != null
                                 ? null
-                                : Theme.of(context)
-                                    .colorScheme
-                                    .onSurfaceVariant,
+                                : Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ),
@@ -406,9 +404,7 @@ class _AddEquipmentSheetState extends ConsumerState<AddEquipmentSheet> {
                     Expanded(
                       child: TextFormField(
                         controller: _purchasePriceController,
-                        decoration: const InputDecoration(
-                          labelText: 'Price',
-                        ),
+                        decoration: const InputDecoration(labelText: 'Price'),
                         keyboardType: const TextInputType.numberWithOptions(
                           decimal: true,
                         ),
@@ -582,8 +578,9 @@ class EquipmentListTile extends StatelessWidget {
           ),
         ),
         title: Text(name),
-        subtitle:
-            brandModel != null ? Text(brandModel!) : Text(type.displayName),
+        subtitle: brandModel != null
+            ? Text(brandModel!)
+            : Text(type.displayName),
         trailing: _buildTrailing(context),
       ),
     );
@@ -665,10 +662,7 @@ class EquipmentSearchDelegate extends SearchDelegate<EquipmentItem?> {
   List<Widget> buildActions(BuildContext context) {
     return [
       if (query.isNotEmpty)
-        IconButton(
-          icon: const Icon(Icons.clear),
-          onPressed: () => query = '',
-        ),
+        IconButton(icon: const Icon(Icons.clear), onPressed: () => query = ''),
     ];
   }
 
@@ -695,17 +689,16 @@ class EquipmentSearchDelegate extends SearchDelegate<EquipmentItem?> {
             Icon(
               Icons.search,
               size: 64,
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurfaceVariant
-                  .withValues(alpha: 0.5),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
               'Search by name, brand, model, or serial number',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -727,17 +720,16 @@ class EquipmentSearchDelegate extends SearchDelegate<EquipmentItem?> {
                 Icon(
                   Icons.search_off,
                   size: 64,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurfaceVariant
-                      .withValues(alpha: 0.5),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                 ),
                 const SizedBox(height: 16),
                 Text(
                   'No equipment found for "$query"',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -763,9 +755,7 @@ class EquipmentSearchDelegate extends SearchDelegate<EquipmentItem?> {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(
-        child: Text('Error: $error'),
-      ),
+      error: (error, _) => Center(child: Text('Error: $error')),
     );
   }
 }

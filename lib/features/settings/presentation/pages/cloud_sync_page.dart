@@ -17,13 +17,12 @@ class CloudSyncPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final syncState = ref.watch(syncStateProvider);
     final selectedProvider = ref.watch(selectedCloudProviderTypeProvider);
-    final isCustomFolderMode =
-        ref.watch(isCloudSyncDisabledByCustomFolderProvider);
+    final isCustomFolderMode = ref.watch(
+      isCloudSyncDisabledByCustomFolderProvider,
+    );
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Cloud Sync'),
-      ),
+      appBar: AppBar(title: const Text('Cloud Sync')),
       body: ListView(
         children: [
           // Show banner when custom folder mode is active
@@ -53,20 +52,14 @@ class CloudSyncPage extends ConsumerWidget {
       decoration: BoxDecoration(
         color: Colors.orange.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.orange.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(
-                Icons.info_outline,
-                color: Colors.orange,
-                size: 24,
-              ),
+              const Icon(Icons.info_outline, color: Colors.orange, size: 24),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -214,8 +207,8 @@ class CloudSyncPage extends ConsumerWidget {
           child: Text(
             'Cloud Provider',
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
         ),
         _buildProviderTile(
@@ -255,9 +248,7 @@ class CloudSyncPage extends ConsumerWidget {
     return ListTile(
       leading: Icon(icon),
       title: Text(title),
-      subtitle: Text(
-        isAvailable ? subtitle : 'Not available on this platform',
-      ),
+      subtitle: Text(isAvailable ? subtitle : 'Not available on this platform'),
       trailing: isSelected
           ? const Icon(Icons.check_circle, color: Colors.green)
           : null,
@@ -311,8 +302,9 @@ class CloudSyncPage extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content:
-                Text('${cloudProvider.providerName} connection failed: $e'),
+            content: Text(
+              '${cloudProvider.providerName} connection failed: $e',
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -375,17 +367,13 @@ class CloudSyncPage extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
             children: [
-              const Icon(
-                Icons.warning,
-                color: Colors.orange,
-                size: 20,
-              ),
+              const Icon(Icons.warning, color: Colors.orange, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Conflicts (${syncState.conflicts})',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Colors.orange,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(color: Colors.orange),
               ),
             ],
           ),
@@ -424,8 +412,8 @@ class CloudSyncPage extends ConsumerWidget {
           child: Text(
             'Advanced',
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
         ),
         ListTile(
@@ -473,9 +461,9 @@ class CloudSyncPage extends ConsumerWidget {
     if (confirmed == true) {
       await ref.read(syncStateProvider.notifier).resetSyncState();
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Sync state reset')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Sync state reset')));
       }
     }
   }

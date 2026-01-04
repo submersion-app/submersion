@@ -36,23 +36,15 @@ class DiveTypesPage extends ConsumerWidget {
               if (customTypes.isNotEmpty) ...[
                 _buildSectionHeader(context, 'Custom Dive Types'),
                 ...customTypes.map(
-                  (type) => _buildDiveTypeTile(
-                    context,
-                    ref,
-                    type,
-                    canDelete: true,
-                  ),
+                  (type) =>
+                      _buildDiveTypeTile(context, ref, type, canDelete: true),
                 ),
                 const Divider(),
               ],
               _buildSectionHeader(context, 'Built-in Dive Types'),
               ...builtInTypes.map(
-                (type) => _buildDiveTypeTile(
-                  context,
-                  ref,
-                  type,
-                  canDelete: false,
-                ),
+                (type) =>
+                    _buildDiveTypeTile(context, ref, type, canDelete: false),
               ),
             ],
           );
@@ -67,8 +59,8 @@ class DiveTypesPage extends ConsumerWidget {
       child: Text(
         title,
         style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-            ),
+          color: Theme.of(context).colorScheme.primary,
+        ),
       ),
     );
   }
@@ -148,9 +140,9 @@ class DiveTypesPage extends ConsumerWidget {
         final notifier = ref.read(diveTypeListNotifierProvider.notifier);
         await notifier.addDiveTypeByName(result);
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Added dive type: $result')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Added dive type: $result')));
         }
       } catch (e) {
         if (context.mounted) {
@@ -213,9 +205,9 @@ class DiveTypesPage extends ConsumerWidget {
       try {
         await notifier.deleteDiveType(diveType.id);
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Deleted "${diveType.name}"')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Deleted "${diveType.name}"')));
         }
       } catch (e) {
         if (context.mounted) {

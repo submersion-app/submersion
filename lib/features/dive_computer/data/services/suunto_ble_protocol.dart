@@ -148,15 +148,14 @@ class SuuntoBleProtocol {
 
     if (readProps.notify || readProps.indicate) {
       await _readCharacteristic!.setNotifyValue(true);
-      _notifySubscription =
-          _readCharacteristic!.onValueReceived.listen(_onDataReceived);
+      _notifySubscription = _readCharacteristic!.onValueReceived.listen(
+        _onDataReceived,
+      );
       _log.info(
         'Notifications enabled (notify=${readProps.notify}, indicate=${readProps.indicate})',
       );
     } else {
-      _log.warning(
-        'Read characteristic does not support notify or indicate!',
-      );
+      _log.warning('Read characteristic does not support notify or indicate!');
     }
 
     await Future.delayed(const Duration(milliseconds: 300));
@@ -312,7 +311,8 @@ class SuuntoBleProtocol {
 
       // Update magic from response (increments by 5)
       if (response.length >= 6) {
-        _magic = response[2] |
+        _magic =
+            response[2] |
             (response[3] << 8) |
             (response[4] << 16) |
             (response[5] << 24);
@@ -380,9 +380,7 @@ class SuuntoBleProtocol {
 
       if (entry.isFile && entry.name.endsWith('.bin')) {
         // Parse dive number from filename (e.g., "0001.bin")
-        final diveNumber = int.tryParse(
-          entry.name.replaceAll('.bin', ''),
-        );
+        final diveNumber = int.tryParse(entry.name.replaceAll('.bin', ''));
 
         entries.add(
           SuuntoDiveEntry(
@@ -422,14 +420,13 @@ class SuuntoBleProtocol {
     if (response.length < 7) return null;
 
     final isFile = response[1] == 0; // 0 = file, 1 = directory
-    final size = response[2] |
+    final size =
+        response[2] |
         (response[3] << 8) |
         (response[4] << 16) |
         (response[5] << 24);
     final nameBytes = response.sublist(6);
-    final name = String.fromCharCodes(
-      nameBytes.takeWhile((b) => b != 0),
-    );
+    final name = String.fromCharCodes(nameBytes.takeWhile((b) => b != 0));
 
     return _DirectoryEntry(name: name, isFile: isFile, size: size);
   }

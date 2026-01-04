@@ -24,8 +24,9 @@ class BuddyListPage extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content:
-                Text('Contact import is only available on iOS and Android'),
+            content: Text(
+              'Contact import is only available on iOS and Android',
+            ),
           ),
         );
       }
@@ -54,9 +55,7 @@ class BuddyListPage extends ConsumerWidget {
       if (fullContact == null) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Could not load contact details'),
-            ),
+            const SnackBar(content: Text('Could not load contact details')),
           );
         }
         return;
@@ -75,20 +74,14 @@ class BuddyListPage extends ConsumerWidget {
         // Navigate to buddy edit page with pre-filled data
         context.push(
           '/buddies/new',
-          extra: {
-            'name': name,
-            'email': email,
-            'phone': phone,
-          },
+          extra: {'name': name, 'email': email, 'phone': phone},
         );
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error importing contact: $e'),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error importing contact: $e')));
       }
     }
   }
@@ -104,10 +97,7 @@ class BuddyListPage extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
-              showSearch(
-                context: context,
-                delegate: BuddySearchDelegate(ref),
-              );
+              showSearch(context: context, delegate: BuddySearchDelegate(ref));
             },
           ),
           PopupMenuButton<String>(
@@ -201,8 +191,8 @@ class BuddyListPage extends ConsumerWidget {
           Text(
             'Add your dive buddies to track who you dive with',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
@@ -222,11 +212,7 @@ class BuddyListTile extends StatelessWidget {
   final Buddy buddy;
   final VoidCallback? onTap;
 
-  const BuddyListTile({
-    super.key,
-    required this.buddy,
-    this.onTap,
-  });
+  const BuddyListTile({super.key, required this.buddy, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -236,8 +222,9 @@ class BuddyListTile extends StatelessWidget {
         onTap: onTap,
         leading: CircleAvatar(
           backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-          backgroundImage:
-              buddy.photoPath != null ? AssetImage(buddy.photoPath!) : null,
+          backgroundImage: buddy.photoPath != null
+              ? AssetImage(buddy.photoPath!)
+              : null,
           child: buddy.photoPath == null
               ? Text(
                   buddy.initials,
@@ -286,10 +273,7 @@ class BuddySearchDelegate extends SearchDelegate<Buddy?> {
   List<Widget> buildActions(BuildContext context) {
     return [
       if (query.isNotEmpty)
-        IconButton(
-          icon: const Icon(Icons.clear),
-          onPressed: () => query = '',
-        ),
+        IconButton(icon: const Icon(Icons.clear), onPressed: () => query = ''),
     ];
   }
 
@@ -316,17 +300,16 @@ class BuddySearchDelegate extends SearchDelegate<Buddy?> {
             Icon(
               Icons.search,
               size: 64,
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurfaceVariant
-                  .withValues(alpha: 0.5),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
               'Search by name, email, or phone',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -348,17 +331,16 @@ class BuddySearchDelegate extends SearchDelegate<Buddy?> {
                 Icon(
                   Icons.search_off,
                   size: 64,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurfaceVariant
-                      .withValues(alpha: 0.5),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                 ),
                 const SizedBox(height: 16),
                 Text(
                   'No buddies found for "$query"',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -380,9 +362,7 @@ class BuddySearchDelegate extends SearchDelegate<Buddy?> {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(
-        child: Text('Error: $error'),
-      ),
+      error: (error, _) => Center(child: Text('Error: $error')),
     );
   }
 }

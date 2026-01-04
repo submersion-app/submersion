@@ -38,19 +38,21 @@ class SpeciesRepository {
   Future<List<domain.Species>> searchSpecies(String query) async {
     final searchTerm = '%${query.toLowerCase()}%';
 
-    final results = await _db.customSelect(
-      '''
+    final results = await _db
+        .customSelect(
+          '''
       SELECT * FROM species
       WHERE LOWER(common_name) LIKE ?
          OR LOWER(scientific_name) LIKE ?
       ORDER BY category ASC, common_name ASC
       LIMIT 50
     ''',
-      variables: [
-        Variable.withString(searchTerm),
-        Variable.withString(searchTerm),
-      ],
-    ).get();
+          variables: [
+            Variable.withString(searchTerm),
+            Variable.withString(searchTerm),
+          ],
+        )
+        .get();
 
     return results.map((row) {
       return domain.Species(
@@ -81,14 +83,16 @@ class SpeciesRepository {
     required SpeciesCategory category,
   }) async {
     // Try to find existing species with same name
-    final existing = await _db.customSelect(
-      '''
+    final existing = await _db
+        .customSelect(
+          '''
       SELECT * FROM species
       WHERE LOWER(common_name) = ?
       LIMIT 1
     ''',
-      variables: [Variable.withString(commonName.toLowerCase())],
-    ).getSingleOrNull();
+          variables: [Variable.withString(commonName.toLowerCase())],
+        )
+        .getSingleOrNull();
 
     if (existing != null) {
       return domain.Species(
@@ -106,7 +110,9 @@ class SpeciesRepository {
 
     // Create new species
     final id = _uuid.v4();
-    await _db.into(_db.species).insert(
+    await _db
+        .into(_db.species)
+        .insert(
           SpeciesCompanion(
             id: Value(id),
             commonName: Value(commonName),
@@ -131,7 +137,9 @@ class SpeciesRepository {
     String notes = '',
   }) async {
     final id = _uuid.v4();
-    await _db.into(_db.sightings).insert(
+    await _db
+        .into(_db.sightings)
+        .insert(
           SightingsCompanion(
             id: Value(id),
             diveId: Value(diveId),
@@ -155,16 +163,18 @@ class SpeciesRepository {
 
   /// Get sightings for a dive
   Future<List<domain.Sighting>> getSightingsForDive(String diveId) async {
-    final results = await _db.customSelect(
-      '''
+    final results = await _db
+        .customSelect(
+          '''
       SELECT s.*, sp.common_name, sp.category
       FROM sightings s
       JOIN species sp ON s.species_id = sp.id
       WHERE s.dive_id = ?
       ORDER BY sp.category ASC, sp.common_name ASC
     ''',
-      variables: [Variable.withString(diveId)],
-    ).get();
+          variables: [Variable.withString(diveId)],
+        )
+        .get();
 
     return results.map((row) {
       return domain.Sighting(
@@ -184,8 +194,9 @@ class SpeciesRepository {
 
   /// Update sighting
   Future<void> updateSighting(domain.Sighting sighting) async {
-    await (_db.update(_db.sightings)..where((t) => t.id.equals(sighting.id)))
-        .write(
+    await (_db.update(
+      _db.sightings,
+    )..where((t) => t.id.equals(sighting.id))).write(
       SightingsCompanion(
         count: Value(sighting.count),
         notes: Value(sighting.notes),
@@ -200,8 +211,9 @@ class SpeciesRepository {
 
   /// Delete all sightings for a dive
   Future<void> deleteSightingsForDive(String diveId) async {
-    await (_db.delete(_db.sightings)..where((t) => t.diveId.equals(diveId)))
-        .go();
+    await (_db.delete(
+      _db.sightings,
+    )..where((t) => t.diveId.equals(diveId))).go();
   }
 
   /// Seed common species data
@@ -267,7 +279,9 @@ class SpeciesRepository {
     ];
 
     for (final (name, scientificName, category) in commonSpecies) {
-      await _db.into(_db.species).insert(
+      await _db
+          .into(_db.species)
+          .insert(
             SpeciesCompanion(
               id: Value(_uuid.v4()),
               commonName: Value(name),

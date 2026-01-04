@@ -38,8 +38,10 @@ class UnitFormatter {
   /// Format temperature value with unit symbol
   String formatTemperature(double? value, {int decimals = 0}) {
     if (value == null) return '--';
-    final converted =
-        TemperatureUnit.celsius.convert(value, settings.temperatureUnit);
+    final converted = TemperatureUnit.celsius.convert(
+      value,
+      settings.temperatureUnit,
+    );
     return '${converted.toStringAsFixed(decimals)}°${settings.temperatureUnit.symbol}';
   }
 

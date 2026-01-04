@@ -254,10 +254,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Rating',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text('Rating', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -311,8 +308,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             Text(
               'From the shallowest to the deepest point',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 16),
             Row(
@@ -324,8 +321,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                       labelText: 'Minimum Depth ($depthSymbol)',
                       hintText: 'e.g., 5',
                     ),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                   ),
                 ),
                 const Padding(
@@ -339,8 +337,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                       labelText: 'Maximum Depth ($depthSymbol)',
                       hintText: 'e.g., 30',
                     ),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                   ),
                 ),
               ],
@@ -397,8 +396,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
 
     try {
       final locationService = LocationService.instance;
-      final result =
-          await locationService.getCurrentLocation(includeGeocoding: true);
+      final result = await locationService.getCurrentLocation(
+        includeGeocoding: true,
+      );
 
       if (result == null) {
         if (mounted) {
@@ -462,9 +462,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
 
     final result = await Navigator.of(context).push<PickedLocation>(
       MaterialPageRoute(
-        builder: (context) => LocationPickerMap(
-          initialLocation: initialLocation,
-        ),
+        builder: (context) =>
+            LocationPickerMap(initialLocation: initialLocation),
       ),
     );
 
@@ -511,8 +510,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             Text(
               'Choose a location method - coordinates will auto-fill country and region',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 12),
             Wrap(
@@ -680,8 +679,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             Text(
               'List any hazards or safety considerations',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -724,16 +723,19 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       // Convert depths from user's preferred unit to meters for storage
       final minDepthInput = double.tryParse(_minDepthController.text);
       final maxDepthInput = double.tryParse(_maxDepthController.text);
-      final minDepthMeters =
-          minDepthInput != null ? units.depthToMeters(minDepthInput) : null;
-      final maxDepthMeters =
-          maxDepthInput != null ? units.depthToMeters(maxDepthInput) : null;
+      final minDepthMeters = minDepthInput != null
+          ? units.depthToMeters(minDepthInput)
+          : null;
+      final maxDepthMeters = maxDepthInput != null
+          ? units.depthToMeters(maxDepthInput)
+          : null;
 
       // Get the current diver ID - preserve existing for edits, get fresh for new sites
       final existingSite = widget.isEditing
           ? ref.read(siteProvider(widget.siteId!)).valueOrNull
           : null;
-      final diverId = existingSite?.diverId ??
+      final diverId =
+          existingSite?.diverId ??
           await ref.read(validatedCurrentDiverIdProvider.future);
 
       final site = DiveSite(
@@ -847,9 +849,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
 
       if (mounted) {
         context.go('/sites');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Site deleted')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Site deleted')));
       }
     } catch (e) {
       if (mounted) {

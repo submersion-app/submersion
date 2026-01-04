@@ -42,15 +42,17 @@ void main() {
 
   group('BuddyRepository', () {
     group('createBuddy', () {
-      test('should create a new buddy with generated ID when ID is empty',
-          () async {
-        final buddy = createTestBuddy(name: 'John Doe');
+      test(
+        'should create a new buddy with generated ID when ID is empty',
+        () async {
+          final buddy = createTestBuddy(name: 'John Doe');
 
-        final createdBuddy = await repository.createBuddy(buddy);
+          final createdBuddy = await repository.createBuddy(buddy);
 
-        expect(createdBuddy.id, isNotEmpty);
-        expect(createdBuddy.name, equals('John Doe'));
-      });
+          expect(createdBuddy.id, isNotEmpty);
+          expect(createdBuddy.name, equals('John Doe'));
+        },
+      );
 
       test('should create a buddy with provided ID', () async {
         final buddy = createTestBuddy(id: 'custom-buddy-id', name: 'Jane Doe');
@@ -91,8 +93,9 @@ void main() {
 
     group('getBuddyById', () {
       test('should return buddy when found', () async {
-        final buddy =
-            await repository.createBuddy(createTestBuddy(name: 'Find Me'));
+        final buddy = await repository.createBuddy(
+          createTestBuddy(name: 'Find Me'),
+        );
 
         final result = await repository.getBuddyById(buddy.id);
 
@@ -131,10 +134,7 @@ void main() {
     group('updateBuddy', () {
       test('should update buddy fields', () async {
         final buddy = await repository.createBuddy(
-          createTestBuddy(
-            name: 'Original Name',
-            email: 'old@example.com',
-          ),
+          createTestBuddy(name: 'Original Name', email: 'old@example.com'),
         );
 
         final updatedBuddy = buddy.copyWith(
@@ -153,8 +153,9 @@ void main() {
       });
 
       test('should update certification info', () async {
-        final buddy =
-            await repository.createBuddy(createTestBuddy(name: 'Cert Buddy'));
+        final buddy = await repository.createBuddy(
+          createTestBuddy(name: 'Cert Buddy'),
+        );
 
         final updatedBuddy = buddy.copyWith(
           certificationLevel: CertificationLevel.rescue,
@@ -171,8 +172,9 @@ void main() {
 
     group('deleteBuddy', () {
       test('should delete existing buddy', () async {
-        final buddy =
-            await repository.createBuddy(createTestBuddy(name: 'To Delete'));
+        final buddy = await repository.createBuddy(
+          createTestBuddy(name: 'To Delete'),
+        );
 
         await repository.deleteBuddy(buddy.id);
         final result = await repository.getBuddyById(buddy.id);
@@ -181,10 +183,7 @@ void main() {
       });
 
       test('should not throw when deleting non-existent buddy', () async {
-        await expectLater(
-          repository.deleteBuddy('non-existent-id'),
-          completes,
-        );
+        await expectLater(repository.deleteBuddy('non-existent-id'), completes);
       });
     });
 
@@ -249,8 +248,9 @@ void main() {
 
     group('getDiveCountForBuddy', () {
       test('should return 0 when buddy has no dives', () async {
-        final buddy =
-            await repository.createBuddy(createTestBuddy(name: 'New Buddy'));
+        final buddy = await repository.createBuddy(
+          createTestBuddy(name: 'New Buddy'),
+        );
 
         final count = await repository.getDiveCountForBuddy(buddy.id);
 
@@ -260,8 +260,9 @@ void main() {
 
     group('getBuddyStats', () {
       test('should return stats with zero dives for new buddy', () async {
-        final buddy =
-            await repository.createBuddy(createTestBuddy(name: 'Stats Buddy'));
+        final buddy = await repository.createBuddy(
+          createTestBuddy(name: 'Stats Buddy'),
+        );
 
         final stats = await repository.getBuddyStats(buddy.id);
 
@@ -276,26 +277,29 @@ void main() {
       late String buddyId;
 
       setUp(() async {
-        final buddy =
-            await repository.createBuddy(createTestBuddy(name: 'Dive Partner'));
+        final buddy = await repository.createBuddy(
+          createTestBuddy(name: 'Dive Partner'),
+        );
         buddyId = buddy.id;
       });
 
       test(
-          'getBuddiesForDive should return empty list when no buddies assigned',
-          () async {
-        final buddies = await repository.getBuddiesForDive('some-dive-id');
+        'getBuddiesForDive should return empty list when no buddies assigned',
+        () async {
+          final buddies = await repository.getBuddiesForDive('some-dive-id');
 
-        expect(buddies, isEmpty);
-      });
+          expect(buddies, isEmpty);
+        },
+      );
 
       test(
-          'getDiveIdsForBuddy should return empty list when buddy has no dives',
-          () async {
-        final diveIds = await repository.getDiveIdsForBuddy(buddyId);
+        'getDiveIdsForBuddy should return empty list when buddy has no dives',
+        () async {
+          final diveIds = await repository.getDiveIdsForBuddy(buddyId);
 
-        expect(diveIds, isEmpty);
-      });
+          expect(diveIds, isEmpty);
+        },
+      );
     });
   });
 }

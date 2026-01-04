@@ -60,15 +60,15 @@ class DiveCenterListPage extends ConsumerWidget {
                   Text(
                     'No dive centers yet',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Add your favorite dive shops and operators',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   FilledButton.icon(
@@ -155,12 +155,11 @@ class _DiveCenterCard extends ConsumerWidget {
                           Expanded(
                             child: Text(
                               center.displayLocation!,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
+                              style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
-                                    color:
-                                        Theme.of(context).colorScheme.outline,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.outline,
                                   ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -173,8 +172,8 @@ class _DiveCenterCard extends ConsumerWidget {
                       Text(
                         center.affiliationsDisplay,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                       ),
                     ],
                   ],
@@ -195,10 +194,8 @@ class _DiveCenterCard extends ConsumerWidget {
                         const SizedBox(width: 4),
                         Text(
                           center.rating!.toStringAsFixed(1),
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -207,15 +204,15 @@ class _DiveCenterCard extends ConsumerWidget {
                     data: (count) => Text(
                       '$count ${count == 1 ? 'dive' : 'dives'}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
                     ),
                     loading: () => const SizedBox(
                       width: 12,
                       height: 12,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     ),
-                    error: (_, __) => const SizedBox(),
+                    error: (_, _) => const SizedBox(),
                   ),
                 ],
               ),
@@ -241,10 +238,7 @@ class DiveCenterSearchDelegate extends SearchDelegate<DiveCenter?> {
   List<Widget>? buildActions(BuildContext context) {
     return [
       if (query.isNotEmpty)
-        IconButton(
-          icon: const Icon(Icons.clear),
-          onPressed: () => query = '',
-        ),
+        IconButton(icon: const Icon(Icons.clear), onPressed: () => query = ''),
     ];
   }
 
@@ -289,8 +283,8 @@ class DiveCenterSearchDelegate extends SearchDelegate<DiveCenter?> {
                       ? 'Search dive centers'
                       : 'No results for "$query"',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
                 ),
               ],
             ),

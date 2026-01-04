@@ -39,10 +39,7 @@ class MigrationResult {
   }
 
   factory MigrationResult.failure(String errorMessage) {
-    return MigrationResult._(
-      success: false,
-      errorMessage: errorMessage,
-    );
+    return MigrationResult._(success: false, errorMessage: errorMessage);
   }
 }
 
@@ -221,8 +218,10 @@ class DatabaseMigrationService {
   /// 5. Reinitialize the database from the new location
   Future<MigrationResult> migrateToCustomFolder(String folderPath) async {
     final currentPath = await _dbService.databasePath;
-    final newPath =
-        p.join(folderPath, DatabaseLocationService.databaseFilename);
+    final newPath = p.join(
+      folderPath,
+      DatabaseLocationService.databaseFilename,
+    );
 
     // Don't migrate if paths are the same
     if (currentPath == newPath) {
@@ -261,8 +260,10 @@ class DatabaseMigrationService {
 
       // Step 4: Verify the copy's integrity
       final debugInfo = StringBuffer();
-      final isValid =
-          await verifyDatabaseIntegrity(newPath, debugInfo: debugInfo);
+      final isValid = await verifyDatabaseIntegrity(
+        newPath,
+        debugInfo: debugInfo,
+      );
       if (!isValid) {
         // Rollback: reopen from original
         await _dbService.reinitializeAtPath(currentPath);
@@ -282,8 +283,9 @@ class DatabaseMigrationService {
       );
 
       // Step 5b: Create security-scoped bookmark for persistent access (macOS)
-      final bookmarkCreated =
-          await _locationService.createAndStoreBookmark(folderPath);
+      final bookmarkCreated = await _locationService.createAndStoreBookmark(
+        folderPath,
+      );
       if (!bookmarkCreated) {
         // Log warning but don't fail - bookmark is optional for persistence
         // Access will work during this session, but may fail after restart
@@ -323,8 +325,10 @@ class DatabaseMigrationService {
   Future<MigrationResult> migrateToDefault() async {
     final currentPath = await _dbService.databasePath;
     final defaultDir = await _locationService.getDefaultDatabaseDirectory();
-    final newPath =
-        p.join(defaultDir, DatabaseLocationService.databaseFilename);
+    final newPath = p.join(
+      defaultDir,
+      DatabaseLocationService.databaseFilename,
+    );
 
     // Don't migrate if already at default
     if (currentPath == newPath) {
@@ -332,10 +336,7 @@ class DatabaseMigrationService {
       await _locationService.saveStorageConfig(
         const StorageConfig(mode: StorageLocationMode.appDefault),
       );
-      return MigrationResult.success(
-        oldPath: currentPath,
-        newPath: newPath,
-      );
+      return MigrationResult.success(oldPath: currentPath, newPath: newPath);
     }
 
     String? backupPath;
@@ -368,8 +369,10 @@ class DatabaseMigrationService {
 
       // Step 5: Verify integrity
       final debugInfo = StringBuffer();
-      final isValid =
-          await verifyDatabaseIntegrity(newPath, debugInfo: debugInfo);
+      final isValid = await verifyDatabaseIntegrity(
+        newPath,
+        debugInfo: debugInfo,
+      );
       if (!isValid) {
         await _dbService.reinitializeAtPath(currentPath);
         _dbService.endMigration();
@@ -418,8 +421,10 @@ class DatabaseMigrationService {
   /// the database that already exists at the target location.
   Future<MigrationResult> switchToExistingDatabase(String folderPath) async {
     final currentPath = await _dbService.databasePath;
-    final newPath =
-        p.join(folderPath, DatabaseLocationService.databaseFilename);
+    final newPath = p.join(
+      folderPath,
+      DatabaseLocationService.databaseFilename,
+    );
 
     // Verify the target database exists
     if (!await File(newPath).exists()) {
@@ -502,8 +507,10 @@ class DatabaseMigrationService {
   Future<MigrationResult> replaceExistingDatabase(String folderPath) async {
     // This is essentially the same as migrateToCustomFolder,
     // but it will overwrite the existing database
-    final newPath =
-        p.join(folderPath, DatabaseLocationService.databaseFilename);
+    final newPath = p.join(
+      folderPath,
+      DatabaseLocationService.databaseFilename,
+    );
 
     // Create backup of the existing database at target before overwriting
     final existingFile = File(newPath);

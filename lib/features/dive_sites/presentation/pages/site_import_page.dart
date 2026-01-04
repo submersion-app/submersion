@@ -81,9 +81,7 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Import Dive Site'),
-      ),
+      appBar: AppBar(title: const Text('Import Dive Site')),
       body: Column(
         children: [
           // Search bar
@@ -105,16 +103,14 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
                         ),
                       )
                     : _searchController.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _searchController.clear();
-                              ref
-                                  .read(externalSiteSearchProvider.notifier)
-                                  .clear();
-                            },
-                          )
-                        : null,
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                          ref.read(externalSiteSearchProvider.notifier).clear();
+                        },
+                      )
+                    : null,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -181,9 +177,7 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
           const SizedBox(height: 8),
 
           // Results or placeholder
-          Expanded(
-            child: _buildContent(searchState, theme, colorScheme),
-          ),
+          Expanded(child: _buildContent(searchState, theme, colorScheme)),
         ],
       ),
     );
@@ -202,16 +196,9 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.error_outline,
-                size: 64,
-                color: colorScheme.error,
-              ),
+              Icon(Icons.error_outline, size: 64, color: colorScheme.error),
               const SizedBox(height: 16),
-              Text(
-                'Search Error',
-                style: theme.textTheme.titleLarge,
-              ),
+              Text('Search Error', style: theme.textTheme.titleLarge),
               const SizedBox(height: 8),
               Text(
                 state.errorMessage ?? 'Unknown error',
@@ -234,9 +221,7 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
 
     // Loading state
     if (state.isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     // Empty state (no search yet)
@@ -253,10 +238,7 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
                 color: colorScheme.primary.withValues(alpha: 0.5),
               ),
               const SizedBox(height: 24),
-              Text(
-                'Search Dive Sites',
-                style: theme.textTheme.titleLarge,
-              ),
+              Text('Search Dive Sites', style: theme.textTheme.titleLarge),
               const SizedBox(height: 8),
               Text(
                 'Search for dive sites from our database of popular\n'
@@ -294,10 +276,7 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
                 color: colorScheme.onSurfaceVariant,
               ),
               const SizedBox(height: 16),
-              Text(
-                'No Results',
-                style: theme.textTheme.titleLarge,
-              ),
+              Text('No Results', style: theme.textTheme.titleLarge),
               const SizedBox(height: 8),
               Text(
                 'No dive sites found for "${state.query}".\n'
@@ -323,11 +302,7 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
             padding: const EdgeInsets.only(top: 8, bottom: 12),
             child: Row(
               children: [
-                Icon(
-                  Icons.folder,
-                  size: 20,
-                  color: colorScheme.primary,
-                ),
+                Icon(Icons.folder, size: 20, color: colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
                   'My Sites (${state.localSites.length})',
@@ -349,11 +324,7 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
             padding: const EdgeInsets.only(top: 8, bottom: 12),
             child: Row(
               children: [
-                Icon(
-                  Icons.public,
-                  size: 20,
-                  color: colorScheme.secondary,
-                ),
+                Icon(Icons.public, size: 20, color: colorScheme.secondary),
                 const SizedBox(width: 8),
                 Text(
                   'Import from Database (${state.sites.length})',
@@ -383,19 +354,13 @@ class _QuickSearchChip extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
 
-  const _QuickSearchChip({
-    required this.label,
-    required this.onTap,
-  });
+  const _QuickSearchChip({required this.label, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(right: 8),
-      child: ActionChip(
-        label: Text(label),
-        onPressed: onTap,
-      ),
+      child: ActionChip(label: Text(label), onPressed: onTap),
     );
   }
 }
@@ -430,10 +395,7 @@ class _LocalSiteCard extends StatelessWidget {
                   color: colorScheme.primary,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
-                  Icons.place,
-                  color: colorScheme.onPrimary,
-                ),
+                child: Icon(Icons.place, color: colorScheme.onPrimary),
               ),
               const SizedBox(width: 12),
 
@@ -508,11 +470,7 @@ class _LocalSiteCard extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      Icons.check,
-                      size: 16,
-                      color: colorScheme.onPrimary,
-                    ),
+                    Icon(Icons.check, size: 16, color: colorScheme.onPrimary),
                     const SizedBox(width: 4),
                     Text(
                       'Saved',
@@ -786,10 +744,7 @@ class _DiveSiteCard extends StatelessWidget {
                   // Description
                   if (site.description != null &&
                       site.description!.isNotEmpty) ...[
-                    Text(
-                      site.description!,
-                      style: theme.textTheme.bodyMedium,
-                    ),
+                    Text(site.description!, style: theme.textTheme.bodyMedium),
                     const SizedBox(height: 16),
                   ],
 
@@ -801,8 +756,9 @@ class _DiveSiteCard extends StatelessWidget {
                       if (site.maxDepth != null)
                         Chip(
                           avatar: const Icon(Icons.arrow_downward, size: 18),
-                          label:
-                              Text('Max ${site.maxDepth!.toStringAsFixed(0)}m'),
+                          label: Text(
+                            'Max ${site.maxDepth!.toStringAsFixed(0)}m',
+                          ),
                         ),
                       if (site.hasCoordinates)
                         Chip(
@@ -812,9 +768,7 @@ class _DiveSiteCard extends StatelessWidget {
                             '${site.longitude!.toStringAsFixed(4)}',
                           ),
                         ),
-                      ...site.features.map(
-                        (f) => Chip(label: Text(f)),
-                      ),
+                      ...site.features.map((f) => Chip(label: Text(f))),
                     ],
                   ),
                   const SizedBox(height: 24),

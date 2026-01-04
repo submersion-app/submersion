@@ -26,10 +26,7 @@ class LocationPickerMap extends StatefulWidget {
   /// Initial location to center the map on (optional)
   final LatLng? initialLocation;
 
-  const LocationPickerMap({
-    super.key,
-    this.initialLocation,
-  });
+  const LocationPickerMap({super.key, this.initialLocation});
 
   @override
   State<LocationPickerMap> createState() => _LocationPickerMapState();
@@ -219,8 +216,8 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
                         _selectedLocation == null
                             ? 'Tap on the map to select a location'
                             : _isGeocoding
-                                ? 'Looking up location...'
-                                : _locationPreview ?? 'Location selected',
+                            ? 'Looking up location...'
+                            : _locationPreview ?? 'Location selected',
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ),
@@ -256,22 +253,17 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
                               children: [
                                 Text(
                                   'Latitude',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
+                                  style: Theme.of(context).textTheme.bodySmall
                                       ?.copyWith(
                                         color: colorScheme.onSurfaceVariant,
                                       ),
                                 ),
                                 Text(
-                                  _selectedLocation!.latitude
-                                      .toStringAsFixed(6),
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
-                                      ?.copyWith(
-                                        fontFamily: 'monospace',
-                                      ),
+                                  _selectedLocation!.latitude.toStringAsFixed(
+                                    6,
+                                  ),
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(fontFamily: 'monospace'),
                                 ),
                               ],
                             ),
@@ -282,22 +274,17 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
                               children: [
                                 Text(
                                   'Longitude',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
+                                  style: Theme.of(context).textTheme.bodySmall
                                       ?.copyWith(
                                         color: colorScheme.onSurfaceVariant,
                                       ),
                                 ),
                                 Text(
-                                  _selectedLocation!.longitude
-                                      .toStringAsFixed(6),
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
-                                      ?.copyWith(
-                                        fontFamily: 'monospace',
-                                      ),
+                                  _selectedLocation!.longitude.toStringAsFixed(
+                                    6,
+                                  ),
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(fontFamily: 'monospace'),
                                 ),
                               ],
                             ),

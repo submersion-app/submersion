@@ -141,8 +141,9 @@ class AqualungBleProtocol {
 
     if (props.notify || props.indicate) {
       await _txRxCharacteristic!.setNotifyValue(true);
-      _notifySubscription =
-          _txRxCharacteristic!.onValueReceived.listen(_onDataReceived);
+      _notifySubscription = _txRxCharacteristic!.onValueReceived.listen(
+        _onDataReceived,
+      );
       _log.info('Notifications enabled');
     } else {
       _log.warning('Characteristic does not support notify!');
@@ -229,13 +230,7 @@ class AqualungBleProtocol {
 
   List<int> _buildPacket(int flag, int command, [List<int>? payload]) {
     final data = payload ?? [];
-    final packet = <int>[
-      packetStart,
-      flag,
-      command,
-      data.length,
-      ...data,
-    ];
+    final packet = <int>[packetStart, flag, command, data.length, ...data];
 
     // Add CRC-16
     final crc = _calculateCrc16(packet);
@@ -323,8 +318,11 @@ class AqualungBleProtocol {
 
         // Send PIN
         final pinBytes = pin.codeUnits;
-        final pinResponse =
-            await transfer(flagRequest, cmdAccessCode, pinBytes);
+        final pinResponse = await transfer(
+          flagRequest,
+          cmdAccessCode,
+          pinBytes,
+        );
 
         if (pinResponse.isEmpty || pinResponse[0] != 0x00) {
           throw const DownloadException(
@@ -355,8 +353,11 @@ class AqualungBleProtocol {
     }
 
     final authPayload = _getAuthPayload();
-    final authResponse =
-        await transfer(flagRequest, cmdAuthenticate, authPayload);
+    final authResponse = await transfer(
+      flagRequest,
+      cmdAuthenticate,
+      authPayload,
+    );
     if (authResponse.isEmpty || authResponse[0] != 0x00) {
       _log.warning('Authentication response: $authResponse');
     }
@@ -405,8 +406,11 @@ class AqualungBleProtocol {
       ];
 
       try {
-        final response =
-            await transfer(flagRequest, cmdFlashRead, addressBytes);
+        final response = await transfer(
+          flagRequest,
+          cmdFlashRead,
+          addressBytes,
+        );
 
         if (response.isEmpty) break;
 

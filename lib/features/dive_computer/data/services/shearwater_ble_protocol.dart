@@ -153,8 +153,9 @@ class ShearwaterBleProtocol {
 
     if (rxProps.notify || rxProps.indicate) {
       await _rxCharacteristic!.setNotifyValue(true);
-      _notifySubscription =
-          _rxCharacteristic!.onValueReceived.listen(_onDataReceived);
+      _notifySubscription = _rxCharacteristic!.onValueReceived.listen(
+        _onDataReceived,
+      );
       _log.info(
         'Notifications enabled (notify=${rxProps.notify}, indicate=${rxProps.indicate})',
       );
@@ -332,8 +333,10 @@ class ShearwaterBleProtocol {
 
     // Write the frame(s)
     for (var i = 0; i < encoded.length; i += blePacketSize) {
-      final chunk =
-          encoded.sublist(i, (i + blePacketSize).clamp(0, encoded.length));
+      final chunk = encoded.sublist(
+        i,
+        (i + blePacketSize).clamp(0, encoded.length),
+      );
       await _txCharacteristic!.write(chunk, withoutResponse: false);
     }
     _log.info('Write completed, waiting for response...');
@@ -419,11 +422,7 @@ class ShearwaterBleProtocol {
   /// Read data by identifier (RDBI command).
   /// Shearwater uses 2-byte identifiers, not 4-byte addresses.
   Future<List<int>> readById(int identifier) async {
-    final request = [
-      rdbiRequest,
-      (identifier >> 8) & 0xFF,
-      identifier & 0xFF,
-    ];
+    final request = [rdbiRequest, (identifier >> 8) & 0xFF, identifier & 0xFF];
 
     _log.info('RDBI request for ID 0x${identifier.toRadixString(16)}');
     final response = await transfer(request);
@@ -553,7 +552,8 @@ class ShearwaterBleProtocol {
       );
     }
 
-    final rawBase = (logUploadData[1] << 24) |
+    final rawBase =
+        (logUploadData[1] << 24) |
         (logUploadData[2] << 16) |
         (logUploadData[3] << 8) |
         logUploadData[4];
@@ -703,7 +703,8 @@ class ShearwaterBleProtocol {
 
       int value;
       if (byteOffset + 1 < data.length) {
-        value = ((data[byteOffset] << 8) | data[byteOffset + 1]) >>
+        value =
+            ((data[byteOffset] << 8) | data[byteOffset + 1]) >>
             (16 - bitShift - 9);
       } else {
         value = data[byteOffset] >> (8 - bitShift - 1);
@@ -733,7 +734,8 @@ class ShearwaterBleProtocol {
 
       int value;
       if (byteOffset + 1 < data.length) {
-        value = ((data[byteOffset] << 8) | data[byteOffset + 1]) >>
+        value =
+            ((data[byteOffset] << 8) | data[byteOffset + 1]) >>
             (16 - bitShift - 9);
       } else {
         value = data[byteOffset] >> (8 - bitShift - 1);
@@ -967,8 +969,9 @@ class DiveManifestEntry {
     if (timestampSeconds <= 0) {
       return DateTime.now();
     }
-    final dateTime =
-        DateTime.fromMillisecondsSinceEpoch(timestampSeconds * 1000);
+    final dateTime = DateTime.fromMillisecondsSinceEpoch(
+      timestampSeconds * 1000,
+    );
     if (dateTime.year < 1990 || dateTime.year > 2100) {
       return DateTime.now();
     }

@@ -179,8 +179,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       _showTankPressure.putIfAbsent(tankId, () => true);
 
       // Get color based on gas mix
-      final color =
-          tank != null ? GasColors.forGasMix(tank.gasMix) : _getTankColor(i);
+      final color = tank != null
+          ? GasColors.forGasMix(tank.gasMix)
+          : _getTankColor(i);
 
       // Build label
       final label = tank?.name ?? 'Tank ${i + 1}';
@@ -445,8 +446,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             child: Text(
               'Zoom: ${_zoomLevel.toStringAsFixed(1)}x • Pinch or scroll to zoom, drag to pan',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
       ],
@@ -475,11 +476,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           child: Text(
             '${_zoomLevel.toStringAsFixed(1)}x',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.w500,
-                  color: isZoomed
-                      ? colorScheme.primary
-                      : colorScheme.onSurfaceVariant,
-                ),
+              fontWeight: FontWeight.w500,
+              color: isZoomed
+                  ? colorScheme.primary
+                  : colorScheme.onSurfaceVariant,
+            ),
           ),
         ),
         // Zoom in button
@@ -525,8 +526,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           onScaleUpdate: (details) {
             setState(() {
               // Handle zoom
-              final newZoom =
-                  (_previousZoom * details.scale).clamp(_minZoom, _maxZoom);
+              final newZoom = (_previousZoom * details.scale).clamp(
+                _minZoom,
+                _maxZoom,
+              );
 
               // Handle pan
               final panDelta = details.localFocalPoint - _startFocalPoint;
@@ -540,10 +543,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 final normalizedDeltaX = -panDelta.dx / chartWidth / newZoom;
                 final normalizedDeltaY = -panDelta.dy / chartHeight / newZoom;
 
-                _panOffsetX = (_previousPan.dx + normalizedDeltaX)
-                    .clamp(0.0, 1.0 - (1.0 / newZoom));
-                _panOffsetY = (_previousPan.dy + normalizedDeltaY)
-                    .clamp(0.0, 1.0 - (1.0 / newZoom));
+                _panOffsetX = (_previousPan.dx + normalizedDeltaX).clamp(
+                  0.0,
+                  1.0 - (1.0 / newZoom),
+                );
+                _panOffsetY = (_previousPan.dy + normalizedDeltaY).clamp(
+                  0.0,
+                  1.0 - (1.0 / newZoom),
+                );
               } else {
                 _panOffsetX = 0.0;
                 _panOffsetY = 0.0;
@@ -605,17 +612,16 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             Icon(
               Icons.show_chart,
               size: 48,
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurfaceVariant
-                  .withValues(alpha: 0.5),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 8),
             Text(
               'No dive profile data',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -640,10 +646,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           ),
         ),
         const SizedBox(width: 4),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
+        Text(label, style: Theme.of(context).textTheme.bodySmall),
       ],
     );
   }
@@ -683,10 +686,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             Text(
               label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: isEnabled
-                        ? null
-                        : Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: isEnabled
+                    ? null
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -706,13 +709,17 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     const heartRateColor = Colors.red;
 
     // Calculate full data bounds (all values stored in meters, convert for display)
-    final totalMaxTime =
-        widget.profile.map((p) => p.timestamp).reduce(math.max).toDouble();
-    final maxDepthValueMeters =
-        widget.profile.map((p) => p.depth).reduce(math.max);
+    final totalMaxTime = widget.profile
+        .map((p) => p.timestamp)
+        .reduce(math.max)
+        .toDouble();
+    final maxDepthValueMeters = widget.profile
+        .map((p) => p.depth)
+        .reduce(math.max);
     // Convert to user's preferred depth unit for chart calculations
-    final maxDepthValueDisplay =
-        units.convertDepth(widget.maxDepth ?? maxDepthValueMeters);
+    final maxDepthValueDisplay = units.convertDepth(
+      widget.maxDepth ?? maxDepthValueMeters,
+    );
     final totalMaxDepth = maxDepthValueDisplay * 1.1; // Add 10% padding
 
     // Apply zoom and pan to calculate visible bounds
@@ -839,20 +846,25 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               getTitlesWidget: (value, meta) {
                 if (minTemp == null || maxTemp == null) return const SizedBox();
                 // Map from inverted depth axis to temperature (already in user's preferred unit)
-                final temp =
-                    _mapDepthToTemp(-value, totalMaxDepth, minTemp, maxTemp);
+                final temp = _mapDepthToTemp(
+                  -value,
+                  totalMaxDepth,
+                  minTemp,
+                  maxTemp,
+                );
                 if (temp < minTemp || temp > maxTemp) return const SizedBox();
                 return Text(
                   '${temp.toStringAsFixed(0)}${units.temperatureSymbol}',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: colorScheme.tertiary,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelSmall?.copyWith(color: colorScheme.tertiary),
                 );
               },
             ),
           ),
-          topTitles:
-              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
         ),
         borderData: FlBorderData(
           show: true,
@@ -955,8 +967,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   TextSpan(
                     text: '$minutes:${seconds.toString().padLeft(2, '0')}\n',
                     style: TextStyle(
-                      color:
-                          colorScheme.onInverseSurface.withValues(alpha: 0.7),
+                      color: colorScheme.onInverseSurface.withValues(
+                        alpha: 0.7,
+                      ),
                       fontSize: 11,
                     ),
                   ),
@@ -982,13 +995,16 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
                 // Temperature (if enabled and available)
                 if (_showTemperature && point.temperature != null) {
-                  final tempDisplay =
-                      units.formatTemperature(point.temperature);
+                  final tempDisplay = units.formatTemperature(
+                    point.temperature,
+                  );
                   lines.add(
                     TextSpan(
                       text: '● ',
-                      style:
-                          TextStyle(color: colorScheme.tertiary, fontSize: 10),
+                      style: TextStyle(
+                        color: colorScheme.tertiary,
+                        fontSize: 10,
+                      ),
                     ),
                   );
                   lines.add(
@@ -1186,10 +1202,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       spots: widget.profile
           .sublist(startIndex, endIndex)
           .map(
-            (p) => FlSpot(
-              p.timestamp.toDouble(),
-              -units.convertDepth(p.depth),
-            ),
+            (p) => FlSpot(p.timestamp.toDouble(), -units.convertDepth(p.depth)),
           )
           .toList(),
       isCurved: true,
@@ -1225,12 +1238,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       final depth = gs.depth ?? _findDepthAtTimestamp(gs.timestamp);
 
       return LineChartBarData(
-        spots: [
-          FlSpot(
-            gs.timestamp.toDouble(),
-            -units.convertDepth(depth),
-          ),
-        ],
+        spots: [FlSpot(gs.timestamp.toDouble(), -units.convertDepth(depth))],
         isCurved: false,
         color: Colors.transparent,
         barWidth: 0,
@@ -1377,8 +1385,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       final tank = _getTankById(tankId);
 
       // Use gas color or fallback
-      final color =
-          tank != null ? GasColors.forGasMix(tank.gasMix) : _getTankColor(i);
+      final color = tank != null
+          ? GasColors.forGasMix(tank.gasMix)
+          : _getTankColor(i);
       final dashPattern = _getTankDashPattern(i);
 
       lines.add(
@@ -1537,8 +1546,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         spots.add(
           FlSpot(
             widget.profile[i].timestamp.toDouble(),
-            -units
-                .convertDepth(ceiling), // Convert and negate for inverted axis
+            -units.convertDepth(
+              ceiling,
+            ), // Convert and negate for inverted axis
           ),
         );
       }
@@ -1610,10 +1620,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
     return LineChartBarData(
       spots: [
-        FlSpot(
-          marker.timestamp.toDouble(),
-          -units.convertDepth(marker.depth),
-        ),
+        FlSpot(marker.timestamp.toDouble(), -units.convertDepth(marker.depth)),
       ],
       isCurved: false,
       color: Colors.transparent,
@@ -1683,10 +1690,7 @@ class DiveProfileMiniChart extends StatelessWidget {
             LineChartBarData(
               spots: profile
                   .map(
-                    (p) => FlSpot(
-                      p.timestamp.toDouble(),
-                      -p.depth,
-                    ),
+                    (p) => FlSpot(p.timestamp.toDouble(), -p.depth),
                   ) // Negate for inverted axis
                   .toList(),
               isCurved: true,

@@ -4,10 +4,7 @@ import 'package:flutter/material.dart';
 class MigrationProgressDialog extends StatelessWidget {
   final String message;
 
-  const MigrationProgressDialog({
-    super.key,
-    required this.message,
-  });
+  const MigrationProgressDialog({super.key, required this.message});
 
   @override
   Widget build(BuildContext context) {
@@ -26,8 +23,8 @@ class MigrationProgressDialog extends StatelessWidget {
           Text(
             'Please do not close the app',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
             textAlign: TextAlign.center,
           ),
         ],

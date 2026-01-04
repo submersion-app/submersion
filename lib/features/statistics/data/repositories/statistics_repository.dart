@@ -60,15 +60,15 @@ class StatisticsRepository {
   /// Requires tank volume data
   Future<List<TrendDataPoint>> getSacVolumeTrend({String? diverId}) async {
     try {
-      final fiveYearsAgo =
-          DateTime.now().subtract(const Duration(days: 365 * 5));
+      final fiveYearsAgo = DateTime.now().subtract(
+        const Duration(days: 365 * 5),
+      );
       final cutoff = fiveYearsAgo.millisecondsSinceEpoch;
 
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final params = diverId != null ? [cutoff, diverId] : [cutoff];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT
           strftime('%Y', d.dive_date_time / 1000, 'unixepoch') AS year,
           strftime('%m', d.dive_date_time / 1000, 'unixepoch') AS month,
@@ -85,9 +85,7 @@ class StatisticsRepository {
         GROUP BY year, month
         HAVING avg_sac IS NOT NULL
         ORDER BY year, month
-        ''',
-        variables: params.map((p) => Variable(p)).toList(),
-      ).get();
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
         final year = int.parse(row.read<String>('year'));
@@ -108,15 +106,15 @@ class StatisticsRepository {
   /// Does not require tank volume - uses pressure drop normalized to surface
   Future<List<TrendDataPoint>> getSacPressureTrend({String? diverId}) async {
     try {
-      final fiveYearsAgo =
-          DateTime.now().subtract(const Duration(days: 365 * 5));
+      final fiveYearsAgo = DateTime.now().subtract(
+        const Duration(days: 365 * 5),
+      );
       final cutoff = fiveYearsAgo.millisecondsSinceEpoch;
 
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final params = diverId != null ? [cutoff, diverId] : [cutoff];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT
           strftime('%Y', d.dive_date_time / 1000, 'unixepoch') AS year,
           strftime('%m', d.dive_date_time / 1000, 'unixepoch') AS month,
@@ -133,9 +131,7 @@ class StatisticsRepository {
         GROUP BY year, month
         HAVING avg_sac IS NOT NULL
         ORDER BY year, month
-        ''',
-        variables: params.map((p) => Variable(p)).toList(),
-      ).get();
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
         final year = int.parse(row.read<String>('year'));
@@ -160,8 +156,7 @@ class StatisticsRepository {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT
           CASE
             WHEN t.he_percent > 0 THEN 'Trimix'
@@ -174,12 +169,12 @@ class StatisticsRepository {
         WHERE 1=1 $diverFilter
         GROUP BY gas_type
         ORDER BY dive_count DESC
-        ''',
-        variables: params.map((p) => Variable(p)).toList(),
-      ).get();
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
 
-      final total =
-          results.fold<int>(0, (sum, row) => sum + row.read<int>('dive_count'));
+      final total = results.fold<int>(
+        0,
+        (sum, row) => sum + row.read<int>('dive_count'),
+      );
       if (total == 0) return [];
 
       return results.map((row) {
@@ -205,8 +200,7 @@ class StatisticsRepository {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT
           d.id,
           d.dive_number,
@@ -221,9 +215,7 @@ class StatisticsRepository {
           AND t.volume > 0
           $diverFilter
         ORDER BY sac ASC
-        ''',
-        variables: params.map((p) => Variable(p)).toList(),
-      ).get();
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       if (results.isEmpty) return (best: null, worst: null);
 
@@ -241,10 +233,7 @@ class StatisticsRepository {
         );
       }
 
-      return (
-        best: mapRow(results.first),
-        worst: mapRow(results.last),
-      );
+      return (best: mapRow(results.first), worst: mapRow(results.last));
     } catch (e, stackTrace) {
       _log.error('Failed to get SAC volume records', e, stackTrace);
       return (best: null, worst: null);
@@ -260,8 +249,7 @@ class StatisticsRepository {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT
           d.id,
           d.dive_number,
@@ -275,9 +263,7 @@ class StatisticsRepository {
           AND t.start_pressure > t.end_pressure
           $diverFilter
         ORDER BY sac ASC
-        ''',
-        variables: params.map((p) => Variable(p)).toList(),
-      ).get();
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       if (results.isEmpty) return (best: null, worst: null);
 
@@ -295,10 +281,7 @@ class StatisticsRepository {
         );
       }
 
-      return (
-        best: mapRow(results.first),
-        worst: mapRow(results.last),
-      );
+      return (best: mapRow(results.first), worst: mapRow(results.last));
     } catch (e, stackTrace) {
       _log.error('Failed to get SAC pressure records', e, stackTrace);
       return (best: null, worst: null);
@@ -314,15 +297,15 @@ class StatisticsRepository {
     String? diverId,
   }) async {
     try {
-      final fiveYearsAgo =
-          DateTime.now().subtract(const Duration(days: 365 * 5));
+      final fiveYearsAgo = DateTime.now().subtract(
+        const Duration(days: 365 * 5),
+      );
       final cutoff = fiveYearsAgo.millisecondsSinceEpoch;
 
       final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
       final params = diverId != null ? [cutoff, diverId] : [cutoff];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT
           strftime('%Y', dive_date_time / 1000, 'unixepoch') AS year,
           strftime('%m', dive_date_time / 1000, 'unixepoch') AS month,
@@ -331,9 +314,7 @@ class StatisticsRepository {
         WHERE dive_date_time >= ? AND max_depth IS NOT NULL $diverFilter
         GROUP BY year, month
         ORDER BY year, month
-        ''',
-        variables: params.map((p) => Variable(p)).toList(),
-      ).get();
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
         final year = int.parse(row.read<String>('year'));
@@ -353,15 +334,15 @@ class StatisticsRepository {
   /// Get average bottom time trend by month (last 5 years)
   Future<List<TrendDataPoint>> getBottomTimeTrend({String? diverId}) async {
     try {
-      final fiveYearsAgo =
-          DateTime.now().subtract(const Duration(days: 365 * 5));
+      final fiveYearsAgo = DateTime.now().subtract(
+        const Duration(days: 365 * 5),
+      );
       final cutoff = fiveYearsAgo.millisecondsSinceEpoch;
 
       final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
       final params = diverId != null ? [cutoff, diverId] : [cutoff];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT
           strftime('%Y', dive_date_time / 1000, 'unixepoch') AS year,
           strftime('%m', dive_date_time / 1000, 'unixepoch') AS month,
@@ -370,9 +351,7 @@ class StatisticsRepository {
         WHERE dive_date_time >= ? AND duration IS NOT NULL $diverFilter
         GROUP BY year, month
         ORDER BY year, month
-        ''',
-        variables: params.map((p) => Variable(p)).toList(),
-      ).get();
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
         final year = int.parse(row.read<String>('year'));
@@ -397,8 +376,7 @@ class StatisticsRepository {
       final diverFilter = diverId != null ? 'WHERE diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT
           strftime('%Y', dive_date_time / 1000, 'unixepoch') AS year,
           COUNT(*) AS count
@@ -406,9 +384,7 @@ class StatisticsRepository {
         $diverFilter
         GROUP BY year
         ORDER BY year
-        ''',
-        variables: params.map((p) => Variable(p)).toList(),
-      ).get();
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
         return (
@@ -428,8 +404,7 @@ class StatisticsRepository {
       final diverFilter = diverId != null ? 'WHERE diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT
           strftime('%Y', dive_date_time / 1000, 'unixepoch') AS year,
           strftime('%m', dive_date_time / 1000, 'unixepoch') AS month,
@@ -438,9 +413,7 @@ class StatisticsRepository {
         $diverFilter
         GROUP BY year, month
         ORDER BY year, month
-        ''',
-        variables: params.map((p) => Variable(p)).toList(),
-      ).get();
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       int runningTotal = 0;
       return results.map((row) {
@@ -471,8 +444,7 @@ class StatisticsRepository {
       final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT
           visibility,
           COUNT(*) AS count
@@ -480,12 +452,12 @@ class StatisticsRepository {
         WHERE visibility IS NOT NULL AND visibility != '' $diverFilter
         GROUP BY visibility
         ORDER BY count DESC
-        ''',
-        variables: params.map((p) => Variable(p)).toList(),
-      ).get();
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
 
-      final total =
-          results.fold<int>(0, (sum, row) => sum + row.read<int>('count'));
+      final total = results.fold<int>(
+        0,
+        (sum, row) => sum + row.read<int>('count'),
+      );
       if (total == 0) return [];
 
       return results.map((row) {
@@ -510,8 +482,7 @@ class StatisticsRepository {
       final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT
           COALESCE(water_type, 'Unknown') AS water_type,
           COUNT(*) AS count
@@ -519,12 +490,12 @@ class StatisticsRepository {
         WHERE water_type IS NOT NULL AND water_type != '' $diverFilter
         GROUP BY water_type
         ORDER BY count DESC
-        ''',
-        variables: params.map((p) => Variable(p)).toList(),
-      ).get();
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
 
-      final total =
-          results.fold<int>(0, (sum, row) => sum + row.read<int>('count'));
+      final total = results.fold<int>(
+        0,
+        (sum, row) => sum + row.read<int>('count'),
+      );
       if (total == 0) return [];
 
       return results.map((row) {
@@ -549,8 +520,7 @@ class StatisticsRepository {
       final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT
           entry_method,
           COUNT(*) AS count
@@ -558,12 +528,12 @@ class StatisticsRepository {
         WHERE entry_method IS NOT NULL AND entry_method != '' $diverFilter
         GROUP BY entry_method
         ORDER BY count DESC
-        ''',
-        variables: params.map((p) => Variable(p)).toList(),
-      ).get();
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
 
-      final total =
-          results.fold<int>(0, (sum, row) => sum + row.read<int>('count'));
+      final total = results.fold<int>(
+        0,
+        (sum, row) => sum + row.read<int>('count'),
+      );
       if (total == 0) return [];
 
       return results.map((row) {
@@ -582,13 +552,12 @@ class StatisticsRepository {
 
   /// Get temperature by month (min/avg/max)
   Future<List<({int month, double? minTemp, double? avgTemp, double? maxTemp})>>
-      getTemperatureByMonth({String? diverId}) async {
+  getTemperatureByMonth({String? diverId}) async {
     try {
       final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT
           CAST(strftime('%m', dive_date_time / 1000, 'unixepoch') AS INTEGER) AS month,
           MIN(water_temp) AS min_temp,
@@ -598,9 +567,7 @@ class StatisticsRepository {
         WHERE water_temp IS NOT NULL $diverFilter
         GROUP BY month
         ORDER BY month
-        ''',
-        variables: params.map((p) => Variable(p)).toList(),
-      ).get();
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
         return (
@@ -629,8 +596,7 @@ class StatisticsRepository {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final params = diverId != null ? [diverId, limit] : [limit];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT
           b.id,
           b.name,
@@ -642,9 +608,7 @@ class StatisticsRepository {
         GROUP BY b.id
         ORDER BY dive_count DESC
         LIMIT ?
-        ''',
-        variables: params.map((p) => Variable(p)).toList(),
-      ).get();
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
         return RankingItem(
@@ -665,17 +629,14 @@ class StatisticsRepository {
       final diverFilter = diverId != null ? 'WHERE d.diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT
           SUM(CASE WHEN db.buddy_id IS NULL AND (d.buddy IS NULL OR d.buddy = '') THEN 1 ELSE 0 END) AS solo,
           SUM(CASE WHEN db.buddy_id IS NOT NULL OR (d.buddy IS NOT NULL AND d.buddy != '') THEN 1 ELSE 0 END) AS buddy
         FROM dives d
         LEFT JOIN dive_buddies db ON db.dive_id = d.id
         $diverFilter
-        ''',
-        variables: params.map((p) => Variable(p)).toList(),
-      ).get();
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       if (results.isEmpty) return (solo: 0, buddy: 0);
       return (
@@ -697,8 +658,7 @@ class StatisticsRepository {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final params = diverId != null ? [diverId, limit] : [limit];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT
           dc.id,
           dc.name,
@@ -710,9 +670,7 @@ class StatisticsRepository {
         GROUP BY dc.id
         ORDER BY dive_count DESC
         LIMIT ?
-        ''',
-        variables: params.map((p) => Variable(p)).toList(),
-      ).get();
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
         return RankingItem(
@@ -741,8 +699,7 @@ class StatisticsRepository {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final params = diverId != null ? [diverId, limit] : [limit];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT
           ds.country,
           COUNT(d.id) AS dive_count
@@ -752,9 +709,7 @@ class StatisticsRepository {
         GROUP BY ds.country
         ORDER BY dive_count DESC
         LIMIT ?
-        ''',
-        variables: params.map((p) => Variable(p)).toList(),
-      ).get();
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
         final country = row.read<String>('country');
@@ -779,8 +734,7 @@ class StatisticsRepository {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final params = diverId != null ? [diverId, limit] : [limit];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT
           ds.region,
           ds.country,
@@ -791,9 +745,7 @@ class StatisticsRepository {
         GROUP BY ds.region, ds.country
         ORDER BY dive_count DESC
         LIMIT ?
-        ''',
-        variables: params.map((p) => Variable(p)).toList(),
-      ).get();
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
         final region = row.read<String>('region');
@@ -819,8 +771,7 @@ class StatisticsRepository {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final params = diverId != null ? [diverId, limit] : [limit];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT
           t.id,
           t.name,
@@ -832,9 +783,7 @@ class StatisticsRepository {
         GROUP BY t.id
         ORDER BY dive_count DESC
         LIMIT ?
-        ''',
-        variables: params.map((p) => Variable(p)).toList(),
-      ).get();
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
         return RankingItem(
@@ -860,15 +809,12 @@ class StatisticsRepository {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT COUNT(DISTINCT s.species_id) AS count
         FROM sightings s
         JOIN dives d ON d.id = s.dive_id
         WHERE 1=1 $diverFilter
-        ''',
-        variables: params.map((p) => Variable(p)).toList(),
-      ).get();
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.first.read<int>('count');
     } catch (e, stackTrace) {
@@ -886,8 +832,7 @@ class StatisticsRepository {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final params = diverId != null ? [diverId, limit] : [limit];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT
           sp.id,
           sp.common_name,
@@ -900,9 +845,7 @@ class StatisticsRepository {
         GROUP BY sp.id
         ORDER BY total_count DESC
         LIMIT ?
-        ''',
-        variables: params.map((p) => Variable(p)).toList(),
-      ).get();
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
         return RankingItem(
@@ -927,8 +870,7 @@ class StatisticsRepository {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final params = diverId != null ? [diverId, limit] : [limit];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT
           ds.id,
           ds.name,
@@ -940,9 +882,7 @@ class StatisticsRepository {
         GROUP BY ds.id
         ORDER BY species_count DESC
         LIMIT ?
-        ''',
-        variables: params.map((p) => Variable(p)).toList(),
-      ).get();
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
         return RankingItem(
@@ -969,8 +909,7 @@ class StatisticsRepository {
       final diverFilter = diverId != null ? 'WHERE diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT
           CAST(strftime('%w', dive_date_time / 1000, 'unixepoch') AS INTEGER) AS day_of_week,
           COUNT(*) AS count
@@ -978,9 +917,7 @@ class StatisticsRepository {
         $diverFilter
         GROUP BY day_of_week
         ORDER BY day_of_week
-        ''',
-        variables: params.map((p) => Variable(p)).toList(),
-      ).get();
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
         return (
@@ -1002,8 +939,7 @@ class StatisticsRepository {
       final diverFilter = diverId != null ? 'WHERE diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT
           CASE
             WHEN CAST(strftime('%H', COALESCE(entry_time, dive_date_time) / 1000, 'unixepoch') AS INTEGER) < 6 THEN 'Night'
@@ -1022,12 +958,12 @@ class StatisticsRepository {
             WHEN 'Evening' THEN 3
             WHEN 'Night' THEN 4
           END
-        ''',
-        variables: params.map((p) => Variable(p)).toList(),
-      ).get();
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
 
-      final total =
-          results.fold<int>(0, (sum, row) => sum + row.read<int>('count'));
+      final total = results.fold<int>(
+        0,
+        (sum, row) => sum + row.read<int>('count'),
+      );
       if (total == 0) return [];
 
       return results.map((row) {
@@ -1052,8 +988,7 @@ class StatisticsRepository {
       final diverFilter = diverId != null ? 'WHERE diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT
           CAST(strftime('%m', dive_date_time / 1000, 'unixepoch') AS INTEGER) AS month,
           COUNT(*) AS count
@@ -1061,15 +996,10 @@ class StatisticsRepository {
         $diverFilter
         GROUP BY month
         ORDER BY month
-        ''',
-        variables: params.map((p) => Variable(p)).toList(),
-      ).get();
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
-        return (
-          month: row.read<int>('month'),
-          count: row.read<int>('count'),
-        );
+        return (month: row.read<int>('month'), count: row.read<int>('count'));
       }).toList();
     } catch (e, stackTrace) {
       _log.error('Failed to get dives by season', e, stackTrace);
@@ -1079,13 +1009,12 @@ class StatisticsRepository {
 
   /// Get surface interval statistics
   Future<({double? avgMinutes, double? minMinutes, double? maxMinutes})>
-      getSurfaceIntervalStats({String? diverId}) async {
+  getSurfaceIntervalStats({String? diverId}) async {
     try {
       final diverFilter = diverId != null ? 'WHERE diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT
           AVG(surface_interval_seconds / 60.0) AS avg_si,
           MIN(surface_interval_seconds / 60.0) AS min_si,
@@ -1094,9 +1023,7 @@ class StatisticsRepository {
         $diverFilter
           ${diverFilter.isEmpty ? 'WHERE' : 'AND'} surface_interval_seconds IS NOT NULL
           AND surface_interval_seconds > 0
-        ''',
-        variables: params.map((p) => Variable(p)).toList(),
-      ).get();
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       if (results.isEmpty) {
         return (avgMinutes: null, minMinutes: null, maxMinutes: null);
@@ -1125,8 +1052,7 @@ class StatisticsRepository {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final params = diverId != null ? [diverId, limit] : [limit];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT
           e.id,
           e.name,
@@ -1140,9 +1066,7 @@ class StatisticsRepository {
         GROUP BY e.id
         ORDER BY use_count DESC
         LIMIT ?
-        ''',
-        variables: params.map((p) => Variable(p)).toList(),
-      ).get();
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
         final brand = row.read<String?>('brand');
@@ -1163,15 +1087,15 @@ class StatisticsRepository {
   /// Get weight trend by month
   Future<List<TrendDataPoint>> getWeightTrend({String? diverId}) async {
     try {
-      final fiveYearsAgo =
-          DateTime.now().subtract(const Duration(days: 365 * 5));
+      final fiveYearsAgo = DateTime.now().subtract(
+        const Duration(days: 365 * 5),
+      );
       final cutoff = fiveYearsAgo.millisecondsSinceEpoch;
 
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final params = diverId != null ? [cutoff, diverId] : [cutoff];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT
           strftime('%Y', d.dive_date_time / 1000, 'unixepoch') AS year,
           strftime('%m', d.dive_date_time / 1000, 'unixepoch') AS month,
@@ -1181,9 +1105,7 @@ class StatisticsRepository {
         WHERE d.dive_date_time >= ? $diverFilter
         GROUP BY year, month
         ORDER BY year, month
-        ''',
-        variables: params.map((p) => Variable(p)).toList(),
-      ).get();
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
         final year = int.parse(row.read<String>('year'));
@@ -1212,17 +1134,14 @@ class StatisticsRepository {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT
           AVG(CASE WHEN p.ascent_rate < 0 THEN ABS(p.ascent_rate) ELSE NULL END) AS avg_ascent,
           AVG(CASE WHEN p.ascent_rate > 0 THEN p.ascent_rate ELSE NULL END) AS avg_descent
         FROM dive_profiles p
         JOIN dives d ON d.id = p.dive_id
         WHERE p.ascent_rate IS NOT NULL $diverFilter
-        ''',
-        variables: params.map((p) => Variable(p)).toList(),
-      ).get();
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       if (results.isEmpty) return (avgAscent: null, avgDescent: null);
       return (
@@ -1243,8 +1162,7 @@ class StatisticsRepository {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT
           CASE
             WHEN p.depth < 10 THEN '0-10m'
@@ -1266,17 +1184,15 @@ class StatisticsRepository {
             WHEN '30-40m' THEN 4
             ELSE 5
           END
-        ''',
-        variables: params.map((p) => Variable(p)).toList(),
-      ).get();
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       // Sample count approximates minutes (profiles are usually sampled every second or few seconds)
       // This is a rough approximation
       return results.map((row) {
         return (
           range: row.read<String>('depth_range'),
-          minutes:
-              (row.read<int>('sample_count') / 60).round(), // Rough estimate
+          minutes: (row.read<int>('sample_count') / 60)
+              .round(), // Rough estimate
         );
       }).toList();
     } catch (e, stackTrace) {
@@ -1293,17 +1209,14 @@ class StatisticsRepository {
       final diverFilter = diverId != null ? 'WHERE d.diver_id = ?' : '';
       final params = diverId != null ? [diverId] : <dynamic>[];
 
-      final results = await _db.customSelect(
-        '''
+      final results = await _db.customSelect('''
         SELECT
           COUNT(DISTINCT CASE WHEN p.ceiling > 0 THEN d.id END) AS deco_count,
           COUNT(DISTINCT d.id) AS total_count
         FROM dives d
         LEFT JOIN dive_profiles p ON p.dive_id = d.id
         $diverFilter
-        ''',
-        variables: params.map((p) => Variable(p)).toList(),
-      ).get();
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       if (results.isEmpty) return (decoCount: 0, totalCount: 0);
       return (

@@ -30,9 +30,9 @@ class BuddyPicker extends ConsumerWidget {
           children: [
             Text(
               'Buddies',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             TextButton.icon(
               onPressed: () => _showBuddySelectionSheet(context, ref),
@@ -50,10 +50,9 @@ class BuddyPicker extends ConsumerWidget {
             width: double.infinity,
             decoration: BoxDecoration(
               border: Border.all(
-                color: Theme.of(context)
-                    .colorScheme
-                    .outline
-                    .withValues(alpha: 0.5),
+                color: Theme.of(
+                  context,
+                ).colorScheme.outline.withValues(alpha: 0.5),
               ),
               borderRadius: BorderRadius.circular(12),
             ),
@@ -68,15 +67,15 @@ class BuddyPicker extends ConsumerWidget {
                 Text(
                   'No buddies selected',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Tap "Add" to select dive buddies',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -114,9 +113,8 @@ class BuddyPicker extends ConsumerWidget {
     final result = await showModalBottomSheet<List<BuddyWithRole>>(
       context: context,
       isScrollControlled: true,
-      builder: (context) => _BuddySelectionSheet(
-        selectedBuddies: selectedBuddies,
-      ),
+      builder: (context) =>
+          _BuddySelectionSheet(selectedBuddies: selectedBuddies),
     );
 
     // Update parent with the final list when sheet closes
@@ -159,8 +157,8 @@ class _BuddyChip extends StatelessWidget {
           Text(
             buddyWithRole.role.displayName,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),
@@ -192,8 +190,9 @@ class _BuddyChip extends StatelessWidget {
                   isSelected
                       ? Icons.radio_button_checked
                       : Icons.radio_button_unchecked,
-                  color:
-                      isSelected ? Theme.of(context).colorScheme.primary : null,
+                  color: isSelected
+                      ? Theme.of(context).colorScheme.primary
+                      : null,
                 ),
                 title: Text(role.displayName),
                 onTap: () {
@@ -213,9 +212,7 @@ class _BuddyChip extends StatelessWidget {
 class _BuddySelectionSheet extends ConsumerStatefulWidget {
   final List<BuddyWithRole> selectedBuddies;
 
-  const _BuddySelectionSheet({
-    required this.selectedBuddies,
-  });
+  const _BuddySelectionSheet({required this.selectedBuddies});
 
   @override
   ConsumerState<_BuddySelectionSheet> createState() =>
@@ -336,8 +333,9 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
                                 ? Icons.people_outline
                                 : Icons.search_off,
                             size: 48,
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                           ),
                           const SizedBox(height: 16),
                           Text(
@@ -356,8 +354,9 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
                     itemCount: buddies.length,
                     itemBuilder: (context, index) {
                       final buddy = buddies[index];
-                      final isSelected = _localSelectedBuddies
-                          .any((b) => b.buddy.id == buddy.id);
+                      final isSelected = _localSelectedBuddies.any(
+                        (b) => b.buddy.id == buddy.id,
+                      );
                       final selectedRole = _localSelectedBuddies
                           .where((b) => b.buddy.id == buddy.id)
                           .map((b) => b.role)
@@ -367,23 +366,23 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
                         leading: CircleAvatar(
                           backgroundColor: isSelected
                               ? Theme.of(context).colorScheme.primaryContainer
-                              : Theme.of(context)
-                                  .colorScheme
-                                  .surfaceContainerHighest,
+                              : Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHighest,
                           child: isSelected
                               ? Icon(
                                   Icons.check,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onPrimaryContainer,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimaryContainer,
                                 )
                               : Text(
                                   buddy.initials,
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
                                   ),
                                 ),
                         ),
@@ -393,8 +392,9 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
                             : null,
                         trailing: isSelected
                             ? Chip(
-                                label:
-                                    Text(selectedRole?.displayName ?? 'Buddy'),
+                                label: Text(
+                                  selectedRole?.displayName ?? 'Buddy',
+                                ),
                                 visualDensity: VisualDensity.compact,
                               )
                             : null,
@@ -410,9 +410,7 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, _) => Center(
-                  child: Text('Error: $error'),
-                ),
+                error: (error, _) => Center(child: Text('Error: $error')),
               ),
             ),
           ],
@@ -423,14 +421,16 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
 
   void _removeBuddy(String buddyId) {
     setState(() {
-      _localSelectedBuddies =
-          _localSelectedBuddies.where((b) => b.buddy.id != buddyId).toList();
+      _localSelectedBuddies = _localSelectedBuddies
+          .where((b) => b.buddy.id != buddyId)
+          .toList();
     });
   }
 
   void _addBuddy(Buddy buddy, BuddyRole role) {
-    final existing =
-        _localSelectedBuddies.indexWhere((b) => b.buddy.id == buddy.id);
+    final existing = _localSelectedBuddies.indexWhere(
+      (b) => b.buddy.id == buddy.id,
+    );
     setState(() {
       if (existing >= 0) {
         // Update role

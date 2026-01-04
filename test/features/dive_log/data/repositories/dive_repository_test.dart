@@ -54,18 +54,17 @@ void main() {
 
   group('DiveRepository', () {
     group('createDive', () {
-      test('should create a new dive with generated ID when ID is empty',
-          () async {
-        final dive = createTestDive(
-          diveNumber: 1,
-          maxDepth: 18.5,
-        );
+      test(
+        'should create a new dive with generated ID when ID is empty',
+        () async {
+          final dive = createTestDive(diveNumber: 1, maxDepth: 18.5);
 
-        final createdDive = await repository.createDive(dive);
+          final createdDive = await repository.createDive(dive);
 
-        expect(createdDive.id, isNotEmpty);
-        expect(createdDive.diveNumber, equals(1));
-      });
+          expect(createdDive.id, isNotEmpty);
+          expect(createdDive.diveNumber, equals(1));
+        },
+      );
 
       test('should create a dive with provided ID', () async {
         final dive = createTestDive(id: 'custom-dive-id');
@@ -132,10 +131,7 @@ void main() {
 
       test('should create a dive with site', () async {
         final site = await siteRepository.createSite(
-          const DiveSite(
-            id: '',
-            name: 'Test Site',
-          ),
+          const DiveSite(id: '', name: 'Test Site'),
         );
 
         final dive = createTestDive(site: site);
@@ -152,10 +148,7 @@ void main() {
     group('getDiveById', () {
       test('should return dive when found', () async {
         final dive = await repository.createDive(
-          createTestDive(
-            diveNumber: 42,
-            maxDepth: 30.0,
-          ),
+          createTestDive(diveNumber: 42, maxDepth: 30.0),
         );
 
         final result = await repository.getDiveById(dive.id);
@@ -181,22 +174,13 @@ void main() {
 
       test('should return all dives ordered by date (newest first)', () async {
         await repository.createDive(
-          createTestDive(
-            diveNumber: 1,
-            dateTime: DateTime(2024, 1, 1),
-          ),
+          createTestDive(diveNumber: 1, dateTime: DateTime(2024, 1, 1)),
         );
         await repository.createDive(
-          createTestDive(
-            diveNumber: 3,
-            dateTime: DateTime(2024, 3, 1),
-          ),
+          createTestDive(diveNumber: 3, dateTime: DateTime(2024, 3, 1)),
         );
         await repository.createDive(
-          createTestDive(
-            diveNumber: 2,
-            dateTime: DateTime(2024, 2, 1),
-          ),
+          createTestDive(diveNumber: 2, dateTime: DateTime(2024, 2, 1)),
         );
 
         final result = await repository.getAllDives();
@@ -269,11 +253,7 @@ void main() {
 
     group('deleteDive', () {
       test('should delete existing dive', () async {
-        final dive = await repository.createDive(
-          createTestDive(
-            diveNumber: 1,
-          ),
-        );
+        final dive = await repository.createDive(createTestDive(diveNumber: 1));
 
         await repository.deleteDive(dive.id);
         final result = await repository.getDiveById(dive.id);
@@ -282,10 +262,7 @@ void main() {
       });
 
       test('should not throw when deleting non-existent dive', () async {
-        await expectLater(
-          repository.deleteDive('non-existent-id'),
-          completes,
-        );
+        await expectLater(repository.deleteDive('non-existent-id'), completes);
       });
 
       test('should cascade delete tanks', () async {
@@ -313,35 +290,16 @@ void main() {
     group('getDivesForSite', () {
       test('should return dives for specific site', () async {
         final site = await siteRepository.createSite(
-          const DiveSite(
-            id: '',
-            name: 'Site A',
-          ),
+          const DiveSite(id: '', name: 'Site A'),
         );
         final otherSite = await siteRepository.createSite(
-          const DiveSite(
-            id: '',
-            name: 'Site B',
-          ),
+          const DiveSite(id: '', name: 'Site B'),
         );
 
+        await repository.createDive(createTestDive(diveNumber: 1, site: site));
+        await repository.createDive(createTestDive(diveNumber: 2, site: site));
         await repository.createDive(
-          createTestDive(
-            diveNumber: 1,
-            site: site,
-          ),
-        );
-        await repository.createDive(
-          createTestDive(
-            diveNumber: 2,
-            site: site,
-          ),
-        );
-        await repository.createDive(
-          createTestDive(
-            diveNumber: 3,
-            site: otherSite,
-          ),
+          createTestDive(diveNumber: 3, site: otherSite),
         );
 
         final result = await repository.getDivesForSite(site.id);
@@ -352,10 +310,7 @@ void main() {
 
       test('should return empty list when site has no dives', () async {
         final site = await siteRepository.createSite(
-          const DiveSite(
-            id: '',
-            name: 'Empty Site',
-          ),
+          const DiveSite(id: '', name: 'Empty Site'),
         );
 
         final result = await repository.getDivesForSite(site.id);
@@ -367,22 +322,13 @@ void main() {
     group('getDivesInRange', () {
       test('should return dives within date range', () async {
         await repository.createDive(
-          createTestDive(
-            diveNumber: 1,
-            dateTime: DateTime(2024, 1, 15),
-          ),
+          createTestDive(diveNumber: 1, dateTime: DateTime(2024, 1, 15)),
         );
         await repository.createDive(
-          createTestDive(
-            diveNumber: 2,
-            dateTime: DateTime(2024, 2, 15),
-          ),
+          createTestDive(diveNumber: 2, dateTime: DateTime(2024, 2, 15)),
         );
         await repository.createDive(
-          createTestDive(
-            diveNumber: 3,
-            dateTime: DateTime(2024, 3, 15),
-          ),
+          createTestDive(diveNumber: 3, dateTime: DateTime(2024, 3, 15)),
         );
 
         final result = await repository.getDivesInRange(
@@ -396,10 +342,7 @@ void main() {
 
       test('should return empty list when no dives in range', () async {
         await repository.createDive(
-          createTestDive(
-            diveNumber: 1,
-            dateTime: DateTime(2024, 1, 15),
-          ),
+          createTestDive(diveNumber: 1, dateTime: DateTime(2024, 1, 15)),
         );
 
         final result = await repository.getDivesInRange(

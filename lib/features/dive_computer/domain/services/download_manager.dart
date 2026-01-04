@@ -27,21 +27,21 @@ class DownloadProgress {
 
   /// Initial progress state
   factory DownloadProgress.initial() => const DownloadProgress(
-        currentDive: 0,
-        totalDives: 0,
-        percentage: 0.0,
-        status: 'Preparing...',
-        phase: DownloadPhase.initializing,
-      );
+    currentDive: 0,
+    totalDives: 0,
+    percentage: 0.0,
+    status: 'Preparing...',
+    phase: DownloadPhase.initializing,
+  );
 
   /// Create a connecting progress state
   factory DownloadProgress.connecting() => const DownloadProgress(
-        currentDive: 0,
-        totalDives: 0,
-        percentage: 0.0,
-        status: 'Connecting to device...',
-        phase: DownloadPhase.connecting,
-      );
+    currentDive: 0,
+    totalDives: 0,
+    percentage: 0.0,
+    status: 'Connecting to device...',
+    phase: DownloadPhase.connecting,
+  );
 
   /// Create a downloading progress state
   factory DownloadProgress.downloading(int current, int total) =>
@@ -55,12 +55,12 @@ class DownloadProgress {
 
   /// Create a complete progress state
   factory DownloadProgress.complete(int total) => DownloadProgress(
-        currentDive: total,
-        totalDives: total,
-        percentage: 1.0,
-        status: 'Download complete',
-        phase: DownloadPhase.complete,
-      );
+    currentDive: total,
+    totalDives: total,
+    percentage: 1.0,
+    status: 'Download complete',
+    phase: DownloadPhase.complete,
+  );
 
   /// Whether the download is complete
   bool get isComplete => phase == DownloadPhase.complete;
@@ -282,13 +282,12 @@ class DownloadResult {
     List<DownloadedDive> dives,
     Duration duration, {
     String? fingerprint,
-  }) =>
-      DownloadResult(
-        success: true,
-        dives: dives,
-        duration: duration,
-        fingerprint: fingerprint,
-      );
+  }) => DownloadResult(
+    success: true,
+    dives: dives,
+    duration: duration,
+    fingerprint: fingerprint,
+  );
 
   /// Create a failed result
   factory DownloadResult.failure(String error, Duration duration) =>

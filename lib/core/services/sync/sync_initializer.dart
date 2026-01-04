@@ -16,8 +16,8 @@ class SyncInitializer {
   SyncInitializer({
     required SyncRepository syncRepository,
     required SharedPreferences prefs,
-  })  : _syncRepository = syncRepository,
-        _prefs = prefs;
+  }) : _syncRepository = syncRepository,
+       _prefs = prefs;
 
   /// Get the last used cloud provider type
   CloudProviderType? getLastProvider() {

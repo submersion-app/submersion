@@ -93,16 +93,16 @@ class ServiceRecord extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        equipmentId,
-        serviceType,
-        serviceDate,
-        provider,
-        cost,
-        currency,
-        nextServiceDue,
-        notes,
-        createdAt,
-        updatedAt,
-      ];
+    id,
+    equipmentId,
+    serviceType,
+    serviceDate,
+    provider,
+    cost,
+    currency,
+    nextServiceDue,
+    notes,
+    createdAt,
+    updatedAt,
+  ];
 }

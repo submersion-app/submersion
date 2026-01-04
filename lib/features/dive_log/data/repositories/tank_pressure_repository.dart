@@ -20,14 +20,17 @@ class TankPressureRepository {
   Future<Map<String, List<TankPressurePoint>>> getTankPressuresForDive(
     String diveId,
   ) async {
-    final rows = await (_db.select(_db.tankPressureProfiles)
-          ..where((t) => t.diveId.equals(diveId))
-          ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
-        .get();
+    final rows =
+        await (_db.select(_db.tankPressureProfiles)
+              ..where((t) => t.diveId.equals(diveId))
+              ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
+            .get();
 
     final result = <String, List<TankPressurePoint>>{};
     for (final row in rows) {
-      result.putIfAbsent(row.tankId, () => []).add(
+      result
+          .putIfAbsent(row.tankId, () => [])
+          .add(
             TankPressurePoint(
               id: row.id,
               tankId: row.tankId,
@@ -45,12 +48,11 @@ class TankPressureRepository {
     String diveId,
     String tankId,
   ) async {
-    final rows = await (_db.select(_db.tankPressureProfiles)
-          ..where(
-            (t) => t.diveId.equals(diveId) & t.tankId.equals(tankId),
-          )
-          ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
-        .get();
+    final rows =
+        await (_db.select(_db.tankPressureProfiles)
+              ..where((t) => t.diveId.equals(diveId) & t.tankId.equals(tankId))
+              ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
+            .get();
 
     return rows
         .map(
@@ -92,9 +94,9 @@ class TankPressureRepository {
 
   /// Delete all tank pressure data for a dive
   Future<void> deleteTankPressuresForDive(String diveId) async {
-    await (_db.delete(_db.tankPressureProfiles)
-          ..where((t) => t.diveId.equals(diveId)))
-        .go();
+    await (_db.delete(
+      _db.tankPressureProfiles,
+    )..where((t) => t.diveId.equals(diveId))).go();
   }
 
   /// Replace all tank pressure data for a dive
@@ -112,11 +114,12 @@ class TankPressureRepository {
 
   /// Check if a dive has any per-tank pressure data
   Future<bool> hasTankPressures(String diveId) async {
-    final count = await (_db.selectOnly(_db.tankPressureProfiles)
-          ..addColumns([_db.tankPressureProfiles.id.count()])
-          ..where(_db.tankPressureProfiles.diveId.equals(diveId)))
-        .map((row) => row.read(_db.tankPressureProfiles.id.count()))
-        .getSingle();
+    final count =
+        await (_db.selectOnly(_db.tankPressureProfiles)
+              ..addColumns([_db.tankPressureProfiles.id.count()])
+              ..where(_db.tankPressureProfiles.diveId.equals(diveId)))
+            .map((row) => row.read(_db.tankPressureProfiles.id.count()))
+            .getSingle();
 
     return (count ?? 0) > 0;
   }

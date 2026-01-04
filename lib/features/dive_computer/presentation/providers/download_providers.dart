@@ -87,8 +87,9 @@ class DownloadState {
       phase: phase ?? this.phase,
       progress: progress ?? this.progress,
       downloadedDives: downloadedDives ?? this.downloadedDives,
-      importResult:
-          clearImportResult ? null : (importResult ?? this.importResult),
+      importResult: clearImportResult
+          ? null
+          : (importResult ?? this.importResult),
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       newDivesOnly: newDivesOnly ?? this.newDivesOnly,
     );
@@ -121,10 +122,10 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
     required DownloadManager downloadManager,
     required DiveImportService importService,
     required DiveComputerRepository repository,
-  })  : _downloadManager = downloadManager,
-        _importService = importService,
-        _repository = repository,
-        super(const DownloadState());
+  }) : _downloadManager = downloadManager,
+       _importService = importService,
+       _repository = repository,
+       super(const DownloadState());
 
   /// Set the context to use for showing dialogs during download.
   ///
@@ -170,10 +171,7 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
 
       // Listen to progress updates
       _downloadManager.progress.listen((progress) {
-        state = state.copyWith(
-          phase: progress.phase,
-          progress: progress,
-        );
+        state = state.copyWith(phase: progress.phase, progress: progress);
       });
 
       // Listen to individual dives
@@ -272,16 +270,16 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
 /// Provider for the download notifier.
 final downloadNotifierProvider =
     StateNotifierProvider<DownloadNotifier, DownloadState>((ref) {
-  final downloadManager = ref.watch(downloadManagerProvider);
-  final importService = ref.watch(diveImportServiceProvider);
-  final repository = ref.watch(diveComputerRepositoryProvider);
+      final downloadManager = ref.watch(downloadManagerProvider);
+      final importService = ref.watch(diveImportServiceProvider);
+      final repository = ref.watch(diveComputerRepositoryProvider);
 
-  return DownloadNotifier(
-    downloadManager: downloadManager,
-    importService: importService,
-    repository: repository,
-  );
-});
+      return DownloadNotifier(
+        downloadManager: downloadManager,
+        importService: importService,
+        repository: repository,
+      );
+    });
 
 /// Provider for checking if a download is in progress.
 final isDownloadingProvider = Provider<bool>((ref) {
@@ -296,15 +294,19 @@ final downloadPercentageProvider = Provider<double>((ref) {
 });
 
 /// Provider for dive computer statistics.
-final computerStatsProvider =
-    FutureProvider.family<DiveComputerStats, String>((ref, computerId) async {
+final computerStatsProvider = FutureProvider.family<DiveComputerStats, String>((
+  ref,
+  computerId,
+) async {
   final repository = ref.watch(diveComputerRepositoryProvider);
   return repository.getComputerStats(computerId);
 });
 
 /// Provider for dive IDs imported from a specific computer.
-final computerDiveIdsProvider =
-    FutureProvider.family<List<String>, String>((ref, computerId) async {
+final computerDiveIdsProvider = FutureProvider.family<List<String>, String>((
+  ref,
+  computerId,
+) async {
   final repository = ref.watch(diveComputerRepositoryProvider);
   return repository.getDiveIdsForComputer(computerId);
 });

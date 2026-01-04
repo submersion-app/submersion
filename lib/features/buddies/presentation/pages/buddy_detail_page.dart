@@ -134,8 +134,9 @@ class _BuddyDetailContent extends ConsumerWidget {
           CircleAvatar(
             radius: 50,
             backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-            backgroundImage:
-                buddy.photoPath != null ? AssetImage(buddy.photoPath!) : null,
+            backgroundImage: buddy.photoPath != null
+                ? AssetImage(buddy.photoPath!)
+                : null,
             child: buddy.photoPath == null
                 ? Text(
                     buddy.initials,
@@ -148,10 +149,7 @@ class _BuddyDetailContent extends ConsumerWidget {
                 : null,
           ),
           const SizedBox(height: 16),
-          Text(
-            buddy.name,
-            style: Theme.of(context).textTheme.headlineMedium,
-          ),
+          Text(buddy.name, style: Theme.of(context).textTheme.headlineMedium),
         ],
       ),
     );
@@ -166,9 +164,9 @@ class _BuddyDetailContent extends ConsumerWidget {
           children: [
             Text(
               'Contact',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             if (buddy.email != null)
@@ -202,9 +200,9 @@ class _BuddyDetailContent extends ConsumerWidget {
           children: [
             Text(
               'Certification',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             if (buddy.certificationLevel != null)
@@ -239,9 +237,9 @@ class _BuddyDetailContent extends ConsumerWidget {
           children: [
             Text(
               'Dive Statistics',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             statsAsync.when(
@@ -291,9 +289,9 @@ class _BuddyDetailContent extends ConsumerWidget {
           children: [
             Text(
               'Notes',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             Text(buddy.notes),
@@ -318,8 +316,8 @@ class _BuddyDetailContent extends ConsumerWidget {
                 Text(
                   'Shared Dives',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 diveIdsAsync.when(
                   data: (ids) => TextButton(
@@ -331,7 +329,7 @@ class _BuddyDetailContent extends ConsumerWidget {
                     child: Text('View All (${ids.length})'),
                   ),
                   loading: () => const SizedBox.shrink(),
-                  error: (_, __) => const SizedBox.shrink(),
+                  error: (_, _) => const SizedBox.shrink(),
                 ),
               ],
             ),
@@ -341,9 +339,7 @@ class _BuddyDetailContent extends ConsumerWidget {
                 if (ids.isEmpty) {
                   return const Padding(
                     padding: EdgeInsets.symmetric(vertical: 16),
-                    child: Center(
-                      child: Text('No dives together yet'),
-                    ),
+                    child: Center(child: Text('No dives together yet')),
                   );
                 }
                 // Show first 3 dive IDs as tappable items
@@ -367,7 +363,7 @@ class _BuddyDetailContent extends ConsumerWidget {
                   child: CircularProgressIndicator.adaptive(),
                 ),
               ),
-              error: (_, __) => const Text('Unable to load dives'),
+              error: (_, _) => const Text('Unable to load dives'),
             ),
           ],
         ),
@@ -436,16 +432,13 @@ class _StatRow extends StatelessWidget {
           Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
+            child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
           ),
           Text(
             value,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
         ],
       ),

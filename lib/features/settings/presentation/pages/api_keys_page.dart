@@ -87,8 +87,9 @@ class _ApiKeysPageState extends ConsumerState<ApiKeysPage> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:
-              Text(success ? 'Tide API key saved' : (error ?? 'Save failed')),
+          content: Text(
+            success ? 'Tide API key saved' : (error ?? 'Save failed'),
+          ),
           backgroundColor: success ? null : Colors.red,
         ),
       );
@@ -103,8 +104,9 @@ class _ApiKeysPageState extends ConsumerState<ApiKeysPage> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:
-              Text(success ? 'RapidAPI key saved' : (error ?? 'Save failed')),
+          content: Text(
+            success ? 'RapidAPI key saved' : (error ?? 'Save failed'),
+          ),
           backgroundColor: success ? null : Colors.red,
         ),
       );
@@ -216,9 +218,7 @@ class _ApiKeysPageState extends ConsumerState<ApiKeysPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('API Keys'),
-      ),
+      appBar: AppBar(title: const Text('API Keys')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -300,8 +300,9 @@ class _ApiKeysPageState extends ConsumerState<ApiKeysPage> {
                   context: context,
                   builder: (dialogContext) => AlertDialog(
                     title: const Text('Clear All API Keys?'),
-                    content:
-                        const Text('This will remove all stored API keys.'),
+                    content: const Text(
+                      'This will remove all stored API keys.',
+                    ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(dialogContext, false),

@@ -33,8 +33,9 @@ class _WeightCalculatorPageState extends ConsumerState<WeightCalculatorPage> {
 
     // Convert body weight input from display unit to kg
     final bodyWeightInput = double.tryParse(_bodyWeightController.text);
-    final bodyWeightKg =
-        bodyWeightInput != null ? units.weightToKg(bodyWeightInput) : null;
+    final bodyWeightKg = bodyWeightInput != null
+        ? units.weightToKg(bodyWeightInput)
+        : null;
 
     return WeightCalculator.calculateRecommendedWeight(
       suitType: _selectedSuit,
@@ -59,14 +60,13 @@ class _WeightCalculatorPageState extends ConsumerState<WeightCalculatorPage> {
 
     // Secondary display in the other unit
     final secondaryWeight = isMetric
-        ? calculatedWeightKg * 2.205 // kg to lbs
+        ? calculatedWeightKg *
+              2.205 // kg to lbs
         : calculatedWeightKg; // show kg
     final secondaryUnit = isMetric ? 'lbs' : 'kg';
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Weight Calculator'),
-      ),
+      appBar: AppBar(title: const Text('Weight Calculator')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -95,8 +95,9 @@ class _WeightCalculatorPageState extends ConsumerState<WeightCalculatorPage> {
                   Text(
                     '(${secondaryWeight.toStringAsFixed(1)} $secondaryUnit)',
                     style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onPrimaryContainer
-                          .withValues(alpha: 0.7),
+                      color: theme.colorScheme.onPrimaryContainer.withValues(
+                        alpha: 0.7,
+                      ),
                     ),
                   ),
                 ],
@@ -196,8 +197,9 @@ class _WeightCalculatorPageState extends ConsumerState<WeightCalculatorPage> {
                       ? 'Adds ~1 kg per 10 kg over 70 kg'
                       : 'Adds ~2 lbs per 22 lbs over 154 lbs',
                 ),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 onChanged: (_) => setState(() {}),
               ),
             ),

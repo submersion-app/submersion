@@ -31,14 +31,14 @@ class SyncPayload {
   });
 
   Map<String, dynamic> toJson() => {
-        'version': version,
-        'exportedAt': exportedAt,
-        'deviceId': deviceId,
-        'lastSyncTimestamp': lastSyncTimestamp,
-        'checksum': checksum,
-        'data': data.toJson(),
-        'deletions': deletions,
-      };
+    'version': version,
+    'exportedAt': exportedAt,
+    'deviceId': deviceId,
+    'lastSyncTimestamp': lastSyncTimestamp,
+    'checksum': checksum,
+    'data': data.toJson(),
+    'deletions': deletions,
+  };
 
   factory SyncPayload.fromJson(Map<String, dynamic> json) {
     return SyncPayload(
@@ -110,31 +110,31 @@ class SyncData {
   });
 
   Map<String, dynamic> toJson() => {
-        'divers': divers,
-        'diverSettings': diverSettings,
-        'dives': dives,
-        'diveProfiles': diveProfiles,
-        'diveTanks': diveTanks,
-        'diveWeights': diveWeights,
-        'diveSites': diveSites,
-        'equipment': equipment,
-        'equipmentSets': equipmentSets,
-        'equipmentSetItems': equipmentSetItems,
-        'buddies': buddies,
-        'diveBuddies': diveBuddies,
-        'certifications': certifications,
-        'serviceRecords': serviceRecords,
-        'diveCenters': diveCenters,
-        'trips': trips,
-        'tags': tags,
-        'diveTags': diveTags,
-        'diveTypes': diveTypes,
-        'diveComputers': diveComputers,
-        'species': species,
-        'sightings': sightings,
-        'diveProfileEvents': diveProfileEvents,
-        'gasSwitches': gasSwitches,
-      };
+    'divers': divers,
+    'diverSettings': diverSettings,
+    'dives': dives,
+    'diveProfiles': diveProfiles,
+    'diveTanks': diveTanks,
+    'diveWeights': diveWeights,
+    'diveSites': diveSites,
+    'equipment': equipment,
+    'equipmentSets': equipmentSets,
+    'equipmentSetItems': equipmentSetItems,
+    'buddies': buddies,
+    'diveBuddies': diveBuddies,
+    'certifications': certifications,
+    'serviceRecords': serviceRecords,
+    'diveCenters': diveCenters,
+    'trips': trips,
+    'tags': tags,
+    'diveTags': diveTags,
+    'diveTypes': diveTypes,
+    'diveComputers': diveComputers,
+    'species': species,
+    'sightings': sightings,
+    'diveProfileEvents': diveProfileEvents,
+    'gasSwitches': gasSwitches,
+  };
 
   factory SyncData.fromJson(Map<String, dynamic> json) {
     return SyncData(
@@ -313,15 +313,15 @@ class SyncDataSerializer {
   Future<List<Map<String, dynamic>>> _exportDiveProfiles(int? since) async {
     // Profile points don't have updatedAt, export all for modified dives
     if (since != null) {
-      final modifiedDives = await (_db.select(_db.dives)
-            ..where((t) => t.updatedAt.isBiggerOrEqualValue(since)))
-          .get();
+      final modifiedDives = await (_db.select(
+        _db.dives,
+      )..where((t) => t.updatedAt.isBiggerOrEqualValue(since))).get();
       final diveIds = modifiedDives.map((d) => d.id).toSet();
       if (diveIds.isEmpty) return [];
 
-      final rows = await (_db.select(_db.diveProfiles)
-            ..where((t) => t.diveId.isIn(diveIds)))
-          .get();
+      final rows = await (_db.select(
+        _db.diveProfiles,
+      )..where((t) => t.diveId.isIn(diveIds))).get();
       return rows.map((r) => _diveProfileToJson(r)).toList();
     }
     final rows = await _db.select(_db.diveProfiles).get();
@@ -331,15 +331,15 @@ class SyncDataSerializer {
   Future<List<Map<String, dynamic>>> _exportDiveTanks(int? since) async {
     // Similar to profiles, export for modified dives
     if (since != null) {
-      final modifiedDives = await (_db.select(_db.dives)
-            ..where((t) => t.updatedAt.isBiggerOrEqualValue(since)))
-          .get();
+      final modifiedDives = await (_db.select(
+        _db.dives,
+      )..where((t) => t.updatedAt.isBiggerOrEqualValue(since))).get();
       final diveIds = modifiedDives.map((d) => d.id).toSet();
       if (diveIds.isEmpty) return [];
 
-      final rows = await (_db.select(_db.diveTanks)
-            ..where((t) => t.diveId.isIn(diveIds)))
-          .get();
+      final rows = await (_db.select(
+        _db.diveTanks,
+      )..where((t) => t.diveId.isIn(diveIds))).get();
       return rows.map((r) => _diveTankToJson(r)).toList();
     }
     final rows = await _db.select(_db.diveTanks).get();
@@ -348,15 +348,15 @@ class SyncDataSerializer {
 
   Future<List<Map<String, dynamic>>> _exportDiveWeights(int? since) async {
     if (since != null) {
-      final modifiedDives = await (_db.select(_db.dives)
-            ..where((t) => t.updatedAt.isBiggerOrEqualValue(since)))
-          .get();
+      final modifiedDives = await (_db.select(
+        _db.dives,
+      )..where((t) => t.updatedAt.isBiggerOrEqualValue(since))).get();
       final diveIds = modifiedDives.map((d) => d.id).toSet();
       if (diveIds.isEmpty) return [];
 
-      final rows = await (_db.select(_db.diveWeights)
-            ..where((t) => t.diveId.isIn(diveIds)))
-          .get();
+      final rows = await (_db.select(
+        _db.diveWeights,
+      )..where((t) => t.diveId.isIn(diveIds))).get();
       return rows.map((r) => _diveWeightToJson(r)).toList();
     }
     final rows = await _db.select(_db.diveWeights).get();
@@ -408,15 +408,15 @@ class SyncDataSerializer {
 
   Future<List<Map<String, dynamic>>> _exportDiveBuddies(int? since) async {
     if (since != null) {
-      final modifiedDives = await (_db.select(_db.dives)
-            ..where((t) => t.updatedAt.isBiggerOrEqualValue(since)))
-          .get();
+      final modifiedDives = await (_db.select(
+        _db.dives,
+      )..where((t) => t.updatedAt.isBiggerOrEqualValue(since))).get();
       final diveIds = modifiedDives.map((d) => d.id).toSet();
       if (diveIds.isEmpty) return [];
 
-      final rows = await (_db.select(_db.diveBuddies)
-            ..where((t) => t.diveId.isIn(diveIds)))
-          .get();
+      final rows = await (_db.select(
+        _db.diveBuddies,
+      )..where((t) => t.diveId.isIn(diveIds))).get();
       return rows.map((r) => _diveBuddyToJson(r)).toList();
     }
     final rows = await _db.select(_db.diveBuddies).get();
@@ -470,15 +470,15 @@ class SyncDataSerializer {
 
   Future<List<Map<String, dynamic>>> _exportDiveTags(int? since) async {
     if (since != null) {
-      final modifiedDives = await (_db.select(_db.dives)
-            ..where((t) => t.updatedAt.isBiggerOrEqualValue(since)))
-          .get();
+      final modifiedDives = await (_db.select(
+        _db.dives,
+      )..where((t) => t.updatedAt.isBiggerOrEqualValue(since))).get();
       final diveIds = modifiedDives.map((d) => d.id).toSet();
       if (diveIds.isEmpty) return [];
 
-      final rows = await (_db.select(_db.diveTags)
-            ..where((t) => t.diveId.isIn(diveIds)))
-          .get();
+      final rows = await (_db.select(
+        _db.diveTags,
+      )..where((t) => t.diveId.isIn(diveIds))).get();
       return rows.map((r) => _diveTagToJson(r)).toList();
     }
     final rows = await _db.select(_db.diveTags).get();
@@ -517,15 +517,15 @@ class SyncDataSerializer {
     int? since,
   ) async {
     if (since != null) {
-      final modifiedDives = await (_db.select(_db.dives)
-            ..where((t) => t.updatedAt.isBiggerOrEqualValue(since)))
-          .get();
+      final modifiedDives = await (_db.select(
+        _db.dives,
+      )..where((t) => t.updatedAt.isBiggerOrEqualValue(since))).get();
       final diveIds = modifiedDives.map((d) => d.id).toSet();
       if (diveIds.isEmpty) return [];
 
-      final rows = await (_db.select(_db.diveProfileEvents)
-            ..where((t) => t.diveId.isIn(diveIds)))
-          .get();
+      final rows = await (_db.select(
+        _db.diveProfileEvents,
+      )..where((t) => t.diveId.isIn(diveIds))).get();
       return rows.map((r) => _diveProfileEventToJson(r)).toList();
     }
     final rows = await _db.select(_db.diveProfileEvents).get();
@@ -534,15 +534,15 @@ class SyncDataSerializer {
 
   Future<List<Map<String, dynamic>>> _exportGasSwitches(int? since) async {
     if (since != null) {
-      final modifiedDives = await (_db.select(_db.dives)
-            ..where((t) => t.updatedAt.isBiggerOrEqualValue(since)))
-          .get();
+      final modifiedDives = await (_db.select(
+        _db.dives,
+      )..where((t) => t.updatedAt.isBiggerOrEqualValue(since))).get();
       final diveIds = modifiedDives.map((d) => d.id).toSet();
       if (diveIds.isEmpty) return [];
 
-      final rows = await (_db.select(_db.gasSwitches)
-            ..where((t) => t.diveId.isIn(diveIds)))
-          .get();
+      final rows = await (_db.select(
+        _db.gasSwitches,
+      )..where((t) => t.diveId.isIn(diveIds))).get();
       return rows.map((r) => _gasSwitchToJson(r)).toList();
     }
     final rows = await _db.select(_db.gasSwitches).get();
@@ -554,360 +554,360 @@ class SyncDataSerializer {
   // ============================================================================
 
   Map<String, dynamic> _diverToJson(Diver r) => {
-        'id': r.id,
-        'name': r.name,
-        'email': r.email,
-        'phone': r.phone,
-        'photoPath': r.photoPath,
-        'emergencyContactName': r.emergencyContactName,
-        'emergencyContactPhone': r.emergencyContactPhone,
-        'emergencyContactRelation': r.emergencyContactRelation,
-        'medicalNotes': r.medicalNotes,
-        'bloodType': r.bloodType,
-        'allergies': r.allergies,
-        'insuranceProvider': r.insuranceProvider,
-        'insurancePolicyNumber': r.insurancePolicyNumber,
-        'insuranceExpiryDate': r.insuranceExpiryDate,
-        'notes': r.notes,
-        'isDefault': r.isDefault,
-        'createdAt': r.createdAt,
-        'updatedAt': r.updatedAt,
-      };
+    'id': r.id,
+    'name': r.name,
+    'email': r.email,
+    'phone': r.phone,
+    'photoPath': r.photoPath,
+    'emergencyContactName': r.emergencyContactName,
+    'emergencyContactPhone': r.emergencyContactPhone,
+    'emergencyContactRelation': r.emergencyContactRelation,
+    'medicalNotes': r.medicalNotes,
+    'bloodType': r.bloodType,
+    'allergies': r.allergies,
+    'insuranceProvider': r.insuranceProvider,
+    'insurancePolicyNumber': r.insurancePolicyNumber,
+    'insuranceExpiryDate': r.insuranceExpiryDate,
+    'notes': r.notes,
+    'isDefault': r.isDefault,
+    'createdAt': r.createdAt,
+    'updatedAt': r.updatedAt,
+  };
 
   Map<String, dynamic> _diverSettingToJson(DiverSetting r) => {
-        'id': r.id,
-        'diverId': r.diverId,
-        'depthUnit': r.depthUnit,
-        'temperatureUnit': r.temperatureUnit,
-        'pressureUnit': r.pressureUnit,
-        'volumeUnit': r.volumeUnit,
-        'weightUnit': r.weightUnit,
-        'sacUnit': r.sacUnit,
-        'themeMode': r.themeMode,
-        'defaultDiveType': r.defaultDiveType,
-        'defaultTankVolume': r.defaultTankVolume,
-        'defaultStartPressure': r.defaultStartPressure,
-        'gfLow': r.gfLow,
-        'gfHigh': r.gfHigh,
-        'ppO2MaxWorking': r.ppO2MaxWorking,
-        'ppO2MaxDeco': r.ppO2MaxDeco,
-        'cnsWarningThreshold': r.cnsWarningThreshold,
-        'ascentRateWarning': r.ascentRateWarning,
-        'ascentRateCritical': r.ascentRateCritical,
-        'showCeilingOnProfile': r.showCeilingOnProfile,
-        'showAscentRateColors': r.showAscentRateColors,
-        'showNdlOnProfile': r.showNdlOnProfile,
-        'lastStopDepth': r.lastStopDepth,
-        'decoStopIncrement': r.decoStopIncrement,
-        'createdAt': r.createdAt,
-        'updatedAt': r.updatedAt,
-      };
+    'id': r.id,
+    'diverId': r.diverId,
+    'depthUnit': r.depthUnit,
+    'temperatureUnit': r.temperatureUnit,
+    'pressureUnit': r.pressureUnit,
+    'volumeUnit': r.volumeUnit,
+    'weightUnit': r.weightUnit,
+    'sacUnit': r.sacUnit,
+    'themeMode': r.themeMode,
+    'defaultDiveType': r.defaultDiveType,
+    'defaultTankVolume': r.defaultTankVolume,
+    'defaultStartPressure': r.defaultStartPressure,
+    'gfLow': r.gfLow,
+    'gfHigh': r.gfHigh,
+    'ppO2MaxWorking': r.ppO2MaxWorking,
+    'ppO2MaxDeco': r.ppO2MaxDeco,
+    'cnsWarningThreshold': r.cnsWarningThreshold,
+    'ascentRateWarning': r.ascentRateWarning,
+    'ascentRateCritical': r.ascentRateCritical,
+    'showCeilingOnProfile': r.showCeilingOnProfile,
+    'showAscentRateColors': r.showAscentRateColors,
+    'showNdlOnProfile': r.showNdlOnProfile,
+    'lastStopDepth': r.lastStopDepth,
+    'decoStopIncrement': r.decoStopIncrement,
+    'createdAt': r.createdAt,
+    'updatedAt': r.updatedAt,
+  };
 
   Map<String, dynamic> _diveToJson(Dive r) => {
-        'id': r.id,
-        'diverId': r.diverId,
-        'diveNumber': r.diveNumber,
-        'diveDateTime': r.diveDateTime,
-        'entryTime': r.entryTime,
-        'exitTime': r.exitTime,
-        'duration': r.duration,
-        'runtime': r.runtime,
-        'maxDepth': r.maxDepth,
-        'avgDepth': r.avgDepth,
-        'waterTemp': r.waterTemp,
-        'airTemp': r.airTemp,
-        'visibility': r.visibility,
-        'diveType': r.diveType,
-        'buddy': r.buddy,
-        'diveMaster': r.diveMaster,
-        'notes': r.notes,
-        'siteId': r.siteId,
-        'rating': r.rating,
-        'diveCenterId': r.diveCenterId,
-        'tripId': r.tripId,
-        'currentDirection': r.currentDirection,
-        'currentStrength': r.currentStrength,
-        'swellHeight': r.swellHeight,
-        'entryMethod': r.entryMethod,
-        'exitMethod': r.exitMethod,
-        'waterType': r.waterType,
-        'altitude': r.altitude,
-        'surfacePressure': r.surfacePressure,
-        'surfaceIntervalSeconds': r.surfaceIntervalSeconds,
-        'gradientFactorLow': r.gradientFactorLow,
-        'gradientFactorHigh': r.gradientFactorHigh,
-        'diveComputerModel': r.diveComputerModel,
-        'diveComputerSerial': r.diveComputerSerial,
-        'weightAmount': r.weightAmount,
-        'weightType': r.weightType,
-        'isFavorite': r.isFavorite,
-        'diveMode': r.diveMode,
-        'cnsStart': r.cnsStart,
-        'cnsEnd': r.cnsEnd,
-        'otu': r.otu,
-        'computerId': r.computerId,
-        'createdAt': r.createdAt,
-        'updatedAt': r.updatedAt,
-      };
+    'id': r.id,
+    'diverId': r.diverId,
+    'diveNumber': r.diveNumber,
+    'diveDateTime': r.diveDateTime,
+    'entryTime': r.entryTime,
+    'exitTime': r.exitTime,
+    'duration': r.duration,
+    'runtime': r.runtime,
+    'maxDepth': r.maxDepth,
+    'avgDepth': r.avgDepth,
+    'waterTemp': r.waterTemp,
+    'airTemp': r.airTemp,
+    'visibility': r.visibility,
+    'diveType': r.diveType,
+    'buddy': r.buddy,
+    'diveMaster': r.diveMaster,
+    'notes': r.notes,
+    'siteId': r.siteId,
+    'rating': r.rating,
+    'diveCenterId': r.diveCenterId,
+    'tripId': r.tripId,
+    'currentDirection': r.currentDirection,
+    'currentStrength': r.currentStrength,
+    'swellHeight': r.swellHeight,
+    'entryMethod': r.entryMethod,
+    'exitMethod': r.exitMethod,
+    'waterType': r.waterType,
+    'altitude': r.altitude,
+    'surfacePressure': r.surfacePressure,
+    'surfaceIntervalSeconds': r.surfaceIntervalSeconds,
+    'gradientFactorLow': r.gradientFactorLow,
+    'gradientFactorHigh': r.gradientFactorHigh,
+    'diveComputerModel': r.diveComputerModel,
+    'diveComputerSerial': r.diveComputerSerial,
+    'weightAmount': r.weightAmount,
+    'weightType': r.weightType,
+    'isFavorite': r.isFavorite,
+    'diveMode': r.diveMode,
+    'cnsStart': r.cnsStart,
+    'cnsEnd': r.cnsEnd,
+    'otu': r.otu,
+    'computerId': r.computerId,
+    'createdAt': r.createdAt,
+    'updatedAt': r.updatedAt,
+  };
 
   Map<String, dynamic> _diveProfileToJson(DiveProfile r) => {
-        'id': r.id,
-        'diveId': r.diveId,
-        'computerId': r.computerId,
-        'isPrimary': r.isPrimary,
-        'timestamp': r.timestamp,
-        'depth': r.depth,
-        'pressure': r.pressure,
-        'temperature': r.temperature,
-        'heartRate': r.heartRate,
-        'ascentRate': r.ascentRate,
-        'ceiling': r.ceiling,
-        'ndl': r.ndl,
-      };
+    'id': r.id,
+    'diveId': r.diveId,
+    'computerId': r.computerId,
+    'isPrimary': r.isPrimary,
+    'timestamp': r.timestamp,
+    'depth': r.depth,
+    'pressure': r.pressure,
+    'temperature': r.temperature,
+    'heartRate': r.heartRate,
+    'ascentRate': r.ascentRate,
+    'ceiling': r.ceiling,
+    'ndl': r.ndl,
+  };
 
   Map<String, dynamic> _diveTankToJson(DiveTank r) => {
-        'id': r.id,
-        'diveId': r.diveId,
-        'equipmentId': r.equipmentId,
-        'volume': r.volume,
-        'workingPressure': r.workingPressure,
-        'startPressure': r.startPressure,
-        'endPressure': r.endPressure,
-        'o2Percent': r.o2Percent,
-        'hePercent': r.hePercent,
-        'tankOrder': r.tankOrder,
-        'tankRole': r.tankRole,
-        'tankMaterial': r.tankMaterial,
-        'tankName': r.tankName,
-        'presetName': r.presetName,
-      };
+    'id': r.id,
+    'diveId': r.diveId,
+    'equipmentId': r.equipmentId,
+    'volume': r.volume,
+    'workingPressure': r.workingPressure,
+    'startPressure': r.startPressure,
+    'endPressure': r.endPressure,
+    'o2Percent': r.o2Percent,
+    'hePercent': r.hePercent,
+    'tankOrder': r.tankOrder,
+    'tankRole': r.tankRole,
+    'tankMaterial': r.tankMaterial,
+    'tankName': r.tankName,
+    'presetName': r.presetName,
+  };
 
   Map<String, dynamic> _diveWeightToJson(DiveWeight r) => {
-        'id': r.id,
-        'diveId': r.diveId,
-        'weightType': r.weightType,
-        'amountKg': r.amountKg,
-        'notes': r.notes,
-        'createdAt': r.createdAt,
-      };
+    'id': r.id,
+    'diveId': r.diveId,
+    'weightType': r.weightType,
+    'amountKg': r.amountKg,
+    'notes': r.notes,
+    'createdAt': r.createdAt,
+  };
 
   Map<String, dynamic> _diveSiteToJson(DiveSite r) => {
-        'id': r.id,
-        'diverId': r.diverId,
-        'name': r.name,
-        'description': r.description,
-        'latitude': r.latitude,
-        'longitude': r.longitude,
-        'minDepth': r.minDepth,
-        'maxDepth': r.maxDepth,
-        'difficulty': r.difficulty,
-        'country': r.country,
-        'region': r.region,
-        'rating': r.rating,
-        'notes': r.notes,
-        'hazards': r.hazards,
-        'accessNotes': r.accessNotes,
-        'mooringNumber': r.mooringNumber,
-        'parkingInfo': r.parkingInfo,
-        'createdAt': r.createdAt,
-        'updatedAt': r.updatedAt,
-      };
+    'id': r.id,
+    'diverId': r.diverId,
+    'name': r.name,
+    'description': r.description,
+    'latitude': r.latitude,
+    'longitude': r.longitude,
+    'minDepth': r.minDepth,
+    'maxDepth': r.maxDepth,
+    'difficulty': r.difficulty,
+    'country': r.country,
+    'region': r.region,
+    'rating': r.rating,
+    'notes': r.notes,
+    'hazards': r.hazards,
+    'accessNotes': r.accessNotes,
+    'mooringNumber': r.mooringNumber,
+    'parkingInfo': r.parkingInfo,
+    'createdAt': r.createdAt,
+    'updatedAt': r.updatedAt,
+  };
 
   Map<String, dynamic> _equipmentToJson(EquipmentData r) => {
-        'id': r.id,
-        'diverId': r.diverId,
-        'name': r.name,
-        'type': r.type,
-        'brand': r.brand,
-        'model': r.model,
-        'serialNumber': r.serialNumber,
-        'size': r.size,
-        'status': r.status,
-        'purchaseDate': r.purchaseDate,
-        'purchasePrice': r.purchasePrice,
-        'purchaseCurrency': r.purchaseCurrency,
-        'lastServiceDate': r.lastServiceDate,
-        'serviceIntervalDays': r.serviceIntervalDays,
-        'notes': r.notes,
-        'isActive': r.isActive,
-        'createdAt': r.createdAt,
-        'updatedAt': r.updatedAt,
-      };
+    'id': r.id,
+    'diverId': r.diverId,
+    'name': r.name,
+    'type': r.type,
+    'brand': r.brand,
+    'model': r.model,
+    'serialNumber': r.serialNumber,
+    'size': r.size,
+    'status': r.status,
+    'purchaseDate': r.purchaseDate,
+    'purchasePrice': r.purchasePrice,
+    'purchaseCurrency': r.purchaseCurrency,
+    'lastServiceDate': r.lastServiceDate,
+    'serviceIntervalDays': r.serviceIntervalDays,
+    'notes': r.notes,
+    'isActive': r.isActive,
+    'createdAt': r.createdAt,
+    'updatedAt': r.updatedAt,
+  };
 
   Map<String, dynamic> _equipmentSetToJson(EquipmentSet r) => {
-        'id': r.id,
-        'diverId': r.diverId,
-        'name': r.name,
-        'description': r.description,
-        'createdAt': r.createdAt,
-        'updatedAt': r.updatedAt,
-      };
+    'id': r.id,
+    'diverId': r.diverId,
+    'name': r.name,
+    'description': r.description,
+    'createdAt': r.createdAt,
+    'updatedAt': r.updatedAt,
+  };
 
   Map<String, dynamic> _buddyToJson(Buddy r) => {
-        'id': r.id,
-        'diverId': r.diverId,
-        'name': r.name,
-        'email': r.email,
-        'phone': r.phone,
-        'certificationLevel': r.certificationLevel,
-        'certificationAgency': r.certificationAgency,
-        'photoPath': r.photoPath,
-        'notes': r.notes,
-        'createdAt': r.createdAt,
-        'updatedAt': r.updatedAt,
-      };
+    'id': r.id,
+    'diverId': r.diverId,
+    'name': r.name,
+    'email': r.email,
+    'phone': r.phone,
+    'certificationLevel': r.certificationLevel,
+    'certificationAgency': r.certificationAgency,
+    'photoPath': r.photoPath,
+    'notes': r.notes,
+    'createdAt': r.createdAt,
+    'updatedAt': r.updatedAt,
+  };
 
   Map<String, dynamic> _diveBuddyToJson(DiveBuddy r) => {
-        'id': r.id,
-        'diveId': r.diveId,
-        'buddyId': r.buddyId,
-        'role': r.role,
-        'createdAt': r.createdAt,
-      };
+    'id': r.id,
+    'diveId': r.diveId,
+    'buddyId': r.buddyId,
+    'role': r.role,
+    'createdAt': r.createdAt,
+  };
 
   Map<String, dynamic> _certificationToJson(Certification r) => {
-        'id': r.id,
-        'diverId': r.diverId,
-        'name': r.name,
-        'agency': r.agency,
-        'level': r.level,
-        'cardNumber': r.cardNumber,
-        'issueDate': r.issueDate,
-        'expiryDate': r.expiryDate,
-        'instructorName': r.instructorName,
-        'instructorNumber': r.instructorNumber,
-        'photoFrontPath': r.photoFrontPath,
-        'photoBackPath': r.photoBackPath,
-        'notes': r.notes,
-        'createdAt': r.createdAt,
-        'updatedAt': r.updatedAt,
-      };
+    'id': r.id,
+    'diverId': r.diverId,
+    'name': r.name,
+    'agency': r.agency,
+    'level': r.level,
+    'cardNumber': r.cardNumber,
+    'issueDate': r.issueDate,
+    'expiryDate': r.expiryDate,
+    'instructorName': r.instructorName,
+    'instructorNumber': r.instructorNumber,
+    'photoFrontPath': r.photoFrontPath,
+    'photoBackPath': r.photoBackPath,
+    'notes': r.notes,
+    'createdAt': r.createdAt,
+    'updatedAt': r.updatedAt,
+  };
 
   Map<String, dynamic> _serviceRecordToJson(ServiceRecord r) => {
-        'id': r.id,
-        'equipmentId': r.equipmentId,
-        'serviceType': r.serviceType,
-        'serviceDate': r.serviceDate,
-        'provider': r.provider,
-        'cost': r.cost,
-        'currency': r.currency,
-        'nextServiceDue': r.nextServiceDue,
-        'notes': r.notes,
-        'createdAt': r.createdAt,
-        'updatedAt': r.updatedAt,
-      };
+    'id': r.id,
+    'equipmentId': r.equipmentId,
+    'serviceType': r.serviceType,
+    'serviceDate': r.serviceDate,
+    'provider': r.provider,
+    'cost': r.cost,
+    'currency': r.currency,
+    'nextServiceDue': r.nextServiceDue,
+    'notes': r.notes,
+    'createdAt': r.createdAt,
+    'updatedAt': r.updatedAt,
+  };
 
   Map<String, dynamic> _diveCenterToJson(DiveCenter r) => {
-        'id': r.id,
-        'diverId': r.diverId,
-        'name': r.name,
-        'location': r.location,
-        'latitude': r.latitude,
-        'longitude': r.longitude,
-        'country': r.country,
-        'phone': r.phone,
-        'email': r.email,
-        'website': r.website,
-        'affiliations': r.affiliations,
-        'rating': r.rating,
-        'notes': r.notes,
-        'createdAt': r.createdAt,
-        'updatedAt': r.updatedAt,
-      };
+    'id': r.id,
+    'diverId': r.diverId,
+    'name': r.name,
+    'location': r.location,
+    'latitude': r.latitude,
+    'longitude': r.longitude,
+    'country': r.country,
+    'phone': r.phone,
+    'email': r.email,
+    'website': r.website,
+    'affiliations': r.affiliations,
+    'rating': r.rating,
+    'notes': r.notes,
+    'createdAt': r.createdAt,
+    'updatedAt': r.updatedAt,
+  };
 
   Map<String, dynamic> _tripToJson(Trip r) => {
-        'id': r.id,
-        'diverId': r.diverId,
-        'name': r.name,
-        'startDate': r.startDate,
-        'endDate': r.endDate,
-        'location': r.location,
-        'resortName': r.resortName,
-        'liveaboardName': r.liveaboardName,
-        'notes': r.notes,
-        'createdAt': r.createdAt,
-        'updatedAt': r.updatedAt,
-      };
+    'id': r.id,
+    'diverId': r.diverId,
+    'name': r.name,
+    'startDate': r.startDate,
+    'endDate': r.endDate,
+    'location': r.location,
+    'resortName': r.resortName,
+    'liveaboardName': r.liveaboardName,
+    'notes': r.notes,
+    'createdAt': r.createdAt,
+    'updatedAt': r.updatedAt,
+  };
 
   Map<String, dynamic> _tagToJson(Tag r) => {
-        'id': r.id,
-        'diverId': r.diverId,
-        'name': r.name,
-        'color': r.color,
-        'createdAt': r.createdAt,
-        'updatedAt': r.updatedAt,
-      };
+    'id': r.id,
+    'diverId': r.diverId,
+    'name': r.name,
+    'color': r.color,
+    'createdAt': r.createdAt,
+    'updatedAt': r.updatedAt,
+  };
 
   Map<String, dynamic> _diveTagToJson(DiveTag r) => {
-        'id': r.id,
-        'diveId': r.diveId,
-        'tagId': r.tagId,
-        'createdAt': r.createdAt,
-      };
+    'id': r.id,
+    'diveId': r.diveId,
+    'tagId': r.tagId,
+    'createdAt': r.createdAt,
+  };
 
   Map<String, dynamic> _diveTypeToJson(DiveType r) => {
-        'id': r.id,
-        'diverId': r.diverId,
-        'name': r.name,
-        'isBuiltIn': r.isBuiltIn,
-        'sortOrder': r.sortOrder,
-        'createdAt': r.createdAt,
-        'updatedAt': r.updatedAt,
-      };
+    'id': r.id,
+    'diverId': r.diverId,
+    'name': r.name,
+    'isBuiltIn': r.isBuiltIn,
+    'sortOrder': r.sortOrder,
+    'createdAt': r.createdAt,
+    'updatedAt': r.updatedAt,
+  };
 
   Map<String, dynamic> _diveComputerToJson(DiveComputer r) => {
-        'id': r.id,
-        'diverId': r.diverId,
-        'name': r.name,
-        'manufacturer': r.manufacturer,
-        'model': r.model,
-        'serialNumber': r.serialNumber,
-        'connectionType': r.connectionType,
-        'bluetoothAddress': r.bluetoothAddress,
-        'lastDownloadTimestamp': r.lastDownloadTimestamp,
-        'diveCount': r.diveCount,
-        'isFavorite': r.isFavorite,
-        'notes': r.notes,
-        'createdAt': r.createdAt,
-        'updatedAt': r.updatedAt,
-      };
+    'id': r.id,
+    'diverId': r.diverId,
+    'name': r.name,
+    'manufacturer': r.manufacturer,
+    'model': r.model,
+    'serialNumber': r.serialNumber,
+    'connectionType': r.connectionType,
+    'bluetoothAddress': r.bluetoothAddress,
+    'lastDownloadTimestamp': r.lastDownloadTimestamp,
+    'diveCount': r.diveCount,
+    'isFavorite': r.isFavorite,
+    'notes': r.notes,
+    'createdAt': r.createdAt,
+    'updatedAt': r.updatedAt,
+  };
 
   Map<String, dynamic> _speciesToJson(Specy r) => {
-        'id': r.id,
-        'commonName': r.commonName,
-        'scientificName': r.scientificName,
-        'category': r.category,
-        'description': r.description,
-        'photoPath': r.photoPath,
-      };
+    'id': r.id,
+    'commonName': r.commonName,
+    'scientificName': r.scientificName,
+    'category': r.category,
+    'description': r.description,
+    'photoPath': r.photoPath,
+  };
 
   Map<String, dynamic> _sightingToJson(Sighting r) => {
-        'id': r.id,
-        'diveId': r.diveId,
-        'speciesId': r.speciesId,
-        'count': r.count,
-        'notes': r.notes,
-      };
+    'id': r.id,
+    'diveId': r.diveId,
+    'speciesId': r.speciesId,
+    'count': r.count,
+    'notes': r.notes,
+  };
 
   Map<String, dynamic> _diveProfileEventToJson(DiveProfileEvent r) => {
-        'id': r.id,
-        'diveId': r.diveId,
-        'timestamp': r.timestamp,
-        'eventType': r.eventType,
-        'severity': r.severity,
-        'description': r.description,
-        'depth': r.depth,
-        'value': r.value,
-        'tankId': r.tankId,
-        'createdAt': r.createdAt,
-      };
+    'id': r.id,
+    'diveId': r.diveId,
+    'timestamp': r.timestamp,
+    'eventType': r.eventType,
+    'severity': r.severity,
+    'description': r.description,
+    'depth': r.depth,
+    'value': r.value,
+    'tankId': r.tankId,
+    'createdAt': r.createdAt,
+  };
 
   Map<String, dynamic> _gasSwitchToJson(GasSwitche r) => {
-        'id': r.id,
-        'diveId': r.diveId,
-        'timestamp': r.timestamp,
-        'tankId': r.tankId,
-        'depth': r.depth,
-        'createdAt': r.createdAt,
-      };
+    'id': r.id,
+    'diveId': r.diveId,
+    'timestamp': r.timestamp,
+    'tankId': r.tankId,
+    'depth': r.depth,
+    'createdAt': r.createdAt,
+  };
 }

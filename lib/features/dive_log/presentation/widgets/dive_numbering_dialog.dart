@@ -49,9 +49,7 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
                   data: (info) => _buildContent(context, info),
                   loading: () =>
                       const Center(child: CircularProgressIndicator()),
-                  error: (error, _) => Center(
-                    child: Text('Error: $error'),
-                  ),
+                  error: (error, _) => Center(child: Text('Error: $error')),
                 ),
               ),
               const SizedBox(height: 16),
@@ -108,8 +106,9 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
                       child: Text(
                         '${info.unnumberedDives} dive(s) without numbers',
                         style: TextStyle(
-                          color:
-                              Theme.of(context).colorScheme.onTertiaryContainer,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onTertiaryContainer,
                         ),
                       ),
                     ),
@@ -121,10 +120,7 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
           ],
 
           // Actions
-          Text(
-            'Actions',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
+          Text('Actions', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           _buildActionsCard(context, info),
         ],
@@ -196,8 +192,8 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
                   Text(
                     '${gap.count} missing',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -273,9 +269,9 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       setState(() => _isRenumbering = false);
@@ -346,9 +342,9 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       setState(() => _isRenumbering = false);

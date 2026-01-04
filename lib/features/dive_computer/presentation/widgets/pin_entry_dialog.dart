@@ -10,10 +10,7 @@ class PinEntryDialog extends StatefulWidget {
   /// The name of the device requesting the PIN.
   final String? deviceName;
 
-  const PinEntryDialog({
-    super.key,
-    this.deviceName,
-  });
+  const PinEntryDialog({super.key, this.deviceName});
 
   /// Shows the PIN entry dialog and returns the entered PIN.
   ///
@@ -74,11 +71,7 @@ class _PinEntryDialogState extends State<PinEntryDialog> {
     final colorScheme = theme.colorScheme;
 
     return AlertDialog(
-      icon: Icon(
-        Icons.pin,
-        size: 48,
-        color: colorScheme.primary,
-      ),
+      icon: Icon(Icons.pin, size: 48, color: colorScheme.primary),
       title: const Text('Enter PIN Code'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -135,10 +128,7 @@ class _PinEntryDialogState extends State<PinEntryDialog> {
         ],
       ),
       actions: [
-        TextButton(
-          onPressed: _onCancel,
-          child: const Text('Cancel'),
-        ),
+        TextButton(onPressed: _onCancel, child: const Text('Cancel')),
         FilledButton(
           onPressed: _isValid ? _onSubmit : null,
           child: const Text('Connect'),

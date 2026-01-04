@@ -18,10 +18,7 @@ import '../providers/download_providers.dart';
 class DeviceDownloadPage extends ConsumerStatefulWidget {
   final String computerId;
 
-  const DeviceDownloadPage({
-    super.key,
-    required this.computerId,
-  });
+  const DeviceDownloadPage({super.key, required this.computerId});
 
   @override
   ConsumerState<DeviceDownloadPage> createState() => _DeviceDownloadPageState();
@@ -44,8 +41,9 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
   }
 
   Future<void> _startScanAndConnect() async {
-    final computer =
-        ref.read(diveComputerByIdProvider(widget.computerId)).value;
+    final computer = ref
+        .read(diveComputerByIdProvider(widget.computerId))
+        .value;
     if (computer == null) {
       setState(() {
         _scanError = 'Computer not found';
@@ -158,7 +156,8 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
       return;
     }
 
-    final computer = _computer ??
+    final computer =
+        _computer ??
         ref.read(diveComputerByIdProvider(widget.computerId)).value;
     if (computer == null) {
       return;
@@ -193,8 +192,9 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
 
   @override
   Widget build(BuildContext context) {
-    final computerAsync =
-        ref.watch(diveComputerByIdProvider(widget.computerId));
+    final computerAsync = ref.watch(
+      diveComputerByIdProvider(widget.computerId),
+    );
     final downloadState = ref.watch(downloadNotifierProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -322,10 +322,7 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
                 ),
               ),
               const SizedBox(height: 32),
-              Text(
-                'Device Not Found',
-                style: theme.textTheme.titleLarge,
-              ),
+              Text('Device Not Found', style: theme.textTheme.titleLarge),
               const SizedBox(height: 16),
               Text(
                 _scanError!,
@@ -430,8 +427,9 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
                         Expanded(
                           child: Text(
                             state.errorMessage ?? 'An error occurred',
-                            style:
-                                TextStyle(color: colorScheme.onErrorContainer),
+                            style: TextStyle(
+                              color: colorScheme.onErrorContainer,
+                            ),
                           ),
                         ),
                       ],
@@ -479,11 +477,7 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
           shape: BoxShape.circle,
           color: colorScheme.errorContainer,
         ),
-        child: Icon(
-          Icons.error_outline,
-          size: 64,
-          color: colorScheme.error,
-        ),
+        child: Icon(Icons.error_outline, size: 64, color: colorScheme.error),
       );
     }
 
@@ -495,11 +489,7 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
           shape: BoxShape.circle,
           color: colorScheme.primaryContainer,
         ),
-        child: Icon(
-          Icons.check,
-          size: 64,
-          color: colorScheme.primary,
-        ),
+        child: Icon(Icons.check, size: 64, color: colorScheme.primary),
       );
     }
 
@@ -563,10 +553,7 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
               children: [
                 Icon(Icons.scuba_diving, color: colorScheme.primary),
                 const SizedBox(width: 8),
-                Text(
-                  'Downloaded Dives',
-                  style: theme.textTheme.titleSmall,
-                ),
+                Text('Downloaded Dives', style: theme.textTheme.titleSmall),
                 const Spacer(),
                 Text(
                   '${state.downloadedDives.length}',

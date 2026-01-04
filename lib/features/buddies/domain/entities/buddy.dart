@@ -84,18 +84,18 @@ class Buddy extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        diverId,
-        name,
-        email,
-        phone,
-        certificationLevel,
-        certificationAgency,
-        photoPath,
-        notes,
-        createdAt,
-        updatedAt,
-      ];
+    id,
+    diverId,
+    name,
+    email,
+    phone,
+    certificationLevel,
+    certificationAgency,
+    photoPath,
+    notes,
+    createdAt,
+    updatedAt,
+  ];
 }
 
 /// Buddy with role for a specific dive
@@ -103,10 +103,7 @@ class BuddyWithRole extends Equatable {
   final Buddy buddy;
   final BuddyRole role;
 
-  const BuddyWithRole({
-    required this.buddy,
-    required this.role,
-  });
+  const BuddyWithRole({required this.buddy, required this.role});
 
   @override
   List<Object?> get props => [buddy, role];

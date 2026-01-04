@@ -36,3 +36,4 @@ pubspec.lock
 .env
 .claude/
 coverage/
+devtools_options.yaml

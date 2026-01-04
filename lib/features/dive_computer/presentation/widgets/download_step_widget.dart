@@ -119,8 +119,9 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
                         Expanded(
                           child: Text(
                             downloadState.errorMessage ?? 'An error occurred',
-                            style:
-                                TextStyle(color: colorScheme.onErrorContainer),
+                            style: TextStyle(
+                              color: colorScheme.onErrorContainer,
+                            ),
                           ),
                         ),
                       ],
@@ -154,11 +155,7 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
           shape: BoxShape.circle,
           color: colorScheme.errorContainer,
         ),
-        child: Icon(
-          Icons.error_outline,
-          size: 64,
-          color: colorScheme.error,
-        ),
+        child: Icon(Icons.error_outline, size: 64, color: colorScheme.error),
       );
     }
 
@@ -170,11 +167,7 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
           shape: BoxShape.circle,
           color: colorScheme.primaryContainer,
         ),
-        child: Icon(
-          Icons.check,
-          size: 64,
-          color: colorScheme.primary,
-        ),
+        child: Icon(Icons.check, size: 64, color: colorScheme.primary),
       );
     }
 
@@ -238,10 +231,7 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
               children: [
                 Icon(Icons.scuba_diving, color: colorScheme.primary),
                 const SizedBox(width: 8),
-                Text(
-                  'Downloaded Dives',
-                  style: theme.textTheme.titleSmall,
-                ),
+                Text('Downloaded Dives', style: theme.textTheme.titleSmall),
                 const Spacer(),
                 Text(
                   '${state.downloadedDives.length}',
