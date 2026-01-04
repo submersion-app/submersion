@@ -1,11 +1,11 @@
 # Submersion Feature Roadmap
 ## Comprehensive Development Plan
 
-> **Last Updated:** 2025-12-29
+> **Last Updated:** 2026-01-04
 > **Current Version:** 1.1.0 (v1.1 Complete)
 > **Status:** v1.0 ✅ COMPLETE | v1.1 ✅ COMPLETE | v1.5 🚧 In Progress
 >
-> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete - libdivecomputer FFI, BLE/USB scanning, 300+ device library, duplicate detection, incremental downloads, device stats
+> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete - SAC trends, temperature graphs, dive frequency, gas mix distribution
 
 ---
 
@@ -701,15 +701,20 @@
 | Breakdown by year/country/site | ✅ Implemented | MVP | Top sites chart |
 | Depth/time histograms | ✅ Implemented | MVP | Depth distribution |
 | Records page | ✅ Implemented | v1.0 | Deepest, longest, coldest, warmest, first, last |
-| SAC trends | 📋 Planned | v1.5 | Line chart over time |
-| Temperature graphs | 📋 Planned | v1.5 | Preferred temp range |
+| SAC trends | ✅ Implemented | v1.5 | Monthly average over 5 years |
+| Temperature graphs | ✅ Implemented | v1.5 | Water temp by month (min/avg/max) |
 
 **v1.5 Tasks:**
-- [ ] SAC trend line chart (average SAC per month over last 2 years)
-- [ ] Temperature preference chart (histogram of water temps)
-- [ ] Dive frequency chart (dives per month/year)
+- [x] SAC trend line chart (average SAC per month over last 5 years)
+- [x] Temperature preference chart (water temp by month with min/avg/max)
+- [x] Dive frequency chart (dives per year bar chart)
 - [ ] Dive type breakdown (pie chart)
-- [ ] Gas mix usage (how often EAN32, TMX, etc.)
+- [x] Gas mix usage (pie chart showing Air/Nitrox/Trimix distribution)
+- [x] Time pattern charts (day of week, time of day, seasonal)
+- [x] Surface interval statistics (avg/min/max)
+- [x] Depth progression trend (monthly max depth over 5 years)
+- [x] Bottom time trend (average duration by month)
+- [x] Cumulative dive count chart
 
 **v2.0 Tasks:**
 - [ ] Advanced analytics dashboard (customizable widgets)
@@ -808,12 +813,13 @@
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
 | Anonymous usage | ✅ Implemented | MVP | Local-first, no account required |
-| Optional cloud account | 📋 Planned | v2.0 | Opt-in only |
+| iCloud integration | ✅ Implemented | v1.5 | iOS/macOS cloud sync |
+| Google Drive integration | ✅ Implemented | v1.5 | Cross-platform cloud sync |
+| Cloud sync UI | ✅ Implemented | v1.5 | Provider selection, sync status, conflicts |
 
 **v2.0 Tasks:**
-- [ ] Backend service (Firebase, Supabase, or custom)
+- [ ] Backend service for user accounts (Firebase, Supabase)
 - [ ] User authentication (email/password, OAuth)
-- [ ] Opt-in cloud sync toggle in settings
 - [ ] Privacy policy and data handling docs
 
 ---
@@ -822,15 +828,22 @@
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Desktop ↔ mobile ↔ web sync | 📋 Planned | v2.0 | Requires backend |
-| Multi-device support | 📋 Planned | v2.0 | Login on multiple devices |
-| Conflict resolution | 📋 Planned | v2.0 | Last-write-wins or manual |
+| Desktop ↔ mobile sync | ✅ Implemented | v1.5 | Via iCloud/Google Drive |
+| Conflict detection | ✅ Implemented | v1.5 | Tracks conflicts in SyncRecords |
+| Conflict resolution UI | ✅ Implemented | v1.5 | Dialog for resolving conflicts |
+| Sync status indicator | ✅ Implemented | v1.5 | Last sync time, pending changes |
+| Multi-device support | ✅ Implemented | v1.5 | Via cloud storage providers |
+| Web sync | 📋 Planned | v2.0 | Requires backend service |
+
+**v1.5 Tasks (Complete):**
+- [x] Drift schema with `last_modified_at`, `device_id`, `is_deleted` (SyncMetadata, SyncRecords, DeletionLog tables)
+- [x] Sync engine (bidirectional via cloud storage)
+- [x] Conflict detection and resolution UI
+- [x] Sync status indicator (last synced, pending changes)
+- [x] Reset sync state option
 
 **v2.0 Tasks:**
-- [ ] Drift schema with `last_modified_at`, `device_id`, `is_deleted` for all tables
-- [ ] Sync engine (bidirectional, incremental)
-- [ ] Conflict detection and resolution UI
-- [ ] Sync status indicator (last synced, pending changes)
+- [ ] Web platform sync (requires backend)
 - [ ] "Force push" and "force pull" options for troubleshooting
 
 ---
@@ -840,13 +853,14 @@
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
 | Local backup export | ✅ Implemented | MVP | Full SQLite export |
-| Online backup servers | 📋 Planned | v2.0 | Automatic cloud backup |
-| Sync via Dropbox | 📋 Planned | v2.0 | 3rd-party storage sync |
+| Cloud backup via iCloud | ✅ Implemented | v1.5 | Apple platforms |
+| Cloud backup via Google Drive | ✅ Implemented | v1.5 | Cross-platform |
+| Custom folder sync | ✅ Implemented | v1.5 | Dropbox/OneDrive via folder selection |
 
 **v2.0 Tasks:**
-- [ ] Automatic daily backup to cloud (if opted in)
+- [ ] Automatic scheduled backups
 - [ ] Backup history (keep last N backups)
-- [ ] Restore from cloud backup
+- [ ] One-click restore from cloud backup
 
 ---
 
@@ -1081,13 +1095,24 @@
 -- Species extensions: scientific_name, taxonomy_class, image_url
 ```
 
+## v1.5 Tables (Implemented)
+
+```sql
+-- dive_computers (name, manufacturer, model, connection_type, last_download)
+-- dive_profile_events (dive_id, timestamp, event_type, description, severity)
+-- gas_switches (dive_id, timestamp, tank_id, depth)
+-- tank_pressure_profiles (dive_id, tank_id, timestamp, pressure)
+-- divers (multi-user support - fully implemented)
+-- diver_settings (per-diver preferences)
+-- sync_metadata, sync_records, deletion_log (cloud sync infrastructure)
+```
+
 ## v2.0 Tables (Planned)
 
 ```sql
--- users (for cloud sync)
--- divers (for multi-user support)
+-- users (for backend authentication)
 -- saved_filters (Smart Logs)
--- Sync fields: last_modified_at, device_id, is_deleted
+-- courses (training course tracking)
 ```
 
 ---
@@ -1105,6 +1130,8 @@
 ## v1.5 Requirements
 - **Dive Computers:** libdivecomputer (FFI), flutter_blue_plus, usb_serial
 - **Deco:** Custom Bühlmann implementation
+- **Cloud Sync:** googleapis (Google Drive), icloud_storage
+- **Weather/Tides:** http (OpenWeatherMap, World Tides APIs)
 
 ## v2.0 Requirements
 - **Backend:** Firebase/Supabase SDK
@@ -1144,11 +1171,18 @@
 - [x] Duplicate dive detection (fuzzy match on time+depth+duration)
 - [x] Incremental downloads (uses lastDownload timestamp)
 - [x] Device stats page (deepest, longest, avg depth, temp range)
+- [x] Cloud sync via iCloud and Google Drive
+- [x] Sync conflict detection and resolution UI
+- [x] SAC trend charts (monthly average over 5 years)
+- [x] Temperature graphs (water temp by month)
+- [x] Dive frequency charts (dives per year)
+- [x] Gas mix distribution (pie chart)
+- [x] Time pattern analysis (day of week, time of day, seasonal)
 - [ ] Dive planner with deco schedules
 - [ ] Performance with 5000+ dives
 
 ## v2.0 (Planned)
-- [ ] Cloud sync at scale
+- [ ] Web platform with backend service
 - [ ] 7+ language translations
 - [ ] Community features beta tested
 
@@ -1167,21 +1201,5 @@
 
 ---
 
-# Monetization (Future)
-
-**Free Forever:**
-- Unlimited local dives
-- All core logging features
-- CSV/UDDF/PDF export
-- No ads, no tracking
-
-**Premium (v2.0+):**
-- Cloud sync and backup
-- Multi-device support
-- Community features
-- Advanced statistics
-
----
-
-**Document Version:** 2.3
-**Last Updated:** 2025-12-29
+**Document Version:** 2.4
+**Last Updated:** 2026-01-04
