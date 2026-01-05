@@ -12,17 +12,11 @@ void main() {
 
     group('calculateRate (static)', () {
       test('should return 0 for same depth', () {
-        expect(
-          AscentRateCalculator.calculateRate(20, 20, 0, 60),
-          equals(0.0),
-        );
+        expect(AscentRateCalculator.calculateRate(20, 20, 0, 60), equals(0.0));
       });
 
       test('should return 0 for same timestamp', () {
-        expect(
-          AscentRateCalculator.calculateRate(20, 10, 60, 60),
-          equals(0.0),
-        );
+        expect(AscentRateCalculator.calculateRate(20, 10, 60, 60), equals(0.0));
       });
 
       test('should calculate positive rate for ascent', () {

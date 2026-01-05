@@ -108,8 +108,10 @@ class LocationService {
 
       // Perform reverse geocoding if requested
       if (includeGeocoding) {
-        final geocodeResult =
-            await reverseGeocode(position.latitude, position.longitude);
+        final geocodeResult = await reverseGeocode(
+          position.latitude,
+          position.longitude,
+        );
         country = geocodeResult.country;
         region = geocodeResult.region;
         locality = geocodeResult.locality;
@@ -141,8 +143,10 @@ class LocationService {
       // Try native geocoding first (works on iOS/Android)
       if (_isMobile) {
         try {
-          final placemarks =
-              await placemarkFromCoordinates(latitude, longitude);
+          final placemarks = await placemarkFromCoordinates(
+            latitude,
+            longitude,
+          );
           if (placemarks.isNotEmpty) {
             final place = placemarks.first;
             _log.info(
@@ -169,7 +173,7 @@ class LocationService {
 
   /// Web-based reverse geocoding using OpenStreetMap Nominatim
   Future<({String? country, String? region, String? locality})>
-      _reverseGeocodeWeb(double latitude, double longitude) async {
+  _reverseGeocodeWeb(double latitude, double longitude) async {
     try {
       final url = Uri.parse(
         'https://nominatim.openstreetmap.org/reverse?format=json&lat=$latitude&lon=$longitude&zoom=10',
@@ -188,10 +192,12 @@ class LocationService {
 
         if (address != null) {
           final country = address['country'] as String?;
-          final region = address['state'] as String? ??
+          final region =
+              address['state'] as String? ??
               address['province'] as String? ??
               address['region'] as String?;
-          final locality = address['city'] as String? ??
+          final locality =
+              address['city'] as String? ??
               address['town'] as String? ??
               address['village'] as String?;
 

@@ -132,8 +132,9 @@ class DiveProfiles extends Table {
       text().references(Dives, #id, onDelete: KeyAction.cascade)();
   TextColumn get computerId =>
       text().nullable().references(DiveComputers, #id)();
-  BoolColumn get isPrimary => boolean()
-      .withDefault(const Constant(true))(); // Primary profile for stats
+  BoolColumn get isPrimary => boolean().withDefault(
+    const Constant(true),
+  )(); // Primary profile for stats
   IntColumn get timestamp => integer()(); // seconds from dive start
   RealColumn get depth => real()();
   RealColumn get pressure => real().nullable()(); // bar
@@ -194,8 +195,8 @@ class DiveTanks extends Table {
   RealColumn get hePercent => real().withDefault(const Constant(0.0))();
   IntColumn get tankOrder => integer().withDefault(const Constant(0))();
   TextColumn get tankRole => text().withDefault(
-        const Constant('backGas'),
-      )(); // backGas, stage, deco, bailout, etc.
+    const Constant('backGas'),
+  )(); // backGas, stage, deco, bailout, etc.
   TextColumn get tankMaterial =>
       text().nullable()(); // aluminum, steel, carbonFiber
   TextColumn get tankName =>
@@ -218,8 +219,8 @@ class Equipment extends Table {
   TextColumn get serialNumber => text().nullable()();
   TextColumn get size => text().nullable()(); // S, M, L, XL, or specific size
   TextColumn get status => text().withDefault(
-        const Constant('active'),
-      )(); // active, needsService, retired, etc.
+    const Constant('active'),
+  )(); // active, needsService, retired, etc.
   IntColumn get purchaseDate => integer().nullable()();
   RealColumn get purchasePrice => real().nullable()();
   TextColumn get purchaseCurrency =>
@@ -316,9 +317,11 @@ class Media extends Table {
   TextColumn get id => text()();
   TextColumn get diveId =>
       text().nullable().references(Dives, #id, onDelete: KeyAction.setNull)();
-  TextColumn get siteId => text()
-      .nullable()
-      .references(DiveSites, #id, onDelete: KeyAction.setNull)();
+  TextColumn get siteId => text().nullable().references(
+    DiveSites,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
   TextColumn get filePath => text()();
   TextColumn get fileType => text().withDefault(const Constant('photo'))();
   RealColumn get latitude => real().nullable()();
@@ -642,8 +645,8 @@ class SyncRecords extends Table {
   IntColumn get localUpdatedAt => integer()(); // Local modification timestamp
   IntColumn get syncedAt => integer().nullable()(); // When last synced to cloud
   TextColumn get syncStatus => text().withDefault(
-        const Constant('synced'),
-      )(); // synced, pending, conflict
+    const Constant('synced'),
+  )(); // synced, pending, conflict
   TextColumn get conflictData =>
       text().nullable()(); // JSON of conflicting remote data
   IntColumn get createdAt => integer()();

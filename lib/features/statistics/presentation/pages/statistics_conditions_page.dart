@@ -17,9 +17,7 @@ class StatisticsConditionsPage extends ConsumerWidget {
     final units = UnitFormatter(settings);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Conditions'),
-      ),
+      appBar: AppBar(title: const Text('Conditions')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -58,7 +56,7 @@ class StatisticsConditionsPage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, __) => const StatEmptyState(
+        error: (_, _) => const StatEmptyState(
           icon: Icons.error_outline,
           message: 'Failed to load visibility data',
         ),
@@ -75,16 +73,13 @@ class StatisticsConditionsPage extends ConsumerWidget {
       child: waterTypeAsync.when(
         data: (data) => DistributionPieChart(
           data: data,
-          colors: [
-            Colors.blue.shade600,
-            Colors.cyan.shade400,
-          ],
+          colors: [Colors.blue.shade600, Colors.cyan.shade400],
         ),
         loading: () => const SizedBox(
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, __) => const StatEmptyState(
+        error: (_, _) => const StatEmptyState(
           icon: Icons.error_outline,
           message: 'Failed to load water type data',
         ),
@@ -115,7 +110,7 @@ class StatisticsConditionsPage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, __) => const StatEmptyState(
+        error: (_, _) => const StatEmptyState(
           icon: Icons.error_outline,
           message: 'Failed to load entry method data',
         ),
@@ -182,7 +177,7 @@ class StatisticsConditionsPage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, __) => const StatEmptyState(
+        error: (_, _) => const StatEmptyState(
           icon: Icons.error_outline,
           message: 'Failed to load temperature data',
         ),

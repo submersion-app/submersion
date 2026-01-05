@@ -13,14 +13,17 @@ final buddyRepositoryProvider = Provider<BuddyRepository>((ref) {
 /// All buddies provider
 final allBuddiesProvider = FutureProvider<List<Buddy>>((ref) async {
   final repository = ref.watch(buddyRepositoryProvider);
-  final validatedDiverId =
-      await ref.watch(validatedCurrentDiverIdProvider.future);
+  final validatedDiverId = await ref.watch(
+    validatedCurrentDiverIdProvider.future,
+  );
   return repository.getAllBuddies(diverId: validatedDiverId);
 });
 
 /// Single buddy provider
-final buddyByIdProvider =
-    FutureProvider.family<Buddy?, String>((ref, id) async {
+final buddyByIdProvider = FutureProvider.family<Buddy?, String>((
+  ref,
+  id,
+) async {
   final repository = ref.watch(buddyRepositoryProvider);
   return repository.getBuddyById(id);
 });
@@ -28,15 +31,18 @@ final buddyByIdProvider =
 /// Buddies for a dive provider
 final buddiesForDiveProvider =
     FutureProvider.family<List<BuddyWithRole>, String>((ref, diveId) async {
-  final repository = ref.watch(buddyRepositoryProvider);
-  return repository.getBuddiesForDive(diveId);
-});
+      final repository = ref.watch(buddyRepositoryProvider);
+      return repository.getBuddiesForDive(diveId);
+    });
 
 /// Buddy search provider
-final buddySearchProvider =
-    FutureProvider.family<List<Buddy>, String>((ref, query) async {
-  final validatedDiverId =
-      await ref.watch(validatedCurrentDiverIdProvider.future);
+final buddySearchProvider = FutureProvider.family<List<Buddy>, String>((
+  ref,
+  query,
+) async {
+  final validatedDiverId = await ref.watch(
+    validatedCurrentDiverIdProvider.future,
+  );
   if (query.isEmpty) {
     return ref.watch(allBuddiesProvider).value ?? [];
   }
@@ -45,15 +51,19 @@ final buddySearchProvider =
 });
 
 /// Buddy stats provider
-final buddyStatsProvider =
-    FutureProvider.family<BuddyStats, String>((ref, buddyId) async {
+final buddyStatsProvider = FutureProvider.family<BuddyStats, String>((
+  ref,
+  buddyId,
+) async {
   final repository = ref.watch(buddyRepositoryProvider);
   return repository.getBuddyStats(buddyId);
 });
 
 /// Dive IDs for a buddy provider
-final diveIdsForBuddyProvider =
-    FutureProvider.family<List<String>, String>((ref, buddyId) async {
+final diveIdsForBuddyProvider = FutureProvider.family<List<String>, String>((
+  ref,
+  buddyId,
+) async {
   final repository = ref.watch(buddyRepositoryProvider);
   return repository.getDiveIdsForBuddy(buddyId);
 });
@@ -65,7 +75,7 @@ class BuddyListNotifier extends StateNotifier<AsyncValue<List<Buddy>>> {
   String? _validatedDiverId;
 
   BuddyListNotifier(this._repository, this._ref)
-      : super(const AsyncValue.loading()) {
+    : super(const AsyncValue.loading()) {
     _initializeAndLoad();
 
     // Listen for diver changes and reload
@@ -89,8 +99,9 @@ class BuddyListNotifier extends StateNotifier<AsyncValue<List<Buddy>>> {
   Future<void> _loadBuddies() async {
     state = const AsyncValue.loading();
     try {
-      final buddies =
-          await _repository.getAllBuddies(diverId: _validatedDiverId);
+      final buddies = await _repository.getAllBuddies(
+        diverId: _validatedDiverId,
+      );
       state = AsyncValue.data(buddies);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -110,8 +121,9 @@ class BuddyListNotifier extends StateNotifier<AsyncValue<List<Buddy>>> {
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
 
     // Always set diverId to the current validated diver for new items
-    final buddyWithDiver =
-        validatedId != null ? buddy.copyWith(diverId: validatedId) : buddy;
+    final buddyWithDiver = validatedId != null
+        ? buddy.copyWith(diverId: validatedId)
+        : buddy;
     final newBuddy = await _repository.createBuddy(buddyWithDiver);
     await refresh();
     return newBuddy;
@@ -131,9 +143,9 @@ class BuddyListNotifier extends StateNotifier<AsyncValue<List<Buddy>>> {
 
 final buddyListNotifierProvider =
     StateNotifierProvider<BuddyListNotifier, AsyncValue<List<Buddy>>>((ref) {
-  final repository = ref.watch(buddyRepositoryProvider);
-  return BuddyListNotifier(repository, ref);
-});
+      final repository = ref.watch(buddyRepositoryProvider);
+      return BuddyListNotifier(repository, ref);
+    });
 
 /// Provider to manage buddies for a specific dive during editing
 class DiveBuddiesNotifier extends StateNotifier<List<BuddyWithRole>> {
@@ -198,8 +210,12 @@ class DiveBuddiesNotifier extends StateNotifier<List<BuddyWithRole>> {
   }
 }
 
-final diveBuddiesNotifierProvider = StateNotifierProvider.family<
-    DiveBuddiesNotifier, List<BuddyWithRole>, String?>((ref, diveId) {
-  final repository = ref.watch(buddyRepositoryProvider);
-  return DiveBuddiesNotifier(repository, diveId);
-});
+final diveBuddiesNotifierProvider =
+    StateNotifierProvider.family<
+      DiveBuddiesNotifier,
+      List<BuddyWithRole>,
+      String?
+    >((ref, diveId) {
+      final repository = ref.watch(buddyRepositoryProvider);
+      return DiveBuddiesNotifier(repository, diveId);
+    });

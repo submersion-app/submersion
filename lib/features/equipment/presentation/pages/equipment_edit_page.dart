@@ -74,8 +74,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
   @override
   Widget build(BuildContext context) {
     if (widget.isEditing) {
-      final equipmentAsync =
-          ref.watch(equipmentItemProvider(widget.equipmentId!));
+      final equipmentAsync = ref.watch(
+        equipmentItemProvider(widget.equipmentId!),
+      );
       return equipmentAsync.when(
         data: (equipment) {
           if (equipment == null) {
@@ -247,8 +248,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
 
             // Save Button
             FilledButton(
-              onPressed:
-                  _isLoading ? null : () => _saveEquipment(existingEquipment),
+              onPressed: _isLoading
+                  ? null
+                  : () => _saveEquipment(existingEquipment),
               child: _isLoading
                   ? const SizedBox(
                       height: 20,
@@ -278,8 +280,8 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             Text(
               'Purchase Date',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 8),
             OutlinedButton.icon(
@@ -310,17 +312,16 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
                       labelText: 'Purchase Price',
                       prefixIcon: Icon(Icons.attach_money),
                     ),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: TextFormField(
                     controller: _purchaseCurrencyController,
-                    decoration: const InputDecoration(
-                      labelText: 'Currency',
-                    ),
+                    decoration: const InputDecoration(labelText: 'Currency'),
                   ),
                 ),
               ],
@@ -362,8 +363,8 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             Text(
               'Last Service Date',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 8),
             OutlinedButton.icon(
@@ -420,7 +421,8 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
 
     try {
       // Get the current diver ID - preserve existing for edits, get fresh for new items
-      final diverId = existingEquipment?.diverId ??
+      final diverId =
+          existingEquipment?.diverId ??
           await ref.read(validatedCurrentDiverIdProvider.future);
 
       final equipment = EquipmentItem(

@@ -159,21 +159,21 @@ class DiveComputer extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        diverId,
-        name,
-        manufacturer,
-        model,
-        serialNumber,
-        connectionType,
-        bluetoothAddress,
-        lastDownload,
-        diveCount,
-        isFavorite,
-        notes,
-        createdAt,
-        updatedAt,
-      ];
+    id,
+    diverId,
+    name,
+    manufacturer,
+    model,
+    serialNumber,
+    connectionType,
+    bluetoothAddress,
+    lastDownload,
+    diveCount,
+    isFavorite,
+    notes,
+    createdAt,
+    updatedAt,
+  ];
 }
 
 /// Connection types for dive computers

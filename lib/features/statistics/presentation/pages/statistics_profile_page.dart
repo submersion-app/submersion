@@ -16,9 +16,7 @@ class StatisticsProfilePage extends ConsumerWidget {
     final units = UnitFormatter(settings);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile Analysis'),
-      ),
+      appBar: AppBar(title: const Text('Profile Analysis')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -85,7 +83,7 @@ class StatisticsProfilePage extends ConsumerWidget {
           height: 100,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, __) => const StatEmptyState(
+        error: (_, _) => const StatEmptyState(
           icon: Icons.error_outline,
           message: 'Failed to load rate data',
         ),
@@ -113,16 +111,16 @@ class StatisticsProfilePage extends ConsumerWidget {
           Text(
             value,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                ),
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),
@@ -153,7 +151,7 @@ class StatisticsProfilePage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, __) => const StatEmptyState(
+        error: (_, _) => const StatEmptyState(
           icon: Icons.error_outline,
           message: 'Failed to load depth range data',
         ),
@@ -219,15 +217,15 @@ class StatisticsProfilePage extends ConsumerWidget {
                 children: [
                   Text(
                     'No Deco',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.green,
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: Colors.green),
                   ),
                   Text(
                     'Deco',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.orange,
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: Colors.orange),
                   ),
                 ],
               ),
@@ -238,7 +236,7 @@ class StatisticsProfilePage extends ConsumerWidget {
           height: 100,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, __) => const StatEmptyState(
+        error: (_, _) => const StatEmptyState(
           icon: Icons.error_outline,
           message: 'Failed to load deco data',
         ),
@@ -257,16 +255,16 @@ class StatisticsProfilePage extends ConsumerWidget {
         Text(
           value,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
         ),
         const SizedBox(height: 4),
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
       ],
     );

@@ -69,8 +69,14 @@ class Tag extends Equatable {
   }
 
   @override
-  List<Object?> get props =>
-      [id, diverId, name, colorHex, createdAt, updatedAt];
+  List<Object?> get props => [
+    id,
+    diverId,
+    name,
+    colorHex,
+    createdAt,
+    updatedAt,
+  ];
 }
 
 /// Predefined tag colors for selection

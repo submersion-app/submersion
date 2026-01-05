@@ -84,17 +84,17 @@ class DeviceModel extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        manufacturer,
-        model,
-        connectionTypes,
-        usbVendorId,
-        usbProductId,
-        bleServiceUuid,
-        btServiceUuid,
-        dcFamily,
-        dcModel,
-      ];
+    id,
+    manufacturer,
+    model,
+    connectionTypes,
+    usbVendorId,
+    usbProductId,
+    bleServiceUuid,
+    btServiceUuid,
+    dcFamily,
+    dcModel,
+  ];
 }
 
 /// A discovered device during scanning.
@@ -170,22 +170,16 @@ class DiscoveredDevice extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        name,
-        connectionType,
-        address,
-        signalStrength,
-        recognizedModel,
-        serviceUuids,
-        discoveredAt,
-      ];
+    id,
+    name,
+    connectionType,
+    address,
+    signalStrength,
+    recognizedModel,
+    serviceUuids,
+    discoveredAt,
+  ];
 }
 
 /// Signal strength levels for Bluetooth devices.
-enum SignalStrength {
-  unknown,
-  weak,
-  fair,
-  good,
-  excellent,
-}
+enum SignalStrength { unknown, weak, fair, good, excellent }

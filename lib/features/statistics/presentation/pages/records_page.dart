@@ -59,7 +59,8 @@ class RecordsPage extends ConsumerWidget {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
 
-    final hasRecords = records.deepestDive != null ||
+    final hasRecords =
+        records.deepestDive != null ||
         records.longestDive != null ||
         records.coldestDive != null ||
         records.warmestDive != null;
@@ -72,8 +73,9 @@ class RecordsPage extends ConsumerWidget {
             Icon(
               Icons.emoji_events_outlined,
               size: 80,
-              color:
-                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
@@ -84,8 +86,8 @@ class RecordsPage extends ConsumerWidget {
             Text(
               'Start logging dives to see your records here',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -143,9 +145,9 @@ class RecordsPage extends ConsumerWidget {
         const SizedBox(height: 24),
         Text(
           'Milestones',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
         if (records.firstDive != null)
@@ -201,23 +203,21 @@ class RecordsPage extends ConsumerWidget {
                     Text(
                       title,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       record.siteName ?? 'Unknown Site',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                     Text(
                       DateFormat('MMM d, yyyy').format(record.dateTime),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
@@ -228,17 +228,16 @@ class RecordsPage extends ConsumerWidget {
                   Text(
                     value,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: color,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      color: color,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   if (record.diveNumber != null)
                     Text(
                       'Dive #${record.diveNumber}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                 ],
               ),
@@ -286,15 +285,14 @@ class RecordsPage extends ConsumerWidget {
                     Text(
                       title,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     Text(
                       record.siteName ?? 'Unknown Site',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
@@ -310,9 +308,8 @@ class RecordsPage extends ConsumerWidget {
                     Text(
                       'Dive #${record.diveNumber}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                 ],
               ),

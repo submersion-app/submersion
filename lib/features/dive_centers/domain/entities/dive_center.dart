@@ -86,30 +86,25 @@ class DiveCenter extends Equatable {
   /// Create a new empty dive center
   factory DiveCenter.empty() {
     final now = DateTime.now();
-    return DiveCenter(
-      id: '',
-      name: '',
-      createdAt: now,
-      updatedAt: now,
-    );
+    return DiveCenter(id: '', name: '', createdAt: now, updatedAt: now);
   }
 
   @override
   List<Object?> get props => [
-        id,
-        diverId,
-        name,
-        location,
-        latitude,
-        longitude,
-        country,
-        phone,
-        email,
-        website,
-        affiliations,
-        rating,
-        notes,
-        createdAt,
-        updatedAt,
-      ];
+    id,
+    diverId,
+    name,
+    location,
+    latitude,
+    longitude,
+    country,
+    phone,
+    email,
+    website,
+    affiliations,
+    rating,
+    notes,
+    createdAt,
+    updatedAt,
+  ];
 }

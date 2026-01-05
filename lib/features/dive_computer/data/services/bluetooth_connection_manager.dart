@@ -32,9 +32,9 @@ class BluetoothConnectionManager implements ConnectionManager {
   BluetoothConnectionManager({
     DiveComputerPermissionsService? permissionsService,
     DeviceLibrary? deviceLibrary,
-  })  : _permissionsService =
-            permissionsService ?? DiveComputerPermissionsService(),
-        _deviceLibrary = deviceLibrary ?? DeviceLibrary.instance;
+  }) : _permissionsService =
+           permissionsService ?? DiveComputerPermissionsService(),
+       _deviceLibrary = deviceLibrary ?? DeviceLibrary.instance;
 
   @override
   Stream<ConnectionState> get connectionState => _stateController.stream;
@@ -213,8 +213,9 @@ class BluetoothConnectionManager implements ConnectionManager {
       );
 
       // Listen for disconnection
-      _connectionSubscription =
-          _bluetoothDevice!.connectionState.listen((state) {
+      _connectionSubscription = _bluetoothDevice!.connectionState.listen((
+        state,
+      ) {
         if (state == BluetoothConnectionState.disconnected) {
           _handleDisconnection();
         }
@@ -284,9 +285,9 @@ class BluetoothConnectionManager implements ConnectionManager {
 
     final services = await _bluetoothDevice!.discoverServices();
     return services.cast<BluetoothService?>().firstWhere(
-          (s) => s?.uuid.str.toLowerCase() == uuid.toLowerCase(),
-          orElse: () => null,
-        );
+      (s) => s?.uuid.str.toLowerCase() == uuid.toLowerCase(),
+      orElse: () => null,
+    );
   }
 
   /// Get a specific characteristic from a service.
@@ -298,8 +299,8 @@ class BluetoothConnectionManager implements ConnectionManager {
     if (service == null) return null;
 
     return service.characteristics.cast<BluetoothCharacteristic?>().firstWhere(
-          (c) => c?.uuid.str.toLowerCase() == characteristicUuid.toLowerCase(),
-          orElse: () => null,
-        );
+      (c) => c?.uuid.str.toLowerCase() == characteristicUuid.toLowerCase(),
+      orElse: () => null,
+    );
   }
 }

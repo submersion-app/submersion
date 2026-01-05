@@ -52,9 +52,7 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
     final currentPathAsync = ref.watch(currentDatabasePathProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Database Storage'),
-      ),
+      appBar: AppBar(title: const Text('Database Storage')),
       body: storageState.isMigrating
           ? const _MigrationInProgressView()
           : ListView(
@@ -78,7 +76,8 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
                   title: 'App Default',
                   subtitle: 'Standard app storage location',
                   icon: Icons.phone_android,
-                  isSelected: storageState.config.mode ==
+                  isSelected:
+                      storageState.config.mode ==
                       StorageLocationMode.appDefault,
                   onTap: () => _handleSelectAppDefault(storageState),
                 ),
@@ -89,15 +88,18 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
                     context,
                     theme,
                     title: 'Custom Folder',
-                    subtitle: storageState.config.mode ==
+                    subtitle:
+                        storageState.config.mode ==
                             StorageLocationMode.customFolder
                         ? _truncatePath(storageState.config.customFolderPath)
                         : 'Choose a synced folder (Dropbox, Google Drive, etc.)',
                     icon: Icons.folder,
-                    isSelected: storageState.config.mode ==
+                    isSelected:
+                        storageState.config.mode ==
                         StorageLocationMode.customFolder,
                     onTap: () => _handleSelectCustomFolder(storageState),
-                    trailing: storageState.config.mode ==
+                    trailing:
+                        storageState.config.mode ==
                             StorageLocationMode.customFolder
                         ? TextButton(
                             onPressed: () =>
@@ -140,9 +142,9 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
       child: Text(
         title,
         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.bold,
-            ),
+          color: Theme.of(context).colorScheme.primary,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
@@ -224,22 +226,16 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
     Widget? trailing,
   }) {
     return ListTile(
-      leading: Icon(
-        icon,
-        color: isSelected ? theme.colorScheme.primary : null,
-      ),
+      leading: Icon(icon, color: isSelected ? theme.colorScheme.primary : null),
       title: Text(
         title,
         style: TextStyle(
           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
         ),
       ),
-      subtitle: Text(
-        subtitle,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-      ),
-      trailing: trailing ??
+      subtitle: Text(subtitle, maxLines: 2, overflow: TextOverflow.ellipsis),
+      trailing:
+          trailing ??
           (isSelected
               ? Icon(Icons.check_circle, color: theme.colorScheme.primary)
               : const Icon(Icons.chevron_right)),
@@ -269,11 +265,7 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.info_outline,
-            size: 20,
-            color: theme.colorScheme.primary,
-          ),
+          Icon(Icons.info_outline, size: 20, color: theme.colorScheme.primary),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -304,10 +296,7 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.error_outline,
-            color: theme.colorScheme.error,
-          ),
+          Icon(Icons.error_outline, color: theme.colorScheme.error),
           const SizedBox(width: 12),
           Expanded(
             child: Text(

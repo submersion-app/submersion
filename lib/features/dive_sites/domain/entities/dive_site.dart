@@ -23,9 +23,9 @@ enum SiteDifficulty {
   static SiteDifficulty? fromString(String? value) {
     if (value == null) return null;
     return SiteDifficulty.values.cast<SiteDifficulty?>().firstWhere(
-          (e) => e?.name == value.toLowerCase(),
-          orElse: () => null,
-        );
+      (e) => e?.name == value.toLowerCase(),
+      orElse: () => null,
+    );
   }
 }
 
@@ -135,25 +135,25 @@ class DiveSite extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        diverId,
-        name,
-        description,
-        location,
-        minDepth,
-        maxDepth,
-        difficulty,
-        country,
-        region,
-        photoIds,
-        rating,
-        notes,
-        hazards,
-        accessNotes,
-        mooringNumber,
-        parkingInfo,
-        conditions,
-      ];
+    id,
+    diverId,
+    name,
+    description,
+    location,
+    minDepth,
+    maxDepth,
+    difficulty,
+    country,
+    region,
+    photoIds,
+    rating,
+    notes,
+    hazards,
+    accessNotes,
+    mooringNumber,
+    parkingInfo,
+    conditions,
+  ];
 }
 
 /// Geographic coordinates
@@ -193,12 +193,12 @@ class SiteConditions extends Equatable {
 
   @override
   List<Object?> get props => [
-        waterType,
-        typicalVisibility,
-        typicalCurrent,
-        bestSeason,
-        minTemp,
-        maxTemp,
-        entryType,
-      ];
+    waterType,
+    typicalVisibility,
+    typicalCurrent,
+    bestSeason,
+    minTemp,
+    maxTemp,
+    entryType,
+  ];
 }

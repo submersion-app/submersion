@@ -15,10 +15,7 @@ import '../providers/site_providers.dart';
 class SiteDetailPage extends ConsumerWidget {
   final String siteId;
 
-  const SiteDetailPage({
-    super.key,
-    required this.siteId,
-  });
+  const SiteDetailPage({super.key, required this.siteId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -120,8 +117,10 @@ class SiteDetailPage extends ConsumerWidget {
 
   Widget _buildMapSection(BuildContext context, DiveSite site) {
     final colorScheme = Theme.of(context).colorScheme;
-    final siteLocation =
-        LatLng(site.location!.latitude, site.location!.longitude);
+    final siteLocation = LatLng(
+      site.location!.latitude,
+      site.location!.longitude,
+    );
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -213,15 +212,15 @@ class SiteDetailPage extends ConsumerWidget {
 
   void _showFullscreenMap(BuildContext context, DiveSite site) {
     final colorScheme = Theme.of(context).colorScheme;
-    final siteLocation =
-        LatLng(site.location!.latitude, site.location!.longitude);
+    final siteLocation = LatLng(
+      site.location!.latitude,
+      site.location!.longitude,
+    );
 
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => Scaffold(
-          appBar: AppBar(
-            title: Text(site.name),
-          ),
+          appBar: AppBar(title: Text(site.name)),
           body: FlutterMap(
             options: MapOptions(
               initialCenter: siteLocation,
@@ -303,15 +302,15 @@ class SiteDetailPage extends ConsumerWidget {
                   Text(
                     site.name,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   if (site.locationString.isNotEmpty)
                     Text(
                       site.locationString,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                     ),
                 ],
               ),
@@ -339,9 +338,7 @@ class SiteDetailPage extends ConsumerWidget {
                 ? () {
                     // Set the filter to this site and navigate to dive list
                     ref.read(diveFilterProvider.notifier).state =
-                        DiveFilterState(
-                      siteId: site.id,
-                    );
+                        DiveFilterState(siteId: site.id);
                     context.go('/dives');
                   }
                 : null,
@@ -372,12 +369,10 @@ class SiteDetailPage extends ConsumerWidget {
                           diveCount == 0
                               ? 'No dives logged yet'
                               : diveCount == 1
-                                  ? '1 dive logged'
-                                  : '$diveCount dives logged',
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
+                              ? '1 dive logged'
+                              : '$diveCount dives logged',
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: colorScheme.onSurfaceVariant),
                         ),
                       ],
                     ),
@@ -419,7 +414,7 @@ class SiteDetailPage extends ConsumerWidget {
           ),
         ),
       ),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 
@@ -435,11 +430,7 @@ class SiteDetailPage extends ConsumerWidget {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.description,
-                  size: 20,
-                  color: colorScheme.primary,
-                ),
+                Icon(Icons.description, size: 20, color: colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
                   'Description',
@@ -451,9 +442,9 @@ class SiteDetailPage extends ConsumerWidget {
             Text(
               hasDescription ? site.description : 'No description',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: hasDescription ? null : colorScheme.onSurfaceVariant,
-                    fontStyle: hasDescription ? null : FontStyle.italic,
-                  ),
+                color: hasDescription ? null : colorScheme.onSurfaceVariant,
+                fontStyle: hasDescription ? null : FontStyle.italic,
+              ),
             ),
           ],
         ),
@@ -472,11 +463,7 @@ class SiteDetailPage extends ConsumerWidget {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.map,
-                  size: 20,
-                  color: colorScheme.primary,
-                ),
+                Icon(Icons.map, size: 20, color: colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
                   'Location',
@@ -548,15 +535,15 @@ class SiteDetailPage extends ConsumerWidget {
                 Text(
                   label,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 Text(
                   value,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: isEmpty ? colorScheme.onSurfaceVariant : null,
-                        fontStyle: isEmpty ? FontStyle.italic : null,
-                      ),
+                    color: isEmpty ? colorScheme.onSurfaceVariant : null,
+                    fontStyle: isEmpty ? FontStyle.italic : null,
+                  ),
                 ),
               ],
             ),
@@ -642,9 +629,9 @@ class SiteDetailPage extends ConsumerWidget {
                 child: Text(
                   'No depth information',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                        fontStyle: FontStyle.italic,
-                      ),
+                    color: colorScheme.onSurfaceVariant,
+                    fontStyle: FontStyle.italic,
+                  ),
                 ),
               )
             else
@@ -656,17 +643,13 @@ class SiteDetailPage extends ConsumerWidget {
                         children: [
                           Text(
                             'Minimum',
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: colorScheme.onSurfaceVariant,
-                                    ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: colorScheme.onSurfaceVariant),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             '${formatPrimary(site.minDepth!)} $primarySymbol',
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
+                            style: Theme.of(context).textTheme.headlineSmall
                                 ?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: colorScheme.secondary,
@@ -674,10 +657,8 @@ class SiteDetailPage extends ConsumerWidget {
                           ),
                           Text(
                             '${formatSecondary(site.minDepth!)} $secondarySymbol',
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: colorScheme.onSurfaceVariant,
-                                    ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: colorScheme.onSurfaceVariant),
                           ),
                         ],
                       ),
@@ -694,17 +675,13 @@ class SiteDetailPage extends ConsumerWidget {
                         children: [
                           Text(
                             'Maximum',
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: colorScheme.onSurfaceVariant,
-                                    ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: colorScheme.onSurfaceVariant),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             '${formatPrimary(site.maxDepth!)} $primarySymbol',
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
+                            style: Theme.of(context).textTheme.headlineSmall
                                 ?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: colorScheme.primary,
@@ -712,10 +689,8 @@ class SiteDetailPage extends ConsumerWidget {
                           ),
                           Text(
                             '${formatSecondary(site.maxDepth!)} $secondarySymbol',
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: colorScheme.onSurfaceVariant,
-                                    ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: colorScheme.onSurfaceVariant),
                           ),
                         ],
                       ),
@@ -780,11 +755,14 @@ class SiteDetailPage extends ConsumerWidget {
             const SizedBox(height: 12),
             Center(
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
-                  color: getDifficultyColor(site.difficulty!)
-                      .withValues(alpha: 0.15),
+                  color: getDifficultyColor(
+                    site.difficulty!,
+                  ).withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
                     color: getDifficultyColor(site.difficulty!),
@@ -803,9 +781,9 @@ class SiteDetailPage extends ConsumerWidget {
                     Text(
                       site.difficulty!.displayName,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: getDifficultyColor(site.difficulty!),
-                          ),
+                        fontWeight: FontWeight.bold,
+                        color: getDifficultyColor(site.difficulty!),
+                      ),
                     ),
                   ],
                 ),
@@ -829,25 +807,18 @@ class SiteDetailPage extends ConsumerWidget {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.warning_amber,
-                  size: 20,
-                  color: colorScheme.error,
-                ),
+                Icon(Icons.warning_amber, size: 20, color: colorScheme.error),
                 const SizedBox(width: 8),
                 Text(
                   'Hazards & Safety',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: colorScheme.error,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleMedium?.copyWith(color: colorScheme.error),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            Text(
-              site.hazards!,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
+            Text(site.hazards!, style: Theme.of(context).textTheme.bodyMedium),
           ],
         ),
       ),
@@ -865,11 +836,7 @@ class SiteDetailPage extends ConsumerWidget {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.directions,
-                  size: 20,
-                  color: colorScheme.primary,
-                ),
+                Icon(Icons.directions, size: 20, color: colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
                   'Access & Logistics',
@@ -922,16 +889,9 @@ class SiteDetailPage extends ConsumerWidget {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.star,
-                  size: 20,
-                  color: colorScheme.primary,
-                ),
+                Icon(Icons.star, size: 20, color: colorScheme.primary),
                 const SizedBox(width: 8),
-                Text(
-                  'Rating',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
+                Text('Rating', style: Theme.of(context).textTheme.titleMedium),
               ],
             ),
             const SizedBox(height: 12),
@@ -957,9 +917,9 @@ class SiteDetailPage extends ConsumerWidget {
                     ? '${rating.toStringAsFixed(1)} out of 5'
                     : 'Not rated',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                      fontStyle: hasRating ? null : FontStyle.italic,
-                    ),
+                  color: colorScheme.onSurfaceVariant,
+                  fontStyle: hasRating ? null : FontStyle.italic,
+                ),
               ),
             ),
           ],
@@ -980,25 +940,18 @@ class SiteDetailPage extends ConsumerWidget {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.notes,
-                  size: 20,
-                  color: colorScheme.primary,
-                ),
+                Icon(Icons.notes, size: 20, color: colorScheme.primary),
                 const SizedBox(width: 8),
-                Text(
-                  'Notes',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
+                Text('Notes', style: Theme.of(context).textTheme.titleMedium),
               ],
             ),
             const SizedBox(height: 12),
             Text(
               hasNotes ? site.notes : 'No notes',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: hasNotes ? null : colorScheme.onSurfaceVariant,
-                    fontStyle: hasNotes ? null : FontStyle.italic,
-                  ),
+                color: hasNotes ? null : colorScheme.onSurfaceVariant,
+                fontStyle: hasNotes ? null : FontStyle.italic,
+              ),
             ),
           ],
         ),

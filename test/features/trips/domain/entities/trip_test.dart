@@ -43,10 +43,7 @@ void main() {
 
     test('copyWith can set nullable fields to null', () {
       // This is the key test - can we clear optional fields?
-      final updated = baseTrip.copyWith(
-        location: null,
-        resortName: null,
-      );
+      final updated = baseTrip.copyWith(location: null, resortName: null);
 
       expect(updated.location, isNull);
       expect(updated.resortName, isNull);
@@ -61,17 +58,13 @@ void main() {
       expect(tripWithLiveaboard.liveaboardName, 'Ocean Explorer');
 
       // Now clear it
-      final cleared = tripWithLiveaboard.copyWith(
-        liveaboardName: null,
-      );
+      final cleared = tripWithLiveaboard.copyWith(liveaboardName: null);
 
       expect(cleared.liveaboardName, isNull);
     });
 
     test('copyWith can replace null with a value', () {
-      final tripWithoutLiveaboard = baseTrip.copyWith(
-        liveaboardName: null,
-      );
+      final tripWithoutLiveaboard = baseTrip.copyWith(liveaboardName: null);
 
       expect(tripWithoutLiveaboard.liveaboardName, isNull);
 

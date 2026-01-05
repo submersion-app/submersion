@@ -24,10 +24,7 @@ class UploadResult {
   final String fileId;
   final DateTime uploadTime;
 
-  const UploadResult({
-    required this.fileId,
-    required this.uploadTime,
-  });
+  const UploadResult({required this.fileId, required this.uploadTime});
 }
 
 /// Exception thrown by cloud storage operations

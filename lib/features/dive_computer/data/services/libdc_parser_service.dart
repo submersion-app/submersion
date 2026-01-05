@@ -127,12 +127,10 @@ class LibdcParserService {
       final vendorPtr = _bindings!.dc_descriptor_get_vendor(desc.value);
       final productPtr = _bindings!.dc_descriptor_get_product(desc.value);
 
-      computers.add(
-        (
-          vendor: vendorPtr.cast<Utf8>().toDartString(),
-          product: productPtr.cast<Utf8>().toDartString(),
-        ),
-      );
+      computers.add((
+        vendor: vendorPtr.cast<Utf8>().toDartString(),
+        product: productPtr.cast<Utf8>().toDartString(),
+      ));
 
       _bindings!.dc_descriptor_free(desc.value);
     }
@@ -259,8 +257,9 @@ class LibdcParserService {
       0,
       avgDepthPtr.cast(),
     );
-    final avgDepth =
-        result == dc_status_t.DC_STATUS_SUCCESS ? avgDepthPtr.value : null;
+    final avgDepth = result == dc_status_t.DC_STATUS_SUCCESS
+        ? avgDepthPtr.value
+        : null;
     calloc.free(avgDepthPtr);
 
     // Get temperatures
@@ -271,8 +270,9 @@ class LibdcParserService {
       0,
       tempMinPtr.cast(),
     );
-    final tempMin =
-        result == dc_status_t.DC_STATUS_SUCCESS ? tempMinPtr.value : null;
+    final tempMin = result == dc_status_t.DC_STATUS_SUCCESS
+        ? tempMinPtr.value
+        : null;
     calloc.free(tempMinPtr);
 
     final tempMaxPtr = calloc<ffi.Double>();
@@ -282,8 +282,9 @@ class LibdcParserService {
       0,
       tempMaxPtr.cast(),
     );
-    final tempMax =
-        result == dc_status_t.DC_STATUS_SUCCESS ? tempMaxPtr.value : null;
+    final tempMax = result == dc_status_t.DC_STATUS_SUCCESS
+        ? tempMaxPtr.value
+        : null;
     calloc.free(tempMaxPtr);
 
     // Get date/time
@@ -342,8 +343,9 @@ class LibdcParserService {
     List<ProfileSample> samples,
   ) {
     // Get pressure samples
-    final pressureSamples =
-        samples.where((s) => s.pressure != null && s.pressure! > 0).toList();
+    final pressureSamples = samples
+        .where((s) => s.pressure != null && s.pressure! > 0)
+        .toList();
 
     if (pressureSamples.isEmpty) {
       _log.info('No pressure samples to calculate tank pressures');
@@ -522,8 +524,9 @@ class LibdcParserService {
     }
 
     // Log sample statistics
-    final samplesWithPressure =
-        _sampleData.where((s) => s.pressure != null).length;
+    final samplesWithPressure = _sampleData
+        .where((s) => s.pressure != null)
+        .length;
     _log.info(
       'Parsed ${_sampleData.length} samples, '
       '$_pressureSampleCount pressure callbacks received, '

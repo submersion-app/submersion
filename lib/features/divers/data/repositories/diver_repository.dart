@@ -69,7 +69,9 @@ class DiverRepository {
       final id = diver.id.isEmpty ? _uuid.v4() : diver.id;
       final now = DateTime.now();
 
-      await _db.into(_db.divers).insert(
+      await _db
+          .into(_db.divers)
+          .insert(
             DiversCompanion(
               id: Value(id),
               name: Value(diver.name),
@@ -84,8 +86,9 @@ class DiverRepository {
               allergies: Value(diver.allergies),
               insuranceProvider: Value(diver.insurance.provider),
               insurancePolicyNumber: Value(diver.insurance.policyNumber),
-              insuranceExpiryDate:
-                  Value(diver.insurance.expiryDate?.millisecondsSinceEpoch),
+              insuranceExpiryDate: Value(
+                diver.insurance.expiryDate?.millisecondsSinceEpoch,
+              ),
               notes: Value(diver.notes),
               isDefault: Value(diver.isDefault),
               createdAt: Value(now.millisecondsSinceEpoch),
@@ -124,8 +127,9 @@ class DiverRepository {
           allergies: Value(diver.allergies),
           insuranceProvider: Value(diver.insurance.provider),
           insurancePolicyNumber: Value(diver.insurance.policyNumber),
-          insuranceExpiryDate:
-              Value(diver.insurance.expiryDate?.millisecondsSinceEpoch),
+          insuranceExpiryDate: Value(
+            diver.insurance.expiryDate?.millisecondsSinceEpoch,
+          ),
           notes: Value(diver.notes),
           isDefault: Value(diver.isDefault),
           updatedAt: Value(now),
@@ -190,8 +194,9 @@ class DiverRepository {
       );
 
       // Delete diver settings (not nullable, so delete instead of nullify)
-      await (_db.delete(_db.diverSettings)..where((t) => t.diverId.equals(id)))
-          .go();
+      await (_db.delete(
+        _db.diverSettings,
+      )..where((t) => t.diverId.equals(id))).go();
 
       // Now delete the diver
       await (_db.delete(_db.divers)..where((t) => t.id.equals(id))).go();
@@ -222,10 +227,12 @@ class DiverRepository {
   /// Get dive count for a diver
   Future<int> getDiveCountForDiver(String diverId) async {
     try {
-      final result = await _db.customSelect(
-        'SELECT COUNT(*) as count FROM dives WHERE diver_id = ?',
-        variables: [Variable.withString(diverId)],
-      ).getSingle();
+      final result = await _db
+          .customSelect(
+            'SELECT COUNT(*) as count FROM dives WHERE diver_id = ?',
+            variables: [Variable.withString(diverId)],
+          )
+          .getSingle();
       return result.data['count'] as int? ?? 0;
     } catch (e, stackTrace) {
       _log.error('Failed to get dive count for diver: $diverId', e, stackTrace);
@@ -236,10 +243,12 @@ class DiverRepository {
   /// Get total bottom time for a diver in seconds
   Future<int> getTotalBottomTimeForDiver(String diverId) async {
     try {
-      final result = await _db.customSelect(
-        'SELECT COALESCE(SUM(duration), 0) as total FROM dives WHERE diver_id = ?',
-        variables: [Variable.withString(diverId)],
-      ).getSingle();
+      final result = await _db
+          .customSelect(
+            'SELECT COALESCE(SUM(duration), 0) as total FROM dives WHERE diver_id = ?',
+            variables: [Variable.withString(diverId)],
+          )
+          .getSingle();
       return result.data['total'] as int? ?? 0;
     } catch (e, stackTrace) {
       _log.error(

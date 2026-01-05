@@ -40,9 +40,7 @@ class MigrationConfirmationDialog extends StatelessWidget {
             const SizedBox(height: 12),
 
             // Arrow
-            const Center(
-              child: Icon(Icons.arrow_downward, color: Colors.grey),
-            ),
+            const Center(child: Icon(Icons.arrow_downward, color: Colors.grey)),
             const SizedBox(height: 12),
 
             // To path
@@ -59,8 +57,9 @@ class MigrationConfirmationDialog extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color:
-                    theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+                color: theme.colorScheme.primaryContainer.withValues(
+                  alpha: 0.3,
+                ),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(

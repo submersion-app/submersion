@@ -57,17 +57,14 @@ class BuddyRepository {
       if (diverId != null) Variable.withString(diverId),
     ];
 
-    final results = await _db.customSelect(
-      '''
+    final results = await _db.customSelect('''
       SELECT * FROM buddies
       WHERE (LOWER(name) LIKE ?
          OR LOWER(email) LIKE ?
          OR phone LIKE ?)
       $diverFilter
       ORDER BY name ASC
-    ''',
-      variables: variables,
-    ).get();
+    ''', variables: variables).get();
 
     return results.map((row) {
       return domain.Buddy(
@@ -84,10 +81,12 @@ class BuddyRepository {
         ),
         photoPath: row.data['photo_path'] as String?,
         notes: (row.data['notes'] as String?) ?? '',
-        createdAt:
-            DateTime.fromMillisecondsSinceEpoch(row.data['created_at'] as int),
-        updatedAt:
-            DateTime.fromMillisecondsSinceEpoch(row.data['updated_at'] as int),
+        createdAt: DateTime.fromMillisecondsSinceEpoch(
+          row.data['created_at'] as int,
+        ),
+        updatedAt: DateTime.fromMillisecondsSinceEpoch(
+          row.data['updated_at'] as int,
+        ),
       );
     }).toList();
   }
@@ -99,7 +98,9 @@ class BuddyRepository {
       final id = buddy.id.isEmpty ? _uuid.v4() : buddy.id;
       final now = DateTime.now();
 
-      await _db.into(_db.buddies).insert(
+      await _db
+          .into(_db.buddies)
+          .insert(
             BuddiesCompanion(
               id: Value(id),
               diverId: Value(buddy.diverId),
@@ -133,14 +134,16 @@ class BuddyRepository {
       }
 
       // Search for exact match (case-insensitive)
-      final results = await _db.customSelect(
-        '''
+      final results = await _db
+          .customSelect(
+            '''
         SELECT * FROM buddies
         WHERE LOWER(name) = LOWER(?)
         LIMIT 1
       ''',
-        variables: [Variable.withString(trimmedName)],
-      ).get();
+            variables: [Variable.withString(trimmedName)],
+          )
+          .get();
 
       if (results.isNotEmpty) {
         final row = results.first;
@@ -190,8 +193,9 @@ class BuddyRepository {
       _log.info('Updating buddy: ${buddy.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await (_db.update(_db.buddies)..where((t) => t.id.equals(buddy.id)))
-          .write(
+      await (_db.update(
+        _db.buddies,
+      )..where((t) => t.id.equals(buddy.id))).write(
         BuddiesCompanion(
           name: Value(buddy.name),
           email: Value(buddy.email),
@@ -225,16 +229,18 @@ class BuddyRepository {
 
   /// Get buddies for a specific dive
   Future<List<domain.BuddyWithRole>> getBuddiesForDive(String diveId) async {
-    final results = await _db.customSelect(
-      '''
+    final results = await _db
+        .customSelect(
+          '''
       SELECT b.*, db.role
       FROM buddies b
       INNER JOIN dive_buddies db ON b.id = db.buddy_id
       WHERE db.dive_id = ?
       ORDER BY b.name ASC
     ''',
-      variables: [Variable.withString(diveId)],
-    ).get();
+          variables: [Variable.withString(diveId)],
+        )
+        .get();
 
     return results.map((row) {
       final buddy = domain.Buddy(
@@ -250,10 +256,12 @@ class BuddyRepository {
         ),
         photoPath: row.data['photo_path'] as String?,
         notes: (row.data['notes'] as String?) ?? '',
-        createdAt:
-            DateTime.fromMillisecondsSinceEpoch(row.data['created_at'] as int),
-        updatedAt:
-            DateTime.fromMillisecondsSinceEpoch(row.data['updated_at'] as int),
+        createdAt: DateTime.fromMillisecondsSinceEpoch(
+          row.data['created_at'] as int,
+        ),
+        updatedAt: DateTime.fromMillisecondsSinceEpoch(
+          row.data['updated_at'] as int,
+        ),
       );
       final role = BuddyRole.values.firstWhere(
         (r) => r.name == row.data['role'],
@@ -269,13 +277,16 @@ class BuddyRepository {
     List<domain.BuddyWithRole> buddies,
   ) async {
     // Delete existing dive buddies
-    await (_db.delete(_db.diveBuddies)..where((t) => t.diveId.equals(diveId)))
-        .go();
+    await (_db.delete(
+      _db.diveBuddies,
+    )..where((t) => t.diveId.equals(diveId))).go();
 
     // Insert new dive buddies
     final now = DateTime.now().millisecondsSinceEpoch;
     for (final buddyWithRole in buddies) {
-      await _db.into(_db.diveBuddies).insert(
+      await _db
+          .into(_db.diveBuddies)
+          .insert(
             DiveBuddiesCompanion(
               id: Value(_uuid.v4()),
               diveId: Value(diveId),
@@ -296,9 +307,11 @@ class BuddyRepository {
     final now = DateTime.now().millisecondsSinceEpoch;
 
     // Check if already exists
-    final existing = await (_db.select(_db.diveBuddies)
-          ..where((t) => t.diveId.equals(diveId) & t.buddyId.equals(buddyId)))
-        .getSingleOrNull();
+    final existing =
+        await (_db.select(_db.diveBuddies)..where(
+              (t) => t.diveId.equals(diveId) & t.buddyId.equals(buddyId),
+            ))
+            .getSingleOrNull();
 
     if (existing != null) {
       // Update role
@@ -307,7 +320,9 @@ class BuddyRepository {
           .write(DiveBuddiesCompanion(role: Value(role.name)));
     } else {
       // Insert new
-      await _db.into(_db.diveBuddies).insert(
+      await _db
+          .into(_db.diveBuddies)
+          .insert(
             DiveBuddiesCompanion(
               id: Value(_uuid.v4()),
               diveId: Value(diveId),
@@ -321,36 +336,40 @@ class BuddyRepository {
 
   /// Remove a buddy from a dive
   Future<void> removeBuddyFromDive(String diveId, String buddyId) async {
-    await (_db.delete(_db.diveBuddies)
-          ..where((t) => t.diveId.equals(diveId) & t.buddyId.equals(buddyId)))
-        .go();
+    await (_db.delete(
+      _db.diveBuddies,
+    )..where((t) => t.diveId.equals(diveId) & t.buddyId.equals(buddyId))).go();
   }
 
   /// Get dive count for a buddy
   Future<int> getDiveCountForBuddy(String buddyId) async {
-    final result = await _db.customSelect(
-      '''
+    final result = await _db
+        .customSelect(
+          '''
       SELECT COUNT(*) as count
       FROM dive_buddies
       WHERE buddy_id = ?
     ''',
-      variables: [Variable.withString(buddyId)],
-    ).getSingle();
+          variables: [Variable.withString(buddyId)],
+        )
+        .getSingle();
 
     return result.data['count'] as int? ?? 0;
   }
 
   /// Get dives shared with a buddy
   Future<List<String>> getDiveIdsForBuddy(String buddyId) async {
-    final results = await _db.customSelect(
-      '''
+    final results = await _db
+        .customSelect(
+          '''
       SELECT dive_id
       FROM dive_buddies
       WHERE buddy_id = ?
       ORDER BY created_at DESC
     ''',
-      variables: [Variable.withString(buddyId)],
-    ).get();
+          variables: [Variable.withString(buddyId)],
+        )
+        .get();
 
     return results.map((row) => row.data['dive_id'] as String).toList();
   }
@@ -361,8 +380,9 @@ class BuddyRepository {
     final diveCount = await getDiveCountForBuddy(buddyId);
 
     // Get first and last dive dates
-    final datesResult = await _db.customSelect(
-      '''
+    final datesResult = await _db
+        .customSelect(
+          '''
       SELECT
         MIN(d.dive_date_time) as first_dive,
         MAX(d.dive_date_time) as last_dive
@@ -370,8 +390,9 @@ class BuddyRepository {
       INNER JOIN dive_buddies db ON d.id = db.dive_id
       WHERE db.buddy_id = ?
     ''',
-      variables: [Variable.withString(buddyId)],
-    ).getSingleOrNull();
+          variables: [Variable.withString(buddyId)],
+        )
+        .getSingleOrNull();
 
     DateTime? firstDive;
     DateTime? lastDive;
@@ -388,8 +409,9 @@ class BuddyRepository {
     }
 
     // Get favorite site (most dived together)
-    final favoriteSiteResult = await _db.customSelect(
-      '''
+    final favoriteSiteResult = await _db
+        .customSelect(
+          '''
       SELECT ds.name, COUNT(*) as count
       FROM dives d
       INNER JOIN dive_buddies db ON d.id = db.dive_id
@@ -399,8 +421,9 @@ class BuddyRepository {
       ORDER BY count DESC
       LIMIT 1
     ''',
-      variables: [Variable.withString(buddyId)],
-    ).getSingleOrNull();
+          variables: [Variable.withString(buddyId)],
+        )
+        .getSingleOrNull();
 
     String? favoriteSite;
     if (favoriteSiteResult != null) {

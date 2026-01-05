@@ -48,13 +48,13 @@ class Species extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        commonName,
-        scientificName,
-        category,
-        description,
-        photoPath,
-      ];
+    id,
+    commonName,
+    scientificName,
+    category,
+    description,
+    photoPath,
+  ];
 }
 
 /// A sighting of a species during a dive
@@ -99,12 +99,12 @@ class Sighting extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        diveId,
-        speciesId,
-        speciesName,
-        speciesCategory,
-        count,
-        notes,
-      ];
+    id,
+    diveId,
+    speciesId,
+    speciesName,
+    speciesCategory,
+    count,
+    notes,
+  ];
 }

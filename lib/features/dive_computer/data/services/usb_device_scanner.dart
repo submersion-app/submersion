@@ -20,9 +20,8 @@ class UsbDeviceScanner {
   /// Cached list of supported computers from libdivecomputer
   List<dc.Computer>? _supportedComputers;
 
-  UsbDeviceScanner({
-    DeviceLibrary? deviceLibrary,
-  }) : _deviceLibrary = deviceLibrary ?? DeviceLibrary.instance;
+  UsbDeviceScanner({DeviceLibrary? deviceLibrary})
+    : _deviceLibrary = deviceLibrary ?? DeviceLibrary.instance;
 
   /// Get all USB-capable device models from the library.
   ///
@@ -43,9 +42,7 @@ class UsbDeviceScanner {
 
     // Sort manufacturers alphabetically
     final sortedKeys = grouped.keys.toList()..sort();
-    return {
-      for (final key in sortedKeys) key: grouped[key]!,
-    };
+    return {for (final key in sortedKeys) key: grouped[key]!};
   }
 
   /// Create a discovered device entry for a USB device model.

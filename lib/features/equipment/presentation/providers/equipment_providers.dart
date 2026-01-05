@@ -13,71 +13,84 @@ final equipmentRepositoryProvider = Provider<EquipmentRepository>((ref) {
 });
 
 /// Active equipment provider
-final activeEquipmentProvider =
-    FutureProvider<List<EquipmentItem>>((ref) async {
+final activeEquipmentProvider = FutureProvider<List<EquipmentItem>>((
+  ref,
+) async {
   final repository = ref.watch(equipmentRepositoryProvider);
-  final validatedDiverId =
-      await ref.watch(validatedCurrentDiverIdProvider.future);
+  final validatedDiverId = await ref.watch(
+    validatedCurrentDiverIdProvider.future,
+  );
   return repository.getActiveEquipment(diverId: validatedDiverId);
 });
 
 /// Retired equipment provider
-final retiredEquipmentProvider =
-    FutureProvider<List<EquipmentItem>>((ref) async {
+final retiredEquipmentProvider = FutureProvider<List<EquipmentItem>>((
+  ref,
+) async {
   final repository = ref.watch(equipmentRepositoryProvider);
-  final validatedDiverId =
-      await ref.watch(validatedCurrentDiverIdProvider.future);
+  final validatedDiverId = await ref.watch(
+    validatedCurrentDiverIdProvider.future,
+  );
   return repository.getRetiredEquipment(diverId: validatedDiverId);
 });
 
 /// Equipment by status provider
 final equipmentByStatusProvider =
-    FutureProvider.family<List<EquipmentItem>, EquipmentStatus?>(
-        (ref, status) async {
-  final repository = ref.watch(equipmentRepositoryProvider);
-  final validatedDiverId =
-      await ref.watch(validatedCurrentDiverIdProvider.future);
-  if (status == null) {
-    return repository.getAllEquipment(diverId: validatedDiverId);
-  }
-  return repository.getEquipmentByStatus(status, diverId: validatedDiverId);
-});
+    FutureProvider.family<List<EquipmentItem>, EquipmentStatus?>((
+      ref,
+      status,
+    ) async {
+      final repository = ref.watch(equipmentRepositoryProvider);
+      final validatedDiverId = await ref.watch(
+        validatedCurrentDiverIdProvider.future,
+      );
+      if (status == null) {
+        return repository.getAllEquipment(diverId: validatedDiverId);
+      }
+      return repository.getEquipmentByStatus(status, diverId: validatedDiverId);
+    });
 
 /// All equipment provider
 final allEquipmentProvider = FutureProvider<List<EquipmentItem>>((ref) async {
   final repository = ref.watch(equipmentRepositoryProvider);
-  final validatedDiverId =
-      await ref.watch(validatedCurrentDiverIdProvider.future);
+  final validatedDiverId = await ref.watch(
+    validatedCurrentDiverIdProvider.future,
+  );
   return repository.getAllEquipment(diverId: validatedDiverId);
 });
 
 /// Single equipment item provider
-final equipmentItemProvider =
-    FutureProvider.family<EquipmentItem?, String>((ref, id) async {
+final equipmentItemProvider = FutureProvider.family<EquipmentItem?, String>((
+  ref,
+  id,
+) async {
   final repository = ref.watch(equipmentRepositoryProvider);
   return repository.getEquipmentById(id);
 });
 
 /// Equipment with service due provider
-final serviceDueEquipmentProvider =
-    FutureProvider<List<EquipmentItem>>((ref) async {
+final serviceDueEquipmentProvider = FutureProvider<List<EquipmentItem>>((
+  ref,
+) async {
   final repository = ref.watch(equipmentRepositoryProvider);
-  final validatedDiverId =
-      await ref.watch(validatedCurrentDiverIdProvider.future);
+  final validatedDiverId = await ref.watch(
+    validatedCurrentDiverIdProvider.future,
+  );
   return repository.getEquipmentWithServiceDue(diverId: validatedDiverId);
 });
 
 /// Equipment search provider
 final equipmentSearchProvider =
     FutureProvider.family<List<EquipmentItem>, String>((ref, query) async {
-  final validatedDiverId =
-      await ref.watch(validatedCurrentDiverIdProvider.future);
-  if (query.isEmpty) {
-    return ref.watch(allEquipmentProvider).value ?? [];
-  }
-  final repository = ref.watch(equipmentRepositoryProvider);
-  return repository.searchEquipment(query, diverId: validatedDiverId);
-});
+      final validatedDiverId = await ref.watch(
+        validatedCurrentDiverIdProvider.future,
+      );
+      if (query.isEmpty) {
+        return ref.watch(allEquipmentProvider).value ?? [];
+      }
+      final repository = ref.watch(equipmentRepositoryProvider);
+      return repository.searchEquipment(query, diverId: validatedDiverId);
+    });
 
 /// Equipment list notifier for mutations
 class EquipmentListNotifier
@@ -87,7 +100,7 @@ class EquipmentListNotifier
   String? _validatedDiverId;
 
   EquipmentListNotifier(this._repository, this._ref)
-      : super(const AsyncValue.loading()) {
+    : super(const AsyncValue.loading()) {
     _initializeAndLoad();
 
     // Listen for diver changes and reload
@@ -111,8 +124,9 @@ class EquipmentListNotifier
   Future<void> _loadEquipment() async {
     state = const AsyncValue.loading();
     try {
-      final equipment =
-          await _repository.getActiveEquipment(diverId: _validatedDiverId);
+      final equipment = await _repository.getActiveEquipment(
+        diverId: _validatedDiverId,
+      );
       state = AsyncValue.data(equipment);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -174,54 +188,65 @@ class EquipmentListNotifier
   }
 }
 
-final equipmentListNotifierProvider = StateNotifierProvider<
-    EquipmentListNotifier, AsyncValue<List<EquipmentItem>>>((ref) {
-  final repository = ref.watch(equipmentRepositoryProvider);
-  return EquipmentListNotifier(repository, ref);
-});
+final equipmentListNotifierProvider =
+    StateNotifierProvider<
+      EquipmentListNotifier,
+      AsyncValue<List<EquipmentItem>>
+    >((ref) {
+      final repository = ref.watch(equipmentRepositoryProvider);
+      return EquipmentListNotifier(repository, ref);
+    });
 
 // ============================================================================
 // Service Record Providers
 // ============================================================================
 
 /// Service record repository provider
-final serviceRecordRepositoryProvider =
-    Provider<ServiceRecordRepository>((ref) {
+final serviceRecordRepositoryProvider = Provider<ServiceRecordRepository>((
+  ref,
+) {
   return ServiceRecordRepository();
 });
 
 /// Service records for an equipment item
 final serviceRecordsForEquipmentProvider =
-    FutureProvider.family<List<ServiceRecord>, String>(
-        (ref, equipmentId) async {
-  final repository = ref.watch(serviceRecordRepositoryProvider);
-  return repository.getRecordsForEquipment(equipmentId);
-});
+    FutureProvider.family<List<ServiceRecord>, String>((
+      ref,
+      equipmentId,
+    ) async {
+      final repository = ref.watch(serviceRecordRepositoryProvider);
+      return repository.getRecordsForEquipment(equipmentId);
+    });
 
 /// Single service record provider
-final serviceRecordByIdProvider =
-    FutureProvider.family<ServiceRecord?, String>((ref, id) async {
-  final repository = ref.watch(serviceRecordRepositoryProvider);
-  return repository.getRecordById(id);
-});
+final serviceRecordByIdProvider = FutureProvider.family<ServiceRecord?, String>(
+  (ref, id) async {
+    final repository = ref.watch(serviceRecordRepositoryProvider);
+    return repository.getRecordById(id);
+  },
+);
 
 /// Most recent service record for equipment
 final mostRecentServiceRecordProvider =
     FutureProvider.family<ServiceRecord?, String>((ref, equipmentId) async {
-  final repository = ref.watch(serviceRecordRepositoryProvider);
-  return repository.getMostRecentRecord(equipmentId);
-});
+      final repository = ref.watch(serviceRecordRepositoryProvider);
+      return repository.getMostRecentRecord(equipmentId);
+    });
 
 /// Total service cost for equipment
-final serviceRecordTotalCostProvider =
-    FutureProvider.family<double, String>((ref, equipmentId) async {
+final serviceRecordTotalCostProvider = FutureProvider.family<double, String>((
+  ref,
+  equipmentId,
+) async {
   final repository = ref.watch(serviceRecordRepositoryProvider);
   return repository.getTotalServiceCost(equipmentId);
 });
 
 /// Service record count for equipment
-final serviceRecordCountProvider =
-    FutureProvider.family<int, String>((ref, equipmentId) async {
+final serviceRecordCountProvider = FutureProvider.family<int, String>((
+  ref,
+  equipmentId,
+) async {
   final repository = ref.watch(serviceRecordRepositoryProvider);
   return repository.getRecordCount(equipmentId);
 });
@@ -234,7 +259,7 @@ class ServiceRecordNotifier
   final String equipmentId;
 
   ServiceRecordNotifier(this._repository, this._ref, this.equipmentId)
-      : super(const AsyncValue.loading()) {
+    : super(const AsyncValue.loading()) {
     _loadRecords();
   }
 
@@ -276,10 +301,12 @@ class ServiceRecordNotifier
   }
 }
 
-final serviceRecordNotifierProvider = StateNotifierProvider.family<
-    ServiceRecordNotifier,
-    AsyncValue<List<ServiceRecord>>,
-    String>((ref, equipmentId) {
-  final repository = ref.watch(serviceRecordRepositoryProvider);
-  return ServiceRecordNotifier(repository, ref, equipmentId);
-});
+final serviceRecordNotifierProvider =
+    StateNotifierProvider.family<
+      ServiceRecordNotifier,
+      AsyncValue<List<ServiceRecord>>,
+      String
+    >((ref, equipmentId) {
+      final repository = ref.watch(serviceRecordRepositoryProvider);
+      return ServiceRecordNotifier(repository, ref, equipmentId);
+    });

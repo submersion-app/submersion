@@ -1,11 +1,11 @@
 # Submersion Feature Roadmap
 ## Comprehensive Development Plan
 
-> **Last Updated:** 2025-12-29
+> **Last Updated:** 2026-01-04
 > **Current Version:** 1.1.0 (v1.1 Complete)
 > **Status:** v1.0 ✅ COMPLETE | v1.1 ✅ COMPLETE | v1.5 🚧 In Progress
 >
-> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete - libdivecomputer FFI, BLE/USB scanning, 300+ device library, duplicate detection, incremental downloads, device stats
+> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete - SAC trends, temperature graphs, dive frequency, gas mix distribution
 
 ---
 
@@ -114,6 +114,10 @@
 | ppO₂ curve, CNS/OTU | ✅ Implemented | v1.5 | O2ToxicityCard with NOAA tables |
 | SAC/RMV overlay | ✅ Implemented | v1.5 | Instantaneous gas consumption |
 | Profile export as PNG | 📋 Planned | v2.0 | Export chart image for sharing |
+| Range analysis | 📋 Planned | v2.0 | Select portion of dive for min/max/avg stats |
+| Step-through playback | 📋 Planned | v2.0 | Step through dive in 10-second increments |
+| Heart rate overlay | 📋 Planned | v2.0 | From compatible dive computers |
+| O2/He/N2 saturation display | 📋 Planned | v2.0 | Tissue gas saturation visualization |
 
 **v1.5 Tasks:**
 - [x] Profile event markers (ProfileEvent entity with type, timestamp, severity)
@@ -136,6 +140,7 @@
 | Profile selector UI | ✅ Implemented | v1.5 | ProfileSelectorWidget for switching |
 | Profile comparison (buddies) | 📋 Planned | v2.0 | Side-by-side view |
 | Profile merging | 📋 Planned | v2.0 | Combine multiple sources |
+| Multi-transmitter support | 📋 Planned | v2.0 | Track multiple tank transmitters (sidemount) |
 
 **v1.5 Tasks:**
 - [x] DiveComputer entity (name, manufacturer, model, serial)
@@ -313,6 +318,7 @@
 | Deco stop schedule | ✅ Implemented | v1.5 | Stop depth/time with deep stop support |
 | Calculated vs DC ceiling | 📋 Planned | v1.5 | Compare app calc with computer |
 | OC/CCR support | 📋 Planned | v1.5 | Open Circuit / Closed Circuit Rebreather |
+| SCR support | 📋 Planned | v2.0 | Semi-Closed Rebreather |
 | Setpoints, diluent, bailout | 📋 Planned | v1.5 | CCR-specific fields |
 
 **v1.5 Tasks (Deco Algorithm Implementation):**
@@ -344,6 +350,9 @@
 | Repetitive dive planning | 📋 Planned | v1.5 | Surface interval, tissue loading |
 | Gas consumption projections | 📋 Planned | v1.5 | Based on SAC history |
 | What-if scenarios | 📋 Planned | v2.0 | Deeper/longer/different gas |
+| Lost gas scenarios | 📋 Planned | v2.0 | Plan for lost decompression gas |
+| Turn pressure planning | 📋 Planned | v2.0 | Calculate gas turn pressures for penetration dives |
+| Range plans | 📋 Planned | v2.0 | Multiple profiles with different depths/times |
 
 **v1.5 Tasks:**
 - [ ] Dive Planner page with depth/time segment editor
@@ -624,6 +633,8 @@
 | Taxonomy, photos | 📋 Planned | v1.5 | Scientific names, images |
 | Stats per species | 📋 Planned | v1.5 | First/last seen, depth range |
 | Distribution map | 📋 Planned | v2.0 | Map of sightings |
+| AI species identification | 📋 Planned | v2.0 | Upload photo, AI identifies species |
+| Offline species ID | 📋 Planned | v2.0 | Works without internet connection |
 
 **v1.5 Tasks:**
 - [ ] Add `scientific_name`, `taxonomy_class`, `image_url` to species table
@@ -635,6 +646,9 @@
 - [ ] Species distribution map (heatmap of sightings)
 - [ ] "Life list" progress tracker (total species seen)
 - [ ] Rare species badges
+- [ ] AI-powered species identification from photos (ML model)
+- [ ] Offline species recognition database
+- [ ] Species identification confidence scores
 
 ---
 
@@ -643,9 +657,11 @@
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
 | Attach photos/videos to dives | 📋 Planned | v2.0 | Media table exists, needs UI |
+| Video support in logs | 📋 Planned | v2.0 | Attach and play videos |
 | Auto-match by timestamp | 📋 Planned | v2.0 | EXIF datetime matching |
 | Tag species in photos | 📋 Planned | v2.0 | Image annotation |
 | Color correction | 📋 Planned | v2.0 | Blue filter removal |
+| Shareable dive cards | 📋 Planned | v2.0 | Generate visual summary for social media |
 | Depth/time overlay | 🔮 Future | v3.0 | Requires camera integration |
 
 **v2.0 Tasks:**
@@ -701,15 +717,20 @@
 | Breakdown by year/country/site | ✅ Implemented | MVP | Top sites chart |
 | Depth/time histograms | ✅ Implemented | MVP | Depth distribution |
 | Records page | ✅ Implemented | v1.0 | Deepest, longest, coldest, warmest, first, last |
-| SAC trends | 📋 Planned | v1.5 | Line chart over time |
-| Temperature graphs | 📋 Planned | v1.5 | Preferred temp range |
+| SAC trends | ✅ Implemented | v1.5 | Monthly average over 5 years |
+| Temperature graphs | ✅ Implemented | v1.5 | Water temp by month (min/avg/max) |
 
 **v1.5 Tasks:**
-- [ ] SAC trend line chart (average SAC per month over last 2 years)
-- [ ] Temperature preference chart (histogram of water temps)
-- [ ] Dive frequency chart (dives per month/year)
+- [x] SAC trend line chart (average SAC per month over last 5 years)
+- [x] Temperature preference chart (water temp by month with min/avg/max)
+- [x] Dive frequency chart (dives per year bar chart)
 - [ ] Dive type breakdown (pie chart)
-- [ ] Gas mix usage (how often EAN32, TMX, etc.)
+- [x] Gas mix usage (pie chart showing Air/Nitrox/Trimix distribution)
+- [x] Time pattern charts (day of week, time of day, seasonal)
+- [x] Surface interval statistics (avg/min/max)
+- [x] Depth progression trend (monthly max depth over 5 years)
+- [x] Bottom time trend (average duration by month)
+- [x] Cumulative dive count chart
 
 **v2.0 Tasks:**
 - [ ] Advanced analytics dashboard (customizable widgets)
@@ -808,12 +829,13 @@
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
 | Anonymous usage | ✅ Implemented | MVP | Local-first, no account required |
-| Optional cloud account | 📋 Planned | v2.0 | Opt-in only |
+| iCloud integration | ✅ Implemented | v1.5 | iOS/macOS cloud sync |
+| Google Drive integration | ✅ Implemented | v1.5 | Cross-platform cloud sync |
+| Cloud sync UI | ✅ Implemented | v1.5 | Provider selection, sync status, conflicts |
 
 **v2.0 Tasks:**
-- [ ] Backend service (Firebase, Supabase, or custom)
+- [ ] Backend service for user accounts (Firebase, Supabase)
 - [ ] User authentication (email/password, OAuth)
-- [ ] Opt-in cloud sync toggle in settings
 - [ ] Privacy policy and data handling docs
 
 ---
@@ -822,15 +844,22 @@
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Desktop ↔ mobile ↔ web sync | 📋 Planned | v2.0 | Requires backend |
-| Multi-device support | 📋 Planned | v2.0 | Login on multiple devices |
-| Conflict resolution | 📋 Planned | v2.0 | Last-write-wins or manual |
+| Desktop ↔ mobile sync | ✅ Implemented | v1.5 | Via iCloud/Google Drive |
+| Conflict detection | ✅ Implemented | v1.5 | Tracks conflicts in SyncRecords |
+| Conflict resolution UI | ✅ Implemented | v1.5 | Dialog for resolving conflicts |
+| Sync status indicator | ✅ Implemented | v1.5 | Last sync time, pending changes |
+| Multi-device support | ✅ Implemented | v1.5 | Via cloud storage providers |
+| Web sync | 📋 Planned | v2.0 | Requires backend service |
+
+**v1.5 Tasks (Complete):**
+- [x] Drift schema with `last_modified_at`, `device_id`, `is_deleted` (SyncMetadata, SyncRecords, DeletionLog tables)
+- [x] Sync engine (bidirectional via cloud storage)
+- [x] Conflict detection and resolution UI
+- [x] Sync status indicator (last synced, pending changes)
+- [x] Reset sync state option
 
 **v2.0 Tasks:**
-- [ ] Drift schema with `last_modified_at`, `device_id`, `is_deleted` for all tables
-- [ ] Sync engine (bidirectional, incremental)
-- [ ] Conflict detection and resolution UI
-- [ ] Sync status indicator (last synced, pending changes)
+- [ ] Web platform sync (requires backend)
 - [ ] "Force push" and "force pull" options for troubleshooting
 
 ---
@@ -840,13 +869,14 @@
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
 | Local backup export | ✅ Implemented | MVP | Full SQLite export |
-| Online backup servers | 📋 Planned | v2.0 | Automatic cloud backup |
-| Sync via Dropbox | 📋 Planned | v2.0 | 3rd-party storage sync |
+| Cloud backup via iCloud | ✅ Implemented | v1.5 | Apple platforms |
+| Cloud backup via Google Drive | ✅ Implemented | v1.5 | Cross-platform |
+| Custom folder sync | ✅ Implemented | v1.5 | Dropbox/OneDrive via folder selection |
 
 **v2.0 Tasks:**
-- [ ] Automatic daily backup to cloud (if opted in)
+- [ ] Automatic scheduled backups
 - [ ] Backup history (keep last N backups)
-- [ ] Restore from cloud backup
+- [ ] One-click restore from cloud backup
 
 ---
 
@@ -877,6 +907,7 @@
 | DAN DL7 export | 📋 Planned | v1.5 | Research data format |
 | Excel export | 📋 Planned | v1.5 | .xlsx format |
 | Google Earth KML export | 📋 Planned | v1.5 | Map all dive sites |
+| ePub export | 📋 Planned | v2.0 | Electronic book format for travel |
 | HTML export | 📋 Planned | v2.0 | Web-viewable logbook |
 
 **v1.5 Tasks:**
@@ -885,6 +916,7 @@
 - [ ] KML export (placemark per dive site with description bubble)
 
 **v2.0 Tasks:**
+- [ ] ePub export (electronic book for showing experience digitally)
 - [ ] HTML export (static website with CSS, images, interactive map)
 - [ ] MySQL dump export (for migration to other systems)
 
@@ -899,6 +931,10 @@
 | Import from other apps | 📋 Planned | v1.5 | Diving Log, DiveMate, etc. |
 | Upload to divelogs.de | 📋 Planned | v2.0 | API integration |
 | Garmin Connect integration | 📋 Planned | v2.0 | Import Garmin watch dives |
+| Shearwater Cloud import | 📋 Planned | v2.0 | Import from Shearwater cloud |
+| Suunto app import | 📋 Planned | v2.0 | Import via Suunto cloud/Movescount |
+| Diviac import | 📋 Planned | v2.0 | Import from Diviac online logbook |
+| Deepblu import | 📋 Planned | v2.0 | Import from Deepblu platform |
 
 **v1.5 Tasks:**
 - [ ] Import wizard with app selection (Subsurface, MacDive, Diving Log, etc.)
@@ -909,6 +945,10 @@
 - [ ] divelogs.de API integration (upload/download dives)
 - [ ] Garmin Connect API (import dive activity FIT files)
 - [ ] Automatic conversion from Garmin Descent dive computers
+- [ ] Shearwater Cloud API integration
+- [ ] Suunto app/Movescount API integration
+- [ ] Diviac API integration
+- [ ] Deepblu API integration
 
 ---
 
@@ -935,6 +975,7 @@
 | Share dives to social media | 📋 Planned | v2.0 | FB, Instagram, Twitter |
 | Generate composite images | 📋 Planned | v2.0 | Profile + photo + stats |
 | Share links | 📋 Planned | v2.0 | Web view of dive (requires backend) |
+| Shareable dive cards | 📋 Planned | v2.0 | Visual summary image for social |
 
 **v2.0 Tasks:**
 - [ ] "Share Dive" action with platform picker
@@ -951,6 +992,7 @@
 | View community dive sites | 📋 Planned | v2.0 | Requires backend |
 | Explore nearby sites | 📋 Planned | v2.0 | GPS-based search |
 | User-submitted site photos | 📋 Planned | v2.0 | Photo gallery per site |
+| Dive site reviews & ratings | 📋 Planned | v2.0 | Rate and review sites |
 
 **v2.0 Tasks:**
 - [ ] Community backend (user accounts, public profiles)
@@ -960,7 +1002,30 @@
 
 ---
 
-## 14.3 Booking & Commerce
+## 14.3 Diver Social Network
+
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Diver profiles | 📋 Planned | v2.0 | Public profile with stats, certs, dive count |
+| Follow buddies | 📋 Planned | v2.0 | Activity feed from followed divers |
+| Buddy activity feed | 📋 Planned | v2.0 | New dives, photos, certs from buddies |
+| Community groups | 📋 Planned | v2.0 | Dive clubs, schools, interest groups |
+| In-app messaging | 📋 Planned | v2.0 | Chat between buddies |
+| Public dive feed | 📋 Planned | v2.0 | Discover dive logs from community |
+| Digital instructor signatures | 📋 Planned | v2.0 | Instructors verify/sign training logs |
+
+**v2.0 Tasks:**
+- [ ] Diver profile page (public view with stats, certifications, dive count)
+- [ ] Follow/unfollow other divers
+- [ ] Activity feed (new dives, photos, certifications from followed divers)
+- [ ] Community groups with forums, events, shared stats
+- [ ] In-app messaging between buddies
+- [ ] Public dive feed ("Discover" section)
+- [ ] Privacy controls (public/private/buddies-only)
+
+---
+
+## 14.4 Booking & Commerce
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
@@ -996,11 +1061,10 @@
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Multiple divers per database | ✅ Done | v2.0 | DiveMate-style |
-| Account switching | ✅ Done | v2.0 | Shared devices |
-| Family subscription | 🔮 Future | v3.0 | Monetization strategy |
+| Multiple divers per database | ✅ Done | v1.5 | DiveMate-style |
+| Account switching | ✅ Done | v1.5 | Shared devices |
 
-**v2.0 Tasks:**
+**v1.5 Tasks (Complete):**
 - [x] Diver entity (name, certs, profile)
 - [x] Add `diver_id` to dives table
 - [x] Diver switcher in settings or main nav
@@ -1029,6 +1093,63 @@
 - [ ] Localized date/time/number formats
 - [ ] RTL language support (Arabic, Hebrew)
 - [ ] Translation management workflow (POEditor, Crowdin)
+
+---
+
+## 15.4 Gamification & Achievements
+
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Achievement badges | 📋 Planned | v2.0 | Earn badges for milestones |
+| Dive milestones | 📋 Planned | v2.0 | 100 dives, 1000m depth, etc. |
+| Species life list | 📋 Planned | v2.0 | Track total unique species seen |
+| Depth achievements | 📋 Planned | v2.0 | First 20m, 30m, 40m dives |
+| Streak tracking | 📋 Planned | v2.0 | Monthly/yearly dive streaks |
+| Progress visualization | 📋 Planned | v2.0 | Journey timeline with milestones |
+
+**v2.0 Tasks:**
+- [ ] Achievement system with badge definitions
+- [ ] Milestone tracking (dive count, depths, locations, species)
+- [ ] Badge unlock notifications
+- [ ] Achievement showcase on diver profile
+- [ ] Progress towards next milestone display
+- [ ] Life list tracker (species collection progress)
+
+---
+
+## 15.5 Wearable Integration
+
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Apple Watch Ultra import | 📋 Planned | v2.0 | Import dives via HealthKit |
+| Apple HealthKit integration | 📋 Planned | v2.0 | Read depth/temperature data |
+| Garmin Connect import | 📋 Planned | v2.0 | Import Descent dive activities |
+| Suunto app integration | 📋 Planned | v2.0 | Import via UDDF/Movescount |
+
+**v2.0 Tasks:**
+- [ ] HealthKit permission and data reading
+- [ ] Import Apple Watch Ultra dives (depth, temperature, time)
+- [ ] Garmin Connect API integration
+- [ ] Automatic sync from connected wearables
+- [ ] Merge wearable data with dive computer data
+
+---
+
+## 15.6 Well-being & Safety
+
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Pre-dive feeling monitor | 📋 Planned | v2.0 | Track readiness before dive |
+| Post-dive feeling monitor | 📋 Planned | v2.0 | Track condition after dive |
+| Breathing technique analysis | 📋 Planned | v2.0 | SAC improvement suggestions |
+| Hydration reminders | 📋 Planned | v2.0 | DCS prevention |
+| No-fly countdown | ✅ Implemented | v1.5 | Based on deco status |
+
+**v2.0 Tasks:**
+- [ ] Pre/post dive well-being questionnaire
+- [ ] Correlation analysis (feeling vs dive parameters)
+- [ ] Breathing efficiency tips based on SAC trends
+- [ ] Health trend visualization over time
 
 ---
 
@@ -1081,13 +1202,24 @@
 -- Species extensions: scientific_name, taxonomy_class, image_url
 ```
 
+## v1.5 Tables (Implemented)
+
+```sql
+-- dive_computers (name, manufacturer, model, connection_type, last_download)
+-- dive_profile_events (dive_id, timestamp, event_type, description, severity)
+-- gas_switches (dive_id, timestamp, tank_id, depth)
+-- tank_pressure_profiles (dive_id, tank_id, timestamp, pressure)
+-- divers (multi-user support - fully implemented)
+-- diver_settings (per-diver preferences)
+-- sync_metadata, sync_records, deletion_log (cloud sync infrastructure)
+```
+
 ## v2.0 Tables (Planned)
 
 ```sql
--- users (for cloud sync)
--- divers (for multi-user support)
+-- users (for backend authentication)
 -- saved_filters (Smart Logs)
--- Sync fields: last_modified_at, device_id, is_deleted
+-- courses (training course tracking)
 ```
 
 ---
@@ -1105,6 +1237,8 @@
 ## v1.5 Requirements
 - **Dive Computers:** libdivecomputer (FFI), flutter_blue_plus, usb_serial
 - **Deco:** Custom Bühlmann implementation
+- **Cloud Sync:** googleapis (Google Drive), icloud_storage
+- **Weather/Tides:** http (OpenWeatherMap, World Tides APIs)
 
 ## v2.0 Requirements
 - **Backend:** Firebase/Supabase SDK
@@ -1144,11 +1278,18 @@
 - [x] Duplicate dive detection (fuzzy match on time+depth+duration)
 - [x] Incremental downloads (uses lastDownload timestamp)
 - [x] Device stats page (deepest, longest, avg depth, temp range)
+- [x] Cloud sync via iCloud and Google Drive
+- [x] Sync conflict detection and resolution UI
+- [x] SAC trend charts (monthly average over 5 years)
+- [x] Temperature graphs (water temp by month)
+- [x] Dive frequency charts (dives per year)
+- [x] Gas mix distribution (pie chart)
+- [x] Time pattern analysis (day of week, time of day, seasonal)
 - [ ] Dive planner with deco schedules
 - [ ] Performance with 5000+ dives
 
 ## v2.0 (Planned)
-- [ ] Cloud sync at scale
+- [ ] Web platform with backend service
 - [ ] 7+ language translations
 - [ ] Community features beta tested
 
@@ -1167,21 +1308,5 @@
 
 ---
 
-# Monetization (Future)
-
-**Free Forever:**
-- Unlimited local dives
-- All core logging features
-- CSV/UDDF/PDF export
-- No ads, no tracking
-
-**Premium (v2.0+):**
-- Cloud sync and backup
-- Multi-device support
-- Community features
-- Advanced statistics
-
----
-
-**Document Version:** 2.3
-**Last Updated:** 2025-12-29
+**Document Version:** 2.5
+**Last Updated:** 2026-01-04

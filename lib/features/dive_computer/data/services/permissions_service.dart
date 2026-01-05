@@ -67,9 +67,7 @@ class DiveComputerPermissionsService {
       Permission.locationWhenInUse,
     ].request();
 
-    final allGranted = statuses.values.every(
-      (status) => status.isGranted,
-    );
+    final allGranted = statuses.values.every((status) => status.isGranted);
 
     if (!allGranted) {
       // Check which permissions were denied

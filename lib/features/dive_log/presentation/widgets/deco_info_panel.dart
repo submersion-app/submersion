@@ -206,9 +206,7 @@ class DecoInfoPanel extends StatelessWidget {
       children: [
         Text(
           'Tissue Loading',
-          style: textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
         SizedBox(
@@ -266,8 +264,9 @@ class DecoInfoPanel extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               color: color,
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(2)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(2),
+              ),
             ),
           ),
         ),
@@ -306,10 +305,7 @@ class DecoInfoPanel extends StatelessWidget {
           runSpacing: 8,
           children: status.decoStops.map((stop) {
             return Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 6,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: stop.isDeepStop
                     ? Colors.purple.withValues(alpha: 0.1)
@@ -363,10 +359,7 @@ class DecoInfoPanel extends StatelessWidget {
 class NdlBadge extends StatelessWidget {
   final DecoStatus status;
 
-  const NdlBadge({
-    super.key,
-    required this.status,
-  });
+  const NdlBadge({super.key, required this.status});
 
   @override
   Widget build(BuildContext context) {
@@ -379,9 +372,7 @@ class NdlBadge extends StatelessWidget {
             ? Colors.orange.withValues(alpha: 0.1)
             : Colors.green.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isInDeco ? Colors.orange : Colors.green,
-        ),
+        border: Border.all(color: isInDeco ? Colors.orange : Colors.green),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -397,9 +388,9 @@ class NdlBadge extends StatelessWidget {
                 ? 'Ceiling ${status.ceilingMeters.toStringAsFixed(1)}m'
                 : 'NDL ${status.ndlFormatted}',
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: isInDeco ? Colors.orange : Colors.green,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: isInDeco ? Colors.orange : Colors.green,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),

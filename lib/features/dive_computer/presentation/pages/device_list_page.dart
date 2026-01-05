@@ -89,8 +89,8 @@ class DeviceListPage extends ConsumerWidget {
             Text(
               'Connect your dive computer to download dives directly into the app.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+                color: colorScheme.onSurfaceVariant,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
@@ -152,10 +152,7 @@ class DeviceListPage extends ConsumerWidget {
               Text('• Bluetooth Classic (older models)'),
               Text('• USB (desktop only)'),
               SizedBox(height: 16),
-              Text(
-                'Tips',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
+              Text('Tips', style: TextStyle(fontWeight: FontWeight.bold)),
               SizedBox(height: 8),
               Text('• Ensure your computer is in transfer mode'),
               Text('• Keep devices close during download'),

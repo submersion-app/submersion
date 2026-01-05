@@ -55,19 +55,23 @@ void main() {
 
   group('EquipmentRepository', () {
     group('createEquipment', () {
-      test('should create new equipment with generated ID when ID is empty',
-          () async {
-        final equipment = createTestEquipment(name: 'New Regulator');
+      test(
+        'should create new equipment with generated ID when ID is empty',
+        () async {
+          final equipment = createTestEquipment(name: 'New Regulator');
 
-        final createdEquipment = await repository.createEquipment(equipment);
+          final createdEquipment = await repository.createEquipment(equipment);
 
-        expect(createdEquipment.id, isNotEmpty);
-        expect(createdEquipment.name, equals('New Regulator'));
-      });
+          expect(createdEquipment.id, isNotEmpty);
+          expect(createdEquipment.name, equals('New Regulator'));
+        },
+      );
 
       test('should create equipment with provided ID', () async {
-        final equipment =
-            createTestEquipment(id: 'custom-equip-id', name: 'Custom Reg');
+        final equipment = createTestEquipment(
+          id: 'custom-equip-id',
+          name: 'Custom Reg',
+        );
 
         final createdEquipment = await repository.createEquipment(equipment);
 
@@ -94,8 +98,9 @@ void main() {
         );
 
         final createdEquipment = await repository.createEquipment(equipment);
-        final fetchedEquipment =
-            await repository.getEquipmentById(createdEquipment.id);
+        final fetchedEquipment = await repository.getEquipmentById(
+          createdEquipment.id,
+        );
 
         expect(fetchedEquipment, isNotNull);
         expect(fetchedEquipment!.name, equals('Full Regulator'));
@@ -140,22 +145,13 @@ void main() {
 
       test('should return all equipment ordered by type and name', () async {
         await repository.createEquipment(
-          createTestEquipment(
-            name: 'Zebra Reg',
-            type: EquipmentType.regulator,
-          ),
+          createTestEquipment(name: 'Zebra Reg', type: EquipmentType.regulator),
         );
         await repository.createEquipment(
-          createTestEquipment(
-            name: 'Alpha BCD',
-            type: EquipmentType.bcd,
-          ),
+          createTestEquipment(name: 'Alpha BCD', type: EquipmentType.bcd),
         );
         await repository.createEquipment(
-          createTestEquipment(
-            name: 'Alpha Reg',
-            type: EquipmentType.regulator,
-          ),
+          createTestEquipment(name: 'Alpha Reg', type: EquipmentType.regulator),
         );
 
         final result = await repository.getAllEquipment();
@@ -171,16 +167,10 @@ void main() {
     group('getActiveEquipment', () {
       test('should return only active equipment', () async {
         await repository.createEquipment(
-          createTestEquipment(
-            name: 'Active Reg',
-            isActive: true,
-          ),
+          createTestEquipment(name: 'Active Reg', isActive: true),
         );
         await repository.createEquipment(
-          createTestEquipment(
-            name: 'Retired Reg',
-            isActive: false,
-          ),
+          createTestEquipment(name: 'Retired Reg', isActive: false),
         );
 
         final result = await repository.getActiveEquipment();
@@ -193,16 +183,10 @@ void main() {
     group('getRetiredEquipment', () {
       test('should return only retired equipment', () async {
         await repository.createEquipment(
-          createTestEquipment(
-            name: 'Active Reg',
-            isActive: true,
-          ),
+          createTestEquipment(name: 'Active Reg', isActive: true),
         );
         await repository.createEquipment(
-          createTestEquipment(
-            name: 'Retired Reg',
-            isActive: false,
-          ),
+          createTestEquipment(name: 'Retired Reg', isActive: false),
         );
 
         final result = await repository.getRetiredEquipment();
@@ -241,8 +225,9 @@ void main() {
           ),
         );
 
-        final updatedEquipment =
-            equipment.copyWith(status: EquipmentStatus.needsService);
+        final updatedEquipment = equipment.copyWith(
+          status: EquipmentStatus.needsService,
+        );
 
         await repository.updateEquipment(updatedEquipment);
         final result = await repository.getEquipmentById(equipment.id);
@@ -398,12 +383,12 @@ void main() {
         final equip2 = await repository.createEquipment(
           createTestEquipment(name: 'Equip 2'),
         );
-        await repository.createEquipment(
-          createTestEquipment(name: 'Equip 3'),
-        );
+        await repository.createEquipment(createTestEquipment(name: 'Equip 3'));
 
-        final results =
-            await repository.getEquipmentByIds([equip1.id, equip2.id]);
+        final results = await repository.getEquipmentByIds([
+          equip1.id,
+          equip2.id,
+        ]);
 
         expect(results.length, equals(2));
         expect(results.map((e) => e.name), containsAll(['Equip 1', 'Equip 2']));
@@ -444,9 +429,7 @@ void main() {
 
         // Equipment with no service date
         await repository.createEquipment(
-          createTestEquipment(
-            name: 'No Service Date',
-          ),
+          createTestEquipment(name: 'No Service Date'),
         );
 
         final results = await repository.getEquipmentWithServiceDue();

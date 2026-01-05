@@ -73,8 +73,9 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
   Future<void> _loadBuddy() async {
     setState(() => _isLoading = true);
     try {
-      final buddy =
-          await ref.read(buddyRepositoryProvider).getBuddyById(widget.buddyId!);
+      final buddy = await ref
+          .read(buddyRepositoryProvider)
+          .getBuddyById(widget.buddyId!);
       if (buddy != null && mounted) {
         _originalBuddy = buddy;
         _nameController.text = buddy.name;
@@ -91,9 +92,9 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading buddy: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error loading buddy: $e')));
       }
     }
   }
@@ -135,10 +136,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                 ),
               )
             else
-              TextButton(
-                onPressed: _saveBuddy,
-                child: const Text('Save'),
-              ),
+              TextButton(onPressed: _saveBuddy, child: const Text('Save')),
           ],
         ),
         body: _isLoading
@@ -156,9 +154,9 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                           children: [
                             CircleAvatar(
                               radius: 50,
-                              backgroundColor: Theme.of(context)
-                                  .colorScheme
-                                  .primaryContainer,
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.primaryContainer,
                               child: Text(
                                 _nameController.text.isNotEmpty
                                     ? _getInitials(_nameController.text)
@@ -166,9 +164,9 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                                 style: TextStyle(
                                   fontSize: 36,
                                   fontWeight: FontWeight.bold,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onPrimaryContainer,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimaryContainer,
                                 ),
                               ),
                             ),
@@ -177,13 +175,15 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                               right: 0,
                               child: CircleAvatar(
                                 radius: 16,
-                                backgroundColor:
-                                    Theme.of(context).colorScheme.primary,
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.primary,
                                 child: Icon(
                                   Icons.camera_alt,
                                   size: 16,
-                                  color:
-                                      Theme.of(context).colorScheme.onPrimary,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimary,
                                 ),
                               ),
                             ),
@@ -194,12 +194,12 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                       Center(
                         child: Text(
                           'Photo support coming in v2.0',
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant,
-                                  ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -260,10 +260,8 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                       // Certification section header
                       Text(
                         'Certification',
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 12),
 
@@ -326,10 +324,8 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                       // Notes section header
                       Text(
                         'Notes',
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 12),
 
@@ -353,8 +349,9 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                             ? const SizedBox(
                                 height: 20,
                                 width: 20,
-                                child:
-                                    CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
                             : Text(isEditing ? 'Update Buddy' : 'Add Buddy'),
                       ),
@@ -421,7 +418,8 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
 
     try {
       // Get the current diver ID - preserve existing for edits, get fresh for new buddies
-      final diverId = _originalBuddy?.diverId ??
+      final diverId =
+          _originalBuddy?.diverId ??
           await ref.read(validatedCurrentDiverIdProvider.future);
 
       final now = DateTime.now();
@@ -448,8 +446,9 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
         await ref.read(buddyListNotifierProvider.notifier).updateBuddy(buddy);
         savedBuddy = buddy;
       } else {
-        savedBuddy =
-            await ref.read(buddyListNotifierProvider.notifier).addBuddy(buddy);
+        savedBuddy = await ref
+            .read(buddyListNotifierProvider.notifier)
+            .addBuddy(buddy);
       }
 
       if (mounted) {

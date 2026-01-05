@@ -134,8 +134,9 @@ class MaresBleProtocol {
 
     if (readProps.notify || readProps.indicate) {
       await _readCharacteristic!.setNotifyValue(true);
-      _notifySubscription =
-          _readCharacteristic!.onValueReceived.listen(_onDataReceived);
+      _notifySubscription = _readCharacteristic!.onValueReceived.listen(
+        _onDataReceived,
+      );
       _log.info('Notifications enabled');
     }
 
@@ -280,7 +281,8 @@ class MaresBleProtocol {
     // Get memory size
     final flashResponse = await transfer([cmdFlashSize]);
     if (flashResponse.length >= 4) {
-      _memorySize = flashResponse[0] |
+      _memorySize =
+          flashResponse[0] |
           (flashResponse[1] << 8) |
           (flashResponse[2] << 16) |
           (flashResponse[3] << 24);
@@ -316,8 +318,9 @@ class MaresBleProtocol {
 
     while (data.length < size) {
       final offset = address + data.length;
-      final toRead =
-          (size - data.length) > chunkSize ? chunkSize : (size - data.length);
+      final toRead = (size - data.length) > chunkSize
+          ? chunkSize
+          : (size - data.length);
 
       final command = [
         cmdRead,

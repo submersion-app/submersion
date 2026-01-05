@@ -92,8 +92,10 @@ class DiveParser {
   ({double? min, double? max}) extractTemperatureRange(
     List<ProfileSample> profile,
   ) {
-    final temps =
-        profile.map((s) => s.temperature).whereType<double>().toList();
+    final temps = profile
+        .map((s) => s.temperature)
+        .whereType<double>()
+        .toList();
 
     if (temps.isEmpty) {
       return (min: null, max: null);
@@ -184,11 +186,7 @@ class DiveParser {
   /// Extract dive phases (descent, bottom, ascent).
   DivePhases analyzeDivePhases(List<ProfileSample> profile) {
     if (profile.isEmpty) {
-      return const DivePhases(
-        descentEnd: 0,
-        ascentStart: 0,
-        bottomTime: 0,
-      );
+      return const DivePhases(descentEnd: 0, ascentStart: 0, bottomTime: 0);
     }
 
     // Find max depth point

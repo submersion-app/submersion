@@ -159,8 +159,9 @@ class AscentRateCalculator {
     }
 
     // Apply smoothing if window > 1
-    final smoothedRates =
-        smoothingWindow > 1 ? _smoothRates(rawRates) : rawRates;
+    final smoothedRates = smoothingWindow > 1
+        ? _smoothRates(rawRates)
+        : rawRates;
 
     // Create rate points
     for (int i = 0; i < depths.length; i++) {

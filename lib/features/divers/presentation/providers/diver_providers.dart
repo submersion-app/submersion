@@ -23,8 +23,10 @@ final hasAnyDiversProvider = FutureProvider<bool>((ref) async {
 });
 
 /// Single diver provider
-final diverByIdProvider =
-    FutureProvider.family<Diver?, String>((ref, id) async {
+final diverByIdProvider = FutureProvider.family<Diver?, String>((
+  ref,
+  id,
+) async {
   final repository = ref.watch(diverRepositoryProvider);
   return repository.getDiverById(id);
 });
@@ -35,9 +37,9 @@ const String _currentDiverIdKey = 'current_diver_id';
 /// Current diver ID provider (persisted)
 final currentDiverIdProvider =
     StateNotifierProvider<CurrentDiverIdNotifier, String?>((ref) {
-  final prefs = ref.watch(sharedPreferencesProvider);
-  return CurrentDiverIdNotifier(prefs);
-});
+      final prefs = ref.watch(sharedPreferencesProvider);
+      return CurrentDiverIdNotifier(prefs);
+    });
 
 class CurrentDiverIdNotifier extends StateNotifier<String?> {
   final SharedPreferences _prefs;
@@ -101,7 +103,7 @@ class DiverListNotifier extends StateNotifier<AsyncValue<List<Diver>>> {
   final Ref _ref;
 
   DiverListNotifier(this._repository, this._ref)
-      : super(const AsyncValue.loading()) {
+    : super(const AsyncValue.loading()) {
     _loadDivers();
   }
 
@@ -152,20 +154,24 @@ class DiverListNotifier extends StateNotifier<AsyncValue<List<Diver>>> {
 
 final diverListNotifierProvider =
     StateNotifierProvider<DiverListNotifier, AsyncValue<List<Diver>>>((ref) {
-  final repository = ref.watch(diverRepositoryProvider);
-  return DiverListNotifier(repository, ref);
-});
+      final repository = ref.watch(diverRepositoryProvider);
+      return DiverListNotifier(repository, ref);
+    });
 
 /// Dive count for a specific diver
-final diverDiveCountProvider =
-    FutureProvider.family<int, String>((ref, diverId) async {
+final diverDiveCountProvider = FutureProvider.family<int, String>((
+  ref,
+  diverId,
+) async {
   final repository = ref.watch(diverRepositoryProvider);
   return repository.getDiveCountForDiver(diverId);
 });
 
 /// Total bottom time for a specific diver (in seconds)
-final diverTotalBottomTimeProvider =
-    FutureProvider.family<int, String>((ref, diverId) async {
+final diverTotalBottomTimeProvider = FutureProvider.family<int, String>((
+  ref,
+  diverId,
+) async {
   final repository = ref.watch(diverRepositoryProvider);
   return repository.getTotalBottomTimeForDiver(diverId);
 });
@@ -190,13 +196,12 @@ class DiverStats {
   }
 }
 
-final diverStatsProvider =
-    FutureProvider.family<DiverStats, String>((ref, diverId) async {
+final diverStatsProvider = FutureProvider.family<DiverStats, String>((
+  ref,
+  diverId,
+) async {
   final repository = ref.watch(diverRepositoryProvider);
   final diveCount = await repository.getDiveCountForDiver(diverId);
   final totalTime = await repository.getTotalBottomTimeForDiver(diverId);
-  return DiverStats(
-    diveCount: diveCount,
-    totalBottomTimeSeconds: totalTime,
-  );
+  return DiverStats(diveCount: diveCount, totalBottomTimeSeconds: totalTime);
 });
