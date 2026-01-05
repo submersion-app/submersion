@@ -34,7 +34,7 @@ Submersion is built on these principles:
 1. **Local-First** — Your data lives on your device. The app works offline, always.
 2. **No Lock-In** — Export your entire logbook to UDDF or CSV at any time. Switch apps without losing history.
 3. **No Account Required** — Use the app immediately. No sign-up, no email, no tracking.
-4. **Open Source** — Audit the code. Fork it. Improve it. Your dive log software should be as transparent as the water.
+4. **Open Source** — Audit the code. Fork it. Improve it. Your dive log software should be transparent.
 
 ## Features
 
