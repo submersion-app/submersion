@@ -278,12 +278,23 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   Future<void> _initializeAndLoad() async {
     // Get current diver ID directly (more reliable than going through FutureProvider)
     final currentId = _ref.read(currentDiverIdProvider);
+    final repository = _ref.read(diverRepositoryProvider);
 
     String? diverId = currentId;
 
-    // If no current diver ID, try to get default diver
+    // Validate that the current diver ID actually exists in the database.
+    // This handles the case where the database was deleted/recreated but
+    // SharedPreferences still has a stale diver ID.
+    if (diverId != null) {
+      final diver = await repository.getDiverById(diverId);
+      if (diver == null) {
+        // Stale ID - clear it and fall through to default diver
+        diverId = null;
+      }
+    }
+
+    // If no valid current diver ID, try to get default diver
     if (diverId == null) {
-      final repository = _ref.read(diverRepositoryProvider);
       final defaultDiver = await repository.getDefaultDiver();
       diverId = defaultDiver?.id;
     }
