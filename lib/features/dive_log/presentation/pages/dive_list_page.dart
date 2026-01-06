@@ -405,7 +405,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
     if (filter.equipmentId != null) {
       final equipmentName =
           ref.watch(equipmentItemProvider(filter.equipmentId!)).value?.name ??
-              'Equipment';
+          'Equipment';
       chips.add(
         _buildFilterChip(context, equipmentName, () {
           ref.read(diveFilterProvider.notifier).state = filter.copyWith(

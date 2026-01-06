@@ -1525,8 +1525,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               return ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: CircleAvatar(
-                  backgroundColor:
-                      Theme.of(context).colorScheme.tertiaryContainer,
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.tertiaryContainer,
                   child: Icon(
                     _getEquipmentIcon(item.type),
                     color: Theme.of(context).colorScheme.onTertiaryContainer,
@@ -1536,9 +1537,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 title: Text(item.name),
                 subtitle: item.brand != null || item.model != null
                     ? Text(
-                        [item.brand, item.model]
-                            .where((s) => s != null && s.isNotEmpty)
-                            .join(' '),
+                        [
+                          item.brand,
+                          item.model,
+                        ].where((s) => s != null && s.isNotEmpty).join(' '),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),

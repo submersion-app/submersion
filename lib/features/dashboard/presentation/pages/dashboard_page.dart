@@ -9,51 +9,41 @@ import '../widgets/quick_actions_card.dart';
 import '../widgets/recent_dives_card.dart';
 import '../widgets/stat_summary_card.dart';
 
-/// Dashboard home page showing at-a-glance dive statistics and alerts
+/// Dashboard home page showing dive statistics and alerts
 class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final statsAsync = ref.watch(diveStatisticsProvider);
-    final diverAsync = ref.watch(dashboardDiverProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: diverAsync.when(
-          data: (diver) => Text(
-            diver != null
-                ? 'Welcome, ${diver.name.split(' ').first}'
-                : 'Dashboard',
-          ),
-          loading: () => const Text('Dashboard'),
-          error: (_, _) => const Text('Dashboard'),
-        ),
-      ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          ref.invalidate(diveStatisticsProvider);
-          ref.invalidate(recentDivesProvider);
-          ref.invalidate(dashboardAlertsProvider);
-        },
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Key Stats Section
-              _buildStatsSection(context, statsAsync),
-              const SizedBox(height: 16),
-              // Alerts Section (only shows if there are alerts)
-              const AlertsCard(),
-              // Recent Dives Section
-              const RecentDivesCard(),
-              const SizedBox(height: 16),
-              // Quick Actions Section
-              const QuickActionsCard(),
-              const SizedBox(height: 24),
-            ],
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(diveStatisticsProvider);
+            ref.invalidate(recentDivesProvider);
+            ref.invalidate(dashboardAlertsProvider);
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Key Stats Section
+                _buildStatsSection(context, statsAsync),
+                const SizedBox(height: 16),
+                // Alerts Section (only shows if there are alerts)
+                const AlertsCard(),
+                // Recent Dives Section
+                const RecentDivesCard(),
+                const SizedBox(height: 16),
+                // Quick Actions Section
+                const QuickActionsCard(),
+                const SizedBox(height: 24),
+              ],
+            ),
           ),
         ),
       ),
@@ -64,28 +54,13 @@ class DashboardPage extends ConsumerWidget {
     BuildContext context,
     AsyncValue<DiveStatistics> statsAsync,
   ) {
-    final theme = Theme.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final isWide = screenWidth >= 600;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: Text(
-            'At a Glance',
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-        statsAsync.when(
-          data: (stats) => _buildStatsGrid(context, stats, isWide),
-          loading: () => _buildStatsGridLoading(isWide),
-          error: (error, _) => _buildStatsGridError(context),
-        ),
-      ],
+    return statsAsync.when(
+      data: (stats) => _buildStatsGrid(context, stats, isWide),
+      loading: () => _buildStatsGridLoading(isWide),
+      error: (error, _) => _buildStatsGridError(context),
     );
   }
 

@@ -73,8 +73,7 @@ class DiveFilterState {
       diveTypeId: clearDiveType ? null : (diveTypeId ?? this.diveTypeId),
       siteId: clearSiteId ? null : (siteId ?? this.siteId),
       tripId: clearTripId ? null : (tripId ?? this.tripId),
-      equipmentId:
-          clearEquipmentId ? null : (equipmentId ?? this.equipmentId),
+      equipmentId: clearEquipmentId ? null : (equipmentId ?? this.equipmentId),
       minDepth: clearMinDepth ? null : (minDepth ?? this.minDepth),
       maxDepth: clearMaxDepth ? null : (maxDepth ?? this.maxDepth),
       favoritesOnly: clearFavoritesOnly
