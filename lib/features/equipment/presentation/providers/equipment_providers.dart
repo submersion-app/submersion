@@ -68,6 +68,33 @@ final equipmentItemProvider = FutureProvider.family<EquipmentItem?, String>((
   return repository.getEquipmentById(id);
 });
 
+/// Dive count for equipment provider
+final equipmentDiveCountProvider = FutureProvider.family<int, String>((
+  ref,
+  equipmentId,
+) async {
+  final repository = ref.watch(equipmentRepositoryProvider);
+  return repository.getDiveCountForEquipment(equipmentId);
+});
+
+/// Trip count for equipment provider
+final equipmentTripCountProvider = FutureProvider.family<int, String>((
+  ref,
+  equipmentId,
+) async {
+  final repository = ref.watch(equipmentRepositoryProvider);
+  return repository.getTripCountForEquipment(equipmentId);
+});
+
+/// Trip IDs for equipment provider
+final equipmentTripIdsProvider = FutureProvider.family<List<String>, String>((
+  ref,
+  equipmentId,
+) async {
+  final repository = ref.watch(equipmentRepositoryProvider);
+  return repository.getTripIdsForEquipment(equipmentId);
+});
+
 /// Equipment with service due provider
 final serviceDueEquipmentProvider = FutureProvider<List<EquipmentItem>>((
   ref,

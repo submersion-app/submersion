@@ -3,6 +3,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../dive_log/domain/entities/dive.dart';
+import '../../../dive_log/presentation/providers/dive_providers.dart';
 import '../../domain/entities/trip.dart';
 import '../providers/trip_providers.dart';
 
@@ -37,7 +39,7 @@ class _TripDetailContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final trip = tripWithStats.trip;
-    final diveIdsAsync = ref.watch(diveIdsForTripProvider(trip.id));
+    final divesAsync = ref.watch(divesForTripProvider(trip.id));
     final dateFormat = DateFormat.yMMMd();
 
     return Scaffold(
@@ -120,7 +122,7 @@ class _TripDetailContent extends ConsumerWidget {
             ],
 
             // Dives
-            _buildDivesSection(context, ref, diveIdsAsync),
+            _buildDivesSection(context, ref, divesAsync),
           ],
         ),
       ),
@@ -275,8 +277,11 @@ class _TripDetailContent extends ConsumerWidget {
   Widget _buildDivesSection(
     BuildContext context,
     WidgetRef ref,
-    AsyncValue<List<String>> diveIdsAsync,
+    AsyncValue<List<Dive>> divesAsync,
   ) {
+    final theme = Theme.of(context);
+    final dateFormat = DateFormat.MMMd();
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -288,18 +293,21 @@ class _TripDetailContent extends ConsumerWidget {
               children: [
                 Text(
                   'Dives',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                diveIdsAsync.when(
-                  data: (ids) => TextButton(
-                    onPressed: ids.isEmpty
+                divesAsync.when(
+                  data: (dives) => TextButton(
+                    onPressed: dives.isEmpty
                         ? null
                         : () {
-                            // Navigate to filtered dive list (future enhancement)
+                            // Set trip filter and navigate to dive list
+                            ref.read(diveFilterProvider.notifier).state =
+                                DiveFilterState(tripId: tripWithStats.trip.id);
+                            context.go('/dives');
                           },
-                    child: Text('View All (${ids.length})'),
+                    child: Text('View All (${dives.length})'),
                   ),
                   loading: () => const SizedBox.shrink(),
                   error: (_, _) => const SizedBox.shrink(),
@@ -307,25 +315,100 @@ class _TripDetailContent extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 8),
-            diveIdsAsync.when(
-              data: (ids) {
-                if (ids.isEmpty) {
+            divesAsync.when(
+              data: (dives) {
+                if (dives.isEmpty) {
                   return const Padding(
                     padding: EdgeInsets.symmetric(vertical: 16),
                     child: Center(child: Text('No dives in this trip yet')),
                   );
                 }
-                // Show first 5 dive IDs as tappable items
-                final displayIds = ids.take(5).toList();
+                // Sort by date and show first 5 dives
+                final sortedDives = List<Dive>.from(dives)
+                  ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
+                final displayDives = sortedDives.take(5).toList();
                 return Column(
-                  children: displayIds.map((diveId) {
-                    return ListTile(
-                      leading: const Icon(Icons.scuba_diving),
-                      title: const Text('Dive'),
-                      subtitle: Text(diveId.substring(0, 8)),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => context.push('/dives/$diveId'),
-                      contentPadding: EdgeInsets.zero,
+                  children: displayDives.map((dive) {
+                    return InkWell(
+                      onTap: () => context.push('/dives/${dive.id}'),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 4,
+                        ),
+                        child: Row(
+                          children: [
+                            // Dive number badge
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.primaryContainer,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                '#${dive.diveNumber ?? '-'}',
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  color: theme.colorScheme.onPrimaryContainer,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            // Dive details
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    dive.site?.name ?? 'Unknown Site',
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    dateFormat.format(dive.dateTime),
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            // Stats
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                if (dive.maxDepth != null)
+                                  Text(
+                                    '${dive.maxDepth!.toStringAsFixed(1)}m',
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                if (dive.duration != null)
+                                  Text(
+                                    '${dive.duration!.inMinutes}min',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(width: 4),
+                            Icon(
+                              Icons.chevron_right,
+                              color: theme.colorScheme.onSurfaceVariant,
+                              size: 20,
+                            ),
+                          ],
+                        ),
+                      ),
                     );
                   }).toList(),
                 );

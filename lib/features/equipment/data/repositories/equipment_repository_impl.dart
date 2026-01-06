@@ -367,6 +367,59 @@ class EquipmentRepository {
     }
   }
 
+  /// Get trip count for equipment item (unique trips from dives using this equipment)
+  Future<int> getTripCountForEquipment(String equipmentId) async {
+    try {
+      final result = await _db
+          .customSelect(
+            '''
+        SELECT COUNT(DISTINCT d.trip_id) as count
+        FROM dive_equipment de
+        INNER JOIN dives d ON de.dive_id = d.id
+        WHERE de.equipment_id = ? AND d.trip_id IS NOT NULL
+      ''',
+            variables: [Variable.withString(equipmentId)],
+          )
+          .getSingle();
+
+      return result.data['count'] as int? ?? 0;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get trip count for equipment: $equipmentId',
+        e,
+        stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Get trip IDs for equipment item
+  Future<List<String>> getTripIdsForEquipment(String equipmentId) async {
+    try {
+      final result = await _db.customSelect(
+        '''
+        SELECT DISTINCT d.trip_id
+        FROM dive_equipment de
+        INNER JOIN dives d ON de.dive_id = d.id
+        WHERE de.equipment_id = ? AND d.trip_id IS NOT NULL
+        ORDER BY d.dive_date_time DESC
+      ''',
+        variables: [Variable.withString(equipmentId)],
+      ).get();
+
+      return result
+          .map((row) => row.data['trip_id'] as String)
+          .toList();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get trip IDs for equipment: $equipmentId',
+        e,
+        stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   EquipmentItem _mapRowToEquipment(EquipmentData row) {
     return EquipmentItem(
       id: row.id,

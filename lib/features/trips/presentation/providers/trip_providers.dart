@@ -1,8 +1,36 @@
 import 'package:submersion/core/providers/provider.dart';
 
+import '../../../dive_log/data/repositories/dive_repository_impl.dart';
+import '../../../dive_log/domain/entities/dive.dart' as domain;
 import '../../../divers/presentation/providers/diver_providers.dart';
+import '../../../equipment/data/repositories/equipment_repository_impl.dart';
 import '../../data/repositories/trip_repository.dart';
 import '../../domain/entities/trip.dart';
+
+/// Filter state for trip list
+class TripFilterState {
+  final String? equipmentId;
+
+  const TripFilterState({
+    this.equipmentId,
+  });
+
+  bool get hasActiveFilters => equipmentId != null;
+
+  TripFilterState copyWith({
+    String? equipmentId,
+    bool clearEquipmentId = false,
+  }) {
+    return TripFilterState(
+      equipmentId: clearEquipmentId ? null : (equipmentId ?? this.equipmentId),
+    );
+  }
+}
+
+/// Trip filter state provider
+final tripFilterProvider = StateProvider<TripFilterState>(
+  (ref) => const TripFilterState(),
+);
 
 /// Repository provider
 final tripRepositoryProvider = Provider<TripRepository>((ref) {
@@ -29,6 +57,30 @@ final allTripsWithStatsProvider = FutureProvider<List<TripWithStats>>((
   return repository.getAllTripsWithStats(diverId: validatedDiverId);
 });
 
+/// Filtered trips provider - applies current filter to trip list
+final filteredTripsProvider =
+    FutureProvider<List<TripWithStats>>((ref) async {
+  final filter = ref.watch(tripFilterProvider);
+  final tripsAsync = ref.watch(tripListNotifierProvider);
+
+  final trips = tripsAsync.valueOrNull ?? [];
+
+  if (!filter.hasActiveFilters) {
+    return trips;
+  }
+
+  // If filtering by equipment, get trip IDs that used this equipment
+  if (filter.equipmentId != null) {
+    final equipmentRepository = EquipmentRepository();
+    final tripIds =
+        await equipmentRepository.getTripIdsForEquipment(filter.equipmentId!);
+    final tripIdSet = tripIds.toSet();
+    return trips.where((t) => tripIdSet.contains(t.trip.id)).toList();
+  }
+
+  return trips;
+});
+
 /// Single trip provider
 final tripByIdProvider = FutureProvider.family<Trip?, String>((ref, id) async {
   final repository = ref.watch(tripRepositoryProvider);
@@ -44,13 +96,23 @@ final tripWithStatsProvider = FutureProvider.family<TripWithStats, String>((
   return repository.getTripWithStats(tripId);
 });
 
-/// Dives for a trip provider
+/// Dives for a trip provider (IDs only)
 final diveIdsForTripProvider = FutureProvider.family<List<String>, String>((
   ref,
   tripId,
 ) async {
   final repository = ref.watch(tripRepositoryProvider);
   return repository.getDiveIdsForTrip(tripId);
+});
+
+/// Full dive entities for a trip provider
+final divesForTripProvider =
+    FutureProvider.family<List<domain.Dive>, String>((ref, tripId) async {
+  final tripRepository = ref.watch(tripRepositoryProvider);
+  final diveRepository = DiveRepository();
+  final diveIds = await tripRepository.getDiveIdsForTrip(tripId);
+  if (diveIds.isEmpty) return [];
+  return diveRepository.getDivesByIds(diveIds);
 });
 
 /// Trip search provider

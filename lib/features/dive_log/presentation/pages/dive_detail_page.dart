@@ -207,6 +207,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             if (dive.tanks.isNotEmpty) ...[
               _buildTanksSection(context, dive, units),
             ],
+            if (dive.equipment.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              _buildEquipmentSection(context, dive),
+            ],
             _buildSightingsSection(context, ref),
             const SizedBox(height: 24),
             _buildNotesSection(context, dive),
@@ -1492,6 +1496,90 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         ),
       ),
     );
+  }
+
+  Widget _buildEquipmentSection(BuildContext context, Dive dive) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Equipment',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                Text(
+                  '${dive.equipment.length} ${dive.equipment.length == 1 ? 'item' : 'items'}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+            const Divider(),
+            ...dive.equipment.map((item) {
+              return ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: CircleAvatar(
+                  backgroundColor:
+                      Theme.of(context).colorScheme.tertiaryContainer,
+                  child: Icon(
+                    _getEquipmentIcon(item.type),
+                    color: Theme.of(context).colorScheme.onTertiaryContainer,
+                    size: 20,
+                  ),
+                ),
+                title: Text(item.name),
+                subtitle: item.brand != null || item.model != null
+                    ? Text(
+                        [item.brand, item.model]
+                            .where((s) => s != null && s.isNotEmpty)
+                            .join(' '),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      )
+                    : null,
+                trailing: const Icon(Icons.chevron_right, size: 20),
+                onTap: () => context.push('/equipment/${item.id}'),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  IconData _getEquipmentIcon(EquipmentType type) {
+    switch (type) {
+      case EquipmentType.regulator:
+        return Icons.air;
+      case EquipmentType.bcd:
+        return Icons.accessibility_new;
+      case EquipmentType.wetsuit:
+      case EquipmentType.drysuit:
+        return Icons.checkroom;
+      case EquipmentType.fins:
+        return Icons.directions_walk;
+      case EquipmentType.mask:
+        return Icons.visibility;
+      case EquipmentType.computer:
+        return Icons.watch;
+      case EquipmentType.tank:
+        return Icons.propane_tank;
+      case EquipmentType.weights:
+        return Icons.fitness_center;
+      case EquipmentType.light:
+        return Icons.flashlight_on;
+      case EquipmentType.camera:
+        return Icons.camera_alt;
+      default:
+        return Icons.backpack;
+    }
   }
 
   Widget _buildSightingsSection(BuildContext context, WidgetRef ref) {

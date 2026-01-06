@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/enums.dart';
+import '../../../dive_log/presentation/providers/dive_providers.dart';
+import '../../../trips/presentation/providers/trip_providers.dart';
 import '../../domain/entities/equipment_item.dart';
 import '../../domain/entities/service_record.dart';
 import '../providers/equipment_providers.dart';
@@ -97,7 +99,7 @@ class EquipmentDetailPage extends ConsumerWidget {
           children: [
             _buildHeaderSection(context, equipment),
             const SizedBox(height: 24),
-            _buildDetailsSection(context, equipment),
+            _buildDetailsSection(context, ref, equipment),
             if (equipment.serviceIntervalDays != null) ...[
               const SizedBox(height: 24),
               _buildServiceSection(context, equipment),
@@ -201,7 +203,14 @@ class EquipmentDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildDetailsSection(BuildContext context, EquipmentItem equipment) {
+  Widget _buildDetailsSection(
+    BuildContext context,
+    WidgetRef ref,
+    EquipmentItem equipment,
+  ) {
+    final diveCountAsync = ref.watch(equipmentDiveCountProvider(equipmentId));
+    final tripCountAsync = ref.watch(equipmentTripCountProvider(equipmentId));
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -211,6 +220,104 @@ class EquipmentDetailPage extends ConsumerWidget {
             Text('Details', style: Theme.of(context).textTheme.titleMedium),
             const Divider(),
             _buildDetailRow(context, 'Status', equipment.status.displayName),
+            diveCountAsync.when(
+              data: (count) => InkWell(
+                onTap: count > 0
+                    ? () {
+                        ref.read(diveFilterProvider.notifier).state =
+                            DiveFilterState(equipmentId: equipmentId);
+                        context.go('/dives');
+                      }
+                    : null,
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Dives',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '$count ${count == 1 ? 'dive' : 'dives'}',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: count > 0
+                                  ? Theme.of(context).colorScheme.primary
+                                  : null,
+                            ),
+                          ),
+                          if (count > 0) ...[
+                            const SizedBox(width: 4),
+                            Icon(
+                              Icons.chevron_right,
+                              size: 18,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              loading: () => _buildDetailRow(context, 'Dives', '...'),
+              error: (e, s) => const SizedBox.shrink(),
+            ),
+            tripCountAsync.when(
+              data: (count) => InkWell(
+                onTap: count > 0
+                    ? () {
+                        ref.read(tripFilterProvider.notifier).state =
+                            TripFilterState(equipmentId: equipmentId);
+                        context.go('/trips');
+                      }
+                    : null,
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Trips',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '$count ${count == 1 ? 'trip' : 'trips'}',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: count > 0
+                                  ? Theme.of(context).colorScheme.primary
+                                  : null,
+                            ),
+                          ),
+                          if (count > 0) ...[
+                            const SizedBox(width: 4),
+                            Icon(
+                              Icons.chevron_right,
+                              size: 18,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              loading: () => _buildDetailRow(context, 'Trips', '...'),
+              error: (e, s) => const SizedBox.shrink(),
+            ),
             if (equipment.brand != null)
               _buildDetailRow(context, 'Brand', equipment.brand!),
             if (equipment.model != null)
