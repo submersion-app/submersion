@@ -853,396 +853,230 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             maxX: visibleMaxX,
             minY: -visibleMaxDepth, // Inverted: negative depth at bottom
             maxY: -visibleMinDepth, // Surface area at top (inverted)
-        clipData:
-            const FlClipData.all(), // Clip data points outside visible area
-        gridData: FlGridData(
-          show: true,
-          drawVerticalLine: true,
-          horizontalInterval: _calculateDepthInterval(visibleRangeY),
-          verticalInterval: _calculateTimeInterval(visibleRangeX),
-          getDrawingHorizontalLine: (value) => FlLine(
-            color: colorScheme.outlineVariant.withValues(alpha: 0.3),
-            strokeWidth: 1,
-          ),
-          getDrawingVerticalLine: (value) => FlLine(
-            color: colorScheme.outlineVariant.withValues(alpha: 0.3),
-            strokeWidth: 1,
-          ),
-        ),
-        titlesData: FlTitlesData(
-          leftTitles: AxisTitles(
-            axisNameWidget: Text(
-              'Depth (${units.depthSymbol})',
-              style: Theme.of(context).textTheme.labelSmall,
+            clipData:
+                const FlClipData.all(), // Clip data points outside visible area
+            gridData: FlGridData(
+              show: true,
+              drawVerticalLine: true,
+              horizontalInterval: _calculateDepthInterval(visibleRangeY),
+              verticalInterval: _calculateTimeInterval(visibleRangeX),
+              getDrawingHorizontalLine: (value) => FlLine(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                strokeWidth: 1,
+              ),
+              getDrawingVerticalLine: (value) => FlLine(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                strokeWidth: 1,
+              ),
             ),
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 40,
-              interval: _calculateDepthInterval(visibleRangeY),
-              getTitlesWidget: (value, meta) {
-                // Show positive depth values (negate the negative axis values)
-                return Text(
-                  '${(-value).toInt()}',
+            titlesData: FlTitlesData(
+              leftTitles: AxisTitles(
+                axisNameWidget: Text(
+                  'Depth (${units.depthSymbol})',
                   style: Theme.of(context).textTheme.labelSmall,
-                );
-              },
-            ),
-          ),
-          bottomTitles: AxisTitles(
-            axisNameWidget: Text(
-              'Time (min)',
-              style: Theme.of(context).textTheme.labelSmall,
-            ),
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 30,
-              interval: _calculateTimeInterval(visibleRangeX),
-              getTitlesWidget: (value, meta) {
-                final minutes = (value / 60).round();
-                return Text(
-                  '$minutes',
+                ),
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  reservedSize: 40,
+                  interval: _calculateDepthInterval(visibleRangeY),
+                  getTitlesWidget: (value, meta) {
+                    // Show positive depth values (negate the negative axis values)
+                    return Text(
+                      '${(-value).toInt()}',
+                      style: Theme.of(context).textTheme.labelSmall,
+                    );
+                  },
+                ),
+              ),
+              bottomTitles: AxisTitles(
+                axisNameWidget: Text(
+                  'Time (min)',
                   style: Theme.of(context).textTheme.labelSmall,
-                );
-              },
+                ),
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  reservedSize: 30,
+                  interval: _calculateTimeInterval(visibleRangeX),
+                  getTitlesWidget: (value, meta) {
+                    final minutes = (value / 60).round();
+                    return Text(
+                      '$minutes',
+                      style: Theme.of(context).textTheme.labelSmall,
+                    );
+                  },
+                ),
+              ),
+              rightTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles:
+                      _showTemperature && hasTemperatureData && minTemp != null,
+                  reservedSize: 40,
+                  getTitlesWidget: (value, meta) {
+                    if (minTemp == null || maxTemp == null) {
+                      return const SizedBox();
+                    }
+                    // Map from inverted depth axis to temperature (already in user's preferred unit)
+                    final temp = _mapDepthToTemp(
+                      -value,
+                      totalMaxDepth,
+                      minTemp,
+                      maxTemp,
+                    );
+                    if (temp < minTemp || temp > maxTemp) {
+                      return const SizedBox();
+                    }
+                    return Text(
+                      '${temp.toStringAsFixed(0)}${units.temperatureSymbol}',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: colorScheme.tertiary,
+                      ),
+                    );
+                  },
+                ),
+              ),
+              topTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
             ),
-          ),
-          rightTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles:
-                  _showTemperature && hasTemperatureData && minTemp != null,
-              reservedSize: 40,
-              getTitlesWidget: (value, meta) {
-                if (minTemp == null || maxTemp == null) return const SizedBox();
-                // Map from inverted depth axis to temperature (already in user's preferred unit)
-                final temp = _mapDepthToTemp(
-                  -value,
+            borderData: FlBorderData(
+              show: true,
+              border: Border.all(color: colorScheme.outlineVariant),
+            ),
+            lineBarsData: [
+              // Depth line segments (colored by active gas if gas switches exist)
+              ..._buildGasColoredDepthLines(colorScheme, units),
+
+              // Gas switch markers (if showing and data available)
+              if (_showGasSwitchMarkers) ..._buildGasSwitchMarkers(units),
+
+              // Temperature line (if showing)
+              if (_showTemperature &&
+                  hasTemperatureData &&
+                  minTemp != null &&
+                  maxTemp != null)
+                _buildTemperatureLine(
+                  colorScheme,
                   totalMaxDepth,
                   minTemp,
                   maxTemp,
-                );
-                if (temp < minTemp || temp > maxTemp) return const SizedBox();
-                return Text(
-                  '${temp.toStringAsFixed(0)}${units.temperatureSymbol}',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.labelSmall?.copyWith(color: colorScheme.tertiary),
-                );
-              },
+                  units,
+                ),
+
+              // Pressure lines - multi-tank if available, legacy single otherwise
+              if (_hasMultiTankPressure)
+                ..._buildMultiTankPressureLines(totalMaxDepth)
+              else if (_showPressure &&
+                  hasPressureData &&
+                  minPressure != null &&
+                  maxPressure != null)
+                _buildPressureLine(
+                  pressureColor,
+                  totalMaxDepth,
+                  minPressure,
+                  maxPressure,
+                ),
+
+              // Heart rate line (if showing)
+              if (_showHeartRate &&
+                  hasHeartRateData &&
+                  minHR != null &&
+                  maxHR != null)
+                _buildHeartRateLine(
+                  heartRateColor,
+                  totalMaxDepth,
+                  minHR,
+                  maxHR,
+                ),
+
+              // SAC curve line (if showing)
+              if (_showSac && hasSacData && minSac != null && maxSac != null)
+                _buildSacLine(totalMaxDepth, minSac, maxSac),
+
+              // Ceiling line (if showing and data available)
+              if (_showCeiling && widget.ceilingCurve != null)
+                _buildCeilingLine(units),
+
+              // Profile markers (max depth, pressure thresholds)
+              ..._buildMarkerLines(
+                units,
+                totalMaxDepth,
+                minPressure: minPressure,
+                maxPressure: maxPressure,
+              ),
+            ],
+            extraLinesData: ExtraLinesData(
+              horizontalLines: _showEvents && widget.events != null
+                  ? _buildEventLines(colorScheme)
+                  : [],
             ),
-          ),
-          topTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-        ),
-        borderData: FlBorderData(
-          show: true,
-          border: Border.all(color: colorScheme.outlineVariant),
-        ),
-        lineBarsData: [
-          // Depth line segments (colored by active gas if gas switches exist)
-          ..._buildGasColoredDepthLines(colorScheme, units),
-
-          // Gas switch markers (if showing and data available)
-          if (_showGasSwitchMarkers) ..._buildGasSwitchMarkers(units),
-
-          // Temperature line (if showing)
-          if (_showTemperature &&
-              hasTemperatureData &&
-              minTemp != null &&
-              maxTemp != null)
-            _buildTemperatureLine(
-              colorScheme,
-              totalMaxDepth,
-              minTemp,
-              maxTemp,
-              units,
-            ),
-
-          // Pressure lines - multi-tank if available, legacy single otherwise
-          if (_hasMultiTankPressure)
-            ..._buildMultiTankPressureLines(totalMaxDepth)
-          else if (_showPressure &&
-              hasPressureData &&
-              minPressure != null &&
-              maxPressure != null)
-            _buildPressureLine(
-              pressureColor,
-              totalMaxDepth,
-              minPressure,
-              maxPressure,
-            ),
-
-          // Heart rate line (if showing)
-          if (_showHeartRate &&
-              hasHeartRateData &&
-              minHR != null &&
-              maxHR != null)
-            _buildHeartRateLine(heartRateColor, totalMaxDepth, minHR, maxHR),
-
-          // SAC curve line (if showing)
-          if (_showSac && hasSacData && minSac != null && maxSac != null)
-            _buildSacLine(totalMaxDepth, minSac, maxSac),
-
-          // Ceiling line (if showing and data available)
-          if (_showCeiling && widget.ceilingCurve != null)
-            _buildCeilingLine(units),
-
-          // Profile markers (max depth, pressure thresholds)
-          ..._buildMarkerLines(
-            units,
-            totalMaxDepth,
-            minPressure: minPressure,
-            maxPressure: maxPressure,
-          ),
-        ],
-        extraLinesData: ExtraLinesData(
-          horizontalLines: _showEvents && widget.events != null
-              ? _buildEventLines(colorScheme)
-              : [],
-        ),
-        lineTouchData: LineTouchData(
-          enabled: true,
-          touchCallback: (event, response) {
-            if (widget.onPointSelected != null) {
-              if (response?.lineBarSpots != null &&
-                  response!.lineBarSpots!.isNotEmpty) {
-                final spot = response.lineBarSpots!.first;
-                if (spot.barIndex == 0 &&
-                    spot.spotIndex < widget.profile.length) {
-                  widget.onPointSelected!(widget.profile[spot.spotIndex]);
-                }
-              } else if (event is FlPointerExitEvent ||
-                  event is FlLongPressEnd) {
-                widget.onPointSelected!(null);
-              }
-            }
-          },
-          touchTooltipData: LineTouchTooltipData(
-            maxContentWidth: 200,
-            fitInsideHorizontally: true,
-            fitInsideVertically: false,
-            showOnTopOfTheChartBoxArea: true,
-            tooltipMargin: 0,
-            getTooltipColor: (spot) => colorScheme.inverseSurface,
-            getTooltipItems: (touchedSpots) {
-              // Build tooltip showing all enabled metrics for the touched point
-              // Only process the depth line (barIndex 0) and build combined tooltip
-              return touchedSpots.map((spot) {
-                final isDepth = spot.barIndex == 0;
-                if (!isDepth) {
-                  return null;
-                }
-
-                final point = widget.profile[spot.spotIndex];
-                final minutes = point.timestamp ~/ 60;
-                final seconds = point.timestamp % 60;
-
-                // Build tooltip with all enabled metrics
-                final lines = <TextSpan>[];
-
-                // Time (always shown)
-                lines.add(
-                  TextSpan(
-                    text: '$minutes:${seconds.toString().padLeft(2, '0')}\n',
-                    style: TextStyle(
-                      color: colorScheme.onInverseSurface.withValues(
-                        alpha: 0.7,
-                      ),
-                      fontSize: 11,
-                    ),
-                  ),
-                );
-
-                // Depth (always shown) with color marker
-                final depthDisplay = units.formatDepth(point.depth);
-                lines.add(
-                  TextSpan(
-                    text: '● ',
-                    style: TextStyle(color: colorScheme.primary, fontSize: 10),
-                  ),
-                );
-                lines.add(
-                  TextSpan(
-                    text: 'Depth: ',
-                    style: TextStyle(
-                      color: colorScheme.onInverseSurface.withValues(
-                        alpha: 0.8,
-                      ),
-                    ),
-                  ),
-                );
-                lines.add(
-                  TextSpan(
-                    text: '$depthDisplay\n',
-                    style: TextStyle(
-                      color: colorScheme.onInverseSurface,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                );
-
-                // Temperature (if enabled and available)
-                if (_showTemperature && point.temperature != null) {
-                  final tempDisplay = units.formatTemperature(
-                    point.temperature,
-                  );
-                  lines.add(
-                    TextSpan(
-                      text: '● ',
-                      style: TextStyle(
-                        color: colorScheme.tertiary,
-                        fontSize: 10,
-                      ),
-                    ),
-                  );
-                  lines.add(
-                    TextSpan(
-                      text: 'Temp: ',
-                      style: TextStyle(
-                        color: colorScheme.onInverseSurface.withValues(
-                          alpha: 0.8,
-                        ),
-                      ),
-                    ),
-                  );
-                  lines.add(
-                    TextSpan(
-                      text: '$tempDisplay\n',
-                      style: TextStyle(
-                        color: colorScheme.onInverseSurface,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  );
-                }
-
-                // Pressure (if enabled and available)
-                if (_showPressure && point.pressure != null) {
-                  lines.add(
-                    const TextSpan(
-                      text: '● ',
-                      style: TextStyle(color: Colors.orange, fontSize: 10),
-                    ),
-                  );
-                  lines.add(
-                    TextSpan(
-                      text: 'Press: ',
-                      style: TextStyle(
-                        color: colorScheme.onInverseSurface.withValues(
-                          alpha: 0.8,
-                        ),
-                      ),
-                    ),
-                  );
-                  lines.add(
-                    TextSpan(
-                      text: '${units.formatPressure(point.pressure)}\n',
-                      style: TextStyle(
-                        color: colorScheme.onInverseSurface,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  );
-                }
-
-                // Heart rate (if enabled and available)
-                if (_showHeartRate && point.heartRate != null) {
-                  lines.add(
-                    const TextSpan(
-                      text: '● ',
-                      style: TextStyle(color: Colors.red, fontSize: 10),
-                    ),
-                  );
-                  lines.add(
-                    TextSpan(
-                      text: 'HR: ',
-                      style: TextStyle(
-                        color: colorScheme.onInverseSurface.withValues(
-                          alpha: 0.8,
-                        ),
-                      ),
-                    ),
-                  );
-                  lines.add(
-                    TextSpan(
-                      text: '${point.heartRate!} bpm\n',
-                      style: TextStyle(
-                        color: colorScheme.onInverseSurface,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  );
-                }
-
-                // SAC (if enabled and available)
-                if (_showSac &&
-                    widget.sacCurve != null &&
-                    spot.spotIndex < widget.sacCurve!.length) {
-                  final sacBarPerMin = widget.sacCurve![spot.spotIndex];
-                  if (sacBarPerMin > 0) {
-                    // Apply normalization to align with tank-based SAC
-                    final normalizedSac =
-                        sacBarPerMin * widget.sacNormalizationFactor;
-                    final sacUnit = ref.read(sacUnitProvider);
-                    String sacValue;
-                    if (sacUnit == SacUnit.litersPerMin &&
-                        widget.tankVolume != null) {
-                      // Convert to L/min
-                      final sacLPerMin = normalizedSac * widget.tankVolume!;
-                      sacValue =
-                          '${units.convertVolume(sacLPerMin).toStringAsFixed(1)} ${units.volumeSymbol}/min\n';
-                    } else {
-                      // Use pressure units
-                      sacValue =
-                          '${units.convertPressure(normalizedSac).toStringAsFixed(1)} ${units.pressureSymbol}/min\n';
+            lineTouchData: LineTouchData(
+              enabled: true,
+              touchCallback: (event, response) {
+                if (widget.onPointSelected != null) {
+                  if (response?.lineBarSpots != null &&
+                      response!.lineBarSpots!.isNotEmpty) {
+                    final spot = response.lineBarSpots!.first;
+                    if (spot.barIndex == 0 &&
+                        spot.spotIndex < widget.profile.length) {
+                      widget.onPointSelected!(widget.profile[spot.spotIndex]);
                     }
-                    lines.add(
-                      const TextSpan(
-                        text: '● ',
-                        style: TextStyle(color: Colors.teal, fontSize: 10),
-                      ),
-                    );
-                    lines.add(
-                      TextSpan(
-                        text: 'SAC: ',
-                        style: TextStyle(
-                          color: colorScheme.onInverseSurface.withValues(
-                            alpha: 0.8,
-                          ),
-                        ),
-                      ),
-                    );
-                    lines.add(
-                      TextSpan(
-                        text: sacValue,
-                        style: TextStyle(
-                          color: colorScheme.onInverseSurface,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    );
+                  } else if (event is FlPointerExitEvent ||
+                      event is FlLongPressEnd) {
+                    widget.onPointSelected!(null);
                   }
                 }
+              },
+              touchTooltipData: LineTouchTooltipData(
+                maxContentWidth: 200,
+                fitInsideHorizontally: true,
+                fitInsideVertically: false,
+                showOnTopOfTheChartBoxArea: true,
+                tooltipMargin: 0,
+                getTooltipColor: (spot) => colorScheme.inverseSurface,
+                getTooltipItems: (touchedSpots) {
+                  // Build tooltip showing all enabled metrics for the touched point
+                  // Only process the depth line (barIndex 0) and build combined tooltip
+                  return touchedSpots.map((spot) {
+                    final isDepth = spot.barIndex == 0;
+                    if (!isDepth) {
+                      return null;
+                    }
 
-                // Ceiling (if enabled and available)
-                if (_showCeiling &&
-                    widget.ceilingCurve != null &&
-                    spot.spotIndex < widget.ceilingCurve!.length) {
-                  final ceiling = widget.ceilingCurve![spot.spotIndex];
-                  if (ceiling > 0) {
-                    final ceilingDisplay = units.formatDepth(ceiling);
+                    final point = widget.profile[spot.spotIndex];
+                    final minutes = point.timestamp ~/ 60;
+                    final seconds = point.timestamp % 60;
+
+                    // Build tooltip with all enabled metrics
+                    final lines = <TextSpan>[];
+
+                    // Time (always shown)
+                    lines.add(
+                      TextSpan(
+                        text:
+                            '$minutes:${seconds.toString().padLeft(2, '0')}\n',
+                        style: TextStyle(
+                          color: colorScheme.onInverseSurface.withValues(
+                            alpha: 0.7,
+                          ),
+                          fontSize: 11,
+                        ),
+                      ),
+                    );
+
+                    // Depth (always shown) with color marker
+                    final depthDisplay = units.formatDepth(point.depth);
                     lines.add(
                       TextSpan(
                         text: '● ',
                         style: TextStyle(
-                          color: Colors.red.withValues(alpha: 0.7),
+                          color: colorScheme.primary,
                           fontSize: 10,
                         ),
                       ),
                     );
                     lines.add(
                       TextSpan(
-                        text: 'Ceiling: ',
+                        text: 'Depth: ',
                         style: TextStyle(
                           color: colorScheme.onInverseSurface.withValues(
                             alpha: 0.8,
@@ -1252,97 +1086,31 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     );
                     lines.add(
                       TextSpan(
-                        text: '$ceilingDisplay\n',
+                        text: '$depthDisplay\n',
                         style: TextStyle(
                           color: colorScheme.onInverseSurface,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     );
-                  }
-                }
 
-                // Ascent rate (if enabled and available)
-                if (_showAscentRateColors &&
-                    widget.ascentRates != null &&
-                    spot.spotIndex < widget.ascentRates!.length) {
-                  final ascentRate = widget.ascentRates![spot.spotIndex];
-                  final rate = ascentRate.rateMetersPerMin;
-                  // Only show if there's meaningful vertical movement
-                  if (rate.abs() > 0.5) {
-                    // Format rate in user's preferred depth unit per minute
-                    final convertedRate = units.convertDepth(rate.abs());
-                    final rateValue =
-                        '${convertedRate.toStringAsFixed(1)} ${units.depthSymbol}/min';
-                    final isAscending = rate > 0;
-                    final rateColor = isAscending
-                        ? _getAscentRateColor(ascentRate.category)
-                        : Colors.blue;
-                    lines.add(
-                      TextSpan(
-                        text: '● ',
-                        style: TextStyle(color: rateColor, fontSize: 10),
-                      ),
-                    );
-                    lines.add(
-                      TextSpan(
-                        text: 'Rate: ',
-                        style: TextStyle(
-                          color: colorScheme.onInverseSurface.withValues(
-                            alpha: 0.8,
-                          ),
-                        ),
-                      ),
-                    );
-                    lines.add(
-                      TextSpan(
-                        text: '${isAscending ? '↑' : '↓'} $rateValue\n',
-                        style: TextStyle(
-                          color: colorScheme.onInverseSurface,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    );
-                  }
-                }
-
-                // Per-tank pressure (if any tanks are enabled)
-                if (widget.tankPressures != null) {
-                  final timestamp = point.timestamp;
-                  final sortedTankIds = _sortedTankIds(
-                    widget.tankPressures!.keys,
-                  );
-
-                  for (var i = 0; i < sortedTankIds.length; i++) {
-                    final tankId = sortedTankIds[i];
-                    if (!(_showTankPressure[tankId] ?? true)) continue;
-
-                    final pressurePoints = widget.tankPressures![tankId];
-                    if (pressurePoints == null || pressurePoints.isEmpty) {
-                      continue;
-                    }
-
-                    // Find pressure at current timestamp (interpolate if needed)
-                    final pressure = _interpolateTankPressure(
-                      pressurePoints,
-                      timestamp,
-                    );
-                    if (pressure != null) {
-                      final tank = _getTankById(tankId);
-                      final color = tank != null
-                          ? GasColors.forGasMix(tank.gasMix)
-                          : _getTankColor(i);
-                      // Use tank name, or fall back to "Tank 1", "Tank 2", etc.
-                      final tankLabel = tank?.name ?? 'Tank ${i + 1}';
+                    // Temperature (if enabled and available)
+                    if (_showTemperature && point.temperature != null) {
+                      final tempDisplay = units.formatTemperature(
+                        point.temperature,
+                      );
                       lines.add(
                         TextSpan(
                           text: '● ',
-                          style: TextStyle(color: color, fontSize: 10),
+                          style: TextStyle(
+                            color: colorScheme.tertiary,
+                            fontSize: 10,
+                          ),
                         ),
                       );
                       lines.add(
                         TextSpan(
-                          text: '$tankLabel: ',
+                          text: 'Temp: ',
                           style: TextStyle(
                             color: colorScheme.onInverseSurface.withValues(
                               alpha: 0.8,
@@ -1352,7 +1120,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       );
                       lines.add(
                         TextSpan(
-                          text: '${units.formatPressure(pressure)}\n',
+                          text: '$tempDisplay\n',
                           style: TextStyle(
                             color: colorScheme.onInverseSurface,
                             fontWeight: FontWeight.bold,
@@ -1360,20 +1128,265 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                         ),
                       );
                     }
-                  }
-                }
 
-                return LineTooltipItem(
-                  '', // Empty base text, using children instead
-                  TextStyle(color: colorScheme.onInverseSurface),
-                  children: lines,
-                );
-              }).toList();
-            },
+                    // Pressure (if enabled and available)
+                    if (_showPressure && point.pressure != null) {
+                      lines.add(
+                        const TextSpan(
+                          text: '● ',
+                          style: TextStyle(color: Colors.orange, fontSize: 10),
+                        ),
+                      );
+                      lines.add(
+                        TextSpan(
+                          text: 'Press: ',
+                          style: TextStyle(
+                            color: colorScheme.onInverseSurface.withValues(
+                              alpha: 0.8,
+                            ),
+                          ),
+                        ),
+                      );
+                      lines.add(
+                        TextSpan(
+                          text: '${units.formatPressure(point.pressure)}\n',
+                          style: TextStyle(
+                            color: colorScheme.onInverseSurface,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      );
+                    }
+
+                    // Heart rate (if enabled and available)
+                    if (_showHeartRate && point.heartRate != null) {
+                      lines.add(
+                        const TextSpan(
+                          text: '● ',
+                          style: TextStyle(color: Colors.red, fontSize: 10),
+                        ),
+                      );
+                      lines.add(
+                        TextSpan(
+                          text: 'HR: ',
+                          style: TextStyle(
+                            color: colorScheme.onInverseSurface.withValues(
+                              alpha: 0.8,
+                            ),
+                          ),
+                        ),
+                      );
+                      lines.add(
+                        TextSpan(
+                          text: '${point.heartRate!} bpm\n',
+                          style: TextStyle(
+                            color: colorScheme.onInverseSurface,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      );
+                    }
+
+                    // SAC (if enabled and available)
+                    if (_showSac &&
+                        widget.sacCurve != null &&
+                        spot.spotIndex < widget.sacCurve!.length) {
+                      final sacBarPerMin = widget.sacCurve![spot.spotIndex];
+                      if (sacBarPerMin > 0) {
+                        // Apply normalization to align with tank-based SAC
+                        final normalizedSac =
+                            sacBarPerMin * widget.sacNormalizationFactor;
+                        final sacUnit = ref.read(sacUnitProvider);
+                        String sacValue;
+                        if (sacUnit == SacUnit.litersPerMin &&
+                            widget.tankVolume != null) {
+                          // Convert to L/min
+                          final sacLPerMin = normalizedSac * widget.tankVolume!;
+                          sacValue =
+                              '${units.convertVolume(sacLPerMin).toStringAsFixed(1)} ${units.volumeSymbol}/min\n';
+                        } else {
+                          // Use pressure units
+                          sacValue =
+                              '${units.convertPressure(normalizedSac).toStringAsFixed(1)} ${units.pressureSymbol}/min\n';
+                        }
+                        lines.add(
+                          const TextSpan(
+                            text: '● ',
+                            style: TextStyle(color: Colors.teal, fontSize: 10),
+                          ),
+                        );
+                        lines.add(
+                          TextSpan(
+                            text: 'SAC: ',
+                            style: TextStyle(
+                              color: colorScheme.onInverseSurface.withValues(
+                                alpha: 0.8,
+                              ),
+                            ),
+                          ),
+                        );
+                        lines.add(
+                          TextSpan(
+                            text: sacValue,
+                            style: TextStyle(
+                              color: colorScheme.onInverseSurface,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        );
+                      }
+                    }
+
+                    // Ceiling (if enabled and available)
+                    if (_showCeiling &&
+                        widget.ceilingCurve != null &&
+                        spot.spotIndex < widget.ceilingCurve!.length) {
+                      final ceiling = widget.ceilingCurve![spot.spotIndex];
+                      if (ceiling > 0) {
+                        final ceilingDisplay = units.formatDepth(ceiling);
+                        lines.add(
+                          TextSpan(
+                            text: '● ',
+                            style: TextStyle(
+                              color: Colors.red.withValues(alpha: 0.7),
+                              fontSize: 10,
+                            ),
+                          ),
+                        );
+                        lines.add(
+                          TextSpan(
+                            text: 'Ceiling: ',
+                            style: TextStyle(
+                              color: colorScheme.onInverseSurface.withValues(
+                                alpha: 0.8,
+                              ),
+                            ),
+                          ),
+                        );
+                        lines.add(
+                          TextSpan(
+                            text: '$ceilingDisplay\n',
+                            style: TextStyle(
+                              color: colorScheme.onInverseSurface,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        );
+                      }
+                    }
+
+                    // Ascent rate (if enabled and available)
+                    if (_showAscentRateColors &&
+                        widget.ascentRates != null &&
+                        spot.spotIndex < widget.ascentRates!.length) {
+                      final ascentRate = widget.ascentRates![spot.spotIndex];
+                      final rate = ascentRate.rateMetersPerMin;
+                      // Only show if there's meaningful vertical movement
+                      if (rate.abs() > 0.5) {
+                        // Format rate in user's preferred depth unit per minute
+                        final convertedRate = units.convertDepth(rate.abs());
+                        final rateValue =
+                            '${convertedRate.toStringAsFixed(1)} ${units.depthSymbol}/min';
+                        final isAscending = rate > 0;
+                        final rateColor = isAscending
+                            ? _getAscentRateColor(ascentRate.category)
+                            : Colors.blue;
+                        lines.add(
+                          TextSpan(
+                            text: '● ',
+                            style: TextStyle(color: rateColor, fontSize: 10),
+                          ),
+                        );
+                        lines.add(
+                          TextSpan(
+                            text: 'Rate: ',
+                            style: TextStyle(
+                              color: colorScheme.onInverseSurface.withValues(
+                                alpha: 0.8,
+                              ),
+                            ),
+                          ),
+                        );
+                        lines.add(
+                          TextSpan(
+                            text: '${isAscending ? '↑' : '↓'} $rateValue\n',
+                            style: TextStyle(
+                              color: colorScheme.onInverseSurface,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        );
+                      }
+                    }
+
+                    // Per-tank pressure (if any tanks are enabled)
+                    if (widget.tankPressures != null) {
+                      final timestamp = point.timestamp;
+                      final sortedTankIds = _sortedTankIds(
+                        widget.tankPressures!.keys,
+                      );
+
+                      for (var i = 0; i < sortedTankIds.length; i++) {
+                        final tankId = sortedTankIds[i];
+                        if (!(_showTankPressure[tankId] ?? true)) continue;
+
+                        final pressurePoints = widget.tankPressures![tankId];
+                        if (pressurePoints == null || pressurePoints.isEmpty) {
+                          continue;
+                        }
+
+                        // Find pressure at current timestamp (interpolate if needed)
+                        final pressure = _interpolateTankPressure(
+                          pressurePoints,
+                          timestamp,
+                        );
+                        if (pressure != null) {
+                          final tank = _getTankById(tankId);
+                          final color = tank != null
+                              ? GasColors.forGasMix(tank.gasMix)
+                              : _getTankColor(i);
+                          // Use tank name, or fall back to "Tank 1", "Tank 2", etc.
+                          final tankLabel = tank?.name ?? 'Tank ${i + 1}';
+                          lines.add(
+                            TextSpan(
+                              text: '● ',
+                              style: TextStyle(color: color, fontSize: 10),
+                            ),
+                          );
+                          lines.add(
+                            TextSpan(
+                              text: '$tankLabel: ',
+                              style: TextStyle(
+                                color: colorScheme.onInverseSurface.withValues(
+                                  alpha: 0.8,
+                                ),
+                              ),
+                            ),
+                          );
+                          lines.add(
+                            TextSpan(
+                              text: '${units.formatPressure(pressure)}\n',
+                              style: TextStyle(
+                                color: colorScheme.onInverseSurface,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          );
+                        }
+                      }
+                    }
+
+                    return LineTooltipItem(
+                      '', // Empty base text, using children instead
+                      TextStyle(color: colorScheme.onInverseSurface),
+                      children: lines,
+                    );
+                  }).toList();
+                },
+              ),
+            ),
           ),
         ),
-      ),
-    ),
         // Marker labels overlay
         _buildMarkerLabelsOverlay(
           units,
@@ -1920,7 +1933,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           } else {
             // Pressure threshold marker: position on pressure line
             // Map the pressure value to the depth axis, same as pressure line rendering
-            if (minPressure != null && maxPressure != null && marker.value != null) {
+            if (minPressure != null &&
+                maxPressure != null &&
+                marker.value != null) {
               markerY = _mapValueToDepth(
                 marker.value!,
                 totalMaxDepth,
@@ -2007,13 +2022,15 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         }
       }
 
-      lines.add(_buildSingleMarkerLine(
-        marker,
-        units,
-        chartMaxDepth,
-        minPressure: minPressure,
-        maxPressure: maxPressure,
-      ));
+      lines.add(
+        _buildSingleMarkerLine(
+          marker,
+          units,
+          chartMaxDepth,
+          minPressure: minPressure,
+          maxPressure: maxPressure,
+        ),
+      );
     }
 
     return lines;
@@ -2052,9 +2069,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     }
 
     return LineChartBarData(
-      spots: [
-        FlSpot(marker.timestamp.toDouble(), yPosition),
-      ],
+      spots: [FlSpot(marker.timestamp.toDouble(), yPosition)],
       isCurved: false,
       color: Colors.transparent,
       barWidth: 0,
