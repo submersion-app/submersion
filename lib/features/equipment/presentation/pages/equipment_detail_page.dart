@@ -246,11 +246,12 @@ class EquipmentDetailPage extends ConsumerWidget {
                         children: [
                           Text(
                             '$count ${count == 1 ? 'dive' : 'dives'}',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: count > 0
-                                  ? Theme.of(context).colorScheme.primary
-                                  : null,
-                            ),
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: count > 0
+                                      ? Theme.of(context).colorScheme.primary
+                                      : null,
+                                ),
                           ),
                           if (count > 0) ...[
                             const SizedBox(width: 4),
@@ -295,11 +296,12 @@ class EquipmentDetailPage extends ConsumerWidget {
                         children: [
                           Text(
                             '$count ${count == 1 ? 'trip' : 'trips'}',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: count > 0
-                                  ? Theme.of(context).colorScheme.primary
-                                  : null,
-                            ),
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: count > 0
+                                      ? Theme.of(context).colorScheme.primary
+                                      : null,
+                                ),
                           ),
                           if (count > 0) ...[
                             const SizedBox(width: 4),

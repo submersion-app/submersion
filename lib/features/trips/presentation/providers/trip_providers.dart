@@ -11,9 +11,7 @@ import '../../domain/entities/trip.dart';
 class TripFilterState {
   final String? equipmentId;
 
-  const TripFilterState({
-    this.equipmentId,
-  });
+  const TripFilterState({this.equipmentId});
 
   bool get hasActiveFilters => equipmentId != null;
 
@@ -58,8 +56,7 @@ final allTripsWithStatsProvider = FutureProvider<List<TripWithStats>>((
 });
 
 /// Filtered trips provider - applies current filter to trip list
-final filteredTripsProvider =
-    FutureProvider<List<TripWithStats>>((ref) async {
+final filteredTripsProvider = FutureProvider<List<TripWithStats>>((ref) async {
   final filter = ref.watch(tripFilterProvider);
   final tripsAsync = ref.watch(tripListNotifierProvider);
 
@@ -72,8 +69,9 @@ final filteredTripsProvider =
   // If filtering by equipment, get trip IDs that used this equipment
   if (filter.equipmentId != null) {
     final equipmentRepository = EquipmentRepository();
-    final tripIds =
-        await equipmentRepository.getTripIdsForEquipment(filter.equipmentId!);
+    final tripIds = await equipmentRepository.getTripIdsForEquipment(
+      filter.equipmentId!,
+    );
     final tripIdSet = tripIds.toSet();
     return trips.where((t) => tripIdSet.contains(t.trip.id)).toList();
   }
@@ -106,8 +104,10 @@ final diveIdsForTripProvider = FutureProvider.family<List<String>, String>((
 });
 
 /// Full dive entities for a trip provider
-final divesForTripProvider =
-    FutureProvider.family<List<domain.Dive>, String>((ref, tripId) async {
+final divesForTripProvider = FutureProvider.family<List<domain.Dive>, String>((
+  ref,
+  tripId,
+) async {
   final tripRepository = ref.watch(tripRepositoryProvider);
   final diveRepository = DiveRepository();
   final diveIds = await tripRepository.getDiveIdsForTrip(tripId);

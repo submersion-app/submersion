@@ -396,20 +396,20 @@ class EquipmentRepository {
   /// Get trip IDs for equipment item
   Future<List<String>> getTripIdsForEquipment(String equipmentId) async {
     try {
-      final result = await _db.customSelect(
-        '''
+      final result = await _db
+          .customSelect(
+            '''
         SELECT DISTINCT d.trip_id
         FROM dive_equipment de
         INNER JOIN dives d ON de.dive_id = d.id
         WHERE de.equipment_id = ? AND d.trip_id IS NOT NULL
         ORDER BY d.dive_date_time DESC
       ''',
-        variables: [Variable.withString(equipmentId)],
-      ).get();
+            variables: [Variable.withString(equipmentId)],
+          )
+          .get();
 
-      return result
-          .map((row) => row.data['trip_id'] as String)
-          .toList();
+      return result.map((row) => row.data['trip_id'] as String).toList();
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get trip IDs for equipment: $equipmentId',

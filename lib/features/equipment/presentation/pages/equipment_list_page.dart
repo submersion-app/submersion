@@ -35,10 +35,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
-              showSearch(
-                context: context,
-                delegate: EquipmentSearchDelegate(),
-              );
+              showSearch(context: context, delegate: EquipmentSearchDelegate());
             },
           ),
         ],
@@ -105,11 +102,11 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
                 ...EquipmentStatus.values
                     .where((status) => status != EquipmentStatus.needsService)
                     .map((status) {
-                  return DropdownMenuItem<Object?>(
-                    value: status,
-                    child: Text(status.displayName),
-                  );
-                }),
+                      return DropdownMenuItem<Object?>(
+                        value: status,
+                        child: Text(status.displayName),
+                      );
+                    }),
               ],
               onChanged: (value) {
                 setState(() => _selectedFilter = value);
@@ -199,7 +196,8 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
     } else if (_selectedFilter == _serviceDueFilter) {
       filterText = 'equipment needing service';
     } else {
-      filterText = '${(_selectedFilter as EquipmentStatus).displayName.toLowerCase()} equipment';
+      filterText =
+          '${(_selectedFilter as EquipmentStatus).displayName.toLowerCase()} equipment';
     }
 
     return Center(
@@ -221,8 +219,8 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
             _selectedFilter == null
                 ? 'Add your diving equipment to track usage and service'
                 : _selectedFilter == _serviceDueFilter
-                    ? 'All your equipment is up to date on service!'
-                    : 'No equipment with this status',
+                ? 'All your equipment is up to date on service!'
+                : 'No equipment with this status',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
