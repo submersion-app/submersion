@@ -144,8 +144,13 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: flutter build ios --release --no-codesign "${{ env.DART_DEFINES }}" -v
 
-      - name: Build macOS
-        run: flutter build macos --release "${{ env.DART_DEFINES }}" -v
+      - name: Build macOS (CI signing)
+        run: |
+          # Use CI config with ad-hoc signing (no developer certificate needed)
+          cp macos/Runner/Configs/Release.xcconfig macos/Runner/Configs/Release.xcconfig.original
+          cp macos/Runner/Configs/ReleaseCI.xcconfig macos/Runner/Configs/Release.xcconfig
+          flutter build macos --release ${{ env.DART_DEFINES }} -v
+          mv macos/Runner/Configs/Release.xcconfig.original macos/Runner/Configs/Release.xcconfig
 
       - name: Upload iOS artifact
         uses: actions/upload-artifact@v4
