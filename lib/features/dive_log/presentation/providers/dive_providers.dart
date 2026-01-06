@@ -13,6 +13,8 @@ class DiveFilterState {
   final DateTime? endDate;
   final String? diveTypeId;
   final String? siteId;
+  final String? tripId;
+  final String? equipmentId;
   final double? minDepth;
   final double? maxDepth;
   final bool? favoritesOnly;
@@ -23,6 +25,8 @@ class DiveFilterState {
     this.endDate,
     this.diveTypeId,
     this.siteId,
+    this.tripId,
+    this.equipmentId,
     this.minDepth,
     this.maxDepth,
     this.favoritesOnly,
@@ -34,6 +38,8 @@ class DiveFilterState {
       endDate != null ||
       diveTypeId != null ||
       siteId != null ||
+      tripId != null ||
+      equipmentId != null ||
       minDepth != null ||
       maxDepth != null ||
       favoritesOnly == true ||
@@ -44,6 +50,8 @@ class DiveFilterState {
     DateTime? endDate,
     String? diveTypeId,
     String? siteId,
+    String? tripId,
+    String? equipmentId,
     double? minDepth,
     double? maxDepth,
     bool? favoritesOnly,
@@ -52,6 +60,8 @@ class DiveFilterState {
     bool clearEndDate = false,
     bool clearDiveType = false,
     bool clearSiteId = false,
+    bool clearTripId = false,
+    bool clearEquipmentId = false,
     bool clearMinDepth = false,
     bool clearMaxDepth = false,
     bool clearFavoritesOnly = false,
@@ -62,6 +72,9 @@ class DiveFilterState {
       endDate: clearEndDate ? null : (endDate ?? this.endDate),
       diveTypeId: clearDiveType ? null : (diveTypeId ?? this.diveTypeId),
       siteId: clearSiteId ? null : (siteId ?? this.siteId),
+      tripId: clearTripId ? null : (tripId ?? this.tripId),
+      equipmentId:
+          clearEquipmentId ? null : (equipmentId ?? this.equipmentId),
       minDepth: clearMinDepth ? null : (minDepth ?? this.minDepth),
       maxDepth: clearMaxDepth ? null : (maxDepth ?? this.maxDepth),
       favoritesOnly: clearFavoritesOnly
@@ -91,6 +104,19 @@ class DiveFilterState {
       // Site filter
       if (siteId != null && dive.site?.id != siteId) {
         return false;
+      }
+
+      // Trip filter
+      if (tripId != null && dive.tripId != tripId) {
+        return false;
+      }
+
+      // Equipment filter
+      if (equipmentId != null) {
+        final hasEquipment = dive.equipment.any((e) => e.id == equipmentId);
+        if (!hasEquipment) {
+          return false;
+        }
       }
 
       // Depth filter

@@ -10,8 +10,10 @@ import '../../../dive_sites/presentation/providers/site_providers.dart';
 import '../../../dive_types/presentation/providers/dive_type_providers.dart';
 import '../../../settings/presentation/providers/settings_providers.dart';
 import '../../../tags/domain/entities/tag.dart';
+import '../../../equipment/presentation/providers/equipment_providers.dart';
 import '../../../tags/presentation/providers/tag_providers.dart';
 import '../../../tags/presentation/widgets/tag_input_widget.dart';
+import '../../../trips/presentation/providers/trip_providers.dart';
 import '../../domain/entities/dive.dart';
 import '../providers/dive_providers.dart';
 import '../widgets/dive_numbering_dialog.dart';
@@ -383,6 +385,31 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
         _buildFilterChip(context, siteName, () {
           ref.read(diveFilterProvider.notifier).state = filter.copyWith(
             clearSiteId: true,
+          );
+        }),
+      );
+    }
+
+    if (filter.tripId != null) {
+      final tripName =
+          ref.watch(tripByIdProvider(filter.tripId!)).value?.name ?? 'Trip';
+      chips.add(
+        _buildFilterChip(context, tripName, () {
+          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
+            clearTripId: true,
+          );
+        }),
+      );
+    }
+
+    if (filter.equipmentId != null) {
+      final equipmentName =
+          ref.watch(equipmentItemProvider(filter.equipmentId!)).value?.name ??
+              'Equipment';
+      chips.add(
+        _buildFilterChip(context, equipmentName, () {
+          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
+            clearEquipmentId: true,
           );
         }),
       );

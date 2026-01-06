@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../equipment/presentation/providers/equipment_providers.dart';
 import '../../domain/entities/trip.dart';
 import '../providers/trip_providers.dart';
 
@@ -11,7 +12,10 @@ class TripListPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tripsAsync = ref.watch(tripListNotifierProvider);
+    final filter = ref.watch(tripFilterProvider);
+    final tripsAsync = filter.hasActiveFilters
+        ? ref.watch(filteredTripsProvider)
+        : ref.watch(tripListNotifierProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -20,15 +24,15 @@ class TripListPage extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
-              showSearch(context: context, delegate: TripSearchDelegate(ref));
+              showSearch(context: context, delegate: TripSearchDelegate());
             },
           ),
         ],
       ),
       body: tripsAsync.when(
         data: (trips) => trips.isEmpty
-            ? _buildEmptyState(context)
-            : _buildTripList(context, ref, trips),
+            ? _buildEmptyState(context, filter.hasActiveFilters)
+            : _buildTripList(context, ref, trips, filter.hasActiveFilters),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(
           child: Column(
@@ -55,30 +59,117 @@ class TripListPage extends ConsumerWidget {
     );
   }
 
+  Widget _buildActiveFiltersBar(BuildContext context, WidgetRef ref) {
+    final filter = ref.watch(tripFilterProvider);
+    final chips = <Widget>[];
+
+    if (filter.equipmentId != null) {
+      final equipmentName =
+          ref.watch(equipmentItemProvider(filter.equipmentId!)).value?.name ??
+              'Equipment';
+      chips.add(
+        InputChip(
+          label: Text(equipmentName),
+          onDeleted: () {
+            ref.read(tripFilterProvider.notifier).state = filter.copyWith(
+              clearEquipmentId: true,
+            );
+          },
+          deleteIcon: const Icon(Icons.close, size: 18),
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: chips
+                    .map((chip) => Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: chip,
+                        ))
+                    .toList(),
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              ref.read(tripFilterProvider.notifier).state =
+                  const TripFilterState();
+            },
+            child: const Text('Clear all'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildTripList(
     BuildContext context,
     WidgetRef ref,
     List<TripWithStats> trips,
+    bool hasActiveFilters,
   ) {
     return RefreshIndicator(
       onRefresh: () async {
         await ref.read(tripListNotifierProvider.notifier).refresh();
       },
-      child: ListView.builder(
-        padding: const EdgeInsets.only(bottom: 80),
-        itemCount: trips.length,
-        itemBuilder: (context, index) {
-          final tripWithStats = trips[index];
-          return TripListTile(
-            tripWithStats: tripWithStats,
-            onTap: () => context.push('/trips/${tripWithStats.trip.id}'),
-          );
-        },
+      child: Column(
+        children: [
+          if (hasActiveFilters) _buildActiveFiltersBar(context, ref),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.only(bottom: 80),
+              itemCount: trips.length,
+              itemBuilder: (context, index) {
+                final tripWithStats = trips[index];
+                return TripListTile(
+                  tripWithStats: tripWithStats,
+                  onTap: () => context.push('/trips/${tripWithStats.trip.id}'),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
+  Widget _buildEmptyState(BuildContext context, bool hasActiveFilters) {
+    if (hasActiveFilters) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.filter_list_off,
+              size: 80,
+              color:
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No trips match your filters',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Try adjusting or clearing your filters',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -194,9 +285,7 @@ class TripListTile extends StatelessWidget {
 
 /// Search delegate for trips
 class TripSearchDelegate extends SearchDelegate<Trip?> {
-  final WidgetRef ref;
-
-  TripSearchDelegate(this.ref);
+  TripSearchDelegate();
 
   @override
   String get searchFieldLabel => 'Search trips...';
@@ -251,61 +340,67 @@ class TripSearchDelegate extends SearchDelegate<Trip?> {
   }
 
   Widget _buildSearchResults(BuildContext context) {
-    final searchAsync = ref.watch(tripSearchProvider(query));
+    // Use Consumer to get a valid ref within the SearchDelegate
+    return Consumer(
+      builder: (context, ref, child) {
+        final searchAsync = ref.watch(tripSearchProvider(query));
 
-    return searchAsync.when(
-      data: (trips) {
-        if (trips.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.search_off,
-                  size: 64,
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+        return searchAsync.when(
+          data: (trips) {
+            if (trips.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.search_off,
+                      size: 64,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No trips found for "$query"',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  'No trips found for "$query"',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+              );
+            }
+
+            return ListView.builder(
+              itemCount: trips.length,
+              itemBuilder: (context, index) {
+                final trip = trips[index];
+                final dateFormat = DateFormat.yMMMd();
+                return ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor:
+                        Theme.of(context).colorScheme.primaryContainer,
+                    child: Icon(
+                      trip.isLiveaboard ? Icons.sailing : Icons.flight_takeoff,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return ListView.builder(
-          itemCount: trips.length,
-          itemBuilder: (context, index) {
-            final trip = trips[index];
-            final dateFormat = DateFormat.yMMMd();
-            return ListTile(
-              leading: CircleAvatar(
-                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                child: Icon(
-                  trip.isLiveaboard ? Icons.sailing : Icons.flight_takeoff,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                ),
-              ),
-              title: Text(trip.name),
-              subtitle: Text(
-                '${dateFormat.format(trip.startDate)} - ${dateFormat.format(trip.endDate)}',
-              ),
-              onTap: () {
-                close(context, trip);
-                context.push('/trips/${trip.id}');
+                  title: Text(trip.name),
+                  subtitle: Text(
+                    '${dateFormat.format(trip.startDate)} - ${dateFormat.format(trip.endDate)}',
+                  ),
+                  onTap: () {
+                    close(context, trip);
+                    context.push('/trips/${trip.id}');
+                  },
+                );
               },
             );
           },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => Center(child: Text('Error: $error')),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(child: Text('Error: $error')),
     );
   }
 }
