@@ -456,7 +456,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 _buildMetricToggle(
                   context,
                   color: Colors.orange,
-                  label: '⅓½⅔',
+                  label: 'Tank Pressure Thresholds',
                   isEnabled: _showPressureMarkersLocal,
                   onTap: () => setState(
                     () =>
@@ -797,7 +797,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       }
     }
 
-    // Pressure bounds (if showing)
+    // Pressure bounds (if showing) - includes both legacy single pressure and multi-tank
     double? minPressure, maxPressure;
     if (_showPressure && hasPressureData) {
       final pressures = widget.profile
@@ -806,6 +806,19 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       if (pressures.isNotEmpty) {
         minPressure = pressures.reduce(math.min) - 10;
         maxPressure = pressures.reduce(math.max) + 10;
+      }
+    }
+    // Also calculate from multi-tank pressure data if available
+    if (_hasMultiTankPressure && widget.tankPressures != null) {
+      for (final pressurePoints in widget.tankPressures!.values) {
+        for (final point in pressurePoints) {
+          if (minPressure == null || point.pressure < minPressure) {
+            minPressure = point.pressure - 10;
+          }
+          if (maxPressure == null || point.pressure > maxPressure) {
+            maxPressure = point.pressure + 10;
+          }
+        }
       }
     }
 
@@ -832,12 +845,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       }
     }
 
-    return LineChart(
-      LineChartData(
-        minX: visibleMinX,
-        maxX: visibleMaxX,
-        minY: -visibleMaxDepth, // Inverted: negative depth at bottom
-        maxY: -visibleMinDepth, // Surface area at top (inverted)
+    return Stack(
+      children: [
+        LineChart(
+          LineChartData(
+            minX: visibleMinX,
+            maxX: visibleMaxX,
+            minY: -visibleMaxDepth, // Inverted: negative depth at bottom
+            maxY: -visibleMinDepth, // Surface area at top (inverted)
         clipData:
             const FlClipData.all(), // Clip data points outside visible area
         gridData: FlGridData(
@@ -973,7 +988,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             _buildCeilingLine(units),
 
           // Profile markers (max depth, pressure thresholds)
-          ..._buildMarkerLines(units, totalMaxDepth),
+          ..._buildMarkerLines(
+            units,
+            totalMaxDepth,
+            minPressure: minPressure,
+            maxPressure: maxPressure,
+          ),
         ],
         extraLinesData: ExtraLinesData(
           horizontalLines: _showEvents && widget.events != null
@@ -1353,6 +1373,19 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           ),
         ),
       ),
+    ),
+        // Marker labels overlay
+        _buildMarkerLabelsOverlay(
+          units,
+          visibleMinX: visibleMinX,
+          visibleMaxX: visibleMaxX,
+          visibleMinDepth: visibleMinDepth,
+          visibleMaxDepth: visibleMaxDepth,
+          totalMaxDepth: totalMaxDepth,
+          minPressure: minPressure,
+          maxPressure: maxPressure,
+        ),
+      ],
     );
   }
 
@@ -1829,11 +1862,134 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     return [];
   }
 
+  /// Build marker labels overlay positioned on the chart
+  Widget _buildMarkerLabelsOverlay(
+    UnitFormatter units, {
+    required double visibleMinX,
+    required double visibleMaxX,
+    required double visibleMinDepth,
+    required double visibleMaxDepth,
+    required double totalMaxDepth,
+    double? minPressure,
+    double? maxPressure,
+  }) {
+    final markers = widget.markers;
+    if (markers == null || markers.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final chartWidth = constraints.maxWidth;
+        final chartHeight = constraints.maxHeight;
+        final visibleRangeX = visibleMaxX - visibleMinX;
+        final visibleRangeY = visibleMaxDepth - visibleMinDepth;
+
+        final labels = <Widget>[];
+
+        for (final marker in markers) {
+          // Skip markers based on settings
+          if (marker.type == ProfileMarkerType.maxDepth) {
+            if (!widget.showMaxDepthMarker || !_showMaxDepthMarkerLocal) {
+              continue;
+            }
+          } else {
+            if (!widget.showPressureThresholdMarkers ||
+                !_showPressureMarkersLocal) {
+              continue;
+            }
+          }
+
+          // Calculate marker position
+          final markerX = marker.timestamp.toDouble();
+
+          // Skip if X is out of visible range
+          if (markerX < visibleMinX || markerX > visibleMaxX) {
+            continue;
+          }
+
+          // Calculate Y position based on marker type
+          double markerY;
+          if (marker.type == ProfileMarkerType.maxDepth) {
+            // Max depth marker: position on depth line
+            markerY = units.convertDepth(marker.depth);
+            // Check if in visible depth range
+            if (markerY < visibleMinDepth || markerY > visibleMaxDepth) {
+              continue;
+            }
+          } else {
+            // Pressure threshold marker: position on pressure line
+            // Map the pressure value to the depth axis, same as pressure line rendering
+            if (minPressure != null && maxPressure != null && marker.value != null) {
+              markerY = _mapValueToDepth(
+                marker.value!,
+                totalMaxDepth,
+                minPressure,
+                maxPressure,
+              );
+              // For pressure markers, check if within visible depth range
+              if (markerY < visibleMinDepth || markerY > visibleMaxDepth) {
+                continue;
+              }
+            } else {
+              // Fallback to depth if no pressure range
+              markerY = units.convertDepth(marker.depth);
+              if (markerY < visibleMinDepth || markerY > visibleMaxDepth) {
+                continue;
+              }
+            }
+          }
+
+          // Convert data coordinates to pixel coordinates
+          final pixelX = ((markerX - visibleMinX) / visibleRangeX) * chartWidth;
+          final pixelY =
+              ((markerY - visibleMinDepth) / visibleRangeY) * chartHeight;
+
+          final color = marker.getColor();
+          final isMaxDepth = marker.type == ProfileMarkerType.maxDepth;
+
+          labels.add(
+            Positioned(
+              left: pixelX + 8, // Offset to the right of the marker dot
+              top: pixelY - 8, // Slightly above the marker
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.9),
+                  borderRadius: BorderRadius.circular(4),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      blurRadius: 2,
+                      offset: const Offset(1, 1),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  marker.chartLabel,
+                  style: TextStyle(
+                    color: isMaxDepth ? Colors.white : Colors.black87,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
+
+        return Stack(children: labels);
+      },
+    );
+  }
+
   /// Build marker lines for max depth and pressure thresholds
   List<LineChartBarData> _buildMarkerLines(
     UnitFormatter units,
-    double chartMaxDepth,
-  ) {
+    double chartMaxDepth, {
+    double? minPressure,
+    double? maxPressure,
+  }) {
     final lines = <LineChartBarData>[];
     final markers = widget.markers;
 
@@ -1851,7 +2007,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         }
       }
 
-      lines.add(_buildSingleMarkerLine(marker, units));
+      lines.add(_buildSingleMarkerLine(
+        marker,
+        units,
+        chartMaxDepth,
+        minPressure: minPressure,
+        maxPressure: maxPressure,
+      ));
     }
 
     return lines;
@@ -1861,13 +2023,37 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   LineChartBarData _buildSingleMarkerLine(
     ProfileMarker marker,
     UnitFormatter units,
-  ) {
+    double chartMaxDepth, {
+    double? minPressure,
+    double? maxPressure,
+  }) {
     final color = marker.getColor();
     final size = marker.markerSize;
 
+    // Calculate Y position based on marker type
+    double yPosition;
+    if (marker.type == ProfileMarkerType.maxDepth) {
+      // Max depth marker: position on depth line
+      yPosition = -units.convertDepth(marker.depth);
+    } else {
+      // Pressure threshold marker: position on pressure line
+      // Use the threshold pressure value (marker.value) mapped to the chart's Y axis
+      if (minPressure != null && maxPressure != null && marker.value != null) {
+        yPosition = -_mapValueToDepth(
+          marker.value!,
+          chartMaxDepth,
+          minPressure,
+          maxPressure,
+        );
+      } else {
+        // Fallback to depth position if pressure range not available
+        yPosition = -units.convertDepth(marker.depth);
+      }
+    }
+
     return LineChartBarData(
       spots: [
-        FlSpot(marker.timestamp.toDouble(), -units.convertDepth(marker.depth)),
+        FlSpot(marker.timestamp.toDouble(), yPosition),
       ],
       isCurved: false,
       color: Colors.transparent,
