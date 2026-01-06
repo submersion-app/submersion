@@ -1,0 +1,27 @@
+// CI Build Configuration for Submersion
+// ========================================
+// Uses ad-hoc signing to embed entitlements without requiring a developer certificate.
+// This allows file picker, Bluetooth, and other sandboxed features to work.
+//
+// LIMITATIONS:
+//   - iCloud sync is NOT available (requires developer certificate)
+//   - Push notifications are NOT available (requires developer certificate)
+//
+// USAGE:
+//   ./scripts/build_ci_macos.sh
+//
+// The built app will be at: build/macos/Build/Products/Release/submersion.app
+
+// Base includes (same as Release.xcconfig)
+#include "../../Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"
+#include "../../Flutter/Flutter-Release.xcconfig"
+#include "Warnings.xcconfig"
+
+// Disable merged UI/platform thread to use the traditional threading model.
+FLUTTER_MERGED_PLATFORM_THREAD = 0
+
+// CI-specific: Ad-hoc signing embeds entitlements without requiring a certificate
+CODE_SIGN_IDENTITY = -
+
+// CI-specific: Use stripped entitlements (no iCloud/push - those require a dev certificate)
+CODE_SIGN_ENTITLEMENTS = Runner/ReleaseCI.entitlements
