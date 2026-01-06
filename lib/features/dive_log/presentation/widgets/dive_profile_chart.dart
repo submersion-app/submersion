@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import '../../../../core/constants/enums.dart';
 import '../../../../core/constants/units.dart';
 import '../../../../core/deco/ascent_rate_calculator.dart';
 import '../../../../core/utils/unit_formatter.dart';
@@ -160,6 +161,58 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       return orderA.compareTo(orderB);
     });
     return ids;
+  }
+
+  /// Get color for ascent rate category
+  Color _getAscentRateColor(AscentRateCategory category) {
+    switch (category) {
+      case AscentRateCategory.safe:
+        return Colors.green;
+      case AscentRateCategory.warning:
+        return Colors.orange;
+      case AscentRateCategory.danger:
+        return Colors.red;
+    }
+  }
+
+  /// Interpolate tank pressure at a given timestamp
+  double? _interpolateTankPressure(
+    List<TankPressurePoint> points,
+    int timestamp,
+  ) {
+    if (points.isEmpty) return null;
+
+    // Find surrounding points
+    TankPressurePoint? before;
+    TankPressurePoint? after;
+
+    for (final point in points) {
+      if (point.timestamp <= timestamp) {
+        before = point;
+      } else {
+        after = point;
+        break;
+      }
+    }
+
+    // Exact match or only before point
+    if (before != null && (after == null || before.timestamp == timestamp)) {
+      return before.pressure;
+    }
+
+    // Only after point (timestamp before first data point)
+    if (before == null && after != null) {
+      return after.pressure;
+    }
+
+    // Interpolate between before and after
+    if (before != null && after != null) {
+      final t = (timestamp - before.timestamp) /
+          (after.timestamp - before.timestamp);
+      return before.pressure + (after.pressure - before.pressure) * t;
+    }
+
+    return null;
   }
 
   /// Build per-tank pressure toggles
@@ -945,6 +998,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             }
           },
           touchTooltipData: LineTouchTooltipData(
+            maxContentWidth: 200,
+            fitInsideHorizontally: true,
+            fitInsideVertically: false,
+            showOnTopOfTheChartBoxArea: true,
+            tooltipMargin: 0,
             getTooltipColor: (spot) => colorScheme.inverseSurface,
             getTooltipItems: (touchedSpots) {
               // Build tooltip showing all enabled metrics for the touched point
@@ -985,6 +1043,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 );
                 lines.add(
                   TextSpan(
+                    text: 'Depth: ',
+                    style: TextStyle(
+                      color: colorScheme.onInverseSurface.withValues(alpha: 0.8),
+                    ),
+                  ),
+                );
+                lines.add(
+                  TextSpan(
                     text: '$depthDisplay\n',
                     style: TextStyle(
                       color: colorScheme.onInverseSurface,
@@ -1009,6 +1075,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   );
                   lines.add(
                     TextSpan(
+                      text: 'Temp: ',
+                      style: TextStyle(
+                        color: colorScheme.onInverseSurface.withValues(alpha: 0.8),
+                      ),
+                    ),
+                  );
+                  lines.add(
+                    TextSpan(
                       text: '$tempDisplay\n',
                       style: TextStyle(
                         color: colorScheme.onInverseSurface,
@@ -1024,6 +1098,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     const TextSpan(
                       text: '● ',
                       style: TextStyle(color: Colors.orange, fontSize: 10),
+                    ),
+                  );
+                  lines.add(
+                    TextSpan(
+                      text: 'Press: ',
+                      style: TextStyle(
+                        color: colorScheme.onInverseSurface.withValues(alpha: 0.8),
+                      ),
                     ),
                   );
                   lines.add(
@@ -1047,6 +1129,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   );
                   lines.add(
                     TextSpan(
+                      text: 'HR: ',
+                      style: TextStyle(
+                        color: colorScheme.onInverseSurface.withValues(alpha: 0.8),
+                      ),
+                    ),
+                  );
+                  lines.add(
+                    TextSpan(
                       text: '${point.heartRate!} bpm\n',
                       style: TextStyle(
                         color: colorScheme.onInverseSurface,
@@ -1066,16 +1156,16 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     final normalizedSac =
                         sacBarPerMin * widget.sacNormalizationFactor;
                     final sacUnit = ref.read(sacUnitProvider);
-                    String sacText;
+                    String sacValue;
                     if (sacUnit == SacUnit.litersPerMin &&
                         widget.tankVolume != null) {
                       // Convert to L/min
                       final sacLPerMin = normalizedSac * widget.tankVolume!;
-                      sacText =
+                      sacValue =
                           '${units.convertVolume(sacLPerMin).toStringAsFixed(1)} ${units.volumeSymbol}/min\n';
                     } else {
                       // Use pressure units
-                      sacText =
+                      sacValue =
                           '${units.convertPressure(normalizedSac).toStringAsFixed(1)} ${units.pressureSymbol}/min\n';
                     }
                     lines.add(
@@ -1086,13 +1176,148 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     );
                     lines.add(
                       TextSpan(
-                        text: sacText,
+                        text: 'SAC: ',
+                        style: TextStyle(
+                          color: colorScheme.onInverseSurface.withValues(alpha: 0.8),
+                        ),
+                      ),
+                    );
+                    lines.add(
+                      TextSpan(
+                        text: sacValue,
                         style: TextStyle(
                           color: colorScheme.onInverseSurface,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     );
+                  }
+                }
+
+                // Ceiling (if enabled and available)
+                if (_showCeiling &&
+                    widget.ceilingCurve != null &&
+                    spot.spotIndex < widget.ceilingCurve!.length) {
+                  final ceiling = widget.ceilingCurve![spot.spotIndex];
+                  if (ceiling > 0) {
+                    final ceilingDisplay = units.formatDepth(ceiling);
+                    lines.add(
+                      TextSpan(
+                        text: '● ',
+                        style: TextStyle(
+                          color: Colors.red.withValues(alpha: 0.7),
+                          fontSize: 10,
+                        ),
+                      ),
+                    );
+                    lines.add(
+                      TextSpan(
+                        text: 'Ceiling: ',
+                        style: TextStyle(
+                          color: colorScheme.onInverseSurface.withValues(alpha: 0.8),
+                        ),
+                      ),
+                    );
+                    lines.add(
+                      TextSpan(
+                        text: '$ceilingDisplay\n',
+                        style: TextStyle(
+                          color: colorScheme.onInverseSurface,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    );
+                  }
+                }
+
+                // Ascent rate (if enabled and available)
+                if (_showAscentRateColors &&
+                    widget.ascentRates != null &&
+                    spot.spotIndex < widget.ascentRates!.length) {
+                  final ascentRate = widget.ascentRates![spot.spotIndex];
+                  final rate = ascentRate.rateMetersPerMin;
+                  // Only show if there's meaningful vertical movement
+                  if (rate.abs() > 0.5) {
+                    // Format rate in user's preferred depth unit per minute
+                    final convertedRate = units.convertDepth(rate.abs());
+                    final rateValue =
+                        '${convertedRate.toStringAsFixed(1)} ${units.depthSymbol}/min';
+                    final isAscending = rate > 0;
+                    final rateColor = isAscending
+                        ? _getAscentRateColor(ascentRate.category)
+                        : Colors.blue;
+                    lines.add(
+                      TextSpan(
+                        text: '● ',
+                        style: TextStyle(color: rateColor, fontSize: 10),
+                      ),
+                    );
+                    lines.add(
+                      TextSpan(
+                        text: 'Rate: ',
+                        style: TextStyle(
+                          color: colorScheme.onInverseSurface.withValues(alpha: 0.8),
+                        ),
+                      ),
+                    );
+                    lines.add(
+                      TextSpan(
+                        text: '${isAscending ? '↑' : '↓'} $rateValue\n',
+                        style: TextStyle(
+                          color: colorScheme.onInverseSurface,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    );
+                  }
+                }
+
+                // Per-tank pressure (if any tanks are enabled)
+                if (widget.tankPressures != null) {
+                  final timestamp = point.timestamp;
+                  final sortedTankIds = _sortedTankIds(widget.tankPressures!.keys);
+
+                  for (var i = 0; i < sortedTankIds.length; i++) {
+                    final tankId = sortedTankIds[i];
+                    if (!(_showTankPressure[tankId] ?? true)) continue;
+
+                    final pressurePoints = widget.tankPressures![tankId];
+                    if (pressurePoints == null || pressurePoints.isEmpty) continue;
+
+                    // Find pressure at current timestamp (interpolate if needed)
+                    final pressure =
+                        _interpolateTankPressure(pressurePoints, timestamp);
+                    if (pressure != null) {
+                      final tank = _getTankById(tankId);
+                      final color = tank != null
+                          ? GasColors.forGasMix(tank.gasMix)
+                          : _getTankColor(i);
+                      // Use tank name, or fall back to "Tank 1", "Tank 2", etc.
+                      final tankLabel = tank?.name ?? 'Tank ${i + 1}';
+                      lines.add(
+                        TextSpan(
+                          text: '● ',
+                          style: TextStyle(color: color, fontSize: 10),
+                        ),
+                      );
+                      lines.add(
+                        TextSpan(
+                          text: '$tankLabel: ',
+                          style: TextStyle(
+                            color: colorScheme.onInverseSurface.withValues(alpha: 0.8),
+                          ),
+                        ),
+                      );
+                      lines.add(
+                        TextSpan(
+                          text: '${units.formatPressure(pressure)}\n',
+                          style: TextStyle(
+                            color: colorScheme.onInverseSurface,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      );
+                    }
                   }
                 }
 
