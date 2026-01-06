@@ -301,8 +301,13 @@ class LibdcFfiDownloadManager implements DownloadManager {
         tankIndex = firstPressure.tank;
       }
 
+      // Time from libdivecomputer - convert to seconds if in milliseconds
+      // Some backends (e.g., Shearwater) return milliseconds, others return seconds
+      // Detect by checking if value > 24 hours in seconds
+      final timeSeconds = sample.time > 86400 ? sample.time ~/ 1000 : sample.time;
+
       return ProfileSample(
-        timeSeconds: sample.time,
+        timeSeconds: timeSeconds,
         depth: sample.depth ?? 0.0,
         temperature: sample.temperature,
         pressure: pressure,
