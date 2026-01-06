@@ -278,8 +278,8 @@ void main() {
             tripWithStatsProvider(testTrip.id).overrideWith((ref) {
               return Future.value(testTripWithStats);
             }),
-            diveIdsForTripProvider(testTrip.id).overrideWith((ref) {
-              return Future.value(<String>[]);
+            divesForTripProvider(testTrip.id).overrideWith((ref) {
+              return Future.value([]);
             }),
             tripListNotifierProvider.overrideWith((ref) {
               return _MockTripListNotifier([]);

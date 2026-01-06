@@ -207,8 +207,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
     // Interpolate between before and after
     if (before != null && after != null) {
-      final t = (timestamp - before.timestamp) /
-          (after.timestamp - before.timestamp);
+      final t =
+          (timestamp - before.timestamp) / (after.timestamp - before.timestamp);
       return before.pressure + (after.pressure - before.pressure) * t;
     }
 
@@ -1045,7 +1045,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   TextSpan(
                     text: 'Depth: ',
                     style: TextStyle(
-                      color: colorScheme.onInverseSurface.withValues(alpha: 0.8),
+                      color: colorScheme.onInverseSurface.withValues(
+                        alpha: 0.8,
+                      ),
                     ),
                   ),
                 );
@@ -1077,7 +1079,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     TextSpan(
                       text: 'Temp: ',
                       style: TextStyle(
-                        color: colorScheme.onInverseSurface.withValues(alpha: 0.8),
+                        color: colorScheme.onInverseSurface.withValues(
+                          alpha: 0.8,
+                        ),
                       ),
                     ),
                   );
@@ -1104,7 +1108,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     TextSpan(
                       text: 'Press: ',
                       style: TextStyle(
-                        color: colorScheme.onInverseSurface.withValues(alpha: 0.8),
+                        color: colorScheme.onInverseSurface.withValues(
+                          alpha: 0.8,
+                        ),
                       ),
                     ),
                   );
@@ -1131,7 +1137,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     TextSpan(
                       text: 'HR: ',
                       style: TextStyle(
-                        color: colorScheme.onInverseSurface.withValues(alpha: 0.8),
+                        color: colorScheme.onInverseSurface.withValues(
+                          alpha: 0.8,
+                        ),
                       ),
                     ),
                   );
@@ -1178,7 +1186,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       TextSpan(
                         text: 'SAC: ',
                         style: TextStyle(
-                          color: colorScheme.onInverseSurface.withValues(alpha: 0.8),
+                          color: colorScheme.onInverseSurface.withValues(
+                            alpha: 0.8,
+                          ),
                         ),
                       ),
                     );
@@ -1214,7 +1224,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       TextSpan(
                         text: 'Ceiling: ',
                         style: TextStyle(
-                          color: colorScheme.onInverseSurface.withValues(alpha: 0.8),
+                          color: colorScheme.onInverseSurface.withValues(
+                            alpha: 0.8,
+                          ),
                         ),
                       ),
                     );
@@ -1256,7 +1268,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       TextSpan(
                         text: 'Rate: ',
                         style: TextStyle(
-                          color: colorScheme.onInverseSurface.withValues(alpha: 0.8),
+                          color: colorScheme.onInverseSurface.withValues(
+                            alpha: 0.8,
+                          ),
                         ),
                       ),
                     );
@@ -1275,18 +1289,24 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 // Per-tank pressure (if any tanks are enabled)
                 if (widget.tankPressures != null) {
                   final timestamp = point.timestamp;
-                  final sortedTankIds = _sortedTankIds(widget.tankPressures!.keys);
+                  final sortedTankIds = _sortedTankIds(
+                    widget.tankPressures!.keys,
+                  );
 
                   for (var i = 0; i < sortedTankIds.length; i++) {
                     final tankId = sortedTankIds[i];
                     if (!(_showTankPressure[tankId] ?? true)) continue;
 
                     final pressurePoints = widget.tankPressures![tankId];
-                    if (pressurePoints == null || pressurePoints.isEmpty) continue;
+                    if (pressurePoints == null || pressurePoints.isEmpty) {
+                      continue;
+                    }
 
                     // Find pressure at current timestamp (interpolate if needed)
-                    final pressure =
-                        _interpolateTankPressure(pressurePoints, timestamp);
+                    final pressure = _interpolateTankPressure(
+                      pressurePoints,
+                      timestamp,
+                    );
                     if (pressure != null) {
                       final tank = _getTankById(tankId);
                       final color = tank != null
@@ -1304,7 +1324,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                         TextSpan(
                           text: '$tankLabel: ',
                           style: TextStyle(
-                            color: colorScheme.onInverseSurface.withValues(alpha: 0.8),
+                            color: colorScheme.onInverseSurface.withValues(
+                              alpha: 0.8,
+                            ),
                           ),
                         ),
                       );
