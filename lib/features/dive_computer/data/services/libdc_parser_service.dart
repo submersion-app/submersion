@@ -553,8 +553,12 @@ class LibdcParserService {
   ) {
     switch (type) {
       case dc_sample_type_t.DC_SAMPLE_TIME:
-        // Time is in seconds from libdivecomputer
-        final time = value.cast<ffi.UnsignedInt>().value;
+        // Time from libdivecomputer - convert to seconds
+        // Some backends (e.g., Shearwater) return milliseconds, others return seconds
+        // We detect this by checking if the value is unreasonably large for seconds
+        // (> 86400 seconds = 24 hours would indicate milliseconds)
+        final rawTime = value.cast<ffi.UnsignedInt>().value;
+        final time = rawTime > 86400 ? rawTime ~/ 1000 : rawTime;
         _currentSampleTime = time;
         _sampleData.add(_SamplePoint(_currentSampleTime));
         break;
