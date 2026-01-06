@@ -20,6 +20,10 @@
 // Disable merged UI/platform thread to use the traditional threading model.
 FLUTTER_MERGED_PLATFORM_THREAD = 0
 
+// CI-specific: Disable automatic signing to prevent Xcode from using keychain certificates
+CODE_SIGN_STYLE = Manual
+DEVELOPMENT_TEAM =
+
 // CI-specific: Ad-hoc signing embeds entitlements without requiring a certificate
 CODE_SIGN_IDENTITY = -
 
