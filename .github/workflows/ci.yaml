@@ -149,7 +149,7 @@ jobs:
           # Use CI config with ad-hoc signing (no developer certificate needed)
           cp macos/Runner/Configs/Release.xcconfig macos/Runner/Configs/Release.xcconfig.original
           cp macos/Runner/Configs/ReleaseCI.xcconfig macos/Runner/Configs/Release.xcconfig
-          flutter build macos --release ${{ env.DART_DEFINES }} -v
+          flutter build macos --release "${{ env.DART_DEFINES }}" -v
           mv macos/Runner/Configs/Release.xcconfig.original macos/Runner/Configs/Release.xcconfig
 
       - name: Upload iOS artifact
