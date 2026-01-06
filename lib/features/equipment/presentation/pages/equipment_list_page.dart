@@ -14,8 +14,12 @@ class EquipmentListPage extends ConsumerStatefulWidget {
   ConsumerState<EquipmentListPage> createState() => _EquipmentListPageState();
 }
 
+/// Special filter value for computed "service due" items
+const String _serviceDueFilter = '_service_due_';
+
 class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
-  EquipmentStatus? _selectedStatus;
+  /// Either an EquipmentStatus, the special _serviceDueFilter string, or null for all
+  Object? _selectedFilter;
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +37,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
             onPressed: () {
               showSearch(
                 context: context,
-                delegate: EquipmentSearchDelegate(ref),
+                delegate: EquipmentSearchDelegate(),
               );
             },
           ),
@@ -83,24 +87,32 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
               ),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: DropdownButton<EquipmentStatus?>(
-              value: _selectedStatus,
+            child: DropdownButton<Object?>(
+              value: _selectedFilter,
               underline: const SizedBox(),
               focusColor: Colors.transparent,
               items: [
-                const DropdownMenuItem<EquipmentStatus?>(
+                const DropdownMenuItem<Object?>(
                   value: null,
                   child: Text('All Equipment'),
                 ),
-                ...EquipmentStatus.values.map((status) {
-                  return DropdownMenuItem<EquipmentStatus?>(
+                // Special "Service Due" filter based on computed isServiceDue
+                const DropdownMenuItem<Object?>(
+                  value: _serviceDueFilter,
+                  child: Text('Service Due'),
+                ),
+                // Status-based filters (excluding needsService which is redundant)
+                ...EquipmentStatus.values
+                    .where((status) => status != EquipmentStatus.needsService)
+                    .map((status) {
+                  return DropdownMenuItem<Object?>(
                     value: status,
                     child: Text(status.displayName),
                   );
                 }),
               ],
               onChanged: (value) {
-                setState(() => _selectedStatus = value);
+                setState(() => _selectedFilter = value);
               },
             ),
           ),
@@ -110,9 +122,15 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
   }
 
   Widget _buildEquipmentList() {
-    final equipmentAsync = ref.watch(
-      equipmentByStatusProvider(_selectedStatus),
-    );
+    // Use serviceDueEquipmentProvider for the special "Service Due" filter,
+    // otherwise use equipmentByStatusProvider for status-based filters
+    final AsyncValue<List<EquipmentItem>> equipmentAsync;
+    if (_selectedFilter == _serviceDueFilter) {
+      equipmentAsync = ref.watch(serviceDueEquipmentProvider);
+    } else {
+      final status = _selectedFilter as EquipmentStatus?;
+      equipmentAsync = ref.watch(equipmentByStatusProvider(status));
+    }
 
     return equipmentAsync.when(
       data: (equipment) => equipment.isEmpty
@@ -128,14 +146,22 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
             Text('Error loading equipment: $error'),
             const SizedBox(height: 16),
             FilledButton(
-              onPressed: () =>
-                  ref.invalidate(equipmentByStatusProvider(_selectedStatus)),
+              onPressed: () => _invalidateCurrentProvider(ref),
               child: const Text('Retry'),
             ),
           ],
         ),
       ),
     );
+  }
+
+  void _invalidateCurrentProvider(WidgetRef ref) {
+    if (_selectedFilter == _serviceDueFilter) {
+      ref.invalidate(serviceDueEquipmentProvider);
+    } else {
+      final status = _selectedFilter as EquipmentStatus?;
+      ref.invalidate(equipmentByStatusProvider(status));
+    }
   }
 
   Widget _buildEquipmentListView(
@@ -145,7 +171,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
   ) {
     return RefreshIndicator(
       onRefresh: () async {
-        ref.invalidate(equipmentByStatusProvider(_selectedStatus));
+        _invalidateCurrentProvider(ref);
       },
       child: ListView.builder(
         padding: const EdgeInsets.only(bottom: 80),
@@ -167,9 +193,14 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
   }
 
   Widget _buildEmptyState(BuildContext context, WidgetRef ref) {
-    final filterText = _selectedStatus == null
-        ? 'equipment'
-        : '${_selectedStatus!.displayName.toLowerCase()} equipment';
+    String filterText;
+    if (_selectedFilter == null) {
+      filterText = 'equipment';
+    } else if (_selectedFilter == _serviceDueFilter) {
+      filterText = 'equipment needing service';
+    } else {
+      filterText = '${(_selectedFilter as EquipmentStatus).displayName.toLowerCase()} equipment';
+    }
 
     return Center(
       child: Column(
@@ -187,15 +218,17 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            _selectedStatus == null
+            _selectedFilter == null
                 ? 'Add your diving equipment to track usage and service'
-                : 'No equipment with this status',
+                : _selectedFilter == _serviceDueFilter
+                    ? 'All your equipment is up to date on service!'
+                    : 'No equipment with this status',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             textAlign: TextAlign.center,
           ),
-          if (_selectedStatus == null) ...[
+          if (_selectedFilter == null) ...[
             const SizedBox(height: 24),
             FilledButton.icon(
               onPressed: () {
@@ -651,9 +684,7 @@ class EquipmentListTile extends StatelessWidget {
 
 /// Search delegate for equipment
 class EquipmentSearchDelegate extends SearchDelegate<EquipmentItem?> {
-  final WidgetRef ref;
-
-  EquipmentSearchDelegate(this.ref);
+  EquipmentSearchDelegate();
 
   @override
   String get searchFieldLabel => 'Search equipment...';
@@ -708,54 +739,59 @@ class EquipmentSearchDelegate extends SearchDelegate<EquipmentItem?> {
   }
 
   Widget _buildSearchResults(BuildContext context) {
-    final searchAsync = ref.watch(equipmentSearchProvider(query));
+    // Use Consumer to get a valid ref within the SearchDelegate
+    return Consumer(
+      builder: (context, ref, child) {
+        final searchAsync = ref.watch(equipmentSearchProvider(query));
 
-    return searchAsync.when(
-      data: (equipment) {
-        if (equipment.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.search_off,
-                  size: 64,
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+        return searchAsync.when(
+          data: (equipment) {
+            if (equipment.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.search_off,
+                      size: 64,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No equipment found for "$query"',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  'No equipment found for "$query"',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
+              );
+            }
 
-        return ListView.builder(
-          itemCount: equipment.length,
-          itemBuilder: (context, index) {
-            final item = equipment[index];
-            return EquipmentListTile(
-              name: item.name,
-              type: item.type,
-              brandModel: item.fullName != item.name ? item.fullName : null,
-              isServiceDue: item.isServiceDue,
-              daysUntilService: item.daysUntilService,
-              onTap: () {
-                close(context, item);
-                context.push('/equipment/${item.id}');
+            return ListView.builder(
+              itemCount: equipment.length,
+              itemBuilder: (context, index) {
+                final item = equipment[index];
+                return EquipmentListTile(
+                  name: item.name,
+                  type: item.type,
+                  brandModel: item.fullName != item.name ? item.fullName : null,
+                  isServiceDue: item.isServiceDue,
+                  daysUntilService: item.daysUntilService,
+                  onTap: () {
+                    close(context, item);
+                    context.push('/equipment/${item.id}');
+                  },
+                );
               },
             );
           },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => Center(child: Text('Error: $error')),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(child: Text('Error: $error')),
     );
   }
 }
