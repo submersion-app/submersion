@@ -30,7 +30,7 @@ class ProfileMarker {
     this.value,
   });
 
-  /// Get a display label for this marker
+  /// Get a short display label for this marker (used in toggle buttons)
   String get label {
     switch (type) {
       case ProfileMarkerType.maxDepth:
@@ -41,6 +41,20 @@ class ProfileMarker {
         return '½';
       case ProfileMarkerType.pressureOneThird:
         return '⅓';
+    }
+  }
+
+  /// Get a descriptive label for displaying on the chart
+  String get chartLabel {
+    switch (type) {
+      case ProfileMarkerType.maxDepth:
+        return 'Max Depth';
+      case ProfileMarkerType.pressureTwoThirds:
+        return 'T${tankIndex + 1} 2/3';
+      case ProfileMarkerType.pressureHalf:
+        return 'T${tankIndex + 1} 1/2';
+      case ProfileMarkerType.pressureOneThird:
+        return 'T${tankIndex + 1} 1/3';
     }
   }
 
