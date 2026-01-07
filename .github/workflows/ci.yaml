@@ -144,17 +144,15 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: flutter build ios --release --no-codesign "${{ env.DART_DEFINES }}" -v
 
-      - name: Build macOS (CI signing)
+      - name: Build macOS (no-sandbox for distribution)
         run: |
-          # Use CI config with ad-hoc signing (no developer certificate needed)
-          cp macos/Runner/Configs/Release.xcconfig macos/Runner/Configs/Release.xcconfig.original
-          cp macos/Runner/Configs/ReleaseCI.xcconfig macos/Runner/Configs/Release.xcconfig
+          # Build with no-sandbox entitlements for GitHub distribution
+          # This version can run on any Mac without sandbox/entitlement issues
 
           # Generate Flutter configs and compile Dart code
           flutter build macos --config-only --release "${{ env.DART_DEFINES }}"
 
-          # Build with xcodebuild overrides to force ad-hoc signing
-          # (xcconfig alone doesn't override Xcode's automatic signing)
+          # Build with xcodebuild overrides for ad-hoc signing
           cd macos
           xcodebuild -workspace Runner.xcworkspace \
             -scheme Runner \
@@ -163,11 +161,9 @@ jobs:
             CODE_SIGN_IDENTITY="-" \
             CODE_SIGN_STYLE=Manual \
             DEVELOPMENT_TEAM="" \
-            CODE_SIGN_ENTITLEMENTS=Runner/ReleaseCI.entitlements \
+            CODE_SIGN_ENTITLEMENTS=Runner/ReleaseNoSandbox.entitlements \
             BUILD_DIR=../build/macos/Build/Products
           cd ..
-
-          mv macos/Runner/Configs/Release.xcconfig.original macos/Runner/Configs/Release.xcconfig
 
       - name: Upload iOS artifact
         uses: actions/upload-artifact@v4
