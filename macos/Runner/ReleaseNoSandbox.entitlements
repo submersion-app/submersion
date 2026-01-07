@@ -14,6 +14,12 @@
 	<key>com.apple.security.device.bluetooth</key>
 	<true/>
 
+	<!-- File access - required by file_picker plugin even with sandbox disabled -->
+	<key>com.apple.security.files.user-selected.read-write</key>
+	<true/>
+	<key>com.apple.security.files.downloads.read-write</key>
+	<true/>
+
 	<!-- Network access -->
 	<key>com.apple.security.network.client</key>
 	<true/>
