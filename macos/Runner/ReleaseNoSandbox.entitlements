@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- No-Sandbox Build for GitHub Distribution -->
+	<!-- This build can run on any Mac without sandbox restrictions -->
+	<!-- NOTE: Cannot be distributed via Mac App Store (requires sandbox) -->
+
+	<!-- Sandbox DISABLED - app has full file system access -->
+	<key>com.apple.security.app-sandbox</key>
+	<false/>
+
+	<!-- Bluetooth for dive computer connectivity -->
+	<key>com.apple.security.device.bluetooth</key>
+	<true/>
+
+	<!-- Network access -->
+	<key>com.apple.security.network.client</key>
+	<true/>
+	<key>com.apple.security.network.server</key>
+	<true/>
+</dict>
+</plist>
