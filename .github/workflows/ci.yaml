@@ -149,7 +149,24 @@ jobs:
           # Use CI config with ad-hoc signing (no developer certificate needed)
           cp macos/Runner/Configs/Release.xcconfig macos/Runner/Configs/Release.xcconfig.original
           cp macos/Runner/Configs/ReleaseCI.xcconfig macos/Runner/Configs/Release.xcconfig
-          flutter build macos --release "${{ env.DART_DEFINES }}" -v
+
+          # Generate Flutter configs and compile Dart code
+          flutter build macos --config-only --release "${{ env.DART_DEFINES }}"
+
+          # Build with xcodebuild overrides to force ad-hoc signing
+          # (xcconfig alone doesn't override Xcode's automatic signing)
+          cd macos
+          xcodebuild -workspace Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -derivedDataPath ../build/macos \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM="" \
+            CODE_SIGN_ENTITLEMENTS=Runner/ReleaseCI.entitlements \
+            BUILD_DIR=../build/macos/Build/Products
+          cd ..
+
           mv macos/Runner/Configs/Release.xcconfig.original macos/Runner/Configs/Release.xcconfig
 
       - name: Upload iOS artifact
