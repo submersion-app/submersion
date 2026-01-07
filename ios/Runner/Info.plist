@@ -79,6 +79,8 @@
 	<string>Submersion uses the camera to take photos of dive sites and marine life.</string>
 	<key>NSContactsUsageDescription</key>
 	<string>This app uses your contacts to import dive buddies.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Submersion uses your location to record dive site coordinates and find nearby dive sites.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Submersion uses your location to record dive site coordinates and find nearby dive sites.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
