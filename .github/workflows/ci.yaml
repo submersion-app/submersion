@@ -146,7 +146,17 @@ jobs:
 
       - name: Build macOS (no-sandbox for distribution)
         run: |
-          # Build with Flutter first (compiles Dart code)
+          # Configure ad-hoc signing for CI (no developer certificate available)
+          # These settings override Xcode's automatic signing
+          cat >> macos/Runner/Configs/Release.xcconfig << 'EOF'
+
+          // CI ad-hoc signing overrides
+          CODE_SIGN_IDENTITY = -
+          CODE_SIGN_STYLE = Manual
+          DEVELOPMENT_TEAM =
+          EOF
+
+          # Build with Flutter
           flutter build macos --release "${{ env.DART_DEFINES }}"
 
           # Re-sign with ad-hoc signature and no-sandbox entitlements
