@@ -57,7 +57,7 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.YOUR_CLIENT_ID</string>
+				<string>com.googleusercontent.apps.433819313354-8sn10bh15pij7hsqbld4tunccrsgi4bf</string>
 			</array>
 		</dict>
 	</array>
@@ -67,8 +67,20 @@
 	<string>433819313354-8sn10bh15pij7hsqbld4tunccrsgi4bf.apps.googleusercontent.com</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Submersion uses Bluetooth to connect to dive computers and import dive data.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>Submersion uses Bluetooth to connect to dive computers and import dive data.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Submersion uses the camera to take photos of dive sites and marine life.</string>
 	<key>NSContactsUsageDescription</key>
 	<string>This app uses your contacts to import dive buddies.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Submersion uses your location to record dive site coordinates and find nearby dive sites.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Submersion saves dive photos to your photo library.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Submersion accesses your photo library to attach images to dive logs.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
