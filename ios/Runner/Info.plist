@@ -69,6 +69,8 @@
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<false/>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Submersion uses Bluetooth to connect to dive computers and import dive data.</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
