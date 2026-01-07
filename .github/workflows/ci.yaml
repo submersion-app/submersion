@@ -90,8 +90,58 @@ jobs:
           files: coverage/lcov.info
           fail_ci_if_error: false
 
-  build-apple:
-    name: Build iOS & macOS
+  build-ios:
+    name: Build iOS
+    needs: test
+    runs-on: macos-14
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            ${{ github.workspace }}/.dart_tool
+          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: |
+            ios/Pods
+            ~/.cocoapods
+          key: pods-ios-${{ runner.os }}-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            pods-ios-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run code generation
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Build iOS
+        run: flutter build ios --release --no-codesign "${{ env.DART_DEFINES }}" -v
+
+      - name: Upload iOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build
+          path: build/ios/iphoneos/Runner.app
+          retention-days: 7
+
+  build-macos:
+    name: Build macOS
     needs: test
     runs-on: macos-14
     if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
@@ -118,12 +168,11 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ios/Pods
             macos/Pods
             ~/.cocoapods
-          key: pods-${{ runner.os }}-${{ hashFiles('**/Podfile.lock') }}
+          key: pods-macos-${{ runner.os }}-${{ hashFiles('macos/Podfile.lock') }}
           restore-keys: |
-            pods-${{ runner.os }}-
+            pods-macos-${{ runner.os }}-
 
       - name: Cache Xcode DerivedData
         uses: actions/cache@v4
@@ -139,10 +188,6 @@ jobs:
 
       - name: Run code generation
         run: dart run build_runner build --delete-conflicting-outputs
-
-      - name: Build iOS
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: flutter build ios --release --no-codesign "${{ env.DART_DEFINES }}" -v
 
       - name: Build macOS (no-sandbox for distribution)
         run: |
@@ -163,14 +208,6 @@ jobs:
             --entitlements macos/Runner/ReleaseNoSandbox.entitlements \
             build/macos/Build/Products/Release/submersion.app
 
-      - name: Upload iOS artifact
-        uses: actions/upload-artifact@v4
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        with:
-          name: ios-build
-          path: build/ios/iphoneos/Runner.app
-          retention-days: 7
-
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -179,8 +216,8 @@ jobs:
           path: build/macos/Build/Products/Release/submersion.app
           retention-days: 7
 
-  build-linux-android:
-    name: Build Linux & Android
+  build-android:
+    name: Build Android
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -219,6 +256,46 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run code generation
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Build Android APK
+        run: flutter build apk --release "${{ env.DART_DEFINES }}" -v
+
+      - name: Upload Android artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 7
+
+  build-linux:
+    name: Build Linux
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            ${{ github.workspace }}/.dart_tool
+          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
       - name: Install Linux dependencies
         run: |
           sudo apt-get update
@@ -238,18 +315,8 @@ jobs:
       - name: Run code generation
         run: dart run build_runner build --delete-conflicting-outputs
 
-      - name: Build Android APK
-        run: flutter build apk --release "${{ env.DART_DEFINES }}" -v
-
       - name: Build Linux
         run: flutter build linux --release "${{ env.DART_DEFINES }}" -v
-
-      - name: Upload Android artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
-          retention-days: 7
 
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
