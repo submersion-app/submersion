@@ -146,6 +146,31 @@ flutter build windows
 flutter build linux
 ```
 
+### macOS: Building Without a Developer Certificate
+
+If you don't have an Apple Developer certificate, you can still build and run the app locally using ad-hoc signing. This creates a non-sandboxed build that works on any Mac.
+
+```bash
+# Run the no-sandbox build script
+./scripts/build_nosandbox_macos.sh
+```
+
+This script:
+1. Builds the macOS app with Flutter
+2. Re-signs it with an ad-hoc signature (no Apple certificate required)
+3. Applies no-sandbox entitlements for full file system access
+
+The built app will be at `build/macos/Build/Products/Release/submersion.app`.
+
+**Running the app:** macOS Gatekeeper will block unsigned apps by default. To run:
+1. Right-click (or Control-click) on `submersion.app`
+2. Select "Open" from the context menu
+3. Click "Open" in the dialog that appears
+
+You only need to do this once — subsequent launches will work normally.
+
+> **Note:** This build cannot be distributed via the Mac App Store (which requires sandboxing). It's intended for local testing and direct distribution.
+
 ## Architecture
 
 Submersion follows clean architecture principles with clear separation of concerns:
