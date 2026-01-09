@@ -329,16 +329,37 @@ class ProfileAnalysisService {
       sacCurve = _calculateSacCurve(depths, timestamps, pressures);
 
       if (sacCurve != null) {
-        // Calculate smoothed SAC curve for better visualization
-        smoothedSacCurve = _smoothSacCurve(sacCurve, windowSize: 30);
-
-        // Calculate 5-minute segment SAC values
+        // Calculate 5-minute segment SAC values first (needed for fallback)
         sacSegments = _calculateSacSegments(
           depths: depths,
           timestamps: timestamps,
           pressures: pressures,
           intervalSeconds: 300, // 5 minutes
         );
+
+        // Calculate smoothed SAC curve using rolling window on raw pressure data
+        // This is more accurate than smoothing the noisy point-by-point SAC values
+        // Use 60-second window for better accuracy with sparse pressure data
+        smoothedSacCurve = _calculateRollingWindowSac(
+          depths: depths,
+          timestamps: timestamps,
+          pressures: pressures,
+          windowSeconds: 60, // 60-second rolling window
+        );
+
+        // Check if rolling window produced mostly zeros (sparse/noisy data)
+        // If so, fall back to interpolating from segment data
+        final nonZeroCount = smoothedSacCurve.where((s) => s > 0).length;
+        final totalCount = smoothedSacCurve.length;
+        if (totalCount > 0 &&
+            nonZeroCount < totalCount * 0.3 &&
+            sacSegments.isNotEmpty) {
+          // Less than 30% valid data - interpolate from segments instead
+          smoothedSacCurve = _interpolateSacFromSegments(
+            timestamps: timestamps,
+            segments: sacSegments,
+          );
+        }
       }
     }
 
@@ -607,39 +628,169 @@ class ProfileAnalysisService {
     return sacCurve;
   }
 
-  /// Apply a rolling average to smooth the SAC curve for better visualization.
+  /// Calculate SAC using a rolling window on raw pressure data.
   ///
-  /// [windowSize] is the number of points to average (default 30 for ~30 seconds
-  /// with 1-second samples).
-  List<double> _smoothSacCurve(List<double> sacCurve, {int windowSize = 30}) {
-    if (sacCurve.length <= windowSize) {
-      // Not enough points, return as-is
-      return List.from(sacCurve);
+  /// This calculates SAC for each point by looking at the total pressure drop
+  /// over a time window centered on that point. This is more accurate than
+  /// smoothing noisy point-by-point SAC values because it uses the actual
+  /// pressure delta over a meaningful time period (like segments do).
+  ///
+  /// [windowSeconds] is the time window in seconds (default 60).
+  /// The function handles sparse data by expanding the window if needed to
+  /// ensure we have at least 2 data points with meaningful time span.
+  List<double> _calculateRollingWindowSac({
+    required List<double> depths,
+    required List<int> timestamps,
+    required List<double> pressures,
+    int windowSeconds = 60,
+  }) {
+    if (timestamps.isEmpty || pressures.length != depths.length) {
+      return [];
     }
 
-    final smoothed = <double>[];
+    // Need at least 2 points to calculate any SAC
+    if (timestamps.length < 2) {
+      return [];
+    }
 
-    for (int i = 0; i < sacCurve.length; i++) {
-      // Calculate window bounds
-      final halfWindow = windowSize ~/ 2;
-      final start = math.max(0, i - halfWindow);
-      final end = math.min(sacCurve.length, i + halfWindow + 1);
+    final result = <double>[];
+    final halfWindow = windowSeconds ~/ 2;
 
-      // Calculate average of non-zero values in window
-      double sum = 0;
-      int count = 0;
+    // Minimum time span required for valid SAC calculation (5 seconds)
+    // Lower threshold helps with sparse data
+    const minDuration = 5;
 
-      for (int j = start; j < end; j++) {
-        if (sacCurve[j] > 0) {
-          sum += sacCurve[j];
-          count++;
+    for (int i = 0; i < timestamps.length; i++) {
+      final centerTime = timestamps[i];
+
+      // Find window bounds by time (not index)
+      final windowStart = centerTime - halfWindow;
+      final windowEnd = centerTime + halfWindow;
+
+      // Find indices that fall within the time window
+      var startIdx = i;
+      var endIdx = i;
+
+      // Expand backwards to find window start
+      while (startIdx > 0 && timestamps[startIdx - 1] >= windowStart) {
+        startIdx--;
+      }
+
+      // Expand forwards to find window end
+      while (endIdx < timestamps.length - 1 &&
+          timestamps[endIdx + 1] <= windowEnd) {
+        endIdx++;
+      }
+
+      // If window is too small, expand it to get more data points
+      // This helps with sparse pressure data (e.g., recordings every 30 sec)
+      int duration = timestamps[endIdx] - timestamps[startIdx];
+      while (duration < minDuration &&
+          (startIdx > 0 || endIdx < timestamps.length - 1)) {
+        // Expand in the direction that adds more time
+        if (startIdx > 0 &&
+            (endIdx >= timestamps.length - 1 ||
+                (timestamps[startIdx] - timestamps[startIdx - 1]) <=
+                    (timestamps[endIdx + 1] - timestamps[endIdx]))) {
+          startIdx--;
+        } else if (endIdx < timestamps.length - 1) {
+          endIdx++;
+        } else {
+          break;
+        }
+        duration = timestamps[endIdx] - timestamps[startIdx];
+      }
+
+      // Calculate SAC for this window
+      final pressureDrop = pressures[startIdx] - pressures[endIdx];
+
+      if (duration >= minDuration && pressureDrop > 0) {
+        // Calculate average depth over the window
+        double depthSum = 0;
+        int depthCount = 0;
+        for (int j = startIdx; j <= endIdx; j++) {
+          depthSum += depths[j];
+          depthCount++;
+        }
+        final avgDepth = depthCount > 0 ? depthSum / depthCount : depths[i];
+
+        // Calculate SAC
+        final ambientPressure = 1.0 + (avgDepth / 10.0);
+        final consumptionRate = pressureDrop / (duration / 60.0);
+        final sac = consumptionRate / ambientPressure;
+
+        result.add(sac);
+      } else {
+        // No valid consumption in this window
+        result.add(0.0);
+      }
+    }
+
+    return result;
+  }
+
+  /// Interpolate SAC values from segment data.
+  ///
+  /// This creates a smooth SAC curve by interpolating between segment midpoints.
+  /// Used as a fallback when rolling window calculation produces sparse data.
+  List<double> _interpolateSacFromSegments({
+    required List<int> timestamps,
+    required List<SacSegment> segments,
+  }) {
+    if (timestamps.isEmpty || segments.isEmpty) {
+      return [];
+    }
+
+    final result = <double>[];
+
+    // Create a list of (timestamp, sac) pairs from segment midpoints
+    final sacPoints = segments
+        .map((s) => (timestamp: s.midTimestamp, sac: s.sacRate))
+        .toList();
+
+    for (final timestamp in timestamps) {
+      // Find the two segments this timestamp falls between
+      int beforeIdx = -1;
+      int afterIdx = -1;
+
+      for (int i = 0; i < sacPoints.length; i++) {
+        if (sacPoints[i].timestamp <= timestamp) {
+          beforeIdx = i;
+        }
+        if (sacPoints[i].timestamp >= timestamp && afterIdx == -1) {
+          afterIdx = i;
         }
       }
 
-      smoothed.add(count > 0 ? sum / count : 0.0);
+      double sac;
+      if (beforeIdx == -1 && afterIdx == -1) {
+        // No segment data - use 0
+        sac = 0.0;
+      } else if (beforeIdx == -1) {
+        // Before first segment - use first segment's value
+        sac = sacPoints[afterIdx].sac;
+      } else if (afterIdx == -1 || beforeIdx == afterIdx) {
+        // After last segment or exactly on a segment - use that segment's value
+        sac = sacPoints[beforeIdx].sac;
+      } else {
+        // Interpolate between two segments
+        final t1 = sacPoints[beforeIdx].timestamp;
+        final t2 = sacPoints[afterIdx].timestamp;
+        final s1 = sacPoints[beforeIdx].sac;
+        final s2 = sacPoints[afterIdx].sac;
+
+        if (t2 == t1) {
+          sac = s1;
+        } else {
+          final ratio = (timestamp - t1) / (t2 - t1);
+          sac = s1 + (s2 - s1) * ratio;
+        }
+      }
+
+      result.add(sac);
     }
 
-    return smoothed;
+    return result;
   }
 
   /// Calculate SAC over fixed time intervals.
