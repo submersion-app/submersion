@@ -47,11 +47,7 @@ class HeroHeader extends ConsumerWidget {
           Positioned(
             right: 16,
             top: 8,
-            child: Image.asset(
-              'assets/icon/icon.png',
-              width: 80,
-              height: 80,
-            ),
+            child: Image.asset('assets/icon/icon.png', width: 80, height: 80),
           ),
           // Content
           Padding(
