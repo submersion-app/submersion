@@ -42,6 +42,14 @@ class DiveCenter extends Equatable {
   /// Get display location (location or country)
   String? get displayLocation => location ?? country;
 
+  /// Get full location string (location, country) - combines both if available
+  String? get fullLocationString {
+    final parts = <String>[];
+    if (location != null && location!.isNotEmpty) parts.add(location!);
+    if (country != null && country!.isNotEmpty) parts.add(country!);
+    return parts.isEmpty ? null : parts.join(', ');
+  }
+
   /// Get affiliations as display string
   String get affiliationsDisplay =>
       affiliations.isEmpty ? '' : affiliations.join(', ');

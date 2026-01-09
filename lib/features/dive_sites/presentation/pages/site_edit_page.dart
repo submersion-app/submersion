@@ -730,6 +730,31 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           ? units.depthToMeters(maxDepthInput)
           : null;
 
+      // Auto-lookup country/region if coordinates exist but fields are empty
+      String? country = _countryController.text.trim().isEmpty
+          ? null
+          : _countryController.text.trim();
+      String? region = _regionController.text.trim().isEmpty
+          ? null
+          : _regionController.text.trim();
+
+      if (location != null && (country == null || region == null)) {
+        try {
+          final geocodeResult = await LocationService.instance.reverseGeocode(
+            location.latitude,
+            location.longitude,
+          );
+          if (country == null && geocodeResult.country != null) {
+            country = geocodeResult.country;
+          }
+          if (region == null && geocodeResult.region != null) {
+            region = geocodeResult.region;
+          }
+        } catch (e) {
+          // Geocoding is best-effort, don't block save on failure
+        }
+      }
+
       // Get the current diver ID - preserve existing for edits, get fresh for new sites
       final existingSite = widget.isEditing
           ? ref.read(siteProvider(widget.siteId!)).valueOrNull
@@ -743,12 +768,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
         diverId: diverId,
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim(),
-        country: _countryController.text.trim().isEmpty
-            ? null
-            : _countryController.text.trim(),
-        region: _regionController.text.trim().isEmpty
-            ? null
-            : _regionController.text.trim(),
+        country: country,
+        region: region,
         minDepth: minDepthMeters,
         maxDepth: maxDepthMeters,
         difficulty: _difficulty,

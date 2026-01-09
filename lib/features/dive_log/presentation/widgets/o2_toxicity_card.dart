@@ -10,10 +10,18 @@ class O2ToxicityCard extends StatelessWidget {
   /// Whether to show detailed breakdown
   final bool showDetails;
 
+  /// Whether to show the header row (title + warning badge)
+  final bool showHeader;
+
+  /// Whether to wrap content in a Card
+  final bool useCard;
+
   const O2ToxicityCard({
     super.key,
     required this.exposure,
     this.showDetails = true,
+    this.showHeader = true,
+    this.useCard = true,
   });
 
   @override
@@ -21,65 +29,70 @@ class O2ToxicityCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Row(
-              children: [
-                Icon(Icons.air, size: 20, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  'Oxygen Toxicity',
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header
+        if (showHeader) ...[
+          Row(
+            children: [
+              Icon(Icons.air, size: 20, color: colorScheme.primary),
+              const SizedBox(width: 8),
+              Text(
+                'Oxygen Toxicity',
+                style: textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              if (exposure.cnsWarning || exposure.ppO2Warning)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: exposure.cnsCritical || exposure.ppO2Critical
+                        ? colorScheme.error
+                        : Colors.orange,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    exposure.cnsCritical || exposure.ppO2Critical
+                        ? 'CRITICAL'
+                        : 'WARNING',
+                    style: textTheme.labelSmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-                const Spacer(),
-                if (exposure.cnsWarning || exposure.ppO2Warning)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: exposure.cnsCritical || exposure.ppO2Critical
-                          ? colorScheme.error
-                          : Colors.orange,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      exposure.cnsCritical || exposure.ppO2Critical
-                          ? 'CRITICAL'
-                          : 'WARNING',
-                      style: textTheme.labelSmall?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // CNS Progress
-            _buildCnsProgress(context),
-            const SizedBox(height: 16),
-
-            // OTU Display
-            _buildOtuDisplay(context),
-
-            // Detailed breakdown
-            if (showDetails) ...[
-              const Divider(height: 24),
-              _buildDetailsSection(context),
             ],
-          ],
-        ),
-      ),
+          ),
+          const SizedBox(height: 16),
+        ],
+
+        // CNS Progress
+        _buildCnsProgress(context),
+        const SizedBox(height: 16),
+
+        // OTU Display
+        _buildOtuDisplay(context),
+
+        // Detailed breakdown
+        if (showDetails) ...[
+          const Divider(height: 24),
+          _buildDetailsSection(context),
+        ],
+      ],
+    );
+
+    if (!useCard) {
+      return Padding(padding: const EdgeInsets.all(16), child: content);
+    }
+
+    return Card(
+      child: Padding(padding: const EdgeInsets.all(16), child: content),
     );
   }
 

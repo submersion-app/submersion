@@ -10,6 +10,7 @@ import 'package:uuid/uuid.dart';
 import '../../../../core/constants/enums.dart';
 import '../../../../core/services/database_service.dart';
 import '../../../../core/services/export_service.dart';
+import '../../../../core/services/location_service.dart';
 import '../../../dive_log/domain/entities/dive.dart';
 import '../../../dive_log/presentation/providers/dive_providers.dart';
 import '../../../dive_log/presentation/providers/dive_computer_providers.dart';
@@ -1097,6 +1098,28 @@ class ExportNotifier extends StateNotifier<ExportState> {
           final lat = siteData['latitude'] as double?;
           final lon = siteData['longitude'] as double?;
 
+          // Get country/region from UDDF data
+          String? country = siteData['country'] as String?;
+          String? region = siteData['region'] as String?;
+
+          // Auto-lookup country/region if coordinates exist but fields are empty
+          if (lat != null && lon != null && (country == null || region == null)) {
+            try {
+              final geocodeResult = await LocationService.instance.reverseGeocode(
+                lat,
+                lon,
+              );
+              if (country == null && geocodeResult.country != null) {
+                country = geocodeResult.country;
+              }
+              if (region == null && geocodeResult.region != null) {
+                region = geocodeResult.region;
+              }
+            } catch (e) {
+              // Geocoding is best-effort, don't block import on failure
+            }
+          }
+
           final newSite = DiveSite(
             id: uuid.v4(),
             diverId: currentDiver.id,
@@ -1104,8 +1127,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
             description: siteData['description'] as String? ?? '',
             location: (lat != null && lon != null) ? GeoPoint(lat, lon) : null,
             maxDepth: siteData['maxDepth'] as double?,
-            country: siteData['country'] as String?,
-            region: siteData['region'] as String?,
+            country: country,
+            region: region,
             rating: siteData['rating'] as double?,
             notes: siteData['notes'] as String? ?? '',
           );

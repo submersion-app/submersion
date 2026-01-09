@@ -142,7 +142,7 @@ class _DiveCenterCard extends ConsumerWidget {
                       center.name,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
-                    if (center.displayLocation != null) ...[
+                    if (center.fullLocationString != null) ...[
                       const SizedBox(height: 4),
                       Row(
                         children: [
@@ -154,7 +154,7 @@ class _DiveCenterCard extends ConsumerWidget {
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
-                              center.displayLocation!,
+                              center.fullLocationString!,
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
                                     color: Theme.of(
@@ -309,8 +309,8 @@ class DiveCenterSearchDelegate extends SearchDelegate<DiveCenter?> {
                 ),
               ),
               title: Text(center.name),
-              subtitle: center.displayLocation != null
-                  ? Text(center.displayLocation!)
+              subtitle: center.fullLocationString != null
+                  ? Text(center.fullLocationString!)
                   : null,
               trailing: center.rating != null
                   ? Row(
