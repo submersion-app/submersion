@@ -573,9 +573,9 @@ class SiteListTile extends ConsumerWidget {
                 if (difficulty != null)
                   Text(
                     difficulty!,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: secondaryTextColor,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: secondaryTextColor),
                   ),
                 if (diveCount > 0)
                   Text(
