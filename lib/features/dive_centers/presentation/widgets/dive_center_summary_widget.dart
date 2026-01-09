@@ -32,7 +32,7 @@ class DiveCenterSummaryWidget extends ConsumerWidget {
                   ? _buildCountriesSection(context, countries)
                   : const SizedBox(),
               loading: () => const SizedBox(),
-              error: (_, __) => const SizedBox(),
+              error: (_, _) => const SizedBox(),
             ),
             const SizedBox(height: 24),
             _buildQuickActions(context),

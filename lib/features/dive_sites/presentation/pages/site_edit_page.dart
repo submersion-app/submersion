@@ -322,7 +322,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       onPopInvokedWithResult: (didPop, result) async {
         if (!didPop && _hasChanges) {
           final shouldPop = await _showDiscardDialog();
-          if (shouldPop == true && mounted) {
+          if (shouldPop == true && context.mounted) {
             Navigator.of(context).pop();
           }
         }
