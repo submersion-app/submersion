@@ -56,7 +56,8 @@ class MasterDetailScaffold extends ConsumerStatefulWidget {
     BuildContext context,
     void Function(String?) onItemSelected,
     String? selectedId,
-  ) masterBuilder;
+  )
+  masterBuilder;
 
   /// Builder for the detail pane when an item is selected (view mode).
   final Widget Function(BuildContext context, String itemId) detailBuilder;
@@ -76,7 +77,8 @@ class MasterDetailScaffold extends ConsumerStatefulWidget {
     String itemId,
     void Function(String savedId) onSaved,
     VoidCallback onCancel,
-  )? editBuilder;
+  )?
+  editBuilder;
 
   /// Builder for creating a new item.
   /// If null, create mode will navigate to the full page.
@@ -88,7 +90,8 @@ class MasterDetailScaffold extends ConsumerStatefulWidget {
     BuildContext context,
     void Function(String savedId) onSaved,
     VoidCallback onCancel,
-  )? createBuilder;
+  )?
+  createBuilder;
 
   /// Floating action button for the master pane.
   final Widget? floatingActionButton;
@@ -164,7 +167,8 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
     } else {
       // Mobile: Navigate to detail page
       if (itemId != null) {
-        final route = widget.mobileDetailRoute?.call(itemId) ??
+        final route =
+            widget.mobileDetailRoute?.call(itemId) ??
             '/${widget.sectionId}/$itemId';
         router.go(route);
       }
@@ -290,10 +294,7 @@ class _MasterPane extends StatelessWidget {
   final Widget child;
   final Widget? floatingActionButton;
 
-  const _MasterPane({
-    required this.child,
-    this.floatingActionButton,
-  });
+  const _MasterPane({required this.child, this.floatingActionButton});
 
   @override
   Widget build(BuildContext context) {
@@ -301,11 +302,7 @@ class _MasterPane extends StatelessWidget {
       children: [
         child,
         if (floatingActionButton != null)
-          Positioned(
-            right: 16,
-            bottom: 16,
-            child: floatingActionButton!,
-          ),
+          Positioned(right: 16, bottom: 16, child: floatingActionButton!),
       ],
     );
   }
@@ -322,12 +319,14 @@ class _DetailPane extends StatelessWidget {
     String itemId,
     void Function(String savedId) onSaved,
     VoidCallback onCancel,
-  )? editBuilder;
+  )?
+  editBuilder;
   final Widget Function(
     BuildContext context,
     void Function(String savedId) onSaved,
     VoidCallback onCancel,
-  )? createBuilder;
+  )?
+  createBuilder;
   final VoidCallback onClose;
   final void Function(String savedId) onSaved;
   final VoidCallback onCancel;

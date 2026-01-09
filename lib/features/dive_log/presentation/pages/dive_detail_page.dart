@@ -256,10 +256,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         border: Border(
-          bottom: BorderSide(
-            color: colorScheme.outlineVariant,
-            width: 1,
-          ),
+          bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
         ),
       ),
       child: Row(
@@ -286,9 +283,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               children: [
                 Text(
                   dive.site?.name ?? 'Unknown Site',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (dive.site?.locationString.isNotEmpty == true)
@@ -310,7 +307,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               size: 20,
             ),
             visualDensity: VisualDensity.compact,
-            tooltip: dive.isFavorite ? 'Remove from favorites' : 'Add to favorites',
+            tooltip: dive.isFavorite
+                ? 'Remove from favorites'
+                : 'Add to favorites',
             onPressed: () {
               ref
                   .read(diveListNotifierProvider.notifier)
@@ -816,7 +815,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       icon: status.inDeco ? Icons.warning : Icons.check_circle,
       iconColor: status.inDeco ? Colors.orange : Colors.green,
       trailing: statusBadge, // Always show the DECO/NO DECO badge
-      collapsedTrailing: showEndButton, // Show "Show end" button when collapsed and point selected
+      collapsedTrailing:
+          showEndButton, // Show "Show end" button when collapsed and point selected
       collapsedSubtitle: collapsedSubtitle,
       isExpanded: isExpanded,
       onToggle: (expanded) {
@@ -938,7 +938,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     return CollapsibleCardSection(
       title: 'Oxygen Toxicity',
       icon: Icons.air,
-      trailing: trailingBadge, // Always show warning/critical badge if applicable
+      trailing:
+          trailingBadge, // Always show warning/critical badge if applicable
       collapsedSubtitle: collapsedSubtitle,
       isExpanded: isExpanded,
       onToggle: (expanded) {

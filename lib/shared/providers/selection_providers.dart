@@ -55,8 +55,9 @@ class SelectionHelper {
 /// Note: This requires passing BuildContext, which is unusual for providers.
 /// For most cases, read the selection directly in the widget using
 /// `SelectionHelper.getSelectedId(context)`.
-final selectedItemProvider = Provider.family<String?, BuildContext>(
-  (ref, context) {
-    return SelectionHelper.getSelectedId(context);
-  },
-);
+final selectedItemProvider = Provider.family<String?, BuildContext>((
+  ref,
+  context,
+) {
+  return SelectionHelper.getSelectedId(context);
+});

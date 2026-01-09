@@ -418,10 +418,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         border: Border(
-          bottom: BorderSide(
-            color: colorScheme.outlineVariant,
-            width: 1,
-          ),
+          bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
         ),
       ),
       child: Row(
@@ -436,16 +433,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           Expanded(
             child: Text(
               title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
           // Cancel button
-          TextButton(
-            onPressed: widget.onCancel,
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: widget.onCancel, child: const Text('Cancel')),
           const SizedBox(width: 8),
           // Save button
           _isSaving

@@ -64,9 +64,9 @@ class DiveSummaryWidget extends ConsumerWidget {
             const SizedBox(width: 12),
             Text(
               'Dive Log Summary',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -95,9 +95,9 @@ class DiveSummaryWidget extends ConsumerWidget {
       children: [
         Text(
           'Overview',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),
         Wrap(
@@ -183,9 +183,9 @@ class DiveSummaryWidget extends ConsumerWidget {
               const SizedBox(height: 8),
               Text(
                 value,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 4),
               Text(
@@ -208,9 +208,9 @@ class DiveSummaryWidget extends ConsumerWidget {
       children: [
         Text(
           'Most Visited Sites',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),
         Card(
@@ -218,7 +218,9 @@ class DiveSummaryWidget extends ConsumerWidget {
             children: topSites.take(5).map((site) {
               return ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.primaryContainer,
                   child: Text(
                     '${site.diveCount}',
                     style: TextStyle(
@@ -249,48 +251,56 @@ class DiveSummaryWidget extends ConsumerWidget {
     final recordItems = <Widget>[];
 
     if (records.deepestDive != null && records.deepestDive!.maxDepth != null) {
-      recordItems.add(_buildRecordItem(
-        context,
-        icon: Icons.arrow_downward,
-        title: 'Deepest Dive',
-        value: units.formatDepth(records.deepestDive!.maxDepth),
-        diveId: records.deepestDive!.diveId,
-        date: records.deepestDive!.dateTime,
-      ));
+      recordItems.add(
+        _buildRecordItem(
+          context,
+          icon: Icons.arrow_downward,
+          title: 'Deepest Dive',
+          value: units.formatDepth(records.deepestDive!.maxDepth),
+          diveId: records.deepestDive!.diveId,
+          date: records.deepestDive!.dateTime,
+        ),
+      );
     }
 
     if (records.longestDive != null && records.longestDive!.duration != null) {
       final minutes = records.longestDive!.duration!.inMinutes;
-      recordItems.add(_buildRecordItem(
-        context,
-        icon: Icons.timer,
-        title: 'Longest Dive',
-        value: '$minutes min',
-        diveId: records.longestDive!.diveId,
-        date: records.longestDive!.dateTime,
-      ));
+      recordItems.add(
+        _buildRecordItem(
+          context,
+          icon: Icons.timer,
+          title: 'Longest Dive',
+          value: '$minutes min',
+          diveId: records.longestDive!.diveId,
+          date: records.longestDive!.dateTime,
+        ),
+      );
     }
 
     if (records.coldestDive != null && records.coldestDive!.waterTemp != null) {
-      recordItems.add(_buildRecordItem(
-        context,
-        icon: Icons.ac_unit,
-        title: 'Coldest Dive',
-        value: units.formatTemperature(records.coldestDive!.waterTemp),
-        diveId: records.coldestDive!.diveId,
-        date: records.coldestDive!.dateTime,
-      ));
+      recordItems.add(
+        _buildRecordItem(
+          context,
+          icon: Icons.ac_unit,
+          title: 'Coldest Dive',
+          value: units.formatTemperature(records.coldestDive!.waterTemp),
+          diveId: records.coldestDive!.diveId,
+          date: records.coldestDive!.dateTime,
+        ),
+      );
     }
 
     if (records.warmestDive != null && records.warmestDive!.waterTemp != null) {
-      recordItems.add(_buildRecordItem(
-        context,
-        icon: Icons.wb_sunny,
-        title: 'Warmest Dive',
-        value: units.formatTemperature(records.warmestDive!.waterTemp),
-        diveId: records.warmestDive!.diveId,
-        date: records.warmestDive!.dateTime,
-      ));
+      recordItems.add(
+        _buildRecordItem(
+          context,
+          icon: Icons.wb_sunny,
+          title: 'Warmest Dive',
+          value: units.formatTemperature(records.warmestDive!.waterTemp),
+          diveId: records.warmestDive!.diveId,
+          date: records.warmestDive!.dateTime,
+        ),
+      );
     }
 
     if (recordItems.isEmpty) {
@@ -302,14 +312,12 @@ class DiveSummaryWidget extends ConsumerWidget {
       children: [
         Text(
           'Personal Records',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),
-        Card(
-          child: Column(children: recordItems),
-        ),
+        Card(child: Column(children: recordItems)),
       ],
     );
   }
@@ -355,9 +363,9 @@ class DiveSummaryWidget extends ConsumerWidget {
       children: [
         Text(
           'Quick Actions',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),
         Wrap(

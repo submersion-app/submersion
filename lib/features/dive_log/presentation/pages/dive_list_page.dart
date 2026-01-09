@@ -60,11 +60,8 @@ class DiveListPage extends ConsumerWidget {
           onSaved: onSaved,
           onCancel: onCancel,
         ),
-        createBuilder: (context, onSaved, onCancel) => DiveEditPage(
-          embedded: true,
-          onSaved: onSaved,
-          onCancel: onCancel,
-        ),
+        createBuilder: (context, onSaved, onCancel) =>
+            DiveEditPage(embedded: true, onSaved: onSaved, onCancel: onCancel),
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () {}, // Will be overridden by MasterDetailScaffold
           icon: const Icon(Icons.add),

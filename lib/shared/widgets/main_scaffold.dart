@@ -216,9 +216,11 @@ class _MainScaffoldState extends State<MainScaffold> {
               minExtendedWidth: 190,
               leading: isDesktopExtended
                   ? IconButton(
-                      icon: Icon(_isCollapsed
-                          ? Icons.keyboard_double_arrow_right
-                          : Icons.keyboard_double_arrow_left),
+                      icon: Icon(
+                        _isCollapsed
+                            ? Icons.keyboard_double_arrow_right
+                            : Icons.keyboard_double_arrow_left,
+                      ),
                       tooltip: _isCollapsed ? 'Expand menu' : 'Collapse menu',
                       onPressed: () {
                         setState(() {

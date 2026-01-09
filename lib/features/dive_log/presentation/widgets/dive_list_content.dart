@@ -48,7 +48,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   List<Dive>? _deletedDives;
   final ScrollController _scrollController = ScrollController();
   String? _lastScrolledToId;
-  bool _selectionFromList = false; // Track if selection originated from list tap
+  bool _selectionFromList =
+      false; // Track if selection originated from list tap
 
   @override
   void initState() {
@@ -193,7 +194,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       final idsToDelete = _selectedIds.toList();
 
       // If the currently selected item in master-detail is being deleted, clear it
-      if (widget.selectedId != null && idsToDelete.contains(widget.selectedId)) {
+      if (widget.selectedId != null &&
+          idsToDelete.contains(widget.selectedId)) {
         widget.onItemSelected?.call(null);
       }
 
@@ -285,7 +287,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           ? _buildSelectionAppBar(divesAsync.value ?? [])
           : _buildAppBar(context, filter),
       body: content,
-      floatingActionButton: _isSelectionMode ? null : widget.floatingActionButton,
+      floatingActionButton: _isSelectionMode
+          ? null
+          : widget.floatingActionButton,
     );
   }
 
@@ -296,10 +300,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         IconButton(
           icon: const Icon(Icons.search),
           onPressed: () {
-            showSearch(
-              context: context,
-              delegate: DiveSearchDelegate(ref),
-            );
+            showSearch(context: context, delegate: DiveSearchDelegate(ref));
           },
         ),
         IconButton(
@@ -356,19 +357,16 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           const SizedBox(width: 8),
           Text(
             'Dives',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
           IconButton(
             icon: const Icon(Icons.search, size: 20),
             visualDensity: VisualDensity.compact,
             onPressed: () {
-              showSearch(
-                context: context,
-                delegate: DiveSearchDelegate(ref),
-              );
+              showSearch(context: context, delegate: DiveSearchDelegate(ref));
             },
           ),
           IconButton(
@@ -711,7 +709,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             Icon(
               Icons.filter_list_off,
               size: 80,
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
