@@ -3601,10 +3601,10 @@ class ExportService {
         final currentTimestamp = profile[i]['timestamp'] as int;
 
         // Linear interpolation based on timestamp
-        final ratio = (currentTimestamp - beforeTimestamp) /
+        final ratio =
+            (currentTimestamp - beforeTimestamp) /
             (afterTimestamp - beforeTimestamp);
-        final interpolatedTemp =
-            beforeTemp + (afterTemp - beforeTemp) * ratio;
+        final interpolatedTemp = beforeTemp + (afterTemp - beforeTemp) * ratio;
         profile[i]['temperature'] = interpolatedTemp;
       } else if (beforeIdx != null) {
         // After last known temp - forward-fill
