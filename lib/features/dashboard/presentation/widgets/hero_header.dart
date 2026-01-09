@@ -14,6 +14,22 @@ class HeroHeader extends ConsumerWidget {
     final diverAsync = ref.watch(dashboardDiverProvider);
     final statsAsync = ref.watch(diveStatisticsProvider);
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final colors = theme.colorScheme;
+
+    // Use container colors in dark mode for better contrast with dark surfaces
+    final gradientColors = isDark
+        ? [
+            colors.primaryContainer,
+            colors.primaryContainer.withValues(alpha: 0.9),
+            colors.tertiaryContainer.withValues(alpha: 0.8),
+          ]
+        : [
+            colors.primary,
+            colors.primary.withValues(alpha: 0.8),
+            colors.tertiary.withValues(alpha: 0.6),
+          ];
+    final textColor = isDark ? colors.onPrimaryContainer : colors.onPrimary;
 
     return Container(
       width: double.infinity,
@@ -21,33 +37,20 @@ class HeroHeader extends ConsumerWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            theme.colorScheme.primary,
-            theme.colorScheme.primary.withValues(alpha: 0.8),
-            theme.colorScheme.tertiary.withValues(alpha: 0.6),
-          ],
+          colors: gradientColors,
         ),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Stack(
         children: [
-          // Decorative wave pattern
+          // App icon
           Positioned(
-            right: -20,
-            bottom: -20,
-            child: Icon(
-              Icons.waves,
-              size: 150,
-              color: Colors.white.withValues(alpha: 0.1),
-            ),
-          ),
-          Positioned(
-            right: 40,
-            top: 10,
-            child: Icon(
-              Icons.scuba_diving,
-              size: 60,
-              color: Colors.white.withValues(alpha: 0.15),
+            right: 16,
+            top: 8,
+            child: Image.asset(
+              'assets/icon/icon.png',
+              width: 80,
+              height: 80,
             ),
           ),
           // Content
@@ -64,7 +67,7 @@ class HeroHeader extends ConsumerWidget {
                     return Text(
                       '$greeting, $name!',
                       style: theme.textTheme.headlineSmall?.copyWith(
-                        color: Colors.white,
+                        color: textColor,
                         fontWeight: FontWeight.bold,
                       ),
                     );
@@ -72,14 +75,14 @@ class HeroHeader extends ConsumerWidget {
                   loading: () => Text(
                     '${_getGreeting()}!',
                     style: theme.textTheme.headlineSmall?.copyWith(
-                      color: Colors.white,
+                      color: textColor,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   error: (_, _) => Text(
                     '${_getGreeting()}!',
                     style: theme.textTheme.headlineSmall?.copyWith(
-                      color: Colors.white,
+                      color: textColor,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -90,19 +93,19 @@ class HeroHeader extends ConsumerWidget {
                   data: (stats) => Text(
                     _buildHeadlineStats(stats),
                     style: theme.textTheme.bodyLarge?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.9),
+                      color: textColor.withValues(alpha: 0.9),
                     ),
                   ),
                   loading: () => Text(
                     'Loading your dive stats...',
                     style: theme.textTheme.bodyLarge?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.9),
+                      color: textColor.withValues(alpha: 0.9),
                     ),
                   ),
                   error: (_, _) => Text(
                     'Ready to explore the depths?',
                     style: theme.textTheme.bodyLarge?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.9),
+                      color: textColor.withValues(alpha: 0.9),
                     ),
                   ),
                 ),

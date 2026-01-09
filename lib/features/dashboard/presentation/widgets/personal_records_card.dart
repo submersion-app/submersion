@@ -77,20 +77,6 @@ class PersonalRecordsCard extends ConsumerWidget {
           );
         }
 
-        // Most visited site
-        if (records.mostVisitedSite != null) {
-          recordWidgets.add(
-            _RecordChip(
-              icon: Icons.location_on,
-              label: 'Favorite',
-              value: '${records.mostVisitedSiteCount}x',
-              subtitle: records.mostVisitedSite,
-              color: Colors.purple,
-              onTap: null, // Could navigate to site detail
-            ),
-          );
-        }
-
         if (recordWidgets.isEmpty) {
           return const SizedBox.shrink();
         }
