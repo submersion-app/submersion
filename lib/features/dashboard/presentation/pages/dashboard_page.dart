@@ -4,7 +4,10 @@ import 'package:submersion/core/providers/provider.dart';
 import '../../../dive_log/data/repositories/dive_repository_impl.dart';
 import '../../../dive_log/presentation/providers/dive_providers.dart';
 import '../providers/dashboard_providers.dart';
+import '../widgets/activity_status_row.dart';
 import '../widgets/alerts_card.dart';
+import '../widgets/hero_header.dart';
+import '../widgets/personal_records_card.dart';
 import '../widgets/quick_actions_card.dart';
 import '../widgets/recent_dives_card.dart';
 import '../widgets/stat_summary_card.dart';
@@ -24,6 +27,10 @@ class DashboardPage extends ConsumerWidget {
             ref.invalidate(diveStatisticsProvider);
             ref.invalidate(recentDivesProvider);
             ref.invalidate(dashboardAlertsProvider);
+            ref.invalidate(daysSinceLastDiveProvider);
+            ref.invalidate(monthlyDiveCountProvider);
+            ref.invalidate(yearToDateDiveCountProvider);
+            ref.invalidate(personalRecordsProvider);
           },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -31,9 +38,17 @@ class DashboardPage extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Hero Header with personalized greeting
+                const HeroHeader(),
+                const SizedBox(height: 16),
+                // Activity Status Row (days since last dive, monthly, YTD)
+                const ActivityStatusRow(),
+                const SizedBox(height: 16),
                 // Key Stats Section
                 _buildStatsSection(context, statsAsync),
                 const SizedBox(height: 16),
+                // Personal Records Section
+                const PersonalRecordsCard(),
                 // Alerts Section (only shows if there are alerts)
                 const AlertsCard(),
                 // Recent Dives Section
