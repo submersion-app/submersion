@@ -3380,6 +3380,12 @@ class ExportService {
         }
       }
 
+      // Interpolate sparse temperature data (common in Subsurface exports)
+      // Some dive software only records temperature at certain intervals or at dive start
+      if (profile.isNotEmpty) {
+        _interpolateProfileTemperatures(profile);
+      }
+
       if (profile.isNotEmpty) {
         diveData['profile'] = profile;
       }
@@ -3535,6 +3541,79 @@ class ExportService {
       return enums.Visibility.poor;
     }
     return enums.Visibility.unknown;
+  }
+
+  /// Interpolates sparse temperature data across profile points.
+  ///
+  /// Some dive software (e.g., Subsurface) only records temperature at the start
+  /// of the dive or at sparse intervals. This method fills in missing temperature
+  /// values by interpolating between known readings, or forward-filling if there's
+  /// only one reading.
+  ///
+  /// This is done in-place on the profile list.
+  void _interpolateProfileTemperatures(List<Map<String, dynamic>> profile) {
+    // Find all points with temperature data
+    final tempPoints = <int, double>{};
+    for (var i = 0; i < profile.length; i++) {
+      final temp = profile[i]['temperature'] as double?;
+      if (temp != null) {
+        tempPoints[i] = temp;
+      }
+    }
+
+    // No temperature data at all - nothing to do
+    if (tempPoints.isEmpty) return;
+
+    // Only one temperature point - forward-fill to all points
+    if (tempPoints.length == 1) {
+      final singleTemp = tempPoints.values.first;
+      for (var i = 0; i < profile.length; i++) {
+        profile[i]['temperature'] = singleTemp;
+      }
+      return;
+    }
+
+    // Multiple temperature points - interpolate between them
+    final sortedIndices = tempPoints.keys.toList()..sort();
+
+    for (var i = 0; i < profile.length; i++) {
+      if (tempPoints.containsKey(i)) continue; // Already has temperature
+
+      // Find surrounding temperature points
+      int? beforeIdx;
+      int? afterIdx;
+
+      for (final idx in sortedIndices) {
+        if (idx < i) {
+          beforeIdx = idx;
+        } else if (idx > i) {
+          afterIdx = idx;
+          break;
+        }
+      }
+
+      if (beforeIdx != null && afterIdx != null) {
+        // Interpolate between two known points
+        final beforeTemp = tempPoints[beforeIdx]!;
+        final afterTemp = tempPoints[afterIdx]!;
+        final beforeTimestamp = profile[beforeIdx]['timestamp'] as int;
+        final afterTimestamp = profile[afterIdx]['timestamp'] as int;
+        final currentTimestamp = profile[i]['timestamp'] as int;
+
+        // Linear interpolation based on timestamp
+        final ratio = (currentTimestamp - beforeTimestamp) /
+            (afterTimestamp - beforeTimestamp);
+        final interpolatedTemp =
+            beforeTemp + (afterTemp - beforeTemp) * ratio;
+        profile[i]['temperature'] = interpolatedTemp;
+      } else if (beforeIdx != null) {
+        // After last known temp - forward-fill
+        profile[i]['temperature'] = tempPoints[beforeIdx]!;
+      } else if (afterIdx != null) {
+        // Before first known temp - backward-fill
+        profile[i]['temperature'] = tempPoints[afterIdx]!;
+      }
+    }
   }
 
   String? _getElementText(XmlElement parent, String elementName) {
