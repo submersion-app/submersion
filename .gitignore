@@ -13,6 +13,7 @@ pubspec.lock
 .idea/
 .vscode/
 *.iml
+*.code-workspace
 
 # macOS
 .DS_Store
