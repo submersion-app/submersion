@@ -44,8 +44,13 @@ class DecoStatus extends Equatable {
     required this.ambientPressureBar,
   });
 
-  /// Whether the diver is currently in decompression obligation
-  bool get inDeco => ceilingMeters > 0 || decoStops.isNotEmpty;
+  /// Whether the diver is currently in decompression obligation.
+  ///
+  /// This is based on NDL being negative (can't ascend directly to surface).
+  /// Note: `ceilingMeters` may show small positive values with conservative
+  /// GF settings even on recreational dives - this is for ascent planning
+  /// display, not for determining deco obligation.
+  bool get inDeco => ndlSeconds < 0;
 
   /// Get the leading (most saturated) compartment
   TissueCompartment get leadingCompartment {
