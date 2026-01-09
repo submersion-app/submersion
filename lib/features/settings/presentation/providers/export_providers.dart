@@ -1103,12 +1103,12 @@ class ExportNotifier extends StateNotifier<ExportState> {
           String? region = siteData['region'] as String?;
 
           // Auto-lookup country/region if coordinates exist but fields are empty
-          if (lat != null && lon != null && (country == null || region == null)) {
+          if (lat != null &&
+              lon != null &&
+              (country == null || region == null)) {
             try {
-              final geocodeResult = await LocationService.instance.reverseGeocode(
-                lat,
-                lon,
-              );
+              final geocodeResult = await LocationService.instance
+                  .reverseGeocode(lat, lon);
               if (country == null && geocodeResult.country != null) {
                 country = geocodeResult.country;
               }
