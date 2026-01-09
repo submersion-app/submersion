@@ -40,8 +40,8 @@ class _DaysSinceLastDiveCard extends ConsumerWidget {
             : days == 0
             ? 'Last dive'
             : days == 1
-            ? 'Day ago'
-            : 'Days ago';
+            ? 'Day since diving'
+            : 'Days since diving';
 
         return _StatusCard(
           value: displayText,
@@ -83,20 +83,20 @@ class _MonthlyDiveCountCard extends ConsumerWidget {
     return countAsync.when(
       data: (count) => _StatusCard(
         value: '$count',
-        label: 'This month',
+        label: count == 1 ? 'Dive this month' : 'Dives this month',
         icon: Icons.calendar_today,
         color: theme.colorScheme.secondary,
       ),
       loading: () => _StatusCard(
         value: '...',
-        label: 'This month',
+        label: 'Dives this month',
         icon: Icons.calendar_today,
         color: theme.colorScheme.secondary,
         isLoading: true,
       ),
       error: (_, _) => _StatusCard(
         value: '-',
-        label: 'This month',
+        label: 'Dives this month',
         icon: Icons.calendar_today,
         color: theme.colorScheme.error,
       ),
@@ -114,20 +114,20 @@ class _YearToDateCard extends ConsumerWidget {
     return countAsync.when(
       data: (count) => _StatusCard(
         value: '$count',
-        label: 'In $year',
+        label: count == 1 ? 'Dive in $year' : 'Dives in $year',
         icon: Icons.trending_up,
         color: theme.colorScheme.tertiary,
       ),
       loading: () => _StatusCard(
         value: '...',
-        label: 'In $year',
+        label: 'Dives in $year',
         icon: Icons.trending_up,
         color: theme.colorScheme.tertiary,
         isLoading: true,
       ),
       error: (_, _) => _StatusCard(
         value: '-',
-        label: 'In $year',
+        label: 'Dives in $year',
         icon: Icons.trending_up,
         color: theme.colorScheme.error,
       ),
@@ -187,7 +187,7 @@ class _StatusCard extends StatelessWidget {
               color: theme.colorScheme.onSurfaceVariant,
             ),
             textAlign: TextAlign.center,
-            maxLines: 1,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
         ],

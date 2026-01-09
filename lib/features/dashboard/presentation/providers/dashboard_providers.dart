@@ -96,7 +96,8 @@ class PersonalRecords {
   final Dive? longestDive;
   final Dive? coldestDive;
   final Dive? warmestDive;
-  final String? mostVisitedSite;
+  final String? mostVisitedSiteId;
+  final String? mostVisitedSiteName;
   final int? mostVisitedSiteCount;
 
   const PersonalRecords({
@@ -104,7 +105,8 @@ class PersonalRecords {
     this.longestDive,
     this.coldestDive,
     this.warmestDive,
-    this.mostVisitedSite,
+    this.mostVisitedSiteId,
+    this.mostVisitedSiteName,
     this.mostVisitedSiteCount,
   });
 
@@ -113,7 +115,7 @@ class PersonalRecords {
       longestDive != null ||
       coldestDive != null ||
       warmestDive != null ||
-      mostVisitedSite != null;
+      mostVisitedSiteName != null;
 }
 
 /// Personal records provider
@@ -175,12 +177,14 @@ final personalRecordsProvider = FutureProvider<PersonalRecords>((ref) async {
     }
   }
 
-  String? mostVisitedSite;
+  String? mostVisitedSiteId;
+  String? mostVisitedSiteName;
   int mostVisitedCount = 0;
   for (final entry in siteCounts.entries) {
     if (entry.value > mostVisitedCount) {
       mostVisitedCount = entry.value;
-      mostVisitedSite = siteNames[entry.key];
+      mostVisitedSiteId = entry.key;
+      mostVisitedSiteName = siteNames[entry.key];
     }
   }
 
@@ -189,7 +193,8 @@ final personalRecordsProvider = FutureProvider<PersonalRecords>((ref) async {
     longestDive: longestDive,
     coldestDive: coldestDive,
     warmestDive: warmestDive,
-    mostVisitedSite: mostVisitedSite,
+    mostVisitedSiteId: mostVisitedSiteId,
+    mostVisitedSiteName: mostVisitedSiteName,
     mostVisitedSiteCount: mostVisitedCount > 0 ? mostVisitedCount : null,
   );
 });

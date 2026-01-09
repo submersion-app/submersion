@@ -200,6 +200,7 @@ class MainScaffold extends StatelessWidget {
           children: [
             NavigationRail(
               extended: MediaQuery.of(context).size.width >= 1200,
+              minExtendedWidth: 190,
               selectedIndex: selectedIndex,
               onDestinationSelected: (index) =>
                   _onDestinationSelected(context, index, isWideScreen: true),
