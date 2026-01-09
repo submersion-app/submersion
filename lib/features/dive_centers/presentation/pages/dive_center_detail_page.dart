@@ -133,10 +133,7 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage> {
               color: colorScheme.primaryContainer,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(
-              Icons.store,
-              color: colorScheme.onPrimaryContainer,
-            ),
+            child: Icon(Icons.store, color: colorScheme.onPrimaryContainer),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -167,9 +164,9 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage> {
             const SizedBox(width: 4),
             Text(
               center.rating!.toStringAsFixed(1),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(width: 8),
           ],
@@ -241,9 +238,7 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage> {
               const SizedBox(width: 8),
               Text(
                 'Delete',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.error,
-                ),
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ],
           ),
@@ -360,8 +355,9 @@ class _HeaderSection extends StatelessWidget {
               children: center.affiliations.map((affiliation) {
                 return Chip(
                   label: Text(affiliation),
-                  backgroundColor:
-                      Theme.of(context).colorScheme.secondaryContainer,
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.secondaryContainer,
                   labelStyle: TextStyle(
                     color: Theme.of(context).colorScheme.onSecondaryContainer,
                   ),
@@ -450,9 +446,9 @@ class _ContactSection extends StatelessWidget {
 
   void _copyToClipboard(BuildContext context, String text) {
     Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Copied to clipboard')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Copied to clipboard')));
   }
 }
 
@@ -585,11 +581,9 @@ class _DivesSection extends ConsumerWidget {
                             diveCount == 0
                                 ? 'No dives logged yet'
                                 : diveCount == 1
-                                    ? '1 dive logged'
-                                    : '$diveCount dives logged',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
+                                ? '1 dive logged'
+                                : '$diveCount dives logged',
+                            style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(color: colorScheme.onSurfaceVariant),
                           ),
                         ],

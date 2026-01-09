@@ -191,9 +191,9 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           const SizedBox(width: 8),
           Text(
             'Equipment',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
           IconButton(
@@ -235,10 +235,9 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .outline
-                      .withValues(alpha: 0.5),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.outline.withValues(alpha: 0.5),
                 ),
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -259,11 +258,11 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                   ...EquipmentStatus.values
                       .where((status) => status != EquipmentStatus.needsService)
                       .map((status) {
-                    return DropdownMenuItem<Object?>(
-                      value: status,
-                      child: Text(status.displayName),
-                    );
-                  }),
+                        return DropdownMenuItem<Object?>(
+                          value: status,
+                          child: Text(status.displayName),
+                        );
+                      }),
                 ],
                 onChanged: (value) {
                   setState(() => _selectedFilter = value);
@@ -332,8 +331,8 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
             _selectedFilter == null
                 ? 'Add your diving equipment to track usage and service'
                 : _selectedFilter == _serviceDueFilter
-                    ? 'All your equipment is up to date on service!'
-                    : 'No equipment with this status',
+                ? 'All your equipment is up to date on service!'
+                : 'No equipment with this status',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -515,10 +514,9 @@ class EquipmentSearchDelegate extends SearchDelegate<EquipmentItem?> {
             Icon(
               Icons.search,
               size: 64,
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurfaceVariant
-                  .withValues(alpha: 0.5),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
@@ -549,10 +547,9 @@ class EquipmentSearchDelegate extends SearchDelegate<EquipmentItem?> {
                     Icon(
                       Icons.search_off,
                       size: 64,
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurfaceVariant
-                          .withValues(alpha: 0.5),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                     ),
                     const SizedBox(height: 16),
                     Text(

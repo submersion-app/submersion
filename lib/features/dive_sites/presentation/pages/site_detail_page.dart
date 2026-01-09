@@ -246,8 +246,7 @@ class _SiteDetailContent extends ConsumerWidget {
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, size: 20),
-            onSelected: (value) =>
-                _handleMenuAction(context, ref, value, site),
+            onSelected: (value) => _handleMenuAction(context, ref, value, site),
             itemBuilder: (context) => [
               const PopupMenuItem(
                 value: 'delete',

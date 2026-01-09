@@ -52,9 +52,9 @@ class DiverSummaryWidget extends ConsumerWidget {
             const SizedBox(width: 12),
             Text(
               'Diver Profiles',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -86,9 +86,9 @@ class DiverSummaryWidget extends ConsumerWidget {
       children: [
         Text(
           'Overview',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),
         Wrap(
@@ -141,9 +141,9 @@ class DiverSummaryWidget extends ConsumerWidget {
               const SizedBox(height: 8),
               Text(
                 value,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 4),
               Text(
@@ -251,8 +251,10 @@ class DiverSummaryWidget extends ConsumerWidget {
     List divers,
     String? currentDiverId,
   ) {
-    final otherDivers =
-        divers.where((d) => d.id != currentDiverId).take(3).toList();
+    final otherDivers = divers
+        .where((d) => d.id != currentDiverId)
+        .take(3)
+        .toList();
     if (otherDivers.isEmpty) return const SizedBox.shrink();
 
     return Column(
@@ -260,9 +262,9 @@ class DiverSummaryWidget extends ConsumerWidget {
       children: [
         Text(
           'Other Divers',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),
         Card(
@@ -270,8 +272,9 @@ class DiverSummaryWidget extends ConsumerWidget {
             children: otherDivers.map((diver) {
               return ListTile(
                 leading: CircleAvatar(
-                  backgroundColor:
-                      Theme.of(context).colorScheme.primaryContainer,
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.primaryContainer,
                   child: Text(
                     diver.initials,
                     style: TextStyle(
@@ -301,9 +304,9 @@ class DiverSummaryWidget extends ConsumerWidget {
       children: [
         Text(
           'Quick Actions',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),
         Wrap(

@@ -153,9 +153,9 @@ class _DiverListContentState extends ConsumerState<DiverListContent> {
           const SizedBox(width: 8),
           Text(
             'Divers',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
         ],
@@ -286,8 +286,8 @@ class DiverListTile extends ConsumerWidget {
       color: isSelected
           ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
           : isCurrentDiver
-              ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3)
-              : null,
+          ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3)
+          : null,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),

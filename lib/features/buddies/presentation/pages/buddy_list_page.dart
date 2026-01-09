@@ -34,10 +34,10 @@ class BuddyListPage extends ConsumerWidget {
         sectionId: 'buddies',
         masterBuilder: (context, onItemSelected, selectedId) =>
             BuddyListContent(
-          onItemSelected: onItemSelected,
-          selectedId: selectedId,
-          showAppBar: false,
-        ),
+              onItemSelected: onItemSelected,
+              selectedId: selectedId,
+              showAppBar: false,
+            ),
         detailBuilder: (context, buddyId) => BuddyDetailPage(
           buddyId: buddyId,
           embedded: true,
@@ -53,19 +53,13 @@ class BuddyListPage extends ConsumerWidget {
           onSaved: onSaved,
           onCancel: onCancel,
         ),
-        createBuilder: (context, onSaved, onCancel) => BuddyEditPage(
-          embedded: true,
-          onSaved: onSaved,
-          onCancel: onCancel,
-        ),
+        createBuilder: (context, onSaved, onCancel) =>
+            BuddyEditPage(embedded: true, onSaved: onSaved, onCancel: onCancel),
         floatingActionButton: fab,
       );
     }
 
     // Mobile: Use list content with full scaffold
-    return BuddyListContent(
-      showAppBar: true,
-      floatingActionButton: fab,
-    );
+    return BuddyListContent(showAppBar: true, floatingActionButton: fab);
   }
 }

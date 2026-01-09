@@ -156,9 +156,9 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
           const SizedBox(width: 8),
           Text(
             'Dive Centers',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
           IconButton(
@@ -344,7 +344,11 @@ class DiveCenterListTile extends ConsumerWidget {
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.star, size: 16, color: Colors.amber.shade700),
+                        Icon(
+                          Icons.star,
+                          size: 16,
+                          color: Colors.amber.shade700,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           center.rating!.toStringAsFixed(1),
@@ -465,7 +469,11 @@ class DiveCenterSearchDelegate extends SearchDelegate<DiveCenter?> {
                   ? Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.star, size: 16, color: Colors.amber.shade700),
+                        Icon(
+                          Icons.star,
+                          size: 16,
+                          color: Colors.amber.shade700,
+                        ),
                         const SizedBox(width: 4),
                         Text(center.rating!.toStringAsFixed(1)),
                       ],

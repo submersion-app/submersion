@@ -54,9 +54,9 @@ class EquipmentSummaryWidget extends ConsumerWidget {
             const SizedBox(width: 12),
             Text(
               'Equipment',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -95,9 +95,9 @@ class EquipmentSummaryWidget extends ConsumerWidget {
       children: [
         Text(
           'Overview',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),
         Wrap(
@@ -173,9 +173,9 @@ class EquipmentSummaryWidget extends ConsumerWidget {
               const SizedBox(height: 8),
               Text(
                 value,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 4),
               Text(
@@ -202,9 +202,9 @@ class EquipmentSummaryWidget extends ConsumerWidget {
             const SizedBox(width: 8),
             Text(
               'Service Due',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
           ],
         ),
@@ -259,9 +259,9 @@ class EquipmentSummaryWidget extends ConsumerWidget {
       children: [
         Text(
           'Recent Equipment',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),
         Card(
@@ -269,8 +269,9 @@ class EquipmentSummaryWidget extends ConsumerWidget {
             children: previewItems.map((item) {
               return ListTile(
                 leading: CircleAvatar(
-                  backgroundColor:
-                      Theme.of(context).colorScheme.tertiaryContainer,
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.tertiaryContainer,
                   child: Icon(
                     Icons.backpack,
                     color: Theme.of(context).colorScheme.onTertiaryContainer,
@@ -298,9 +299,9 @@ class EquipmentSummaryWidget extends ConsumerWidget {
       children: [
         Text(
           'Quick Actions',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),
         Wrap(

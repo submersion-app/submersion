@@ -245,12 +245,8 @@ class _EquipmentDetailContent extends ConsumerWidget {
       PopupMenuItem(
         value: equipment.isActive ? 'retire' : 'reactivate',
         child: ListTile(
-          leading: Icon(
-            equipment.isActive ? Icons.archive : Icons.unarchive,
-          ),
-          title: Text(
-            equipment.isActive ? 'Retire Equipment' : 'Reactivate',
-          ),
+          leading: Icon(equipment.isActive ? Icons.archive : Icons.unarchive),
+          title: Text(equipment.isActive ? 'Retire Equipment' : 'Reactivate'),
           contentPadding: EdgeInsets.zero,
         ),
       ),

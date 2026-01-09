@@ -34,10 +34,10 @@ class DiveCenterListPage extends ConsumerWidget {
         sectionId: 'dive-centers',
         masterBuilder: (context, onItemSelected, selectedId) =>
             DiveCenterListContent(
-          onItemSelected: onItemSelected,
-          selectedId: selectedId,
-          showAppBar: false,
-        ),
+              onItemSelected: onItemSelected,
+              selectedId: selectedId,
+              showAppBar: false,
+            ),
         detailBuilder: (context, centerId) => DiveCenterDetailPage(
           centerId: centerId,
           embedded: true,
@@ -49,11 +49,11 @@ class DiveCenterListPage extends ConsumerWidget {
         summaryBuilder: (context) => const DiveCenterSummaryWidget(),
         editBuilder: (context, centerId, onSaved, onCancel) =>
             DiveCenterEditPage(
-          centerId: centerId,
-          embedded: true,
-          onSaved: onSaved,
-          onCancel: onCancel,
-        ),
+              centerId: centerId,
+              embedded: true,
+              onSaved: onSaved,
+              onCancel: onCancel,
+            ),
         createBuilder: (context, onSaved, onCancel) => DiveCenterEditPage(
           embedded: true,
           onSaved: onSaved,
@@ -64,9 +64,6 @@ class DiveCenterListPage extends ConsumerWidget {
     }
 
     // Mobile: Use list content with full scaffold
-    return DiveCenterListContent(
-      showAppBar: true,
-      floatingActionButton: fab,
-    );
+    return DiveCenterListContent(showAppBar: true, floatingActionButton: fab);
   }
 }

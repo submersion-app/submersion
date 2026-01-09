@@ -202,9 +202,7 @@ class _DiverDetailContent extends ConsumerWidget {
                 .setAsDefault(diver.id);
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('${diver.name} set as default diver'),
-                ),
+                SnackBar(content: Text('${diver.name} set as default diver')),
               );
             }
           }
@@ -273,17 +271,17 @@ class _DiverDetailContent extends ConsumerWidget {
               children: [
                 Text(
                   diver.name,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (isCurrentDiver)
                   Text(
                     'Active Diver',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.primary,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: colorScheme.primary),
                   ),
               ],
             ),
@@ -373,15 +371,15 @@ class _DiverDetailContent extends ConsumerWidget {
           } else {
             context.pop();
           }
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Diver deleted')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Diver deleted')));
         }
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to delete: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Failed to delete: $e')));
         }
       }
     }

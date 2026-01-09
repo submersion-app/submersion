@@ -411,9 +411,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           Expanded(
             child: Text(
               widget.isEditing ? 'Edit Equipment' : 'New Equipment',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
           TextButton(
@@ -431,7 +431,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           ),
           const SizedBox(width: 8),
           FilledButton(
-            onPressed: _isLoading ? null : () => _saveEquipment(existingEquipment),
+            onPressed: _isLoading
+                ? null
+                : () => _saveEquipment(existingEquipment),
             child: _isLoading
                 ? const SizedBox(
                     width: 20,

@@ -125,230 +125,225 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
     final body = _isLoading
         ? const Center(child: CircularProgressIndicator())
         : SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Profile photo placeholder
-                      Center(
-                        child: Stack(
-                          children: [
-                            CircleAvatar(
-                              radius: 50,
-                              backgroundColor: Theme.of(
+            padding: const EdgeInsets.all(16),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Profile photo placeholder
+                  Center(
+                    child: Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 50,
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.primaryContainer,
+                          child: Text(
+                            _nameController.text.isNotEmpty
+                                ? _getInitials(_nameController.text)
+                                : '?',
+                            style: TextStyle(
+                              fontSize: 36,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(
                                 context,
-                              ).colorScheme.primaryContainer,
-                              child: Text(
-                                _nameController.text.isNotEmpty
-                                    ? _getInitials(_nameController.text)
-                                    : '?',
-                                style: TextStyle(
-                                  fontSize: 36,
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onPrimaryContainer,
-                                ),
-                              ),
+                              ).colorScheme.onPrimaryContainer,
                             ),
-                            Positioned(
-                              bottom: 0,
-                              right: 0,
-                              child: CircleAvatar(
-                                radius: 16,
-                                backgroundColor: Theme.of(
-                                  context,
-                                ).colorScheme.primary,
-                                child: Icon(
-                                  Icons.camera_alt,
-                                  size: 16,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onPrimary,
-                                ),
-                              ),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: CircleAvatar(
+                            radius: 16,
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.primary,
+                            child: Icon(
+                              Icons.camera_alt,
+                              size: 16,
+                              color: Theme.of(context).colorScheme.onPrimary,
                             ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Center(
-                        child: Text(
-                          'Photo support coming in v2.0',
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Name field
-                      TextFormField(
-                        controller: _nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Name *',
-                          prefixIcon: Icon(Icons.person),
-                          hintText: 'Enter buddy name',
-                        ),
-                        textCapitalization: TextCapitalization.words,
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Please enter a name';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Email field
-                      TextFormField(
-                        controller: _emailController,
-                        decoration: const InputDecoration(
-                          labelText: 'Email',
-                          prefixIcon: Icon(Icons.email),
-                          hintText: 'email@example.com',
-                        ),
-                        keyboardType: TextInputType.emailAddress,
-                        validator: (value) {
-                          if (value != null && value.isNotEmpty) {
-                            final emailRegex = RegExp(
-                              r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-                            );
-                            if (!emailRegex.hasMatch(value)) {
-                              return 'Please enter a valid email';
-                            }
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Phone field
-                      TextFormField(
-                        controller: _phoneController,
-                        decoration: const InputDecoration(
-                          labelText: 'Phone',
-                          prefixIcon: Icon(Icons.phone),
-                          hintText: '+1 234 567 8900',
-                        ),
-                        keyboardType: TextInputType.phone,
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Certification section header
-                      Text(
-                        'Certification',
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Certification level dropdown
-                      DropdownButtonFormField<CertificationLevel>(
-                        initialValue: _certLevel,
-                        decoration: const InputDecoration(
-                          labelText: 'Certification Level',
-                          prefixIcon: Icon(Icons.card_membership),
-                        ),
-                        items: [
-                          const DropdownMenuItem(
-                            value: null,
-                            child: Text('Not specified'),
                           ),
-                          ...CertificationLevel.values.map((level) {
-                            return DropdownMenuItem(
-                              value: level,
-                              child: Text(level.displayName),
-                            );
-                          }),
-                        ],
-                        onChanged: (value) {
-                          setState(() {
-                            _certLevel = value;
-                            _hasChanges = true;
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Certification agency dropdown
-                      DropdownButtonFormField<CertificationAgency>(
-                        initialValue: _certAgency,
-                        decoration: const InputDecoration(
-                          labelText: 'Certification Agency',
-                          prefixIcon: Icon(Icons.business),
                         ),
-                        items: [
-                          const DropdownMenuItem(
-                            value: null,
-                            child: Text('Not specified'),
-                          ),
-                          ...CertificationAgency.values.map((agency) {
-                            return DropdownMenuItem(
-                              value: agency,
-                              child: Text(agency.displayName),
-                            );
-                          }),
-                        ],
-                        onChanged: (value) {
-                          setState(() {
-                            _certAgency = value;
-                            _hasChanges = true;
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Notes section header
-                      Text(
-                        'Notes',
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Notes field
-                      TextFormField(
-                        controller: _notesController,
-                        decoration: const InputDecoration(
-                          labelText: 'Notes',
-                          prefixIcon: Icon(Icons.notes),
-                          hintText: 'Any additional notes about this buddy',
-                          alignLabelWithHint: true,
-                        ),
-                        maxLines: 4,
-                      ),
-                      const SizedBox(height: 32),
-
-                      // Save button
-                      FilledButton(
-                        onPressed: _isSaving ? null : _saveBuddy,
-                        child: _isSaving
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : Text(isEditing ? 'Update Buddy' : 'Add Buddy'),
-                      ),
-
-                      // Cancel button
-                      const SizedBox(height: 8),
-                      OutlinedButton(
-                        onPressed: () => _confirmCancel(),
-                        child: const Text('Cancel'),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              );
+                  const SizedBox(height: 8),
+                  Center(
+                    child: Text(
+                      'Photo support coming in v2.0',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Name field
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Name *',
+                      prefixIcon: Icon(Icons.person),
+                      hintText: 'Enter buddy name',
+                    ),
+                    textCapitalization: TextCapitalization.words,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Please enter a name';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Email field
+                  TextFormField(
+                    controller: _emailController,
+                    decoration: const InputDecoration(
+                      labelText: 'Email',
+                      prefixIcon: Icon(Icons.email),
+                      hintText: 'email@example.com',
+                    ),
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (value) {
+                      if (value != null && value.isNotEmpty) {
+                        final emailRegex = RegExp(
+                          r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+                        );
+                        if (!emailRegex.hasMatch(value)) {
+                          return 'Please enter a valid email';
+                        }
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Phone field
+                  TextFormField(
+                    controller: _phoneController,
+                    decoration: const InputDecoration(
+                      labelText: 'Phone',
+                      prefixIcon: Icon(Icons.phone),
+                      hintText: '+1 234 567 8900',
+                    ),
+                    keyboardType: TextInputType.phone,
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Certification section header
+                  Text(
+                    'Certification',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Certification level dropdown
+                  DropdownButtonFormField<CertificationLevel>(
+                    initialValue: _certLevel,
+                    decoration: const InputDecoration(
+                      labelText: 'Certification Level',
+                      prefixIcon: Icon(Icons.card_membership),
+                    ),
+                    items: [
+                      const DropdownMenuItem(
+                        value: null,
+                        child: Text('Not specified'),
+                      ),
+                      ...CertificationLevel.values.map((level) {
+                        return DropdownMenuItem(
+                          value: level,
+                          child: Text(level.displayName),
+                        );
+                      }),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        _certLevel = value;
+                        _hasChanges = true;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Certification agency dropdown
+                  DropdownButtonFormField<CertificationAgency>(
+                    initialValue: _certAgency,
+                    decoration: const InputDecoration(
+                      labelText: 'Certification Agency',
+                      prefixIcon: Icon(Icons.business),
+                    ),
+                    items: [
+                      const DropdownMenuItem(
+                        value: null,
+                        child: Text('Not specified'),
+                      ),
+                      ...CertificationAgency.values.map((agency) {
+                        return DropdownMenuItem(
+                          value: agency,
+                          child: Text(agency.displayName),
+                        );
+                      }),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        _certAgency = value;
+                        _hasChanges = true;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Notes section header
+                  Text(
+                    'Notes',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Notes field
+                  TextFormField(
+                    controller: _notesController,
+                    decoration: const InputDecoration(
+                      labelText: 'Notes',
+                      prefixIcon: Icon(Icons.notes),
+                      hintText: 'Any additional notes about this buddy',
+                      alignLabelWithHint: true,
+                    ),
+                    maxLines: 4,
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Save button
+                  FilledButton(
+                    onPressed: _isSaving ? null : _saveBuddy,
+                    child: _isSaving
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(isEditing ? 'Update Buddy' : 'Add Buddy'),
+                  ),
+
+                  // Cancel button
+                  const SizedBox(height: 8),
+                  OutlinedButton(
+                    onPressed: () => _confirmCancel(),
+                    child: const Text('Cancel'),
+                  ),
+                ],
+              ),
+            ),
+          );
 
     // Embedded mode: no Scaffold wrapper
     if (widget.embedded) {
@@ -440,15 +435,9 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
               child: CircularProgressIndicator(strokeWidth: 2),
             )
           else ...[
-            TextButton(
-              onPressed: _handleCancel,
-              child: const Text('Cancel'),
-            ),
+            TextButton(onPressed: _handleCancel, child: const Text('Cancel')),
             const SizedBox(width: 8),
-            FilledButton(
-              onPressed: _saveBuddy,
-              child: const Text('Save'),
-            ),
+            FilledButton(onPressed: _saveBuddy, child: const Text('Save')),
           ],
         ],
       ),

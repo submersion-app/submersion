@@ -34,10 +34,10 @@ class CertificationListPage extends ConsumerWidget {
         sectionId: 'certifications',
         masterBuilder: (context, onItemSelected, selectedId) =>
             CertificationListContent(
-          onItemSelected: onItemSelected,
-          selectedId: selectedId,
-          showAppBar: false,
-        ),
+              onItemSelected: onItemSelected,
+              selectedId: selectedId,
+              showAppBar: false,
+            ),
         detailBuilder: (context, certificationId) => CertificationDetailPage(
           certificationId: certificationId,
           embedded: true,
@@ -49,11 +49,11 @@ class CertificationListPage extends ConsumerWidget {
         summaryBuilder: (context) => const CertificationSummaryWidget(),
         editBuilder: (context, certificationId, onSaved, onCancel) =>
             CertificationEditPage(
-          certificationId: certificationId,
-          embedded: true,
-          onSaved: onSaved,
-          onCancel: onCancel,
-        ),
+              certificationId: certificationId,
+              embedded: true,
+              onSaved: onSaved,
+              onCancel: onCancel,
+            ),
         createBuilder: (context, onSaved, onCancel) => CertificationEditPage(
           embedded: true,
           onSaved: onSaved,

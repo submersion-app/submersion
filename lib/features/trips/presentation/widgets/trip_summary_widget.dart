@@ -49,9 +49,9 @@ class TripSummaryWidget extends ConsumerWidget {
             const SizedBox(width: 12),
             Text(
               'Trips',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -86,19 +86,18 @@ class TripSummaryWidget extends ConsumerWidget {
 
     // Find upcoming trips
     final now = DateTime.now();
-    final upcomingTrips = trips
-        .where((t) => t.trip.startDate.isAfter(now))
-        .toList()
-      ..sort((a, b) => a.trip.startDate.compareTo(b.trip.startDate));
+    final upcomingTrips =
+        trips.where((t) => t.trip.startDate.isAfter(now)).toList()
+          ..sort((a, b) => a.trip.startDate.compareTo(b.trip.startDate));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Overview',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),
         Wrap(
@@ -173,9 +172,9 @@ class TripSummaryWidget extends ConsumerWidget {
               const SizedBox(height: 8),
               Text(
                 value,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 4),
               Text(
@@ -204,9 +203,9 @@ class TripSummaryWidget extends ConsumerWidget {
       children: [
         Text(
           'Recent Trips',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),
         Card(
@@ -215,8 +214,9 @@ class TripSummaryWidget extends ConsumerWidget {
               final trip = tripWithStats.trip;
               return ListTile(
                 leading: CircleAvatar(
-                  backgroundColor:
-                      Theme.of(context).colorScheme.primaryContainer,
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.primaryContainer,
                   child: Icon(
                     trip.isLiveaboard ? Icons.sailing : Icons.flight_takeoff,
                     color: Theme.of(context).colorScheme.onPrimaryContainer,
@@ -243,17 +243,16 @@ class TripSummaryWidget extends ConsumerWidget {
   Widget _buildUpcomingTrips(BuildContext context, List upcomingTrips) {
     final dateFormat = DateFormat.yMMMd();
     final nextTrip = upcomingTrips.first;
-    final daysUntil =
-        nextTrip.trip.startDate.difference(DateTime.now()).inDays;
+    final daysUntil = nextTrip.trip.startDate.difference(DateTime.now()).inDays;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Upcoming',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),
         Card(
@@ -302,9 +301,9 @@ class TripSummaryWidget extends ConsumerWidget {
       children: [
         Text(
           'Quick Actions',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),
         Wrap(

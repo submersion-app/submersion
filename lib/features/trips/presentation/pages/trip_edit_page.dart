@@ -84,9 +84,9 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading trip: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error loading trip: $e')));
       }
     }
   }
@@ -143,10 +143,9 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                   // Date section header
                   Text(
                     'Trip Dates',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 12),
 
@@ -185,10 +184,9 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                   // Location section header
                   Text(
                     'Location',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 12),
 
@@ -231,10 +229,9 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                   // Notes section header
                   Text(
                     'Notes',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 12),
 
@@ -356,9 +353,9 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
           Expanded(
             child: Text(
               isEditing ? 'Edit Trip' : 'Add Trip',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
           TextButton(

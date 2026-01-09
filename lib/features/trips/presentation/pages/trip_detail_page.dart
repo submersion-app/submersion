@@ -140,11 +140,7 @@ class _TripDetailContent extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmbeddedHeader(
-    BuildContext context,
-    WidgetRef ref,
-    Trip trip,
-  ) {
+  Widget _buildEmbeddedHeader(BuildContext context, WidgetRef ref, Trip trip) {
     final colorScheme = Theme.of(context).colorScheme;
     final dateFormat = DateFormat.MMMd();
 
@@ -210,16 +206,18 @@ class _TripDetailContent extends ConsumerWidget {
         if (value == 'delete') {
           final confirmed = await _showDeleteConfirmation(context);
           if (confirmed && context.mounted) {
-            await ref.read(tripListNotifierProvider.notifier).deleteTrip(trip.id);
+            await ref
+                .read(tripListNotifierProvider.notifier)
+                .deleteTrip(trip.id);
             if (context.mounted) {
               if (embedded) {
                 onDeleted?.call();
               } else {
                 context.pop();
               }
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Trip deleted')),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('Trip deleted')));
             }
           }
         } else if (value == 'export') {
@@ -304,10 +302,9 @@ class _TripDetailContent extends ConsumerWidget {
           children: [
             Text(
               'Trip Details',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             if (trip.location != null)
@@ -346,10 +343,9 @@ class _TripDetailContent extends ConsumerWidget {
           children: [
             Text(
               'Trip Statistics',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             _StatRow(
@@ -389,10 +385,9 @@ class _TripDetailContent extends ConsumerWidget {
           children: [
             Text(
               'Notes',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             Text(trip.notes),
@@ -636,10 +631,9 @@ class _StatRow extends StatelessWidget {
           ),
           Text(
             value,
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
         ],
       ),

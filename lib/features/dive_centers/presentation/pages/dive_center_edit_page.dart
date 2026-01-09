@@ -184,9 +184,9 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving dive center: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error saving dive center: $e')));
       }
     } finally {
       if (mounted) {
@@ -298,10 +298,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
           const SizedBox(height: 24),
 
           // Affiliations Section
-          Text(
-            'Affiliations',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
+          Text('Affiliations', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           Text(
             'Select training agencies this center is affiliated with',
@@ -363,7 +360,9 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
             validator: (value) {
               if (value != null &&
                   value.isNotEmpty &&
-                  !RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                  !RegExp(
+                    r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                  ).hasMatch(value)) {
                 return 'Please enter a valid email';
               }
               return null;
@@ -406,8 +405,9 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
                     hintText: '10.4613',
                     border: OutlineInputBorder(),
                   ),
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   validator: (value) {
                     if (value != null && value.isNotEmpty) {
                       final lat = double.tryParse(value);
@@ -428,8 +428,9 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
                     hintText: '99.8359',
                     border: OutlineInputBorder(),
                   ),
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   validator: (value) {
                     if (value != null && value.isNotEmpty) {
                       final lng = double.tryParse(value);
@@ -530,15 +531,12 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
           Expanded(
             child: Text(
               isEditing ? 'Edit Dive Center' : 'Add Dive Center',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
-          TextButton(
-            onPressed: _handleCancel,
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: _handleCancel, child: const Text('Cancel')),
           const SizedBox(width: 8),
           FilledButton(
             onPressed: _isLoading ? null : _save,

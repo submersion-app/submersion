@@ -289,7 +289,9 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
               ],
             ),
       body: content,
-      floatingActionButton: _isSelectionMode ? null : widget.floatingActionButton,
+      floatingActionButton: _isSelectionMode
+          ? null
+          : widget.floatingActionButton,
     );
   }
 
@@ -310,9 +312,9 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           const SizedBox(width: 8),
           Text(
             'Dive Sites',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
           IconButton(
@@ -368,9 +370,9 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           ),
           Text(
             '${_selectedIds.length} selected',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
           if (_selectedIds.length < sites.length)
@@ -771,16 +773,16 @@ class SiteListTile extends ConsumerWidget {
                 if (difficulty != null)
                   Text(
                     difficulty!,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: secondaryTextColor,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: secondaryTextColor),
                   ),
                 if (diveCount > 0)
                   Text(
                     '$diveCount ${diveCount == 1 ? 'dive' : 'dives'}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: secondaryTextColor,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: secondaryTextColor),
                   ),
                 if (rating != null)
                   Row(

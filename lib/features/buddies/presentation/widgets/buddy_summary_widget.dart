@@ -50,9 +50,9 @@ class BuddySummaryWidget extends ConsumerWidget {
             const SizedBox(width: 12),
             Text(
               'Dive Buddies',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -67,23 +67,20 @@ class BuddySummaryWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildOverview(
-    BuildContext context,
-    WidgetRef ref,
-    List buddies,
-  ) {
+  Widget _buildOverview(BuildContext context, WidgetRef ref, List buddies) {
     // Group by certification level
-    final certifiedCount =
-        buddies.where((b) => b.certificationLevel != null).length;
+    final certifiedCount = buddies
+        .where((b) => b.certificationLevel != null)
+        .length;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Overview',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),
         Wrap(
@@ -139,9 +136,9 @@ class BuddySummaryWidget extends ConsumerWidget {
               const SizedBox(height: 8),
               Text(
                 value,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 4),
               Text(
@@ -166,9 +163,9 @@ class BuddySummaryWidget extends ConsumerWidget {
       children: [
         Text(
           'Recent Buddies',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),
         Card(
@@ -176,8 +173,9 @@ class BuddySummaryWidget extends ConsumerWidget {
             children: previewBuddies.map((buddy) {
               return ListTile(
                 leading: CircleAvatar(
-                  backgroundColor:
-                      Theme.of(context).colorScheme.primaryContainer,
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.primaryContainer,
                   child: Text(
                     buddy.initials,
                     style: TextStyle(
@@ -210,9 +208,9 @@ class BuddySummaryWidget extends ConsumerWidget {
       children: [
         Text(
           'Quick Actions',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),
         Wrap(

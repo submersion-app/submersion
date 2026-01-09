@@ -34,10 +34,10 @@ class DiverListPage extends ConsumerWidget {
         sectionId: 'divers',
         masterBuilder: (context, onItemSelected, selectedId) =>
             DiverListContent(
-          onItemSelected: onItemSelected,
-          selectedId: selectedId,
-          showAppBar: false,
-        ),
+              onItemSelected: onItemSelected,
+              selectedId: selectedId,
+              showAppBar: false,
+            ),
         detailBuilder: (context, diverId) => DiverDetailPage(
           diverId: diverId,
           embedded: true,
@@ -53,19 +53,13 @@ class DiverListPage extends ConsumerWidget {
           onSaved: onSaved,
           onCancel: onCancel,
         ),
-        createBuilder: (context, onSaved, onCancel) => DiverEditPage(
-          embedded: true,
-          onSaved: onSaved,
-          onCancel: onCancel,
-        ),
+        createBuilder: (context, onSaved, onCancel) =>
+            DiverEditPage(embedded: true, onSaved: onSaved, onCancel: onCancel),
         floatingActionButton: fab,
       );
     }
 
     // Mobile: Use list content with full scaffold
-    return DiverListContent(
-      showAppBar: true,
-      floatingActionButton: fab,
-    );
+    return DiverListContent(showAppBar: true, floatingActionButton: fab);
   }
 }

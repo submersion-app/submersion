@@ -348,10 +348,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                 ),
               )
             else
-              TextButton(
-                onPressed: _saveSite,
-                child: const Text('Save'),
-              ),
+              TextButton(onPressed: _saveSite, child: const Text('Save')),
           ],
         ),
         body: body,
@@ -385,9 +382,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           Expanded(
             child: Text(
               widget.isEditing ? 'Edit Site' : 'New Site',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
           TextButton(

@@ -52,18 +52,12 @@ class SiteListPage extends ConsumerWidget {
           onSaved: onSaved,
           onCancel: onCancel,
         ),
-        createBuilder: (context, onSaved, onCancel) => SiteEditPage(
-          embedded: true,
-          onSaved: onSaved,
-          onCancel: onCancel,
-        ),
+        createBuilder: (context, onSaved, onCancel) =>
+            SiteEditPage(embedded: true, onSaved: onSaved, onCancel: onCancel),
         floatingActionButton: fab,
       );
     }
 
-    return SiteListContent(
-      showAppBar: true,
-      floatingActionButton: fab,
-    );
+    return SiteListContent(showAppBar: true, floatingActionButton: fab);
   }
 }

@@ -272,9 +272,9 @@ class _BuddyDetailContent extends ConsumerWidget {
         } else {
           context.pop();
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Buddy deleted')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Buddy deleted')));
       }
     }
   }
@@ -286,8 +286,9 @@ class _BuddyDetailContent extends ConsumerWidget {
           CircleAvatar(
             radius: 50,
             backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-            backgroundImage:
-                buddy.photoPath != null ? AssetImage(buddy.photoPath!) : null,
+            backgroundImage: buddy.photoPath != null
+                ? AssetImage(buddy.photoPath!)
+                : null,
             child: buddy.photoPath == null
                 ? Text(
                     buddy.initials,

@@ -190,9 +190,7 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
                         ? const SizedBox(
                             width: 20,
                             height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                            ),
+                            child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : Text(isEditing ? 'Update Diver' : 'Add Diver'),
                   ),
@@ -292,15 +290,9 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
               child: CircularProgressIndicator(strokeWidth: 2),
             )
           else ...[
-            TextButton(
-              onPressed: _handleCancel,
-              child: const Text('Cancel'),
-            ),
+            TextButton(onPressed: _handleCancel, child: const Text('Cancel')),
             const SizedBox(width: 8),
-            FilledButton(
-              onPressed: _saveDiver,
-              child: const Text('Save'),
-            ),
+            FilledButton(onPressed: _saveDiver, child: const Text('Save')),
           ],
         ],
       ),
@@ -608,8 +600,9 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
         await ref.read(diverListNotifierProvider.notifier).updateDiver(diver);
         savedId = diver.id;
       } else {
-        final newDiver =
-            await ref.read(diverListNotifierProvider.notifier).addDiver(diver);
+        final newDiver = await ref
+            .read(diverListNotifierProvider.notifier)
+            .addDiver(diver);
         savedId = newDiver.id;
       }
 

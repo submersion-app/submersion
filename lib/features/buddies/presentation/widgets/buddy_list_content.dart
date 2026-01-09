@@ -258,9 +258,9 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
           const SizedBox(width: 8),
           Text(
             'Buddies',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
           IconButton(
@@ -398,8 +398,9 @@ class BuddyListTile extends StatelessWidget {
         onTap: onTap,
         leading: CircleAvatar(
           backgroundColor: theme.colorScheme.primaryContainer,
-          backgroundImage:
-              buddy.photoPath != null ? AssetImage(buddy.photoPath!) : null,
+          backgroundImage: buddy.photoPath != null
+              ? AssetImage(buddy.photoPath!)
+              : null,
           child: buddy.photoPath == null
               ? Text(
                   buddy.initials,

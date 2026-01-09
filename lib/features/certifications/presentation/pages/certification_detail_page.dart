@@ -98,47 +98,45 @@ class _CertificationDetailContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final body = SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Status banner
-            _buildStatusBanner(context),
-            const SizedBox(height: 24),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Status banner
+          _buildStatusBanner(context),
+          const SizedBox(height: 24),
 
-            // Header with agency logo
-            _buildHeader(context),
-            const SizedBox(height: 24),
+          // Header with agency logo
+          _buildHeader(context),
+          const SizedBox(height: 24),
 
-            // Basic info
-            _buildBasicInfoSection(context),
+          // Basic info
+          _buildBasicInfoSection(context),
+          const SizedBox(height: 16),
+
+          // Dates
+          _buildDatesSection(context),
+          const SizedBox(height: 16),
+
+          // Instructor info
+          if (certification.instructorName != null ||
+              certification.instructorNumber != null) ...[
+            _buildInstructorSection(context),
             const SizedBox(height: 16),
-
-            // Dates
-            _buildDatesSection(context),
-            const SizedBox(height: 16),
-
-            // Instructor info
-            if (certification.instructorName != null ||
-                certification.instructorNumber != null) ...[
-              _buildInstructorSection(context),
-              const SizedBox(height: 16),
-            ],
-
-            // Card photos (placeholder for future)
-            if (certification.photoFrontPath != null ||
-                certification.photoBackPath != null) ...[
-              _buildPhotosSection(context),
-              const SizedBox(height: 16),
-            ],
-
-            // Notes
-            if (certification.notes.isNotEmpty) ...[
-              _buildNotesSection(context),
-            ],
           ],
-        ),
-      );
+
+          // Card photos (placeholder for future)
+          if (certification.photoFrontPath != null ||
+              certification.photoBackPath != null) ...[
+            _buildPhotosSection(context),
+            const SizedBox(height: 16),
+          ],
+
+          // Notes
+          if (certification.notes.isNotEmpty) ...[_buildNotesSection(context)],
+        ],
+      ),
+    );
 
     if (embedded) {
       return Column(
@@ -283,9 +281,9 @@ class _CertificationDetailContent extends ConsumerWidget {
         } else {
           context.pop();
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Certification deleted')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Certification deleted')));
       }
     }
   }

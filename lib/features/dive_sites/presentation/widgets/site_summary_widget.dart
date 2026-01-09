@@ -49,9 +49,9 @@ class SiteSummaryWidget extends ConsumerWidget {
             const SizedBox(width: 12),
             Text(
               'Dive Sites',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -83,8 +83,7 @@ class SiteSummaryWidget extends ConsumerWidget {
         totalRating += site.rating!;
       }
       if (site.country != null && site.country!.isNotEmpty) {
-        countryCounts[site.country!] =
-            (countryCounts[site.country!] ?? 0) + 1;
+        countryCounts[site.country!] = (countryCounts[site.country!] ?? 0) + 1;
       }
     }
 
@@ -99,9 +98,9 @@ class SiteSummaryWidget extends ConsumerWidget {
       children: [
         Text(
           'Overview',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),
         Wrap(
@@ -176,9 +175,9 @@ class SiteSummaryWidget extends ConsumerWidget {
               const SizedBox(height: 8),
               Text(
                 value,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 4),
               Text(
@@ -214,9 +213,9 @@ class SiteSummaryWidget extends ConsumerWidget {
             const SizedBox(width: 8),
             Text(
               'Countries & Regions',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
           ],
         ),
@@ -250,17 +249,15 @@ class SiteSummaryWidget extends ConsumerWidget {
     List<SiteWithDiveCount> sites,
   ) {
     // Get top-rated sites
-    final ratedSites = sites
-        .where((s) => s.site.rating != null && s.site.rating! > 0)
-        .toList()
-      ..sort((a, b) => (b.site.rating ?? 0).compareTo(a.site.rating ?? 0));
+    final ratedSites =
+        sites.where((s) => s.site.rating != null && s.site.rating! > 0).toList()
+          ..sort((a, b) => (b.site.rating ?? 0).compareTo(a.site.rating ?? 0));
     final topRated = ratedSites.take(3).toList();
 
     // Get most dived sites
     final mostDived = sites.toList()
       ..sort((a, b) => b.diveCount.compareTo(a.diveCount));
-    final topDived =
-        mostDived.where((s) => s.diveCount > 0).take(3).toList();
+    final topDived = mostDived.where((s) => s.diveCount > 0).take(3).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -268,9 +265,9 @@ class SiteSummaryWidget extends ConsumerWidget {
         if (topRated.isNotEmpty) ...[
           Text(
             'Top Rated',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 12),
           Card(
@@ -310,9 +307,9 @@ class SiteSummaryWidget extends ConsumerWidget {
         if (topDived.isNotEmpty) ...[
           Text(
             'Most Dived',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 12),
           Card(
@@ -321,8 +318,9 @@ class SiteSummaryWidget extends ConsumerWidget {
                 final site = siteData.site;
                 return ListTile(
                   leading: CircleAvatar(
-                    backgroundColor:
-                        Theme.of(context).colorScheme.primaryContainer,
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer,
                     child: Icon(
                       Icons.location_on,
                       color: Theme.of(context).colorScheme.onPrimaryContainer,
@@ -366,9 +364,9 @@ class SiteSummaryWidget extends ConsumerWidget {
       children: [
         Text(
           'Quick Actions',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),
         Wrap(

@@ -157,9 +157,9 @@ class _TripListContentState extends ConsumerState<TripListContent> {
           const SizedBox(width: 8),
           Text(
             'Trips',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
           IconButton(
@@ -180,7 +180,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
     if (filter.equipmentId != null) {
       final equipmentName =
           ref.watch(equipmentItemProvider(filter.equipmentId!)).value?.name ??
-              'Equipment';
+          'Equipment';
       chips.add(
         InputChip(
           label: Text(equipmentName),
@@ -268,7 +268,9 @@ class _TripListContentState extends ConsumerState<TripListContent> {
             Icon(
               Icons.filter_list_off,
               size: 80,
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
@@ -406,11 +408,7 @@ class TripListTile extends StatelessWidget {
                 ),
                 if (tripWithStats.totalBottomTime > 0) ...[
                   const SizedBox(width: 12),
-                  Icon(
-                    Icons.timer,
-                    size: 14,
-                    color: theme.colorScheme.primary,
-                  ),
+                  Icon(Icons.timer, size: 14, color: theme.colorScheme.primary),
                   const SizedBox(width: 4),
                   Text(
                     tripWithStats.formattedBottomTime,
@@ -468,10 +466,9 @@ class TripSearchDelegate extends SearchDelegate<Trip?> {
             Icon(
               Icons.search,
               size: 64,
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurfaceVariant
-                  .withValues(alpha: 0.5),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
@@ -502,10 +499,9 @@ class TripSearchDelegate extends SearchDelegate<Trip?> {
                     Icon(
                       Icons.search_off,
                       size: 64,
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurfaceVariant
-                          .withValues(alpha: 0.5),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -526,8 +522,9 @@ class TripSearchDelegate extends SearchDelegate<Trip?> {
                 final dateFormat = DateFormat.yMMMd();
                 return ListTile(
                   leading: CircleAvatar(
-                    backgroundColor:
-                        Theme.of(context).colorScheme.primaryContainer,
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer,
                     child: Icon(
                       trip.isLiveaboard ? Icons.sailing : Icons.flight_takeoff,
                       color: Theme.of(context).colorScheme.onPrimaryContainer,

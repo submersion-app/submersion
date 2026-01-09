@@ -52,19 +52,13 @@ class TripListPage extends ConsumerWidget {
           onSaved: onSaved,
           onCancel: onCancel,
         ),
-        createBuilder: (context, onSaved, onCancel) => TripEditPage(
-          embedded: true,
-          onSaved: onSaved,
-          onCancel: onCancel,
-        ),
+        createBuilder: (context, onSaved, onCancel) =>
+            TripEditPage(embedded: true, onSaved: onSaved, onCancel: onCancel),
         floatingActionButton: fab,
       );
     }
 
     // Mobile: Use list content with full scaffold
-    return TripListContent(
-      showAppBar: true,
-      floatingActionButton: fab,
-    );
+    return TripListContent(showAppBar: true, floatingActionButton: fab);
   }
 }
