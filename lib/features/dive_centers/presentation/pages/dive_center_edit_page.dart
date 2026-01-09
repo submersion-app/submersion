@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:submersion/core/providers/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../divers/presentation/providers/diver_providers.dart';
@@ -8,8 +8,17 @@ import '../providers/dive_center_providers.dart';
 
 class DiveCenterEditPage extends ConsumerStatefulWidget {
   final String? centerId;
+  final bool embedded;
+  final void Function(String savedId)? onSaved;
+  final VoidCallback? onCancel;
 
-  const DiveCenterEditPage({super.key, this.centerId});
+  const DiveCenterEditPage({
+    super.key,
+    this.centerId,
+    this.embedded = false,
+    this.onSaved,
+    this.onCancel,
+  });
 
   @override
   ConsumerState<DiveCenterEditPage> createState() => _DiveCenterEditPageState();
@@ -31,6 +40,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
   List<String> _selectedAffiliations = [];
   bool _isLoading = false;
   bool _isInitialized = false;
+  bool _hasChanges = false;
 
   static const List<String> _availableAffiliations = [
     'PADI',
@@ -57,6 +67,23 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
     _notesController = TextEditingController();
     _latitudeController = TextEditingController();
     _longitudeController = TextEditingController();
+
+    // Add listeners for change tracking
+    _nameController.addListener(_onFieldChanged);
+    _locationController.addListener(_onFieldChanged);
+    _countryController.addListener(_onFieldChanged);
+    _phoneController.addListener(_onFieldChanged);
+    _emailController.addListener(_onFieldChanged);
+    _websiteController.addListener(_onFieldChanged);
+    _notesController.addListener(_onFieldChanged);
+    _latitudeController.addListener(_onFieldChanged);
+    _longitudeController.addListener(_onFieldChanged);
+  }
+
+  void _onFieldChanged() {
+    if (_isInitialized && !_hasChanges) {
+      setState(() => _hasChanges = true);
+    }
   }
 
   @override
@@ -98,7 +125,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
     try {
       // Get the current diver ID - preserve existing for edits, get fresh for new centers
       final existingCenter = widget.centerId != null
-          ? ref.read(diveCenterByIdProvider(widget.centerId!)).valueOrNull
+          ? ref.read(diveCenterByIdProvider(widget.centerId!)).value
           : null;
       final diverId =
           existingCenter?.diverId ??
@@ -138,26 +165,41 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
       );
 
       final notifier = ref.read(diveCenterListNotifierProvider.notifier);
+      String savedId;
 
       if (widget.centerId != null) {
         await notifier.updateDiveCenter(center);
+        savedId = widget.centerId!;
       } else {
-        await notifier.addDiveCenter(center);
+        final newCenter = await notifier.addDiveCenter(center);
+        savedId = newCenter.id;
       }
 
       if (mounted) {
-        context.pop();
+        if (widget.embedded) {
+          widget.onSaved?.call(savedId);
+        } else {
+          context.pop();
+        }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error saving dive center: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving dive center: $e')),
+        );
       }
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
       }
+    }
+  }
+
+  void _handleCancel() {
+    if (widget.embedded) {
+      widget.onCancel?.call();
+    } else {
+      context.pop();
     }
   }
 
@@ -169,20 +211,26 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
       final centerAsync = ref.watch(diveCenterByIdProvider(widget.centerId!));
 
       return centerAsync.when(
-        loading: () => Scaffold(
-          appBar: AppBar(title: const Text('Edit Dive Center')),
-          body: const Center(child: CircularProgressIndicator()),
-        ),
-        error: (error, _) => Scaffold(
-          appBar: AppBar(title: const Text('Edit Dive Center')),
-          body: Center(child: Text('Error: $error')),
-        ),
+        loading: () => widget.embedded
+            ? const Center(child: CircularProgressIndicator())
+            : Scaffold(
+                appBar: AppBar(title: const Text('Edit Dive Center')),
+                body: const Center(child: CircularProgressIndicator()),
+              ),
+        error: (error, _) => widget.embedded
+            ? Center(child: Text('Error: $error'))
+            : Scaffold(
+                appBar: AppBar(title: const Text('Edit Dive Center')),
+                body: Center(child: Text('Error: $error')),
+              ),
         data: (center) {
           if (center == null) {
-            return Scaffold(
-              appBar: AppBar(title: const Text('Edit Dive Center')),
-              body: const Center(child: Text('Dive center not found')),
-            );
+            return widget.embedded
+                ? const Center(child: Text('Dive center not found'))
+                : Scaffold(
+                    appBar: AppBar(title: const Text('Edit Dive Center')),
+                    body: const Center(child: Text('Dive center not found')),
+                  );
           }
           _initializeFromCenter(center);
           return _buildForm(context, isEditing: true);
@@ -190,10 +238,249 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
       );
     }
 
+    // For new dive centers, mark as initialized immediately
+    if (!_isInitialized) {
+      _isInitialized = true;
+    }
+
     return _buildForm(context, isEditing: false);
   }
 
   Widget _buildForm(BuildContext context, {required bool isEditing}) {
+    final body = Form(
+      key: _formKey,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          // Basic Info Section
+          Text(
+            'Basic Information',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _nameController,
+            decoration: const InputDecoration(
+              labelText: 'Name *',
+              hintText: 'Enter dive center name',
+              border: OutlineInputBorder(),
+            ),
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'Name is required';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _locationController,
+            decoration: const InputDecoration(
+              labelText: 'Location',
+              hintText: 'e.g., Koh Tao, Thailand',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _countryController,
+            decoration: const InputDecoration(
+              labelText: 'Country',
+              hintText: 'e.g., Thailand',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Rating
+          _buildRatingSelector(),
+
+          const SizedBox(height: 24),
+
+          // Affiliations Section
+          Text(
+            'Affiliations',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Select training agencies this center is affiliated with',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.outline,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _availableAffiliations.map((affiliation) {
+              final isSelected = _selectedAffiliations.contains(affiliation);
+              return FilterChip(
+                label: Text(affiliation),
+                selected: isSelected,
+                onSelected: (selected) {
+                  setState(() {
+                    if (selected) {
+                      _selectedAffiliations.add(affiliation);
+                    } else {
+                      _selectedAffiliations.remove(affiliation);
+                    }
+                    _hasChanges = true;
+                  });
+                },
+              );
+            }).toList(),
+          ),
+
+          const SizedBox(height: 24),
+
+          // Contact Section
+          Text(
+            'Contact Information',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _phoneController,
+            decoration: const InputDecoration(
+              labelText: 'Phone',
+              hintText: '+1 234 567 890',
+              prefixIcon: Icon(Icons.phone_outlined),
+              border: OutlineInputBorder(),
+            ),
+            keyboardType: TextInputType.phone,
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _emailController,
+            decoration: const InputDecoration(
+              labelText: 'Email',
+              hintText: 'info@divecenter.com',
+              prefixIcon: Icon(Icons.email_outlined),
+              border: OutlineInputBorder(),
+            ),
+            keyboardType: TextInputType.emailAddress,
+            validator: (value) {
+              if (value != null &&
+                  value.isNotEmpty &&
+                  !RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                return 'Please enter a valid email';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _websiteController,
+            decoration: const InputDecoration(
+              labelText: 'Website',
+              hintText: 'www.divecenter.com',
+              prefixIcon: Icon(Icons.language_outlined),
+              border: OutlineInputBorder(),
+            ),
+            keyboardType: TextInputType.url,
+          ),
+
+          const SizedBox(height: 24),
+
+          // Coordinates Section
+          Text(
+            'GPS Coordinates',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Optional - for map display',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.outline,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: TextFormField(
+                  controller: _latitudeController,
+                  decoration: const InputDecoration(
+                    labelText: 'Latitude',
+                    hintText: '10.4613',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  validator: (value) {
+                    if (value != null && value.isNotEmpty) {
+                      final lat = double.tryParse(value);
+                      if (lat == null || lat < -90 || lat > 90) {
+                        return 'Invalid latitude';
+                      }
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: TextFormField(
+                  controller: _longitudeController,
+                  decoration: const InputDecoration(
+                    labelText: 'Longitude',
+                    hintText: '99.8359',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  validator: (value) {
+                    if (value != null && value.isNotEmpty) {
+                      final lng = double.tryParse(value);
+                      if (lng == null || lng < -180 || lng > 180) {
+                        return 'Invalid longitude';
+                      }
+                    }
+                    return null;
+                  },
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 24),
+
+          // Notes Section
+          Text('Notes', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _notesController,
+            decoration: const InputDecoration(
+              labelText: 'Notes',
+              hintText: 'Any additional information...',
+              border: OutlineInputBorder(),
+              alignLabelWithHint: true,
+            ),
+            maxLines: 4,
+          ),
+          const SizedBox(height: 32),
+        ],
+      ),
+    );
+
+    if (widget.embedded) {
+      return PopScope(
+        canPop: !_hasChanges,
+        onPopInvokedWithResult: (didPop, result) {
+          if (!didPop && _hasChanges) {
+            _showDiscardDialog();
+          }
+        },
+        child: Column(
+          children: [
+            _buildEmbeddedHeader(context, isEditing: isEditing),
+            Expanded(child: body),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(isEditing ? 'Edit Dive Center' : 'Add Dive Center'),
@@ -210,226 +497,91 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
           ),
         ],
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            // Basic Info Section
-            Text(
-              'Basic Information',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Name *',
-                hintText: 'Enter dive center name',
-                border: OutlineInputBorder(),
-              ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Name is required';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _locationController,
-              decoration: const InputDecoration(
-                labelText: 'Location',
-                hintText: 'e.g., Koh Tao, Thailand',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _countryController,
-              decoration: const InputDecoration(
-                labelText: 'Country',
-                hintText: 'e.g., Thailand',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
+      body: body,
+    );
+  }
 
-            // Rating
-            _buildRatingSelector(),
+  Widget _buildEmbeddedHeader(BuildContext context, {required bool isEditing}) {
+    final colorScheme = Theme.of(context).colorScheme;
 
-            const SizedBox(height: 24),
-
-            // Affiliations Section
-            Text(
-              'Affiliations',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Select training agencies this center is affiliated with',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.outline,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _availableAffiliations.map((affiliation) {
-                final isSelected = _selectedAffiliations.contains(affiliation);
-                return FilterChip(
-                  label: Text(affiliation),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    setState(() {
-                      if (selected) {
-                        _selectedAffiliations.add(affiliation);
-                      } else {
-                        _selectedAffiliations.remove(affiliation);
-                      }
-                    });
-                  },
-                );
-              }).toList(),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Contact Section
-            Text(
-              'Contact Information',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _phoneController,
-              decoration: const InputDecoration(
-                labelText: 'Phone',
-                hintText: '+1 234 567 890',
-                prefixIcon: Icon(Icons.phone_outlined),
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.phone,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _emailController,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                hintText: 'info@divecenter.com',
-                prefixIcon: Icon(Icons.email_outlined),
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.emailAddress,
-              validator: (value) {
-                if (value != null &&
-                    value.isNotEmpty &&
-                    !RegExp(
-                      r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                    ).hasMatch(value)) {
-                  return 'Please enter a valid email';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _websiteController,
-              decoration: const InputDecoration(
-                labelText: 'Website',
-                hintText: 'www.divecenter.com',
-                prefixIcon: Icon(Icons.language_outlined),
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.url,
-            ),
-
-            const SizedBox(height: 24),
-
-            // Coordinates Section
-            Text(
-              'GPS Coordinates',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Optional - for map display',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.outline,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _latitudeController,
-                    decoration: const InputDecoration(
-                      labelText: 'Latitude',
-                      hintText: '10.4613',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    validator: (value) {
-                      if (value != null && value.isNotEmpty) {
-                        final lat = double.tryParse(value);
-                        if (lat == null || lat < -90 || lat > 90) {
-                          return 'Invalid latitude';
-                        }
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: TextFormField(
-                    controller: _longitudeController,
-                    decoration: const InputDecoration(
-                      labelText: 'Longitude',
-                      hintText: '99.8359',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    validator: (value) {
-                      if (value != null && value.isNotEmpty) {
-                        final lng = double.tryParse(value);
-                        if (lng == null || lng < -180 || lng > 180) {
-                          return 'Invalid longitude';
-                        }
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 24),
-
-            // Notes Section
-            Text('Notes', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _notesController,
-              decoration: const InputDecoration(
-                labelText: 'Notes',
-                hintText: 'Any additional information...',
-                border: OutlineInputBorder(),
-                alignLabelWithHint: true,
-              ),
-              maxLines: 4,
-            ),
-            const SizedBox(height: 32),
-          ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
         ),
       ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              isEditing ? Icons.edit : Icons.add,
+              color: colorScheme.onPrimaryContainer,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              isEditing ? 'Edit Dive Center' : 'Add Dive Center',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: _handleCancel,
+            child: const Text('Cancel'),
+          ),
+          const SizedBox(width: 8),
+          FilledButton(
+            onPressed: _isLoading ? null : _save,
+            child: _isLoading
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Text('Save'),
+          ),
+        ],
+      ),
     );
+  }
+
+  Future<void> _showDiscardDialog() async {
+    final discard = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Discard Changes?'),
+        content: const Text(
+          'You have unsaved changes. Are you sure you want to discard them?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Keep Editing'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Discard'),
+          ),
+        ],
+      ),
+    );
+
+    if (discard == true && mounted) {
+      _handleCancel();
+    }
   }
 
   Widget _buildRatingSelector() {
@@ -450,6 +602,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
                     } else {
                       _rating = (index + 1).toDouble();
                     }
+                    _hasChanges = true;
                   });
                 },
                 icon: Icon(
@@ -469,7 +622,10 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
               ),
               const SizedBox(width: 4),
               TextButton(
-                onPressed: () => setState(() => _rating = null),
+                onPressed: () => setState(() {
+                  _rating = null;
+                  _hasChanges = true;
+                }),
                 child: const Text('Clear'),
               ),
             ],

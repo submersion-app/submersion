@@ -10,8 +10,17 @@ import '../providers/certification_providers.dart';
 
 class CertificationEditPage extends ConsumerStatefulWidget {
   final String? certificationId;
+  final bool embedded;
+  final void Function(String savedId)? onSaved;
+  final VoidCallback? onCancel;
 
-  const CertificationEditPage({super.key, this.certificationId});
+  const CertificationEditPage({
+    super.key,
+    this.certificationId,
+    this.embedded = false,
+    this.onSaved,
+    this.onCancel,
+  });
 
   @override
   ConsumerState<CertificationEditPage> createState() =>
@@ -101,40 +110,9 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: !_hasChanges,
-      onPopInvokedWithResult: (didPop, result) async {
-        if (didPop) return;
-        final shouldPop = await _showDiscardDialog();
-        if (shouldPop == true && context.mounted) {
-          context.pop();
-        }
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(isEditing ? 'Edit Certification' : 'Add Certification'),
-          actions: [
-            if (_isSaving)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                ),
-              )
-            else
-              TextButton(
-                onPressed: _saveCertification,
-                child: const Text('Save'),
-              ),
-          ],
-        ),
-        body: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : SingleChildScrollView(
+    final body = _isLoading
+        ? const Center(child: CircularProgressIndicator())
+        : SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
                 child: Form(
                   key: _formKey,
@@ -370,9 +348,124 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                     ],
                   ),
                 ),
+              );
+
+    // Embedded mode: no Scaffold wrapper
+    if (widget.embedded) {
+      return PopScope(
+        canPop: !_hasChanges,
+        onPopInvokedWithResult: (didPop, result) async {
+          if (!didPop && _hasChanges) {
+            final shouldDiscard = await _showDiscardDialog();
+            if (shouldDiscard == true) {
+              widget.onCancel?.call();
+            }
+          }
+        },
+        child: Column(
+          children: [
+            _buildEmbeddedHeader(context),
+            Expanded(child: body),
+          ],
+        ),
+      );
+    }
+
+    // Full page mode with Scaffold
+    return PopScope(
+      canPop: !_hasChanges,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final shouldPop = await _showDiscardDialog();
+        if (shouldPop == true && context.mounted) {
+          context.pop();
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(isEditing ? 'Edit Certification' : 'Add Certification'),
+          actions: [
+            if (_isSaving)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+              )
+            else
+              TextButton(
+                onPressed: _saveCertification,
+                child: const Text('Save'),
               ),
+          ],
+        ),
+        body: body,
       ),
     );
+  }
+
+  Widget _buildEmbeddedHeader(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            isEditing ? Icons.edit : Icons.add_card,
+            color: colorScheme.primary,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              isEditing ? 'Edit Certification' : 'Add Certification',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          if (_isSaving)
+            const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          else ...[
+            TextButton(
+              onPressed: _handleCancel,
+              child: const Text('Cancel'),
+            ),
+            const SizedBox(width: 8),
+            FilledButton(
+              onPressed: _saveCertification,
+              child: const Text('Save'),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleCancel() async {
+    if (_hasChanges) {
+      final shouldDiscard = await _showDiscardDialog();
+      if (shouldDiscard == true) {
+        widget.onCancel?.call();
+      }
+    } else {
+      widget.onCancel?.call();
+    }
   }
 
   Future<void> _confirmCancel() async {
@@ -444,17 +537,25 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
         updatedAt: now,
       );
 
+      String savedId;
       if (isEditing) {
         await ref
             .read(certificationListNotifierProvider.notifier)
             .updateCertification(cert);
+        savedId = cert.id;
       } else {
-        await ref
+        final newCert = await ref
             .read(certificationListNotifierProvider.notifier)
             .addCertification(cert);
+        savedId = newCert.id;
       }
 
       if (mounted) {
+        if (widget.embedded) {
+          widget.onSaved?.call(savedId);
+        } else {
+          context.pop();
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -464,7 +565,6 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
             ),
           ),
         );
-        context.pop();
       }
     } catch (e) {
       if (mounted) {

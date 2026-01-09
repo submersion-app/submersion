@@ -9,7 +9,22 @@ import '../providers/diver_providers.dart';
 class DiverEditPage extends ConsumerStatefulWidget {
   final String? diverId;
 
-  const DiverEditPage({super.key, this.diverId});
+  /// When true, renders without Scaffold wrapper for use in master-detail layout.
+  final bool embedded;
+
+  /// Callback when save completes (pass the saved item ID).
+  final void Function(String savedId)? onSaved;
+
+  /// Callback when user cancels editing.
+  final VoidCallback? onCancel;
+
+  const DiverEditPage({
+    super.key,
+    this.diverId,
+    this.embedded = false,
+    this.onSaved,
+    this.onCancel,
+  });
 
   @override
   ConsumerState<DiverEditPage> createState() => _DiverEditPageState();
@@ -134,6 +149,81 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
 
   @override
   Widget build(BuildContext context) {
+    final body = _isLoading
+        ? const Center(child: CircularProgressIndicator())
+        : SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Personal Info Section
+                  _buildSectionHeader(context, 'Personal Information'),
+                  _buildPersonalInfoSection(),
+                  const SizedBox(height: 24),
+
+                  // Emergency Contact Section
+                  _buildSectionHeader(context, 'Emergency Contact'),
+                  _buildEmergencyContactSection(),
+                  const SizedBox(height: 24),
+
+                  // Medical Info Section
+                  _buildSectionHeader(context, 'Medical Information'),
+                  _buildMedicalInfoSection(),
+                  const SizedBox(height: 24),
+
+                  // Insurance Section
+                  _buildSectionHeader(context, 'Dive Insurance'),
+                  _buildInsuranceSection(),
+                  const SizedBox(height: 24),
+
+                  // Notes Section
+                  _buildSectionHeader(context, 'Notes'),
+                  _buildNotesSection(),
+                  const SizedBox(height: 32),
+
+                  // Save Button
+                  FilledButton(
+                    onPressed: _isSaving ? null : _saveDiver,
+                    child: _isSaving
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : Text(isEditing ? 'Update Diver' : 'Add Diver'),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          );
+
+    // Embedded mode: no Scaffold wrapper
+    if (widget.embedded) {
+      return PopScope(
+        canPop: !_hasChanges,
+        onPopInvokedWithResult: (didPop, result) async {
+          if (!didPop && _hasChanges) {
+            final shouldDiscard = await _showDiscardDialog();
+            if (shouldDiscard == true) {
+              widget.onCancel?.call();
+            }
+          }
+        },
+        child: Column(
+          children: [
+            _buildEmbeddedHeader(context),
+            Expanded(child: body),
+          ],
+        ),
+      );
+    }
+
+    // Full page mode with Scaffold
     return PopScope(
       canPop: !_hasChanges,
       onPopInvokedWithResult: (didPop, result) async {
@@ -163,60 +253,69 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
               TextButton(onPressed: _saveDiver, child: const Text('Save')),
           ],
         ),
-        body: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Personal Info Section
-                      _buildSectionHeader(context, 'Personal Information'),
-                      _buildPersonalInfoSection(),
-                      const SizedBox(height: 24),
-
-                      // Emergency Contact Section
-                      _buildSectionHeader(context, 'Emergency Contact'),
-                      _buildEmergencyContactSection(),
-                      const SizedBox(height: 24),
-
-                      // Medical Info Section
-                      _buildSectionHeader(context, 'Medical Information'),
-                      _buildMedicalInfoSection(),
-                      const SizedBox(height: 24),
-
-                      // Insurance Section
-                      _buildSectionHeader(context, 'Dive Insurance'),
-                      _buildInsuranceSection(),
-                      const SizedBox(height: 24),
-
-                      // Notes Section
-                      _buildSectionHeader(context, 'Notes'),
-                      _buildNotesSection(),
-                      const SizedBox(height: 32),
-
-                      // Save Button
-                      FilledButton(
-                        onPressed: _isSaving ? null : _saveDiver,
-                        child: _isSaving
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : Text(isEditing ? 'Update Diver' : 'Add Diver'),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                  ),
-                ),
-              ),
+        body: body,
       ),
     );
+  }
+
+  Widget _buildEmbeddedHeader(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            isEditing ? Icons.edit : Icons.person_add,
+            color: colorScheme.primary,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              isEditing ? 'Edit Diver' : 'Add Diver',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          if (_isSaving)
+            const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          else ...[
+            TextButton(
+              onPressed: _handleCancel,
+              child: const Text('Cancel'),
+            ),
+            const SizedBox(width: 8),
+            FilledButton(
+              onPressed: _saveDiver,
+              child: const Text('Save'),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleCancel() async {
+    if (_hasChanges) {
+      final shouldDiscard = await _showDiscardDialog();
+      if (shouldDiscard == true) {
+        widget.onCancel?.call();
+      }
+    } else {
+      widget.onCancel?.call();
+    }
   }
 
   Widget _buildSectionHeader(BuildContext context, String title) {
@@ -504,14 +603,22 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
         updatedAt: now,
       );
 
+      String savedId;
       if (isEditing) {
         await ref.read(diverListNotifierProvider.notifier).updateDiver(diver);
+        savedId = diver.id;
       } else {
-        await ref.read(diverListNotifierProvider.notifier).addDiver(diver);
+        final newDiver =
+            await ref.read(diverListNotifierProvider.notifier).addDiver(diver);
+        savedId = newDiver.id;
       }
 
       if (mounted) {
-        context.pop();
+        if (widget.embedded) {
+          widget.onSaved?.call(savedId);
+        } else {
+          context.pop();
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(isEditing ? 'Diver updated' : 'Diver added')),
         );

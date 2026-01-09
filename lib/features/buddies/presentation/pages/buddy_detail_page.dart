@@ -1,52 +1,152 @@
 import 'package:flutter/material.dart';
-import 'package:submersion/core/providers/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
 import '../../data/repositories/buddy_repository.dart';
 import '../../domain/entities/buddy.dart';
 import '../providers/buddy_providers.dart';
 
-class BuddyDetailPage extends ConsumerWidget {
+class BuddyDetailPage extends ConsumerStatefulWidget {
   final String buddyId;
 
-  const BuddyDetailPage({super.key, required this.buddyId});
+  /// When true, renders without Scaffold wrapper for use in master-detail layout.
+  final bool embedded;
+
+  /// Callback when delete completes (used in embedded mode).
+  final VoidCallback? onDeleted;
+
+  const BuddyDetailPage({
+    super.key,
+    required this.buddyId,
+    this.embedded = false,
+    this.onDeleted,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final buddyAsync = ref.watch(buddyByIdProvider(buddyId));
+  ConsumerState<BuddyDetailPage> createState() => _BuddyDetailPageState();
+}
+
+class _BuddyDetailPageState extends ConsumerState<BuddyDetailPage> {
+  bool _hasRedirected = false;
+
+  @override
+  Widget build(BuildContext context) {
+    // Desktop redirect: if not embedded and on desktop, redirect to master-detail view
+    if (!widget.embedded &&
+        !_hasRedirected &&
+        ResponsiveBreakpoints.isDesktop(context)) {
+      _hasRedirected = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.go('/buddies?selected=${widget.buddyId}');
+        }
+      });
+    }
+
+    final buddyAsync = ref.watch(buddyByIdProvider(widget.buddyId));
 
     return buddyAsync.when(
       data: (buddy) {
         if (buddy == null) {
+          if (widget.embedded) {
+            return const Center(child: Text('Buddy not found'));
+          }
           return Scaffold(
             appBar: AppBar(title: const Text('Buddy')),
             body: const Center(child: Text('Buddy not found')),
           );
         }
-        return _BuddyDetailContent(buddy: buddy);
+        return _BuddyDetailContent(
+          buddy: buddy,
+          embedded: widget.embedded,
+          onDeleted: widget.onDeleted,
+        );
       },
-      loading: () => Scaffold(
-        appBar: AppBar(title: const Text('Buddy')),
-        body: const Center(child: CircularProgressIndicator()),
-      ),
-      error: (error, stack) => Scaffold(
-        appBar: AppBar(title: const Text('Buddy')),
-        body: Center(child: Text('Error: $error')),
-      ),
+      loading: () {
+        if (widget.embedded) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return Scaffold(
+          appBar: AppBar(title: const Text('Buddy')),
+          body: const Center(child: CircularProgressIndicator()),
+        );
+      },
+      error: (error, stack) {
+        if (widget.embedded) {
+          return Center(child: Text('Error: $error'));
+        }
+        return Scaffold(
+          appBar: AppBar(title: const Text('Buddy')),
+          body: Center(child: Text('Error: $error')),
+        );
+      },
     );
   }
 }
 
 class _BuddyDetailContent extends ConsumerWidget {
   final Buddy buddy;
+  final bool embedded;
+  final VoidCallback? onDeleted;
 
-  const _BuddyDetailContent({required this.buddy});
+  const _BuddyDetailContent({
+    required this.buddy,
+    this.embedded = false,
+    this.onDeleted,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final statsAsync = ref.watch(buddyStatsProvider(buddy.id));
+
+    final body = SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Profile header
+          _buildProfileHeader(context),
+          const SizedBox(height: 24),
+
+          // Contact info
+          if (buddy.hasContactInfo) ...[
+            _buildContactSection(context),
+            const SizedBox(height: 24),
+          ],
+
+          // Certification info
+          if (buddy.hasCertificationInfo) ...[
+            _buildCertificationSection(context),
+            const SizedBox(height: 24),
+          ],
+
+          // Statistics
+          _buildStatsSection(context, statsAsync),
+          const SizedBox(height: 24),
+
+          // Notes
+          if (buddy.notes.isNotEmpty) ...[
+            _buildNotesSection(context),
+            const SizedBox(height: 24),
+          ],
+
+          // Shared dives
+          _buildSharedDivesSection(context, ref),
+        ],
+      ),
+    );
+
+    if (embedded) {
+      return Column(
+        children: [
+          _buildEmbeddedHeader(context, ref),
+          Expanded(child: body),
+        ],
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -59,18 +159,7 @@ class _BuddyDetailContent extends ConsumerWidget {
           PopupMenuButton<String>(
             onSelected: (value) async {
               if (value == 'delete') {
-                final confirmed = await _showDeleteConfirmation(context);
-                if (confirmed && context.mounted) {
-                  await ref
-                      .read(buddyListNotifierProvider.notifier)
-                      .deleteBuddy(buddy.id);
-                  if (context.mounted) {
-                    context.pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Buddy deleted')),
-                    );
-                  }
-                }
+                await _handleDelete(context, ref);
               }
             },
             itemBuilder: (context) => [
@@ -88,43 +177,106 @@ class _BuddyDetailContent extends ConsumerWidget {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Profile header
-            _buildProfileHeader(context),
-            const SizedBox(height: 24),
+      body: body,
+    );
+  }
 
-            // Contact info
-            if (buddy.hasContactInfo) ...[
-              _buildContactSection(context),
-              const SizedBox(height: 24),
-            ],
+  Widget _buildEmbeddedHeader(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
-            // Certification info
-            if (buddy.hasCertificationInfo) ...[
-              _buildCertificationSection(context),
-              const SizedBox(height: 24),
-            ],
-
-            // Statistics
-            _buildStatsSection(context, statsAsync),
-            const SizedBox(height: 24),
-
-            // Notes
-            if (buddy.notes.isNotEmpty) ...[
-              _buildNotesSection(context),
-              const SizedBox(height: 24),
-            ],
-
-            // Shared dives
-            _buildSharedDivesSection(context, ref),
-          ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
         ),
       ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 18,
+            backgroundColor: colorScheme.primaryContainer,
+            child: Text(
+              buddy.initials,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onPrimaryContainer,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  buddy.name,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (buddy.certificationLevel != null)
+                  Text(
+                    buddy.certificationLevel!.displayName,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.edit, size: 20),
+            tooltip: 'Edit',
+            onPressed: () {
+              final state = GoRouterState.of(context);
+              context.go('${state.uri.path}?selected=${buddy.id}&mode=edit');
+            },
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, size: 20),
+            onSelected: (value) async {
+              if (value == 'delete') {
+                await _handleDelete(context, ref);
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    Icon(Icons.delete, color: Colors.red, size: 20),
+                    SizedBox(width: 8),
+                    Text('Delete', style: TextStyle(color: Colors.red)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
+  }
+
+  Future<void> _handleDelete(BuildContext context, WidgetRef ref) async {
+    final confirmed = await _showDeleteConfirmation(context);
+    if (confirmed && context.mounted) {
+      await ref.read(buddyListNotifierProvider.notifier).deleteBuddy(buddy.id);
+      if (context.mounted) {
+        if (embedded) {
+          onDeleted?.call();
+        } else {
+          context.pop();
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Buddy deleted')),
+        );
+      }
+    }
   }
 
   Widget _buildProfileHeader(BuildContext context) {
@@ -134,9 +286,8 @@ class _BuddyDetailContent extends ConsumerWidget {
           CircleAvatar(
             radius: 50,
             backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-            backgroundImage: buddy.photoPath != null
-                ? AssetImage(buddy.photoPath!)
-                : null,
+            backgroundImage:
+                buddy.photoPath != null ? AssetImage(buddy.photoPath!) : null,
             child: buddy.photoPath == null
                 ? Text(
                     buddy.initials,
@@ -332,7 +483,7 @@ class _BuddyDetailContent extends ConsumerWidget {
                     child: Text('View All (${ids.length})'),
                   ),
                   loading: () => const SizedBox.shrink(),
-                  error: (_, _) => const SizedBox.shrink(),
+                  error: (e, st) => const SizedBox.shrink(),
                 ),
               ],
             ),
@@ -439,7 +590,7 @@ class _BuddyDetailContent extends ConsumerWidget {
                   child: CircularProgressIndicator.adaptive(),
                 ),
               ),
-              error: (_, _) => const Text('Unable to load dives'),
+              error: (e, st) => const Text('Unable to load dives'),
             ),
           ],
         ),

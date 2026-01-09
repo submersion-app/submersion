@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:submersion/core/providers/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
@@ -9,8 +9,17 @@ import '../providers/trip_providers.dart';
 
 class TripEditPage extends ConsumerStatefulWidget {
   final String? tripId;
+  final bool embedded;
+  final void Function(String savedId)? onSaved;
+  final VoidCallback? onCancel;
 
-  const TripEditPage({super.key, this.tripId});
+  const TripEditPage({
+    super.key,
+    this.tripId,
+    this.embedded = false,
+    this.onSaved,
+    this.onCancel,
+  });
 
   @override
   ConsumerState<TripEditPage> createState() => _TripEditPageState();
@@ -47,7 +56,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
   }
 
   void _onFieldChanged() {
-    if (!_hasChanges) {
+    if (!_hasChanges && !_isLoading) {
       setState(() => _hasChanges = true);
     }
   }
@@ -75,9 +84,9 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error loading trip: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading trip: $e')),
+        );
       }
     }
   }
@@ -92,9 +101,200 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
     super.dispose();
   }
 
+  void _handleCancel() {
+    if (widget.embedded) {
+      widget.onCancel?.call();
+    } else {
+      context.pop();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat.yMMMd();
+
+    final body = _isLoading
+        ? const Center(child: CircularProgressIndicator())
+        : SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Name field
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Trip Name *',
+                      prefixIcon: Icon(Icons.flight_takeoff),
+                      hintText: 'e.g., Red Sea Safari 2024',
+                    ),
+                    textCapitalization: TextCapitalization.words,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Please enter a trip name';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Date section header
+                  Text(
+                    'Trip Dates',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Start date
+                  ListTile(
+                    leading: const Icon(Icons.calendar_today),
+                    title: const Text('Start Date'),
+                    subtitle: Text(dateFormat.format(_startDate)),
+                    onTap: () => _selectDate(context, true),
+                    contentPadding: EdgeInsets.zero,
+                    trailing: const Icon(Icons.edit),
+                  ),
+
+                  // End date
+                  ListTile(
+                    leading: const Icon(Icons.event),
+                    title: const Text('End Date'),
+                    subtitle: Text(dateFormat.format(_endDate)),
+                    onTap: () => _selectDate(context, false),
+                    contentPadding: EdgeInsets.zero,
+                    trailing: const Icon(Icons.edit),
+                  ),
+
+                  // Duration display
+                  Padding(
+                    padding: const EdgeInsets.only(left: 40),
+                    child: Text(
+                      '${_endDate.difference(_startDate).inDays + 1} days',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Location section header
+                  Text(
+                    'Location',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Location field
+                  TextFormField(
+                    controller: _locationController,
+                    decoration: const InputDecoration(
+                      labelText: 'Location',
+                      prefixIcon: Icon(Icons.place),
+                      hintText: 'e.g., Egypt, Red Sea',
+                    ),
+                    textCapitalization: TextCapitalization.words,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Resort field
+                  TextFormField(
+                    controller: _resortController,
+                    decoration: const InputDecoration(
+                      labelText: 'Resort Name',
+                      prefixIcon: Icon(Icons.hotel),
+                      hintText: 'e.g., Marsa Shagra',
+                    ),
+                    textCapitalization: TextCapitalization.words,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Liveaboard field
+                  TextFormField(
+                    controller: _liveaboardController,
+                    decoration: const InputDecoration(
+                      labelText: 'Liveaboard Name',
+                      prefixIcon: Icon(Icons.sailing),
+                      hintText: 'e.g., MY Blue Force One',
+                    ),
+                    textCapitalization: TextCapitalization.words,
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Notes section header
+                  Text(
+                    'Notes',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Notes field
+                  TextFormField(
+                    controller: _notesController,
+                    decoration: const InputDecoration(
+                      labelText: 'Notes',
+                      prefixIcon: Icon(Icons.notes),
+                      hintText: 'Any additional notes about this trip',
+                      alignLabelWithHint: true,
+                    ),
+                    maxLines: 4,
+                  ),
+                  const SizedBox(height: 32),
+
+                  if (!widget.embedded) ...[
+                    // Save button
+                    FilledButton(
+                      onPressed: _isSaving ? null : _saveTrip,
+                      child: _isSaving
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Text(isEditing ? 'Update Trip' : 'Add Trip'),
+                    ),
+
+                    // Cancel button
+                    const SizedBox(height: 8),
+                    OutlinedButton(
+                      onPressed: () => _confirmCancel(),
+                      child: const Text('Cancel'),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          );
+
+    if (widget.embedded) {
+      return PopScope(
+        canPop: !_hasChanges,
+        onPopInvokedWithResult: (didPop, result) async {
+          if (!didPop && _hasChanges) {
+            final shouldPop = await _showDiscardDialog();
+            if (shouldPop == true && mounted) {
+              _handleCancel();
+            }
+          }
+        },
+        child: Column(
+          children: [
+            _buildEmbeddedHeader(context),
+            Expanded(child: body),
+          ],
+        ),
+      );
+    }
 
     return PopScope(
       canPop: !_hasChanges,
@@ -125,163 +325,70 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
               TextButton(onPressed: _saveTrip, child: const Text('Save')),
           ],
         ),
-        body: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Name field
-                      TextFormField(
-                        controller: _nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Trip Name *',
-                          prefixIcon: Icon(Icons.flight_takeoff),
-                          hintText: 'e.g., Red Sea Safari 2024',
-                        ),
-                        textCapitalization: TextCapitalization.words,
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Please enter a trip name';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 24),
+        body: body,
+      ),
+    );
+  }
 
-                      // Date section header
-                      Text(
-                        'Trip Dates',
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 12),
+  Widget _buildEmbeddedHeader(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
 
-                      // Start date
-                      ListTile(
-                        leading: const Icon(Icons.calendar_today),
-                        title: const Text('Start Date'),
-                        subtitle: Text(dateFormat.format(_startDate)),
-                        onTap: () => _selectDate(context, true),
-                        contentPadding: EdgeInsets.zero,
-                        trailing: const Icon(Icons.edit),
-                      ),
-
-                      // End date
-                      ListTile(
-                        leading: const Icon(Icons.event),
-                        title: const Text('End Date'),
-                        subtitle: Text(dateFormat.format(_endDate)),
-                        onTap: () => _selectDate(context, false),
-                        contentPadding: EdgeInsets.zero,
-                        trailing: const Icon(Icons.edit),
-                      ),
-
-                      // Duration display
-                      Padding(
-                        padding: const EdgeInsets.only(left: 40),
-                        child: Text(
-                          '${_endDate.difference(_startDate).inDays + 1} days',
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Location section header
-                      Text(
-                        'Location',
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Location field
-                      TextFormField(
-                        controller: _locationController,
-                        decoration: const InputDecoration(
-                          labelText: 'Location',
-                          prefixIcon: Icon(Icons.place),
-                          hintText: 'e.g., Egypt, Red Sea',
-                        ),
-                        textCapitalization: TextCapitalization.words,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Resort field
-                      TextFormField(
-                        controller: _resortController,
-                        decoration: const InputDecoration(
-                          labelText: 'Resort Name',
-                          prefixIcon: Icon(Icons.hotel),
-                          hintText: 'e.g., Marsa Shagra',
-                        ),
-                        textCapitalization: TextCapitalization.words,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Liveaboard field
-                      TextFormField(
-                        controller: _liveaboardController,
-                        decoration: const InputDecoration(
-                          labelText: 'Liveaboard Name',
-                          prefixIcon: Icon(Icons.sailing),
-                          hintText: 'e.g., MY Blue Force One',
-                        ),
-                        textCapitalization: TextCapitalization.words,
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Notes section header
-                      Text(
-                        'Notes',
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Notes field
-                      TextFormField(
-                        controller: _notesController,
-                        decoration: const InputDecoration(
-                          labelText: 'Notes',
-                          prefixIcon: Icon(Icons.notes),
-                          hintText: 'Any additional notes about this trip',
-                          alignLabelWithHint: true,
-                        ),
-                        maxLines: 4,
-                      ),
-                      const SizedBox(height: 32),
-
-                      // Save button
-                      FilledButton(
-                        onPressed: _isSaving ? null : _saveTrip,
-                        child: _isSaving
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : Text(isEditing ? 'Update Trip' : 'Add Trip'),
-                      ),
-
-                      // Cancel button
-                      const SizedBox(height: 8),
-                      OutlinedButton(
-                        onPressed: () => _confirmCancel(),
-                        child: const Text('Cancel'),
-                      ),
-                    ],
-                  ),
-                ),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
+        ),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 20,
+            backgroundColor: colorScheme.primaryContainer,
+            child: Icon(
+              isEditing ? Icons.edit : Icons.add,
+              size: 20,
+              color: colorScheme.onPrimaryContainer,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              isEditing ? 'Edit Trip' : 'Add Trip',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
               ),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              if (_hasChanges) {
+                final discard = await _showDiscardDialog();
+                if (discard == true && mounted) {
+                  _handleCancel();
+                }
+              } else {
+                _handleCancel();
+              }
+            },
+            child: const Text('Cancel'),
+          ),
+          const SizedBox(width: 8),
+          FilledButton(
+            onPressed: _isSaving ? null : _saveTrip,
+            child: _isSaving
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Text('Save'),
+          ),
+        ],
       ),
     );
   }
@@ -302,7 +409,6 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
       setState(() {
         if (isStartDate) {
           _startDate = pickedDate;
-          // If start date is after end date, adjust end date
           if (_startDate.isAfter(_endDate)) {
             _endDate = _startDate;
           }
@@ -325,10 +431,10 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
     if (_hasChanges) {
       final discard = await _showDiscardDialog();
       if (discard == true && mounted) {
-        context.pop();
+        _handleCancel();
       }
     } else {
-      context.pop();
+      _handleCancel();
     }
   }
 
@@ -357,12 +463,9 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
   Future<void> _saveTrip() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // Validate dates
-
     setState(() => _isSaving = true);
 
     try {
-      // Get the current diver ID - preserve existing for edits, get fresh for new trips
       final diverId =
           _originalTrip?.diverId ??
           await ref.read(validatedCurrentDiverIdProvider.future);
@@ -388,23 +491,32 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
         updatedAt: now,
       );
 
+      String savedId;
       if (isEditing) {
         await ref.read(tripListNotifierProvider.notifier).updateTrip(trip);
+        savedId = widget.tripId!;
       } else {
-        await ref.read(tripListNotifierProvider.notifier).addTrip(trip);
+        final newTrip = await ref
+            .read(tripListNotifierProvider.notifier)
+            .addTrip(trip);
+        savedId = newTrip.id;
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              isEditing
-                  ? 'Trip updated successfully'
-                  : 'Trip added successfully',
+        if (widget.embedded) {
+          widget.onSaved?.call(savedId);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                isEditing
+                    ? 'Trip updated successfully'
+                    : 'Trip added successfully',
+              ),
             ),
-          ),
-        );
-        context.pop();
+          );
+          context.pop();
+        }
       }
     } catch (e) {
       if (mounted) {

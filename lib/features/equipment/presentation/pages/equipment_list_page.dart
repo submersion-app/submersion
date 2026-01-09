@@ -3,244 +3,73 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/enums.dart';
+import '../../../../shared/widgets/master_detail/master_detail_scaffold.dart';
+import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
 import '../../../divers/presentation/providers/diver_providers.dart';
 import '../../domain/entities/equipment_item.dart';
 import '../providers/equipment_providers.dart';
+import '../widgets/equipment_list_content.dart';
+import '../widgets/equipment_summary_widget.dart';
+import 'equipment_detail_page.dart';
+import 'equipment_edit_page.dart';
 
-class EquipmentListPage extends ConsumerStatefulWidget {
+class EquipmentListPage extends ConsumerWidget {
   const EquipmentListPage({super.key});
 
   @override
-  ConsumerState<EquipmentListPage> createState() => _EquipmentListPageState();
-}
-
-/// Special filter value for computed "service due" items
-const String _serviceDueFilter = '_service_due_';
-
-class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
-  /// Either an EquipmentStatus, the special _serviceDueFilter string, or null for all
-  Object? _selectedFilter;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Equipment'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.folder_outlined),
-            tooltip: 'Equipment Sets',
-            onPressed: () => context.push('/equipment/sets'),
-          ),
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              showSearch(context: context, delegate: EquipmentSearchDelegate());
-            },
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          _buildFilterChips(),
-          Expanded(child: _buildEquipmentList()),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final fab = FloatingActionButton.extended(
+      onPressed: () {
+        if (ResponsiveBreakpoints.isDesktopExtended(context)) {
+          final state = GoRouterState.of(context);
+          final currentPath = state.uri.path;
+          context.go('$currentPath?mode=new');
+        } else {
           _showAddEquipmentDialog(context, ref);
-        },
+        }
+      },
+      icon: const Icon(Icons.add),
+      label: const Text('Add Equipment'),
+    );
+
+    if (ResponsiveBreakpoints.isDesktopExtended(context)) {
+      return MasterDetailScaffold(
+        sectionId: 'equipment',
+        masterBuilder: (context, onItemSelected, selectedId) =>
+            EquipmentListContent(
+              onItemSelected: onItemSelected,
+              selectedId: selectedId,
+              showAppBar: false,
+            ),
+        detailBuilder: (context, id) => EquipmentDetailPage(
+          equipmentId: id,
+          embedded: true,
+          onDeleted: () {
+            context.go('/equipment');
+          },
+        ),
+        summaryBuilder: (context) => const EquipmentSummaryWidget(),
+        editBuilder: (context, id, onSaved, onCancel) => EquipmentEditPage(
+          equipmentId: id,
+          embedded: true,
+          onSaved: onSaved,
+          onCancel: onCancel,
+        ),
+        createBuilder: (context, onSaved, onCancel) => EquipmentEditPage(
+          embedded: true,
+          onSaved: onSaved,
+          onCancel: onCancel,
+        ),
+        floatingActionButton: fab,
+      );
+    }
+
+    return EquipmentListContent(
+      showAppBar: true,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showAddEquipmentDialog(context, ref),
         icon: const Icon(Icons.add),
         label: const Text('Add Equipment'),
-      ),
-    );
-  }
-
-  Widget _buildFilterChips() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: [
-          Icon(
-            Icons.filter_list,
-            size: 20,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(width: 8),
-          Text(
-            'Filter:',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: Theme.of(
-                  context,
-                ).colorScheme.outline.withValues(alpha: 0.5),
-              ),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: DropdownButton<Object?>(
-              value: _selectedFilter,
-              underline: const SizedBox(),
-              focusColor: Colors.transparent,
-              items: [
-                const DropdownMenuItem<Object?>(
-                  value: null,
-                  child: Text('All Equipment'),
-                ),
-                // Special "Service Due" filter based on computed isServiceDue
-                const DropdownMenuItem<Object?>(
-                  value: _serviceDueFilter,
-                  child: Text('Service Due'),
-                ),
-                // Status-based filters (excluding needsService which is redundant)
-                ...EquipmentStatus.values
-                    .where((status) => status != EquipmentStatus.needsService)
-                    .map((status) {
-                      return DropdownMenuItem<Object?>(
-                        value: status,
-                        child: Text(status.displayName),
-                      );
-                    }),
-              ],
-              onChanged: (value) {
-                setState(() => _selectedFilter = value);
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEquipmentList() {
-    // Use serviceDueEquipmentProvider for the special "Service Due" filter,
-    // otherwise use equipmentByStatusProvider for status-based filters
-    final AsyncValue<List<EquipmentItem>> equipmentAsync;
-    if (_selectedFilter == _serviceDueFilter) {
-      equipmentAsync = ref.watch(serviceDueEquipmentProvider);
-    } else {
-      final status = _selectedFilter as EquipmentStatus?;
-      equipmentAsync = ref.watch(equipmentByStatusProvider(status));
-    }
-
-    return equipmentAsync.when(
-      data: (equipment) => equipment.isEmpty
-          ? _buildEmptyState(context, ref)
-          : _buildEquipmentListView(context, ref, equipment),
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.red),
-            const SizedBox(height: 16),
-            Text('Error loading equipment: $error'),
-            const SizedBox(height: 16),
-            FilledButton(
-              onPressed: () => _invalidateCurrentProvider(ref),
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _invalidateCurrentProvider(WidgetRef ref) {
-    if (_selectedFilter == _serviceDueFilter) {
-      ref.invalidate(serviceDueEquipmentProvider);
-    } else {
-      final status = _selectedFilter as EquipmentStatus?;
-      ref.invalidate(equipmentByStatusProvider(status));
-    }
-  }
-
-  Widget _buildEquipmentListView(
-    BuildContext context,
-    WidgetRef ref,
-    List<EquipmentItem> equipment,
-  ) {
-    return RefreshIndicator(
-      onRefresh: () async {
-        _invalidateCurrentProvider(ref);
-      },
-      child: ListView.builder(
-        padding: const EdgeInsets.only(bottom: 80),
-        itemCount: equipment.length,
-        itemBuilder: (context, index) {
-          final item = equipment[index];
-          return EquipmentListTile(
-            name: item.name,
-            type: item.type,
-            brandModel: item.fullName != item.name ? item.fullName : null,
-            isServiceDue: item.isServiceDue,
-            daysUntilService: item.daysUntilService,
-            status: item.status,
-            onTap: () => context.push('/equipment/${item.id}'),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildEmptyState(BuildContext context, WidgetRef ref) {
-    String filterText;
-    if (_selectedFilter == null) {
-      filterText = 'equipment';
-    } else if (_selectedFilter == _serviceDueFilter) {
-      filterText = 'equipment needing service';
-    } else {
-      filterText =
-          '${(_selectedFilter as EquipmentStatus).displayName.toLowerCase()} equipment';
-    }
-
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.backpack,
-            size: 80,
-            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No $filterText',
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            _selectedFilter == null
-                ? 'Add your diving equipment to track usage and service'
-                : _selectedFilter == _serviceDueFilter
-                ? 'All your equipment is up to date on service!'
-                : 'No equipment with this status',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          if (_selectedFilter == null) ...[
-            const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (context) => AddEquipmentSheet(ref: ref),
-                );
-              },
-              icon: const Icon(Icons.add),
-              label: const Text('Add Your First Equipment'),
-            ),
-          ],
-        ],
       ),
     );
   }
@@ -567,229 +396,5 @@ class _AddEquipmentSheetState extends ConsumerState<AddEquipmentSheet> {
         setState(() => _isSaving = false);
       }
     }
-  }
-}
-
-/// List item widget for displaying equipment
-class EquipmentListTile extends StatelessWidget {
-  final String name;
-  final EquipmentType type;
-  final String? brandModel;
-  final bool isServiceDue;
-  final int? daysUntilService;
-  final EquipmentStatus? status;
-  final VoidCallback? onTap;
-
-  const EquipmentListTile({
-    super.key,
-    required this.name,
-    required this.type,
-    this.brandModel,
-    this.isServiceDue = false,
-    this.daysUntilService,
-    this.status,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: ListTile(
-        onTap: onTap,
-        leading: CircleAvatar(
-          backgroundColor: isServiceDue
-              ? Theme.of(context).colorScheme.errorContainer
-              : Theme.of(context).colorScheme.tertiaryContainer,
-          child: Icon(
-            _getIconForType(type),
-            color: isServiceDue
-                ? Theme.of(context).colorScheme.onErrorContainer
-                : Theme.of(context).colorScheme.onTertiaryContainer,
-          ),
-        ),
-        title: Text(name),
-        subtitle: brandModel != null
-            ? Text(brandModel!)
-            : Text(type.displayName),
-        trailing: _buildTrailing(context),
-      ),
-    );
-  }
-
-  Widget? _buildTrailing(BuildContext context) {
-    if (isServiceDue) {
-      return Chip(
-        label: const Text('Service Due'),
-        backgroundColor: Theme.of(context).colorScheme.errorContainer,
-        labelStyle: TextStyle(
-          color: Theme.of(context).colorScheme.onErrorContainer,
-          fontSize: 12,
-        ),
-      );
-    }
-
-    if (daysUntilService != null) {
-      return Text(
-        '$daysUntilService days',
-        style: Theme.of(context).textTheme.bodySmall,
-      );
-    }
-
-    // Show status badge for non-active statuses
-    if (status != null && status != EquipmentStatus.active) {
-      return Chip(
-        label: Text(status!.displayName),
-        backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-        labelStyle: TextStyle(
-          color: Theme.of(context).colorScheme.onSecondaryContainer,
-          fontSize: 12,
-        ),
-      );
-    }
-
-    return null;
-  }
-
-  IconData _getIconForType(EquipmentType type) {
-    switch (type) {
-      case EquipmentType.regulator:
-        return Icons.air;
-      case EquipmentType.bcd:
-        return Icons.accessibility_new;
-      case EquipmentType.wetsuit:
-      case EquipmentType.drysuit:
-        return Icons.checkroom;
-      case EquipmentType.fins:
-        return Icons.directions_walk;
-      case EquipmentType.mask:
-        return Icons.visibility;
-      case EquipmentType.computer:
-        return Icons.watch;
-      case EquipmentType.tank:
-        return Icons.propane_tank;
-      case EquipmentType.weights:
-        return Icons.fitness_center;
-      case EquipmentType.light:
-        return Icons.flashlight_on;
-      case EquipmentType.camera:
-        return Icons.camera_alt;
-      default:
-        return Icons.backpack;
-    }
-  }
-}
-
-/// Search delegate for equipment
-class EquipmentSearchDelegate extends SearchDelegate<EquipmentItem?> {
-  EquipmentSearchDelegate();
-
-  @override
-  String get searchFieldLabel => 'Search equipment...';
-
-  @override
-  List<Widget> buildActions(BuildContext context) {
-    return [
-      if (query.isNotEmpty)
-        IconButton(icon: const Icon(Icons.clear), onPressed: () => query = ''),
-    ];
-  }
-
-  @override
-  Widget buildLeading(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.arrow_back),
-      onPressed: () => close(context, null),
-    );
-  }
-
-  @override
-  Widget buildResults(BuildContext context) {
-    return _buildSearchResults(context);
-  }
-
-  @override
-  Widget buildSuggestions(BuildContext context) {
-    if (query.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.search,
-              size: 64,
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Search by name, brand, model, or serial number',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-    return _buildSearchResults(context);
-  }
-
-  Widget _buildSearchResults(BuildContext context) {
-    // Use Consumer to get a valid ref within the SearchDelegate
-    return Consumer(
-      builder: (context, ref, child) {
-        final searchAsync = ref.watch(equipmentSearchProvider(query));
-
-        return searchAsync.when(
-          data: (equipment) {
-            if (equipment.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.search_off,
-                      size: 64,
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No equipment found for "$query"',
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            return ListView.builder(
-              itemCount: equipment.length,
-              itemBuilder: (context, index) {
-                final item = equipment[index];
-                return EquipmentListTile(
-                  name: item.name,
-                  type: item.type,
-                  brandModel: item.fullName != item.name ? item.fullName : null,
-                  isServiceDue: item.isServiceDue,
-                  daysUntilService: item.daysUntilService,
-                  onTap: () {
-                    close(context, item);
-                    context.push('/equipment/${item.id}');
-                  },
-                );
-              },
-            );
-          },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => Center(child: Text('Error: $error')),
-        );
-      },
-    );
   }
 }

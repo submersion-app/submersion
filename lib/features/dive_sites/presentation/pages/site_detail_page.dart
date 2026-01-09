@@ -5,6 +5,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
+
 import '../../../../core/constants/units.dart';
 import '../../../../core/utils/unit_formatter.dart';
 import '../../../dive_log/presentation/providers/dive_providers.dart';
@@ -12,37 +14,165 @@ import '../../../settings/presentation/providers/settings_providers.dart';
 import '../../domain/entities/dive_site.dart';
 import '../providers/site_providers.dart';
 
-class SiteDetailPage extends ConsumerWidget {
+class SiteDetailPage extends ConsumerStatefulWidget {
   final String siteId;
+  final bool embedded;
+  final VoidCallback? onDeleted;
 
-  const SiteDetailPage({super.key, required this.siteId});
+  const SiteDetailPage({
+    super.key,
+    required this.siteId,
+    this.embedded = false,
+    this.onDeleted,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final siteAsync = ref.watch(siteProvider(siteId));
+  ConsumerState<SiteDetailPage> createState() => _SiteDetailPageState();
+}
+
+class _SiteDetailPageState extends ConsumerState<SiteDetailPage> {
+  bool _hasRedirected = false;
+
+  @override
+  Widget build(BuildContext context) {
+    // Desktop redirect: if viewing detail page directly on desktop, redirect to master-detail
+    if (!widget.embedded &&
+        !_hasRedirected &&
+        ResponsiveBreakpoints.isDesktopExtended(context)) {
+      _hasRedirected = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.go('/sites?selected=${widget.siteId}');
+        }
+      });
+    }
+
+    final siteAsync = ref.watch(siteProvider(widget.siteId));
 
     return siteAsync.when(
       data: (site) {
         if (site == null) {
+          if (widget.embedded) {
+            return const Center(child: Text('This site no longer exists.'));
+          }
           return Scaffold(
             appBar: AppBar(title: const Text('Site Not Found')),
             body: const Center(child: Text('This site no longer exists.')),
           );
         }
-        return _buildContent(context, ref, site);
+        return _SiteDetailContent(
+          site: site,
+          siteId: widget.siteId,
+          embedded: widget.embedded,
+          onDeleted: widget.onDeleted,
+        );
       },
-      loading: () => Scaffold(
-        appBar: AppBar(title: const Text('Loading...')),
-        body: const Center(child: CircularProgressIndicator()),
-      ),
-      error: (error, _) => Scaffold(
-        appBar: AppBar(title: const Text('Error')),
-        body: Center(child: Text('Error: $error')),
-      ),
+      loading: () {
+        if (widget.embedded) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return Scaffold(
+          appBar: AppBar(title: const Text('Loading...')),
+          body: const Center(child: CircularProgressIndicator()),
+        );
+      },
+      error: (error, _) {
+        if (widget.embedded) {
+          return Center(child: Text('Error: $error'));
+        }
+        return Scaffold(
+          appBar: AppBar(title: const Text('Error')),
+          body: Center(child: Text('Error: $error')),
+        );
+      },
     );
   }
+}
 
-  Widget _buildContent(BuildContext context, WidgetRef ref, DiveSite site) {
+class _SiteDetailContent extends ConsumerWidget {
+  final DiveSite site;
+  final String siteId;
+  final bool embedded;
+  final VoidCallback? onDeleted;
+
+  const _SiteDetailContent({
+    required this.site,
+    required this.siteId,
+    required this.embedded,
+    this.onDeleted,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final body = SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Map Section (if coordinates exist)
+          if (site.hasCoordinates) ...[
+            _buildMapSection(context, site),
+            const SizedBox(height: 16),
+          ],
+
+          // Basic Info Section (Name + Location String)
+          _buildBasicInfoSection(context, site),
+          const SizedBox(height: 16),
+
+          // Dive Count Section
+          _buildDiveCountSection(context, ref, site),
+          const SizedBox(height: 16),
+
+          // Description Section
+          _buildDescriptionSection(context, site),
+          const SizedBox(height: 16),
+
+          // Location Details Section
+          _buildLocationSection(context, site),
+          const SizedBox(height: 16),
+
+          // Depth Information Section
+          _buildDepthSection(context, ref, site),
+          const SizedBox(height: 16),
+
+          // Difficulty Section
+          if (site.difficulty != null) ...[
+            _buildDifficultySection(context, site),
+            const SizedBox(height: 16),
+          ],
+
+          // Rating Section
+          _buildRatingSection(context, site),
+          const SizedBox(height: 16),
+
+          // Hazards Section
+          if (site.hazards != null && site.hazards!.isNotEmpty) ...[
+            _buildHazardsSection(context, site),
+            const SizedBox(height: 16),
+          ],
+
+          // Access & Logistics Section
+          if (_hasAccessInfo(site)) ...[
+            _buildAccessSection(context, site),
+            const SizedBox(height: 16),
+          ],
+
+          // Notes Section
+          _buildNotesSection(context, site),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+
+    if (embedded) {
+      return Column(
+        children: [
+          _buildEmbeddedHeader(context, ref, site),
+          Expanded(child: body),
+        ],
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(site.name),
@@ -53,66 +183,134 @@ class SiteDetailPage extends ConsumerWidget {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Map Section (if coordinates exist)
-            if (site.hasCoordinates) ...[
-              _buildMapSection(context, site),
-              const SizedBox(height: 16),
-            ],
+      body: body,
+    );
+  }
 
-            // Basic Info Section (Name + Location String)
-            _buildBasicInfoSection(context, site),
-            const SizedBox(height: 16),
+  Widget _buildEmbeddedHeader(
+    BuildContext context,
+    WidgetRef ref,
+    DiveSite site,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
 
-            // Dive Count Section
-            _buildDiveCountSection(context, ref, site),
-            const SizedBox(height: 16),
-
-            // Description Section
-            _buildDescriptionSection(context, site),
-            const SizedBox(height: 16),
-
-            // Location Details Section
-            _buildLocationSection(context, site),
-            const SizedBox(height: 16),
-
-            // Depth Information Section
-            _buildDepthSection(context, ref, site),
-            const SizedBox(height: 16),
-
-            // Difficulty Section
-            if (site.difficulty != null) ...[
-              _buildDifficultySection(context, site),
-              const SizedBox(height: 16),
-            ],
-
-            // Rating Section
-            _buildRatingSection(context, site),
-            const SizedBox(height: 16),
-
-            // Hazards Section
-            if (site.hazards != null && site.hazards!.isNotEmpty) ...[
-              _buildHazardsSection(context, site),
-              const SizedBox(height: 16),
-            ],
-
-            // Access & Logistics Section
-            if (_hasAccessInfo(site)) ...[
-              _buildAccessSection(context, site),
-              const SizedBox(height: 16),
-            ],
-
-            // Notes Section
-            _buildNotesSection(context, site),
-            const SizedBox(height: 16),
-          ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
         ),
       ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 20,
+            backgroundColor: colorScheme.primaryContainer,
+            child: Icon(
+              Icons.location_on,
+              size: 20,
+              color: colorScheme.onPrimaryContainer,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  site.name,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (site.locationString.isNotEmpty)
+                  Text(
+                    site.locationString,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.edit, size: 20),
+            tooltip: 'Edit',
+            onPressed: () {
+              final state = GoRouterState.of(context);
+              final currentPath = state.uri.path;
+              context.go('$currentPath?selected=$siteId&mode=edit');
+            },
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, size: 20),
+            onSelected: (value) =>
+                _handleMenuAction(context, ref, value, site),
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'delete',
+                child: ListTile(
+                  leading: Icon(Icons.delete, color: Colors.red),
+                  title: Text('Delete', style: TextStyle(color: Colors.red)),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
+  }
+
+  Future<void> _handleMenuAction(
+    BuildContext context,
+    WidgetRef ref,
+    String action,
+    DiveSite site,
+  ) async {
+    if (action == 'delete') {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Delete Site'),
+          content: const Text(
+            'Are you sure you want to delete this site? This action cannot be undone.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed == true) {
+        await ref.read(siteListNotifierProvider.notifier).deleteSite(siteId);
+        ref.invalidate(sitesWithCountsProvider);
+        ref.invalidate(sitesProvider);
+
+        if (context.mounted) {
+          if (embedded) {
+            onDeleted?.call();
+          } else {
+            context.go('/sites');
+          }
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Site deleted')));
+        }
+      }
+    }
   }
 
   Widget _buildMapSection(BuildContext context, DiveSite site) {
@@ -129,7 +327,6 @@ class SiteDetailPage extends ConsumerWidget {
         child: Stack(
           children: [
             FlutterMap(
-              // Key forces rebuild when coordinates change (e.g., after editing)
               key: ValueKey(
                 '${site.location!.latitude}_${site.location!.longitude}',
               ),
@@ -183,7 +380,6 @@ class SiteDetailPage extends ConsumerWidget {
                 ),
               ],
             ),
-            // Fullscreen button
             Positioned(
               right: 8,
               top: 8,
@@ -336,7 +532,6 @@ class SiteDetailPage extends ConsumerWidget {
           child: InkWell(
             onTap: diveCount > 0
                 ? () {
-                    // Set the filter to this site and navigate to dive list
                     ref.read(diveFilterProvider.notifier).state =
                         DiveFilterState(siteId: site.id);
                     context.go('/dives');
@@ -583,22 +778,18 @@ class SiteDetailPage extends ConsumerWidget {
     final hasMaxDepth = site.maxDepth != null;
     final hasDepthInfo = hasMinDepth || hasMaxDepth;
 
-    // Determine primary and secondary units based on user settings
     final isMetric = settings.depthUnit == DepthUnit.meters;
     final primarySymbol = units.depthSymbol;
     final secondarySymbol = isMetric ? 'ft' : 'm';
 
-    // Helper to format depth in both units
     String formatPrimary(double meters) {
       return units.convertDepth(meters).toStringAsFixed(1);
     }
 
     String formatSecondary(double meters) {
       if (isMetric) {
-        // Primary is meters, secondary is feet
         return (meters * 3.28084).toStringAsFixed(0);
       } else {
-        // Primary is feet, secondary is meters
         return meters.toStringAsFixed(1);
       }
     }

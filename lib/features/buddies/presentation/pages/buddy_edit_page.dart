@@ -13,12 +13,24 @@ class BuddyEditPage extends ConsumerStatefulWidget {
   final String? initialEmail;
   final String? initialPhone;
 
+  /// When true, renders without Scaffold wrapper for use in master-detail layout.
+  final bool embedded;
+
+  /// Callback when save completes (pass the saved item ID).
+  final void Function(String savedId)? onSaved;
+
+  /// Callback when user cancels editing.
+  final VoidCallback? onCancel;
+
   const BuddyEditPage({
     super.key,
     this.buddyId,
     this.initialName,
     this.initialEmail,
     this.initialPhone,
+    this.embedded = false,
+    this.onSaved,
+    this.onCancel,
   });
 
   @override
@@ -110,38 +122,9 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: !_hasChanges,
-      onPopInvokedWithResult: (didPop, result) async {
-        if (!didPop && _hasChanges) {
-          final shouldPop = await _showDiscardDialog();
-          if (shouldPop == true && context.mounted) {
-            Navigator.of(context).pop();
-          }
-        }
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(isEditing ? 'Edit Buddy' : 'Add Buddy'),
-          actions: [
-            if (_isSaving)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                ),
-              )
-            else
-              TextButton(onPressed: _saveBuddy, child: const Text('Save')),
-          ],
-        ),
-        body: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : SingleChildScrollView(
+    final body = _isLoading
+        ? const Center(child: CircularProgressIndicator())
+        : SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
                 child: Form(
                   key: _formKey,
@@ -365,9 +348,122 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                     ],
                   ),
                 ),
-              ),
+              );
+
+    // Embedded mode: no Scaffold wrapper
+    if (widget.embedded) {
+      return PopScope(
+        canPop: !_hasChanges,
+        onPopInvokedWithResult: (didPop, result) async {
+          if (!didPop && _hasChanges) {
+            final shouldDiscard = await _showDiscardDialog();
+            if (shouldDiscard == true) {
+              widget.onCancel?.call();
+            }
+          }
+        },
+        child: Column(
+          children: [
+            _buildEmbeddedHeader(context),
+            Expanded(child: body),
+          ],
+        ),
+      );
+    }
+
+    // Full page mode with Scaffold
+    return PopScope(
+      canPop: !_hasChanges,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (!didPop && _hasChanges) {
+          final shouldPop = await _showDiscardDialog();
+          if (shouldPop == true && context.mounted) {
+            Navigator.of(context).pop();
+          }
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(isEditing ? 'Edit Buddy' : 'Add Buddy'),
+          actions: [
+            if (_isSaving)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+              )
+            else
+              TextButton(onPressed: _saveBuddy, child: const Text('Save')),
+          ],
+        ),
+        body: body,
       ),
     );
+  }
+
+  Widget _buildEmbeddedHeader(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            isEditing ? Icons.edit : Icons.person_add,
+            color: colorScheme.primary,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              isEditing ? 'Edit Buddy' : 'Add Buddy',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          if (_isSaving)
+            const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          else ...[
+            TextButton(
+              onPressed: _handleCancel,
+              child: const Text('Cancel'),
+            ),
+            const SizedBox(width: 8),
+            FilledButton(
+              onPressed: _saveBuddy,
+              child: const Text('Save'),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleCancel() async {
+    if (_hasChanges) {
+      final shouldDiscard = await _showDiscardDialog();
+      if (shouldDiscard == true) {
+        widget.onCancel?.call();
+      }
+    } else {
+      widget.onCancel?.call();
+    }
   }
 
   String _getInitials(String name) {
@@ -452,6 +548,11 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
       }
 
       if (mounted) {
+        if (widget.embedded) {
+          widget.onSaved?.call(savedBuddy.id);
+        } else {
+          context.pop(savedBuddy);
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -461,8 +562,6 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
             ),
           ),
         );
-        // Return the saved buddy so callers can use it
-        context.pop(savedBuddy);
       }
     } catch (e) {
       if (mounted) {
