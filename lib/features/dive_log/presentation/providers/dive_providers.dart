@@ -14,6 +14,7 @@ class DiveFilterState {
   final String? diveTypeId;
   final String? siteId;
   final String? tripId;
+  final String? diveCenterId;
   final String? equipmentId;
   final double? minDepth;
   final double? maxDepth;
@@ -26,6 +27,7 @@ class DiveFilterState {
     this.diveTypeId,
     this.siteId,
     this.tripId,
+    this.diveCenterId,
     this.equipmentId,
     this.minDepth,
     this.maxDepth,
@@ -39,6 +41,7 @@ class DiveFilterState {
       diveTypeId != null ||
       siteId != null ||
       tripId != null ||
+      diveCenterId != null ||
       equipmentId != null ||
       minDepth != null ||
       maxDepth != null ||
@@ -51,6 +54,7 @@ class DiveFilterState {
     String? diveTypeId,
     String? siteId,
     String? tripId,
+    String? diveCenterId,
     String? equipmentId,
     double? minDepth,
     double? maxDepth,
@@ -61,6 +65,7 @@ class DiveFilterState {
     bool clearDiveType = false,
     bool clearSiteId = false,
     bool clearTripId = false,
+    bool clearDiveCenterId = false,
     bool clearEquipmentId = false,
     bool clearMinDepth = false,
     bool clearMaxDepth = false,
@@ -73,6 +78,9 @@ class DiveFilterState {
       diveTypeId: clearDiveType ? null : (diveTypeId ?? this.diveTypeId),
       siteId: clearSiteId ? null : (siteId ?? this.siteId),
       tripId: clearTripId ? null : (tripId ?? this.tripId),
+      diveCenterId: clearDiveCenterId
+          ? null
+          : (diveCenterId ?? this.diveCenterId),
       equipmentId: clearEquipmentId ? null : (equipmentId ?? this.equipmentId),
       minDepth: clearMinDepth ? null : (minDepth ?? this.minDepth),
       maxDepth: clearMaxDepth ? null : (maxDepth ?? this.maxDepth),
@@ -107,6 +115,11 @@ class DiveFilterState {
 
       // Trip filter
       if (tripId != null && dive.tripId != tripId) {
+        return false;
+      }
+
+      // Dive center filter
+      if (diveCenterId != null && dive.diveCenter?.id != diveCenterId) {
         return false;
       }
 

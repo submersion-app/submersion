@@ -303,6 +303,9 @@ class _BuddyDetailContent extends ConsumerWidget {
 
   Widget _buildSharedDivesSection(BuildContext context, WidgetRef ref) {
     final diveIdsAsync = ref.watch(diveIdsForBuddyProvider(buddy.id));
+    final divesAsync = ref.watch(divesForBuddyProvider(buddy.id));
+    final theme = Theme.of(context);
+    final dateFormat = DateFormat.MMMd();
 
     return Card(
       child: Padding(
@@ -315,7 +318,7 @@ class _BuddyDetailContent extends ConsumerWidget {
               children: [
                 Text(
                   'Shared Dives',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -334,25 +337,98 @@ class _BuddyDetailContent extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 8),
-            diveIdsAsync.when(
-              data: (ids) {
-                if (ids.isEmpty) {
+            divesAsync.when(
+              data: (dives) {
+                if (dives.isEmpty) {
                   return const Padding(
                     padding: EdgeInsets.symmetric(vertical: 16),
                     child: Center(child: Text('No dives together yet')),
                   );
                 }
-                // Show first 3 dive IDs as tappable items
-                final displayIds = ids.take(3).toList();
+                // Show first 5 dives with same format as trip detail page
+                final displayDives = dives.take(5).toList();
                 return Column(
-                  children: displayIds.map((diveId) {
-                    return ListTile(
-                      leading: const Icon(Icons.scuba_diving),
-                      title: const Text('Dive'),
-                      subtitle: Text(diveId.substring(0, 8)),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => context.push('/dives/$diveId'),
-                      contentPadding: EdgeInsets.zero,
+                  children: displayDives.map((dive) {
+                    return InkWell(
+                      onTap: () => context.push('/dives/${dive.id}'),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 4,
+                        ),
+                        child: Row(
+                          children: [
+                            // Dive number badge
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.primaryContainer,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                '#${dive.diveNumber ?? '-'}',
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  color: theme.colorScheme.onPrimaryContainer,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            // Dive details
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    dive.site?.name ?? 'Unknown Site',
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    dateFormat.format(dive.dateTime),
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            // Stats
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                if (dive.maxDepth != null)
+                                  Text(
+                                    '${dive.maxDepth!.toStringAsFixed(1)}m',
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                if (dive.duration != null)
+                                  Text(
+                                    '${dive.duration!.inMinutes}min',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(width: 4),
+                            Icon(
+                              Icons.chevron_right,
+                              color: theme.colorScheme.onSurfaceVariant,
+                              size: 20,
+                            ),
+                          ],
+                        ),
+                      ),
                     );
                   }).toList(),
                 );

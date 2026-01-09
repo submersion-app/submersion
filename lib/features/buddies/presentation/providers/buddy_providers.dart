@@ -1,6 +1,8 @@
 import 'package:submersion/core/providers/provider.dart';
 
 import '../../../../core/constants/enums.dart';
+import '../../../dive_log/domain/entities/dive.dart' as domain;
+import '../../../dive_log/presentation/providers/dive_providers.dart';
 import '../../../divers/presentation/providers/diver_providers.dart';
 import '../../data/repositories/buddy_repository.dart';
 import '../../domain/entities/buddy.dart';
@@ -66,6 +68,29 @@ final diveIdsForBuddyProvider = FutureProvider.family<List<String>, String>((
 ) async {
   final repository = ref.watch(buddyRepositoryProvider);
   return repository.getDiveIdsForBuddy(buddyId);
+});
+
+/// Full dive data for a buddy provider (for display in buddy detail page)
+/// Returns the most recent dives first, limited to a reasonable count for preview
+final divesForBuddyProvider = FutureProvider.family<List<domain.Dive>, String>((
+  ref,
+  buddyId,
+) async {
+  final diveIds = await ref.watch(diveIdsForBuddyProvider(buddyId).future);
+  if (diveIds.isEmpty) return [];
+
+  // Fetch full dive data for each ID (limit to first 5 for preview)
+  final dives = <domain.Dive>[];
+  for (final diveId in diveIds.take(5)) {
+    final dive = await ref.watch(diveProvider(diveId).future);
+    if (dive != null) {
+      dives.add(dive);
+    }
+  }
+
+  // Sort by date descending (most recent first)
+  dives.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+  return dives;
 });
 
 /// Buddy list notifier for mutations

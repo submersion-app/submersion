@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../dive_log/presentation/providers/dive_providers.dart';
 import '../../domain/entities/dive_center.dart';
 import '../providers/dive_center_providers.dart';
 
@@ -413,61 +414,97 @@ class _DivesSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
     final diveCountAsync = ref.watch(diveCenterDiveCountProvider(centerId));
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Statistics', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 12),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      Icons.scuba_diving,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Dives Logged',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
+      child: diveCountAsync.when(
+        data: (diveCount) {
+          return Card(
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: diveCount > 0
+                  ? () {
+                      // Set the filter to this dive center and navigate to dive list
+                      ref.read(diveFilterProvider.notifier).state =
+                          DiveFilterState(diveCenterId: centerId);
+                      context.go('/dives');
+                    }
+                  : null,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundColor: colorScheme.primaryContainer,
+                      child: Icon(
+                        Icons.scuba_diving,
+                        color: colorScheme.onPrimaryContainer,
+                        size: 24,
                       ),
-                      diveCountAsync.when(
-                        data: (count) => Text(
-                          count.toString(),
-                          style: Theme.of(context).textTheme.headlineSmall,
-                        ),
-                        loading: () => const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                        error: (_, _) => const Text('-'),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Dives with this Center',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            diveCount == 0
+                                ? 'No dives logged yet'
+                                : diveCount == 1
+                                ? '1 dive logged'
+                                : '$diveCount dives logged',
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: colorScheme.onSurfaceVariant),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                    if (diveCount > 0)
+                      Icon(
+                        Icons.chevron_right,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                  ],
+                ),
               ),
             ),
+          );
+        },
+        loading: () => Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: colorScheme.primaryContainer,
+                  child: Icon(
+                    Icons.scuba_diving,
+                    color: colorScheme.onPrimaryContainer,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                const Expanded(
+                  child: SizedBox(
+                    height: 20,
+                    width: 100,
+                    child: LinearProgressIndicator(),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ],
+        ),
+        error: (_, _) => const SizedBox.shrink(),
       ),
     );
   }

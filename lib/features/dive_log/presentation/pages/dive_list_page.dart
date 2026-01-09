@@ -14,6 +14,7 @@ import '../../../equipment/presentation/providers/equipment_providers.dart';
 import '../../../tags/presentation/providers/tag_providers.dart';
 import '../../../tags/presentation/widgets/tag_input_widget.dart';
 import '../../../trips/presentation/providers/trip_providers.dart';
+import '../../../dive_centers/presentation/providers/dive_center_providers.dart';
 import '../../domain/entities/dive.dart';
 import '../providers/dive_providers.dart';
 import '../widgets/dive_numbering_dialog.dart';
@@ -397,6 +398,19 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
         _buildFilterChip(context, tripName, () {
           ref.read(diveFilterProvider.notifier).state = filter.copyWith(
             clearTripId: true,
+          );
+        }),
+      );
+    }
+
+    if (filter.diveCenterId != null) {
+      final centerName =
+          ref.watch(diveCenterByIdProvider(filter.diveCenterId!)).value?.name ??
+          'Dive Center';
+      chips.add(
+        _buildFilterChip(context, centerName, () {
+          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
+            clearDiveCenterId: true,
           );
         }),
       );
