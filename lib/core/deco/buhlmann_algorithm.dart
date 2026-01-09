@@ -193,6 +193,26 @@ class BuhlmannAlgorithm {
     return (maxCeiling / stopIncrement).ceil() * stopIncrement;
   }
 
+  /// Calculate ceiling using GF High only (for NDL/deco obligation checks).
+  ///
+  /// This method determines if the diver can ascend directly to the surface.
+  /// GF High represents the surface target, which is the correct GF to use
+  /// when checking whether decompression stops are required.
+  ///
+  /// Note: GF Low and GF interpolation are used for calculating deep stop
+  /// depths during actual decompression ascent, not for determining if
+  /// deco is required in the first place.
+  double _calculateSurfaceTargetCeiling() {
+    double maxCeiling = 0;
+    for (final comp in _compartments) {
+      final ceiling = comp.ceiling(gf: gfHigh);
+      if (ceiling > maxCeiling) {
+        maxCeiling = ceiling;
+      }
+    }
+    return maxCeiling;
+  }
+
   /// Calculate No-Decompression Limit (NDL) at current depth.
   ///
   /// [depthMeters] is the depth to calculate NDL for.
@@ -206,8 +226,9 @@ class BuhlmannAlgorithm {
     double fHe = 0.0,
     int maxNdl = 999 * 60,
   }) {
-    // Check if already in deco
-    if (calculateCeiling(currentDepth: depthMeters) > 0) {
+    // Check if already in deco using GF High (surface target).
+    // NDL is about whether we can ascend directly to the surface.
+    if (_calculateSurfaceTargetCeiling() > 0) {
       return -1;
     }
 
@@ -232,8 +253,8 @@ class BuhlmannAlgorithm {
         fHe: fHe,
       );
 
-      // Check if this creates a deco obligation
-      if (calculateCeiling(currentDepth: depthMeters) > 0) {
+      // Check if this creates a deco obligation using GF High
+      if (_calculateSurfaceTargetCeiling() > 0) {
         high = mid;
       } else {
         low = mid;
@@ -417,8 +438,12 @@ class BuhlmannAlgorithm {
     double fN2 = airN2Fraction,
     double fHe = 0.0,
   }) {
-    final ceiling = calculateCeiling(currentDepth: currentDepth);
     final ndl = calculateNdl(depthMeters: currentDepth, fN2: fN2, fHe: fHe);
+
+    // Only calculate ceiling/stops/TTS when actually in deco (NDL < 0).
+    // The GF-interpolated ceiling is for ascent planning during deco,
+    // not for display when the diver can still ascend directly to surface.
+    final ceiling = ndl < 0 ? calculateCeiling(currentDepth: currentDepth) : 0.0;
     final stops = ndl < 0
         ? calculateDecoSchedule(currentDepth: currentDepth, fN2: fN2, fHe: fHe)
         : <DecoStop>[];
