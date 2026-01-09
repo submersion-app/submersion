@@ -444,24 +444,33 @@ void main() {
       // show as deco dives, even with conservative gradient factors.
       // This was a bug where GF Low was being used for NDL checks instead of GF High.
 
-      test('12m dive on air should never show deco obligation with GF 30/70', () {
-        final algorithm = BuhlmannAlgorithm(gfLow: 0.30, gfHigh: 0.70);
+      test(
+        '12m dive on air should never show deco obligation with GF 30/70',
+        () {
+          final algorithm = BuhlmannAlgorithm(gfLow: 0.30, gfHigh: 0.70);
 
-        // Simulate 25 minutes at 12m (longer than typical recreational dive)
-        algorithm.calculateSegment(
-          depthMeters: 12.0,
-          durationSeconds: 25 * 60,
-          fN2: airN2Fraction,
-        );
+          // Simulate 25 minutes at 12m (longer than typical recreational dive)
+          algorithm.calculateSegment(
+            depthMeters: 12.0,
+            durationSeconds: 25 * 60,
+            fN2: airN2Fraction,
+          );
 
-        final status = algorithm.getDecoStatus(currentDepth: 12.0);
+          final status = algorithm.getDecoStatus(currentDepth: 12.0);
 
-        // Should NOT be in deco - this is a shallow recreational dive
-        expect(status.inDeco, isFalse,
-            reason: '12m/25min dive should not be in deco even with GF 30/70');
-        expect(status.ndlSeconds, greaterThan(0),
-            reason: 'NDL should be positive for 12m recreational dive');
-      });
+          // Should NOT be in deco - this is a shallow recreational dive
+          expect(
+            status.inDeco,
+            isFalse,
+            reason: '12m/25min dive should not be in deco even with GF 30/70',
+          );
+          expect(
+            status.ndlSeconds,
+            greaterThan(0),
+            reason: 'NDL should be positive for 12m recreational dive',
+          );
+        },
+      );
 
       test('processProfile for 12m/23min dive should never show deco', () {
         final algorithm = BuhlmannAlgorithm(gfLow: 0.30, gfHigh: 0.70);
@@ -524,45 +533,60 @@ void main() {
 
         // Even after 30 min at 12m, NDL should still be >30 min
         // (dive tables show 12m/40ft has NDL well over 100 min)
-        expect(ndl, greaterThan(30 * 60),
-            reason: 'NDL at 12m should remain substantial even after 30 min');
+        expect(
+          ndl,
+          greaterThan(30 * 60),
+          reason: 'NDL at 12m should remain substantial even after 30 min',
+        );
       });
 
-      test('GF 30/70 should give shorter NDL than GF 100/100 but still positive', () {
-        final conservativeAlgo = BuhlmannAlgorithm(gfLow: 0.30, gfHigh: 0.70);
-        final liberalAlgo = BuhlmannAlgorithm(gfLow: 1.0, gfHigh: 1.0);
+      test(
+        'GF 30/70 should give shorter NDL than GF 100/100 but still positive',
+        () {
+          final conservativeAlgo = BuhlmannAlgorithm(gfLow: 0.30, gfHigh: 0.70);
+          final liberalAlgo = BuhlmannAlgorithm(gfLow: 1.0, gfHigh: 1.0);
 
-        // Same dive for both: 20 min at 12m
-        void doDive(BuhlmannAlgorithm algo) {
-          algo.calculateSegment(
+          // Same dive for both: 20 min at 12m
+          void doDive(BuhlmannAlgorithm algo) {
+            algo.calculateSegment(
+              depthMeters: 12.0,
+              durationSeconds: 20 * 60,
+              fN2: airN2Fraction,
+            );
+          }
+
+          doDive(conservativeAlgo);
+          doDive(liberalAlgo);
+
+          final conservativeNdl = conservativeAlgo.calculateNdl(
             depthMeters: 12.0,
-            durationSeconds: 20 * 60,
             fN2: airN2Fraction,
           );
-        }
+          final liberalNdl = liberalAlgo.calculateNdl(
+            depthMeters: 12.0,
+            fN2: airN2Fraction,
+          );
 
-        doDive(conservativeAlgo);
-        doDive(liberalAlgo);
+          // Both should be positive (not in deco)
+          expect(
+            conservativeNdl,
+            greaterThan(0),
+            reason: 'Conservative GF should still show positive NDL at 12m',
+          );
+          expect(
+            liberalNdl,
+            greaterThan(0),
+            reason: 'Liberal GF should show positive NDL at 12m',
+          );
 
-        final conservativeNdl = conservativeAlgo.calculateNdl(
-          depthMeters: 12.0,
-          fN2: airN2Fraction,
-        );
-        final liberalNdl = liberalAlgo.calculateNdl(
-          depthMeters: 12.0,
-          fN2: airN2Fraction,
-        );
-
-        // Both should be positive (not in deco)
-        expect(conservativeNdl, greaterThan(0),
-            reason: 'Conservative GF should still show positive NDL at 12m');
-        expect(liberalNdl, greaterThan(0),
-            reason: 'Liberal GF should show positive NDL at 12m');
-
-        // Conservative should be shorter but still substantial
-        expect(conservativeNdl, lessThanOrEqualTo(liberalNdl),
-            reason: 'Conservative GF should have shorter or equal NDL');
-      });
+          // Conservative should be shorter but still substantial
+          expect(
+            conservativeNdl,
+            lessThanOrEqualTo(liberalNdl),
+            reason: 'Conservative GF should have shorter or equal NDL',
+          );
+        },
+      );
     });
   });
 }

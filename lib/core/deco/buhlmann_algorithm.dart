@@ -443,7 +443,9 @@ class BuhlmannAlgorithm {
     // Only calculate ceiling/stops/TTS when actually in deco (NDL < 0).
     // The GF-interpolated ceiling is for ascent planning during deco,
     // not for display when the diver can still ascend directly to surface.
-    final ceiling = ndl < 0 ? calculateCeiling(currentDepth: currentDepth) : 0.0;
+    final ceiling = ndl < 0
+        ? calculateCeiling(currentDepth: currentDepth)
+        : 0.0;
     final stops = ndl < 0
         ? calculateDecoSchedule(currentDepth: currentDepth, fN2: fN2, fHe: fHe)
         : <DecoStop>[];
