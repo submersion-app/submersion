@@ -75,6 +75,15 @@ class SettingsPage extends ConsumerWidget {
             onTap: () => _showSacUnitPicker(context, ref, settings.sacUnit),
           ),
           const Divider(),
+          _buildSectionHeader(context, 'Decompression'),
+          ListTile(
+            leading: const Icon(Icons.timeline),
+            title: const Text('Gradient Factors'),
+            subtitle: Text('GF ${settings.gfLow}/${settings.gfHigh}'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _showGradientFactorPicker(context, ref, settings),
+          ),
+          const Divider(),
           _buildSectionHeader(context, 'Appearance'),
           ListTile(
             leading: const Icon(Icons.palette),
@@ -781,6 +790,23 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
+  void _showGradientFactorPicker(
+    BuildContext context,
+    WidgetRef ref,
+    AppSettings settings,
+  ) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => _GradientFactorDialog(
+        initialGfLow: settings.gfLow,
+        initialGfHigh: settings.gfHigh,
+        onSave: (low, high) {
+          ref.read(settingsProvider.notifier).setGradientFactors(low, high);
+        },
+      ),
+    );
+  }
+
   void _showRestoreConfirmation(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
@@ -1118,5 +1144,336 @@ class SettingsPage extends ConsumerWidget {
     } else {
       return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
     }
+  }
+}
+
+/// Gradient Factor preset configurations
+enum GfPreset {
+  high(50, 75, 'High', 'Most conservative, longer deco stops'),
+  medium(50, 85, 'Medium', 'Balanced approach'),
+  low(50, 95, 'Low', 'Least conservative, shorter deco'),
+  custom(0, 0, 'Custom', 'Set your own values');
+
+  final int gfLow;
+  final int gfHigh;
+  final String name;
+  final String description;
+
+  const GfPreset(this.gfLow, this.gfHigh, this.name, this.description);
+
+  /// Check if the given values match this preset
+  bool matches(int low, int high) {
+    if (this == GfPreset.custom) return false;
+    return gfLow == low && gfHigh == high;
+  }
+
+  /// Get the preset that matches the given values, or custom if none match
+  static GfPreset fromValues(int low, int high) {
+    for (final preset in GfPreset.values) {
+      if (preset != GfPreset.custom && preset.matches(low, high)) {
+        return preset;
+      }
+    }
+    return GfPreset.custom;
+  }
+}
+
+/// Dialog for selecting gradient factor presets or custom values
+class _GradientFactorDialog extends StatefulWidget {
+  final int initialGfLow;
+  final int initialGfHigh;
+  final void Function(int low, int high) onSave;
+
+  const _GradientFactorDialog({
+    required this.initialGfLow,
+    required this.initialGfHigh,
+    required this.onSave,
+  });
+
+  @override
+  State<_GradientFactorDialog> createState() => _GradientFactorDialogState();
+}
+
+class _GradientFactorDialogState extends State<_GradientFactorDialog> {
+  late int _gfLow;
+  late int _gfHigh;
+  late GfPreset _selectedPreset;
+
+  @override
+  void initState() {
+    super.initState();
+    _gfLow = widget.initialGfLow;
+    _gfHigh = widget.initialGfHigh;
+    _selectedPreset = GfPreset.fromValues(_gfLow, _gfHigh);
+  }
+
+  void _selectPreset(GfPreset preset) {
+    setState(() {
+      _selectedPreset = preset;
+      if (preset != GfPreset.custom) {
+        _gfLow = preset.gfLow;
+        _gfHigh = preset.gfHigh;
+      }
+    });
+  }
+
+  void _updateGfLow(int value) {
+    setState(() {
+      _gfLow = value;
+      // Ensure gfHigh is always >= gfLow
+      if (_gfHigh < _gfLow) {
+        _gfHigh = _gfLow;
+      }
+      _selectedPreset = GfPreset.fromValues(_gfLow, _gfHigh);
+    });
+  }
+
+  void _updateGfHigh(int value) {
+    setState(() {
+      _gfHigh = value;
+      // Ensure gfLow is always <= gfHigh
+      if (_gfLow > _gfHigh) {
+        _gfLow = _gfHigh;
+      }
+      _selectedPreset = GfPreset.fromValues(_gfLow, _gfHigh);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return AlertDialog(
+      title: const Text('Gradient Factors'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Info text
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 20,
+                    color: colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'GF Low/High control how conservative your NDL and deco calculations are.',
+                      style: textTheme.bodySmall,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Presets
+            Text(
+              'Presets',
+              style: textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ...GfPreset.values.where((p) => p != GfPreset.custom).map((preset) {
+              final isSelected = _selectedPreset == preset;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: InkWell(
+                  onTap: () => _selectPreset(preset),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? colorScheme.primaryContainer
+                          : colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(8),
+                      border: isSelected
+                          ? Border.all(color: colorScheme.primary, width: 2)
+                          : null,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                preset.name,
+                                style: textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Text(
+                                preset.description,
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? colorScheme.primary
+                                : colorScheme.surfaceContainerHigh,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '${preset.gfLow}/${preset.gfHigh}',
+                            style: textTheme.labelMedium?.copyWith(
+                              color: isSelected
+                                  ? colorScheme.onPrimary
+                                  : colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }),
+
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 16),
+
+            // Custom values section
+            Row(
+              children: [
+                Text(
+                  'Custom Values',
+                  style: textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    'GF $_gfLow/$_gfHigh',
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // GF Low slider
+            Row(
+              children: [
+                SizedBox(
+                  width: 60,
+                  child: Text('GF Low', style: textTheme.bodyMedium),
+                ),
+                Expanded(
+                  child: Slider(
+                    value: _gfLow.toDouble(),
+                    min: 15,
+                    max: 100,
+                    divisions: 85,
+                    label: '$_gfLow',
+                    onChanged: (value) => _updateGfLow(value.round()),
+                  ),
+                ),
+                SizedBox(
+                  width: 36,
+                  child: Text(
+                    '$_gfLow',
+                    style: textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.right,
+                  ),
+                ),
+              ],
+            ),
+
+            // GF High slider
+            Row(
+              children: [
+                SizedBox(
+                  width: 60,
+                  child: Text('GF High', style: textTheme.bodyMedium),
+                ),
+                Expanded(
+                  child: Slider(
+                    value: _gfHigh.toDouble(),
+                    min: 15,
+                    max: 100,
+                    divisions: 85,
+                    label: '$_gfHigh',
+                    onChanged: (value) => _updateGfHigh(value.round()),
+                  ),
+                ),
+                SizedBox(
+                  width: 36,
+                  child: Text(
+                    '$_gfHigh',
+                    style: textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.right,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 8),
+            Text(
+              'Lower values = more conservative (longer NDL/more deco)',
+              style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () {
+            widget.onSave(_gfLow, _gfHigh);
+            Navigator.of(context).pop();
+          },
+          child: const Text('Save'),
+        ),
+      ],
+    );
   }
 }

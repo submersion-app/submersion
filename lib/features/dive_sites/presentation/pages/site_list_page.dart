@@ -265,7 +265,9 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
             location: site.locationString.isNotEmpty
                 ? site.locationString
                 : null,
+            minDepth: site.minDepth,
             maxDepth: site.maxDepth,
+            difficulty: site.difficulty?.displayName,
             diveCount: siteData.diveCount,
             rating: site.rating,
             isSelectionMode: _isSelectionMode,
@@ -420,7 +422,9 @@ class SiteSearchDelegate extends SearchDelegate<DiveSite?> {
               location: site.locationString.isNotEmpty
                   ? site.locationString
                   : null,
+              minDepth: site.minDepth,
               maxDepth: site.maxDepth,
+              difficulty: site.difficulty?.displayName,
               rating: site.rating,
               latitude: site.location?.latitude,
               longitude: site.location?.longitude,
@@ -442,7 +446,9 @@ class SiteSearchDelegate extends SearchDelegate<DiveSite?> {
 class SiteListTile extends ConsumerWidget {
   final String name;
   final String? location;
+  final double? minDepth;
   final double? maxDepth;
+  final String? difficulty;
   final int diveCount;
   final double? rating;
   final VoidCallback? onTap;
@@ -458,7 +464,9 @@ class SiteListTile extends ConsumerWidget {
     super.key,
     required this.name,
     this.location,
+    this.minDepth,
     this.maxDepth,
+    this.difficulty,
     this.diveCount = 0,
     this.rating,
     this.onTap,
@@ -468,6 +476,17 @@ class SiteListTile extends ConsumerWidget {
     this.latitude,
     this.longitude,
   });
+
+  /// Get depth display string (range or single value)
+  String? get _depthString {
+    if (minDepth != null && maxDepth != null) {
+      return '${minDepth!.toStringAsFixed(0)}-${maxDepth!.toStringAsFixed(0)}m';
+    }
+    if (maxDepth != null) {
+      return '${maxDepth!.toStringAsFixed(0)}m';
+    }
+    return null;
+  }
 
   /// Check if map background should be shown
   bool get _hasLocation => latitude != null && longitude != null;
@@ -543,9 +562,24 @@ class SiteListTile extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
+                if (_depthString != null)
+                  Text(
+                    _depthString!,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: secondaryTextColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                if (difficulty != null)
+                  Text(
+                    difficulty!,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: secondaryTextColor,
+                    ),
+                  ),
                 if (diveCount > 0)
                   Text(
-                    '$diveCount dives',
+                    '$diveCount ${diveCount == 1 ? 'dive' : 'dives'}',
                     style: Theme.of(
                       context,
                     ).textTheme.bodySmall?.copyWith(color: secondaryTextColor),

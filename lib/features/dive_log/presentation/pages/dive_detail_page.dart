@@ -20,9 +20,11 @@ import '../../data/services/profile_analysis_service.dart';
 import '../../data/services/profile_markers_service.dart';
 import '../../domain/entities/dive.dart';
 import '../../domain/entities/gas_switch.dart';
+import '../providers/dive_detail_ui_providers.dart';
 import '../providers/dive_providers.dart';
 import '../providers/gas_switch_providers.dart';
 import '../providers/profile_analysis_provider.dart';
+import '../widgets/collapsible_section.dart';
 import '../widgets/deco_info_panel.dart';
 import '../widgets/dive_profile_chart.dart';
 import '../widgets/o2_toxicity_card.dart';
@@ -209,7 +211,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             ],
             if (dive.equipment.isNotEmpty) ...[
               const SizedBox(height: 24),
-              _buildEquipmentSection(context, dive),
+              _buildEquipmentSection(context, ref, dive),
             ],
             _buildSightingsSection(context, ref),
             const SizedBox(height: 24),
@@ -258,6 +260,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                       dive.site?.name ?? 'Unknown Site',
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
+                    if (dive.site?.locationString.isNotEmpty == true)
+                      Text(
+                        dive.site!.locationString,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                     Text(
                       'Entry: ${DateFormat('MMM d, y • h:mm a').format(dive.effectiveEntryTime)}',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -604,45 +613,84 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         : analysis.decoStatuses.length - 1;
     final status = analysis.decoStatuses[index];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (_selectedPointIndex != null)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.timeline,
-                  size: 16,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'At ${_formatTimestamp(dive.profile[_selectedPointIndex!].timestamp)}',
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const Spacer(),
-                TextButton.icon(
-                  onPressed: () => setState(() => _selectedPointIndex = null),
-                  icon: const Icon(Icons.clear, size: 16),
-                  label: const Text('Show end'),
-                  style: TextButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        DecoInfoPanel(
-          status: status,
-          showTissueChart: true,
-          showDecoStops: true,
+    // Get collapsed state from provider
+    final isExpanded = ref.watch(decoSectionExpandedProvider);
+
+    // Build trailing badge for collapsed state
+    final Widget collapsedTrailing = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: status.inDeco
+            ? Colors.orange.withValues(alpha: 0.2)
+            : Colors.green.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        status.inDeco ? 'DECO' : 'NO DECO',
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: status.inDeco ? Colors.orange : Colors.green,
+          fontWeight: FontWeight.bold,
         ),
-      ],
+      ),
+    );
+
+    // Collapsed subtitle showing key info
+    final collapsedSubtitle = status.inDeco
+        ? 'Ceiling: ${status.ceilingMeters.toStringAsFixed(1)}m'
+        : 'NDL: ${status.ndlFormatted}';
+
+    return CollapsibleCardSection(
+      title: 'Decompression Status',
+      icon: status.inDeco ? Icons.warning : Icons.check_circle,
+      iconColor: status.inDeco ? Colors.orange : Colors.green,
+      trailing: collapsedTrailing, // Always show the DECO/NO DECO badge
+      collapsedSubtitle: collapsedSubtitle,
+      isExpanded: isExpanded,
+      onToggle: (expanded) {
+        ref.read(collapsibleSectionProvider.notifier).setDecoExpanded(expanded);
+      },
+      contentBuilder: (context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (_selectedPointIndex != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.timeline,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'At ${_formatTimestamp(dive.profile[_selectedPointIndex!].timestamp)}',
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const Spacer(),
+                  TextButton.icon(
+                    onPressed: () => setState(() => _selectedPointIndex = null),
+                    icon: const Icon(Icons.clear, size: 16),
+                    label: const Text('Show end'),
+                    style: TextButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          DecoInfoPanel(
+            status: status,
+            showTissueChart: true,
+            showDecoStops: true,
+            showHeader: false,
+            useCard: false,
+          ),
+        ],
+      ),
     );
   }
 
@@ -664,6 +712,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       return const SizedBox.shrink();
     }
 
+    // Get collapsed state from provider
+    final isExpanded = ref.watch(o2ToxicitySectionExpandedProvider);
+
     // Show ppO2 at selected point if available
     final selectedPpO2 =
         _selectedPointIndex != null &&
@@ -671,18 +722,61 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         ? analysis.ppO2Curve[_selectedPointIndex!]
         : null;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (selectedPpO2 != null)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Card(
-              color: Theme.of(context).colorScheme.primaryContainer,
-              child: Padding(
+    final exposure = analysis.o2Exposure;
+
+    // Build trailing badge for collapsed state
+    Widget? collapsedTrailing;
+    if (exposure.cnsWarning || exposure.ppO2Warning) {
+      collapsedTrailing = Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(
+          color: exposure.cnsCritical || exposure.ppO2Critical
+              ? Theme.of(context).colorScheme.error
+              : Colors.orange,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Text(
+          exposure.cnsCritical || exposure.ppO2Critical
+              ? 'CRITICAL'
+              : 'WARNING',
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      );
+    }
+
+    // Collapsed subtitle showing key info (CNS and ppO2 if point selected)
+    final collapsedSubtitle = selectedPpO2 != null
+        ? 'CNS: ${exposure.cnsFormatted} · ppO₂: ${selectedPpO2.toStringAsFixed(2)} bar'
+        : 'CNS: ${exposure.cnsFormatted}';
+
+    return CollapsibleCardSection(
+      title: 'Oxygen Toxicity',
+      icon: Icons.air,
+      collapsedTrailing: collapsedTrailing,
+      collapsedSubtitle: collapsedSubtitle,
+      isExpanded: isExpanded,
+      onToggle: (expanded) {
+        ref
+            .read(collapsibleSectionProvider.notifier)
+            .setO2ToxicityExpanded(expanded);
+      },
+      contentBuilder: (context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (selectedPpO2 != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   children: [
@@ -708,9 +802,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 ),
               ),
             ),
+          O2ToxicityCard(
+            exposure: exposure,
+            showDetails: true,
+            showHeader: false,
+            useCard: false,
           ),
-        O2ToxicityCard(exposure: analysis.o2Exposure, showDetails: true),
-      ],
+        ],
+      ),
     );
   }
 
@@ -736,6 +835,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         analysis.sacSegments!.isEmpty) {
       return const SizedBox.shrink();
     }
+
+    // Get collapsed state from provider
+    final isExpanded = ref.watch(sacSegmentsSectionExpandedProvider);
 
     final segments = analysis.sacSegments!;
 
@@ -767,55 +869,84 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       }
     }
 
+    // Determine which segment the selected point falls into
+    int? selectedSegmentIndex;
+    if (_selectedPointIndex != null && dive.profile.isNotEmpty) {
+      final selectedTimestamp = dive.profile[_selectedPointIndex!].timestamp;
+      for (int i = 0; i < segments.length; i++) {
+        if (selectedTimestamp >= segments[i].startTimestamp &&
+            selectedTimestamp <= segments[i].endTimestamp) {
+          selectedSegmentIndex = i;
+          break;
+        }
+      }
+    }
+
+    // Collapsed subtitle showing segment count
+    final collapsedSubtitle = '${segments.length} segments (5-min intervals)';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
+        CollapsibleCardSection(
+          title: 'SAC Rate by Segment',
+          icon: Icons.air,
+          collapsedSubtitle: collapsedSubtitle,
+          isExpanded: isExpanded,
+          onToggle: (expanded) {
+            ref
+                .read(collapsibleSectionProvider.notifier)
+                .setSacSegmentsExpanded(expanded);
+          },
+          contentBuilder: (context) => Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.air,
-                      size: 20,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'SAC Rate by Segment',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '5-minute intervals',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 16),
                 ...segments.asMap().entries.map((entry) {
                   final index = entry.key;
                   final segment = entry.value;
                   final startMin = segment.startTimestamp ~/ 60;
                   final endMin = segment.endTimestamp ~/ 60;
                   final avgDepthDisplay = units.formatDepth(segment.avgDepth);
+                  final isSelected = index == selectedSegmentIndex;
 
-                  return Padding(
-                    padding: EdgeInsets.only(
+                  return Container(
+                    margin: EdgeInsets.only(
                       bottom: index < segments.length - 1 ? 8 : 0,
                     ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 6,
+                    ),
+                    decoration: isSelected
+                        ? BoxDecoration(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .primaryContainer
+                                .withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: Theme.of(context).colorScheme.primary,
+                              width: 1,
+                            ),
+                          )
+                        : null,
                     child: Row(
                       children: [
                         SizedBox(
-                          width: 70,
+                          width: 62,
                           child: Text(
                             '$startMin-${endMin}min',
-                            style: Theme.of(context).textTheme.bodySmall,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  fontWeight: isSelected
+                                      ? FontWeight.bold
+                                      : null,
+                                  color: isSelected
+                                      ? Theme.of(context).colorScheme.primary
+                                      : null,
+                                ),
                           ),
                         ),
                         Expanded(
@@ -1498,29 +1629,33 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
   }
 
-  Widget _buildEquipmentSection(BuildContext context, Dive dive) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+  Widget _buildEquipmentSection(
+    BuildContext context,
+    WidgetRef ref,
+    Dive dive,
+  ) {
+    // Get collapsed state from provider
+    final isExpanded = ref.watch(equipmentSectionExpandedProvider);
+
+    // Collapsed subtitle showing item count
+    final collapsedSubtitle =
+        '${dive.equipment.length} ${dive.equipment.length == 1 ? 'item' : 'items'}';
+
+    return CollapsibleCardSection(
+      title: 'Equipment',
+      icon: Icons.backpack,
+      collapsedSubtitle: collapsedSubtitle,
+      isExpanded: isExpanded,
+      onToggle: (expanded) {
+        ref
+            .read(collapsibleSectionProvider.notifier)
+            .setEquipmentExpanded(expanded);
+      },
+      contentBuilder: (context) => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Equipment',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                Text(
-                  '${dive.equipment.length} ${dive.equipment.length == 1 ? 'item' : 'items'}',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-            const Divider(),
             ...dive.equipment.map((item) {
               return ListTile(
                 contentPadding: EdgeInsets.zero,

@@ -124,8 +124,8 @@ class AppSettings {
     this.defaultTankVolume = 12.0,
     this.defaultStartPressure = 200,
     // Decompression defaults
-    this.gfLow = 30,
-    this.gfHigh = 70,
+    this.gfLow = 50,
+    this.gfHigh = 85,
     this.ppO2MaxWorking = 1.4,
     this.ppO2MaxDeco = 1.6,
     this.cnsWarningThreshold = 80,

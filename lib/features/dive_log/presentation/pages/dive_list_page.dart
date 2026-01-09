@@ -315,6 +315,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
                   diveNumber: dive.diveNumber ?? index + 1,
                   dateTime: dive.dateTime,
                   siteName: dive.site?.name,
+                  siteLocation: dive.site?.locationString,
                   maxDepth: dive.maxDepth,
                   duration: dive.duration,
                   waterTemp: dive.waterTemp,
@@ -691,6 +692,7 @@ class DiveSearchDelegate extends SearchDelegate<Dive?> {
               diveNumber: dive.diveNumber ?? index + 1,
               dateTime: dive.dateTime,
               siteName: dive.site?.name,
+              siteLocation: dive.site?.locationString,
               maxDepth: dive.maxDepth,
               duration: dive.duration,
               waterTemp: dive.waterTemp,
@@ -721,6 +723,7 @@ class DiveListTile extends ConsumerWidget {
   final int diveNumber;
   final DateTime dateTime;
   final String? siteName;
+  final String? siteLocation;
   final double? maxDepth;
   final Duration? duration;
   final double? waterTemp;
@@ -748,6 +751,7 @@ class DiveListTile extends ConsumerWidget {
     required this.diveNumber,
     required this.dateTime,
     this.siteName,
+    this.siteLocation,
     this.maxDepth,
     this.duration,
     this.waterTemp,
@@ -907,6 +911,17 @@ class DiveListTile extends ConsumerWidget {
                       ],
                     ],
                   ),
+                  // Site location (country/region)
+                  if (siteLocation != null && siteLocation!.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      siteLocation!,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: secondaryTextColor,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                   const SizedBox(height: 4),
                   // Date and time
                   Text(

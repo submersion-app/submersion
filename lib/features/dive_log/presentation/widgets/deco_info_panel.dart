@@ -14,11 +14,19 @@ class DecoInfoPanel extends StatelessWidget {
   /// Whether to show deco stops
   final bool showDecoStops;
 
+  /// Whether to show the header row (title + status badge)
+  final bool showHeader;
+
+  /// Whether to wrap content in a Card
+  final bool useCard;
+
   const DecoInfoPanel({
     super.key,
     required this.status,
     this.showTissueChart = true,
     this.showDecoStops = true,
+    this.showHeader = true,
+    this.useCard = true,
   });
 
   @override
@@ -26,82 +34,84 @@ class DecoInfoPanel extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header
+        if (showHeader) ...[
+          Row(
+            children: [
+              Icon(
+                status.inDeco ? Icons.warning : Icons.check_circle,
+                size: 20,
+                color: status.inDeco ? Colors.orange : Colors.green,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Decompression Status',
+                style: textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: status.inDeco
+                      ? Colors.orange.withValues(alpha: 0.2)
+                      : Colors.green.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  status.inDeco ? 'DECO' : 'NO DECO',
+                  style: textTheme.labelSmall?.copyWith(
+                    color: status.inDeco ? Colors.orange : Colors.green,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+        ],
+
+        // Key metrics row
+        _buildMetricsRow(context),
+
+        // Tissue loading chart
+        if (showTissueChart) ...[
+          const SizedBox(height: 16),
+          _buildTissueChart(context),
+        ],
+
+        // Deco stops
+        if (showDecoStops && status.decoStops.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          _buildDecoStops(context),
+        ],
+
+        // Gradient factors
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Header
-            Row(
-              children: [
-                Icon(
-                  status.inDeco ? Icons.warning : Icons.check_circle,
-                  size: 20,
-                  color: status.inDeco ? Colors.orange : Colors.green,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Decompression Status',
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: status.inDeco
-                        ? Colors.orange.withValues(alpha: 0.2)
-                        : Colors.green.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    status.inDeco ? 'DECO' : 'NO DECO',
-                    style: textTheme.labelSmall?.copyWith(
-                      color: status.inDeco ? Colors.orange : Colors.green,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Key metrics row
-            _buildMetricsRow(context),
-
-            // Tissue loading chart
-            if (showTissueChart) ...[
-              const SizedBox(height: 16),
-              _buildTissueChart(context),
-            ],
-
-            // Deco stops
-            if (showDecoStops && status.decoStops.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              _buildDecoStops(context),
-            ],
-
-            // Gradient factors
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'GF: ${(status.gfLow * 100).toInt()}/${(status.gfHigh * 100).toInt()}',
-                  style: textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
+            Text(
+              'GF: ${(status.gfLow * 100).toInt()}/${(status.gfHigh * 100).toInt()}',
+              style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
-      ),
+      ],
+    );
+
+    if (!useCard) {
+      return Padding(padding: const EdgeInsets.all(16), child: content);
+    }
+
+    return Card(
+      child: Padding(padding: const EdgeInsets.all(16), child: content),
     );
   }
 
