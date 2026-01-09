@@ -24,6 +24,7 @@ import '../providers/dive_detail_ui_providers.dart';
 import '../providers/dive_providers.dart';
 import '../providers/gas_switch_providers.dart';
 import '../providers/profile_analysis_provider.dart';
+import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
 import '../widgets/collapsible_section.dart';
 import '../widgets/deco_info_panel.dart';
 import '../widgets/dive_profile_chart.dart';
@@ -82,10 +83,26 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   /// Currently selected point index on the profile timeline
   int? _selectedPointIndex;
 
+  /// Track if we've already initiated a redirect to prevent multiple calls
+  bool _hasRedirected = false;
+
   String get diveId => widget.diveId;
 
   @override
   Widget build(BuildContext context) {
+    // On desktop, redirect standalone detail pages to master-detail view
+    // This ensures all dive detail navigation shows the split layout on desktop
+    if (!widget.embedded &&
+        !_hasRedirected &&
+        ResponsiveBreakpoints.isDesktop(context)) {
+      _hasRedirected = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.go('/dives?selected=$diveId');
+        }
+      });
+    }
+
     final diveAsync = ref.watch(diveProvider(diveId));
 
     return diveAsync.when(
