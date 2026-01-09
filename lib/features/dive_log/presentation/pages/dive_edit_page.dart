@@ -38,7 +38,22 @@ import '../widgets/tank_editor.dart';
 class DiveEditPage extends ConsumerStatefulWidget {
   final String? diveId;
 
-  const DiveEditPage({super.key, this.diveId});
+  /// When true, renders without Scaffold wrapper for use in master-detail layout.
+  final bool embedded;
+
+  /// Callback when save completes (used in embedded mode).
+  final void Function(String savedId)? onSaved;
+
+  /// Callback when user cancels editing (used in embedded mode).
+  final VoidCallback? onCancel;
+
+  const DiveEditPage({
+    super.key,
+    this.diveId,
+    this.embedded = false,
+    this.onSaved,
+    this.onCancel,
+  });
 
   bool get isEditing => diveId != null;
 
@@ -307,7 +322,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   @override
   Widget build(BuildContext context) {
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
+
     if (_isLoading) {
+      if (widget.embedded) {
+        return const Center(child: CircularProgressIndicator());
+      }
       return Scaffold(
         appBar: AppBar(
           title: Text(widget.isEditing ? 'Edit Dive' : 'Log Dive'),
@@ -316,9 +337,54 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       );
     }
 
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final formBody = Form(
+      key: _formKey,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          _buildDateTimeSection(),
+          const SizedBox(height: 16),
+          _buildSiteSection(),
+          const SizedBox(height: 16),
+          _buildTripSection(),
+          const SizedBox(height: 16),
+          _buildDiveCenterSection(),
+          const SizedBox(height: 16),
+          _buildDepthDurationSection(units),
+          const SizedBox(height: 16),
+          _buildTankSection(),
+          const SizedBox(height: 16),
+          _buildEquipmentSection(),
+          const SizedBox(height: 16),
+          _buildConditionsSection(units),
+          const SizedBox(height: 16),
+          _buildWeightSection(units),
+          const SizedBox(height: 16),
+          _buildBuddySection(),
+          const SizedBox(height: 16),
+          _buildRatingSection(),
+          const SizedBox(height: 16),
+          _buildSightingsSection(),
+          const SizedBox(height: 16),
+          _buildNotesSection(),
+          const SizedBox(height: 16),
+          _buildTagsSection(),
+          const SizedBox(height: 32),
+        ],
+      ),
+    );
 
+    // Embedded mode: Return content with a compact header bar (no Scaffold)
+    if (widget.embedded) {
+      return Column(
+        children: [
+          _buildEmbeddedHeader(context, units),
+          Expanded(child: formBody),
+        ],
+      );
+    }
+
+    // Standalone mode: Full Scaffold with AppBar
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.isEditing ? 'Edit Dive' : 'Log Dive'),
@@ -338,41 +404,61 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 ),
         ],
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            _buildDateTimeSection(),
-            const SizedBox(height: 16),
-            _buildSiteSection(),
-            const SizedBox(height: 16),
-            _buildTripSection(),
-            const SizedBox(height: 16),
-            _buildDiveCenterSection(),
-            const SizedBox(height: 16),
-            _buildDepthDurationSection(units),
-            const SizedBox(height: 16),
-            _buildTankSection(),
-            const SizedBox(height: 16),
-            _buildEquipmentSection(),
-            const SizedBox(height: 16),
-            _buildConditionsSection(units),
-            const SizedBox(height: 16),
-            _buildWeightSection(units),
-            const SizedBox(height: 16),
-            _buildBuddySection(),
-            const SizedBox(height: 16),
-            _buildRatingSection(),
-            const SizedBox(height: 16),
-            _buildSightingsSection(),
-            const SizedBox(height: 16),
-            _buildNotesSection(),
-            const SizedBox(height: 16),
-            _buildTagsSection(),
-            const SizedBox(height: 32),
-          ],
+      body: formBody,
+    );
+  }
+
+  /// Compact header bar for embedded mode in master-detail layout.
+  Widget _buildEmbeddedHeader(BuildContext context, UnitFormatter units) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final title = widget.isEditing ? 'Edit Dive' : 'Log New Dive';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(
+            color: colorScheme.outlineVariant,
+            width: 1,
+          ),
         ),
+      ),
+      child: Row(
+        children: [
+          // Icon
+          Icon(
+            widget.isEditing ? Icons.edit : Icons.add_circle_outline,
+            color: colorScheme.primary,
+          ),
+          const SizedBox(width: 12),
+          // Title
+          Expanded(
+            child: Text(
+              title,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+          ),
+          // Cancel button
+          TextButton(
+            onPressed: widget.onCancel,
+            child: const Text('Cancel'),
+          ),
+          const SizedBox(width: 8),
+          // Save button
+          _isSaving
+              ? const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : FilledButton(
+                  onPressed: () => _saveDive(units),
+                  child: const Text('Save'),
+                ),
+        ],
       ),
     );
   }
@@ -2278,7 +2364,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       }
 
       if (mounted && savedDiveId != null) {
-        context.go('/dives/$savedDiveId');
+        if (widget.embedded && widget.onSaved != null) {
+          // In embedded mode, call the callback to update selection
+          widget.onSaved!(savedDiveId);
+        } else {
+          // In standalone mode, navigate to the detail page
+          context.go('/dives/$savedDiveId');
+        }
       }
     } catch (e) {
       if (mounted) {

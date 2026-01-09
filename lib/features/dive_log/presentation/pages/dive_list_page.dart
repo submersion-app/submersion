@@ -6,580 +6,80 @@ import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../../core/utils/unit_formatter.dart';
+import '../../../../shared/widgets/master_detail/master_detail_scaffold.dart';
+import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
 import '../../../dive_sites/presentation/providers/site_providers.dart';
 import '../../../dive_types/presentation/providers/dive_type_providers.dart';
 import '../../../settings/presentation/providers/settings_providers.dart';
 import '../../../tags/domain/entities/tag.dart';
-import '../../../equipment/presentation/providers/equipment_providers.dart';
 import '../../../tags/presentation/providers/tag_providers.dart';
 import '../../../tags/presentation/widgets/tag_input_widget.dart';
-import '../../../trips/presentation/providers/trip_providers.dart';
-import '../../../dive_centers/presentation/providers/dive_center_providers.dart';
 import '../../domain/entities/dive.dart';
 import '../providers/dive_providers.dart';
-import '../widgets/dive_numbering_dialog.dart';
+import '../widgets/dive_list_content.dart';
 import '../widgets/dive_profile_chart.dart';
+import '../widgets/dive_summary_widget.dart';
+import 'dive_detail_page.dart';
+import 'dive_edit_page.dart';
 
-class DiveListPage extends ConsumerStatefulWidget {
+/// Main dive list page with master-detail layout on wide desktop.
+///
+/// On wide desktop (>=1200px): Shows a split view with list on left, detail/summary on right.
+/// On narrower screens (<1200px): Shows the list with navigation to detail pages.
+class DiveListPage extends ConsumerWidget {
   const DiveListPage({super.key});
 
   @override
-  ConsumerState<DiveListPage> createState() => _DiveListPageState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Use extended desktop breakpoint (1200px) when NavigationRail shows labels
+    final showMasterDetail = ResponsiveBreakpoints.isDesktopExtended(context);
 
-class _DiveListPageState extends ConsumerState<DiveListPage> {
-  bool _isSelectionMode = false;
-  final Set<String> _selectedIds = {};
-  List<Dive>? _deletedDives;
-
-  void _enterSelectionMode(String? initialId) {
-    setState(() {
-      _isSelectionMode = true;
-      _selectedIds.clear();
-      if (initialId != null) {
-        _selectedIds.add(initialId);
-      }
-    });
-  }
-
-  void _exitSelectionMode() {
-    setState(() {
-      _isSelectionMode = false;
-      _selectedIds.clear();
-    });
-  }
-
-  void _toggleSelection(String id) {
-    setState(() {
-      if (_selectedIds.contains(id)) {
-        _selectedIds.remove(id);
-        if (_selectedIds.isEmpty) {
-          _isSelectionMode = false;
-        }
-      } else {
-        _selectedIds.add(id);
-      }
-    });
-  }
-
-  void _selectAll(List<Dive> dives) {
-    setState(() {
-      _selectedIds.addAll(dives.map((d) => d.id));
-    });
-  }
-
-  void _deselectAll() {
-    setState(() {
-      _selectedIds.clear();
-    });
-  }
-
-  Future<void> _confirmAndDelete() async {
-    final count = _selectedIds.length;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Dives'),
-        content: Text(
-          'Are you sure you want to delete $count ${count == 1 ? 'dive' : 'dives'}? This action can be undone within 5 seconds.',
+    if (showMasterDetail) {
+      // Desktop: Use master-detail layout
+      return MasterDetailScaffold(
+        sectionId: 'dives',
+        masterBuilder: (context, onItemSelected, selectedId) => DiveListContent(
+          onItemSelected: onItemSelected,
+          selectedId: selectedId,
+          showAppBar: false,
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true && mounted) {
-      // Capture ScaffoldMessenger before async operations to prevent stale context
-      final scaffoldMessenger = ScaffoldMessenger.of(context);
-      final idsToDelete = _selectedIds.toList();
-      _exitSelectionMode();
-
-      // Perform deletion and get deleted dives for undo
-      final deletedDives = await ref
-          .read(diveListNotifierProvider.notifier)
-          .bulkDeleteDives(idsToDelete);
-
-      _deletedDives = deletedDives;
-
-      if (mounted) {
-        scaffoldMessenger.clearSnackBars();
-        scaffoldMessenger.showSnackBar(
-          SnackBar(
-            content: Text(
-              'Deleted ${deletedDives.length} ${deletedDives.length == 1 ? 'dive' : 'dives'}',
-            ),
-            duration: const Duration(seconds: 5),
-            showCloseIcon: true,
-            action: SnackBarAction(
-              label: 'Undo',
-              onPressed: () async {
-                if (_deletedDives != null && _deletedDives!.isNotEmpty) {
-                  await ref
-                      .read(diveListNotifierProvider.notifier)
-                      .restoreDives(_deletedDives!);
-                  _deletedDives = null;
-                  if (mounted) {
-                    scaffoldMessenger.showSnackBar(
-                      const SnackBar(
-                        content: Text('Dives restored'),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
-                  }
-                }
-              },
-            ),
-          ),
-        );
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final divesAsync = ref.watch(filteredDivesProvider);
-    final filter = ref.watch(diveFilterProvider);
-
-    return Scaffold(
-      appBar: _isSelectionMode
-          ? _buildSelectionAppBar(divesAsync.valueOrNull ?? [])
-          : AppBar(
-              title: const Text('Dive Log'),
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.search),
-                  onPressed: () {
-                    showSearch(
-                      context: context,
-                      delegate: DiveSearchDelegate(ref),
-                    );
-                  },
-                ),
-                IconButton(
-                  icon: Badge(
-                    isLabelVisible: filter.hasActiveFilters,
-                    child: const Icon(Icons.filter_list),
-                  ),
-                  onPressed: () {
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      builder: (context) => DiveFilterSheet(ref: ref),
-                    );
-                  },
-                ),
-                PopupMenuButton<String>(
-                  onSelected: (value) {
-                    if (value == 'numbering') {
-                      showDiveNumberingDialog(context);
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: 'numbering',
-                      child: Row(
-                        children: [
-                          Icon(Icons.format_list_numbered),
-                          SizedBox(width: 12),
-                          Text('Dive Numbering'),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-      body: divesAsync.when(
-        data: (dives) => dives.isEmpty
-            ? _buildEmptyState(context, filter.hasActiveFilters)
-            : _buildDiveList(context, dives, filter.hasActiveFilters),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.error_outline,
-                  size: 64,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Error loading dives',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  error.toString(),
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                FilledButton.icon(
-                  onPressed: () =>
-                      ref.read(diveListNotifierProvider.notifier).refresh(),
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Retry'),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-      floatingActionButton: _isSelectionMode
-          ? null
-          : FloatingActionButton.extended(
-              onPressed: () => context.go('/dives/new'),
-              icon: const Icon(Icons.add),
-              label: const Text('Log Dive'),
-            ),
-    );
-  }
-
-  AppBar _buildSelectionAppBar(List<Dive> dives) {
-    return AppBar(
-      leading: IconButton(
-        icon: const Icon(Icons.close),
-        onPressed: _exitSelectionMode,
-      ),
-      title: Text('${_selectedIds.length} selected'),
-      actions: [
-        if (_selectedIds.length < dives.length)
-          IconButton(
-            icon: const Icon(Icons.select_all),
-            tooltip: 'Select All',
-            onPressed: () => _selectAll(dives),
-          ),
-        if (_selectedIds.isNotEmpty)
-          IconButton(
-            icon: const Icon(Icons.deselect),
-            tooltip: 'Deselect All',
-            onPressed: _deselectAll,
-          ),
-        if (_selectedIds.isNotEmpty)
-          IconButton(
-            icon: Icon(
-              Icons.delete,
-              color: Theme.of(context).colorScheme.error,
-            ),
-            tooltip: 'Delete Selected',
-            onPressed: _confirmAndDelete,
-          ),
-      ],
-    );
-  }
-
-  Widget _buildDiveList(
-    BuildContext context,
-    List<Dive> dives,
-    bool hasActiveFilters,
-  ) {
-    // Calculate depth range for relative depth coloring
-    final depthsWithValues = dives
-        .where((d) => d.maxDepth != null)
-        .map((d) => d.maxDepth!);
-    final minDepth = depthsWithValues.isNotEmpty
-        ? depthsWithValues.reduce((a, b) => a < b ? a : b)
-        : null;
-    final maxDepth = depthsWithValues.isNotEmpty
-        ? depthsWithValues.reduce((a, b) => a > b ? a : b)
-        : null;
-
-    return RefreshIndicator(
-      onRefresh: () => ref.read(diveListNotifierProvider.notifier).refresh(),
-      child: Column(
-        children: [
-          if (hasActiveFilters) _buildActiveFiltersBar(context),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.only(bottom: 80),
-              itemCount: dives.length,
-              itemBuilder: (context, index) {
-                final dive = dives[index];
-                final isSelected = _selectedIds.contains(dive.id);
-                return DiveListTile(
-                  diveId: dive.id,
-                  diveNumber: dive.diveNumber ?? index + 1,
-                  dateTime: dive.dateTime,
-                  siteName: dive.site?.name,
-                  siteLocation: dive.site?.locationString,
-                  maxDepth: dive.maxDepth,
-                  duration: dive.duration,
-                  waterTemp: dive.waterTemp,
-                  rating: dive.rating,
-                  isFavorite: dive.isFavorite,
-                  tags: dive.tags,
-                  isSelectionMode: _isSelectionMode,
-                  isSelected: isSelected,
-                  minDepthInList: minDepth,
-                  maxDepthInList: maxDepth,
-                  siteLatitude: dive.site?.location?.latitude,
-                  siteLongitude: dive.site?.location?.longitude,
-                  onTap: _isSelectionMode
-                      ? () => _toggleSelection(dive.id)
-                      : () => context.go('/dives/${dive.id}'),
-                  onLongPress: _isSelectionMode
-                      ? null
-                      : () => _enterSelectionMode(dive.id),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActiveFiltersBar(BuildContext context) {
-    final filter = ref.watch(diveFilterProvider);
-    final chips = <Widget>[];
-
-    if (filter.startDate != null || filter.endDate != null) {
-      String dateText;
-      if (filter.startDate != null && filter.endDate != null) {
-        dateText =
-            '${DateFormat('MMM d').format(filter.startDate!)} - ${DateFormat('MMM d').format(filter.endDate!)}';
-      } else if (filter.startDate != null) {
-        dateText = 'From ${DateFormat('MMM d').format(filter.startDate!)}';
-      } else {
-        dateText = 'Until ${DateFormat('MMM d').format(filter.endDate!)}';
-      }
-      chips.add(
-        _buildFilterChip(context, dateText, () {
-          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-            clearStartDate: true,
-            clearEndDate: true,
-          );
-        }),
-      );
-    }
-
-    if (filter.diveTypeId != null) {
-      final diveTypeName =
-          ref.watch(diveTypeProvider(filter.diveTypeId!)).value?.name ??
-          filter.diveTypeId!;
-      chips.add(
-        _buildFilterChip(context, diveTypeName, () {
-          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-            clearDiveType: true,
-          );
-        }),
-      );
-    }
-
-    if (filter.siteId != null) {
-      final siteName =
-          ref.watch(siteProvider(filter.siteId!)).value?.name ?? 'Site';
-      chips.add(
-        _buildFilterChip(context, siteName, () {
-          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-            clearSiteId: true,
-          );
-        }),
-      );
-    }
-
-    if (filter.tripId != null) {
-      final tripName =
-          ref.watch(tripByIdProvider(filter.tripId!)).value?.name ?? 'Trip';
-      chips.add(
-        _buildFilterChip(context, tripName, () {
-          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-            clearTripId: true,
-          );
-        }),
-      );
-    }
-
-    if (filter.diveCenterId != null) {
-      final centerName =
-          ref.watch(diveCenterByIdProvider(filter.diveCenterId!)).value?.name ??
-          'Dive Center';
-      chips.add(
-        _buildFilterChip(context, centerName, () {
-          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-            clearDiveCenterId: true,
-          );
-        }),
-      );
-    }
-
-    if (filter.equipmentId != null) {
-      final equipmentName =
-          ref.watch(equipmentItemProvider(filter.equipmentId!)).value?.name ??
-          'Equipment';
-      chips.add(
-        _buildFilterChip(context, equipmentName, () {
-          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-            clearEquipmentId: true,
-          );
-        }),
-      );
-    }
-
-    if (filter.minDepth != null || filter.maxDepth != null) {
-      String depthText;
-      if (filter.minDepth != null && filter.maxDepth != null) {
-        depthText = '${filter.minDepth!.toInt()}-${filter.maxDepth!.toInt()}m';
-      } else if (filter.minDepth != null) {
-        depthText = '>${filter.minDepth!.toInt()}m';
-      } else {
-        depthText = '<${filter.maxDepth!.toInt()}m';
-      }
-      chips.add(
-        _buildFilterChip(context, depthText, () {
-          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-            clearMinDepth: true,
-            clearMaxDepth: true,
-          );
-        }),
-      );
-    }
-
-    if (filter.favoritesOnly == true) {
-      chips.add(
-        _buildFilterChip(context, 'Favorites', () {
-          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-            clearFavoritesOnly: true,
-          );
-        }),
-      );
-    }
-
-    if (filter.tagIds.isNotEmpty) {
-      final tagCount = filter.tagIds.length;
-      chips.add(
-        _buildFilterChip(
-          context,
-          '$tagCount tag${tagCount > 1 ? 's' : ''}',
-          () {
-            ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-              clearTagIds: true,
-            );
+        detailBuilder: (context, diveId) => DiveDetailPage(
+          diveId: diveId,
+          embedded: true,
+          onDeleted: () {
+            // Clear selection when dive is deleted
+            final router = GoRouter.of(context);
+            final state = GoRouterState.of(context);
+            router.go(state.uri.path);
           },
         ),
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(children: chips),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              ref.read(diveFilterProvider.notifier).state =
-                  const DiveFilterState();
-            },
-            child: const Text('Clear all'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilterChip(
-    BuildContext context,
-    String label,
-    VoidCallback onRemove,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: Chip(
-        label: Text(label, style: const TextStyle(fontSize: 12)),
-        deleteIcon: const Icon(Icons.close, size: 16),
-        onDeleted: onRemove,
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        visualDensity: VisualDensity.compact,
-      ),
-    );
-  }
-
-  Widget _buildEmptyState(BuildContext context, bool hasActiveFilters) {
-    if (hasActiveFilters) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.filter_list_off,
-              size: 80,
-              color: Theme.of(
-                context,
-              ).colorScheme.primary.withValues(alpha: 0.5),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No dives match your filters',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Try adjusting or clearing your filters',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: () {
-                ref.read(diveFilterProvider.notifier).state =
-                    const DiveFilterState();
-              },
-              icon: const Icon(Icons.clear_all),
-              label: const Text('Clear Filters'),
-            ),
-          ],
+        summaryBuilder: (context) => const DiveSummaryWidget(),
+        editBuilder: (context, diveId, onSaved, onCancel) => DiveEditPage(
+          diveId: diveId,
+          embedded: true,
+          onSaved: onSaved,
+          onCancel: onCancel,
+        ),
+        createBuilder: (context, onSaved, onCancel) => DiveEditPage(
+          embedded: true,
+          onSaved: onSaved,
+          onCancel: onCancel,
+        ),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () {}, // Will be overridden by MasterDetailScaffold
+          icon: const Icon(Icons.add),
+          label: const Text('Log Dive'),
         ),
       );
     }
 
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.waves,
-            size: 80,
-            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No dives logged yet',
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Tap the button below to log your first dive',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 24),
-          FilledButton.icon(
-            onPressed: () => context.go('/dives/new'),
-            icon: const Icon(Icons.add),
-            label: const Text('Log Your First Dive'),
-          ),
-        ],
+    // Mobile: Use standalone list content with full scaffold and FAB
+    return DiveListContent(
+      showAppBar: true,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.go('/dives/new'),
+        icon: const Icon(Icons.add),
+        label: const Text('Log Dive'),
       ),
     );
   }

@@ -769,6 +769,7 @@ class DiveRepository {
       final siteWhereClause = diverId != null ? 'WHERE d.diver_id = ?' : '';
       final siteStats = await _db.customSelect('''
       SELECT
+        s.id as site_id,
         s.name as site_name,
         COUNT(*) as dive_count
       FROM dives d
@@ -782,6 +783,7 @@ class DiveRepository {
       final topSites = siteStats
           .map(
             (row) => TopSiteStat(
+              siteId: row.data['site_id'] as String,
               siteName: row.data['site_name'] as String,
               diveCount: row.data['dive_count'] as int,
             ),
@@ -1880,10 +1882,15 @@ class DepthRangeStat {
 
 /// Top dive site statistics
 class TopSiteStat {
+  final String siteId;
   final String siteName;
   final int diveCount;
 
-  TopSiteStat({required this.siteName, required this.diveCount});
+  TopSiteStat({
+    required this.siteId,
+    required this.siteName,
+    required this.diveCount,
+  });
 }
 
 /// Dive records (superlatives)
