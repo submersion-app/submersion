@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# Pre-push hook for Submersion
+# Runs dart format check, flutter analyze, and tests before pushing
+
+set -e
+
+echo "🔍 Running pre-push checks..."
+echo ""
+
+# Get the project root (where this hook lives)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+
+cd "$PROJECT_ROOT"
+
+# Check dart format
+echo "📝 Checking code formatting..."
+if ! dart format --set-exit-if-changed lib/ test/ > /dev/null 2>&1; then
+    echo "❌ Format check failed!"
+    echo ""
+    echo "The following files need formatting:"
+    dart format --set-exit-if-changed lib/ test/ 2>&1 || true
+    echo ""
+    echo "Run 'dart format lib/ test/' to fix formatting issues."
+    exit 1
+fi
+echo "✅ Format check passed"
+echo ""
+
+# Run flutter analyze
+echo "🔬 Running flutter analyze..."
+if ! flutter analyze; then
+    echo ""
+    echo "❌ Analysis failed! Fix the issues above before pushing."
+    exit 1
+fi
+echo "✅ Analysis passed"
+echo ""
+
+# Run tests
+echo "🧪 Running tests..."
+if ! flutter test; then
+    echo ""
+    echo "❌ Tests failed! Fix the failing tests before pushing."
+    exit 1
+fi
+echo "✅ All tests passed"
+echo ""
+
+echo "🚀 All checks passed! Pushing..."
+exit 0

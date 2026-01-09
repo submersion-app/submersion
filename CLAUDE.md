@@ -23,12 +23,18 @@ Submersion is a Flutter dive logging application for scuba divers. It provides d
 ## Quick Start
 
 ```bash
-# Install dependencies
+# First-time setup (installs deps, configures git hooks, runs codegen)
+./scripts/setup.sh
+
+# Or manually:
 flutter pub get
-
-# Generate database code (required after schema changes)
+git config core.hooksPath hooks
 dart run build_runner build --delete-conflicting-outputs
+```
 
+## Common Commands
+
+```bash
 # Run on macOS
 flutter run -d macos
 
@@ -39,7 +45,7 @@ flutter test
 flutter analyze
 
 # Format code
-dart format lib/
+dart format lib/ test/
 
 # Watch mode for code generation
 dart run build_runner watch
@@ -47,6 +53,17 @@ dart run build_runner watch
 # Clean rebuild
 flutter clean && flutter pub get && dart run build_runner build --delete-conflicting-outputs
 ```
+
+## Git Hooks
+
+Pre-push hooks are configured in the `hooks/` directory. They automatically run:
+- `dart format --set-exit-if-changed` — ensures code is formatted
+- `flutter analyze` — catches lint issues
+- `flutter test` — runs unit tests
+
+**Setup:** Run `git config core.hooksPath hooks` (or use `./scripts/setup.sh`)
+
+**Bypass (if needed):** `git push --no-verify`
 
 ## Architecture
 
