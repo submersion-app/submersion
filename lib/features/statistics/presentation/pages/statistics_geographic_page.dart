@@ -7,25 +7,33 @@ import '../widgets/ranking_list.dart';
 import '../widgets/stat_section_card.dart';
 
 class StatisticsGeographicPage extends ConsumerWidget {
-  const StatisticsGeographicPage({super.key});
+  final bool embedded;
+
+  const StatisticsGeographicPage({super.key, this.embedded = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final content = SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildCountriesSection(context, ref),
+          const SizedBox(height: 16),
+          _buildRegionsSection(context, ref),
+          const SizedBox(height: 16),
+          _buildTripsSection(context, ref),
+        ],
+      ),
+    );
+
+    if (embedded) {
+      return content;
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Geographic')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildCountriesSection(context, ref),
-            const SizedBox(height: 16),
-            _buildRegionsSection(context, ref),
-            const SizedBox(height: 16),
-            _buildTripsSection(context, ref),
-          ],
-        ),
-      ),
+      body: content,
     );
   }
 

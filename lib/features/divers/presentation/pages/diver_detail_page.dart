@@ -4,44 +4,98 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
 import '../../domain/entities/diver.dart';
 import '../providers/diver_providers.dart';
 
-class DiverDetailPage extends ConsumerWidget {
+class DiverDetailPage extends ConsumerStatefulWidget {
   final String diverId;
 
-  const DiverDetailPage({super.key, required this.diverId});
+  /// When true, renders without Scaffold wrapper for use in master-detail layout.
+  final bool embedded;
+
+  /// Callback when the diver is deleted (used in embedded mode).
+  final VoidCallback? onDeleted;
+
+  const DiverDetailPage({
+    super.key,
+    required this.diverId,
+    this.embedded = false,
+    this.onDeleted,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final diverAsync = ref.watch(diverByIdProvider(diverId));
+  ConsumerState<DiverDetailPage> createState() => _DiverDetailPageState();
+}
+
+class _DiverDetailPageState extends ConsumerState<DiverDetailPage> {
+  bool _hasRedirected = false;
+
+  @override
+  Widget build(BuildContext context) {
+    // On desktop, redirect standalone detail pages to master-detail view
+    if (!widget.embedded &&
+        !_hasRedirected &&
+        ResponsiveBreakpoints.isDesktop(context)) {
+      _hasRedirected = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.go('/divers?selected=${widget.diverId}');
+        }
+      });
+    }
+
+    final diverAsync = ref.watch(diverByIdProvider(widget.diverId));
 
     return diverAsync.when(
       data: (diver) {
         if (diver == null) {
+          if (widget.embedded) {
+            return const Center(child: Text('Diver not found'));
+          }
           return Scaffold(
             appBar: AppBar(title: const Text('Diver')),
             body: const Center(child: Text('Diver not found')),
           );
         }
-        return _DiverDetailContent(diver: diver);
+        return _DiverDetailContent(
+          diver: diver,
+          embedded: widget.embedded,
+          onDeleted: widget.onDeleted,
+        );
       },
-      loading: () => Scaffold(
-        appBar: AppBar(title: const Text('Diver')),
-        body: const Center(child: CircularProgressIndicator()),
-      ),
-      error: (error, stack) => Scaffold(
-        appBar: AppBar(title: const Text('Diver')),
-        body: Center(child: Text('Error: $error')),
-      ),
+      loading: () {
+        if (widget.embedded) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return Scaffold(
+          appBar: AppBar(title: const Text('Diver')),
+          body: const Center(child: CircularProgressIndicator()),
+        );
+      },
+      error: (error, stack) {
+        if (widget.embedded) {
+          return Center(child: Text('Error: $error'));
+        }
+        return Scaffold(
+          appBar: AppBar(title: const Text('Diver')),
+          body: Center(child: Text('Error: $error')),
+        );
+      },
     );
   }
 }
 
 class _DiverDetailContent extends ConsumerWidget {
   final Diver diver;
+  final bool embedded;
+  final VoidCallback? onDeleted;
 
-  const _DiverDetailContent({required this.diver});
+  const _DiverDetailContent({
+    required this.diver,
+    this.embedded = false,
+    this.onDeleted,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -49,13 +103,193 @@ class _DiverDetailContent extends ConsumerWidget {
     final currentDiverId = ref.watch(currentDiverIdProvider);
     final isCurrentDiver = diver.id == currentDiverId;
 
+    final body = SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Profile header
+          _buildProfileHeader(context, isCurrentDiver),
+          const SizedBox(height: 24),
+
+          // Dive Statistics
+          _buildStatsSection(context, statsAsync),
+          const SizedBox(height: 16),
+
+          // Contact info
+          if (diver.email != null || diver.phone != null) ...[
+            _buildContactSection(context),
+            const SizedBox(height: 16),
+          ],
+
+          // Emergency contact
+          if (diver.hasEmergencyInfo) ...[
+            _buildEmergencySection(context),
+            const SizedBox(height: 16),
+          ],
+
+          // Medical info
+          if (diver.hasMedicalInfo) ...[
+            _buildMedicalSection(context),
+            const SizedBox(height: 16),
+          ],
+
+          // Insurance
+          if (diver.insurance.provider != null) ...[
+            _buildInsuranceSection(context),
+            const SizedBox(height: 16),
+          ],
+
+          // Notes
+          if (diver.notes.isNotEmpty) ...[
+            _buildNotesSection(context),
+            const SizedBox(height: 16),
+          ],
+        ],
+      ),
+    );
+
+    if (embedded) {
+      return Column(
+        children: [
+          _buildEmbeddedHeader(context, ref, isCurrentDiver),
+          Expanded(child: body),
+        ],
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(diver.name),
-        actions: [
+        actions: _buildAppBarActions(context, ref, isCurrentDiver),
+      ),
+      body: body,
+    );
+  }
+
+  List<Widget> _buildAppBarActions(
+    BuildContext context,
+    WidgetRef ref,
+    bool isCurrentDiver,
+  ) {
+    return [
+      if (!isCurrentDiver)
+        IconButton(
+          icon: const Icon(Icons.switch_account),
+          tooltip: 'Switch to this diver',
+          onPressed: () async {
+            await ref
+                .read(currentDiverIdProvider.notifier)
+                .setCurrentDiver(diver.id);
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Switched to ${diver.name}')),
+              );
+            }
+          },
+        ),
+      IconButton(
+        icon: const Icon(Icons.edit),
+        onPressed: () => context.push('/divers/${diver.id}/edit'),
+      ),
+      PopupMenuButton<String>(
+        onSelected: (value) async {
+          if (value == 'delete') {
+            await _handleDelete(context, ref);
+          } else if (value == 'set_default') {
+            await ref
+                .read(diverListNotifierProvider.notifier)
+                .setAsDefault(diver.id);
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('${diver.name} set as default diver')),
+              );
+            }
+          }
+        },
+        itemBuilder: (context) => [
+          if (!diver.isDefault)
+            const PopupMenuItem(
+              value: 'set_default',
+              child: Row(
+                children: [
+                  Icon(Icons.star),
+                  SizedBox(width: 8),
+                  Text('Set as Default'),
+                ],
+              ),
+            ),
+          const PopupMenuItem(
+            value: 'delete',
+            child: Row(
+              children: [
+                Icon(Icons.delete, color: Colors.red),
+                SizedBox(width: 8),
+                Text('Delete', style: TextStyle(color: Colors.red)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ];
+  }
+
+  Widget _buildEmbeddedHeader(
+    BuildContext context,
+    WidgetRef ref,
+    bool isCurrentDiver,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
+        ),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 16,
+            backgroundColor: colorScheme.primaryContainer,
+            child: Text(
+              diver.initials,
+              style: TextStyle(
+                color: colorScheme.onPrimaryContainer,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  diver.name,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (isCurrentDiver)
+                  Text(
+                    'Active Diver',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: colorScheme.primary),
+                  ),
+              ],
+            ),
+          ),
           if (!isCurrentDiver)
             IconButton(
-              icon: const Icon(Icons.switch_account),
+              icon: const Icon(Icons.switch_account, size: 20),
+              visualDensity: VisualDensity.compact,
               tooltip: 'Switch to this diver',
               onPressed: () async {
                 await ref
@@ -69,32 +303,19 @@ class _DiverDetailContent extends ConsumerWidget {
               },
             ),
           IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () => context.push('/divers/${diver.id}/edit'),
+            icon: const Icon(Icons.edit, size: 20),
+            visualDensity: VisualDensity.compact,
+            onPressed: () {
+              final state = GoRouterState.of(context);
+              final currentPath = state.uri.path;
+              context.go('$currentPath?selected=${diver.id}&mode=edit');
+            },
           ),
           PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, size: 20),
             onSelected: (value) async {
               if (value == 'delete') {
-                final confirmed = await _showDeleteConfirmation(context);
-                if (confirmed && context.mounted) {
-                  try {
-                    await ref
-                        .read(diverListNotifierProvider.notifier)
-                        .deleteDiver(diver.id);
-                    if (context.mounted) {
-                      context.pop();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Diver deleted')),
-                      );
-                    }
-                  } catch (e) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Failed to delete: $e')),
-                      );
-                    }
-                  }
-                }
+                await _handleDelete(context, ref);
               } else if (value == 'set_default') {
                 await ref
                     .read(diverListNotifierProvider.notifier)
@@ -134,58 +355,35 @@ class _DiverDetailContent extends ConsumerWidget {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Profile header
-            _buildProfileHeader(context, isCurrentDiver),
-            const SizedBox(height: 24),
-
-            // Dive Statistics
-            _buildStatsSection(context, statsAsync),
-            const SizedBox(height: 16),
-
-            // Contact info
-            if (diver.email != null || diver.phone != null) ...[
-              _buildContactSection(context),
-              const SizedBox(height: 16),
-            ],
-
-            // Emergency contact
-            if (diver.hasEmergencyInfo) ...[
-              _buildEmergencySection(context),
-              const SizedBox(height: 16),
-            ],
-
-            // Medical info
-            if (_hasMedicalInfo) ...[
-              _buildMedicalSection(context),
-              const SizedBox(height: 16),
-            ],
-
-            // Insurance
-            if (diver.insurance.provider != null) ...[
-              _buildInsuranceSection(context),
-              const SizedBox(height: 16),
-            ],
-
-            // Notes
-            if (diver.notes.isNotEmpty) ...[
-              _buildNotesSection(context),
-              const SizedBox(height: 16),
-            ],
-          ],
-        ),
-      ),
     );
   }
 
-  bool get _hasMedicalInfo =>
-      diver.bloodType != null ||
-      (diver.allergies != null && diver.allergies!.isNotEmpty) ||
-      diver.medicalNotes.isNotEmpty;
+  Future<void> _handleDelete(BuildContext context, WidgetRef ref) async {
+    final confirmed = await _showDeleteConfirmation(context);
+    if (confirmed && context.mounted) {
+      try {
+        await ref
+            .read(diverListNotifierProvider.notifier)
+            .deleteDiver(diver.id);
+        if (context.mounted) {
+          if (embedded && onDeleted != null) {
+            onDeleted!();
+          } else {
+            context.pop();
+          }
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Diver deleted')));
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Failed to delete: $e')));
+        }
+      }
+    }
+  }
 
   Widget _buildProfileHeader(BuildContext context, bool isCurrentDiver) {
     final theme = Theme.of(context);

@@ -6,7 +6,9 @@ import '../widgets/stat_charts.dart';
 import '../widgets/stat_section_card.dart';
 
 class StatisticsTimePatternsPage extends ConsumerWidget {
-  const StatisticsTimePatternsPage({super.key});
+  final bool embedded;
+
+  const StatisticsTimePatternsPage({super.key, this.embedded = false});
 
   static const _dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   static const _monthNames = [
@@ -26,23 +28,29 @@ class StatisticsTimePatternsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final content = SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildDayOfWeekSection(context, ref),
+          const SizedBox(height: 16),
+          _buildTimeOfDaySection(context, ref),
+          const SizedBox(height: 16),
+          _buildSeasonalSection(context, ref),
+          const SizedBox(height: 16),
+          _buildSurfaceIntervalSection(context, ref),
+        ],
+      ),
+    );
+
+    if (embedded) {
+      return content;
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Time Patterns')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildDayOfWeekSection(context, ref),
-            const SizedBox(height: 16),
-            _buildTimeOfDaySection(context, ref),
-            const SizedBox(height: 16),
-            _buildSeasonalSection(context, ref),
-            const SizedBox(height: 16),
-            _buildSurfaceIntervalSection(context, ref),
-          ],
-        ),
-      ),
+      body: content,
     );
   }
 

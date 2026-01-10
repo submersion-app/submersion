@@ -1,46 +1,129 @@
 import 'package:flutter/material.dart';
-import 'package:submersion/core/providers/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
 import '../../../dive_log/domain/entities/dive.dart';
 import '../../../dive_log/presentation/providers/dive_providers.dart';
 import '../../domain/entities/trip.dart';
 import '../providers/trip_providers.dart';
 
-class TripDetailPage extends ConsumerWidget {
+class TripDetailPage extends ConsumerStatefulWidget {
   final String tripId;
+  final bool embedded;
+  final VoidCallback? onDeleted;
 
-  const TripDetailPage({super.key, required this.tripId});
+  const TripDetailPage({
+    super.key,
+    required this.tripId,
+    this.embedded = false,
+    this.onDeleted,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final tripAsync = ref.watch(tripWithStatsProvider(tripId));
+  ConsumerState<TripDetailPage> createState() => _TripDetailPageState();
+}
+
+class _TripDetailPageState extends ConsumerState<TripDetailPage> {
+  bool _hasRedirected = false;
+
+  @override
+  Widget build(BuildContext context) {
+    // Desktop redirect: If accessed directly (not embedded), redirect to master-detail view
+    if (!widget.embedded &&
+        !_hasRedirected &&
+        ResponsiveBreakpoints.isDesktop(context)) {
+      _hasRedirected = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.go('/trips?selected=${widget.tripId}');
+        }
+      });
+    }
+
+    final tripAsync = ref.watch(tripWithStatsProvider(widget.tripId));
 
     return tripAsync.when(
-      data: (tripWithStats) => _TripDetailContent(tripWithStats: tripWithStats),
-      loading: () => Scaffold(
-        appBar: AppBar(title: const Text('Trip')),
-        body: const Center(child: CircularProgressIndicator()),
+      data: (tripWithStats) => _TripDetailContent(
+        tripWithStats: tripWithStats,
+        embedded: widget.embedded,
+        onDeleted: widget.onDeleted,
       ),
-      error: (error, stack) => Scaffold(
-        appBar: AppBar(title: const Text('Trip')),
-        body: Center(child: Text('Error: $error')),
-      ),
+      loading: () => widget.embedded
+          ? const Center(child: CircularProgressIndicator())
+          : Scaffold(
+              appBar: AppBar(title: const Text('Trip')),
+              body: const Center(child: CircularProgressIndicator()),
+            ),
+      error: (error, stack) => widget.embedded
+          ? Center(child: Text('Error: $error'))
+          : Scaffold(
+              appBar: AppBar(title: const Text('Trip')),
+              body: Center(child: Text('Error: $error')),
+            ),
     );
   }
 }
 
 class _TripDetailContent extends ConsumerWidget {
   final TripWithStats tripWithStats;
+  final bool embedded;
+  final VoidCallback? onDeleted;
 
-  const _TripDetailContent({required this.tripWithStats});
+  const _TripDetailContent({
+    required this.tripWithStats,
+    this.embedded = false,
+    this.onDeleted,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final trip = tripWithStats.trip;
     final divesAsync = ref.watch(divesForTripProvider(trip.id));
     final dateFormat = DateFormat.yMMMd();
+
+    final body = SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Trip header
+          _buildTripHeader(context, trip, dateFormat),
+          const SizedBox(height: 24),
+
+          // Trip info
+          if (trip.location != null ||
+              trip.resortName != null ||
+              trip.liveaboardName != null) ...[
+            _buildInfoSection(context, trip),
+            const SizedBox(height: 24),
+          ],
+
+          // Statistics
+          _buildStatsSection(context),
+          const SizedBox(height: 24),
+
+          // Notes
+          if (trip.notes.isNotEmpty) ...[
+            _buildNotesSection(context, trip),
+            const SizedBox(height: 24),
+          ],
+
+          // Dives
+          _buildDivesSection(context, ref, divesAsync),
+        ],
+      ),
+    );
+
+    if (embedded) {
+      return Column(
+        children: [
+          _buildEmbeddedHeader(context, ref, trip),
+          Expanded(child: body),
+        ],
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -50,82 +133,122 @@ class _TripDetailContent extends ConsumerWidget {
             icon: const Icon(Icons.edit),
             onPressed: () => context.push('/trips/${trip.id}/edit'),
           ),
-          PopupMenuButton<String>(
-            onSelected: (value) async {
-              if (value == 'delete') {
-                final confirmed = await _showDeleteConfirmation(context);
-                if (confirmed && context.mounted) {
-                  await ref
-                      .read(tripListNotifierProvider.notifier)
-                      .deleteTrip(trip.id);
-                  if (context.mounted) {
-                    context.pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Trip deleted')),
-                    );
-                  }
-                }
-              } else if (value == 'export') {
-                _showExportOptions(context, ref);
-              }
+          _buildMoreMenu(context, ref, trip),
+        ],
+      ),
+      body: body,
+    );
+  }
+
+  Widget _buildEmbeddedHeader(BuildContext context, WidgetRef ref, Trip trip) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final dateFormat = DateFormat.MMMd();
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
+        ),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 20,
+            backgroundColor: colorScheme.primaryContainer,
+            child: Icon(
+              trip.isLiveaboard ? Icons.sailing : Icons.flight_takeoff,
+              size: 20,
+              color: colorScheme.onPrimaryContainer,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  trip.name,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  '${dateFormat.format(trip.startDate)} - ${dateFormat.format(trip.endDate)}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.edit_outlined, size: 20),
+            onPressed: () {
+              final state = GoRouterState.of(context);
+              final currentPath = state.uri.path;
+              context.go('$currentPath?selected=${trip.id}&mode=edit');
             },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'export',
-                child: Row(
-                  children: [
-                    Icon(Icons.file_download),
-                    SizedBox(width: 8),
-                    Text('Export'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'delete',
-                child: Row(
-                  children: [
-                    Icon(Icons.delete, color: Colors.red),
-                    SizedBox(width: 8),
-                    Text('Delete', style: TextStyle(color: Colors.red)),
-                  ],
-                ),
+            tooltip: 'Edit',
+          ),
+          _buildMoreMenu(context, ref, trip),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMoreMenu(BuildContext context, WidgetRef ref, Trip trip) {
+    return PopupMenuButton<String>(
+      onSelected: (value) async {
+        if (value == 'delete') {
+          final confirmed = await _showDeleteConfirmation(context);
+          if (confirmed && context.mounted) {
+            await ref
+                .read(tripListNotifierProvider.notifier)
+                .deleteTrip(trip.id);
+            if (context.mounted) {
+              if (embedded) {
+                onDeleted?.call();
+              } else {
+                context.pop();
+              }
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('Trip deleted')));
+            }
+          }
+        } else if (value == 'export') {
+          _showExportOptions(context, ref);
+        }
+      },
+      itemBuilder: (context) => [
+        const PopupMenuItem(
+          value: 'export',
+          child: Row(
+            children: [
+              Icon(Icons.file_download),
+              SizedBox(width: 8),
+              Text('Export'),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: 'delete',
+          child: Row(
+            children: [
+              Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
+              const SizedBox(width: 8),
+              Text(
+                'Delete',
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ],
           ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Trip header
-            _buildTripHeader(context, trip, dateFormat),
-            const SizedBox(height: 24),
-
-            // Trip info
-            if (trip.location != null ||
-                trip.resortName != null ||
-                trip.liveaboardName != null) ...[
-              _buildInfoSection(context, trip),
-              const SizedBox(height: 24),
-            ],
-
-            // Statistics
-            _buildStatsSection(context),
-            const SizedBox(height: 24),
-
-            // Notes
-            if (trip.notes.isNotEmpty) ...[
-              _buildNotesSection(context, trip),
-              const SizedBox(height: 24),
-            ],
-
-            // Dives
-            _buildDivesSection(context, ref, divesAsync),
-          ],
         ),
-      ),
+      ],
     );
   }
 
@@ -302,7 +425,6 @@ class _TripDetailContent extends ConsumerWidget {
                     onPressed: dives.isEmpty
                         ? null
                         : () {
-                            // Set trip filter and navigate to dive list
                             ref.read(diveFilterProvider.notifier).state =
                                 DiveFilterState(tripId: tripWithStats.trip.id);
                             context.go('/dives');
@@ -310,7 +432,7 @@ class _TripDetailContent extends ConsumerWidget {
                     child: Text('View All (${dives.length})'),
                   ),
                   loading: () => const SizedBox.shrink(),
-                  error: (_, _) => const SizedBox.shrink(),
+                  error: (e, st) => const SizedBox.shrink(),
                 ),
               ],
             ),
@@ -323,7 +445,6 @@ class _TripDetailContent extends ConsumerWidget {
                     child: Center(child: Text('No dives in this trip yet')),
                   );
                 }
-                // Sort by date and show first 5 dives
                 final sortedDives = List<Dive>.from(dives)
                   ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
                 final displayDives = sortedDives.take(5).toList();
@@ -339,7 +460,6 @@ class _TripDetailContent extends ConsumerWidget {
                         ),
                         child: Row(
                           children: [
-                            // Dive number badge
                             Container(
                               width: 40,
                               height: 40,
@@ -357,7 +477,6 @@ class _TripDetailContent extends ConsumerWidget {
                               ),
                             ),
                             const SizedBox(width: 12),
-                            // Dive details
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -380,7 +499,6 @@ class _TripDetailContent extends ConsumerWidget {
                                 ],
                               ),
                             ),
-                            // Stats
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
@@ -419,7 +537,7 @@ class _TripDetailContent extends ConsumerWidget {
                   child: CircularProgressIndicator.adaptive(),
                 ),
               ),
-              error: (_, _) => const Text('Unable to load dives'),
+              error: (e, st) => const Text('Unable to load dives'),
             ),
           ],
         ),

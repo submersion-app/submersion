@@ -1,51 +1,152 @@
 import 'package:flutter/material.dart';
-import 'package:submersion/core/providers/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
 import '../../domain/entities/certification.dart';
 import '../providers/certification_providers.dart';
 
-class CertificationDetailPage extends ConsumerWidget {
+class CertificationDetailPage extends ConsumerStatefulWidget {
   final String certificationId;
+  final bool embedded;
+  final VoidCallback? onDeleted;
 
-  const CertificationDetailPage({super.key, required this.certificationId});
+  const CertificationDetailPage({
+    super.key,
+    required this.certificationId,
+    this.embedded = false,
+    this.onDeleted,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CertificationDetailPage> createState() =>
+      _CertificationDetailPageState();
+}
+
+class _CertificationDetailPageState
+    extends ConsumerState<CertificationDetailPage> {
+  bool _hasRedirected = false;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.embedded &&
+        !_hasRedirected &&
+        ResponsiveBreakpoints.isDesktop(context)) {
+      _hasRedirected = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.go('/certifications?selected=${widget.certificationId}');
+        }
+      });
+    }
+
     final certificationAsync = ref.watch(
-      certificationByIdProvider(certificationId),
+      certificationByIdProvider(widget.certificationId),
     );
 
     return certificationAsync.when(
       data: (certification) {
         if (certification == null) {
+          if (widget.embedded) {
+            return const Center(child: Text('Certification not found'));
+          }
           return Scaffold(
             appBar: AppBar(title: const Text('Certification')),
             body: const Center(child: Text('Certification not found')),
           );
         }
-        return _CertificationDetailContent(certification: certification);
+        return _CertificationDetailContent(
+          certification: certification,
+          embedded: widget.embedded,
+          onDeleted: widget.onDeleted,
+        );
       },
-      loading: () => Scaffold(
-        appBar: AppBar(title: const Text('Certification')),
-        body: const Center(child: CircularProgressIndicator()),
-      ),
-      error: (error, stack) => Scaffold(
-        appBar: AppBar(title: const Text('Certification')),
-        body: Center(child: Text('Error: $error')),
-      ),
+      loading: () {
+        if (widget.embedded) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return Scaffold(
+          appBar: AppBar(title: const Text('Certification')),
+          body: const Center(child: CircularProgressIndicator()),
+        );
+      },
+      error: (error, stack) {
+        if (widget.embedded) {
+          return Center(child: Text('Error: $error'));
+        }
+        return Scaffold(
+          appBar: AppBar(title: const Text('Certification')),
+          body: Center(child: Text('Error: $error')),
+        );
+      },
     );
   }
 }
 
 class _CertificationDetailContent extends ConsumerWidget {
   final Certification certification;
+  final bool embedded;
+  final VoidCallback? onDeleted;
 
-  const _CertificationDetailContent({required this.certification});
+  const _CertificationDetailContent({
+    required this.certification,
+    this.embedded = false,
+    this.onDeleted,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final body = SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Status banner
+          _buildStatusBanner(context),
+          const SizedBox(height: 24),
+
+          // Header with agency logo
+          _buildHeader(context),
+          const SizedBox(height: 24),
+
+          // Basic info
+          _buildBasicInfoSection(context),
+          const SizedBox(height: 16),
+
+          // Dates
+          _buildDatesSection(context),
+          const SizedBox(height: 16),
+
+          // Instructor info
+          if (certification.instructorName != null ||
+              certification.instructorNumber != null) ...[
+            _buildInstructorSection(context),
+            const SizedBox(height: 16),
+          ],
+
+          // Card photos (placeholder for future)
+          if (certification.photoFrontPath != null ||
+              certification.photoBackPath != null) ...[
+            _buildPhotosSection(context),
+            const SizedBox(height: 16),
+          ],
+
+          // Notes
+          if (certification.notes.isNotEmpty) ...[_buildNotesSection(context)],
+        ],
+      ),
+    );
+
+    if (embedded) {
+      return Column(
+        children: [
+          _buildEmbeddedHeader(context, ref),
+          Expanded(child: body),
+        ],
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(certification.name),
@@ -58,18 +159,7 @@ class _CertificationDetailContent extends ConsumerWidget {
           PopupMenuButton<String>(
             onSelected: (value) async {
               if (value == 'delete') {
-                final confirmed = await _showDeleteConfirmation(context);
-                if (confirmed && context.mounted) {
-                  await ref
-                      .read(certificationListNotifierProvider.notifier)
-                      .deleteCertification(certification.id);
-                  if (context.mounted) {
-                    context.pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Certification deleted')),
-                    );
-                  }
-                }
+                await _handleDelete(context, ref);
               }
             },
             itemBuilder: (context) => [
@@ -87,49 +177,115 @@ class _CertificationDetailContent extends ConsumerWidget {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Status banner
-            _buildStatusBanner(context),
-            const SizedBox(height: 24),
+      body: body,
+    );
+  }
 
-            // Header with agency logo
-            _buildHeader(context),
-            const SizedBox(height: 24),
+  Widget _buildEmbeddedHeader(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
-            // Basic info
-            _buildBasicInfoSection(context),
-            const SizedBox(height: 16),
-
-            // Dates
-            _buildDatesSection(context),
-            const SizedBox(height: 16),
-
-            // Instructor info
-            if (certification.instructorName != null ||
-                certification.instructorNumber != null) ...[
-              _buildInstructorSection(context),
-              const SizedBox(height: 16),
-            ],
-
-            // Card photos (placeholder for future)
-            if (certification.photoFrontPath != null ||
-                certification.photoBackPath != null) ...[
-              _buildPhotosSection(context),
-              const SizedBox(height: 16),
-            ],
-
-            // Notes
-            if (certification.notes.isNotEmpty) ...[
-              _buildNotesSection(context),
-            ],
-          ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
         ),
       ),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Center(
+              child: Text(
+                certification.agency.displayName.substring(0, 4),
+                style: TextStyle(
+                  color: colorScheme.onPrimaryContainer,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 10,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  certification.name,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  certification.agency.displayName,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.edit, size: 20),
+            tooltip: 'Edit',
+            onPressed: () {
+              final state = GoRouterState.of(context);
+              context.go(
+                '${state.uri.path}?selected=${certification.id}&mode=edit',
+              );
+            },
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, size: 20),
+            onSelected: (value) async {
+              if (value == 'delete') {
+                await _handleDelete(context, ref);
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    Icon(Icons.delete, color: Colors.red, size: 20),
+                    SizedBox(width: 8),
+                    Text('Delete', style: TextStyle(color: Colors.red)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
+  }
+
+  Future<void> _handleDelete(BuildContext context, WidgetRef ref) async {
+    final confirmed = await _showDeleteConfirmation(context);
+    if (confirmed && context.mounted) {
+      await ref
+          .read(certificationListNotifierProvider.notifier)
+          .deleteCertification(certification.id);
+      if (context.mounted) {
+        if (embedded) {
+          onDeleted?.call();
+        } else {
+          context.pop();
+        }
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Certification deleted')));
+      }
+    }
   }
 
   Widget _buildStatusBanner(BuildContext context) {

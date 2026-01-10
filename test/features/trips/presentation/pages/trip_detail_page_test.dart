@@ -5,6 +5,18 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 
+void _setMobileTestSurfaceSize(WidgetTester tester) {
+  // The default widget test surface width is 800px, which trips the app's
+  // desktop breakpoint (>= 800). These tests exercise the mobile layout.
+  tester.view.devicePixelRatio = 1.0;
+  tester.view.physicalSize = const Size(390, 844);
+
+  addTearDown(() {
+    tester.view.resetPhysicalSize();
+    tester.view.resetDevicePixelRatio();
+  });
+}
+
 void main() {
   group('TripDetailPage', () {
     final testTrip = Trip(
@@ -28,6 +40,7 @@ void main() {
     );
 
     testWidgets('should display trip name in app bar', (tester) async {
+      _setMobileTestSurfaceSize(tester);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -50,6 +63,7 @@ void main() {
     });
 
     testWidgets('should display trip dates', (tester) async {
+      _setMobileTestSurfaceSize(tester);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -73,6 +87,7 @@ void main() {
     });
 
     testWidgets('should display Trip Statistics section', (tester) async {
+      _setMobileTestSurfaceSize(tester);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -95,6 +110,7 @@ void main() {
     });
 
     testWidgets('should display dive count in statistics', (tester) async {
+      _setMobileTestSurfaceSize(tester);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -118,6 +134,7 @@ void main() {
     });
 
     testWidgets('should display total bottom time', (tester) async {
+      _setMobileTestSurfaceSize(tester);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -141,6 +158,7 @@ void main() {
     });
 
     testWidgets('should display max depth', (tester) async {
+      _setMobileTestSurfaceSize(tester);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -166,6 +184,7 @@ void main() {
     testWidgets('should display Trip Details section with location', (
       tester,
     ) async {
+      _setMobileTestSurfaceSize(tester);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -189,6 +208,7 @@ void main() {
     });
 
     testWidgets('should display resort name', (tester) async {
+      _setMobileTestSurfaceSize(tester);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -212,6 +232,7 @@ void main() {
     });
 
     testWidgets('should display Notes section', (tester) async {
+      _setMobileTestSurfaceSize(tester);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -241,6 +262,7 @@ void main() {
     });
 
     testWidgets('should display Dives section', (tester) async {
+      _setMobileTestSurfaceSize(tester);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -272,6 +294,7 @@ void main() {
     testWidgets('should show empty dives message when no dives', (
       tester,
     ) async {
+      _setMobileTestSurfaceSize(tester);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -301,6 +324,7 @@ void main() {
     });
 
     testWidgets('should display edit icon button', (tester) async {
+      _setMobileTestSurfaceSize(tester);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -325,6 +349,7 @@ void main() {
     testWidgets('should display popup menu with export and delete', (
       tester,
     ) async {
+      _setMobileTestSurfaceSize(tester);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -355,6 +380,7 @@ void main() {
     testWidgets('should display flight takeoff icon for regular trip', (
       tester,
     ) async {
+      _setMobileTestSurfaceSize(tester);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -380,6 +406,7 @@ void main() {
     testWidgets('should display sailing icon for liveaboard trip', (
       tester,
     ) async {
+      _setMobileTestSurfaceSize(tester);
       final liveaboardTrip = Trip(
         id: 'liveaboard-id',
         name: 'Maldives Safari',

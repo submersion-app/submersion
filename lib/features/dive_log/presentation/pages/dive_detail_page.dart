@@ -24,6 +24,7 @@ import '../providers/dive_detail_ui_providers.dart';
 import '../providers/dive_providers.dart';
 import '../providers/gas_switch_providers.dart';
 import '../providers/profile_analysis_provider.dart';
+import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
 import '../widgets/collapsible_section.dart';
 import '../widgets/deco_info_panel.dart';
 import '../widgets/dive_profile_chart.dart';
@@ -61,7 +62,18 @@ double calculateSacNormalizationFactor(Dive dive, ProfileAnalysis? analysis) {
 class DiveDetailPage extends ConsumerStatefulWidget {
   final String diveId;
 
-  const DiveDetailPage({super.key, required this.diveId});
+  /// When true, renders without Scaffold wrapper for use in master-detail layout.
+  final bool embedded;
+
+  /// Callback when the dive is deleted (used in embedded mode).
+  final VoidCallback? onDeleted;
+
+  const DiveDetailPage({
+    super.key,
+    required this.diveId,
+    this.embedded = false,
+    this.onDeleted,
+  });
 
   @override
   ConsumerState<DiveDetailPage> createState() => _DiveDetailPageState();
@@ -71,10 +83,26 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   /// Currently selected point index on the profile timeline
   int? _selectedPointIndex;
 
+  /// Track if we've already initiated a redirect to prevent multiple calls
+  bool _hasRedirected = false;
+
   String get diveId => widget.diveId;
 
   @override
   Widget build(BuildContext context) {
+    // On desktop, redirect standalone detail pages to master-detail view
+    // This ensures all dive detail navigation shows the split layout on desktop
+    if (!widget.embedded &&
+        !_hasRedirected &&
+        ResponsiveBreakpoints.isDesktop(context)) {
+      _hasRedirected = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.go('/dives?selected=$diveId');
+        }
+      });
+    }
+
     final diveAsync = ref.watch(diveProvider(diveId));
 
     return diveAsync.when(
@@ -120,6 +148,64 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
 
+    final body = SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildHeaderSection(context, ref, dive, units),
+          const SizedBox(height: 24),
+          if (dive.profile.isNotEmpty) ...[
+            _buildProfileSection(context, ref, dive),
+            const SizedBox(height: 24),
+            _buildDecoSection(context, ref, dive),
+            const SizedBox(height: 24),
+            _buildO2ToxicitySection(context, ref, dive),
+            const SizedBox(height: 24),
+            _buildSacSegmentsSection(context, ref, dive),
+          ],
+          _buildDetailsSection(context, ref, dive, units),
+          if (_hasConditions(dive)) ...[
+            const SizedBox(height: 24),
+            _buildConditionsSection(context, dive),
+          ],
+          if (_hasWeights(dive)) ...[
+            const SizedBox(height: 24),
+            _buildWeightSection(context, dive, units),
+          ],
+          if (dive.tags.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            _buildTagsSection(context, dive),
+          ],
+          const SizedBox(height: 24),
+          _buildBuddiesSection(context, ref),
+          const SizedBox(height: 24),
+          if (dive.tanks.isNotEmpty) ...[
+            _buildTanksSection(context, dive, units),
+          ],
+          if (dive.equipment.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            _buildEquipmentSection(context, ref, dive),
+          ],
+          _buildSightingsSection(context, ref),
+          const SizedBox(height: 24),
+          _buildNotesSection(context, dive),
+          const SizedBox(height: 32),
+        ],
+      ),
+    );
+
+    // Embedded mode: Return content with a compact header bar (no Scaffold)
+    if (widget.embedded) {
+      return Column(
+        children: [
+          _buildEmbeddedHeader(context, ref, dive),
+          Expanded(child: body),
+        ],
+      );
+    }
+
+    // Standalone mode: Full Scaffold with AppBar
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dive Details'),
@@ -174,51 +260,136 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeaderSection(context, ref, dive, units),
-            const SizedBox(height: 24),
-            if (dive.profile.isNotEmpty) ...[
-              _buildProfileSection(context, ref, dive),
-              const SizedBox(height: 24),
-              _buildDecoSection(context, ref, dive),
-              const SizedBox(height: 24),
-              _buildO2ToxicitySection(context, ref, dive),
-              const SizedBox(height: 24),
-              _buildSacSegmentsSection(context, ref, dive),
-            ],
-            _buildDetailsSection(context, ref, dive, units),
-            if (_hasConditions(dive)) ...[
-              const SizedBox(height: 24),
-              _buildConditionsSection(context, dive),
-            ],
-            if (_hasWeights(dive)) ...[
-              const SizedBox(height: 24),
-              _buildWeightSection(context, dive, units),
-            ],
-            if (dive.tags.isNotEmpty) ...[
-              const SizedBox(height: 24),
-              _buildTagsSection(context, dive),
-            ],
-            const SizedBox(height: 24),
-            _buildBuddiesSection(context, ref),
-            const SizedBox(height: 24),
-            if (dive.tanks.isNotEmpty) ...[
-              _buildTanksSection(context, dive, units),
-            ],
-            if (dive.equipment.isNotEmpty) ...[
-              const SizedBox(height: 24),
-              _buildEquipmentSection(context, ref, dive),
-            ],
-            _buildSightingsSection(context, ref),
-            const SizedBox(height: 24),
-            _buildNotesSection(context, dive),
-            const SizedBox(height: 32),
-          ],
+      body: body,
+    );
+  }
+
+  /// Compact header bar for embedded mode in master-detail layout.
+  Widget _buildEmbeddedHeader(BuildContext context, WidgetRef ref, Dive dive) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
         ),
+      ),
+      child: Row(
+        children: [
+          // Dive number badge
+          CircleAvatar(
+            radius: 16,
+            backgroundColor: colorScheme.primaryContainer,
+            child: Text(
+              '#${dive.diveNumber ?? '-'}',
+              style: TextStyle(
+                color: colorScheme.onPrimaryContainer,
+                fontWeight: FontWeight.bold,
+                fontSize: 11,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Site name and location
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  dive.site?.name ?? 'Unknown Site',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (dive.site?.locationString.isNotEmpty == true)
+                  Text(
+                    dive.site!.locationString,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+              ],
+            ),
+          ),
+          // Favorite toggle
+          IconButton(
+            icon: Icon(
+              dive.isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: dive.isFavorite ? Colors.red : null,
+              size: 20,
+            ),
+            visualDensity: VisualDensity.compact,
+            tooltip: dive.isFavorite
+                ? 'Remove from favorites'
+                : 'Add to favorites',
+            onPressed: () {
+              ref
+                  .read(diveListNotifierProvider.notifier)
+                  .toggleFavorite(diveId);
+            },
+          ),
+          // Edit button - use query params in master-detail layout
+          IconButton(
+            icon: const Icon(Icons.edit, size: 20),
+            visualDensity: VisualDensity.compact,
+            tooltip: 'Edit',
+            onPressed: () {
+              final state = GoRouterState.of(context);
+              final currentPath = state.uri.path;
+              context.go('$currentPath?selected=$diveId&mode=edit');
+            },
+          ),
+          // More options
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, size: 20),
+            padding: EdgeInsets.zero,
+            onSelected: (value) {
+              switch (value) {
+                case 'export':
+                  _showExportOptions(context, ref, dive);
+                  break;
+                case 'delete':
+                  _showDeleteConfirmation(context, ref);
+                  break;
+                case 'open':
+                  // Open in full page mode
+                  context.go('/dives/$diveId');
+                  break;
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'open',
+                child: ListTile(
+                  leading: Icon(Icons.open_in_new),
+                  title: Text('Open Full Page'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'export',
+                child: ListTile(
+                  leading: Icon(Icons.download),
+                  title: Text('Export'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'delete',
+                child: ListTile(
+                  leading: Icon(Icons.delete, color: Colors.red),
+                  title: Text('Delete', style: TextStyle(color: Colors.red)),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -616,8 +787,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     // Get collapsed state from provider
     final isExpanded = ref.watch(decoSectionExpandedProvider);
 
-    // Build trailing badge for collapsed state
-    final Widget collapsedTrailing = Container(
+    // Build trailing badge for DECO/NO DECO status (always shown)
+    final Widget statusBadge = Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         color: status.inDeco
@@ -634,16 +805,35 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       ),
     );
 
-    // Collapsed subtitle showing key info
-    final collapsedSubtitle = status.inDeco
+    // Build "Show end" button for collapsed state (when a point is selected)
+    Widget? showEndButton;
+    if (_selectedPointIndex != null) {
+      showEndButton = TextButton.icon(
+        onPressed: () => setState(() => _selectedPointIndex = null),
+        icon: const Icon(Icons.last_page, size: 16),
+        label: const Text('Show end'),
+        style: TextButton.styleFrom(
+          visualDensity: VisualDensity.compact,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+        ),
+      );
+    }
+
+    // Collapsed subtitle showing key info and time if a point is selected
+    final baseInfo = status.inDeco
         ? 'Ceiling: ${status.ceilingMeters.toStringAsFixed(1)}m'
         : 'NDL: ${status.ndlFormatted}';
+    final collapsedSubtitle = _selectedPointIndex != null
+        ? 'At ${_formatTimestamp(dive.profile[_selectedPointIndex!].timestamp)} • $baseInfo'
+        : baseInfo;
 
     return CollapsibleCardSection(
       title: 'Decompression Status',
       icon: status.inDeco ? Icons.warning : Icons.check_circle,
       iconColor: status.inDeco ? Colors.orange : Colors.green,
-      trailing: collapsedTrailing, // Always show the DECO/NO DECO badge
+      trailing: statusBadge, // Always show the DECO/NO DECO badge
+      collapsedTrailing:
+          showEndButton, // Show "Show end" button when collapsed and point selected
       collapsedSubtitle: collapsedSubtitle,
       isExpanded: isExpanded,
       onToggle: (expanded) {
@@ -724,10 +914,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
     final exposure = analysis.o2Exposure;
 
-    // Build trailing badge for collapsed state
-    Widget? collapsedTrailing;
+    // Build trailing badge for collapsed state (warning/critical status)
+    Widget? trailingBadge;
     if (exposure.cnsWarning || exposure.ppO2Warning) {
-      collapsedTrailing = Container(
+      trailingBadge = Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         decoration: BoxDecoration(
           color: exposure.cnsCritical || exposure.ppO2Critical
@@ -747,15 +937,26 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       );
     }
 
-    // Collapsed subtitle showing key info (CNS and ppO2 if point selected)
-    final collapsedSubtitle = selectedPpO2 != null
-        ? 'CNS: ${exposure.cnsFormatted} · ppO₂: ${selectedPpO2.toStringAsFixed(2)} bar'
-        : 'CNS: ${exposure.cnsFormatted}';
+    // Collapsed subtitle showing CNS first, then max ppO2, and selected point ppO2 if applicable
+    final String collapsedSubtitle;
+    if (selectedPpO2 != null && _selectedPointIndex != null) {
+      // Show CNS first, then max ppO2, then ppO2 at selected time
+      collapsedSubtitle =
+          'CNS: ${exposure.cnsFormatted} • '
+          'Max ppO₂: ${exposure.maxPpO2Formatted} • '
+          'At ${_formatTimestamp(dive.profile[_selectedPointIndex!].timestamp)}: '
+          '${selectedPpO2.toStringAsFixed(2)} bar';
+    } else {
+      // Show CNS and max ppO2
+      collapsedSubtitle =
+          'CNS: ${exposure.cnsFormatted} • Max ppO₂: ${exposure.maxPpO2Formatted}';
+    }
 
     return CollapsibleCardSection(
       title: 'Oxygen Toxicity',
       icon: Icons.air,
-      collapsedTrailing: collapsedTrailing,
+      trailing:
+          trailingBadge, // Always show warning/critical badge if applicable
       collapsedSubtitle: collapsedSubtitle,
       isExpanded: isExpanded,
       onToggle: (expanded) {
@@ -1922,7 +2123,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   .read(diveListNotifierProvider.notifier)
                   .deleteDive(diveId);
               if (context.mounted) {
-                context.go('/dives');
+                if (widget.embedded && widget.onDeleted != null) {
+                  // In embedded mode, call the callback to clear selection
+                  widget.onDeleted!();
+                } else {
+                  // In standalone mode, navigate back to list
+                  context.go('/dives');
+                }
               }
             },
             style: FilledButton.styleFrom(

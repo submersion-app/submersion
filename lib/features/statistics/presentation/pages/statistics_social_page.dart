@@ -9,25 +9,33 @@ import '../widgets/stat_charts.dart';
 import '../widgets/stat_section_card.dart';
 
 class StatisticsSocialPage extends ConsumerWidget {
-  const StatisticsSocialPage({super.key});
+  final bool embedded;
+
+  const StatisticsSocialPage({super.key, this.embedded = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final content = SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSoloVsBuddySection(context, ref),
+          const SizedBox(height: 16),
+          _buildTopBuddiesSection(context, ref),
+          const SizedBox(height: 16),
+          _buildTopDiveCentersSection(context, ref),
+        ],
+      ),
+    );
+
+    if (embedded) {
+      return content;
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Social & Buddies')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSoloVsBuddySection(context, ref),
-            const SizedBox(height: 16),
-            _buildTopBuddiesSection(context, ref),
-            const SizedBox(height: 16),
-            _buildTopDiveCentersSection(context, ref),
-          ],
-        ),
-      ),
+      body: content,
     );
   }
 
