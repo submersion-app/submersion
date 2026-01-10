@@ -165,23 +165,19 @@ class _SettingsSectionTile extends StatelessWidget {
             color: color.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(
-            section.icon,
-            color: color,
-            size: 24,
-          ),
+          child: Icon(section.icon, color: color, size: 24),
         ),
         title: Text(
           section.title,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-              ),
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+          ),
         ),
         subtitle: Text(
           section.subtitle,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
         ),
         trailing: Icon(
           Icons.chevron_right,

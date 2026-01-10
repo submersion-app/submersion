@@ -35,10 +35,10 @@ class SettingsPage extends ConsumerWidget {
         sectionId: 'settings',
         masterBuilder: (context, onItemSelected, selectedId) =>
             SettingsListContent(
-          onItemSelected: onItemSelected,
-          selectedId: selectedId,
-          showAppBar: false,
-        ),
+              onItemSelected: onItemSelected,
+              selectedId: selectedId,
+              showAppBar: false,
+            ),
         detailBuilder: (context, sectionId) =>
             _buildSectionContent(context, ref, sectionId),
         summaryBuilder: (context) => const SettingsSummaryWidget(),
@@ -123,17 +123,15 @@ class _MobileSettingsTile extends StatelessWidget {
       ),
       title: Text(
         section.title,
-        style: Theme.of(context)
-            .textTheme
-            .titleMedium
-            ?.copyWith(fontWeight: FontWeight.w500),
+        style: Theme.of(
+          context,
+        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
       ),
       subtitle: Text(
         section.subtitle,
-        style: Theme.of(context)
-            .textTheme
-            .bodySmall
-            ?.copyWith(color: colorScheme.onSurfaceVariant),
+        style: Theme.of(
+          context,
+        ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
       ),
       trailing: Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
       onTap: () => _navigateToSection(context, section.id),
@@ -189,9 +187,9 @@ class _ProfileSectionContent extends ConsumerWidget {
           _buildSectionHeader(context, 'Active Diver'),
           const SizedBox(height: 8),
           currentDiverAsync.when(
-            data: (diver) => _buildDiverCard(context, ref, diver, allDiversAsync),
-            loading: () =>
-                const Center(child: CircularProgressIndicator()),
+            data: (diver) =>
+                _buildDiverCard(context, ref, diver, allDiversAsync),
+            loading: () => const Center(child: CircularProgressIndicator()),
             error: (error, _) => Card(
               child: ListTile(
                 leading: const Icon(Icons.error, color: Colors.red),
@@ -253,8 +251,9 @@ class _ProfileSectionContent extends ConsumerWidget {
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-          backgroundImage:
-              diver.photoPath != null ? AssetImage(diver.photoPath!) : null,
+          backgroundImage: diver.photoPath != null
+              ? AssetImage(diver.photoPath!)
+              : null,
           child: diver.photoPath == null
               ? Text(
                   diver.initials,
@@ -308,8 +307,9 @@ class _ProfileSectionContent extends ConsumerWidget {
 
                     return ListTile(
                       leading: CircleAvatar(
-                        backgroundColor:
-                            Theme.of(context).colorScheme.primaryContainer,
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.primaryContainer,
                         backgroundImage: diver.photoPath != null
                             ? AssetImage(diver.photoPath!)
                             : null,
@@ -317,9 +317,9 @@ class _ProfileSectionContent extends ConsumerWidget {
                             ? Text(
                                 diver.initials,
                                 style: TextStyle(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onPrimaryContainer,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimaryContainer,
                                   fontWeight: FontWeight.bold,
                                 ),
                               )
@@ -343,7 +343,9 @@ class _ProfileSectionContent extends ConsumerWidget {
                         }
                         if (context.mounted && !isCurrentDiver) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Switched to ${diver.name}')),
+                            SnackBar(
+                              content: Text('Switched to ${diver.name}'),
+                            ),
                           );
                         }
                       },
@@ -416,16 +418,22 @@ class _UnitsSectionContent extends ConsumerWidget {
                   context,
                   title: 'Temperature',
                   value: '°${settings.temperatureUnit.symbol}',
-                  onTap: () =>
-                      _showTempUnitPicker(context, ref, settings.temperatureUnit),
+                  onTap: () => _showTempUnitPicker(
+                    context,
+                    ref,
+                    settings.temperatureUnit,
+                  ),
                 ),
                 const Divider(height: 1),
                 _buildUnitTile(
                   context,
                   title: 'Pressure',
                   value: settings.pressureUnit.symbol,
-                  onTap: () =>
-                      _showPressureUnitPicker(context, ref, settings.pressureUnit),
+                  onTap: () => _showPressureUnitPicker(
+                    context,
+                    ref,
+                    settings.pressureUnit,
+                  ),
                 ),
                 const Divider(height: 1),
                 _buildUnitTile(
@@ -472,16 +480,15 @@ class _UnitsSectionContent extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Quick Select',
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
+            Text('Quick Select', style: Theme.of(context).textTheme.titleSmall),
             const SizedBox(height: 12),
             SegmentedButton<UnitPreset>(
               segments: const [
                 ButtonSegment(value: UnitPreset.metric, label: Text('Metric')),
                 ButtonSegment(
-                    value: UnitPreset.imperial, label: Text('Imperial')),
+                  value: UnitPreset.imperial,
+                  label: Text('Imperial'),
+                ),
                 ButtonSegment(value: UnitPreset.custom, label: Text('Custom')),
               ],
               selected: {settings.unitPreset},
@@ -519,8 +526,8 @@ class _UnitsSectionContent extends ConsumerWidget {
           Text(
             value,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
           const Icon(Icons.chevron_right),
         ],
@@ -530,7 +537,10 @@ class _UnitsSectionContent extends ConsumerWidget {
   }
 
   void _showDepthUnitPicker(
-      BuildContext context, WidgetRef ref, DepthUnit currentUnit) {
+    BuildContext context,
+    WidgetRef ref,
+    DepthUnit currentUnit,
+  ) {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -540,10 +550,14 @@ class _UnitsSectionContent extends ConsumerWidget {
           children: DepthUnit.values.map((unit) {
             final isSelected = unit == currentUnit;
             return ListTile(
-              title:
-                  Text(unit == DepthUnit.meters ? 'Meters (m)' : 'Feet (ft)'),
+              title: Text(
+                unit == DepthUnit.meters ? 'Meters (m)' : 'Feet (ft)',
+              ),
               trailing: isSelected
-                  ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
+                  ? Icon(
+                      Icons.check,
+                      color: Theme.of(context).colorScheme.primary,
+                    )
                   : null,
               onTap: () {
                 ref.read(settingsProvider.notifier).setDepthUnit(unit);
@@ -557,7 +571,10 @@ class _UnitsSectionContent extends ConsumerWidget {
   }
 
   void _showTempUnitPicker(
-      BuildContext context, WidgetRef ref, TemperatureUnit currentUnit) {
+    BuildContext context,
+    WidgetRef ref,
+    TemperatureUnit currentUnit,
+  ) {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -567,11 +584,16 @@ class _UnitsSectionContent extends ConsumerWidget {
           children: TemperatureUnit.values.map((unit) {
             final isSelected = unit == currentUnit;
             return ListTile(
-              title: Text(unit == TemperatureUnit.celsius
-                  ? 'Celsius (°C)'
-                  : 'Fahrenheit (°F)'),
+              title: Text(
+                unit == TemperatureUnit.celsius
+                    ? 'Celsius (°C)'
+                    : 'Fahrenheit (°F)',
+              ),
               trailing: isSelected
-                  ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
+                  ? Icon(
+                      Icons.check,
+                      color: Theme.of(context).colorScheme.primary,
+                    )
                   : null,
               onTap: () {
                 ref.read(settingsProvider.notifier).setTemperatureUnit(unit);
@@ -585,7 +607,10 @@ class _UnitsSectionContent extends ConsumerWidget {
   }
 
   void _showPressureUnitPicker(
-      BuildContext context, WidgetRef ref, PressureUnit currentUnit) {
+    BuildContext context,
+    WidgetRef ref,
+    PressureUnit currentUnit,
+  ) {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -597,7 +622,10 @@ class _UnitsSectionContent extends ConsumerWidget {
             return ListTile(
               title: Text(unit == PressureUnit.bar ? 'Bar' : 'PSI'),
               trailing: isSelected
-                  ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
+                  ? Icon(
+                      Icons.check,
+                      color: Theme.of(context).colorScheme.primary,
+                    )
                   : null,
               onTap: () {
                 ref.read(settingsProvider.notifier).setPressureUnit(unit);
@@ -611,7 +639,10 @@ class _UnitsSectionContent extends ConsumerWidget {
   }
 
   void _showVolumeUnitPicker(
-      BuildContext context, WidgetRef ref, VolumeUnit currentUnit) {
+    BuildContext context,
+    WidgetRef ref,
+    VolumeUnit currentUnit,
+  ) {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -621,11 +652,14 @@ class _UnitsSectionContent extends ConsumerWidget {
           children: VolumeUnit.values.map((unit) {
             final isSelected = unit == currentUnit;
             return ListTile(
-              title: Text(unit == VolumeUnit.liters
-                  ? 'Liters (L)'
-                  : 'Cubic Feet (cuft)'),
+              title: Text(
+                unit == VolumeUnit.liters ? 'Liters (L)' : 'Cubic Feet (cuft)',
+              ),
               trailing: isSelected
-                  ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
+                  ? Icon(
+                      Icons.check,
+                      color: Theme.of(context).colorScheme.primary,
+                    )
                   : null,
               onTap: () {
                 ref.read(settingsProvider.notifier).setVolumeUnit(unit);
@@ -639,7 +673,10 @@ class _UnitsSectionContent extends ConsumerWidget {
   }
 
   void _showWeightUnitPicker(
-      BuildContext context, WidgetRef ref, WeightUnit currentUnit) {
+    BuildContext context,
+    WidgetRef ref,
+    WeightUnit currentUnit,
+  ) {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -649,11 +686,16 @@ class _UnitsSectionContent extends ConsumerWidget {
           children: WeightUnit.values.map((unit) {
             final isSelected = unit == currentUnit;
             return ListTile(
-              title: Text(unit == WeightUnit.kilograms
-                  ? 'Kilograms (kg)'
-                  : 'Pounds (lbs)'),
+              title: Text(
+                unit == WeightUnit.kilograms
+                    ? 'Kilograms (kg)'
+                    : 'Pounds (lbs)',
+              ),
               trailing: isSelected
-                  ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
+                  ? Icon(
+                      Icons.check,
+                      color: Theme.of(context).colorScheme.primary,
+                    )
                   : null,
               onTap: () {
                 ref.read(settingsProvider.notifier).setWeightUnit(unit);
@@ -667,7 +709,10 @@ class _UnitsSectionContent extends ConsumerWidget {
   }
 
   void _showSacUnitPicker(
-      BuildContext context, WidgetRef ref, SacUnit currentUnit) {
+    BuildContext context,
+    WidgetRef ref,
+    SacUnit currentUnit,
+  ) {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -679,7 +724,10 @@ class _UnitsSectionContent extends ConsumerWidget {
               title: const Text('Volume per minute'),
               subtitle: const Text('Requires tank volume (L/min or cuft/min)'),
               trailing: currentUnit == SacUnit.litersPerMin
-                  ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
+                  ? Icon(
+                      Icons.check,
+                      color: Theme.of(context).colorScheme.primary,
+                    )
                   : null,
               onTap: () {
                 ref
@@ -690,10 +738,14 @@ class _UnitsSectionContent extends ConsumerWidget {
             ),
             ListTile(
               title: const Text('Pressure per minute'),
-              subtitle:
-                  const Text('No tank volume needed (bar/min or psi/min)'),
+              subtitle: const Text(
+                'No tank volume needed (bar/min or psi/min)',
+              ),
               trailing: currentUnit == SacUnit.pressurePerMin
-                  ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
+                  ? Icon(
+                      Icons.check,
+                      color: Theme.of(context).colorScheme.primary,
+                    )
                   : null,
               onTap: () {
                 ref
@@ -792,8 +844,10 @@ class _AppearanceSectionContent extends ConsumerWidget {
                   leading: Icon(_getThemeModeIcon(mode)),
                   title: Text(_getThemeModeName(mode)),
                   trailing: isSelected
-                      ? Icon(Icons.check,
-                          color: Theme.of(context).colorScheme.primary)
+                      ? Icon(
+                          Icons.check,
+                          color: Theme.of(context).colorScheme.primary,
+                        )
                       : null,
                   onTap: () {
                     ref.read(settingsProvider.notifier).setThemeMode(mode);
@@ -844,9 +898,7 @@ class _AppearanceSectionContent extends ConsumerWidget {
           Card(
             child: SwitchListTile(
               title: const Text('Map background on site cards'),
-              subtitle: const Text(
-                'Show map as background on dive site cards',
-              ),
+              subtitle: const Text('Show map as background on dive site cards'),
               secondary: const Icon(Icons.map),
               value: settings.showMapBackgroundOnSiteCards,
               onChanged: (value) {
@@ -1082,7 +1134,9 @@ class _DataSectionContent extends ConsumerWidget {
                   onTap: () => _handleExport(
                     context,
                     ref,
-                    () => ref.read(exportNotifierProvider.notifier).createBackup(),
+                    () => ref
+                        .read(exportNotifierProvider.notifier)
+                        .createBackup(),
                   ),
                 ),
                 const Divider(height: 1),
@@ -1113,7 +1167,9 @@ class _DataSectionContent extends ConsumerWidget {
                           syncState.conflicts == 0)
                         Badge(
                           label: Text('${syncState.pendingChanges}'),
-                          backgroundColor: Theme.of(context).colorScheme.primary,
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.primary,
                         ),
                       const SizedBox(width: 8),
                       const Icon(Icons.chevron_right),
@@ -1549,8 +1605,8 @@ class _AboutSectionContent extends StatelessWidget {
                 Text(
                   'Version 0.1.0',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -1593,15 +1649,17 @@ Widget _buildSectionHeader(BuildContext context, String title) {
   return Text(
     title,
     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-          color: Theme.of(context).colorScheme.primary,
-          fontWeight: FontWeight.bold,
-        ),
+      color: Theme.of(context).colorScheme.primary,
+      fontWeight: FontWeight.bold,
+    ),
   );
 }
 
 Widget _buildInfoCard(BuildContext context, String title, String content) {
   return Card(
-    color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+    color: Theme.of(
+      context,
+    ).colorScheme.primaryContainer.withValues(alpha: 0.3),
     child: Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -1617,17 +1675,14 @@ Widget _buildInfoCard(BuildContext context, String title, String content) {
               const SizedBox(width: 8),
               Text(
                 title,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            content,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
+          Text(content, style: Theme.of(context).textTheme.bodySmall),
         ],
       ),
     ),
@@ -1780,7 +1835,11 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline, size: 20, color: colorScheme.primary),
+                  Icon(
+                    Icons.info_outline,
+                    size: 20,
+                    color: colorScheme.primary,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -1792,8 +1851,12 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
               ),
             ),
             const SizedBox(height: 16),
-            Text('Presets',
-                style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              'Presets',
+              style: textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 8),
             ...GfPreset.values.where((p) => p != GfPreset.custom).map((preset) {
               final isSelected = _selectedPreset == preset;
@@ -1804,7 +1867,9 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
                   borderRadius: BorderRadius.circular(8),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 10),
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
                     decoration: BoxDecoration(
                       color: isSelected
                           ? colorScheme.primaryContainer
@@ -1820,18 +1885,26 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(preset.name,
-                                  style: textTheme.bodyMedium
-                                      ?.copyWith(fontWeight: FontWeight.w600)),
-                              Text(preset.description,
-                                  style: textTheme.bodySmall?.copyWith(
-                                      color: colorScheme.onSurfaceVariant)),
+                              Text(
+                                preset.name,
+                                style: textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Text(
+                                preset.description,
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
                             ],
                           ),
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? colorScheme.primary
@@ -1859,13 +1932,18 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
             const SizedBox(height: 16),
             Row(
               children: [
-                Text('Custom Values',
-                    style:
-                        textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  'Custom Values',
+                  style: textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const Spacer(),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: colorScheme.primaryContainer,
                     borderRadius: BorderRadius.circular(16),
@@ -1883,7 +1961,10 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
             const SizedBox(height: 16),
             Row(
               children: [
-                SizedBox(width: 60, child: Text('GF Low', style: textTheme.bodyMedium)),
+                SizedBox(
+                  width: 60,
+                  child: Text('GF Low', style: textTheme.bodyMedium),
+                ),
                 Expanded(
                   child: Slider(
                     value: _gfLow.toDouble(),
@@ -1896,16 +1977,22 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
                 ),
                 SizedBox(
                   width: 36,
-                  child: Text('$_gfLow',
-                      style:
-                          textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.right),
+                  child: Text(
+                    '$_gfLow',
+                    style: textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.right,
+                  ),
                 ),
               ],
             ),
             Row(
               children: [
-                SizedBox(width: 60, child: Text('GF High', style: textTheme.bodyMedium)),
+                SizedBox(
+                  width: 60,
+                  child: Text('GF High', style: textTheme.bodyMedium),
+                ),
                 Expanded(
                   child: Slider(
                     value: _gfHigh.toDouble(),
@@ -1918,10 +2005,13 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
                 ),
                 SizedBox(
                   width: 36,
-                  child: Text('$_gfHigh',
-                      style:
-                          textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.right),
+                  child: Text(
+                    '$_gfHigh',
+                    style: textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.right,
+                  ),
                 ),
               ],
             ),

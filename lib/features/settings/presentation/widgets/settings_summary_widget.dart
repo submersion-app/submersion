@@ -39,8 +39,8 @@ class SettingsSummaryWidget extends ConsumerWidget {
                     Text(
                       'Select a category to configure',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
@@ -52,9 +52,9 @@ class SettingsSummaryWidget extends ConsumerWidget {
           // Current Configuration Summary
           Text(
             'Current Configuration',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
 
@@ -123,7 +123,11 @@ class SettingsSummaryWidget extends ConsumerWidget {
                     'Temperature',
                     '°${settings.temperatureUnit.symbol}',
                   ),
-                  _buildUnitRow(context, 'Pressure', settings.pressureUnit.symbol),
+                  _buildUnitRow(
+                    context,
+                    'Pressure',
+                    settings.pressureUnit.symbol,
+                  ),
                   _buildUnitRow(context, 'Volume', settings.volumeUnit.symbol),
                   _buildUnitRow(context, 'Weight', settings.weightUnit.symbol),
                 ],
@@ -135,7 +139,9 @@ class SettingsSummaryWidget extends ConsumerWidget {
 
           // Tip card
           Card(
-            color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+            color: Theme.of(
+              context,
+            ).colorScheme.primaryContainer.withValues(alpha: 0.3),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -173,24 +179,20 @@ class SettingsSummaryWidget extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              icon,
-              color: Theme.of(context).colorScheme.primary,
-              size: 24,
-            ),
+            Icon(icon, color: Theme.of(context).colorScheme.primary, size: 24),
             const SizedBox(height: 8),
             Text(
               label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
               value,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               overflow: TextOverflow.ellipsis,
             ),
           ],
@@ -205,16 +207,13 @@ class SettingsSummaryWidget extends ConsumerWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
+          Text(label, style: Theme.of(context).textTheme.bodyMedium),
           Text(
             value,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
         ],
       ),

@@ -75,8 +75,8 @@ class StatisticsSummaryWidget extends ConsumerWidget {
                     Text(
                       'Select a category to explore detailed statistics',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
@@ -177,8 +177,8 @@ class StatisticsSummaryWidget extends ConsumerWidget {
             Text(
               label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -511,8 +511,8 @@ class StatisticsSummaryWidget extends ConsumerWidget {
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
       ],
     );
@@ -538,8 +538,8 @@ class StatisticsSummaryWidget extends ConsumerWidget {
                   Text(
                     '${stats.totalSites} total',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
               ],
             ),
@@ -572,9 +572,8 @@ class StatisticsSummaryWidget extends ConsumerWidget {
                       Text(
                         'No dive sites yet',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color:
-                                  Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),
@@ -684,22 +683,22 @@ class StatisticsSummaryWidget extends ConsumerWidget {
                           const SizedBox(height: 8),
                           Text(
                             'No tags created yet',
-                            style:
-                                Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant,
-                                    ),
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             'Add tags to dives to see statistics',
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant,
-                                    ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
                           ),
                         ],
                       ),
@@ -731,14 +730,15 @@ class StatisticsSummaryWidget extends ConsumerWidget {
                     Text(
                       '${tagStats.length} tags',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
                 const Divider(),
-                ...tagStats.take(10).map(
+                ...tagStats
+                    .take(10)
+                    .map(
                       (stat) => _buildTagStatTile(
                         context,
                         stat.tag.name,
@@ -753,9 +753,8 @@ class StatisticsSummaryWidget extends ConsumerWidget {
                     child: Text(
                       'and ${tagStats.length - 10} more tags',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ),
                 ],
@@ -810,9 +809,8 @@ class StatisticsSummaryWidget extends ConsumerWidget {
                     Text(
                       '$diveCount ${diveCount == 1 ? 'dive' : 'dives'}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),

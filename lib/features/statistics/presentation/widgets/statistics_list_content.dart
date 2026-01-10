@@ -193,23 +193,19 @@ class _StatisticsCategoryTile extends StatelessWidget {
             color: category.color.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(
-            category.icon,
-            color: category.color,
-            size: 24,
-          ),
+          child: Icon(category.icon, color: category.color, size: 24),
         ),
         title: Text(
           category.title,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-              ),
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+          ),
         ),
         subtitle: Text(
           category.subtitle,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
         ),
         trailing: Icon(
           Icons.chevron_right,
