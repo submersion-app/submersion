@@ -38,3 +38,7 @@ pubspec.lock
 .claude/settings.local.json
 coverage/
 devtools_options.yaml
+
+# Python
+*__pycache__/
+*.py[cod]

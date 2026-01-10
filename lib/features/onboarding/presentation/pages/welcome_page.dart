@@ -102,7 +102,7 @@ class _WelcomePageState extends ConsumerState<WelcomePage> {
                   const SizedBox(height: 12),
 
                   Text(
-                    'Your personal dive logging companion',
+                    'Advanced dive logging and analysis',
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
