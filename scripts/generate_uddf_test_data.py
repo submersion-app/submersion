@@ -469,7 +469,8 @@ def generate_sightings(site: Dict, site_type: str, num_sightings: int = None) ->
 # =============================================================================
 # DIVE CONDITIONS AND RATINGS
 # =============================================================================
-WIND_DIRECTIONS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+# Current direction values matching Dart enum (camelCase)
+CURRENT_DIRECTIONS = ["north", "northEast", "east", "southEast", "south", "southWest", "west", "northWest"]
 ENTRY_METHODS = ["shore", "boat", "giantStride", "backRoll", "ladder"]
 
 
@@ -502,7 +503,7 @@ def generate_dive_conditions(site: Dict, site_type: str) -> Dict:
     else:
         current_strength = random.choice(["none", "light", "light", "moderate"])
 
-    current_direction = random.choice(WIND_DIRECTIONS) if current_strength != "none" else None
+    current_direction = random.choice(CURRENT_DIRECTIONS) if current_strength != "none" else None
 
     # Swell for ocean sites
     if site_type == "cenote" or site.get("water_type") == "freshwater":
@@ -1373,40 +1374,40 @@ TRIP_DESTINATIONS = [
 ]
 
 # Tank configurations for different dive types
-# volume in liters, working_pressure in bar
+# volume in liters, working_pressure in bar, material matches Dart TankMaterial enum
 TANK_CONFIGS = {
     "recreational_single": [
-        {"volume": 12.0, "working_pressure": 232, "mix_id": "air", "role": "main"},
+        {"volume": 12.0, "working_pressure": 232, "mix_id": "air", "role": "main", "material": "steel"},
     ],
     "recreational_nitrox": [
-        {"volume": 12.0, "working_pressure": 232, "mix_id": "ean32", "role": "main"},
+        {"volume": 12.0, "working_pressure": 232, "mix_id": "ean32", "role": "main", "material": "steel"},
     ],
     "recreational_al80": [
-        {"volume": 11.1, "working_pressure": 207, "mix_id": "air", "role": "main"},
+        {"volume": 11.1, "working_pressure": 207, "mix_id": "air", "role": "main", "material": "aluminum"},
     ],
     "tec_single_stage": [
-        {"volume": 12.0, "working_pressure": 232, "mix_id": "ean32", "role": "main"},
-        {"volume": 11.1, "working_pressure": 207, "mix_id": "ean50", "role": "stage"},
+        {"volume": 12.0, "working_pressure": 232, "mix_id": "ean32", "role": "main", "material": "steel"},
+        {"volume": 11.1, "working_pressure": 207, "mix_id": "ean50", "role": "stage", "material": "aluminum"},
     ],
     "tec_doubles": [
-        {"volume": 12.0, "working_pressure": 232, "mix_id": "air", "role": "main"},
-        {"volume": 12.0, "working_pressure": 232, "mix_id": "air", "role": "main"},
+        {"volume": 12.0, "working_pressure": 232, "mix_id": "air", "role": "main", "material": "steel"},
+        {"volume": 12.0, "working_pressure": 232, "mix_id": "air", "role": "main", "material": "steel"},
     ],
     "tec_doubles_deco": [
-        {"volume": 12.0, "working_pressure": 232, "mix_id": "tx21_35", "role": "main"},
-        {"volume": 12.0, "working_pressure": 232, "mix_id": "tx21_35", "role": "main"},
-        {"volume": 11.1, "working_pressure": 207, "mix_id": "ean50", "role": "stage"},
-        {"volume": 7.0, "working_pressure": 232, "mix_id": "oxygen", "role": "stage"},
+        {"volume": 12.0, "working_pressure": 232, "mix_id": "tx21_35", "role": "main", "material": "steel"},
+        {"volume": 12.0, "working_pressure": 232, "mix_id": "tx21_35", "role": "main", "material": "steel"},
+        {"volume": 11.1, "working_pressure": 207, "mix_id": "ean50", "role": "stage", "material": "aluminum"},
+        {"volume": 7.0, "working_pressure": 232, "mix_id": "oxygen", "role": "stage", "material": "aluminum"},
     ],
     "tec_deep": [
-        {"volume": 12.0, "working_pressure": 232, "mix_id": "tx18_45", "role": "main"},
-        {"volume": 12.0, "working_pressure": 232, "mix_id": "tx18_45", "role": "main"},
-        {"volume": 11.1, "working_pressure": 207, "mix_id": "ean50", "role": "stage"},
-        {"volume": 7.0, "working_pressure": 232, "mix_id": "oxygen", "role": "stage"},
+        {"volume": 12.0, "working_pressure": 232, "mix_id": "tx18_45", "role": "main", "material": "steel"},
+        {"volume": 12.0, "working_pressure": 232, "mix_id": "tx18_45", "role": "main", "material": "steel"},
+        {"volume": 11.1, "working_pressure": 207, "mix_id": "ean50", "role": "stage", "material": "aluminum"},
+        {"volume": 7.0, "working_pressure": 232, "mix_id": "oxygen", "role": "stage", "material": "aluminum"},
     ],
     "sidemount": [
-        {"volume": 11.1, "working_pressure": 207, "mix_id": "ean32", "role": "main"},
-        {"volume": 11.1, "working_pressure": 207, "mix_id": "ean32", "role": "main"},
+        {"volume": 11.1, "working_pressure": 207, "mix_id": "ean32", "role": "main", "material": "aluminum"},
+        {"volume": 11.1, "working_pressure": 207, "mix_id": "ean32", "role": "main", "material": "aluminum"},
     ],
 }
 
@@ -1461,23 +1462,46 @@ def map_cert_level(padi_level: str) -> str:
     return mapping.get(padi_level, "other")
 
 
-def calculate_service_date(purchase_date: str) -> str:
+def calculate_service_date(purchase_date: str, reference_date: datetime = None) -> str:
     """Calculate a realistic last service date based on purchase date."""
+    if reference_date is None:
+        reference_date = datetime.now() - timedelta(days=5)  # Default to 5 days ago
+
     if not purchase_date:
-        return "2024-01-15"
+        return (reference_date - timedelta(days=365)).strftime("%Y-%m-%d")
 
     try:
         purchase = datetime.strptime(purchase_date, "%Y-%m-%d")
         # Service every year, last service is most recent anniversary
-        now = datetime(2025, 1, 1)  # Reference date for test data
-        years_owned = (now - purchase).days // 365
+        years_owned = (reference_date - purchase).days // 365
         if years_owned > 0:
             last_service = purchase.replace(year=purchase.year + years_owned)
             return last_service.strftime("%Y-%m-%d")
         else:
             return purchase_date  # Not yet due for service
     except ValueError:
-        return "2024-01-15"
+        return (reference_date - timedelta(days=365)).strftime("%Y-%m-%d")
+
+
+def adjust_equipment_date(original_date: str, equipment_base: datetime) -> str:
+    """Adjust equipment date relative to dynamic date range.
+
+    Original dates are relative to 2018 baseline. This function adjusts them
+    to be relative to equipment_base (typically dive start_date - 1 year).
+    """
+    if not original_date:
+        return equipment_base.strftime("%Y-%m-%d")
+
+    try:
+        original = datetime.strptime(original_date, "%Y-%m-%d")
+        # Calculate days offset from 2018-01-01
+        baseline = datetime(2018, 1, 1)
+        offset_days = (original - baseline).days
+        # Apply same offset to equipment_base
+        adjusted = equipment_base + timedelta(days=offset_days)
+        return adjusted.strftime("%Y-%m-%d")
+    except ValueError:
+        return equipment_base.strftime("%Y-%m-%d")
 
 
 def get_tank_config_type(tank_configs: List[Dict]) -> str:
@@ -1518,6 +1542,7 @@ def generate_dive_profile(
     site_type: str = "reef",
     thermocline_profile: Dict = None,
     tissue_state: TissueState = None,
+    sample_interval: int = 10,
 ) -> Tuple[List[Dict], List[Dict], TissueState]:
     """Generate realistic depth, temperature, and pressure profiles using Bühlmann ZHL-16C.
 
@@ -1550,7 +1575,6 @@ def generate_dive_profile(
     """
 
     profile_points = []
-    sample_interval = 10  # 10-second samples for detailed profiles
     total_seconds = duration_minutes * 60
 
     # Descent/ascent rates
@@ -1978,24 +2002,38 @@ def prettify_xml(elem):
     return reparsed.toprettyxml(indent="  ")
 
 
-def generate_trips(start_date: datetime, num_trips: int = 20) -> List[Dict]:
+def generate_trips(start_date: datetime, end_date: datetime, num_trips: int = 20) -> List[Dict]:
     """Generate trip data with dates spread across the dive date range."""
     trips = []
 
-    # Space trips throughout the date range (about 2018-2025)
-    # Each trip is 4-7 days
-    date_cursor = start_date + timedelta(days=random.randint(14, 30))
+    # Calculate total available days and distribute trips evenly
+    total_days = (end_date - start_date).days
+    if total_days < num_trips * 14:  # Need at least 2 weeks per trip cycle
+        num_trips = max(1, total_days // 14)
+
+    # Calculate average gap between trips to fill the date range
+    avg_gap = total_days / (num_trips + 1) if num_trips > 0 else total_days
+
+    # Start first trip after initial gap
+    date_cursor = start_date + timedelta(days=int(avg_gap * 0.5))
 
     for i in range(num_trips):
         dest = TRIP_DESTINATIONS[i % len(TRIP_DESTINATIONS)]
         duration = random.randint(4, 7)
+
+        # Don't let trip extend past end_date
+        trip_end = min(date_cursor + timedelta(days=duration - 1), end_date - timedelta(days=1))
+
+        # Skip if there's no room for this trip
+        if date_cursor >= end_date - timedelta(days=3):
+            break
 
         trip = {
             "id": f"trip{i+1:03d}",
             "name": dest["name"],
             "location": dest["location"],
             "start_date": date_cursor,
-            "end_date": date_cursor + timedelta(days=duration - 1),
+            "end_date": trip_end,
             "center_indices": dest["center_indices"],
             "site_indices": dest.get("site_indices", []),
             "resort_name": dest.get("resort_name"),
@@ -2003,16 +2041,33 @@ def generate_trips(start_date: datetime, num_trips: int = 20) -> List[Dict]:
         }
         trips.append(trip)
 
-        # Move to next trip (skip 2-6 weeks between trips)
-        date_cursor = trip["end_date"] + timedelta(days=random.randint(14, 45))
+        # Move to next trip with some randomized gap
+        gap_variation = random.uniform(0.7, 1.3)
+        date_cursor = trip["end_date"] + timedelta(days=int(avg_gap * gap_variation))
 
     return trips
 
 
-def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
-    """Generate UDDF 3.2.1 compliant file."""
+def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf", sample_interval: int = 10, max_sites: int = None):
+    """Generate UDDF 3.2.1 compliant file.
+
+    Args:
+        num_dives: Number of dives to generate
+        output_path: Output file path
+        sample_interval: Profile sample interval in seconds (10 for detailed, 30 for quick)
+        max_sites: Maximum number of dive sites to include (None = all sites)
+    """
+    # Limit sites if specified (speeds up import due to geolocation lookups)
+    sites_to_use = DIVE_SITES[:max_sites] if max_sites else DIVE_SITES
+    centers_to_use = DIVE_CENTERS[:max_sites] if max_sites else DIVE_CENTERS
 
     random.seed(42)
+
+    # Calculate date range: 5 years ago to 5 days ago
+    end_date = datetime.now() - timedelta(days=5)
+    start_date = end_date - timedelta(days=5*365)  # 5 years before end_date
+
+    print(f"Generating dives from {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}")
 
     # Generate buddies
     buddies = []
@@ -2026,9 +2081,8 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
             "email": f"{first.lower()}.{last.lower()}@email.com"
         })
 
-    # Generate trips
-    start_date = datetime(2018, 1, 1)
-    trips = generate_trips(start_date, num_trips=20)
+    # Generate trips within the date range
+    trips = generate_trips(start_date, end_date, num_trips=20)
 
     # Create root element with namespace
     root = ET.Element("uddf")
@@ -2053,7 +2107,7 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
 
     # Dive sites
     divesites = ET.SubElement(root, "divesite")
-    for i, site in enumerate(DIVE_SITES):
+    for i, site in enumerate(sites_to_use):
         s = ET.SubElement(divesites, "site")
         s.set("id", f"site{i+1:03d}")
         ET.SubElement(s, "name").text = site["name"]
@@ -2072,7 +2126,7 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
     # Dive operators (centers) - Standard UDDF format
     # Note: Submersion also uses custom format in applicationdata/submersion/divecenters
     diveops = ET.SubElement(root, "diveoperator")
-    for i, center in enumerate(DIVE_CENTERS):
+    for i, center in enumerate(centers_to_use):
         db = ET.SubElement(diveops, "divebase")
         db.set("id", f"center_{i+1:03d}")  # Matches Submersion's expected format
         ET.SubElement(db, "name").text = center["name"]
@@ -2130,6 +2184,10 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
     # Add equipment sets to owner
     equipment = ET.SubElement(owner, "equipment")
 
+    # Equipment base date: at dive start (gear purchased when diving begins)
+    # This keeps equipment dates within the 5-year range
+    equipment_base = start_date
+
     # Create equipment configuration groups
     for set_name, items in EQUIPMENT_SETS.items():
         # Create a configuration for this set
@@ -2149,7 +2207,8 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
             if item.get("serial"):
                 ET.SubElement(piece, "serialnumber").text = item["serial"]
             if item.get("purchase_date"):
-                ET.SubElement(piece, "dateofpurchase").text = item["purchase_date"]
+                adjusted_date = adjust_equipment_date(item["purchase_date"], equipment_base)
+                ET.SubElement(piece, "dateofpurchase").text = adjusted_date
             if item.get("notes"):
                 ET.SubElement(piece, "notes").text = item["notes"]
 
@@ -2173,10 +2232,16 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
     repgroup = ET.SubElement(profiledata, "repetitiongroup")
     repgroup.set("id", "rg1")
 
-    # Generate dives
-    start_date = datetime(2018, 1, 1)
+    # Generate dives (start_date and end_date already calculated at top of function)
     current_date = start_date
     dive_number = 1
+
+    # Calculate average days between dives to fit requested number in date range
+    total_days = (end_date - start_date).days
+    # Target average: slightly less than total_days/num_dives to ensure we complete
+    # Account for trip dives (multiple per day) by reducing target average
+    avg_step_days = max(1, (total_days / num_dives) * 0.7)  # 70% of naive average
+    print(f"Average step between non-trip dives: {avg_step_days:.1f} days")
 
     dive_types = [
         ("recreational_single", 0.25),
@@ -2196,6 +2261,11 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
     dive_session = DiveSession()
 
     for dive_idx in range(num_dives):
+        # Stop if we've exceeded the end date
+        if current_date >= end_date:
+            print(f"Reached end date at dive {dive_idx}. Stopping generation.")
+            break
+
         # Pick dive type
         r = random.random()
         cumulative = 0
@@ -2215,43 +2285,44 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
         center = None
         center_idx = None
 
-        # Find next trip that hasn't had enough dives yet
+        # Check if we're within a trip's date range
         for trip in trips:
             # Target ~3-4 dives per day for 4-7 day trips = 12-28 dives per trip
             max_dives_per_trip = random.randint(12, 20)
             if trip_dive_counts[trip["id"]] < max_dives_per_trip:
-                if trip["start_date"] > current_date:
-                    # Jump to this trip's start date
-                    if random.random() < 0.4:  # 40% chance to do a trip dive
-                        current_date = trip["start_date"] + timedelta(
-                            days=random.randint(0, (trip["end_date"] - trip["start_date"]).days)
-                        )
-                        active_trip = trip
-                        break
-                elif trip["start_date"] <= current_date <= trip["end_date"]:
+                if trip["start_date"] <= current_date <= trip["end_date"]:
+                    # We're within this trip's dates
                     active_trip = trip
                     break
+                elif trip["start_date"] > current_date:
+                    # Next trip is in the future - maybe jump to it if close
+                    days_until_trip = (trip["start_date"] - current_date).days
+                    if days_until_trip <= 7 and random.random() < 0.5:
+                        # 50% chance to jump to nearby trip
+                        current_date = trip["start_date"]
+                        active_trip = trip
+                        break
 
         if active_trip:
             # Pick site from trip's site list
-            valid_site_indices = [i for i in active_trip["site_indices"] if i < len(DIVE_SITES)]
+            valid_site_indices = [i for i in active_trip["site_indices"] if i < len(sites_to_use)]
             if valid_site_indices:
                 site_idx = random.choice(valid_site_indices)
-                site = DIVE_SITES[site_idx]
+                site = sites_to_use[site_idx]
             # Pick center from trip's center list
-            valid_center_indices = [i for i in active_trip["center_indices"] if i < len(DIVE_CENTERS)]
+            valid_center_indices = [i for i in active_trip["center_indices"] if i < len(centers_to_use)]
             if valid_center_indices:
                 center_idx = random.choice(valid_center_indices)
-                center = DIVE_CENTERS[center_idx]
+                center = centers_to_use[center_idx]
             trip_dive_counts[active_trip["id"]] += 1
 
         # Fall back to random site/center if not in a trip
         if site is None:
-            site = random.choice(DIVE_SITES)
-            site_idx = DIVE_SITES.index(site)
+            site = random.choice(sites_to_use)
+            site_idx = sites_to_use.index(site)
         if center is None:
-            center = random.choice(DIVE_CENTERS)
-            center_idx = DIVE_CENTERS.index(center)
+            center = random.choice(centers_to_use)
+            center_idx = centers_to_use.index(center)
 
         num_buddies = random.randint(1, 3)
         dive_buddies = random.sample(buddies, num_buddies)
@@ -2358,6 +2429,7 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
             site_type=site_type,
             thermocline_profile=thermocline_profile,
             tissue_state=dive_session.tissue if dive_session.dive_count_today > 0 else None,
+            sample_interval=sample_interval,
         )
 
         # Update session tissue state for next dive
@@ -2436,6 +2508,14 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
             end_p = tc.get("end_pressure_actual", 50 * 100000)
             ET.SubElement(tankdata, "tankpressurebegin").text = str(int(start_p))
             ET.SubElement(tankdata, "tankpressureend").text = str(int(end_p))
+
+            # Tank working pressure in Pascal (bar * 100000) - required by parser
+            working_p = tc.get("working_pressure", 200) * 100000
+            ET.SubElement(tankdata, "tankworkingpressure").text = str(int(working_p))
+
+            # Tank material (matches Dart TankMaterial enum: aluminum, steel, carbonFiber)
+            if tc.get("material"):
+                ET.SubElement(tankdata, "tankmaterial").text = tc["material"]
 
         # samples
         samples = ET.SubElement(dive, "samples")
@@ -2549,7 +2629,9 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
         # Move date forward for next dive (if not in a trip, or sometimes within a trip)
         if active_trip is None:
             if random.random() > 0.3:
-                current_date += timedelta(days=random.randint(1, 14))
+                # Use calculated step size with random variation (0.5x to 1.5x)
+                step = max(1, int(avg_step_days * random.uniform(0.5, 1.5)))
+                current_date += timedelta(days=step)
         else:
             # Multiple dives per day during trips (30% chance to move to next day)
             if random.random() < 0.3:
@@ -2611,7 +2693,7 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
 
     # Dive centers in Submersion's expected format
     divecenters_elem = ET.SubElement(submersion, "divecenters")
-    for i, center in enumerate(DIVE_CENTERS):
+    for i, center in enumerate(centers_to_use):
         center_elem = ET.SubElement(divecenters_elem, "center")
         center_elem.set("id", f"center_{i+1:03d}")
         ET.SubElement(center_elem, "name").text = center["name"]
@@ -2653,10 +2735,15 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
             if item.get("serial"):
                 ET.SubElement(item_elem, "serialnumber").text = item["serial"]
             if item.get("purchase_date"):
-                ET.SubElement(item_elem, "purchasedate").text = item["purchase_date"]
+                adjusted_purchase = adjust_equipment_date(item["purchase_date"], equipment_base)
+                ET.SubElement(item_elem, "purchasedate").text = adjusted_purchase
+            else:
+                adjusted_purchase = None
             # Add service tracking for regulators and BCDs
             if item["type"] in ["regulator", "bcd"]:
-                ET.SubElement(item_elem, "lastservicedate").text = calculate_service_date(item.get("purchase_date", ""))
+                ET.SubElement(item_elem, "lastservicedate").text = calculate_service_date(
+                    adjusted_purchase or "", reference_date=end_date
+                )
                 ET.SubElement(item_elem, "serviceintervaldays").text = "365"
             ET.SubElement(item_elem, "status").text = "active"
             if item.get("notes"):
@@ -2690,6 +2777,23 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
         if cert.get("facility_number"):
             ET.SubElement(cert_elem, "instructornumber").text = cert["facility_number"]
 
+    # Tags in Submersion's expected format (matches dive tagRefs)
+    tags_elem = ET.SubElement(submersion, "tags")
+    tag_definitions = [
+        ("wall", "Wall", "#3B82F6"),       # Blue
+        ("wreck", "Wreck", "#6B7280"),     # Gray
+        ("drift", "Drift", "#10B981"),     # Green
+        ("cave", "Cave", "#8B5CF6"),       # Purple
+        ("deep", "Deep", "#EF4444"),       # Red
+        ("technical", "Technical", "#F59E0B"),  # Orange
+        ("current", "Current", "#06B6D4"),  # Cyan
+    ]
+    for tag_id, tag_name, tag_color in tag_definitions:
+        tag_elem = ET.SubElement(tags_elem, "tag")
+        tag_elem.set("id", f"tag_{tag_id}")
+        ET.SubElement(tag_elem, "name").text = tag_name
+        ET.SubElement(tag_elem, "color").text = tag_color
+
     # Write file
     tree = ET.ElementTree(root)
     with open(output_path, 'wb') as f:
@@ -2708,8 +2812,8 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
     print(f"\nGenerated UDDF 3.2.1 compliant file: {output_path}")
     print(f"- {num_dives} dives ({trip_dives_total} on trips)")
     print(f"- {len(trips_with_dives)} trips (4-7 days each)")
-    print(f"- {len(DIVE_SITES)} dive sites with GPS")
-    print(f"- {len(DIVE_CENTERS)} dive centers")
+    print(f"- {len(sites_to_use)} dive sites with GPS")
+    print(f"- {len(centers_to_use)} dive centers")
     print(f"- {len(buddies)} buddies")
     print(f"- {total_equipment} equipment items in {len(EQUIPMENT_SETS)} sets")
     print(f"- {len(PADI_CERTIFICATIONS)} certifications (PADI)")
@@ -2728,14 +2832,62 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
 
 
 if __name__ == "__main__":
-    import sys
+    import argparse
 
-    num_dives = 500
-    output_path = "/Users/ericgriffin/Downloads/submersion_multitank_500dives.uddf"
+    parser = argparse.ArgumentParser(
+        description="Generate UDDF 3.2.1 test data for Submersion",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python generate_uddf_test_data.py                    # Full 500 dives
+  python generate_uddf_test_data.py --quick            # Quick 10 dives for testing
+  python generate_uddf_test_data.py -n 50              # Custom 50 dives
+  python generate_uddf_test_data.py --quick -o test.uddf
+        """
+    )
+    parser.add_argument(
+        "-n", "--num-dives",
+        type=int,
+        default=500,
+        help="Number of dives to generate (default: 500)"
+    )
+    parser.add_argument(
+        "-o", "--output",
+        type=str,
+        default="/Users/ericgriffin/Downloads/submersion_multitank_500dives.uddf",
+        help="Output file path"
+    )
+    parser.add_argument(
+        "--quick",
+        action="store_true",
+        help="Quick mode: generate only 10 dives with 30-second intervals for fast testing"
+    )
+    parser.add_argument(
+        "--sample-interval",
+        type=int,
+        default=10,
+        help="Profile sample interval in seconds (default: 10, use 30 for smaller files)"
+    )
+    parser.add_argument(
+        "--max-sites",
+        type=int,
+        default=None,
+        help="Maximum number of dive sites to include (default: all)"
+    )
 
-    if len(sys.argv) > 1:
-        num_dives = int(sys.argv[1])
-    if len(sys.argv) > 2:
-        output_path = sys.argv[2]
+    args = parser.parse_args()
 
-    generate_uddf(num_dives, output_path)
+    # Quick mode overrides
+    if args.quick:
+        num_dives = 10
+        sample_interval = 30
+        max_sites = 10
+        output_path = args.output.replace("500dives", "quick") if "500dives" in args.output else args.output
+        print("=== QUICK MODE: 10 dives, 10 sites, 30-second intervals ===")
+    else:
+        num_dives = args.num_dives
+        sample_interval = args.sample_interval
+        max_sites = args.max_sites
+        output_path = args.output
+
+    generate_uddf(num_dives, output_path, sample_interval=sample_interval, max_sites=max_sites)

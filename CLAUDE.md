@@ -110,3 +110,5 @@ Tables defined in `lib/core/database/database.dart`:
 - **Entity copyWith:** All domain entities should have `copyWith` method
 - **Null safety:** Project uses sound null safety
 
+## Claude Specific Instructions
+- Use agents proactively

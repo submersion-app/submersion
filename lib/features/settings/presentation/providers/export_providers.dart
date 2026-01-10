@@ -1350,6 +1350,39 @@ class ExportNotifier extends StateNotifier<ExportState> {
           final entryTime = dateTime;
           final exitTime = runtime != null ? dateTime.add(runtime) : null;
 
+          // Parse marine life sightings
+          final sightingsData =
+              diveData['sightings'] as List<Map<String, dynamic>>?;
+          final sightings = <MarineSighting>[];
+          if (sightingsData != null) {
+            for (final sightingData in sightingsData) {
+              final speciesRef = sightingData['speciesRef'] as String?;
+              if (speciesRef != null && speciesRef.isNotEmpty) {
+                // Extract species name from ref (e.g., 'species_green_sea_turtle' -> 'Green Sea Turtle')
+                String speciesName = speciesRef;
+                if (speciesRef.startsWith('species_')) {
+                  speciesName = speciesRef
+                      .substring(8) // Remove 'species_' prefix
+                      .split('_')
+                      .map((word) =>
+                          word.isNotEmpty
+                              ? word[0].toUpperCase() + word.substring(1)
+                              : word)
+                      .join(' ');
+                }
+                sightings.add(
+                  MarineSighting(
+                    id: uuid.v4(),
+                    speciesId: speciesRef,
+                    speciesName: speciesName,
+                    count: sightingData['count'] as int? ?? 1,
+                    notes: sightingData['notes'] as String? ?? '',
+                  ),
+                );
+              }
+            }
+          }
+
           // Create initial dive object assigned to the current diver
           var dive = Dive(
             id: diveId,
@@ -1382,6 +1415,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
             tripId: linkedTripId,
             diveCenter: linkedDiveCenter,
             equipment: linkedEquipment,
+            sightings: sightings,
             // Dive condition fields
             currentDirection: diveData['currentDirection'] as CurrentDirection?,
             currentStrength: diveData['currentStrength'] as CurrentStrength?,
