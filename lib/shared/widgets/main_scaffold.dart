@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-class MainScaffold extends StatelessWidget {
+class MainScaffold extends StatefulWidget {
   final Widget child;
 
   const MainScaffold({super.key, required this.child});
+
+  @override
+  State<MainScaffold> createState() => _MainScaffoldState();
+}
+
+class _MainScaffoldState extends State<MainScaffold> {
+  /// When true, the user has manually collapsed the rail (overrides auto-extend)
+  bool _isCollapsed = false;
 
   // Routes that appear in the "More" menu on mobile
   static const _moreRoutes = [
@@ -187,7 +195,9 @@ class MainScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isWideScreen = MediaQuery.of(context).size.width >= 800;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isWideScreen = screenWidth >= 800;
+    final isDesktopExtended = screenWidth >= 1200;
     final selectedIndex = _calculateSelectedIndex(
       context,
       isWideScreen: isWideScreen,
@@ -195,12 +205,30 @@ class MainScaffold extends StatelessWidget {
 
     if (isWideScreen) {
       // Desktop/Tablet layout with NavigationRail
+      // Only allow collapse toggle when screen is wide enough for extended mode
+      final showExtended = isDesktopExtended && !_isCollapsed;
+
       return Scaffold(
         body: Row(
           children: [
             NavigationRail(
-              extended: MediaQuery.of(context).size.width >= 1200,
+              extended: showExtended,
               minExtendedWidth: 190,
+              leading: isDesktopExtended
+                  ? IconButton(
+                      icon: Icon(
+                        _isCollapsed
+                            ? Icons.keyboard_double_arrow_right
+                            : Icons.keyboard_double_arrow_left,
+                      ),
+                      tooltip: _isCollapsed ? 'Expand menu' : 'Collapse menu',
+                      onPressed: () {
+                        setState(() {
+                          _isCollapsed = !_isCollapsed;
+                        });
+                      },
+                    )
+                  : null,
               selectedIndex: selectedIndex,
               onDestinationSelected: (index) =>
                   _onDestinationSelected(context, index, isWideScreen: true),
@@ -258,7 +286,7 @@ class MainScaffold extends StatelessWidget {
               ],
             ),
             const VerticalDivider(thickness: 1, width: 1),
-            Expanded(child: child),
+            Expanded(child: widget.child),
           ],
         ),
       );
@@ -266,7 +294,7 @@ class MainScaffold extends StatelessWidget {
 
     // Mobile layout with BottomNavigationBar
     return Scaffold(
-      body: child,
+      body: widget.child,
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedIndex,
         onDestinationSelected: (index) =>

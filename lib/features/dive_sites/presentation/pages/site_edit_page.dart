@@ -16,8 +16,17 @@ import '../widgets/location_picker_map.dart';
 
 class SiteEditPage extends ConsumerStatefulWidget {
   final String? siteId;
+  final bool embedded;
+  final void Function(String savedId)? onSaved;
+  final VoidCallback? onCancel;
 
-  const SiteEditPage({super.key, this.siteId});
+  const SiteEditPage({
+    super.key,
+    this.siteId,
+    this.embedded = false,
+    this.onSaved,
+    this.onCancel,
+  });
 
   bool get isEditing => siteId != null;
 
@@ -45,6 +54,32 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
   SiteDifficulty? _difficulty;
   bool _isLoading = false;
   bool _isInitialized = false;
+  bool _hasChanges = false;
+  DiveSite? _originalSite;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController.addListener(_onFieldChanged);
+    _descriptionController.addListener(_onFieldChanged);
+    _countryController.addListener(_onFieldChanged);
+    _regionController.addListener(_onFieldChanged);
+    _minDepthController.addListener(_onFieldChanged);
+    _maxDepthController.addListener(_onFieldChanged);
+    _latitudeController.addListener(_onFieldChanged);
+    _longitudeController.addListener(_onFieldChanged);
+    _notesController.addListener(_onFieldChanged);
+    _hazardsController.addListener(_onFieldChanged);
+    _accessNotesController.addListener(_onFieldChanged);
+    _mooringNumberController.addListener(_onFieldChanged);
+    _parkingInfoController.addListener(_onFieldChanged);
+  }
+
+  void _onFieldChanged() {
+    if (!_hasChanges && _isInitialized) {
+      setState(() => _hasChanges = true);
+    }
+  }
 
   @override
   void dispose() {
@@ -67,12 +102,12 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
   void _initializeFromSite(DiveSite site, UnitFormatter units) {
     if (_isInitialized) return;
     _isInitialized = true;
+    _originalSite = site;
 
     _nameController.text = site.name;
     _descriptionController.text = site.description;
     _countryController.text = site.country ?? '';
     _regionController.text = site.region ?? '';
-    // Convert depths from meters (storage) to user's preferred unit (display)
     _minDepthController.text = site.minDepth != null
         ? units.convertDepth(site.minDepth!).toStringAsFixed(1)
         : '';
@@ -90,6 +125,14 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     _difficulty = site.difficulty;
   }
 
+  void _handleCancel() {
+    if (widget.embedded) {
+      widget.onCancel?.call();
+    } else {
+      context.pop();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
@@ -100,6 +143,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       return siteAsync.when(
         data: (site) {
           if (site == null) {
+            if (widget.embedded) {
+              return const Center(child: Text('This site no longer exists.'));
+            }
             return Scaffold(
               appBar: AppBar(title: const Text('Site Not Found')),
               body: const Center(child: Text('This site no longer exists.')),
@@ -108,128 +154,133 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           _initializeFromSite(site, units);
           return _buildForm(context, units);
         },
-        loading: () => Scaffold(
-          appBar: AppBar(title: const Text('Loading...')),
-          body: const Center(child: CircularProgressIndicator()),
-        ),
-        error: (error, _) => Scaffold(
-          appBar: AppBar(title: const Text('Error')),
-          body: Center(child: Text('Error: $error')),
-        ),
+        loading: () {
+          if (widget.embedded) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          return Scaffold(
+            appBar: AppBar(title: const Text('Loading...')),
+            body: const Center(child: CircularProgressIndicator()),
+          );
+        },
+        error: (error, _) {
+          if (widget.embedded) {
+            return Center(child: Text('Error: $error'));
+          }
+          return Scaffold(
+            appBar: AppBar(title: const Text('Error')),
+            body: Center(child: Text('Error: $error')),
+          );
+        },
       );
+    }
+
+    // For new sites, mark as initialized immediately
+    if (!_isInitialized) {
+      _isInitialized = true;
     }
 
     return _buildForm(context, units);
   }
 
   Widget _buildForm(BuildContext context, UnitFormatter units) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.isEditing ? 'Edit Site' : 'New Site'),
-        actions: [
-          if (widget.isEditing)
-            IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: _confirmDelete,
+    final body = Form(
+      key: _formKey,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          // Name
+          TextFormField(
+            controller: _nameController,
+            decoration: const InputDecoration(
+              labelText: 'Site Name *',
+              prefixIcon: Icon(Icons.location_on),
+              hintText: 'e.g., Blue Hole',
             ),
-        ],
-      ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            // Name
-            TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Site Name *',
-                prefixIcon: Icon(Icons.location_on),
-                hintText: 'e.g., Blue Hole',
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter a site name';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please enter a site name';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
 
-            // Description
-            TextFormField(
-              controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                prefixIcon: Icon(Icons.description),
-                hintText: 'Brief description of the site',
-              ),
-              maxLines: 3,
+          // Description
+          TextFormField(
+            controller: _descriptionController,
+            decoration: const InputDecoration(
+              labelText: 'Description',
+              prefixIcon: Icon(Icons.description),
+              hintText: 'Brief description of the site',
             ),
-            const SizedBox(height: 16),
+            maxLines: 3,
+          ),
+          const SizedBox(height: 16),
 
-            // Country & Region
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _countryController,
-                    decoration: const InputDecoration(
-                      labelText: 'Country',
-                      prefixIcon: Icon(Icons.flag),
-                    ),
+          // Country & Region
+          Row(
+            children: [
+              Expanded(
+                child: TextFormField(
+                  controller: _countryController,
+                  decoration: const InputDecoration(
+                    labelText: 'Country',
+                    prefixIcon: Icon(Icons.flag),
                   ),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: TextFormField(
-                    controller: _regionController,
-                    decoration: const InputDecoration(
-                      labelText: 'Region',
-                      prefixIcon: Icon(Icons.map),
-                    ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: TextFormField(
+                  controller: _regionController,
+                  decoration: const InputDecoration(
+                    labelText: 'Region',
+                    prefixIcon: Icon(Icons.map),
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Depth Section
-            _buildDepthSection(context, units),
-            const SizedBox(height: 16),
-
-            // Difficulty
-            _buildDifficultySection(context),
-            const SizedBox(height: 16),
-
-            // Rating
-            _buildRatingSection(context),
-            const SizedBox(height: 16),
-
-            // GPS Coordinates
-            _buildGpsSection(context),
-            const SizedBox(height: 16),
-
-            // Access & Logistics Section
-            _buildAccessSection(context),
-            const SizedBox(height: 16),
-
-            // Safety Section
-            _buildSafetySection(context),
-            const SizedBox(height: 16),
-
-            // Notes
-            TextFormField(
-              controller: _notesController,
-              decoration: const InputDecoration(
-                labelText: 'General Notes',
-                prefixIcon: Icon(Icons.notes),
-                hintText: 'Any other information about this site',
               ),
-              maxLines: 4,
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Depth Section
+          _buildDepthSection(context, units),
+          const SizedBox(height: 16),
+
+          // Difficulty
+          _buildDifficultySection(context),
+          const SizedBox(height: 16),
+
+          // Rating
+          _buildRatingSection(context),
+          const SizedBox(height: 16),
+
+          // GPS Coordinates
+          _buildGpsSection(context),
+          const SizedBox(height: 16),
+
+          // Access & Logistics Section
+          _buildAccessSection(context),
+          const SizedBox(height: 16),
+
+          // Safety Section
+          _buildSafetySection(context),
+          const SizedBox(height: 16),
+
+          // Notes
+          TextFormField(
+            controller: _notesController,
+            decoration: const InputDecoration(
+              labelText: 'General Notes',
+              prefixIcon: Icon(Icons.notes),
+              hintText: 'Any other information about this site',
             ),
+            maxLines: 4,
+          ),
+
+          if (!widget.embedded) ...[
             const SizedBox(height: 32),
-
             // Save Button
             FilledButton(
               onPressed: _isLoading ? null : _saveSite,
@@ -242,7 +293,150 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                   : Text(widget.isEditing ? 'Save Changes' : 'Add Site'),
             ),
           ],
+        ],
+      ),
+    );
+
+    if (widget.embedded) {
+      return PopScope(
+        canPop: !_hasChanges,
+        onPopInvokedWithResult: (didPop, result) async {
+          if (!didPop && _hasChanges) {
+            final shouldPop = await _showDiscardDialog();
+            if (shouldPop == true && mounted) {
+              _handleCancel();
+            }
+          }
+        },
+        child: Column(
+          children: [
+            _buildEmbeddedHeader(context),
+            Expanded(child: body),
+          ],
         ),
+      );
+    }
+
+    return PopScope(
+      canPop: !_hasChanges,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (!didPop && _hasChanges) {
+          final shouldPop = await _showDiscardDialog();
+          if (shouldPop == true && context.mounted) {
+            Navigator.of(context).pop();
+          }
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(widget.isEditing ? 'Edit Site' : 'New Site'),
+          actions: [
+            if (widget.isEditing)
+              IconButton(
+                icon: const Icon(Icons.delete),
+                onPressed: _confirmDelete,
+              ),
+            if (_isLoading)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+              )
+            else
+              TextButton(onPressed: _saveSite, child: const Text('Save')),
+          ],
+        ),
+        body: body,
+      ),
+    );
+  }
+
+  Widget _buildEmbeddedHeader(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
+        ),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 20,
+            backgroundColor: colorScheme.primaryContainer,
+            child: Icon(
+              widget.isEditing ? Icons.edit : Icons.add_location,
+              size: 20,
+              color: colorScheme.onPrimaryContainer,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              widget.isEditing ? 'Edit Site' : 'New Site',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              if (_hasChanges) {
+                final discard = await _showDiscardDialog();
+                if (discard == true && mounted) {
+                  _handleCancel();
+                }
+              } else {
+                _handleCancel();
+              }
+            },
+            child: const Text('Cancel'),
+          ),
+          const SizedBox(width: 8),
+          FilledButton(
+            onPressed: _isLoading ? null : _saveSite,
+            child: _isLoading
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<bool?> _showDiscardDialog() {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Discard Changes?'),
+        content: const Text(
+          'You have unsaved changes. Are you sure you want to leave?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Keep Editing'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Discard'),
+          ),
+        ],
       ),
     );
   }
@@ -268,6 +462,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                   onPressed: () {
                     setState(() {
                       _rating = index + 1.0;
+                      _hasChanges = true;
                     });
                   },
                 );
@@ -276,7 +471,10 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             if (_rating > 0)
               Center(
                 child: TextButton(
-                  onPressed: () => setState(() => _rating = 0),
+                  onPressed: () => setState(() {
+                    _rating = 0;
+                    _hasChanges = true;
+                  }),
                   child: const Text('Clear Rating'),
                 ),
               ),
@@ -378,6 +576,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                   onSelected: (selected) {
                     setState(() {
                       _difficulty = selected ? difficulty : null;
+                      _hasChanges = true;
                     });
                   },
                 );
@@ -425,8 +624,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       setState(() {
         _latitudeController.text = result.latitude.toStringAsFixed(6);
         _longitudeController.text = result.longitude.toStringAsFixed(6);
+        _hasChanges = true;
 
-        // Auto-fill country and region if empty
         if (_countryController.text.isEmpty && result.country != null) {
           _countryController.text = result.country!;
         }
@@ -452,7 +651,6 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
   }
 
   Future<void> _pickFromMap() async {
-    // Parse existing coordinates if available
     LatLng? initialLocation;
     final lat = double.tryParse(_latitudeController.text);
     final lng = double.tryParse(_longitudeController.text);
@@ -471,8 +669,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       setState(() {
         _latitudeController.text = result.latitude.toStringAsFixed(6);
         _longitudeController.text = result.longitude.toStringAsFixed(6);
+        _hasChanges = true;
 
-        // Auto-fill country and region if empty
         if (_countryController.text.isEmpty && result.country != null) {
           _countryController.text = result.country!;
         }
@@ -704,7 +902,6 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     setState(() => _isLoading = true);
 
     try {
-      // Get settings for unit conversion
       final settings = ref.read(settingsProvider);
       final units = UnitFormatter(settings);
 
@@ -720,7 +917,6 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
         }
       }
 
-      // Convert depths from user's preferred unit to meters for storage
       final minDepthInput = double.tryParse(_minDepthController.text);
       final maxDepthInput = double.tryParse(_maxDepthController.text);
       final minDepthMeters = minDepthInput != null
@@ -730,7 +926,6 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           ? units.depthToMeters(maxDepthInput)
           : null;
 
-      // Auto-lookup country/region if coordinates exist but fields are empty
       String? country = _countryController.text.trim().isEmpty
           ? null
           : _countryController.text.trim();
@@ -751,16 +946,12 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             region = geocodeResult.region;
           }
         } catch (e) {
-          // Geocoding is best-effort, don't block save on failure
+          // Geocoding is best-effort
         }
       }
 
-      // Get the current diver ID - preserve existing for edits, get fresh for new sites
-      final existingSite = widget.isEditing
-          ? ref.read(siteProvider(widget.siteId!)).valueOrNull
-          : null;
       final diverId =
-          existingSite?.diverId ??
+          _originalSite?.diverId ??
           await ref.read(validatedCurrentDiverIdProvider.future);
 
       final site = DiveSite(
@@ -791,14 +982,16 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       );
 
       final notifier = ref.read(siteListNotifierProvider.notifier);
+      String savedId;
 
       if (widget.isEditing) {
         await notifier.updateSite(site);
+        savedId = widget.siteId!;
       } else {
-        await notifier.addSite(site);
+        final newSite = await notifier.addSite(site);
+        savedId = newSite.id;
       }
 
-      // Invalidate providers to refresh data
       ref.invalidate(sitesWithCountsProvider);
       ref.invalidate(sitesProvider);
       if (widget.isEditing) {
@@ -806,12 +999,16 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       }
 
       if (mounted) {
-        context.pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(widget.isEditing ? 'Site updated' : 'Site added'),
-          ),
-        );
+        if (widget.embedded) {
+          widget.onSaved?.call(savedId);
+        } else {
+          context.pop();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(widget.isEditing ? 'Site updated' : 'Site added'),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {

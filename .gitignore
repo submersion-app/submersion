@@ -35,6 +35,6 @@ pubspec.lock
 *.db
 *.log
 .env
-.claude/
+.claude/settings.local.json
 coverage/
 devtools_options.yaml

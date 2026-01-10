@@ -9,30 +9,38 @@ import '../widgets/stat_charts.dart';
 import '../widgets/stat_section_card.dart';
 
 class StatisticsConditionsPage extends ConsumerWidget {
-  const StatisticsConditionsPage({super.key});
+  final bool embedded;
+
+  const StatisticsConditionsPage({super.key, this.embedded = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
 
+    final content = SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildVisibilitySection(context, ref),
+          const SizedBox(height: 16),
+          _buildWaterTypeSection(context, ref),
+          const SizedBox(height: 16),
+          _buildEntryMethodSection(context, ref),
+          const SizedBox(height: 16),
+          _buildTemperatureSection(context, ref, units),
+        ],
+      ),
+    );
+
+    if (embedded) {
+      return content;
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Conditions')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildVisibilitySection(context, ref),
-            const SizedBox(height: 16),
-            _buildWaterTypeSection(context, ref),
-            const SizedBox(height: 16),
-            _buildEntryMethodSection(context, ref),
-            const SizedBox(height: 16),
-            _buildTemperatureSection(context, ref, units),
-          ],
-        ),
-      ),
+      body: content,
     );
   }
 

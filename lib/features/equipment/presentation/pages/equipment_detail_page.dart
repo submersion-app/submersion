@@ -3,6 +3,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
+
 import '../../../../core/constants/enums.dart';
 import '../../../dive_log/presentation/providers/dive_providers.dart';
 import '../../../trips/presentation/providers/trip_providers.dart';
@@ -10,18 +12,50 @@ import '../../domain/entities/equipment_item.dart';
 import '../../domain/entities/service_record.dart';
 import '../providers/equipment_providers.dart';
 
-class EquipmentDetailPage extends ConsumerWidget {
+class EquipmentDetailPage extends ConsumerStatefulWidget {
   final String equipmentId;
+  final bool embedded;
+  final VoidCallback? onDeleted;
 
-  const EquipmentDetailPage({super.key, required this.equipmentId});
+  const EquipmentDetailPage({
+    super.key,
+    required this.equipmentId,
+    this.embedded = false,
+    this.onDeleted,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final equipmentAsync = ref.watch(equipmentItemProvider(equipmentId));
+  ConsumerState<EquipmentDetailPage> createState() =>
+      _EquipmentDetailPageState();
+}
+
+class _EquipmentDetailPageState extends ConsumerState<EquipmentDetailPage> {
+  bool _hasRedirected = false;
+
+  @override
+  Widget build(BuildContext context) {
+    // Desktop redirect: if viewing detail page directly on desktop, redirect to master-detail
+    if (!widget.embedded &&
+        !_hasRedirected &&
+        ResponsiveBreakpoints.isDesktopExtended(context)) {
+      _hasRedirected = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.go('/equipment?selected=${widget.equipmentId}');
+        }
+      });
+    }
+
+    final equipmentAsync = ref.watch(equipmentItemProvider(widget.equipmentId));
 
     return equipmentAsync.when(
       data: (equipment) {
         if (equipment == null) {
+          if (widget.embedded) {
+            return const Center(
+              child: Text('This equipment item no longer exists.'),
+            );
+          }
           return Scaffold(
             appBar: AppBar(title: const Text('Equipment Not Found')),
             body: const Center(
@@ -29,24 +63,81 @@ class EquipmentDetailPage extends ConsumerWidget {
             ),
           );
         }
-        return _buildContent(context, ref, equipment);
+        return _EquipmentDetailContent(
+          equipment: equipment,
+          equipmentId: widget.equipmentId,
+          embedded: widget.embedded,
+          onDeleted: widget.onDeleted,
+        );
       },
-      loading: () => Scaffold(
-        appBar: AppBar(title: const Text('Loading...')),
-        body: const Center(child: CircularProgressIndicator()),
-      ),
-      error: (error, _) => Scaffold(
-        appBar: AppBar(title: const Text('Error')),
-        body: Center(child: Text('Error: $error')),
-      ),
+      loading: () {
+        if (widget.embedded) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return Scaffold(
+          appBar: AppBar(title: const Text('Loading...')),
+          body: const Center(child: CircularProgressIndicator()),
+        );
+      },
+      error: (error, _) {
+        if (widget.embedded) {
+          return Center(child: Text('Error: $error'));
+        }
+        return Scaffold(
+          appBar: AppBar(title: const Text('Error')),
+          body: Center(child: Text('Error: $error')),
+        );
+      },
     );
   }
+}
 
-  Widget _buildContent(
-    BuildContext context,
-    WidgetRef ref,
-    EquipmentItem equipment,
-  ) {
+class _EquipmentDetailContent extends ConsumerWidget {
+  final EquipmentItem equipment;
+  final String equipmentId;
+  final bool embedded;
+  final VoidCallback? onDeleted;
+
+  const _EquipmentDetailContent({
+    required this.equipment,
+    required this.equipmentId,
+    required this.embedded,
+    this.onDeleted,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final body = SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildHeaderSection(context, equipment),
+          const SizedBox(height: 24),
+          _buildDetailsSection(context, ref, equipment),
+          if (equipment.serviceIntervalDays != null) ...[
+            const SizedBox(height: 24),
+            _buildServiceSection(context, equipment),
+          ],
+          const SizedBox(height: 24),
+          _ServiceHistorySection(equipmentId: equipmentId),
+          if (equipment.notes.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            _buildNotesSection(context, equipment),
+          ],
+        ],
+      ),
+    );
+
+    if (embedded) {
+      return Column(
+        children: [
+          _buildEmbeddedHeader(context, ref, equipment),
+          Expanded(child: body),
+        ],
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(equipment.name),
@@ -58,62 +149,116 @@ class EquipmentDetailPage extends ConsumerWidget {
           PopupMenuButton<String>(
             onSelected: (value) =>
                 _handleMenuAction(context, ref, value, equipment),
-            itemBuilder: (context) => [
-              if (equipment.isActive)
-                const PopupMenuItem(
-                  value: 'service',
-                  child: ListTile(
-                    leading: Icon(Icons.build),
-                    title: Text('Mark as Serviced'),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-              PopupMenuItem(
-                value: equipment.isActive ? 'retire' : 'reactivate',
-                child: ListTile(
-                  leading: Icon(
-                    equipment.isActive ? Icons.archive : Icons.unarchive,
-                  ),
-                  title: Text(
-                    equipment.isActive ? 'Retire Equipment' : 'Reactivate',
-                  ),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'delete',
-                child: ListTile(
-                  leading: Icon(Icons.delete, color: Colors.red),
-                  title: Text('Delete', style: TextStyle(color: Colors.red)),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-            ],
+            itemBuilder: (context) => _buildMenuItems(context, equipment),
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeaderSection(context, equipment),
-            const SizedBox(height: 24),
-            _buildDetailsSection(context, ref, equipment),
-            if (equipment.serviceIntervalDays != null) ...[
-              const SizedBox(height: 24),
-              _buildServiceSection(context, equipment),
-            ],
-            const SizedBox(height: 24),
-            _ServiceHistorySection(equipmentId: equipmentId),
-            if (equipment.notes.isNotEmpty) ...[
-              const SizedBox(height: 24),
-              _buildNotesSection(context, equipment),
-            ],
-          ],
+      body: body,
+    );
+  }
+
+  Widget _buildEmbeddedHeader(
+    BuildContext context,
+    WidgetRef ref,
+    EquipmentItem equipment,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
         ),
       ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 20,
+            backgroundColor: equipment.isServiceDue
+                ? colorScheme.errorContainer
+                : colorScheme.tertiaryContainer,
+            child: Icon(
+              _getIconForType(equipment.type),
+              size: 20,
+              color: equipment.isServiceDue
+                  ? colorScheme.onErrorContainer
+                  : colorScheme.onTertiaryContainer,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  equipment.name,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  equipment.type.displayName,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.edit, size: 20),
+            tooltip: 'Edit',
+            onPressed: () {
+              final state = GoRouterState.of(context);
+              final currentPath = state.uri.path;
+              context.go('$currentPath?selected=$equipmentId&mode=edit');
+            },
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, size: 20),
+            onSelected: (value) =>
+                _handleMenuAction(context, ref, value, equipment),
+            itemBuilder: (context) => _buildMenuItems(context, equipment),
+          ),
+        ],
+      ),
     );
+  }
+
+  List<PopupMenuEntry<String>> _buildMenuItems(
+    BuildContext context,
+    EquipmentItem equipment,
+  ) {
+    return [
+      if (equipment.isActive)
+        const PopupMenuItem(
+          value: 'service',
+          child: ListTile(
+            leading: Icon(Icons.build),
+            title: Text('Mark as Serviced'),
+            contentPadding: EdgeInsets.zero,
+          ),
+        ),
+      PopupMenuItem(
+        value: equipment.isActive ? 'retire' : 'reactivate',
+        child: ListTile(
+          leading: Icon(equipment.isActive ? Icons.archive : Icons.unarchive),
+          title: Text(equipment.isActive ? 'Retire Equipment' : 'Reactivate'),
+          contentPadding: EdgeInsets.zero,
+        ),
+      ),
+      const PopupMenuItem(
+        value: 'delete',
+        child: ListTile(
+          leading: Icon(Icons.delete, color: Colors.red),
+          title: Text('Delete', style: TextStyle(color: Colors.red)),
+          contentPadding: EdgeInsets.zero,
+        ),
+      ),
+    ];
   }
 
   Widget _buildHeaderSection(BuildContext context, EquipmentItem equipment) {
@@ -565,7 +710,11 @@ class EquipmentDetailPage extends ConsumerWidget {
         if (confirmed == true) {
           await notifier.deleteEquipment(equipmentId);
           if (context.mounted) {
-            context.go('/equipment');
+            if (embedded) {
+              onDeleted?.call();
+            } else {
+              context.go('/equipment');
+            }
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(const SnackBar(content: Text('Equipment deleted')));

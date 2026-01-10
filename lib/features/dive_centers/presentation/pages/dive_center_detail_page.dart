@@ -1,36 +1,97 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:submersion/core/providers/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
 import '../../../dive_log/presentation/providers/dive_providers.dart';
 import '../../domain/entities/dive_center.dart';
 import '../providers/dive_center_providers.dart';
 
-class DiveCenterDetailPage extends ConsumerWidget {
+class DiveCenterDetailPage extends ConsumerStatefulWidget {
   final String centerId;
+  final bool embedded;
+  final VoidCallback? onDeleted;
 
-  const DiveCenterDetailPage({super.key, required this.centerId});
+  const DiveCenterDetailPage({
+    super.key,
+    required this.centerId,
+    this.embedded = false,
+    this.onDeleted,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final centerAsync = ref.watch(diveCenterByIdProvider(centerId));
+  ConsumerState<DiveCenterDetailPage> createState() =>
+      _DiveCenterDetailPageState();
+}
+
+class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage> {
+  bool _hasRedirected = false;
+
+  @override
+  Widget build(BuildContext context) {
+    // Desktop redirect: If accessed directly (not embedded), redirect to master-detail view
+    if (!widget.embedded &&
+        !_hasRedirected &&
+        ResponsiveBreakpoints.isDesktop(context)) {
+      _hasRedirected = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.go('/dive-centers?selected=${widget.centerId}');
+        }
+      });
+    }
+
+    final centerAsync = ref.watch(diveCenterByIdProvider(widget.centerId));
 
     return centerAsync.when(
-      loading: () => Scaffold(
-        appBar: AppBar(),
-        body: const Center(child: CircularProgressIndicator()),
-      ),
-      error: (error, stack) => Scaffold(
-        appBar: AppBar(),
-        body: Center(child: Text('Error: $error')),
-      ),
+      loading: () => widget.embedded
+          ? const Center(child: CircularProgressIndicator())
+          : Scaffold(
+              appBar: AppBar(),
+              body: const Center(child: CircularProgressIndicator()),
+            ),
+      error: (error, stack) => widget.embedded
+          ? Center(child: Text('Error: $error'))
+          : Scaffold(
+              appBar: AppBar(),
+              body: Center(child: Text('Error: $error')),
+            ),
       data: (center) {
         if (center == null) {
-          return Scaffold(
-            appBar: AppBar(),
-            body: const Center(child: Text('Dive center not found')),
+          return widget.embedded
+              ? const Center(child: Text('Dive center not found'))
+              : Scaffold(
+                  appBar: AppBar(),
+                  body: const Center(child: Text('Dive center not found')),
+                );
+        }
+
+        final body = SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _HeaderSection(center: center),
+              const Divider(height: 32),
+              _ContactSection(center: center),
+              if (center.notes.isNotEmpty) ...[
+                const Divider(height: 32),
+                _NotesSection(notes: center.notes),
+              ],
+              const Divider(height: 32),
+              _DivesSection(centerId: widget.centerId),
+              const SizedBox(height: 32),
+            ],
+          ),
+        );
+
+        if (widget.embedded) {
+          return Column(
+            children: [
+              _buildEmbeddedHeader(context, center),
+              Expanded(child: body),
+            ],
           );
         }
 
@@ -40,88 +101,149 @@ class DiveCenterDetailPage extends ConsumerWidget {
             actions: [
               IconButton(
                 icon: const Icon(Icons.edit_outlined),
-                onPressed: () => context.push('/dive-centers/$centerId/edit'),
+                onPressed: () =>
+                    context.push('/dive-centers/${widget.centerId}/edit'),
               ),
-              PopupMenuButton<String>(
-                onSelected: (value) async {
-                  if (value == 'delete') {
-                    final confirmed = await showDialog<bool>(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Delete Dive Center'),
-                        content: Text(
-                          'Are you sure you want to delete "${center.name}"?',
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, false),
-                            child: const Text('Cancel'),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, true),
-                            style: TextButton.styleFrom(
-                              foregroundColor: Theme.of(
-                                context,
-                              ).colorScheme.error,
-                            ),
-                            child: const Text('Delete'),
-                          ),
-                        ],
-                      ),
-                    );
-
-                    if (confirmed == true && context.mounted) {
-                      await ref
-                          .read(diveCenterListNotifierProvider.notifier)
-                          .deleteDiveCenter(centerId);
-                      if (context.mounted) {
-                        context.pop();
-                      }
-                    }
-                  }
-                },
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: 'delete',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.delete_outline,
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Delete',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.error,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+              _buildMoreMenu(context, center),
             ],
           ),
-          body: SingleChildScrollView(
+          body: body,
+        );
+      },
+    );
+  }
+
+  Widget _buildEmbeddedHeader(BuildContext context, DiveCenter center) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(Icons.store, color: colorScheme.onPrimaryContainer),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                _HeaderSection(center: center),
-                const Divider(height: 32),
-                _ContactSection(center: center),
-                if (center.notes.isNotEmpty) ...[
-                  const Divider(height: 32),
-                  _NotesSection(notes: center.notes),
-                ],
-                const Divider(height: 32),
-                _DivesSection(centerId: centerId),
-                const SizedBox(height: 32),
+                Text(
+                  center.name,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (center.fullLocationString != null)
+                  Text(
+                    center.fullLocationString!,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
               ],
             ),
           ),
-        );
+          if (center.rating != null) ...[
+            Icon(Icons.star, size: 16, color: Colors.amber.shade700),
+            const SizedBox(width: 4),
+            Text(
+              center.rating!.toStringAsFixed(1),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(width: 8),
+          ],
+          IconButton(
+            icon: const Icon(Icons.edit_outlined, size: 20),
+            onPressed: () {
+              final state = GoRouterState.of(context);
+              final currentPath = state.uri.path;
+              context.go('$currentPath?selected=${widget.centerId}&mode=edit');
+            },
+            tooltip: 'Edit',
+          ),
+          _buildMoreMenu(context, center),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMoreMenu(BuildContext context, DiveCenter center) {
+    return PopupMenuButton<String>(
+      onSelected: (value) async {
+        if (value == 'delete') {
+          final confirmed = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Delete Dive Center'),
+              content: Text(
+                'Are you sure you want to delete "${center.name}"?',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Theme.of(context).colorScheme.error,
+                  ),
+                  child: const Text('Delete'),
+                ),
+              ],
+            ),
+          );
+
+          if (confirmed == true && context.mounted) {
+            await ref
+                .read(diveCenterListNotifierProvider.notifier)
+                .deleteDiveCenter(widget.centerId);
+            if (context.mounted) {
+              if (widget.embedded) {
+                widget.onDeleted?.call();
+              } else {
+                context.pop();
+              }
+            }
+          }
+        }
       },
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: 'delete',
+          child: Row(
+            children: [
+              Icon(
+                Icons.delete_outline,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Delete',
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -504,7 +626,7 @@ class _DivesSection extends ConsumerWidget {
             ),
           ),
         ),
-        error: (_, _) => const SizedBox.shrink(),
+        error: (e, st) => const SizedBox.shrink(),
       ),
     );
   }

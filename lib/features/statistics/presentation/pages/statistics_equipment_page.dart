@@ -10,26 +10,34 @@ import '../widgets/stat_charts.dart';
 import '../widgets/stat_section_card.dart';
 
 class StatisticsEquipmentPage extends ConsumerWidget {
-  const StatisticsEquipmentPage({super.key});
+  final bool embedded;
+
+  const StatisticsEquipmentPage({super.key, this.embedded = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
 
+    final content = SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildMostUsedGearSection(context, ref),
+          const SizedBox(height: 16),
+          _buildWeightTrendSection(context, ref, units),
+        ],
+      ),
+    );
+
+    if (embedded) {
+      return content;
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Equipment')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildMostUsedGearSection(context, ref),
-            const SizedBox(height: 16),
-            _buildWeightTrendSection(context, ref, units),
-          ],
-        ),
-      ),
+      body: content,
     );
   }
 

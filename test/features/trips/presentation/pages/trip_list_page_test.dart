@@ -5,9 +5,23 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_list_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 
+void _setMobileTestSurfaceSize(WidgetTester tester) {
+  // Default widget test surface width is 800px, which triggers desktop
+  // master-detail mode (and requires GoRouter context). These tests target
+  // the mobile TripListContent behavior.
+  tester.view.devicePixelRatio = 1.0;
+  tester.view.physicalSize = const Size(390, 844);
+
+  addTearDown(() {
+    tester.view.resetPhysicalSize();
+    tester.view.resetDevicePixelRatio();
+  });
+}
+
 void main() {
   group('TripListPage', () {
     testWidgets('should display Trips title in app bar', (tester) async {
+      _setMobileTestSurfaceSize(tester);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -24,6 +38,7 @@ void main() {
     });
 
     testWidgets('should display search icon in app bar', (tester) async {
+      _setMobileTestSurfaceSize(tester);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -40,6 +55,7 @@ void main() {
     });
 
     testWidgets('should display empty state when no trips', (tester) async {
+      _setMobileTestSurfaceSize(tester);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -61,6 +77,7 @@ void main() {
     });
 
     testWidgets('should display FAB with Add Trip label', (tester) async {
+      _setMobileTestSurfaceSize(tester);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -78,6 +95,7 @@ void main() {
     });
 
     testWidgets('should display trip list when trips exist', (tester) async {
+      _setMobileTestSurfaceSize(tester);
       final testTrips = [
         TripWithStats(
           trip: Trip(
@@ -124,6 +142,7 @@ void main() {
     });
 
     testWidgets('should display dive count for trips', (tester) async {
+      _setMobileTestSurfaceSize(tester);
       final testTrips = [
         TripWithStats(
           trip: Trip(
@@ -157,6 +176,7 @@ void main() {
     testWidgets('should show sailing icon for liveaboard trips', (
       tester,
     ) async {
+      _setMobileTestSurfaceSize(tester);
       final testTrips = [
         TripWithStats(
           trip: Trip(
@@ -188,6 +208,7 @@ void main() {
     });
 
     testWidgets('should show loading indicator while loading', (tester) async {
+      _setMobileTestSurfaceSize(tester);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [

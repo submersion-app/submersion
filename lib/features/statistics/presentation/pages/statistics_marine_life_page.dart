@@ -7,25 +7,33 @@ import '../widgets/ranking_list.dart';
 import '../widgets/stat_section_card.dart';
 
 class StatisticsMarineLifePage extends ConsumerWidget {
-  const StatisticsMarineLifePage({super.key});
+  final bool embedded;
+
+  const StatisticsMarineLifePage({super.key, this.embedded = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final content = SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildOverviewSection(context, ref),
+          const SizedBox(height: 16),
+          _buildMostCommonSection(context, ref),
+          const SizedBox(height: 16),
+          _buildBestSitesSection(context, ref),
+        ],
+      ),
+    );
+
+    if (embedded) {
+      return content;
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Marine Life')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildOverviewSection(context, ref),
-            const SizedBox(height: 16),
-            _buildMostCommonSection(context, ref),
-            const SizedBox(height: 16),
-            _buildBestSitesSection(context, ref),
-          ],
-        ),
-      ),
+      body: content,
     );
   }
 
