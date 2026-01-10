@@ -178,39 +178,38 @@ void main() {
     ];
   }
 
+  /// Builds a test widget with mobile screen size to avoid MasterDetailScaffold
+  /// which requires GoRouter. The SettingsPage uses MasterDetailScaffold on
+  /// desktop (>=800px) which calls GoRouterState.of(context).
+  Widget buildTestWidget(Widget child) {
+    return MediaQuery(
+      data: const MediaQueryData(size: Size(400, 800)),
+      child: ProviderScope(
+        overrides: getOverrides(),
+        child: MaterialApp(home: child),
+      ),
+    );
+  }
+
   group('SettingsPage', () {
     testWidgets('should display Settings title in app bar', (tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: getOverrides(),
-          child: const MaterialApp(home: SettingsPage()),
-        ),
-      );
+      await tester.pumpWidget(buildTestWidget(const SettingsPage()));
 
       expect(find.text('Settings'), findsOneWidget);
     });
 
-    testWidgets('should display Units section', (tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: getOverrides(),
-          child: const MaterialApp(home: SettingsPage()),
-        ),
-      );
+    testWidgets('should display Units section with subtitle', (tester) async {
+      await tester.pumpWidget(buildTestWidget(const SettingsPage()));
 
+      // Mobile layout shows Units section tile
       expect(find.text('Units'), findsOneWidget);
-      expect(find.text('Depth'), findsOneWidget);
-      expect(find.text('Temperature'), findsOneWidget);
-      expect(find.text('Pressure'), findsOneWidget);
+      expect(find.text('Measurement preferences'), findsOneWidget);
     });
 
-    testWidgets('should display Appearance section', (tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: getOverrides(),
-          child: const MaterialApp(home: SettingsPage()),
-        ),
-      );
+    testWidgets('should display Appearance section with theme info', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildTestWidget(const SettingsPage()));
       await tester.pumpAndSettle();
 
       // Scroll to find Appearance section which may be off screen
@@ -220,97 +219,60 @@ void main() {
         scrollable: find.byType(Scrollable).first,
       );
       expect(find.text('Appearance'), findsOneWidget);
+      expect(find.text('Theme & display'), findsOneWidget);
     });
 
-    testWidgets('should display Manage section with navigation items', (
+    testWidgets('should display Manage section with subtitle', (
       tester,
     ) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: getOverrides(),
-          child: const MaterialApp(home: SettingsPage()),
-        ),
-      );
+      await tester.pumpWidget(buildTestWidget(const SettingsPage()));
 
-      // Scroll to find Manage section which may be off screen due to unit tiles
+      // Mobile layout shows section tiles - scroll to find Manage section
       await tester.scrollUntilVisible(
         find.text('Manage'),
         50.0,
         scrollable: find.byType(Scrollable).first,
       );
       expect(find.text('Manage'), findsOneWidget);
-
-      // Scroll to find Buddies which may be off screen
-      await tester.scrollUntilVisible(
-        find.text('Buddies'),
-        50.0,
-        scrollable: find.byType(Scrollable).first,
-      );
-      expect(find.text('Buddies'), findsOneWidget);
-
-      // Scroll to find Certifications which may be off screen
-      await tester.scrollUntilVisible(
-        find.text('Certifications'),
-        50.0,
-        scrollable: find.byType(Scrollable).first,
-      );
-      expect(find.text('Certifications'), findsOneWidget);
-
-      // Scroll to find Dive Centers which may be off screen
-      await tester.scrollUntilVisible(
-        find.text('Dive Centers'),
-        50.0,
-        scrollable: find.byType(Scrollable).first,
-      );
-      expect(find.text('Dive Centers'), findsOneWidget);
+      // The subtitle describes what's in the Manage section
+      expect(find.text('Trips, buddies, certifications'), findsOneWidget);
     });
 
-    testWidgets('should display metric/imperial toggle', (tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: getOverrides(),
-          child: const MaterialApp(home: SettingsPage()),
-        ),
-      );
-
-      // Find the segmented button for metric/imperial
-      expect(find.text('Metric'), findsOneWidget);
-      expect(find.text('Imperial'), findsOneWidget);
-    });
-
-    testWidgets('should show default metric units (m, bar, C)', (tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: getOverrides(),
-          child: const MaterialApp(home: SettingsPage()),
-        ),
-      );
-
-      // Default units should be metric
-      expect(find.text('m'), findsOneWidget);
-      expect(find.text('bar'), findsOneWidget);
-      expect(find.text('°C'), findsOneWidget);
-    });
-
-    testWidgets('should display Theme & Display navigation item', (
+    testWidgets('should display Data section for import/export', (
       tester,
     ) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: getOverrides(),
-          child: const MaterialApp(home: SettingsPage()),
-        ),
-      );
+      await tester.pumpWidget(buildTestWidget(const SettingsPage()));
       await tester.pumpAndSettle();
 
-      // Scroll to find Theme & Display which may be off screen after unit tiles
+      // Scroll to find Data section
       await tester.scrollUntilVisible(
-        find.text('Theme & Display'),
+        find.text('Data'),
         50.0,
         scrollable: find.byType(Scrollable).first,
       );
-      expect(find.text('Theme & Display'), findsOneWidget);
-      expect(find.text('System default'), findsOneWidget);
+      expect(find.text('Data'), findsOneWidget);
+      expect(find.text('Import, export, backup'), findsOneWidget);
+    });
+
+    testWidgets('should display Diver Profile section', (tester) async {
+      await tester.pumpWidget(buildTestWidget(const SettingsPage()));
+
+      expect(find.text('Diver Profile'), findsOneWidget);
+      expect(find.text('Active diver & profiles'), findsOneWidget);
+    });
+
+    testWidgets('should display About section', (tester) async {
+      await tester.pumpWidget(buildTestWidget(const SettingsPage()));
+      await tester.pumpAndSettle();
+
+      // Scroll to find About section at the bottom
+      await tester.scrollUntilVisible(
+        find.text('About'),
+        50.0,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('About'), findsOneWidget);
+      expect(find.text('App info & licenses'), findsOneWidget);
     });
   });
 }
