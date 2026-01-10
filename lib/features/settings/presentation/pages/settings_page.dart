@@ -47,17 +47,16 @@ class SettingsPage extends ConsumerWidget {
     // Mobile: Check for selected section via query param
     String? selectedSection;
     try {
-      selectedSection = GoRouterState.of(context).uri.queryParameters['selected'];
+      selectedSection = GoRouterState.of(
+        context,
+      ).uri.queryParameters['selected'];
     } catch (_) {
       // GoRouter not available (e.g., in tests)
     }
 
     if (selectedSection != null) {
       // Show section detail page
-      return _SettingsSectionDetailPage(
-        sectionId: selectedSection,
-        ref: ref,
-      );
+      return _SettingsSectionDetailPage(sectionId: selectedSection, ref: ref);
     }
 
     // Mobile: Show section list
@@ -127,7 +126,9 @@ class _SettingsSectionDetailPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Find the section title
-    final section = settingsSections.where((s) => s.id == sectionId).firstOrNull;
+    final section = settingsSections
+        .where((s) => s.id == sectionId)
+        .firstOrNull;
     final title = section?.title ?? 'Settings';
 
     return Scaffold(

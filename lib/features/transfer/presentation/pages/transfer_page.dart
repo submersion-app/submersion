@@ -39,17 +39,16 @@ class TransferPage extends ConsumerWidget {
     // Mobile: Check for selected section via query param
     String? selectedSection;
     try {
-      selectedSection = GoRouterState.of(context).uri.queryParameters['selected'];
+      selectedSection = GoRouterState.of(
+        context,
+      ).uri.queryParameters['selected'];
     } catch (_) {
       // GoRouter not available (e.g., in tests)
     }
 
     if (selectedSection != null) {
       // Show section detail page
-      return _TransferSectionDetailPage(
-        sectionId: selectedSection,
-        ref: ref,
-      );
+      return _TransferSectionDetailPage(sectionId: selectedSection, ref: ref);
     }
 
     // Mobile: Show section list
@@ -109,8 +108,9 @@ class _TransferSectionDetailPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Find the section title
-    final section =
-        transferSections.where((s) => s.id == sectionId).firstOrNull;
+    final section = transferSections
+        .where((s) => s.id == sectionId)
+        .firstOrNull;
     final title = section?.title ?? 'Transfer';
 
     return Scaffold(
@@ -561,10 +561,7 @@ class _TransferSummaryWidget extends StatelessWidget {
             color: colorScheme.primary.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
-          Text(
-            'Transfer',
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
+          Text('Transfer', style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 8),
           Text(
             'Import and export dive data',
