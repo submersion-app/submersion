@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/utils/unit_formatter.dart';
 import '../../../settings/presentation/providers/settings_providers.dart';
@@ -254,6 +253,7 @@ class DiveSummaryWidget extends ConsumerWidget {
       recordItems.add(
         _buildRecordItem(
           context,
+          units,
           icon: Icons.arrow_downward,
           title: 'Deepest Dive',
           value: units.formatDepth(records.deepestDive!.maxDepth),
@@ -268,6 +268,7 @@ class DiveSummaryWidget extends ConsumerWidget {
       recordItems.add(
         _buildRecordItem(
           context,
+          units,
           icon: Icons.timer,
           title: 'Longest Dive',
           value: '$minutes min',
@@ -281,6 +282,7 @@ class DiveSummaryWidget extends ConsumerWidget {
       recordItems.add(
         _buildRecordItem(
           context,
+          units,
           icon: Icons.ac_unit,
           title: 'Coldest Dive',
           value: units.formatTemperature(records.coldestDive!.waterTemp),
@@ -294,6 +296,7 @@ class DiveSummaryWidget extends ConsumerWidget {
       recordItems.add(
         _buildRecordItem(
           context,
+          units,
           icon: Icons.wb_sunny,
           title: 'Warmest Dive',
           value: units.formatTemperature(records.warmestDive!.waterTemp),
@@ -323,7 +326,8 @@ class DiveSummaryWidget extends ConsumerWidget {
   }
 
   Widget _buildRecordItem(
-    BuildContext context, {
+    BuildContext context,
+    UnitFormatter units, {
     required IconData icon,
     required String title,
     required String value,
@@ -333,7 +337,7 @@ class DiveSummaryWidget extends ConsumerWidget {
     return ListTile(
       leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
       title: Text(title),
-      subtitle: Text(DateFormat('MMM d, y').format(date)),
+      subtitle: Text(units.formatDate(date)),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

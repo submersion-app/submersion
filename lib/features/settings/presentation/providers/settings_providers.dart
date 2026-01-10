@@ -53,6 +53,8 @@ class AppSettings {
   final VolumeUnit volumeUnit;
   final WeightUnit weightUnit;
   final SacUnit sacUnit;
+  final TimeFormat timeFormat;
+  final DateFormatPreference dateFormat;
   final ThemeMode themeMode;
   final String defaultDiveType;
   final double defaultTankVolume;
@@ -119,6 +121,8 @@ class AppSettings {
     this.volumeUnit = VolumeUnit.liters,
     this.weightUnit = WeightUnit.kilograms,
     this.sacUnit = SacUnit.pressurePerMin,
+    this.timeFormat = TimeFormat.twelveHour,
+    this.dateFormat = DateFormatPreference.mmmDYYYY,
     this.themeMode = ThemeMode.system,
     this.defaultDiveType = 'recreational',
     this.defaultTankVolume = 12.0,
@@ -183,6 +187,8 @@ class AppSettings {
     VolumeUnit? volumeUnit,
     WeightUnit? weightUnit,
     SacUnit? sacUnit,
+    TimeFormat? timeFormat,
+    DateFormatPreference? dateFormat,
     ThemeMode? themeMode,
     String? defaultDiveType,
     double? defaultTankVolume,
@@ -212,6 +218,8 @@ class AppSettings {
       volumeUnit: volumeUnit ?? this.volumeUnit,
       weightUnit: weightUnit ?? this.weightUnit,
       sacUnit: sacUnit ?? this.sacUnit,
+      timeFormat: timeFormat ?? this.timeFormat,
+      dateFormat: dateFormat ?? this.dateFormat,
       themeMode: themeMode ?? this.themeMode,
       defaultDiveType: defaultDiveType ?? this.defaultDiveType,
       defaultTankVolume: defaultTankVolume ?? this.defaultTankVolume,
@@ -356,6 +364,16 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setSacUnit(SacUnit unit) async {
     state = state.copyWith(sacUnit: unit);
+    await _saveSettings();
+  }
+
+  Future<void> setTimeFormat(TimeFormat format) async {
+    state = state.copyWith(timeFormat: format);
+    await _saveSettings();
+  }
+
+  Future<void> setDateFormat(DateFormatPreference format) async {
+    state = state.copyWith(dateFormat: format);
     await _saveSettings();
   }
 
@@ -621,4 +639,13 @@ final showPressureThresholdMarkersProvider = Provider<bool>((ref) {
   return ref.watch(
     settingsProvider.select((s) => s.showPressureThresholdMarkers),
   );
+});
+
+/// Time/Date format convenience providers
+final timeFormatProvider = Provider<TimeFormat>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.timeFormat));
+});
+
+final dateFormatProvider = Provider<DateFormatPreference>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.dateFormat));
 });

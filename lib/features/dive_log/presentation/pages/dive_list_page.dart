@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../../core/utils/unit_formatter.dart';
@@ -422,7 +421,7 @@ class DiveListTile extends ConsumerWidget {
                   const SizedBox(height: 4),
                   // Date and time
                   Text(
-                    _formatDateTime(dateTime),
+                    units.formatDateTime(dateTime),
                     style: Theme.of(
                       context,
                     ).textTheme.bodyMedium?.copyWith(color: secondaryTextColor),
@@ -605,10 +604,6 @@ class DiveListTile extends ConsumerWidget {
     );
   }
 
-  String _formatDateTime(DateTime date) {
-    return '${DateFormat('MMM d, y').format(date)} at ${DateFormat('h:mm a').format(date)}';
-  }
-
   String _formatDuration(Duration duration) {
     final minutes = duration.inMinutes;
     return '$minutes min';
@@ -664,6 +659,8 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
   @override
   Widget build(BuildContext context) {
     final sites = ref.watch(sitesProvider);
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
 
     return DraggableScrollableSheet(
       initialChildSize: 0.7,
@@ -708,7 +705,7 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                       icon: const Icon(Icons.calendar_today, size: 18),
                       label: Text(
                         _startDate != null
-                            ? DateFormat('MMM d, y').format(_startDate!)
+                            ? units.formatDate(_startDate)
                             : 'Start Date',
                       ),
                     ),
@@ -722,7 +719,7 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                       icon: const Icon(Icons.calendar_today, size: 18),
                       label: Text(
                         _endDate != null
-                            ? DateFormat('MMM d, y').format(_endDate!)
+                            ? units.formatDate(_endDate)
                             : 'End Date',
                       ),
                     ),

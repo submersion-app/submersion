@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
+import '../../../../core/utils/unit_formatter.dart';
 import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
 
 import '../../../../core/constants/enums.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../../../dive_log/presentation/providers/dive_providers.dart';
 import '../../../trips/presentation/providers/trip_providers.dart';
 import '../../domain/entities/equipment_item.dart';
@@ -107,6 +108,9 @@ class _EquipmentDetailContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
+
     final body = SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -114,10 +118,10 @@ class _EquipmentDetailContent extends ConsumerWidget {
         children: [
           _buildHeaderSection(context, equipment),
           const SizedBox(height: 24),
-          _buildDetailsSection(context, ref, equipment),
+          _buildDetailsSection(context, ref, equipment, units),
           if (equipment.serviceIntervalDays != null) ...[
             const SizedBox(height: 24),
-            _buildServiceSection(context, equipment),
+            _buildServiceSection(context, equipment, units),
           ],
           const SizedBox(height: 24),
           _ServiceHistorySection(equipmentId: equipmentId),
@@ -352,6 +356,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     EquipmentItem equipment,
+    UnitFormatter units,
   ) {
     final diveCountAsync = ref.watch(equipmentDiveCountProvider(equipmentId));
     final tripCountAsync = ref.watch(equipmentTripCountProvider(equipmentId));
@@ -481,7 +486,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
               _buildDetailRow(
                 context,
                 'Purchase Date',
-                DateFormat('MMM d, yyyy').format(equipment.purchaseDate!),
+                units.formatDate(equipment.purchaseDate),
               ),
             if (equipment.purchasePrice != null)
               _buildDetailRow(
@@ -501,7 +506,11 @@ class _EquipmentDetailContent extends ConsumerWidget {
     );
   }
 
-  Widget _buildServiceSection(BuildContext context, EquipmentItem equipment) {
+  Widget _buildServiceSection(
+    BuildContext context,
+    EquipmentItem equipment,
+    UnitFormatter units,
+  ) {
     final daysUntil = equipment.daysUntilService;
     final isOverdue = daysUntil != null && daysUntil < 0;
 
@@ -531,13 +540,13 @@ class _EquipmentDetailContent extends ConsumerWidget {
               _buildDetailRow(
                 context,
                 'Last Service',
-                DateFormat('MMM d, yyyy').format(equipment.lastServiceDate!),
+                units.formatDate(equipment.lastServiceDate),
               ),
             if (equipment.nextServiceDue != null)
               _buildDetailRow(
                 context,
                 'Next Service Due',
-                DateFormat('MMM d, yyyy').format(equipment.nextServiceDue!),
+                units.formatDate(equipment.nextServiceDue),
               ),
             if (daysUntil != null)
               Padding(
@@ -966,7 +975,7 @@ class _ServiceHistorySection extends ConsumerWidget {
 }
 
 /// Service Record Tile Widget
-class _ServiceRecordTile extends StatelessWidget {
+class _ServiceRecordTile extends ConsumerWidget {
   final ServiceRecord record;
   final VoidCallback onTap;
   final VoidCallback onDelete;
@@ -978,7 +987,10 @@ class _ServiceRecordTile extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
+
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: CircleAvatar(
@@ -993,7 +1005,7 @@ class _ServiceRecordTile extends StatelessWidget {
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(DateFormat('MMM d, yyyy').format(record.serviceDate)),
+          Text(units.formatDate(record.serviceDate)),
           if (record.provider != null)
             Text(
               record.provider!,
@@ -1060,7 +1072,7 @@ class _ServiceRecordTile extends StatelessWidget {
 }
 
 /// Service Record Dialog for Add/Edit
-class ServiceRecordDialog extends StatefulWidget {
+class ServiceRecordDialog extends ConsumerStatefulWidget {
   final String equipmentId;
   final ServiceRecord? existingRecord;
   final Future<void> Function(ServiceRecord) onSave;
@@ -1073,10 +1085,11 @@ class ServiceRecordDialog extends StatefulWidget {
   });
 
   @override
-  State<ServiceRecordDialog> createState() => _ServiceRecordDialogState();
+  ConsumerState<ServiceRecordDialog> createState() =>
+      _ServiceRecordDialogState();
 }
 
-class _ServiceRecordDialogState extends State<ServiceRecordDialog> {
+class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
   final _formKey = GlobalKey<FormState>();
   late ServiceType _serviceType;
   late DateTime _serviceDate;
@@ -1115,6 +1128,9 @@ class _ServiceRecordDialogState extends State<ServiceRecordDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
+
     return AlertDialog(
       title: Text(isEditing ? 'Edit Service Record' : 'Add Service Record'),
       content: SizedBox(
@@ -1154,7 +1170,7 @@ class _ServiceRecordDialogState extends State<ServiceRecordDialog> {
                       labelText: 'Service Date',
                       prefixIcon: Icon(Icons.calendar_today),
                     ),
-                    child: Text(DateFormat('MMM d, yyyy').format(_serviceDate)),
+                    child: Text(units.formatDate(_serviceDate)),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -1210,7 +1226,7 @@ class _ServiceRecordDialogState extends State<ServiceRecordDialog> {
                     ),
                     child: Text(
                       _nextServiceDue != null
-                          ? DateFormat('MMM d, yyyy').format(_nextServiceDue!)
+                          ? units.formatDate(_nextServiceDue)
                           : 'Not set',
                       style: TextStyle(
                         color: _nextServiceDue == null

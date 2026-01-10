@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../../core/constants/enums.dart';
@@ -439,14 +438,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         ),
                       ),
                     Text(
-                      'Entry: ${DateFormat('MMM d, y • h:mm a').format(dive.effectiveEntryTime)}',
+                      'Entry: ${units.formatDateTimeBullet(dive.effectiveEntryTime)}',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
                     ),
                     if (dive.exitTime != null)
                       Text(
-                        'Exit: ${DateFormat('MMM d, y • h:mm a').format(dive.exitTime!)}',
+                        'Exit: ${units.formatDateTimeBullet(dive.exitTime!)}',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),

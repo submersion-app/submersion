@@ -49,6 +49,8 @@ class DiverSettingsRepository {
               volumeUnit: Value(s.volumeUnit.name),
               weightUnit: Value(s.weightUnit.name),
               sacUnit: Value(s.sacUnit.name),
+              timeFormat: Value(s.timeFormat.name),
+              dateFormat: Value(s.dateFormat.name),
               themeMode: Value(_themeModeToString(s.themeMode)),
               defaultDiveType: Value(s.defaultDiveType),
               defaultTankVolume: Value(s.defaultTankVolume),
@@ -111,6 +113,8 @@ class DiverSettingsRepository {
           volumeUnit: Value(settings.volumeUnit.name),
           weightUnit: Value(settings.weightUnit.name),
           sacUnit: Value(settings.sacUnit.name),
+          timeFormat: Value(settings.timeFormat.name),
+          dateFormat: Value(settings.dateFormat.name),
           themeMode: Value(_themeModeToString(settings.themeMode)),
           defaultDiveType: Value(settings.defaultDiveType),
           defaultTankVolume: Value(settings.defaultTankVolume),
@@ -193,6 +197,8 @@ class DiverSettingsRepository {
       volumeUnit: _parseVolumeUnit(row.volumeUnit),
       weightUnit: _parseWeightUnit(row.weightUnit),
       sacUnit: _parseSacUnit(row.sacUnit),
+      timeFormat: _parseTimeFormat(row.timeFormat),
+      dateFormat: _parseDateFormat(row.dateFormat),
       themeMode: _parseThemeMode(row.themeMode),
       defaultDiveType: row.defaultDiveType,
       defaultTankVolume: row.defaultTankVolume,
@@ -256,6 +262,20 @@ class DiverSettingsRepository {
     return SacUnit.values.firstWhere(
       (e) => e.name == value,
       orElse: () => SacUnit.pressurePerMin,
+    );
+  }
+
+  TimeFormat _parseTimeFormat(String value) {
+    return TimeFormat.values.firstWhere(
+      (e) => e.name == value,
+      orElse: () => TimeFormat.twelveHour,
+    );
+  }
+
+  DateFormatPreference _parseDateFormat(String value) {
+    return DateFormatPreference.values.firstWhere(
+      (e) => e.name == value,
+      orElse: () => DateFormatPreference.mmmDYYYY,
     );
   }
 

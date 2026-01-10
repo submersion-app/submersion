@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart' hide Visibility;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/constants/enums.dart';
@@ -479,6 +478,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   }
 
   Widget _buildDateTimeSection() {
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
+
     // Calculate duration from entry/exit times
     Duration? calculatedDuration;
     if (_exitDate != null && _exitTime != null) {
@@ -514,7 +516,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   child: OutlinedButton.icon(
                     onPressed: _selectEntryDate,
                     icon: const Icon(Icons.calendar_today, size: 18),
-                    label: Text(DateFormat('MMM d, y').format(_entryDate)),
+                    label: Text(units.formatDate(_entryDate)),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -538,7 +540,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                     icon: const Icon(Icons.calendar_today, size: 18),
                     label: Text(
                       _exitDate != null
-                          ? DateFormat('MMM d, y').format(_exitDate!)
+                          ? units.formatDate(_exitDate)
                           : 'Select',
                     ),
                   ),
@@ -753,6 +755,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   }
 
   Widget _buildTripSection() {
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
+
     final diveDateTime = DateTime(
       _entryDate.year,
       _entryDate.month,
@@ -798,7 +803,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
-                  '${DateFormat.yMMMd().format(_selectedTrip!.startDate)} - ${DateFormat.yMMMd().format(_selectedTrip!.endDate)}',
+                  units.formatDateRange(
+                    _selectedTrip!.startDate,
+                    _selectedTrip!.endDate,
+                  ),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),

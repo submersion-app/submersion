@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 /// Measurement units used throughout the application
 enum DepthUnit {
   meters('m'),
@@ -84,4 +86,43 @@ enum SacUnit {
 
   final String symbol;
   const SacUnit(this.symbol);
+}
+
+/// Time format preference (12-hour vs 24-hour)
+enum TimeFormat {
+  twelveHour('12-hour', 'h:mm a'),
+  twentyFourHour('24-hour', 'HH:mm');
+
+  final String displayName;
+  final String pattern;
+  const TimeFormat(this.displayName, this.pattern);
+
+  /// Example output for display in settings
+  String get example {
+    final sampleTime = DateTime(2024, 1, 15, 14, 30);
+    return DateFormat(pattern).format(sampleTime);
+  }
+}
+
+/// Date format preference
+enum DateFormatPreference {
+  mmddyyyy('MM/DD/YYYY', 'MM/dd/yyyy'),
+  ddmmyyyy('DD/MM/YYYY', 'dd/MM/yyyy'),
+  yyyymmdd('YYYY-MM-DD', 'yyyy-MM-dd'),
+  mmmDYYYY('MMM D, YYYY', 'MMM d, yyyy'),
+  dMMMYYYY('D MMM YYYY', 'd MMM yyyy');
+
+  final String displayName;
+  final String pattern;
+  const DateFormatPreference(this.displayName, this.pattern);
+
+  /// Example output for display in settings
+  String get example {
+    final sampleDate = DateTime(2024, 1, 15);
+    return DateFormat(pattern).format(sampleDate);
+  }
+
+  /// Whether this format puts day before month
+  bool get isDayFirst =>
+      this == ddmmyyyy || this == dMMMYYYY || this == yyyymmdd;
 }
