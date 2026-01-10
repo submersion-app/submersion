@@ -155,6 +155,848 @@ GAS_MIXES = [
     {"id": "hx25_25", "name": "Helitrox 25/25", "o2": 0.25, "he": 0.25},
 ]
 
+# =============================================================================
+# SITE TYPE CLASSIFICATION
+# =============================================================================
+# Patterns to infer site type from dive site names
+SITE_TYPE_PATTERNS = {
+    "wall": ["Wall", "Drop", "Cliff", "Bloody Bay"],
+    "wreck": ["SS ", "USS ", "MV ", "USAT", "Wreck", "USCGC", "Kittiwake", "Zenobia",
+              "Thistlegorm", "Liberty", "Yongala", "Spiegel Grove", "Um El Faroud"],
+    "cenote": ["Cenote"],
+    "drift": ["Corner", "Channel", "Point", "Current", "Blue Corner", "Barracuda Point"],
+    "reef": ["Reef", "Gardens", "Pinnacle", "Rock", "Thila", "Cod Hole", "Fish Head",
+             "Richelieu", "Elphinstone", "Paso del", "1000 Steps", "Molasses"],
+    "manta": ["Manta", "German Channel"],
+    "shallow": ["Pier", "Bridge", "Steps", "City", "Stingray City", "Navy Pier",
+                "Blue Heron", "Salt Pier", "Breakwater", "Casino Point"],
+    "cavern": ["Blue Hole", "Grotto", "Tomb", "Angelita"],  # Cavern/overhead environments
+}
+
+
+def get_site_type(site: Dict) -> str:
+    """
+    Determine dive site type based on name patterns.
+
+    Returns one of: wall, wreck, cenote, drift, reef, manta, shallow, cavern
+    Default: reef (most common dive type)
+    """
+    name = site.get("name", "")
+    for site_type, patterns in SITE_TYPE_PATTERNS.items():
+        for pattern in patterns:
+            if pattern.lower() in name.lower():
+                return site_type
+    return "reef"  # Default fallback
+
+
+# =============================================================================
+# THERMOCLINE PROFILES BY REGION
+# =============================================================================
+# Realistic temperature layers for different diving regions
+# (surface_temp_range, thermocline_start, thermocline_thickness, temp_drop)
+THERMOCLINE_PROFILES = {
+    "tropical": {  # Caribbean, Red Sea, SE Asia, Maldives
+        "surface_temp": (27, 30),   # Surface temp range in °C
+        "thermocline_start": 18,     # Depth where thermocline begins
+        "thermocline_thickness": 8,  # Transition zone thickness
+        "temp_drop": 3,              # Temperature drop through thermocline
+        "deep_gradient": 0.05,       # °C per meter below thermocline
+    },
+    "cenote": {  # Yucatan cenotes - sharp halocline
+        "surface_temp": (25, 27),
+        "thermocline_start": 10,     # Halocline much shallower
+        "thermocline_thickness": 3,  # Very sharp transition
+        "temp_drop": 8,              # Dramatic temp change
+        "deep_gradient": -0.05,      # Actually warms up below halocline!
+    },
+    "temperate": {  # California, New Zealand, Mediterranean
+        "surface_temp": (14, 18),
+        "thermocline_start": 8,
+        "thermocline_thickness": 10,
+        "temp_drop": 4,
+        "deep_gradient": 0.08,
+    },
+    "cold": {  # Northern Europe, deep wrecks
+        "surface_temp": (10, 14),
+        "thermocline_start": 5,
+        "thermocline_thickness": 15,
+        "temp_drop": 6,
+        "deep_gradient": 0.05,
+    },
+}
+
+
+def get_thermocline_profile(site: Dict) -> Dict:
+    """Get the appropriate thermocline profile for a dive site."""
+    site_type = get_site_type(site)
+    country = site.get("country", "")
+    region = site.get("region", "")
+
+    if site_type == "cenote":
+        return THERMOCLINE_PROFILES["cenote"]
+    elif country in ["USA"] and "California" in region:
+        return THERMOCLINE_PROFILES["temperate"]
+    elif country == "New Zealand":
+        return THERMOCLINE_PROFILES["temperate"]
+    elif country in ["Malta", "Cyprus"]:
+        return THERMOCLINE_PROFILES["temperate"]
+    else:
+        return THERMOCLINE_PROFILES["tropical"]
+
+
+def calculate_temperature_at_depth(
+    depth: float,
+    profile: Dict,
+    surface_temp: float,
+    variation_seed: float = 0.0
+) -> float:
+    """
+    Calculate water temperature at a given depth with thermocline modeling.
+
+    Uses smooth S-curve transition through the thermocline zone.
+    """
+    thermo_start = profile["thermocline_start"]
+    thermo_thick = profile["thermocline_thickness"]
+    temp_drop = profile["temp_drop"]
+    deep_grad = profile["deep_gradient"]
+    thermo_end = thermo_start + thermo_thick
+
+    # Add small random variation
+    noise = math.sin(depth * 0.5 + variation_seed) * 0.3
+
+    if depth < thermo_start:
+        # Surface layer - stable temperature
+        return surface_temp + noise
+    elif depth < thermo_end:
+        # Thermocline transition - smooth S-curve
+        progress = (depth - thermo_start) / thermo_thick
+        # Sigmoid-like smooth step
+        t = progress * math.pi
+        smooth = (1 - math.cos(t)) / 2  # 0 to 1 smoothly
+        temp = surface_temp - (temp_drop * smooth)
+        return temp + noise
+    else:
+        # Below thermocline - gradual cooling (or warming for cenotes)
+        base_temp = surface_temp - temp_drop
+        extra_depth = depth - thermo_end
+        temp = base_temp - (extra_depth * deep_grad)
+        return temp + noise
+
+
+# =============================================================================
+# MARINE SPECIES BY REGION
+# =============================================================================
+SPECIES_BY_REGION = {
+    "Caribbean": [
+        ("Green Sea Turtle", 0.4), ("Hawksbill Turtle", 0.2),
+        ("Spotted Eagle Ray", 0.3), ("Southern Stingray", 0.4),
+        ("Nurse Shark", 0.2), ("Caribbean Reef Shark", 0.15),
+        ("Great Barracuda", 0.5), ("Green Moray Eel", 0.4),
+        ("Queen Angelfish", 0.6), ("French Angelfish", 0.5),
+        ("Stoplight Parrotfish", 0.7), ("Blue Tang", 0.8),
+        ("Sergeant Major", 0.9), ("Yellowtail Snapper", 0.7),
+        ("Spiny Lobster", 0.4), ("Lionfish", 0.3),  # Invasive but common
+        ("Spotted Drum", 0.3), ("Fairy Basslet", 0.5),
+    ],
+    "Red Sea": [
+        ("Napoleon Wrasse", 0.3), ("Giant Moray Eel", 0.4),
+        ("Whitetip Reef Shark", 0.3), ("Grey Reef Shark", 0.2),
+        ("Oceanic Whitetip Shark", 0.05), ("Hammerhead Shark", 0.08),
+        ("Manta Ray", 0.1), ("Eagle Ray", 0.3),
+        ("Red Sea Clownfish", 0.5), ("Emperor Angelfish", 0.4),
+        ("Masked Butterflyfish", 0.6), ("Lionfish", 0.5),
+        ("Bluespotted Ribbontail Ray", 0.4), ("Crocodilefish", 0.3),
+        ("Dugong", 0.02), ("Dolphin", 0.1),
+    ],
+    "Southeast Asia": [
+        ("Whale Shark", 0.05), ("Manta Ray", 0.15),
+        ("Blacktip Reef Shark", 0.3), ("Leopard Shark", 0.2),
+        ("Giant Trevally", 0.4), ("Bumphead Parrotfish", 0.2),
+        ("Sea Turtle", 0.4), ("Cuttlefish", 0.5),
+        ("Clownfish", 0.6), ("Mandarin Fish", 0.1),
+        ("Pygmy Seahorse", 0.05), ("Frogfish", 0.1),
+        ("Nudibranch", 0.7), ("Octopus", 0.4),
+        ("Mantis Shrimp", 0.3), ("Ghost Pipefish", 0.1),
+        ("Barracuda", 0.5), ("Sweetlips", 0.4),
+    ],
+    "Galapagos": [
+        ("Scalloped Hammerhead Shark", 0.4), ("Galapagos Shark", 0.3),
+        ("Whale Shark", 0.1), ("Manta Ray", 0.2),
+        ("Marine Iguana", 0.5), ("Galapagos Sea Lion", 0.7),
+        ("Galapagos Penguin", 0.2), ("Mola Mola", 0.05),
+        ("Green Sea Turtle", 0.5), ("Eagle Ray", 0.4),
+        ("King Angelfish", 0.5), ("Yellowtail Surgeonfish", 0.6),
+        ("Red-lipped Batfish", 0.1), ("Moray Eel", 0.4),
+    ],
+    "Pacific": [  # Palau, Australia, etc.
+        ("Manta Ray", 0.2), ("Grey Reef Shark", 0.4),
+        ("Whitetip Reef Shark", 0.4), ("Blacktip Reef Shark", 0.3),
+        ("Napoleon Wrasse", 0.3), ("Giant Trevally", 0.5),
+        ("Bumphead Parrotfish", 0.3), ("Potato Grouper", 0.2),
+        ("Sea Turtle", 0.5), ("Giant Clam", 0.4),
+        ("Jellyfish", 0.2), ("Mandarin Fish", 0.1),
+        ("Crocodile Fish", 0.2), ("Lionfish", 0.3),
+    ],
+    "Maldives": [
+        ("Manta Ray", 0.3), ("Whale Shark", 0.08),
+        ("Grey Reef Shark", 0.4), ("Whitetip Reef Shark", 0.4),
+        ("Nurse Shark", 0.3), ("Guitar Shark", 0.1),
+        ("Eagle Ray", 0.4), ("Stingray", 0.5),
+        ("Napoleon Wrasse", 0.2), ("Oriental Sweetlips", 0.4),
+        ("Moray Eel", 0.5), ("Octopus", 0.3),
+        ("Sea Turtle", 0.4), ("Clownfish", 0.5),
+        ("Butterflyfish", 0.7), ("Batfish", 0.4),
+    ],
+    "Mediterranean": [
+        ("Grouper", 0.4), ("Barracuda", 0.3),
+        ("Moray Eel", 0.4), ("Octopus", 0.5),
+        ("Scorpionfish", 0.3), ("Sea Bream", 0.6),
+        ("Damselfish", 0.7), ("Nudibranch", 0.4),
+        ("Starfish", 0.5), ("Sea Urchin", 0.6),
+        ("Flying Gurnard", 0.2), ("John Dory", 0.1),
+    ],
+    "Cenote": [  # Freshwater cenotes
+        ("Freshwater Fish", 0.3), ("Catfish", 0.2),
+        ("Molly", 0.4),  # Small fish common in cenotes
+        # Cenotes focus more on formations than wildlife
+    ],
+    "Temperate": [  # California, New Zealand
+        ("Giant Pacific Octopus", 0.2), ("Wolf Eel", 0.1),
+        ("Lingcod", 0.3), ("Cabezon", 0.2),
+        ("Harbor Seal", 0.2), ("Sea Lion", 0.25),
+        ("Garibaldi", 0.4), ("Sheephead", 0.3),
+        ("Horn Shark", 0.1), ("Bat Ray", 0.3),
+        ("Giant Sea Bass", 0.05), ("Moray Eel", 0.2),
+        ("Spiny Lobster", 0.3), ("Sea Urchin", 0.6),
+        ("Kelp Forest Fish", 0.7), ("Nudibranch", 0.5),
+    ],
+}
+
+
+def get_region_for_species(site: Dict) -> str:
+    """Determine which species region to use for a dive site."""
+    site_type = get_site_type(site)
+    if site_type == "cenote":
+        return "Cenote"
+
+    country = site.get("country", "")
+    region = site.get("region", "")
+
+    if country in ["Belize", "Mexico"] and "Quintana Roo" not in region:
+        return "Caribbean"
+    if country in ["Cayman Islands", "Bonaire", "Bahamas"]:
+        return "Caribbean"
+    if country in ["USA"] and "Florida" in region:
+        return "Caribbean"
+    if country == "Egypt":
+        return "Red Sea"
+    if country in ["Thailand", "Indonesia", "Malaysia"]:
+        return "Southeast Asia"
+    if country == "Ecuador" and "Galapagos" in region:
+        return "Galapagos"
+    if country in ["Palau", "Australia"]:
+        return "Pacific"
+    if country == "Maldives":
+        return "Maldives"
+    if country in ["Malta", "Cyprus"]:
+        return "Mediterranean"
+    if country == "New Zealand" or (country == "USA" and "California" in region):
+        return "Temperate"
+
+    return "Caribbean"  # Default fallback
+
+
+def generate_sightings(site: Dict, site_type: str, num_sightings: int = None) -> List[Dict]:
+    """
+    Generate realistic marine life sightings for a dive.
+
+    Args:
+        site: Dive site dictionary
+        site_type: Type of dive site (reef, wall, wreck, etc.)
+        num_sightings: Number of species to include (random if None)
+
+    Returns:
+        List of sighting dictionaries with species name and count
+    """
+    region = get_region_for_species(site)
+    species_list = SPECIES_BY_REGION.get(region, SPECIES_BY_REGION["Caribbean"])
+
+    if num_sightings is None:
+        # Vary sightings by site type
+        if site_type == "manta":
+            num_sightings = random.randint(2, 5)
+        elif site_type == "cenote":
+            num_sightings = random.randint(0, 2)
+        elif site_type in ["reef", "wall"]:
+            num_sightings = random.randint(3, 7)
+        else:
+            num_sightings = random.randint(2, 5)
+
+    sightings = []
+    available_species = species_list.copy()
+
+    for _ in range(min(num_sightings, len(available_species))):
+        # Weighted random selection based on probability
+        candidates = [(sp, prob) for sp, prob in available_species if random.random() < prob * 2]
+        if not candidates:
+            candidates = available_species[:3]  # Fallback to most common
+
+        if candidates:
+            if isinstance(candidates[0], tuple):
+                species, _ = random.choice(candidates)
+            else:
+                species = random.choice(candidates)
+
+            # Remove selected species to avoid duplicates
+            available_species = [(s, p) for s, p in available_species if s != species]
+
+            # Generate count based on species type
+            if any(x in species.lower() for x in ["shark", "manta", "turtle", "whale", "seal", "lion", "iguana"]):
+                count = random.randint(1, 3)  # Large animals seen in small numbers
+            elif any(x in species.lower() for x in ["fish", "tang", "snapper", "parrot"]):
+                count = random.randint(5, 50)  # Schooling fish
+            else:
+                count = random.randint(1, 8)  # Other species
+
+            sightings.append({
+                "species": species,
+                "count": count,
+            })
+
+    return sightings
+
+
+# =============================================================================
+# DIVE CONDITIONS AND RATINGS
+# =============================================================================
+WIND_DIRECTIONS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+ENTRY_METHODS = ["shore", "boat", "giantStride", "backRoll", "ladder"]
+
+
+def generate_dive_conditions(site: Dict, site_type: str) -> Dict:
+    """
+    Generate realistic dive conditions based on site type and location.
+
+    Returns a dictionary with visibility, current, swell, entry method, etc.
+    """
+    country = site.get("country", "")
+    region = site.get("region", "")
+
+    # Visibility based on region and site type
+    if site_type == "cenote":
+        visibility = random.randint(25, 60)  # Crystal clear in cenotes
+    elif country in ["Maldives", "Egypt", "Palau"]:
+        visibility = random.randint(20, 40)  # Great tropical visibility
+    elif country in ["Thailand", "Indonesia", "Malaysia"]:
+        visibility = random.randint(10, 30)  # Variable
+    elif country in ["USA"] and "California" in region:
+        visibility = random.randint(5, 20)  # Temperate, kelp
+    else:
+        visibility = random.randint(12, 30)  # Average tropical
+
+    # Current based on site type
+    if site_type == "drift":
+        current_strength = random.choice(["moderate", "strong", "strong"])
+    elif site_type in ["cenote", "wreck", "shallow"]:
+        current_strength = random.choice(["none", "none", "light"])
+    else:
+        current_strength = random.choice(["none", "light", "light", "moderate"])
+
+    current_direction = random.choice(WIND_DIRECTIONS) if current_strength != "none" else None
+
+    # Swell for ocean sites
+    if site_type == "cenote" or site.get("water_type") == "freshwater":
+        swell_height = 0.0
+    else:
+        swell_height = random.choice([0.0, 0.3, 0.5, 0.8, 1.0, 1.2])
+
+    # Entry method based on site
+    if site_type in ["shallow", "cenote"]:
+        entry_method = "shore"
+    elif site_type == "wreck":
+        entry_method = random.choice(["boat", "giantStride", "backRoll"])
+    elif "Pier" in site.get("name", "") or "Bridge" in site.get("name", ""):
+        entry_method = "shore"
+    else:
+        entry_method = random.choice(["boat", "giantStride", "backRoll", "ladder"])
+
+    exit_method = entry_method if entry_method == "shore" else random.choice([entry_method, "ladder"])
+
+    # Water type from site or inferred
+    water_type = site.get("water_type", "saltwater")
+
+    return {
+        "visibility": visibility,
+        "current_strength": current_strength,
+        "current_direction": current_direction,
+        "swell_height": swell_height,
+        "entry_method": entry_method,
+        "exit_method": exit_method,
+        "water_type": water_type,
+    }
+
+
+# =============================================================================
+# DIVE NOTES TEMPLATES
+# =============================================================================
+DIVE_NOTES_TEMPLATES = [
+    "Great dive at {site}! {highlight}",
+    "Excellent conditions today. {highlight}",
+    "{highlight} {buddy} was a great dive buddy.",
+    "One of the best dives of the trip. {highlight}",
+    "Beautiful {site_type} dive. {highlight}",
+    "{highlight} Visibility was {vis}m.",
+    "Amazing dive! {highlight} Water temp was perfect.",
+    "{highlight} Will definitely dive here again.",
+    "Good dive despite {challenge}. {highlight}",
+    "First time at {site}. {highlight}",
+]
+
+HIGHLIGHTS = [
+    "Saw {species} up close!",
+    "Great viz today.",
+    "Lots of marine life.",
+    "Spotted a {species}!",
+    "Beautiful coral formations.",
+    "Perfect conditions.",
+    "Incredible {species} encounter.",
+    "Managed to photograph a {species}.",
+    "The {species} came very close.",
+    "Swam with {species} for several minutes.",
+]
+
+CHALLENGES = [
+    "strong current",
+    "limited visibility",
+    "cold thermocline",
+    "surge at safety stop",
+    "brief rain topside",
+]
+
+
+def generate_dive_notes(site: Dict, site_type: str, sightings: List[Dict], buddy_name: str, conditions: Dict) -> str:
+    """Generate natural-sounding dive notes."""
+    template = random.choice(DIVE_NOTES_TEMPLATES)
+
+    # Pick a highlight species if we have sightings
+    if sightings:
+        highlight_sighting = random.choice(sightings)
+        species = highlight_sighting["species"]
+    else:
+        species = "fish"
+
+    highlight_template = random.choice(HIGHLIGHTS)
+    highlight = highlight_template.format(species=species)
+
+    challenge = random.choice(CHALLENGES)
+
+    notes = template.format(
+        site=site.get("name", "this site"),
+        site_type=site_type,
+        highlight=highlight,
+        buddy=buddy_name,
+        vis=conditions.get("visibility", 15),
+        challenge=challenge,
+        species=species,
+    )
+
+    return notes
+
+
+# =============================================================================
+# DIVE SESSION FOR REPETITIVE DIVING
+# =============================================================================
+class DiveSession:
+    """
+    Tracks tissue state across multiple dives in a day for repetitive diving.
+
+    Handles surface interval off-gassing and calculates reduced NDLs for
+    subsequent dives.
+    """
+
+    def __init__(self):
+        """Initialize a fresh dive session."""
+        self.tissue = TissueState()
+        self.last_dive_end: datetime = None
+        self.dive_count_today = 0
+        self.dives_today: List[Dict] = []
+
+    def start_new_day(self):
+        """Reset for a new diving day (after sufficient surface interval)."""
+        self.tissue = TissueState()
+        self.last_dive_end = None
+        self.dive_count_today = 0
+        self.dives_today = []
+
+    def surface_interval_minutes(self, current_time: datetime) -> float:
+        """Calculate minutes since last dive ended."""
+        if self.last_dive_end is None:
+            return float('inf')
+        return (current_time - self.last_dive_end).total_seconds() / 60
+
+    def apply_surface_interval(self, interval_minutes: float):
+        """
+        Off-gas tissues during surface interval.
+
+        Tissues continue to off-gas nitrogen while on the surface,
+        reducing tissue loading for the next dive.
+        """
+        if interval_minutes <= 0:
+            return
+
+        # Update tissues at surface pressure, breathing air
+        self.tissue.update(
+            depth=0.0,
+            time_seconds=interval_minutes * 60,
+            o2_fraction=0.21,
+            he_fraction=0.0
+        )
+
+    def get_adjusted_ndl(self, depth: float, gf_high: float = 0.85) -> float:
+        """
+        Calculate NDL accounting for residual nitrogen from previous dives.
+
+        Returns reduced NDL for repetitive dives.
+        """
+        return self.tissue.ndl(depth, o2_fraction=0.21, gf_high=gf_high)
+
+    def record_dive_end(self, end_time: datetime, dive_summary: Dict):
+        """Record that a dive has ended for surface interval tracking."""
+        self.last_dive_end = end_time
+        self.dive_count_today += 1
+        self.dives_today.append(dive_summary)
+
+    def is_new_day(self, current_time: datetime) -> bool:
+        """Check if current time is a new diving day (>12 hours since last dive)."""
+        if self.last_dive_end is None:
+            return True
+        interval = (current_time - self.last_dive_end).total_seconds() / 3600
+        return interval > 12  # More than 12 hours = new diving day
+
+
+# =============================================================================
+# BÜHLMANN ZHL-16C DECOMPRESSION MODEL
+# =============================================================================
+# Each compartment tuple: (half_time_N2, half_time_He, a_N2, b_N2, a_He, b_He)
+# Half-times in minutes, a/b coefficients for M-value calculation
+# Source: Bühlmann ZHL-16C with GF extensions
+BUHLMANN_ZHL16C = [
+    (4.0, 1.51, 1.2599, 0.5050, 1.7424, 0.4245),
+    (8.0, 3.02, 1.0000, 0.6514, 1.3830, 0.5747),
+    (12.5, 4.72, 0.8618, 0.7222, 1.1919, 0.6527),
+    (18.5, 6.99, 0.7562, 0.7825, 1.0458, 0.7223),
+    (27.0, 10.21, 0.6200, 0.8126, 0.9220, 0.7582),
+    (38.3, 14.48, 0.5043, 0.8434, 0.8205, 0.7957),
+    (54.3, 20.53, 0.4410, 0.8693, 0.7305, 0.8279),
+    (77.0, 29.11, 0.4000, 0.8910, 0.6502, 0.8553),
+    (109.0, 41.20, 0.3750, 0.9092, 0.5950, 0.8757),
+    (146.0, 55.19, 0.3500, 0.9222, 0.5545, 0.8903),
+    (187.0, 70.69, 0.3295, 0.9319, 0.5333, 0.8997),
+    (239.0, 90.34, 0.3065, 0.9403, 0.5189, 0.9073),
+    (305.0, 115.29, 0.2835, 0.9477, 0.5181, 0.9122),
+    (390.0, 147.42, 0.2610, 0.9544, 0.5176, 0.9171),
+    (498.0, 188.24, 0.2480, 0.9602, 0.5172, 0.9217),
+    (635.0, 240.03, 0.2327, 0.9653, 0.5119, 0.9267),
+]
+
+# Water vapor pressure at 37°C (body temperature) in bar
+WATER_VAPOR_PRESSURE = 0.0627
+
+# Surface atmospheric pressure in bar
+SURFACE_PRESSURE = 1.01325
+
+
+class TissueState:
+    """
+    Bühlmann ZHL-16C tissue compartment model for decompression calculations.
+
+    Tracks nitrogen and helium loading in 16 tissue compartments and calculates
+    the decompression ceiling based on gradient factors.
+    """
+
+    def __init__(self):
+        """Initialize tissue compartments at surface saturation."""
+        # At surface, tissues are saturated with nitrogen at ambient partial pressure
+        # ppN2 = (surface_pressure - water_vapor) * 0.79 (fraction of N2 in air)
+        surface_ppn2 = (SURFACE_PRESSURE - WATER_VAPOR_PRESSURE) * 0.79
+        self.n2_loadings = [surface_ppn2] * 16
+        self.he_loadings = [0.0] * 16  # No helium at surface
+
+    def update(self, depth: float, time_seconds: float, o2_fraction: float, he_fraction: float):
+        """
+        Update tissue loadings after spending time at a given depth.
+
+        Args:
+            depth: Current depth in meters
+            time_seconds: Time spent at this depth in seconds
+            o2_fraction: Oxygen fraction in breathing gas (0-1)
+            he_fraction: Helium fraction in breathing gas (0-1)
+        """
+        # Calculate ambient pressure in bar
+        ambient_pressure = SURFACE_PRESSURE + (depth / 10.0)
+
+        # Calculate inspired gas partial pressures (accounting for water vapor)
+        inspired_pressure = ambient_pressure - WATER_VAPOR_PRESSURE
+        n2_fraction = 1.0 - o2_fraction - he_fraction
+        pp_n2_inspired = inspired_pressure * n2_fraction
+        pp_he_inspired = inspired_pressure * he_fraction
+
+        time_minutes = time_seconds / 60.0
+
+        for i, compartment in enumerate(BUHLMANN_ZHL16C):
+            ht_n2, ht_he, _, _, _, _ = compartment
+
+            # Schreiner equation: P_tissue = P_inspired + (P_tissue_0 - P_inspired) * e^(-t/tau)
+            # where tau = half_time / ln(2)
+
+            # Nitrogen loading
+            k_n2 = math.log(2) / ht_n2
+            self.n2_loadings[i] = pp_n2_inspired + (self.n2_loadings[i] - pp_n2_inspired) * math.exp(-k_n2 * time_minutes)
+
+            # Helium loading (only if breathing helium mix)
+            if he_fraction > 0:
+                k_he = math.log(2) / ht_he
+                self.he_loadings[i] = pp_he_inspired + (self.he_loadings[i] - pp_he_inspired) * math.exp(-k_he * time_minutes)
+            elif self.he_loadings[i] > 0.001:
+                # Off-gassing helium while breathing non-helium mix
+                k_he = math.log(2) / ht_he
+                self.he_loadings[i] = self.he_loadings[i] * math.exp(-k_he * time_minutes)
+
+    def ceiling(self, gf: float = 1.0) -> float:
+        """
+        Calculate the current decompression ceiling depth.
+
+        Args:
+            gf: Gradient factor (0-1), where 1.0 = 100% of M-value
+
+        Returns:
+            Ceiling depth in meters (0 = surface is safe)
+        """
+        max_ceiling = 0.0
+
+        for i, compartment in enumerate(BUHLMANN_ZHL16C):
+            _, _, a_n2, b_n2, a_he, b_he = compartment
+
+            # Total inert gas pressure in this compartment
+            p_inert = self.n2_loadings[i] + self.he_loadings[i]
+
+            if p_inert <= 0:
+                continue
+
+            # Calculate weighted a and b values for mixed gas
+            if self.he_loadings[i] > 0.001:
+                # Weighted by gas fractions in tissue
+                he_frac = self.he_loadings[i] / p_inert
+                n2_frac = self.n2_loadings[i] / p_inert
+                a = (a_n2 * n2_frac) + (a_he * he_frac)
+                b = (b_n2 * n2_frac) + (b_he * he_frac)
+            else:
+                a = a_n2
+                b = b_n2
+
+            # M-value at surface: M0 = a + (1/b) * P_ambient
+            # Ceiling: P_ambient_min = (P_tissue - a * gf) / (gf / b - gf + 1)
+            # Simplified: P_ceiling = (P_tissue - a * gf) * b / gf
+            # Then convert to depth
+
+            # With gradient factor applied:
+            # Allowed P_ambient = (P_inert - a * gf) / (gf / b - gf + 1)
+            gf_adjusted = gf / b - gf + 1
+            if gf_adjusted > 0:
+                p_ceiling = (p_inert - a * gf) / gf_adjusted
+
+                # Convert pressure to depth
+                ceiling_depth = (p_ceiling - SURFACE_PRESSURE) * 10.0
+                max_ceiling = max(max_ceiling, ceiling_depth)
+
+        return max(0.0, max_ceiling)
+
+    def gf_ceiling(self, gf_low: float, gf_high: float, current_depth: float, first_stop_depth: float = None) -> float:
+        """
+        Calculate ceiling using gradient factor slope between GF Low and GF High.
+
+        GF Low is applied at the deepest required stop, GF High at the surface.
+        The effective GF is interpolated based on current depth.
+
+        Args:
+            gf_low: Gradient factor at first stop (typically 0.30-0.40)
+            gf_high: Gradient factor at surface (typically 0.70-0.85)
+            current_depth: Current depth in meters
+            first_stop_depth: Depth of first required stop (if known)
+
+        Returns:
+            Ceiling depth in meters
+        """
+        # First, find the raw ceiling at GF Low to determine first stop depth
+        if first_stop_depth is None:
+            first_stop_depth = self.ceiling(gf_low)
+
+        if first_stop_depth <= 0:
+            # No deco required, use GF High
+            return self.ceiling(gf_high)
+
+        # Interpolate GF based on current depth between first stop and surface
+        if current_depth >= first_stop_depth:
+            effective_gf = gf_low
+        elif current_depth <= 0:
+            effective_gf = gf_high
+        else:
+            # Linear interpolation
+            progress = 1.0 - (current_depth / first_stop_depth)
+            effective_gf = gf_low + (gf_high - gf_low) * progress
+
+        return self.ceiling(effective_gf)
+
+    def ndl(self, depth: float, o2_fraction: float = 0.21, he_fraction: float = 0.0, gf_high: float = 0.85) -> float:
+        """
+        Calculate No Decompression Limit at a given depth.
+
+        Args:
+            depth: Target depth in meters
+            o2_fraction: O2 fraction in breathing gas
+            he_fraction: He fraction in breathing gas
+            gf_high: Gradient factor for ceiling calculation
+
+        Returns:
+            NDL in minutes (time until deco is required)
+        """
+        # Create a copy to simulate without affecting current state
+        sim_n2 = self.n2_loadings.copy()
+        sim_he = self.he_loadings.copy()
+
+        ambient_pressure = SURFACE_PRESSURE + (depth / 10.0)
+        inspired_pressure = ambient_pressure - WATER_VAPOR_PRESSURE
+        n2_fraction = 1.0 - o2_fraction - he_fraction
+        pp_n2_inspired = inspired_pressure * n2_fraction
+        pp_he_inspired = inspired_pressure * he_fraction
+
+        ndl_minutes = 0.0
+        time_step = 1.0  # 1 minute steps
+
+        while ndl_minutes < 200:  # Max 200 minutes
+            # Update simulated tissue loadings
+            for i, compartment in enumerate(BUHLMANN_ZHL16C):
+                ht_n2, ht_he, _, _, _, _ = compartment
+                k_n2 = math.log(2) / ht_n2
+                sim_n2[i] = pp_n2_inspired + (sim_n2[i] - pp_n2_inspired) * math.exp(-k_n2 * time_step)
+                if he_fraction > 0:
+                    k_he = math.log(2) / ht_he
+                    sim_he[i] = pp_he_inspired + (sim_he[i] - pp_he_inspired) * math.exp(-k_he * time_step)
+
+            # Check if any compartment requires deco
+            for i, compartment in enumerate(BUHLMANN_ZHL16C):
+                _, _, a_n2, b_n2, a_he, b_he = compartment
+                p_inert = sim_n2[i] + sim_he[i]
+                if p_inert > 0:
+                    if sim_he[i] > 0.001:
+                        he_frac = sim_he[i] / p_inert
+                        n2_frac = sim_n2[i] / p_inert
+                        a = (a_n2 * n2_frac) + (a_he * he_frac)
+                        b = (b_n2 * n2_frac) + (b_he * he_frac)
+                    else:
+                        a = a_n2
+                        b = b_n2
+
+                    gf_adjusted = gf_high / b - gf_high + 1
+                    if gf_adjusted > 0:
+                        p_ceiling = (p_inert - a * gf_high) / gf_adjusted
+                        ceiling_depth = (p_ceiling - SURFACE_PRESSURE) * 10.0
+                        if ceiling_depth > 0:
+                            return ndl_minutes
+
+            ndl_minutes += time_step
+
+        return 200.0  # Max NDL
+
+
+def ease_in_out_cubic(t: float) -> float:
+    """
+    Smooth easing function for natural descent/ascent curves.
+
+    Args:
+        t: Progress from 0 to 1
+
+    Returns:
+        Eased value from 0 to 1
+    """
+    if t < 0.5:
+        return 4 * t * t * t
+    else:
+        return 1 - pow(-2 * t + 2, 3) / 2
+
+
+def depth_variation(time_seconds: float, amplitude: float = 2.0, seed: float = 0.0) -> float:
+    """
+    Generate smooth, natural depth variations simulating terrain following.
+
+    Combines multiple sine waves at different frequencies for an organic feel.
+
+    Args:
+        time_seconds: Current time in seconds
+        amplitude: Maximum variation in meters
+        seed: Random seed offset for variety between dives
+
+    Returns:
+        Depth variation in meters (can be positive or negative)
+    """
+    t = time_seconds + seed
+    return (
+        math.sin(t * 0.05) * 0.5 +
+        math.sin(t * 0.023) * 0.3 +
+        math.sin(t * 0.089) * 0.15 +
+        math.sin(t * 0.011) * 0.05
+    ) * amplitude
+
+
+def calculate_gas_duration(
+    max_depth: float,
+    tank_configs: List[Dict],
+    is_tech: bool = False,
+    reserve_fraction: float = 0.25
+) -> float:
+    """
+    Calculate maximum dive duration based on available gas supply.
+
+    Args:
+        max_depth: Maximum planned depth in meters
+        tank_configs: List of tank configurations
+        is_tech: Whether this is a technical dive
+        reserve_fraction: Fraction of gas to keep as reserve (default 25%)
+
+    Returns:
+        Maximum dive duration in minutes
+    """
+    # Sum up total available gas from main tanks
+    main_tanks = [tc for tc in tank_configs if tc.get("role", "main") == "main"]
+    total_gas_liters = sum(
+        tank["volume"] * tank.get("working_pressure", 200)
+        for tank in main_tanks
+    )
+
+    # Usable gas after reserve
+    usable_gas = total_gas_liters * (1 - reserve_fraction)
+
+    # Estimate average depth (recreational dives are multi-level, tech stays deeper)
+    avg_depth_fraction = 0.55 if is_tech else 0.45
+    avg_depth = max_depth * avg_depth_fraction
+
+    # Average ambient pressure
+    avg_ambient = 1 + avg_depth / 10
+
+    # SAC rate (liters per minute at surface)
+    # Tech divers typically have better air consumption
+    base_sac = random.uniform(14, 17) if is_tech else random.uniform(16, 20)
+
+    # Account for descent (higher consumption) and ascent (lower consumption)
+    # Average consumption rate including all phases
+    avg_consumption = base_sac * avg_ambient
+
+    # Calculate duration
+    duration_minutes = usable_gas / avg_consumption
+
+    return duration_minutes
+
+
 # Equipment sets - warm water and cold water configurations
 # UDDF equipment types: mask, fins, suit, bcd, regulator, computer, camera, light, tank, weight, etc.
 EQUIPMENT_SETS = {
@@ -670,184 +1512,353 @@ def generate_dive_profile(
     surface_temp: float,
     bottom_temp: float,
     tank_configs: List[Dict],
-    is_tech: bool = False
-) -> Tuple[List[Dict], List[Dict]]:
-    """Generate realistic depth, temperature, and pressure profiles.
+    is_tech: bool = False,
+    gf_low: float = 0.35,
+    gf_high: float = 0.85,
+    site_type: str = "reef",
+    thermocline_profile: Dict = None,
+    tissue_state: TissueState = None,
+) -> Tuple[List[Dict], List[Dict], TissueState]:
+    """Generate realistic depth, temperature, and pressure profiles using Bühlmann ZHL-16C.
+
+    Features:
+    - Smooth curved descent/ascent using easing functions
+    - Multi-level profiles for recreational dives
+    - Site-specific depth patterns (wall, wreck, drift, reef, cenote, manta, shallow)
+    - Thermocline temperature modeling with smooth transitions
+    - Tissue compartment tracking with gradient factor support
+    - Proper deco ceiling respect during ascent
+    - Realistic gas consumption that won't exceed available supply
+    - Optional tissue state input for repetitive diving
+
+    Site-specific patterns:
+    - wall: Steep descent to max depth, hug wall with minimal horizontal movement
+    - wreck: Descend to deck, explore exterior/interior at various levels
+    - drift: Gradual depth changes following current, less precise depth control
+    - cenote: Sharp thermocline, layer exploration
+    - manta: Hover at cleaning station depth (12-18m), minimal movement
+    - shallow: Stay in 3-10m range, extended bottom times
 
     Consumption patterns by configuration:
     - Single tank: straightforward consumption
     - Sidemount: alternate between tanks every ~15-20 bar for balance
     - Doubles (manifolded): consume both tanks equally
     - Staged deco: use bottom gas until ascent, then switch to appropriate deco gas based on MOD
+
+    Returns:
+        Tuple of (profile_points, gas_switches, final_tissue_state)
     """
 
     profile_points = []
-    sample_interval = 60  # 1-minute samples (UDDF uses seconds)
+    sample_interval = 10  # 10-second samples for detailed profiles
     total_seconds = duration_minutes * 60
 
-    # Calculate descent and ascent phases
-    descent_rate = 18  # m/min
-    ascent_rate = 9  # m/min
+    # Descent/ascent rates
+    descent_rate = 15  # m/min - slightly slower for realism
+    ascent_rate = 9  # m/min - standard safe ascent rate
 
-    descent_time = (max_depth / descent_rate) * 60
-    ascent_time = (max_depth / ascent_rate) * 60
-
+    # Calculate phase durations
+    descent_time_seconds = (max_depth / descent_rate) * 60
     safety_stop_depth = 5
-    safety_stop_duration = 180
-
-    # Tech dives have deco stops
-    deco_stops = []
-    if is_tech and max_depth > 40:
-        if max_depth > 60:
-            deco_stops = [(21, 180), (15, 180), (12, 180), (9, 300), (6, 600)]
-        elif max_depth > 50:
-            deco_stops = [(15, 120), (9, 180), (6, 300)]
-        else:
-            deco_stops = [(9, 120), (6, 180)]
-
-    bottom_time = total_seconds - descent_time - ascent_time - safety_stop_duration
-    for stop in deco_stops:
-        bottom_time -= stop[1]
-    bottom_time = max(bottom_time, 60)
+    safety_stop_duration = 180  # 3 minutes
 
     # Determine tank configuration type
     config_type = get_tank_config_type(tank_configs)
 
     # Initialize tank states with realistic SAC rates
-    # Tech divers typically have better SAC rates (12-18 L/min)
-    # Recreational divers: 15-25 L/min
     tank_states = []
-    base_sac = random.uniform(12, 18) if is_tech else random.uniform(15, 22)
+    base_sac = random.uniform(13, 16) if is_tech else random.uniform(15, 19)
 
-    # For manifolded doubles, use same starting pressure for both main tanks
-    # since they equalize through the manifold
-    manifold_start_pressure = random.randint(198, 207)
+    # For manifolded doubles, use same starting pressure
+    manifold_start_pressure = random.randint(200, 210)
 
     for i, tank in enumerate(tank_configs):
-        # Get gas mix info for MOD calculation
         mix_id = tank.get("mix_id", "air")
-        gas_mix = next((m for m in GAS_MIXES if m["id"] == mix_id), {"o2": 0.21, "he": 0})
+        gas_mix = next((m for m in GAS_MIXES if m["id"] == mix_id), {"o2": 0.21, "he": 0.0})
         mod = calculate_mod(gas_mix["o2"])
 
-        # Determine starting pressure based on config type
         if config_type in ["doubles", "doubles_staged"] and tank.get("role") == "main":
-            # Manifolded tanks start at same pressure (equalized)
             start_pressure_bar = manifold_start_pressure
-            # Same SAC rate for manifolded tanks (gas flows between them)
             sac_rate = base_sac
         else:
-            # Independent tanks have slight variation
-            start_pressure_bar = random.randint(195, 210)
-            sac_rate = base_sac + random.uniform(-2, 2)
+            start_pressure_bar = random.randint(198, 210)
+            sac_rate = base_sac + random.uniform(-1.5, 1.5)
 
         tank_states.append({
-            "start_pressure": start_pressure_bar * 100000,  # Pascal
+            "start_pressure": start_pressure_bar * 100000,
             "current_pressure": start_pressure_bar * 100000,
             "sac_rate": sac_rate,
             "role": tank.get("role", "main"),
             "mix_id": mix_id,
             "o2": gas_mix["o2"],
+            "he": gas_mix.get("he", 0.0),
             "mod": mod,
             "volume": tank["volume"],
         })
 
-    current_time = 0
-    current_depth = 0
+    # Initialize tissue state for decompression tracking
+    # If tissue_state is provided (repetitive diving), use it; otherwise create fresh
+    if tissue_state is not None:
+        tissue = tissue_state
+    else:
+        tissue = TissueState()
 
-    # Track active tank(s) - for sidemount, we alternate; for doubles, both active
+    # Get primary gas mix for tissue calculations
     main_tank_indices = [i for i, tc in enumerate(tank_configs) if tc.get("role") == "main"]
     stage_tank_indices = [i for i, tc in enumerate(tank_configs) if tc.get("role") == "stage"]
 
-    # For sidemount: start with first tank, track pressure difference for switching
-    sidemount_active_tank = 0 if main_tank_indices else 0
-    sidemount_switch_threshold = random.uniform(12, 18)  # Switch every 12-18 bar difference
+    if main_tank_indices:
+        primary_gas = tank_states[main_tank_indices[0]]
+    else:
+        primary_gas = tank_states[0] if tank_states else {"o2": 0.21, "he": 0.0}
+
+    # Sidemount tracking
+    sidemount_active_tank = 0
+    sidemount_switch_threshold = random.uniform(12, 18)
     last_sidemount_switch_pressure = tank_states[main_tank_indices[0]]["current_pressure"] if main_tank_indices else 0
 
-    # Track which tanks have been used (for gas switches display)
+    # Gas switches tracking
     gas_switches = []
-    active_stage_tank = None  # Track current stage tank during deco
+    active_stage_tank = None
+    current_gas = primary_gas
 
-    # Sort stage tanks by O2 content (lower O2 = deeper MOD, use first)
+    # Sort stage tanks by O2 content (lower O2 first for deeper use)
     stage_tank_indices_sorted = sorted(
         stage_tank_indices,
         key=lambda i: tank_states[i]["o2"]
     )
 
-    while current_time <= total_seconds:
-        # Calculate current depth
-        if current_time < descent_time:
-            progress = current_time / descent_time
-            current_depth = max_depth * progress
-        elif current_time < descent_time + bottom_time:
-            variation = random.uniform(-2, 2)
-            current_depth = max_depth + variation
-            current_depth = max(0, min(max_depth + 3, current_depth))
+    # Generate site-specific depth profiles
+    level_depths = []
+
+    if site_type == "wall":
+        # Wall dives: Drop to max depth quickly, stay deep, ascend along wall
+        if is_tech:
+            level_depths = [max_depth]  # Tech wall dive at constant deep depth
         else:
-            time_since_ascent = current_time - descent_time - bottom_time
+            # Recreational wall: deep, mid-wall, then shallow
+            level_depths = [max_depth, max_depth * 0.6, max_depth * 0.35]
 
-            in_stop = False
-            cumulative_stop = 0
-            stop_depth = 0
+    elif site_type == "wreck":
+        # Wreck dives: Descend to deck, explore various levels
+        deck_depth = max_depth * 0.85  # Main deck usually not at max
+        level_depths = [
+            max_depth,  # Initial drop to max (superstructure/bottom)
+            deck_depth,  # Main exploration at deck level
+            deck_depth * 0.7,  # Shallower superstructure
+        ]
 
-            for stop in deco_stops:
-                if time_since_ascent < cumulative_stop + stop[1]:
-                    if time_since_ascent >= cumulative_stop:
-                        in_stop = True
-                        stop_depth = stop[0]
-                        break
-                cumulative_stop += stop[1]
+    elif site_type == "drift":
+        # Drift dives: More gradual, current-driven depth changes
+        # Less control, so depths vary more organically
+        num_levels = random.randint(3, 5)
+        level_depths = [max_depth * (1.0 - i * 0.15) + random.uniform(-2, 2)
+                        for i in range(num_levels)]
+        level_depths = [max(5, d) for d in level_depths]
 
-            if in_stop:
-                current_depth = stop_depth + random.uniform(-0.3, 0.3)
+    elif site_type == "cenote":
+        # Cenote dives: Layer exploration, often pause at halocline
+        halocline_depth = 12  # Typical halocline depth
+        if max_depth > halocline_depth:
+            level_depths = [max_depth, halocline_depth + 2, halocline_depth - 2, 6]
+        else:
+            level_depths = [max_depth, max_depth * 0.5]
+
+    elif site_type == "manta":
+        # Manta dives: Hover at cleaning station, minimal depth variation
+        cleaning_station_depth = min(max_depth, random.uniform(12, 18))
+        level_depths = [cleaning_station_depth]  # Stay at one depth waiting
+
+    elif site_type == "shallow":
+        # Shallow dives: Stay in shallow range, extended time
+        level_depths = [min(max_depth, random.uniform(6, 10))]
+
+    elif site_type == "cavern":
+        # Cavern/overhead: Careful depth management, layer exploration
+        level_depths = [max_depth, max_depth * 0.7, max_depth * 0.4]
+
+    else:
+        # Default reef profile: classic multi-level recreational
+        if not is_tech and max_depth > 15:
+            num_levels = random.randint(2, 3)
+            for lvl in range(num_levels):
+                depth_factor = 1.0 - (lvl * 0.25)
+                level_depth = max_depth * depth_factor * random.uniform(0.9, 1.0)
+                level_depths.append(max(8, level_depth))
+        else:
+            level_depths = [max_depth]
+
+    # Ensure we have at least one level
+    if not level_depths:
+        level_depths = [max_depth]
+
+    # Random seed for depth variation
+    variation_seed = random.uniform(0, 1000)
+
+    current_time = 0
+    current_depth = 0.0
+    dive_phase = "descent"  # descent, bottom, ascent
+    level_index = 0
+    level_start_time = descent_time_seconds
+    first_stop_depth = None  # Track for GF slope calculation
+    safety_stop_start_time = None  # Track when safety stop begins
+
+    # Calculate approximate bottom time per level
+    estimated_ascent_time = (max_depth / ascent_rate) * 60 + safety_stop_duration
+    available_bottom_time = total_seconds - descent_time_seconds - estimated_ascent_time
+    time_per_level = max(60, available_bottom_time / len(level_depths))
+
+    # Maximum allowed dive time (safety limit to prevent infinite loops)
+    max_dive_time = total_seconds + 1800  # Allow up to 30 extra minutes for deco
+
+    while current_depth >= 0:
+        # =================================================================
+        # PHASE-BASED DEPTH CALCULATION
+        # =================================================================
+
+        # Force ascent if we've exceeded planned bottom time
+        if current_time > total_seconds and dive_phase == "bottom":
+            dive_phase = "ascent"
+
+        if dive_phase == "descent":
+            # Smooth curved descent using easing function
+            if current_time < descent_time_seconds:
+                progress = current_time / descent_time_seconds
+                eased_progress = ease_in_out_cubic(progress)
+                target_depth = level_depths[0] if level_depths else max_depth
+                current_depth = target_depth * eased_progress
             else:
-                ascent_progress = (time_since_ascent - cumulative_stop) / max(ascent_time - cumulative_stop, 1)
-                remaining = stop_depth if deco_stops else max_depth
+                dive_phase = "bottom"
+                level_start_time = current_time
+                current_depth = level_depths[0] if level_depths else max_depth
 
-                if time_since_ascent > cumulative_stop:
-                    safety_start = cumulative_stop + (safety_stop_depth / ascent_rate) * 60
-                    if safety_start <= time_since_ascent < safety_start + safety_stop_duration:
+        elif dive_phase == "bottom":
+            target_depth = level_depths[level_index] if level_index < len(level_depths) else level_depths[-1]
+
+            # Time spent at current level
+            time_at_level = current_time - level_start_time
+
+            # Check if we should move to next level or start ascent
+            if time_at_level >= time_per_level:
+                if level_index < len(level_depths) - 1:
+                    # Move to next (shallower) level
+                    level_index += 1
+                    level_start_time = current_time
+                    target_depth = level_depths[level_index]
+                else:
+                    # Start ascent
+                    dive_phase = "ascent"
+
+            if dive_phase == "bottom":
+                # Add natural terrain-following variation
+                variation = depth_variation(current_time, amplitude=1.5, seed=variation_seed)
+                current_depth = target_depth + variation
+
+                # Smooth transition between levels
+                if level_index > 0:
+                    prev_level_depth = level_depths[level_index - 1]
+                    transition_progress = min(1.0, time_at_level / 60)  # 1 minute transition
+                    if transition_progress < 1.0:
+                        eased = ease_in_out_cubic(transition_progress)
+                        current_depth = prev_level_depth + (target_depth - prev_level_depth) * eased + variation * transition_progress
+
+                # Clamp to reasonable bounds
+                current_depth = max(3, min(max_depth + 2, current_depth))
+
+        elif dive_phase == "ascent":
+            # Calculate ceiling from tissue loading
+            ceiling = tissue.gf_ceiling(gf_low, gf_high, current_depth, first_stop_depth)
+
+            if first_stop_depth is None and ceiling > 0:
+                # Record first stop depth for GF slope
+                first_stop_depth = math.ceil(ceiling / 3) * 3  # Round up to nearest 3m
+
+            # Maximum ascent per interval (respecting 9m/min limit)
+            max_ascent = (ascent_rate / 60) * sample_interval
+
+            # Determine target depth (respecting ceiling)
+            if ceiling > 0.5:
+                # There's a deco obligation - must stay above ceiling
+                # Use 2m safety margin to account for tissue loading variations
+                min_safe_depth = ceiling + 2.0
+                # Required stop depth (3m increments, above min_safe_depth)
+                required_stop = max(3, math.ceil(min_safe_depth / 3) * 3)
+
+                if current_depth > min_safe_depth + max_ascent * 2:
+                    # Well below ceiling - safe to ascend at normal rate
+                    current_depth = current_depth - max_ascent
+                elif current_depth > required_stop:
+                    # Approaching stop - slow ascent to required stop depth
+                    current_depth = max(required_stop, current_depth - max_ascent * 0.5)
+                else:
+                    # At or below required stop - hold at required stop with variation
+                    current_depth = required_stop + random.uniform(-0.2, 0.2)
+            else:
+                # No deco obligation (ceiling cleared)
+                if current_depth > safety_stop_depth + 1:
+                    # Ascending to safety stop
+                    current_depth = max(safety_stop_depth, current_depth - max_ascent)
+                elif current_depth > 0.5:
+                    # At safety stop - do 3 min stop before surfacing
+                    if safety_stop_start_time is None:
+                        safety_stop_start_time = current_time
+                    time_at_safety = current_time - safety_stop_start_time
+                    if time_at_safety < safety_stop_duration:
                         current_depth = safety_stop_depth + random.uniform(-0.3, 0.3)
                     else:
-                        target = remaining * (1 - ascent_progress)
-                        current_depth = max(0, target)
-                else:
-                    current_depth = remaining
+                        # Final ascent to surface
+                        current_depth = max(0, current_depth - max_ascent)
 
         current_depth = max(0, round(current_depth, 2))
 
-        # Temperature with thermocline
-        temp_gradient = (surface_temp - bottom_temp) / max(max_depth, 1)
-        current_temp = surface_temp - (temp_gradient * current_depth)
-        current_temp += random.uniform(-0.2, 0.2)
+        # =================================================================
+        # TISSUE LOADING UPDATE
+        # =================================================================
+        tissue.update(current_depth, sample_interval, current_gas["o2"], current_gas.get("he", 0.0))
+
+        # =================================================================
+        # TEMPERATURE CALCULATION (with thermocline modeling)
+        # =================================================================
+        if thermocline_profile is not None:
+            # Use realistic thermocline model
+            current_temp = calculate_temperature_at_depth(
+                current_depth, thermocline_profile, surface_temp, variation_seed
+            )
+        else:
+            # Fallback to simple linear gradient
+            temp_gradient = (surface_temp - bottom_temp) / max(max_depth, 1)
+            current_temp = surface_temp - (temp_gradient * current_depth)
+            current_temp += random.uniform(-0.2, 0.2)
         current_temp_kelvin = round(current_temp + 273.15, 2)
 
-        # Determine dive phase for gas selection
-        is_ascending = current_time > descent_time + bottom_time
+        # =================================================================
+        # GAS CONSUMPTION AND TANK SELECTION
+        # =================================================================
+        is_ascending = dive_phase == "ascent"
         ambient_pressure = 1 + (current_depth / 10)
 
-        # ============================================================
-        # REALISTIC MULTI-TANK GAS CONSUMPTION LOGIC
-        # ============================================================
+        # Activity-based SAC modifier
+        if dive_phase == "descent":
+            sac_modifier = 1.15  # Higher consumption during descent
+        elif is_ascending:
+            sac_modifier = 0.90  # Lower consumption during controlled ascent
+        else:
+            # Bottom phase - varies with activity
+            sac_modifier = 1.0 + depth_variation(current_time, amplitude=0.1, seed=variation_seed + 500)
 
-        # Determine which tanks to consume from based on configuration and dive phase
         tanks_to_consume = []
 
         if is_ascending and stage_tank_indices:
-            # During ascent with stage tanks: check if we should switch to deco gas
-            # Find the best stage tank for current depth (highest O2 that's within MOD)
+            # Check for deco gas switch
             best_stage = None
             for idx in stage_tank_indices_sorted:
                 ts = tank_states[idx]
-                # Check if this gas is safe at current depth (with 3m safety margin)
                 if current_depth <= ts["mod"] - 3 and ts["current_pressure"] > 50 * 100000:
-                    # Prefer higher O2 content for faster deco
                     if best_stage is None or ts["o2"] > tank_states[best_stage]["o2"]:
                         best_stage = idx
 
             if best_stage is not None:
-                # Switch to or continue using stage gas
                 if active_stage_tank != best_stage:
-                    # Record gas switch
                     if best_stage not in [gs["tank"] for gs in gas_switches]:
                         gas_switches.append({
                             "time": current_time,
@@ -856,48 +1867,42 @@ def generate_dive_profile(
                             "mix_id": tank_states[best_stage]["mix_id"]
                         })
                     active_stage_tank = best_stage
+                    current_gas = tank_states[best_stage]
                 tanks_to_consume = [best_stage]
             else:
-                # No suitable stage gas, continue on main tanks
                 active_stage_tank = None
+                current_gas = primary_gas
                 if config_type == "sidemount":
                     tanks_to_consume = [main_tank_indices[sidemount_active_tank % len(main_tank_indices)]]
                 elif config_type in ["doubles", "doubles_staged"]:
-                    tanks_to_consume = main_tank_indices  # Both tanks (manifolded)
+                    tanks_to_consume = main_tank_indices
                 else:
                     tanks_to_consume = main_tank_indices[:1] if main_tank_indices else [0]
         else:
-            # Descent or bottom phase: use main tanks
             active_stage_tank = None
+            current_gas = primary_gas
 
             if config_type == "sidemount":
-                # Sidemount: alternate tanks to maintain balance
                 current_main_idx = main_tank_indices[sidemount_active_tank % len(main_tank_indices)]
                 current_pressure_bar = tank_states[current_main_idx]["current_pressure"] / 100000
-
-                # Check if we should switch (pressure dropped enough since last switch)
                 last_pressure_bar = last_sidemount_switch_pressure / 100000
+
                 if last_pressure_bar - current_pressure_bar >= sidemount_switch_threshold:
                     sidemount_active_tank = (sidemount_active_tank + 1) % len(main_tank_indices)
                     last_sidemount_switch_pressure = tank_states[main_tank_indices[sidemount_active_tank]]["current_pressure"]
 
                 tanks_to_consume = [main_tank_indices[sidemount_active_tank % len(main_tank_indices)]]
-
             elif config_type in ["doubles", "doubles_staged"]:
-                # Doubles (manifolded): consume from both tanks equally
                 tanks_to_consume = main_tank_indices
-
             else:
-                # Single tank (with or without stage)
                 tanks_to_consume = main_tank_indices[:1] if main_tank_indices else [0]
 
-        # Apply gas consumption to selected tanks
+        # Apply gas consumption
         for tank_idx in tanks_to_consume:
             ts = tank_states[tank_idx]
-            if ts["current_pressure"] > 40 * 100000:  # Reserve pressure ~40 bar
-                consumption = ts["sac_rate"] * ambient_pressure
+            if ts["current_pressure"] > 50 * 100000:  # Reserve pressure ~50 bar
+                consumption = ts["sac_rate"] * ambient_pressure * sac_modifier
 
-                # For manifolded doubles, each tank provides half the gas
                 if config_type in ["doubles", "doubles_staged"] and len(tanks_to_consume) == 2:
                     consumption = consumption / 2
 
@@ -905,9 +1910,11 @@ def generate_dive_profile(
                 pressure_drop = (consumption * sample_interval / 60) / volume
                 pressure_drop_pascal = pressure_drop * 100000
                 ts["current_pressure"] -= pressure_drop_pascal
-                ts["current_pressure"] = max(ts["current_pressure"], 35 * 100000)
+                ts["current_pressure"] = max(ts["current_pressure"], 40 * 100000)
 
-        # Build profile point
+        # =================================================================
+        # BUILD PROFILE POINT
+        # =================================================================
         point = {
             "divetime": current_time,
             "depth": current_depth,
@@ -915,7 +1922,6 @@ def generate_dive_profile(
             "tankpressures": []
         }
 
-        # Add pressure for ALL tanks (simulating AI transmitters on each)
         for i, ts in enumerate(tank_states):
             point["tankpressures"].append({
                 "tank_index": i,
@@ -925,12 +1931,44 @@ def generate_dive_profile(
         profile_points.append(point)
         current_time += sample_interval
 
+        # Check if we've surfaced
+        if current_depth <= 0.1 and dive_phase == "ascent":
+            break
+
+        # Safety limit to prevent infinite loops
+        if current_time > max_dive_time:
+            break
+
+        # Emergency gas check - if main tanks are low, start ascending
+        main_tanks_pressure = sum(
+            tank_states[i]["current_pressure"] for i in main_tank_indices
+        ) if main_tank_indices else 0
+        min_reserve = 60 * 100000 * len(main_tank_indices)  # 60 bar per tank
+
+        if main_tanks_pressure < min_reserve and dive_phase == "bottom":
+            dive_phase = "ascent"
+
+    # Ensure we end at surface
+    if profile_points and profile_points[-1]["depth"] > 0:
+        final_point = {
+            "divetime": current_time,
+            "depth": 0,
+            "temperature": round(surface_temp + 273.15, 2),
+            "tankpressures": []
+        }
+        for i, ts in enumerate(tank_states):
+            final_point["tankpressures"].append({
+                "tank_index": i,
+                "pressure": int(ts["current_pressure"])
+            })
+        profile_points.append(final_point)
+
     # Set final pressures
     for i, ts in enumerate(tank_states):
         tank_configs[i]["start_pressure_actual"] = int(ts["start_pressure"])
         tank_configs[i]["end_pressure_actual"] = int(ts["current_pressure"])
 
-    return profile_points, gas_switches
+    return profile_points, gas_switches, tissue
 
 
 def prettify_xml(elem):
@@ -1128,27 +2166,7 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
         contact = ET.SubElement(b, "contact")
         ET.SubElement(contact, "email").text = buddy["email"]
 
-    # Dive trips (UDDF standard divetrip elements)
-    for trip in trips:
-        divetrip = ET.SubElement(root, "divetrip")
-        divetrip.set("id", f"trip_{trip['id']}")
-        ET.SubElement(divetrip, "name").text = trip["name"]
-
-        dateoftrip = ET.SubElement(divetrip, "dateoftrip")
-        startdate = ET.SubElement(dateoftrip, "startdate")
-        ET.SubElement(startdate, "datetime").text = trip["start_date"].strftime("%Y-%m-%dT00:00:00")
-        enddate = ET.SubElement(dateoftrip, "enddate")
-        ET.SubElement(enddate, "datetime").text = trip["end_date"].strftime("%Y-%m-%dT23:59:59")
-
-        geo = ET.SubElement(divetrip, "geography")
-        ET.SubElement(geo, "location").text = trip["location"]
-
-        notes_text = f"Dive trip to {trip['location']}."
-        if trip.get("resort_name"):
-            notes_text += f" Staying at {trip['resort_name']}."
-        if trip.get("liveaboard_name"):
-            notes_text += f" Aboard {trip['liveaboard_name']}."
-        ET.SubElement(divetrip, "notes").text = notes_text
+    # Note: Dive trips are written AFTER the dive loop to filter out empty trips
 
     # Profile data (dives)
     profiledata = ET.SubElement(root, "profiledata")
@@ -1173,6 +2191,9 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
 
     # Track trip dive counts for multiple dives per trip day
     trip_dive_counts = {trip["id"]: 0 for trip in trips}
+
+    # Initialize dive session for repetitive diving tracking
+    dive_session = DiveSession()
 
     for dive_idx in range(num_dives):
         # Pick dive type
@@ -1237,59 +2258,120 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
 
         is_tech = "tec" in dive_type or "sidemount" in dive_type
 
+        # Determine max depth based on dive type
         if "deep" in dive_type:
             max_depth = random.uniform(50, min(75, site.get("max_depth", 75)))
-            duration = random.randint(50, 90)
         elif "tec" in dive_type:
             max_depth = random.uniform(35, min(50, site.get("max_depth", 50)))
-            duration = random.randint(45, 70)
         else:
             max_depth = random.uniform(12, min(30, site.get("max_depth", 30)))
-            duration = random.randint(40, 60)
 
-        # Temperature by region
-        if site["country"] in ["Egypt", "Maldives"]:
-            surface_temp = random.uniform(26, 30)
-            bottom_temp = random.uniform(24, 27)
-        elif site["country"] in ["Thailand", "Indonesia", "Malaysia"]:
-            surface_temp = random.uniform(27, 31)
-            bottom_temp = random.uniform(25, 28)
-        elif site["country"] in ["USA"] and "California" in site.get("region", ""):
-            surface_temp = random.uniform(14, 18)
-            bottom_temp = random.uniform(10, 14)
-        elif site["country"] == "New Zealand":
-            surface_temp = random.uniform(15, 19)
-            bottom_temp = random.uniform(12, 16)
+        # Calculate realistic duration based on gas supply and NDL
+        gas_limited_duration = calculate_gas_duration(max_depth, tank_config, is_tech)
+
+        # Calculate NDL at max depth (using a temporary tissue state)
+        temp_tissue = TissueState()
+        ndl_at_depth = temp_tissue.ndl(max_depth, o2_fraction=0.21, gf_high=0.85)
+
+        if is_tech:
+            # Tech dives can exceed NDL (planned deco), but limited by gas
+            # Add time for deco stops (rough estimate: 1 min per 3m of depth over 20m)
+            deco_time_estimate = max(0, (max_depth - 20) / 3) * 2
+            target_duration = random.uniform(35, 55) + deco_time_estimate
+            duration = int(min(gas_limited_duration * 0.85, target_duration))
         else:
-            surface_temp = random.uniform(24, 28)
-            bottom_temp = random.uniform(22, 26)
+            # Recreational dives: stay within NDL and gas limits
+            # Use 80% of limits for safety margin
+            max_safe_duration = min(gas_limited_duration * 0.80, ndl_at_depth * 0.85)
+            # Add some randomness but stay within limits
+            target_duration = random.uniform(30, 50)
+            duration = int(min(max_safe_duration, target_duration))
+
+        # Ensure minimum reasonable dive time
+        duration = max(20, duration)
+
+        # Get site type and thermocline profile
+        site_type = get_site_type(site)
+        thermocline_profile = get_thermocline_profile(site)
+
+        # Surface temperature from thermocline profile
+        temp_range = thermocline_profile["surface_temp"]
+        surface_temp = random.uniform(temp_range[0], temp_range[1])
+
+        # Bottom temp calculated via thermocline model (for reference in XML)
+        bottom_temp = calculate_temperature_at_depth(
+            max_depth, thermocline_profile, surface_temp, random.uniform(0, 1000)
+        )
 
         air_temp = surface_temp + random.uniform(-2, 5)
         air_temp_kelvin = air_temp + 273.15
 
-        profile, gas_switches = generate_dive_profile(
-            max_depth, duration, surface_temp, bottom_temp, tank_config, is_tech
+        # Generate dive conditions based on site type
+        conditions = generate_dive_conditions(site, site_type)
+
+        # Determine dive datetime - ensure chronological order for same-day dives
+        if dive_session.last_dive_end is not None and dive_session.last_dive_end.date() == current_date.date():
+            # Same day as last dive - schedule after previous dive ends + surface interval
+            min_surface_interval = random.randint(60, 180)  # 1-3 hours between dives
+            dive_datetime = dive_session.last_dive_end + timedelta(minutes=min_surface_interval)
+
+            # If that pushes us past reasonable diving hours, move to next day
+            if dive_datetime.hour >= 18:
+                current_date += timedelta(days=1)
+                hour = random.choice([7, 8, 9, 10])
+                dive_datetime = current_date.replace(hour=hour, minute=random.choice([0, 15, 30, 45]))
+        else:
+            # First dive of the day - pick a morning or afternoon start time
+            hour = random.choice([7, 8, 9, 10, 11, 14, 15, 16])
+            minute = random.choice([0, 15, 30, 45])
+            dive_datetime = current_date.replace(hour=hour, minute=minute)
+
+        # Check for new diving day and handle surface interval
+        if dive_session.is_new_day(dive_datetime):
+            dive_session.start_new_day()
+            surface_interval_minutes = None
+        else:
+            surface_interval_minutes = dive_session.surface_interval_minutes(dive_datetime)
+            # Only apply positive surface intervals
+            if surface_interval_minutes > 0:
+                dive_session.apply_surface_interval(surface_interval_minutes)
+            else:
+                surface_interval_minutes = None
+
+        # For repetitive dives, use session tissue state with reduced NDL
+        if dive_session.dive_count_today > 0 and not is_tech:
+            # Repetitive dive: calculate reduced NDL
+            ndl_at_depth = dive_session.get_adjusted_ndl(max_depth, gf_high=0.85)
+            max_safe_duration = min(gas_limited_duration * 0.80, ndl_at_depth * 0.85)
+            target_duration = random.uniform(25, 45)  # Slightly shorter for repetitive
+            duration = int(min(max_safe_duration, target_duration))
+            duration = max(20, duration)
+
+        # Generate profile with site-specific patterns and thermocline
+        profile, gas_switches, final_tissue = generate_dive_profile(
+            max_depth=max_depth,
+            duration_minutes=duration,
+            surface_temp=surface_temp,
+            bottom_temp=bottom_temp,
+            tank_configs=tank_config,
+            is_tech=is_tech,
+            site_type=site_type,
+            thermocline_profile=thermocline_profile,
+            tissue_state=dive_session.tissue if dive_session.dive_count_today > 0 else None,
         )
 
-        visibility = random.randint(5, 30)
-        rating = random.randint(3, 5)
-        currents = ["none", "light", "moderate", "strong"]
-        current_strength = random.choice(currents)
+        # Update session tissue state for next dive
+        dive_session.tissue = final_tissue
 
-        # Move date forward if not in a trip, or sometimes within a trip
-        if active_trip is None:
-            if random.random() > 0.3:
-                current_date += timedelta(days=random.randint(1, 14))
-        else:
-            # Multiple dives per day during trips (30% chance to move to next day)
-            if random.random() < 0.3:
-                current_date += timedelta(days=1)
-                if current_date > active_trip["end_date"]:
-                    current_date = active_trip["end_date"]
+        # Generate marine life sightings
+        sightings = generate_sightings(site, site_type)
 
-        hour = random.choice([7, 8, 9, 10, 11, 14, 15, 16])
-        minute = random.choice([0, 15, 30, 45])
-        dive_datetime = current_date.replace(hour=hour, minute=minute)
+        # Generate rating (weighted toward higher ratings)
+        rating = random.choices([3, 4, 5], weights=[0.15, 0.35, 0.5])[0]
+
+        # Generate notes
+        buddy_name = dive_buddies[0]["firstname"] if dive_buddies else "buddy"
+        notes = generate_dive_notes(site, site_type, sightings, buddy_name, conditions)
 
         # Build dive element
         dive = ET.SubElement(repgroup, "dive")
@@ -1311,6 +2393,17 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
         ET.SubElement(before, "divenumber").text = str(dive_number)
         ET.SubElement(before, "datetime").text = dive_datetime.strftime("%Y-%m-%dT%H:%M:%S")
         ET.SubElement(before, "airtemperature").text = f"{air_temp_kelvin:.2f}"
+
+        # Entry type (parser expects this in informationbeforedive)
+        ET.SubElement(before, "entrytype").text = conditions["entry_method"]
+
+        # Altitude (0 for sea level dives, higher for highland sites)
+        altitude = site.get("altitude", 0)
+        ET.SubElement(before, "altitude").text = str(altitude)
+
+        # Surface pressure in Pascals (1 atm = 101325 Pa, adjusted for altitude)
+        surface_pressure_pa = 101325 * (1 - (altitude / 44330)) ** 5.255 if altitude > 0 else 101325
+        ET.SubElement(before, "surfacepressure").text = str(int(surface_pressure_pa))
 
         equipused = ET.SubElement(before, "equipmentused")
         weight = random.uniform(4, 8)
@@ -1379,21 +2472,124 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
         ET.SubElement(after, "averagedepth").text = f"{avg_depth:.2f}"
         ET.SubElement(after, "diveduration").text = str(duration * 60)
         ET.SubElement(after, "lowesttemperature").text = f"{bottom_temp + 273.15:.2f}"
-        ET.SubElement(after, "visibility").text = str(visibility)
-        ET.SubElement(after, "current").text = current_strength
-        ET.SubElement(after, "rating").text = str(rating)
+        ET.SubElement(after, "visibility").text = str(conditions["visibility"])
+        ET.SubElement(after, "currentstrength").text = conditions["current_strength"]
 
-        dive_type_name = dive_type.replace("_", " ").title()
-        notes = f"{dive_type_name} dive at {site['name']}. "
-        notes += f"Vis ~{visibility}m, {current_strength} current."
+        # Rating with nested ratingvalue (parser expects this structure)
+        rating_elem = ET.SubElement(after, "rating")
+        ET.SubElement(rating_elem, "ratingvalue").text = str(rating)
+
+        # Water type (salt/fresh)
+        water_type = "fresh" if conditions["water_type"] == "freshwater" else "salt"
+        ET.SubElement(after, "watertype").text = water_type
+
+        # Surface interval for repetitive dives
+        if surface_interval_minutes is not None and surface_interval_minutes < 720:  # Less than 12 hours
+            ET.SubElement(after, "surfaceinterval").text = str(int(surface_interval_minutes * 60))
+
+        # Swell height for ocean dives (parser expects swellheight)
+        if conditions["swell_height"] > 0:
+            ET.SubElement(after, "swellheight").text = f"{conditions['swell_height']:.1f}"
+
+        # Exit method (parser expects exittype; entry is already in informationbeforedive)
+        ET.SubElement(after, "exittype").text = conditions["exit_method"]
+
+        # Current direction if there's current
+        if conditions["current_direction"]:
+            ET.SubElement(after, "currentdirection").text = conditions["current_direction"]
+
+        # Dive notes (generated based on site, sightings, conditions)
         if is_tech and len(tank_config) > 1:
-            notes += f" {len(tank_config)} tanks with AI transmitters."
+            notes += f" {len(tank_config)}-tank tech dive with AI transmitters."
         ET.SubElement(after, "notes").text = notes
+
+        # Marine life sightings (parser expects sightings with speciesref/count attributes)
+        if sightings:
+            sightings_elem = ET.SubElement(after, "sightings")
+            for sighting in sightings:
+                sighting_elem = ET.SubElement(sightings_elem, "sighting")
+                # Create a species ref ID from species name (normalize to valid ID)
+                species_id = f"species_{sighting['species'].lower().replace(' ', '_').replace('-', '_')}"
+                sighting_elem.set("speciesref", species_id)
+                sighting_elem.set("count", str(sighting["count"]))
+
+        # Tags (based on site type, dive characteristics)
+        dive_tags = []
+        if site_type == "wall":
+            dive_tags.append("wall")
+        elif site_type == "wreck":
+            dive_tags.append("wreck")
+        elif site_type == "drift":
+            dive_tags.append("drift")
+        elif site_type == "cenote":
+            dive_tags.append("cave")
+        if max_depth > 30:
+            dive_tags.append("deep")
+        if is_tech:
+            dive_tags.append("technical")
+        if conditions["current_strength"] in ["moderate", "strong"]:
+            dive_tags.append("current")
+
+        if dive_tags:
+            tags_elem = ET.SubElement(after, "tags")
+            for tag_name in dive_tags:
+                tagref = ET.SubElement(tags_elem, "tagref")
+                tagref.text = f"tag_{tag_name}"
+
+        # Record dive end for session tracking
+        dive_end_time = dive_datetime + timedelta(minutes=duration)
+        dive_session.record_dive_end(dive_end_time, {
+            "max_depth": max_depth,
+            "duration": duration,
+            "site": site["name"],
+        })
 
         dive_number += 1
 
+        # Move date forward for next dive (if not in a trip, or sometimes within a trip)
+        if active_trip is None:
+            if random.random() > 0.3:
+                current_date += timedelta(days=random.randint(1, 14))
+        else:
+            # Multiple dives per day during trips (30% chance to move to next day)
+            if random.random() < 0.3:
+                current_date += timedelta(days=1)
+                if current_date > active_trip["end_date"]:
+                    current_date = active_trip["end_date"]
+
         if (dive_idx + 1) % 50 == 0:
             print(f"Generated {dive_idx + 1} / {num_dives} dives...")
+
+    # Now write dive trips (only those with dives)
+    # We need to insert them before profiledata in the XML tree
+    trips_with_dives = [t for t in trips if trip_dive_counts.get(t["id"], 0) > 0]
+
+    # Find profiledata element and insert trips before it
+    profiledata_elem = root.find("profiledata")
+    profiledata_index = list(root).index(profiledata_elem) if profiledata_elem is not None else len(list(root))
+
+    for i, trip in enumerate(trips_with_dives):
+        divetrip = ET.Element("divetrip")
+        divetrip.set("id", f"trip_{trip['id']}")
+        ET.SubElement(divetrip, "name").text = trip["name"]
+
+        dateoftrip = ET.SubElement(divetrip, "dateoftrip")
+        startdate = ET.SubElement(dateoftrip, "startdate")
+        ET.SubElement(startdate, "datetime").text = trip["start_date"].strftime("%Y-%m-%dT00:00:00")
+        enddate = ET.SubElement(dateoftrip, "enddate")
+        ET.SubElement(enddate, "datetime").text = trip["end_date"].strftime("%Y-%m-%dT23:59:59")
+
+        geo = ET.SubElement(divetrip, "geography")
+        ET.SubElement(geo, "location").text = trip["location"]
+
+        notes_text = f"Dive trip to {trip['location']}."
+        if trip.get("resort_name"):
+            notes_text += f" Staying at {trip['resort_name']}."
+        if trip.get("liveaboard_name"):
+            notes_text += f" Aboard {trip['liveaboard_name']}."
+        ET.SubElement(divetrip, "notes").text = notes_text
+
+        root.insert(profiledata_index + i, divetrip)
 
     # Application data section for Submersion-specific extensions
     appdata = ET.SubElement(root, "applicationdata")
@@ -1401,7 +2597,8 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
     submersion.set("xmlns", SUBMERSION_NS)
 
     # Trip extended data (resort/liveaboard names - not in UDDF standard)
-    trips_with_extended = [t for t in trips if t.get("resort_name") or t.get("liveaboard_name")]
+    # Only include trips that actually have dives
+    trips_with_extended = [t for t in trips_with_dives if t.get("resort_name") or t.get("liveaboard_name")]
     if trips_with_extended:
         tripext = ET.SubElement(submersion, "tripextended")
         for trip in trips_with_extended:
@@ -1510,7 +2707,7 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
 
     print(f"\nGenerated UDDF 3.2.1 compliant file: {output_path}")
     print(f"- {num_dives} dives ({trip_dives_total} on trips)")
-    print(f"- {len(trips)} trips (4-7 days each)")
+    print(f"- {len(trips_with_dives)} trips (4-7 days each)")
     print(f"- {len(DIVE_SITES)} dive sites with GPS")
     print(f"- {len(DIVE_CENTERS)} dive centers")
     print(f"- {len(buddies)} buddies")
@@ -1519,11 +2716,10 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf"):
     print(f"- Equipment sets: {', '.join(EQUIPMENT_SETS.keys())}")
     print(f"- Multi-tank configs with AI pressure refs")
     print(f"\nTrip breakdown:")
-    for trip in trips:
+    for trip in trips_with_dives:
         count = trip_dive_counts[trip["id"]]
-        if count > 0:
-            dates = f"{trip['start_date'].strftime('%Y-%m-%d')} to {trip['end_date'].strftime('%Y-%m-%d')}"
-            print(f"  - {trip['name']}: {count} dives ({dates})")
+        dates = f"{trip['start_date'].strftime('%Y-%m-%d')} to {trip['end_date'].strftime('%Y-%m-%d')}"
+        print(f"  - {trip['name']}: {count} dives ({dates})")
     print(f"\nKey features for multi-tank testing:")
     print(f"- <tankdata id='...'> with unique IDs per tank")
     print(f"- <tankpressure ref='...'> linking to tank IDs")

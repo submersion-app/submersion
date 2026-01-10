@@ -3468,12 +3468,18 @@ class ExportService {
         }
       }
 
-      // Parse notes
+      // Parse notes (try nested <para> first, then direct text content)
       final notesElement = afterElement.findElements('notes').firstOrNull;
       if (notesElement != null) {
         final para = _getElementText(notesElement, 'para');
         if (para != null) {
           diveData['notes'] = para;
+        } else {
+          // Fallback: read direct text content if no <para> child
+          final directText = notesElement.innerText.trim();
+          if (directText.isNotEmpty) {
+            diveData['notes'] = directText;
+          }
         }
       }
 
@@ -4088,6 +4094,15 @@ class ExportService {
           entryType,
           enums.EntryMethod.values,
         );
+      }
+
+      // Parse altitude for altitude diving
+      final altitudeText = _getElementText(beforeElement, 'altitude');
+      if (altitudeText != null) {
+        final altitudeMeters = double.tryParse(altitudeText);
+        if (altitudeMeters != null && altitudeMeters > 0) {
+          diveData['altitude'] = altitudeMeters;
+        }
       }
 
       // Extract link references for trip, dive center, and buddies
