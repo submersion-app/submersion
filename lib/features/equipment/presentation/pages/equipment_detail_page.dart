@@ -37,7 +37,7 @@ class _EquipmentDetailPageState extends ConsumerState<EquipmentDetailPage> {
     // Desktop redirect: if viewing detail page directly on desktop, redirect to master-detail
     if (!widget.embedded &&
         !_hasRedirected &&
-        ResponsiveBreakpoints.isDesktopExtended(context)) {
+        ResponsiveBreakpoints.isMasterDetail(context)) {
       _hasRedirected = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {

@@ -156,7 +156,7 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
     final state = GoRouterState.of(context);
     final currentPath = state.uri.path;
 
-    if (ResponsiveBreakpoints.isDesktop(context)) {
+    if (ResponsiveBreakpoints.isMasterDetail(context)) {
       // Desktop: Update URL with query param
       if (itemId != null) {
         router.go('$currentPath?selected=$itemId');
@@ -181,7 +181,7 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
     final state = GoRouterState.of(context);
     final currentPath = state.uri.path;
 
-    if (ResponsiveBreakpoints.isDesktop(context) &&
+    if (ResponsiveBreakpoints.isMasterDetail(context) &&
         widget.createBuilder != null) {
       // Desktop with create builder: Use query params
       router.go('$currentPath?mode=new');
@@ -218,7 +218,7 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = ResponsiveBreakpoints.isDesktop(context);
+    final isDesktop = ResponsiveBreakpoints.isMasterDetail(context);
     final selectedId = _selectedId;
     final mode = _mode;
 

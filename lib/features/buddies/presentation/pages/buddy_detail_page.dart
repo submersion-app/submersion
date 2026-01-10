@@ -37,7 +37,7 @@ class _BuddyDetailPageState extends ConsumerState<BuddyDetailPage> {
     // Desktop redirect: if not embedded and on desktop, redirect to master-detail view
     if (!widget.embedded &&
         !_hasRedirected &&
-        ResponsiveBreakpoints.isDesktop(context)) {
+        ResponsiveBreakpoints.isMasterDetail(context)) {
       _hasRedirected = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {

@@ -236,7 +236,7 @@ void main() {
       expect(find.text('Trips, buddies, certifications'), findsOneWidget);
     });
 
-    testWidgets('should display Data section for import/export', (
+    testWidgets('should display Data section for backup/restore/storage', (
       tester,
     ) async {
       await tester.pumpWidget(buildTestWidget(const SettingsPage()));
@@ -249,7 +249,7 @@ void main() {
         scrollable: find.byType(Scrollable).first,
       );
       expect(find.text('Data'), findsOneWidget);
-      expect(find.text('Import, export, backup'), findsOneWidget);
+      expect(find.text('Backup, restore & storage'), findsOneWidget);
     });
 
     testWidgets('should display Diver Profile section', (tester) async {

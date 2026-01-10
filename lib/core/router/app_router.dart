@@ -49,6 +49,7 @@ import '../../features/settings/presentation/pages/api_keys_page.dart';
 import '../../features/settings/presentation/pages/appearance_page.dart';
 import '../../features/settings/presentation/pages/cloud_sync_page.dart';
 import '../../features/settings/presentation/pages/storage_settings_page.dart';
+import '../../features/transfer/presentation/pages/transfer_page.dart';
 import '../../features/dive_types/presentation/pages/dive_types_page.dart';
 import '../../features/tools/presentation/pages/weight_calculator_page.dart';
 import '../../features/dive_computer/presentation/pages/device_list_page.dart';
@@ -444,6 +445,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             name: 'records',
             pageBuilder: (context, state) =>
                 const NoTransitionPage(child: RecordsPage()),
+          ),
+
+          // Transfer (Import/Export/Dive Computers)
+          GoRoute(
+            path: '/transfer',
+            name: 'transfer',
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: TransferPage()),
           ),
 
           // Settings

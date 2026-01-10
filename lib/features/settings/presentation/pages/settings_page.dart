@@ -8,7 +8,6 @@ import '../../../../core/constants/units.dart';
 import '../../../../core/domain/entities/storage_config.dart';
 import '../../../../shared/widgets/master_detail/master_detail_scaffold.dart';
 import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
-import '../../../dive_log/presentation/providers/dive_computer_providers.dart';
 import '../../../divers/domain/entities/diver.dart';
 import '../../../divers/presentation/providers/diver_providers.dart';
 import '../providers/api_key_providers.dart';
@@ -30,7 +29,7 @@ class SettingsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (ResponsiveBreakpoints.isDesktop(context)) {
+    if (ResponsiveBreakpoints.isMasterDetail(context)) {
       return MasterDetailScaffold(
         sectionId: 'settings',
         masterBuilder: (context, onItemSelected, selectedId) =>
@@ -45,7 +44,23 @@ class SettingsPage extends ConsumerWidget {
       );
     }
 
-    // Mobile: Show section list with navigation
+    // Mobile: Check for selected section via query param
+    String? selectedSection;
+    try {
+      selectedSection = GoRouterState.of(context).uri.queryParameters['selected'];
+    } catch (_) {
+      // GoRouter not available (e.g., in tests)
+    }
+
+    if (selectedSection != null) {
+      // Show section detail page
+      return _SettingsSectionDetailPage(
+        sectionId: selectedSection,
+        ref: ref,
+      );
+    }
+
+    // Mobile: Show section list
     return const SettingsMobileContent();
   }
 
@@ -70,8 +85,6 @@ class SettingsPage extends ConsumerWidget {
         return _ApiSectionContent(ref: ref);
       case 'data':
         return _DataSectionContent(ref: ref);
-      case 'computer':
-        return _ComputerSectionContent(ref: ref);
       case 'about':
         return const _AboutSectionContent();
       default:
@@ -98,6 +111,58 @@ class SettingsMobileContent extends StatelessWidget {
         },
       ),
     );
+  }
+}
+
+/// Mobile detail page for settings sections accessed via query params.
+class _SettingsSectionDetailPage extends ConsumerWidget {
+  final String sectionId;
+  final WidgetRef ref;
+
+  const _SettingsSectionDetailPage({
+    required this.sectionId,
+    required this.ref,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Find the section title
+    final section = settingsSections.where((s) => s.id == sectionId).firstOrNull;
+    final title = section?.title ?? 'Settings';
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(title),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/settings'),
+        ),
+      ),
+      body: _buildContent(context, ref),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, WidgetRef ref) {
+    switch (sectionId) {
+      case 'profile':
+        return _ProfileSectionContent(ref: ref);
+      case 'units':
+        return _UnitsSectionContent(ref: ref);
+      case 'decompression':
+        return _DecompressionSectionContent(ref: ref);
+      case 'appearance':
+        return _AppearanceSectionContent(ref: ref);
+      case 'manage':
+        return const _ManageSectionContent();
+      case 'api':
+        return _ApiSectionContent(ref: ref);
+      case 'data':
+        return _DataSectionContent(ref: ref);
+      case 'about':
+        return const _AboutSectionContent();
+      default:
+        return Center(child: Text('Unknown section: $sectionId'));
+    }
   }
 }
 
@@ -150,9 +215,6 @@ class _MobileSettingsTile extends StatelessWidget {
         break;
       case 'api':
         context.push('/settings/api-keys');
-        break;
-      case 'computer':
-        context.push('/dive-computers');
         break;
       default:
         // For sections that don't have dedicated pages,
@@ -1100,53 +1162,11 @@ class _DataSectionContent extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          _buildSectionHeader(context, 'Import & Export'),
-          const SizedBox(height: 8),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.file_download),
-                  title: const Text('Import'),
-                  subtitle: const Text('Import dives from file'),
-                  onTap: () => _showImportOptions(context, ref),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.file_upload),
-                  title: const Text('Export'),
-                  subtitle: const Text('Export your data'),
-                  onTap: () => _showExportOptions(context, ref),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
           _buildSectionHeader(context, 'Backup & Sync'),
           const SizedBox(height: 8),
           Card(
             child: Column(
               children: [
-                ListTile(
-                  leading: const Icon(Icons.backup),
-                  title: const Text('Backup'),
-                  subtitle: const Text('Create a backup of your data'),
-                  onTap: () => _handleExport(
-                    context,
-                    ref,
-                    () => ref
-                        .read(exportNotifierProvider.notifier)
-                        .createBackup(),
-                  ),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.restore),
-                  title: const Text('Restore'),
-                  subtitle: const Text('Restore from backup'),
-                  onTap: () => _showRestoreConfirmation(context, ref),
-                ),
-                const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.cloud_sync),
                   title: const Text('Cloud Sync'),
@@ -1177,6 +1197,26 @@ class _DataSectionContent extends ConsumerWidget {
                   ),
                   onTap: () => context.push('/settings/cloud-sync'),
                 ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.backup),
+                  title: const Text('Backup'),
+                  subtitle: const Text('Create a backup of your data'),
+                  onTap: () => _handleExport(
+                    context,
+                    ref,
+                    () => ref
+                        .read(exportNotifierProvider.notifier)
+                        .createBackup(),
+                  ),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.restore),
+                  title: const Text('Restore'),
+                  subtitle: const Text('Restore from backup'),
+                  onTap: () => _showRestoreConfirmation(context, ref),
+                ),
               ],
             ),
           ),
@@ -1192,155 +1232,6 @@ class _DataSectionContent extends ConsumerWidget {
       return 'Last synced: ${_formatSyncTime(syncState.lastSync!)}';
     }
     return 'Not configured';
-  }
-
-  void _showImportOptions(BuildContext context, WidgetRef ref) {
-    showModalBottomSheet(
-      context: context,
-      builder: (sheetContext) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                'Import Data',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-            ),
-            const Divider(height: 1),
-            ListTile(
-              leading: const Icon(Icons.table_chart),
-              title: const Text('Import from CSV'),
-              subtitle: const Text('Import dives from CSV file'),
-              onTap: () {
-                Navigator.of(sheetContext).pop();
-                _handleImport(
-                  context,
-                  ref,
-                  () => ref
-                      .read(exportNotifierProvider.notifier)
-                      .importDivesFromCsv(),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.code),
-              title: const Text('Import from UDDF'),
-              subtitle: const Text('Universal Dive Data Format'),
-              onTap: () {
-                Navigator.of(sheetContext).pop();
-                _handleImport(
-                  context,
-                  ref,
-                  () => ref
-                      .read(exportNotifierProvider.notifier)
-                      .importDivesFromUddf(),
-                );
-              },
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showExportOptions(BuildContext context, WidgetRef ref) {
-    showModalBottomSheet(
-      context: context,
-      builder: (sheetContext) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                'Export Data',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-            ),
-            const Divider(height: 1),
-            ListTile(
-              leading: const Icon(Icons.picture_as_pdf),
-              title: const Text('PDF Logbook'),
-              subtitle: const Text('Printable dive logbook'),
-              onTap: () {
-                Navigator.of(sheetContext).pop();
-                _handleExport(
-                  context,
-                  ref,
-                  () => ref
-                      .read(exportNotifierProvider.notifier)
-                      .exportDivesToPdf(),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.table_chart),
-              title: const Text('Dives as CSV'),
-              subtitle: const Text('Spreadsheet format'),
-              onTap: () {
-                Navigator.of(sheetContext).pop();
-                _handleExport(
-                  context,
-                  ref,
-                  () => ref
-                      .read(exportNotifierProvider.notifier)
-                      .exportDivesToCsv(),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.location_on),
-              title: const Text('Sites as CSV'),
-              subtitle: const Text('Export dive sites'),
-              onTap: () {
-                Navigator.of(sheetContext).pop();
-                _handleExport(
-                  context,
-                  ref,
-                  () => ref
-                      .read(exportNotifierProvider.notifier)
-                      .exportSitesToCsv(),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.build),
-              title: const Text('Equipment as CSV'),
-              subtitle: const Text('Export equipment inventory'),
-              onTap: () {
-                Navigator.of(sheetContext).pop();
-                _handleExport(
-                  context,
-                  ref,
-                  () => ref
-                      .read(exportNotifierProvider.notifier)
-                      .exportEquipmentToCsv(),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.code),
-              title: const Text('UDDF Export'),
-              subtitle: const Text('Universal Dive Data Format'),
-              onTap: () {
-                Navigator.of(sheetContext).pop();
-                _handleExport(
-                  context,
-                  ref,
-                  () => ref
-                      .read(exportNotifierProvider.notifier)
-                      .exportDivesToUddf(),
-                );
-              },
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
-    );
   }
 
   void _showRestoreConfirmation(BuildContext context, WidgetRef ref) {
@@ -1487,54 +1378,6 @@ class _DataSectionContent extends ConsumerWidget {
         );
       }
     }
-  }
-}
-
-/// Dive Computer section content
-class _ComputerSectionContent extends ConsumerWidget {
-  final WidgetRef ref;
-
-  const _ComputerSectionContent({required this.ref});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final computersAsync = ref.watch(allDiveComputersProvider);
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionHeader(context, 'Dive Computers'),
-          const SizedBox(height: 8),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.bluetooth),
-              title: const Text('Manage Computers'),
-              subtitle: computersAsync.when(
-                data: (computers) => Text(
-                  computers.isEmpty
-                      ? 'No computers connected'
-                      : '${computers.length} saved ${computers.length == 1 ? 'computer' : 'computers'}',
-                ),
-                loading: () => const Text('Loading...'),
-                error: (_, _) => const Text('Error loading computers'),
-              ),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.push('/dive-computers'),
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildInfoCard(
-            context,
-            'About Dive Computers',
-            'Connect your dive computer via Bluetooth to download dive logs '
-                'directly to the app. Supported computers include Suunto, '
-                'Shearwater, and other popular brands.',
-          ),
-        ],
-      ),
-    );
   }
 }
 

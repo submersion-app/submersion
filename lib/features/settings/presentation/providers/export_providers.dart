@@ -1514,6 +1514,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
 
       // Invalidate all relevant providers to refresh data
       _ref.invalidate(sitesProvider);
+      _ref.invalidate(sitesWithCountsProvider);
+      _ref.invalidate(siteListNotifierProvider);
       _ref.invalidate(allBuddiesProvider);
       _ref.invalidate(allEquipmentProvider);
       _ref.invalidate(activeEquipmentProvider);
@@ -1661,6 +1663,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
       // Invalidate all providers to refresh data
       _ref.invalidate(diveListNotifierProvider);
       _ref.invalidate(sitesProvider);
+      _ref.invalidate(sitesWithCountsProvider);
+      _ref.invalidate(siteListNotifierProvider);
       _ref.invalidate(allEquipmentProvider);
 
       state = state.copyWith(

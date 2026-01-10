@@ -32,7 +32,7 @@ class _CertificationDetailPageState
   Widget build(BuildContext context) {
     if (!widget.embedded &&
         !_hasRedirected &&
-        ResponsiveBreakpoints.isDesktop(context)) {
+        ResponsiveBreakpoints.isMasterDetail(context)) {
       _hasRedirected = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {

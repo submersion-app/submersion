@@ -32,7 +32,7 @@ class DiveListPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Use desktop breakpoint (800px) to show master-detail when NavigationRail appears
-    final showMasterDetail = ResponsiveBreakpoints.isDesktop(context);
+    final showMasterDetail = ResponsiveBreakpoints.isMasterDetail(context);
 
     if (showMasterDetail) {
       // Desktop: Use master-detail layout

@@ -33,7 +33,7 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
     // Desktop redirect: If accessed directly (not embedded), redirect to master-detail view
     if (!widget.embedded &&
         !_hasRedirected &&
-        ResponsiveBreakpoints.isDesktop(context)) {
+        ResponsiveBreakpoints.isMasterDetail(context)) {
       _hasRedirected = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
