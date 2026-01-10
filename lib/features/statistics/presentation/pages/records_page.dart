@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/utils/unit_formatter.dart';
 import '../../../dive_log/data/repositories/dive_repository_impl.dart';
@@ -100,6 +99,7 @@ class RecordsPage extends ConsumerWidget {
         if (records.deepestDive != null)
           _buildRecordCard(
             context,
+            units,
             title: 'Deepest Dive',
             icon: Icons.arrow_downward,
             color: Colors.blue,
@@ -109,6 +109,7 @@ class RecordsPage extends ConsumerWidget {
         if (records.longestDive != null)
           _buildRecordCard(
             context,
+            units,
             title: 'Longest Dive',
             icon: Icons.timer,
             color: Colors.green,
@@ -118,6 +119,7 @@ class RecordsPage extends ConsumerWidget {
         if (records.coldestDive != null)
           _buildRecordCard(
             context,
+            units,
             title: 'Coldest Dive',
             icon: Icons.ac_unit,
             color: Colors.cyan,
@@ -127,6 +129,7 @@ class RecordsPage extends ConsumerWidget {
         if (records.warmestDive != null)
           _buildRecordCard(
             context,
+            units,
             title: 'Warmest Dive',
             icon: Icons.whatshot,
             color: Colors.orange,
@@ -136,6 +139,7 @@ class RecordsPage extends ConsumerWidget {
         if (records.shallowestDive != null)
           _buildRecordCard(
             context,
+            units,
             title: 'Shallowest Dive',
             icon: Icons.arrow_upward,
             color: Colors.teal,
@@ -153,6 +157,7 @@ class RecordsPage extends ConsumerWidget {
         if (records.firstDive != null)
           _buildMilestoneCard(
             context,
+            units,
             title: 'First Dive',
             icon: Icons.flag,
             color: Colors.purple,
@@ -161,6 +166,7 @@ class RecordsPage extends ConsumerWidget {
         if (records.lastDive != null)
           _buildMilestoneCard(
             context,
+            units,
             title: 'Most Recent Dive',
             icon: Icons.update,
             color: Colors.indigo,
@@ -171,7 +177,8 @@ class RecordsPage extends ConsumerWidget {
   }
 
   Widget _buildRecordCard(
-    BuildContext context, {
+    BuildContext context,
+    UnitFormatter units, {
     required String title,
     required IconData icon,
     required Color color,
@@ -214,7 +221,7 @@ class RecordsPage extends ConsumerWidget {
                       ),
                     ),
                     Text(
-                      DateFormat('MMM d, yyyy').format(record.dateTime),
+                      units.formatDate(record.dateTime),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -254,7 +261,8 @@ class RecordsPage extends ConsumerWidget {
   }
 
   Widget _buildMilestoneCard(
-    BuildContext context, {
+    BuildContext context,
+    UnitFormatter units, {
     required String title,
     required IconData icon,
     required Color color,
@@ -301,7 +309,7 @@ class RecordsPage extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    DateFormat('MMM d, yyyy').format(record.dateTime),
+                    units.formatDate(record.dateTime),
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   if (record.diveNumber != null)

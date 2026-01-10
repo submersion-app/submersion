@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
+import '../../../../core/utils/unit_formatter.dart';
 import '../../../dive_sites/presentation/providers/site_providers.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../../../dive_types/presentation/providers/dive_type_providers.dart';
 import '../../../equipment/presentation/providers/equipment_providers.dart';
 import '../../../trips/presentation/providers/trip_providers.dart';
@@ -532,17 +533,19 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
   Widget _buildActiveFiltersBar(BuildContext context) {
     final filter = ref.watch(diveFilterProvider);
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
     final chips = <Widget>[];
 
     if (filter.startDate != null || filter.endDate != null) {
       String dateText;
       if (filter.startDate != null && filter.endDate != null) {
         dateText =
-            '${DateFormat('MMM d').format(filter.startDate!)} - ${DateFormat('MMM d').format(filter.endDate!)}';
+            '${units.formatMonthDay(filter.startDate)} - ${units.formatMonthDay(filter.endDate)}';
       } else if (filter.startDate != null) {
-        dateText = 'From ${DateFormat('MMM d').format(filter.startDate!)}';
+        dateText = 'From ${units.formatMonthDay(filter.startDate)}';
       } else {
-        dateText = 'Until ${DateFormat('MMM d').format(filter.endDate!)}';
+        dateText = 'Until ${units.formatMonthDay(filter.endDate)}';
       }
       chips.add(
         _buildFilterChip(context, dateText, () {

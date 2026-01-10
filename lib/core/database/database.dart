@@ -357,6 +357,10 @@ class DiverSettings extends Table {
       text().withDefault(const Constant('kilograms'))();
   TextColumn get sacUnit =>
       text().withDefault(const Constant('litersPerMin'))();
+  // Time/Date format settings
+  TextColumn get timeFormat =>
+      text().withDefault(const Constant('twelveHour'))();
+  TextColumn get dateFormat => text().withDefault(const Constant('mmmDYYYY'))();
   // Theme
   TextColumn get themeMode => text().withDefault(const Constant('system'))();
   // Defaults
@@ -711,7 +715,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration {
@@ -837,6 +841,15 @@ class AppDatabase extends _$AppDatabase {
             CREATE INDEX IF NOT EXISTS idx_tank_pressure_dive_tank
             ON tank_pressure_profiles(dive_id, tank_id, timestamp)
           ''');
+        }
+        if (from < 10) {
+          // Add time/date format columns to diver_settings
+          await customStatement(
+            "ALTER TABLE diver_settings ADD COLUMN time_format TEXT NOT NULL DEFAULT 'twelveHour'",
+          );
+          await customStatement(
+            "ALTER TABLE diver_settings ADD COLUMN date_format TEXT NOT NULL DEFAULT 'mmmDYYYY'",
+          );
         }
       },
       beforeOpen: (details) async {

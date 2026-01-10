@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 import '../constants/units.dart';
 import '../../features/settings/presentation/providers/settings_providers.dart';
 
@@ -163,4 +165,64 @@ class UnitFormatter {
   double weightToKg(double value) {
     return settings.weightUnit.convert(value, WeightUnit.kilograms);
   }
+
+  // ============================================================================
+  // Date/Time Formatting
+  // ============================================================================
+
+  /// Format time according to user preference (12h or 24h)
+  /// Example: "2:30 PM" or "14:30"
+  String formatTime(DateTime? dateTime) {
+    if (dateTime == null) return '--';
+    return DateFormat(settings.timeFormat.pattern).format(dateTime);
+  }
+
+  /// Format date according to user preference
+  /// Example: "Jan 15, 2024" or "15/01/2024"
+  String formatDate(DateTime? dateTime) {
+    if (dateTime == null) return '--';
+    return DateFormat(settings.dateFormat.pattern).format(dateTime);
+  }
+
+  /// Format date and time together
+  /// Example: "Jan 15, 2024 at 2:30 PM"
+  String formatDateTime(DateTime? dateTime) {
+    if (dateTime == null) return '--';
+    return '${formatDate(dateTime)} at ${formatTime(dateTime)}';
+  }
+
+  /// Format date and time in compact form with bullet separator
+  /// Example: "Jan 15, 2024 • 2:30 PM"
+  String formatDateTimeBullet(DateTime? dateTime) {
+    if (dateTime == null) return '--';
+    return '${formatDate(dateTime)} • ${formatTime(dateTime)}';
+  }
+
+  /// Format month and day only (respects day-first vs month-first preference)
+  /// Example: "Jan 15" or "15 Jan"
+  String formatMonthDay(DateTime? dateTime) {
+    if (dateTime == null) return '--';
+    final pattern = settings.dateFormat.isDayFirst ? 'd MMM' : 'MMM d';
+    return DateFormat(pattern).format(dateTime);
+  }
+
+  /// Format date range for display
+  /// Example: "Jan 15 - Jan 20, 2024"
+  String formatDateRange(DateTime? start, DateTime? end) {
+    if (start == null && end == null) return '--';
+    if (start == null) return 'Until ${formatDate(end)}';
+    if (end == null) return 'From ${formatDate(start)}';
+
+    // Same year - abbreviate start date
+    if (start.year == end.year) {
+      return '${formatMonthDay(start)} - ${formatDate(end)}';
+    }
+    return '${formatDate(start)} - ${formatDate(end)}';
+  }
+
+  /// Get the time format pattern for direct use
+  String get timePattern => settings.timeFormat.pattern;
+
+  /// Get the date format pattern for direct use
+  String get datePattern => settings.dateFormat.pattern;
 }

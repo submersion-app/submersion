@@ -37,6 +37,12 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setSacUnit(SacUnit unit) async =>
       state = state.copyWith(sacUnit: unit);
   @override
+  Future<void> setTimeFormat(TimeFormat format) async =>
+      state = state.copyWith(timeFormat: format);
+  @override
+  Future<void> setDateFormat(DateFormatPreference format) async =>
+      state = state.copyWith(dateFormat: format);
+  @override
   Future<void> setThemeMode(ThemeMode mode) async =>
       state = state.copyWith(themeMode: mode);
   @override

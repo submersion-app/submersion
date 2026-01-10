@@ -527,6 +527,30 @@ class _UnitsSectionContent extends ConsumerWidget {
               ],
             ),
           ),
+          const SizedBox(height: 24),
+          _buildSectionHeader(context, 'Time & Date Format'),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                _buildUnitTile(
+                  context,
+                  title: 'Time Format',
+                  value: settings.timeFormat.displayName,
+                  onTap: () =>
+                      _showTimeFormatPicker(context, ref, settings.timeFormat),
+                ),
+                const Divider(height: 1),
+                _buildUnitTile(
+                  context,
+                  title: 'Date Format',
+                  value: settings.dateFormat.example,
+                  onTap: () =>
+                      _showDateFormatPicker(context, ref, settings.dateFormat),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -818,6 +842,74 @@ class _UnitsSectionContent extends ConsumerWidget {
               },
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _showTimeFormatPicker(
+    BuildContext context,
+    WidgetRef ref,
+    TimeFormat currentFormat,
+  ) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Time Format'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: TimeFormat.values.map((format) {
+            final isSelected = format == currentFormat;
+            return ListTile(
+              title: Text(format.displayName),
+              subtitle: Text(format.example),
+              trailing: isSelected
+                  ? Icon(
+                      Icons.check,
+                      color: Theme.of(context).colorScheme.primary,
+                    )
+                  : null,
+              onTap: () {
+                ref.read(settingsProvider.notifier).setTimeFormat(format);
+                Navigator.of(dialogContext).pop();
+              },
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  void _showDateFormatPicker(
+    BuildContext context,
+    WidgetRef ref,
+    DateFormatPreference currentFormat,
+  ) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Date Format'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: DateFormatPreference.values.map((format) {
+              final isSelected = format == currentFormat;
+              return ListTile(
+                title: Text(format.displayName),
+                subtitle: Text(format.example),
+                trailing: isSelected
+                    ? Icon(
+                        Icons.check,
+                        color: Theme.of(context).colorScheme.primary,
+                      )
+                    : null,
+                onTap: () {
+                  ref.read(settingsProvider.notifier).setDateFormat(format);
+                  Navigator.of(dialogContext).pop();
+                },
+              );
+            }).toList(),
+          ),
         ),
       ),
     );
