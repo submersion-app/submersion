@@ -222,9 +222,7 @@ void main() {
       expect(find.text('Theme & display'), findsOneWidget);
     });
 
-    testWidgets('should display Manage section with subtitle', (
-      tester,
-    ) async {
+    testWidgets('should display Manage section with subtitle', (tester) async {
       await tester.pumpWidget(buildTestWidget(const SettingsPage()));
 
       // Mobile layout shows section tiles - scroll to find Manage section
