@@ -6,6 +6,87 @@ import '../../data/services/profile_analysis_service.dart';
 import '../../domain/entities/dive.dart';
 import 'dive_providers.dart';
 
+/// Combines pressure data from multiple tanks into a single pressure series.
+///
+/// For multi-tank SAC calculation, we need to track total gas consumption across
+/// all tanks. This function sums up pressure drops at each timestamp.
+///
+/// Returns a list of combined pressures aligned with the given timestamps,
+/// or null if no multi-tank data is available.
+List<double>? _combineMultiTankPressures({
+  required List<int> timestamps,
+  required Map<String, List<TankPressurePoint>> tankPressures,
+  required List<DiveTank> tanks,
+}) {
+  if (tankPressures.isEmpty || tanks.isEmpty) return null;
+
+  // Build a map of tank volumes for weighting (needed to normalize consumption)
+  final tankVolumes = <String, double>{};
+  for (final tank in tanks) {
+    if (tank.volume != null && tank.volume! > 0) {
+      tankVolumes[tank.id] = tank.volume!;
+    }
+  }
+
+  // If no tank has volume data, we can't properly calculate combined SAC
+  if (tankVolumes.isEmpty) return null;
+
+  // For each timestamp, calculate total gas consumption (in liters at surface)
+  // from all tanks with pressure data
+  final combinedPressures = <double>[];
+
+  for (int i = 0; i < timestamps.length; i++) {
+    final targetTime = timestamps[i];
+    double totalGasLiters = 0;
+    double totalVolume = 0;
+
+    for (final entry in tankPressures.entries) {
+      final tankId = entry.key;
+      final pressurePoints = entry.value;
+      final tankVolume = tankVolumes[tankId];
+
+      if (tankVolume == null || pressurePoints.isEmpty) continue;
+
+      // Find pressure at this timestamp (interpolate if needed)
+      double? pressure;
+      for (int j = 0; j < pressurePoints.length; j++) {
+        if (pressurePoints[j].timestamp == targetTime) {
+          pressure = pressurePoints[j].pressure;
+          break;
+        } else if (pressurePoints[j].timestamp > targetTime) {
+          // Interpolate between j-1 and j
+          if (j > 0) {
+            final p1 = pressurePoints[j - 1];
+            final p2 = pressurePoints[j];
+            final ratio = (targetTime - p1.timestamp) /
+                (p2.timestamp - p1.timestamp);
+            pressure = p1.pressure + (p2.pressure - p1.pressure) * ratio;
+          } else {
+            pressure = pressurePoints[j].pressure;
+          }
+          break;
+        }
+      }
+      // Use last pressure if timestamp is after all data points
+      pressure ??= pressurePoints.last.pressure;
+
+      // Convert pressure to gas in liters: gas_liters = pressure_bar * tank_volume_liters
+      totalGasLiters += pressure * tankVolume;
+      totalVolume += tankVolume;
+    }
+
+    // Convert back to equivalent pressure (normalized by total tank volume)
+    // This gives us a single "combined" pressure that represents total gas
+    if (totalVolume > 0) {
+      combinedPressures.add(totalGasLiters / totalVolume);
+    } else {
+      combinedPressures.add(0);
+    }
+  }
+
+  return combinedPressures.isNotEmpty ? combinedPressures : null;
+}
+
 /// Placeholder class for logger
 class _ProfileAnalysisProvider {}
 
@@ -42,51 +123,81 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
       // Get the dive with profile data
       final diveAsync = ref.watch(diveProvider(diveId));
 
-      return diveAsync.when(
-        data: (dive) {
-          if (dive == null || dive.profile.isEmpty) {
-            _log.debug('No profile data for dive $diveId');
-            return null;
-          }
-
-          final service = ref.watch(profileAnalysisServiceProvider);
-
-          // Extract profile data
-          final depths = dive.profile.map((p) => p.depth).toList();
-          final timestamps = dive.profile.map((p) => p.timestamp).toList();
-          final pressures = dive.profile
-              .where((p) => p.pressure != null)
-              .map((p) => p.pressure!)
-              .toList();
-
-          // Get gas mix from primary tank
-          double o2Fraction = 0.21; // Default to air
-          double heFraction = 0.0;
-          if (dive.tanks.isNotEmpty) {
-            final primaryTank = dive.tanks.first;
-            o2Fraction = primaryTank.gasMix.o2 / 100.0;
-            heFraction = primaryTank.gasMix.he / 100.0;
-          }
-
-          // Analyze the profile
-          _log.debug(
-            'Analyzing profile for dive $diveId with ${depths.length} points',
-          );
-          return service.analyze(
-            diveId: diveId,
-            depths: depths,
-            timestamps: timestamps,
-            o2Fraction: o2Fraction,
-            heFraction: heFraction,
-            startCns: 0.0, // TODO: Calculate from previous dive
-            pressures: pressures.length == depths.length ? pressures : null,
-          );
-        },
-        loading: () => null,
-        error: (e, st) {
+      // Await the dive data
+      final dive = await diveAsync.when(
+        data: (d) async => d,
+        loading: () async => null,
+        error: (e, st) async {
           _log.error('Error loading dive for analysis: $diveId', e, st);
           return null;
         },
+      );
+
+      if (dive == null || dive.profile.isEmpty) {
+        _log.debug('No profile data for dive $diveId');
+        return null;
+      }
+
+      final service = ref.watch(profileAnalysisServiceProvider);
+
+      // Extract profile data
+      final depths = dive.profile.map((p) => p.depth).toList();
+      final timestamps = dive.profile.map((p) => p.timestamp).toList();
+
+      // Try to get multi-tank pressure data first
+      List<double>? pressures;
+      if (dive.tanks.length > 1) {
+        // Load per-tank pressure data for multi-tank dives
+        final tankPressureRepo = ref.watch(tankPressureRepositoryProvider);
+        final tankPressures = await tankPressureRepo.getTankPressuresForDive(
+          diveId,
+        );
+
+        if (tankPressures.isNotEmpty) {
+          _log.debug(
+            'Loading multi-tank pressure data: ${tankPressures.length} tanks',
+          );
+          pressures = _combineMultiTankPressures(
+            timestamps: timestamps,
+            tankPressures: tankPressures,
+            tanks: dive.tanks,
+          );
+        }
+      }
+
+      // Fall back to single pressure from profile if no multi-tank data
+      if (pressures == null || pressures.length != depths.length) {
+        final singlePressures = dive.profile
+            .where((p) => p.pressure != null)
+            .map((p) => p.pressure!)
+            .toList();
+        if (singlePressures.length == depths.length) {
+          pressures = singlePressures;
+        }
+      }
+
+      // Get gas mix from primary tank
+      double o2Fraction = 0.21; // Default to air
+      double heFraction = 0.0;
+      if (dive.tanks.isNotEmpty) {
+        final primaryTank = dive.tanks.first;
+        o2Fraction = primaryTank.gasMix.o2 / 100.0;
+        heFraction = primaryTank.gasMix.he / 100.0;
+      }
+
+      // Analyze the profile
+      _log.debug(
+        'Analyzing profile for dive $diveId with ${depths.length} points, '
+        'pressures: ${pressures?.length ?? 0}',
+      );
+      return service.analyze(
+        diveId: diveId,
+        depths: depths,
+        timestamps: timestamps,
+        o2Fraction: o2Fraction,
+        heFraction: heFraction,
+        startCns: 0.0, // TODO: Calculate from previous dive
+        pressures: pressures,
       );
     } catch (e, stackTrace) {
       _log.error('Failed to analyze profile for dive: $diveId', e, stackTrace);

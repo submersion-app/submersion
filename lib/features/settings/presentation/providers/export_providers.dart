@@ -440,6 +440,14 @@ class ExportNotifier extends StateNotifier<ExportState> {
           visibility: diveData['visibility'] as Visibility?,
           diveTypeId: diveData['diveType'] as String? ?? 'recreational',
           tanks: _buildTanks(diveData, uuid),
+          // Dive condition fields
+          currentDirection: diveData['currentDirection'] as CurrentDirection?,
+          currentStrength: diveData['currentStrength'] as CurrentStrength?,
+          swellHeight: diveData['swellHeight'] as double?,
+          entryMethod: diveData['entryMethod'] as EntryMethod?,
+          exitMethod: diveData['exitMethod'] as EntryMethod?,
+          waterType: diveData['waterType'] as WaterType?,
+          altitude: diveData['altitude'] as double?,
         );
 
         await diveNotifier.addDive(dive);
@@ -1374,6 +1382,14 @@ class ExportNotifier extends StateNotifier<ExportState> {
             tripId: linkedTripId,
             diveCenter: linkedDiveCenter,
             equipment: linkedEquipment,
+            // Dive condition fields
+            currentDirection: diveData['currentDirection'] as CurrentDirection?,
+            currentStrength: diveData['currentStrength'] as CurrentStrength?,
+            swellHeight: diveData['swellHeight'] as double?,
+            entryMethod: diveData['entryMethod'] as EntryMethod?,
+            exitMethod: diveData['exitMethod'] as EntryMethod?,
+            waterType: diveData['waterType'] as WaterType?,
+            altitude: diveData['altitude'] as double?,
           );
 
           // Auto-calculate bottom time from profile if not set and profile exists
