@@ -1364,10 +1364,11 @@ class ExportNotifier extends StateNotifier<ExportState> {
                   speciesName = speciesRef
                       .substring(8) // Remove 'species_' prefix
                       .split('_')
-                      .map((word) =>
-                          word.isNotEmpty
-                              ? word[0].toUpperCase() + word.substring(1)
-                              : word)
+                      .map(
+                        (word) => word.isNotEmpty
+                            ? word[0].toUpperCase() + word.substring(1)
+                            : word,
+                      )
                       .join(' ');
                 }
                 sightings.add(
