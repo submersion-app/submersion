@@ -58,8 +58,8 @@ List<double>? _combineMultiTankPressures({
           if (j > 0) {
             final p1 = pressurePoints[j - 1];
             final p2 = pressurePoints[j];
-            final ratio = (targetTime - p1.timestamp) /
-                (p2.timestamp - p1.timestamp);
+            final ratio =
+                (targetTime - p1.timestamp) / (p2.timestamp - p1.timestamp);
             pressure = p1.pressure + (p2.pressure - p1.pressure) * ratio;
           } else {
             pressure = pressurePoints[j].pressure;
