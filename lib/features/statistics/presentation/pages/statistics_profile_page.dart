@@ -8,28 +8,36 @@ import '../widgets/stat_charts.dart';
 import '../widgets/stat_section_card.dart';
 
 class StatisticsProfilePage extends ConsumerWidget {
-  const StatisticsProfilePage({super.key});
+  final bool embedded;
+
+  const StatisticsProfilePage({super.key, this.embedded = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
 
+    final content = SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildAscentDescentSection(context, ref, units),
+          const SizedBox(height: 16),
+          _buildTimeAtDepthSection(context, ref),
+          const SizedBox(height: 16),
+          _buildDecoSection(context, ref),
+        ],
+      ),
+    );
+
+    if (embedded) {
+      return content;
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Profile Analysis')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildAscentDescentSection(context, ref, units),
-            const SizedBox(height: 16),
-            _buildTimeAtDepthSection(context, ref),
-            const SizedBox(height: 16),
-            _buildDecoSection(context, ref),
-          ],
-        ),
-      ),
+      body: content,
     );
   }
 

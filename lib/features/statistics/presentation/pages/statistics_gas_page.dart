@@ -11,28 +11,36 @@ import '../widgets/stat_charts.dart';
 import '../widgets/stat_section_card.dart';
 
 class StatisticsGasPage extends ConsumerWidget {
-  const StatisticsGasPage({super.key});
+  final bool embedded;
+
+  const StatisticsGasPage({super.key, this.embedded = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
 
+    final content = SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSacTrendSection(context, ref, units),
+          const SizedBox(height: 16),
+          _buildGasMixSection(context, ref),
+          const SizedBox(height: 16),
+          _buildSacRecordsSection(context, ref, units),
+        ],
+      ),
+    );
+
+    if (embedded) {
+      return content;
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Air Consumption')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSacTrendSection(context, ref, units),
-            const SizedBox(height: 16),
-            _buildGasMixSection(context, ref),
-            const SizedBox(height: 16),
-            _buildSacRecordsSection(context, ref, units),
-          ],
-        ),
-      ),
+      body: content,
     );
   }
 

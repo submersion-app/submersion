@@ -20,7 +20,7 @@ class EquipmentListPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final fab = FloatingActionButton.extended(
       onPressed: () {
-        if (ResponsiveBreakpoints.isDesktopExtended(context)) {
+        if (ResponsiveBreakpoints.isDesktop(context)) {
           final state = GoRouterState.of(context);
           final currentPath = state.uri.path;
           context.go('$currentPath?mode=new');
@@ -32,7 +32,7 @@ class EquipmentListPage extends ConsumerWidget {
       label: const Text('Add Equipment'),
     );
 
-    if (ResponsiveBreakpoints.isDesktopExtended(context)) {
+    if (ResponsiveBreakpoints.isDesktop(context)) {
       return MasterDetailScaffold(
         sectionId: 'equipment',
         masterBuilder: (context, onItemSelected, selectedId) =>

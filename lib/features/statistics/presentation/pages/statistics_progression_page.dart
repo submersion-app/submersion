@@ -8,30 +8,38 @@ import '../widgets/stat_charts.dart';
 import '../widgets/stat_section_card.dart';
 
 class StatisticsProgressionPage extends ConsumerWidget {
-  const StatisticsProgressionPage({super.key});
+  final bool embedded;
+
+  const StatisticsProgressionPage({super.key, this.embedded = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
 
+    final content = SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildDepthProgressionSection(context, ref, units),
+          const SizedBox(height: 16),
+          _buildBottomTimeSection(context, ref),
+          const SizedBox(height: 16),
+          _buildDivesPerYearSection(context, ref),
+          const SizedBox(height: 16),
+          _buildCumulativeSection(context, ref),
+        ],
+      ),
+    );
+
+    if (embedded) {
+      return content;
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Dive Progression')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildDepthProgressionSection(context, ref, units),
-            const SizedBox(height: 16),
-            _buildBottomTimeSection(context, ref),
-            const SizedBox(height: 16),
-            _buildDivesPerYearSection(context, ref),
-            const SizedBox(height: 16),
-            _buildCumulativeSection(context, ref),
-          ],
-        ),
-      ),
+      body: content,
     );
   }
 

@@ -22,17 +22,17 @@ import '../widgets/dive_summary_widget.dart';
 import 'dive_detail_page.dart';
 import 'dive_edit_page.dart';
 
-/// Main dive list page with master-detail layout on wide desktop.
+/// Main dive list page with master-detail layout on desktop.
 ///
-/// On wide desktop (>=1200px): Shows a split view with list on left, detail/summary on right.
-/// On narrower screens (<1200px): Shows the list with navigation to detail pages.
+/// On desktop (>=800px): Shows a split view with list on left, detail/summary on right.
+/// On narrower screens (<800px): Shows the list with navigation to detail pages.
 class DiveListPage extends ConsumerWidget {
   const DiveListPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Use extended desktop breakpoint (1200px) when NavigationRail shows labels
-    final showMasterDetail = ResponsiveBreakpoints.isDesktopExtended(context);
+    // Use desktop breakpoint (800px) to show master-detail when NavigationRail appears
+    final showMasterDetail = ResponsiveBreakpoints.isDesktop(context);
 
     if (showMasterDetail) {
       // Desktop: Use master-detail layout

@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/units.dart';
 import '../../../../core/domain/entities/storage_config.dart';
+import '../../../../shared/widgets/master_detail/master_detail_scaffold.dart';
+import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
 import '../../../dive_log/presentation/providers/dive_computer_providers.dart';
 import '../../../divers/domain/entities/diver.dart';
 import '../../../divers/presentation/providers/diver_providers.dart';
@@ -15,376 +17,258 @@ import '../providers/settings_providers.dart';
 import '../providers/storage_providers.dart';
 import '../providers/sync_providers.dart';
 import '../widgets/import_progress_dialog.dart';
+import '../widgets/settings_list_content.dart';
+import '../widgets/settings_summary_widget.dart';
 
+/// Main settings page with master-detail layout on desktop.
+///
+/// On desktop (>=800px): Shows a split view with section list on left,
+/// selected section content on right.
+/// On narrower screens (<800px): Shows section list with navigation.
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
+    if (ResponsiveBreakpoints.isDesktop(context)) {
+      return MasterDetailScaffold(
+        sectionId: 'settings',
+        masterBuilder: (context, onItemSelected, selectedId) =>
+            SettingsListContent(
+          onItemSelected: onItemSelected,
+          selectedId: selectedId,
+          showAppBar: false,
+        ),
+        detailBuilder: (context, sectionId) =>
+            _buildSectionContent(context, ref, sectionId),
+        summaryBuilder: (context) => const SettingsSummaryWidget(),
+      );
+    }
 
+    // Mobile: Show section list with navigation
+    return const SettingsMobileContent();
+  }
+
+  /// Builds the appropriate section content based on section ID.
+  Widget _buildSectionContent(
+    BuildContext context,
+    WidgetRef ref,
+    String sectionId,
+  ) {
+    switch (sectionId) {
+      case 'profile':
+        return _ProfileSectionContent(ref: ref);
+      case 'units':
+        return _UnitsSectionContent(ref: ref);
+      case 'decompression':
+        return _DecompressionSectionContent(ref: ref);
+      case 'appearance':
+        return _AppearanceSectionContent(ref: ref);
+      case 'manage':
+        return const _ManageSectionContent();
+      case 'api':
+        return _ApiSectionContent(ref: ref);
+      case 'data':
+        return _DataSectionContent(ref: ref);
+      case 'computer':
+        return _ComputerSectionContent(ref: ref);
+      case 'about':
+        return const _AboutSectionContent();
+      default:
+        return Center(child: Text('Unknown section: $sectionId'));
+    }
+  }
+}
+
+/// Mobile content showing section list for navigation.
+class SettingsMobileContent extends StatelessWidget {
+  const SettingsMobileContent({super.key});
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
-      body: ListView(
+      body: ListView.separated(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemCount: settingsSections.length,
+        separatorBuilder: (context, index) => const Divider(height: 1),
+        itemBuilder: (context, index) {
+          final section = settingsSections[index];
+          return _MobileSettingsTile(section: section);
+        },
+      ),
+    );
+  }
+}
+
+class _MobileSettingsTile extends StatelessWidget {
+  final SettingsSection section;
+
+  const _MobileSettingsTile({required this.section});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final color = section.color ?? colorScheme.primary;
+
+    return ListTile(
+      leading: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(section.icon, color: color, size: 24),
+      ),
+      title: Text(
+        section.title,
+        style: Theme.of(context)
+            .textTheme
+            .titleMedium
+            ?.copyWith(fontWeight: FontWeight.w500),
+      ),
+      subtitle: Text(
+        section.subtitle,
+        style: Theme.of(context)
+            .textTheme
+            .bodySmall
+            ?.copyWith(color: colorScheme.onSurfaceVariant),
+      ),
+      trailing: Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
+      onTap: () => _navigateToSection(context, section.id),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+    );
+  }
+
+  void _navigateToSection(BuildContext context, String sectionId) {
+    // Navigate to the appropriate page based on section
+    switch (sectionId) {
+      case 'profile':
+        context.push('/divers');
+        break;
+      case 'appearance':
+        context.push('/settings/appearance');
+        break;
+      case 'api':
+        context.push('/settings/api-keys');
+        break;
+      case 'computer':
+        context.push('/dive-computers');
+        break;
+      default:
+        // For sections that don't have dedicated pages,
+        // show them in a detail page using query params
+        final state = GoRouterState.of(context);
+        final currentPath = state.uri.path;
+        context.go('$currentPath?selected=$sectionId');
+    }
+  }
+}
+
+// ============================================================================
+// SECTION CONTENT WIDGETS
+// ============================================================================
+
+/// Profile section content
+class _ProfileSectionContent extends ConsumerWidget {
+  final WidgetRef ref;
+
+  const _ProfileSectionContent({required this.ref});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentDiverAsync = ref.watch(currentDiverProvider);
+    final allDiversAsync = ref.watch(diverListNotifierProvider);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader(context, 'Diver Profile'),
-          _buildDiverProfileSection(context, ref),
-          const Divider(),
-          _buildSectionHeader(context, 'Units'),
-          _buildUnitPresetSelector(context, ref, settings),
-          _buildUnitTile(
-            context,
-            title: 'Depth',
-            value: settings.depthUnit.symbol,
-            onTap: () => _showDepthUnitPicker(context, ref, settings.depthUnit),
-          ),
-          _buildUnitTile(
-            context,
-            title: 'Temperature',
-            value: '°${settings.temperatureUnit.symbol}',
-            onTap: () =>
-                _showTempUnitPicker(context, ref, settings.temperatureUnit),
-          ),
-          _buildUnitTile(
-            context,
-            title: 'Pressure',
-            value: settings.pressureUnit.symbol,
-            onTap: () =>
-                _showPressureUnitPicker(context, ref, settings.pressureUnit),
-          ),
-          _buildUnitTile(
-            context,
-            title: 'Volume',
-            value: settings.volumeUnit.symbol,
-            onTap: () =>
-                _showVolumeUnitPicker(context, ref, settings.volumeUnit),
-          ),
-          _buildUnitTile(
-            context,
-            title: 'Weight',
-            value: settings.weightUnit.symbol,
-            onTap: () =>
-                _showWeightUnitPicker(context, ref, settings.weightUnit),
-          ),
-          _buildUnitTile(
-            context,
-            title: 'SAC Rate',
-            value: settings.sacUnit == SacUnit.litersPerMin
-                ? '${settings.volumeUnit.symbol}/min'
-                : '${settings.pressureUnit.symbol}/min',
-            onTap: () => _showSacUnitPicker(context, ref, settings.sacUnit),
-          ),
-          const Divider(),
-          _buildSectionHeader(context, 'Decompression'),
-          ListTile(
-            leading: const Icon(Icons.timeline),
-            title: const Text('Gradient Factors'),
-            subtitle: Text('GF ${settings.gfLow}/${settings.gfHigh}'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showGradientFactorPicker(context, ref, settings),
-          ),
-          const Divider(),
-          _buildSectionHeader(context, 'Appearance'),
-          ListTile(
-            leading: const Icon(Icons.palette),
-            title: const Text('Theme & Display'),
-            subtitle: Text(_getThemeModeName(settings.themeMode)),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push('/settings/appearance'),
-          ),
-          const Divider(),
-          _buildSectionHeader(context, 'Manage'),
-          ListTile(
-            leading: const Icon(Icons.flight_takeoff),
-            title: const Text('Trips'),
-            subtitle: const Text('Manage your dive trips'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push('/trips'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.people),
-            title: const Text('Buddies'),
-            subtitle: const Text('Manage your dive buddies'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push('/buddies'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.card_membership),
-            title: const Text('Certifications'),
-            subtitle: const Text('Manage your dive certifications'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push('/certifications'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.store),
-            title: const Text('Dive Centers'),
-            subtitle: const Text('Manage dive shops and operators'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push('/dive-centers'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.label),
-            title: const Text('Dive Types'),
-            subtitle: const Text('Manage custom dive types'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push('/dive-types'),
-          ),
-          const Divider(),
-          _buildSectionHeader(context, 'API Integrations'),
-          ListTile(
-            leading: const Icon(Icons.cloud),
-            title: const Text('Weather & Tide APIs'),
-            subtitle: Consumer(
-              builder: (context, ref, child) {
-                final apiKeys = ref.watch(apiKeyProvider);
-                if (apiKeys.isLoading) {
-                  return const Text('Loading...');
-                }
-                final configured = <String>[];
-                if (apiKeys.hasWeatherKey) configured.add('Weather');
-                if (apiKeys.hasTideKey) configured.add('Tides');
-                return Text(
-                  configured.isEmpty
-                      ? 'Not configured'
-                      : '${configured.join(', ')} configured',
-                );
-              },
+          _buildSectionHeader(context, 'Active Diver'),
+          const SizedBox(height: 8),
+          currentDiverAsync.when(
+            data: (diver) => _buildDiverCard(context, ref, diver, allDiversAsync),
+            loading: () =>
+                const Center(child: CircularProgressIndicator()),
+            error: (error, _) => Card(
+              child: ListTile(
+                leading: const Icon(Icons.error, color: Colors.red),
+                title: const Text('Error loading diver'),
+                subtitle: Text('$error'),
+              ),
             ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push('/settings/api-keys'),
           ),
-          const Divider(),
-          _buildSectionHeader(context, 'Data'),
-          Consumer(
-            builder: (context, ref, child) {
-              final storageState = ref.watch(storageConfigNotifierProvider);
-              final isCustomFolder =
-                  storageState.config.mode == StorageLocationMode.customFolder;
-              return ListTile(
-                leading: const Icon(Icons.folder),
-                title: const Text('Database Storage'),
-                subtitle: Text(
-                  isCustomFolder ? 'Custom folder' : 'App default location',
+          const SizedBox(height: 24),
+          _buildSectionHeader(context, 'Manage Divers'),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.manage_accounts),
+                  title: const Text('View All Divers'),
+                  subtitle: const Text('Add or edit diver profiles'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/divers'),
                 ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.push('/settings/storage'),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.file_download),
-            title: const Text('Import'),
-            subtitle: const Text('Import dives from file'),
-            onTap: () {
-              _showImportOptions(context, ref);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.file_upload),
-            title: const Text('Export'),
-            subtitle: const Text('Export your data'),
-            onTap: () {
-              _showExportOptions(context, ref);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.backup),
-            title: const Text('Backup'),
-            subtitle: const Text('Create a backup of your data'),
-            onTap: () {
-              _handleExport(
-                context,
-                ref,
-                () => ref.read(exportNotifierProvider.notifier).createBackup(),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.restore),
-            title: const Text('Restore'),
-            subtitle: const Text('Restore from backup'),
-            onTap: () {
-              _showRestoreConfirmation(context, ref);
-            },
-          ),
-          Consumer(
-            builder: (context, ref, child) {
-              final syncState = ref.watch(syncStateProvider);
-              String subtitle;
-              if (syncState.status == SyncStatus.syncing) {
-                subtitle = 'Syncing...';
-              } else if (syncState.lastSync != null) {
-                subtitle =
-                    'Last synced: ${_formatSyncTime(syncState.lastSync!)}';
-              } else {
-                subtitle = 'Not configured';
-              }
-              return ListTile(
-                leading: const Icon(Icons.cloud_sync),
-                title: const Text('Cloud Sync'),
-                subtitle: Text(subtitle),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (syncState.conflicts > 0)
-                      Badge(
-                        label: Text('${syncState.conflicts}'),
-                        child: const Icon(
-                          Icons.warning,
-                          color: Colors.orange,
-                          size: 20,
-                        ),
-                      ),
-                    if (syncState.pendingChanges > 0 &&
-                        syncState.conflicts == 0)
-                      Badge(
-                        label: Text('${syncState.pendingChanges}'),
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                      ),
-                    const SizedBox(width: 8),
-                    const Icon(Icons.chevron_right),
-                  ],
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.person_add),
+                  title: const Text('Add New Diver'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/divers/new'),
                 ),
-                onTap: () => context.push('/settings/cloud-sync'),
-              );
-            },
+              ],
+            ),
           ),
-          const Divider(),
-          _buildSectionHeader(context, 'Dive Computer'),
-          Consumer(
-            builder: (context, ref, child) {
-              final computersAsync = ref.watch(allDiveComputersProvider);
-              return ListTile(
-                leading: const Icon(Icons.bluetooth),
-                title: const Text('Dive Computers'),
-                subtitle: computersAsync.when(
-                  data: (computers) => Text(
-                    computers.isEmpty
-                        ? 'No computers connected'
-                        : '${computers.length} saved ${computers.length == 1 ? 'computer' : 'computers'}',
-                  ),
-                  loading: () => const Text('Loading...'),
-                  error: (_, _) => const Text('Error loading computers'),
-                ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.push('/dive-computers'),
-              );
-            },
-          ),
-          const Divider(),
-          _buildSectionHeader(context, 'About'),
-          ListTile(
-            leading: const Icon(Icons.info_outline),
-            title: const Text('About Submersion'),
-            onTap: () {
-              _showAboutDialog(context);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.code),
-            title: const Text('Open Source Licenses'),
-            onTap: () {
-              showLicensePage(
-                context: context,
-                applicationName: 'Submersion',
-                applicationVersion: '0.1.0',
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.bug_report),
-            title: const Text('Report an Issue'),
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Visit github.com/submersion/submersion'),
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 32),
         ],
       ),
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, String title) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-          color: Theme.of(context).colorScheme.primary,
-          fontWeight: FontWeight.bold,
+  Widget _buildDiverCard(
+    BuildContext context,
+    WidgetRef ref,
+    Diver? diver,
+    AsyncValue<List<Diver>> allDiversAsync,
+  ) {
+    if (diver == null) {
+      return Card(
+        child: ListTile(
+          leading: CircleAvatar(
+            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+            child: const Icon(Icons.person_add),
+          ),
+          title: const Text('No diver profile'),
+          subtitle: const Text('Tap to create your profile'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => context.push('/divers/new'),
         ),
-      ),
-    );
-  }
+      );
+    }
 
-  Widget _buildDiverProfileSection(BuildContext context, WidgetRef ref) {
-    final currentDiverAsync = ref.watch(currentDiverProvider);
-    final allDiversAsync = ref.watch(diverListNotifierProvider);
-
-    return currentDiverAsync.when(
-      data: (diver) {
-        if (diver == null) {
-          return ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              child: const Icon(Icons.person_add),
-            ),
-            title: const Text('No diver profile'),
-            subtitle: const Text('Tap to create your profile'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push('/divers/new'),
-          );
-        }
-
-        return Column(
-          children: [
-            // Current diver tile
-            ListTile(
-              leading: CircleAvatar(
-                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                backgroundImage: diver.photoPath != null
-                    ? AssetImage(diver.photoPath!)
-                    : null,
-                child: diver.photoPath == null
-                    ? Text(
-                        diver.initials,
-                        style: TextStyle(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onPrimaryContainer,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      )
-                    : null,
-              ),
-              title: Text(diver.name),
-              subtitle: const Text('Active diver - tap to switch'),
-              trailing: const Icon(Icons.swap_horiz),
-              onTap: () => _showDiverSwitcher(context, ref, allDiversAsync),
-            ),
-            // Manage divers link
-            ListTile(
-              leading: const Icon(Icons.manage_accounts),
-              title: const Text('Manage Divers'),
-              subtitle: const Text('Add or edit diver profiles'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.push('/divers'),
-            ),
-          ],
-        );
-      },
-      loading: () => const ListTile(
-        leading: CircleAvatar(child: CircularProgressIndicator(strokeWidth: 2)),
-        title: Text('Loading...'),
-      ),
-      error: (error, _) => ListTile(
-        leading: const Icon(Icons.error, color: Colors.red),
-        title: const Text('Error loading diver'),
-        subtitle: Text('$error'),
+    return Card(
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+          backgroundImage:
+              diver.photoPath != null ? AssetImage(diver.photoPath!) : null,
+          child: diver.photoPath == null
+              ? Text(
+                  diver.initials,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.bold,
+                  ),
+                )
+              : null,
+        ),
+        title: Text(diver.name),
+        subtitle: const Text('Active diver - tap to switch'),
+        trailing: const Icon(Icons.swap_horiz),
+        onTap: () => _showDiverSwitcher(context, ref, allDiversAsync),
       ),
     );
   }
@@ -424,9 +308,8 @@ class SettingsPage extends ConsumerWidget {
 
                     return ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: Theme.of(
-                          context,
-                        ).colorScheme.primaryContainer,
+                        backgroundColor:
+                            Theme.of(context).colorScheme.primaryContainer,
                         backgroundImage: diver.photoPath != null
                             ? AssetImage(diver.photoPath!)
                             : null,
@@ -434,9 +317,9 @@ class SettingsPage extends ConsumerWidget {
                             ? Text(
                                 diver.initials,
                                 style: TextStyle(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onPrimaryContainer,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onPrimaryContainer,
                                   fontWeight: FontWeight.bold,
                                 ),
                               )
@@ -460,9 +343,7 @@ class SettingsPage extends ConsumerWidget {
                         }
                         if (context.mounted && !isCurrentDiver) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Switched to ${diver.name}'),
-                            ),
+                            SnackBar(content: Text('Switched to ${diver.name}')),
                           );
                         }
                       },
@@ -497,36 +378,129 @@ class SettingsPage extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Units section content
+class _UnitsSectionContent extends ConsumerWidget {
+  final WidgetRef ref;
+
+  const _UnitsSectionContent({required this.ref});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(context, 'Unit System'),
+          const SizedBox(height: 8),
+          _buildUnitPresetSelector(context, ref, settings),
+          const SizedBox(height: 24),
+          _buildSectionHeader(context, 'Individual Units'),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                _buildUnitTile(
+                  context,
+                  title: 'Depth',
+                  value: settings.depthUnit.symbol,
+                  onTap: () =>
+                      _showDepthUnitPicker(context, ref, settings.depthUnit),
+                ),
+                const Divider(height: 1),
+                _buildUnitTile(
+                  context,
+                  title: 'Temperature',
+                  value: '°${settings.temperatureUnit.symbol}',
+                  onTap: () =>
+                      _showTempUnitPicker(context, ref, settings.temperatureUnit),
+                ),
+                const Divider(height: 1),
+                _buildUnitTile(
+                  context,
+                  title: 'Pressure',
+                  value: settings.pressureUnit.symbol,
+                  onTap: () =>
+                      _showPressureUnitPicker(context, ref, settings.pressureUnit),
+                ),
+                const Divider(height: 1),
+                _buildUnitTile(
+                  context,
+                  title: 'Volume',
+                  value: settings.volumeUnit.symbol,
+                  onTap: () =>
+                      _showVolumeUnitPicker(context, ref, settings.volumeUnit),
+                ),
+                const Divider(height: 1),
+                _buildUnitTile(
+                  context,
+                  title: 'Weight',
+                  value: settings.weightUnit.symbol,
+                  onTap: () =>
+                      _showWeightUnitPicker(context, ref, settings.weightUnit),
+                ),
+                const Divider(height: 1),
+                _buildUnitTile(
+                  context,
+                  title: 'SAC Rate',
+                  value: settings.sacUnit == SacUnit.litersPerMin
+                      ? '${settings.volumeUnit.symbol}/min'
+                      : '${settings.pressureUnit.symbol}/min',
+                  onTap: () =>
+                      _showSacUnitPicker(context, ref, settings.sacUnit),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildUnitPresetSelector(
     BuildContext context,
     WidgetRef ref,
     AppSettings settings,
   ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: SegmentedButton<UnitPreset>(
-        segments: const [
-          ButtonSegment(value: UnitPreset.metric, label: Text('Metric')),
-          ButtonSegment(value: UnitPreset.imperial, label: Text('Imperial')),
-          ButtonSegment(value: UnitPreset.custom, label: Text('Custom')),
-        ],
-        selected: {settings.unitPreset},
-        onSelectionChanged: (selected) {
-          final preset = selected.first;
-          switch (preset) {
-            case UnitPreset.metric:
-              ref.read(settingsProvider.notifier).setMetric();
-              break;
-            case UnitPreset.imperial:
-              ref.read(settingsProvider.notifier).setImperial();
-              break;
-            case UnitPreset.custom:
-              // Custom is already selected when units are mixed
-              // No action needed - user can adjust individual units
-              break;
-          }
-        },
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Quick Select',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            const SizedBox(height: 12),
+            SegmentedButton<UnitPreset>(
+              segments: const [
+                ButtonSegment(value: UnitPreset.metric, label: Text('Metric')),
+                ButtonSegment(
+                    value: UnitPreset.imperial, label: Text('Imperial')),
+                ButtonSegment(value: UnitPreset.custom, label: Text('Custom')),
+              ],
+              selected: {settings.unitPreset},
+              onSelectionChanged: (selected) {
+                final preset = selected.first;
+                switch (preset) {
+                  case UnitPreset.metric:
+                    ref.read(settingsProvider.notifier).setMetric();
+                    break;
+                  case UnitPreset.imperial:
+                    ref.read(settingsProvider.notifier).setImperial();
+                    break;
+                  case UnitPreset.custom:
+                    break;
+                }
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -545,8 +519,8 @@ class SettingsPage extends ConsumerWidget {
           Text(
             value,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-            ),
+                  color: Theme.of(context).colorScheme.primary,
+                ),
           ),
           const Icon(Icons.chevron_right),
         ],
@@ -555,22 +529,8 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  String _getThemeModeName(ThemeMode mode) {
-    switch (mode) {
-      case ThemeMode.system:
-        return 'System default';
-      case ThemeMode.light:
-        return 'Light';
-      case ThemeMode.dark:
-        return 'Dark';
-    }
-  }
-
   void _showDepthUnitPicker(
-    BuildContext context,
-    WidgetRef ref,
-    DepthUnit currentUnit,
-  ) {
+      BuildContext context, WidgetRef ref, DepthUnit currentUnit) {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -580,14 +540,10 @@ class SettingsPage extends ConsumerWidget {
           children: DepthUnit.values.map((unit) {
             final isSelected = unit == currentUnit;
             return ListTile(
-              title: Text(
-                unit == DepthUnit.meters ? 'Meters (m)' : 'Feet (ft)',
-              ),
+              title:
+                  Text(unit == DepthUnit.meters ? 'Meters (m)' : 'Feet (ft)'),
               trailing: isSelected
-                  ? Icon(
-                      Icons.check,
-                      color: Theme.of(context).colorScheme.primary,
-                    )
+                  ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
                   : null,
               onTap: () {
                 ref.read(settingsProvider.notifier).setDepthUnit(unit);
@@ -601,10 +557,7 @@ class SettingsPage extends ConsumerWidget {
   }
 
   void _showTempUnitPicker(
-    BuildContext context,
-    WidgetRef ref,
-    TemperatureUnit currentUnit,
-  ) {
+      BuildContext context, WidgetRef ref, TemperatureUnit currentUnit) {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -614,16 +567,11 @@ class SettingsPage extends ConsumerWidget {
           children: TemperatureUnit.values.map((unit) {
             final isSelected = unit == currentUnit;
             return ListTile(
-              title: Text(
-                unit == TemperatureUnit.celsius
-                    ? 'Celsius (°C)'
-                    : 'Fahrenheit (°F)',
-              ),
+              title: Text(unit == TemperatureUnit.celsius
+                  ? 'Celsius (°C)'
+                  : 'Fahrenheit (°F)'),
               trailing: isSelected
-                  ? Icon(
-                      Icons.check,
-                      color: Theme.of(context).colorScheme.primary,
-                    )
+                  ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
                   : null,
               onTap: () {
                 ref.read(settingsProvider.notifier).setTemperatureUnit(unit);
@@ -637,10 +585,7 @@ class SettingsPage extends ConsumerWidget {
   }
 
   void _showPressureUnitPicker(
-    BuildContext context,
-    WidgetRef ref,
-    PressureUnit currentUnit,
-  ) {
+      BuildContext context, WidgetRef ref, PressureUnit currentUnit) {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -652,10 +597,7 @@ class SettingsPage extends ConsumerWidget {
             return ListTile(
               title: Text(unit == PressureUnit.bar ? 'Bar' : 'PSI'),
               trailing: isSelected
-                  ? Icon(
-                      Icons.check,
-                      color: Theme.of(context).colorScheme.primary,
-                    )
+                  ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
                   : null,
               onTap: () {
                 ref.read(settingsProvider.notifier).setPressureUnit(unit);
@@ -669,10 +611,7 @@ class SettingsPage extends ConsumerWidget {
   }
 
   void _showVolumeUnitPicker(
-    BuildContext context,
-    WidgetRef ref,
-    VolumeUnit currentUnit,
-  ) {
+      BuildContext context, WidgetRef ref, VolumeUnit currentUnit) {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -682,14 +621,11 @@ class SettingsPage extends ConsumerWidget {
           children: VolumeUnit.values.map((unit) {
             final isSelected = unit == currentUnit;
             return ListTile(
-              title: Text(
-                unit == VolumeUnit.liters ? 'Liters (L)' : 'Cubic Feet (cuft)',
-              ),
+              title: Text(unit == VolumeUnit.liters
+                  ? 'Liters (L)'
+                  : 'Cubic Feet (cuft)'),
               trailing: isSelected
-                  ? Icon(
-                      Icons.check,
-                      color: Theme.of(context).colorScheme.primary,
-                    )
+                  ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
                   : null,
               onTap: () {
                 ref.read(settingsProvider.notifier).setVolumeUnit(unit);
@@ -703,10 +639,7 @@ class SettingsPage extends ConsumerWidget {
   }
 
   void _showWeightUnitPicker(
-    BuildContext context,
-    WidgetRef ref,
-    WeightUnit currentUnit,
-  ) {
+      BuildContext context, WidgetRef ref, WeightUnit currentUnit) {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -716,16 +649,11 @@ class SettingsPage extends ConsumerWidget {
           children: WeightUnit.values.map((unit) {
             final isSelected = unit == currentUnit;
             return ListTile(
-              title: Text(
-                unit == WeightUnit.kilograms
-                    ? 'Kilograms (kg)'
-                    : 'Pounds (lbs)',
-              ),
+              title: Text(unit == WeightUnit.kilograms
+                  ? 'Kilograms (kg)'
+                  : 'Pounds (lbs)'),
               trailing: isSelected
-                  ? Icon(
-                      Icons.check,
-                      color: Theme.of(context).colorScheme.primary,
-                    )
+                  ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
                   : null,
               onTap: () {
                 ref.read(settingsProvider.notifier).setWeightUnit(unit);
@@ -739,10 +667,7 @@ class SettingsPage extends ConsumerWidget {
   }
 
   void _showSacUnitPicker(
-    BuildContext context,
-    WidgetRef ref,
-    SacUnit currentUnit,
-  ) {
+      BuildContext context, WidgetRef ref, SacUnit currentUnit) {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -754,10 +679,7 @@ class SettingsPage extends ConsumerWidget {
               title: const Text('Volume per minute'),
               subtitle: const Text('Requires tank volume (L/min or cuft/min)'),
               trailing: currentUnit == SacUnit.litersPerMin
-                  ? Icon(
-                      Icons.check,
-                      color: Theme.of(context).colorScheme.primary,
-                    )
+                  ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
                   : null,
               onTap: () {
                 ref
@@ -768,14 +690,10 @@ class SettingsPage extends ConsumerWidget {
             ),
             ListTile(
               title: const Text('Pressure per minute'),
-              subtitle: const Text(
-                'No tank volume needed (bar/min or psi/min)',
-              ),
+              subtitle:
+                  const Text('No tank volume needed (bar/min or psi/min)'),
               trailing: currentUnit == SacUnit.pressurePerMin
-                  ? Icon(
-                      Icons.check,
-                      color: Theme.of(context).colorScheme.primary,
-                    )
+                  ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
                   : null,
               onTap: () {
                 ref
@@ -786,6 +704,47 @@ class SettingsPage extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Decompression section content
+class _DecompressionSectionContent extends ConsumerWidget {
+  final WidgetRef ref;
+
+  const _DecompressionSectionContent({required this.ref});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(context, 'Gradient Factors'),
+          const SizedBox(height: 8),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.timeline),
+              title: const Text('Current Settings'),
+              subtitle: Text('GF ${settings.gfLow}/${settings.gfHigh}'),
+              trailing: const Icon(Icons.edit),
+              onTap: () => _showGradientFactorPicker(context, ref, settings),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildInfoCard(
+            context,
+            'About Gradient Factors',
+            'Gradient Factors (GF) control how conservative your decompression calculations are. '
+                'GF Low affects deep stops, while GF High affects shallow stops.\n\n'
+                'Lower values = more conservative = longer deco stops\n'
+                'Higher values = less conservative = shorter deco stops',
+          ),
+        ],
       ),
     );
   }
@@ -806,39 +765,377 @@ class SettingsPage extends ConsumerWidget {
       ),
     );
   }
+}
 
-  void _showRestoreConfirmation(BuildContext context, WidgetRef ref) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Restore Backup'),
-        content: const Text(
-          'Warning: Restoring from a backup will replace ALL current data with the backup data. '
-          'This action cannot be undone.\n\n'
-          'Are you sure you want to continue?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.of(dialogContext).pop();
-              _handleImport(
-                context,
-                ref,
-                () => ref.read(exportNotifierProvider.notifier).restoreBackup(),
-              );
-            },
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
+/// Appearance section content
+class _AppearanceSectionContent extends ConsumerWidget {
+  final WidgetRef ref;
+
+  const _AppearanceSectionContent({required this.ref});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(context, 'Theme'),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: ThemeMode.values.map((mode) {
+                final isSelected = mode == settings.themeMode;
+                return ListTile(
+                  leading: Icon(_getThemeModeIcon(mode)),
+                  title: Text(_getThemeModeName(mode)),
+                  trailing: isSelected
+                      ? Icon(Icons.check,
+                          color: Theme.of(context).colorScheme.primary)
+                      : null,
+                  onTap: () {
+                    ref.read(settingsProvider.notifier).setThemeMode(mode);
+                  },
+                );
+              }).toList(),
             ),
-            child: const Text('Restore'),
+          ),
+          const SizedBox(height: 24),
+          _buildSectionHeader(context, 'Dive Log'),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                SwitchListTile(
+                  title: const Text('Depth-colored dive cards'),
+                  subtitle: const Text(
+                    'Show dive cards with ocean-colored backgrounds based on depth',
+                  ),
+                  secondary: const Icon(Icons.gradient),
+                  value: settings.showDepthColoredDiveCards,
+                  onChanged: (value) {
+                    ref
+                        .read(settingsProvider.notifier)
+                        .setShowDepthColoredDiveCards(value);
+                  },
+                ),
+                const Divider(height: 1),
+                SwitchListTile(
+                  title: const Text('Map background on dive cards'),
+                  subtitle: const Text(
+                    'Show dive site map as background on dive cards',
+                  ),
+                  secondary: const Icon(Icons.map),
+                  value: settings.showMapBackgroundOnDiveCards,
+                  onChanged: (value) {
+                    ref
+                        .read(settingsProvider.notifier)
+                        .setShowMapBackgroundOnDiveCards(value);
+                  },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          _buildSectionHeader(context, 'Dive Sites'),
+          const SizedBox(height: 8),
+          Card(
+            child: SwitchListTile(
+              title: const Text('Map background on site cards'),
+              subtitle: const Text(
+                'Show map as background on dive site cards',
+              ),
+              secondary: const Icon(Icons.map),
+              value: settings.showMapBackgroundOnSiteCards,
+              onChanged: (value) {
+                ref
+                    .read(settingsProvider.notifier)
+                    .setShowMapBackgroundOnSiteCards(value);
+              },
+            ),
+          ),
+          const SizedBox(height: 24),
+          _buildSectionHeader(context, 'Dive Profile'),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                SwitchListTile(
+                  title: const Text('Max depth marker'),
+                  subtitle: const Text(
+                    'Show a marker at the maximum depth point on dive profiles',
+                  ),
+                  secondary: const Icon(Icons.vertical_align_bottom),
+                  value: settings.showMaxDepthMarker,
+                  onChanged: (value) {
+                    ref
+                        .read(settingsProvider.notifier)
+                        .setShowMaxDepthMarker(value);
+                  },
+                ),
+                const Divider(height: 1),
+                SwitchListTile(
+                  title: const Text('Pressure threshold markers'),
+                  subtitle: const Text(
+                    'Show markers when tank pressure crosses thresholds',
+                  ),
+                  secondary: const Icon(Icons.propane_tank),
+                  value: settings.showPressureThresholdMarkers,
+                  onChanged: (value) {
+                    ref
+                        .read(settingsProvider.notifier)
+                        .setShowPressureThresholdMarkers(value);
+                  },
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
+  }
+}
+
+/// Manage section content
+class _ManageSectionContent extends StatelessWidget {
+  const _ManageSectionContent();
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(context, 'Manage Data'),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.flight_takeoff),
+                  title: const Text('Trips'),
+                  subtitle: const Text('Manage your dive trips'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/trips'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.people),
+                  title: const Text('Buddies'),
+                  subtitle: const Text('Manage your dive buddies'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/buddies'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.card_membership),
+                  title: const Text('Certifications'),
+                  subtitle: const Text('Manage your dive certifications'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/certifications'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.store),
+                  title: const Text('Dive Centers'),
+                  subtitle: const Text('Manage dive shops and operators'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/dive-centers'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.label),
+                  title: const Text('Dive Types'),
+                  subtitle: const Text('Manage custom dive types'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/dive-types'),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// API section content
+class _ApiSectionContent extends ConsumerWidget {
+  final WidgetRef ref;
+
+  const _ApiSectionContent({required this.ref});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final apiKeys = ref.watch(apiKeyProvider);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(context, 'API Integrations'),
+          const SizedBox(height: 8),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.cloud),
+              title: const Text('Weather & Tide APIs'),
+              subtitle: Builder(
+                builder: (context) {
+                  if (apiKeys.isLoading) {
+                    return const Text('Loading...');
+                  }
+                  final configured = <String>[];
+                  if (apiKeys.hasWeatherKey) configured.add('Weather');
+                  if (apiKeys.hasTideKey) configured.add('Tides');
+                  return Text(
+                    configured.isEmpty
+                        ? 'Not configured'
+                        : '${configured.join(', ')} configured',
+                  );
+                },
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push('/settings/api-keys'),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildInfoCard(
+            context,
+            'About API Keys',
+            'Configure API keys to enable weather forecasts and tide information '
+                'for your dive sites. These services require free API keys from '
+                'third-party providers.',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Data section content
+class _DataSectionContent extends ConsumerWidget {
+  final WidgetRef ref;
+
+  const _DataSectionContent({required this.ref});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final storageState = ref.watch(storageConfigNotifierProvider);
+    final syncState = ref.watch(syncStateProvider);
+    final isCustomFolder =
+        storageState.config.mode == StorageLocationMode.customFolder;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(context, 'Storage'),
+          const SizedBox(height: 8),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.folder),
+              title: const Text('Database Storage'),
+              subtitle: Text(
+                isCustomFolder ? 'Custom folder' : 'App default location',
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push('/settings/storage'),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildSectionHeader(context, 'Import & Export'),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.file_download),
+                  title: const Text('Import'),
+                  subtitle: const Text('Import dives from file'),
+                  onTap: () => _showImportOptions(context, ref),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.file_upload),
+                  title: const Text('Export'),
+                  subtitle: const Text('Export your data'),
+                  onTap: () => _showExportOptions(context, ref),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildSectionHeader(context, 'Backup & Sync'),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.backup),
+                  title: const Text('Backup'),
+                  subtitle: const Text('Create a backup of your data'),
+                  onTap: () => _handleExport(
+                    context,
+                    ref,
+                    () => ref.read(exportNotifierProvider.notifier).createBackup(),
+                  ),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.restore),
+                  title: const Text('Restore'),
+                  subtitle: const Text('Restore from backup'),
+                  onTap: () => _showRestoreConfirmation(context, ref),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.cloud_sync),
+                  title: const Text('Cloud Sync'),
+                  subtitle: Text(_getSyncSubtitle(syncState)),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (syncState.conflicts > 0)
+                        Badge(
+                          label: Text('${syncState.conflicts}'),
+                          child: const Icon(
+                            Icons.warning,
+                            color: Colors.orange,
+                            size: 20,
+                          ),
+                        ),
+                      if (syncState.pendingChanges > 0 &&
+                          syncState.conflicts == 0)
+                        Badge(
+                          label: Text('${syncState.pendingChanges}'),
+                          backgroundColor: Theme.of(context).colorScheme.primary,
+                        ),
+                      const SizedBox(width: 8),
+                      const Icon(Icons.chevron_right),
+                    ],
+                  ),
+                  onTap: () => context.push('/settings/cloud-sync'),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getSyncSubtitle(SyncState syncState) {
+    if (syncState.status == SyncStatus.syncing) {
+      return 'Syncing...';
+    } else if (syncState.lastSync != null) {
+      return 'Last synced: ${_formatSyncTime(syncState.lastSync!)}';
+    }
+    return 'Not configured';
   }
 
   void _showImportOptions(BuildContext context, WidgetRef ref) {
@@ -990,13 +1287,45 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  /// Handle export operations that use Share (no file picker)
+  void _showRestoreConfirmation(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Restore Backup'),
+        content: const Text(
+          'Warning: Restoring from a backup will replace ALL current data with the backup data. '
+          'This action cannot be undone.\n\n'
+          'Are you sure you want to continue?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              _handleImport(
+                context,
+                ref,
+                () => ref.read(exportNotifierProvider.notifier).restoreBackup(),
+              );
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('Restore'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _handleExport(
     BuildContext context,
     WidgetRef ref,
     Future<void> Function() exportFn,
   ) async {
-    // Show loading indicator using root navigator to avoid conflicts
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -1015,7 +1344,6 @@ class SettingsPage extends ConsumerWidget {
     try {
       await exportFn();
       if (context.mounted) {
-        // Use post-frame callback to safely close dialog after any navigation settles
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (context.mounted) {
             Navigator.of(context, rootNavigator: true).pop();
@@ -1049,8 +1377,6 @@ class SettingsPage extends ConsumerWidget {
     }
   }
 
-  /// Handle import/restore operations that use native file picker
-  /// Shows progress dialog during import to prevent UI appearing frozen
   Future<void> _handleImport(
     BuildContext context,
     WidgetRef ref,
@@ -1069,24 +1395,20 @@ class SettingsPage extends ConsumerWidget {
     }
 
     try {
-      // Set up listener BEFORE starting import to catch all state changes
       final subscription = ref.listenManual(
         exportNotifierProvider,
         (previous, next) => showDialogIfNeeded(next),
         fireImmediately: true,
       );
 
-      // Now start the import
       try {
         await importFn();
       } finally {
-        // Always clean up subscription, even on errors.
         subscription.close();
       }
 
       if (context.mounted) {
         final state = ref.read(exportNotifierProvider);
-        // Only show snackbar if not cancelled (idle status means user cancelled)
         if (state.status != ExportStatus.idle) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -1110,6 +1432,139 @@ class SettingsPage extends ConsumerWidget {
       }
     }
   }
+}
+
+/// Dive Computer section content
+class _ComputerSectionContent extends ConsumerWidget {
+  final WidgetRef ref;
+
+  const _ComputerSectionContent({required this.ref});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final computersAsync = ref.watch(allDiveComputersProvider);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(context, 'Dive Computers'),
+          const SizedBox(height: 8),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.bluetooth),
+              title: const Text('Manage Computers'),
+              subtitle: computersAsync.when(
+                data: (computers) => Text(
+                  computers.isEmpty
+                      ? 'No computers connected'
+                      : '${computers.length} saved ${computers.length == 1 ? 'computer' : 'computers'}',
+                ),
+                loading: () => const Text('Loading...'),
+                error: (_, _) => const Text('Error loading computers'),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push('/dive-computers'),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildInfoCard(
+            context,
+            'About Dive Computers',
+            'Connect your dive computer via Bluetooth to download dive logs '
+                'directly to the app. Supported computers include Suunto, '
+                'Shearwater, and other popular brands.',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// About section content
+class _AboutSectionContent extends StatelessWidget {
+  const _AboutSectionContent();
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(context, 'About'),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.info_outline),
+                  title: const Text('About Submersion'),
+                  onTap: () => _showAboutDialog(context),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.code),
+                  title: const Text('Open Source Licenses'),
+                  onTap: () {
+                    showLicensePage(
+                      context: context,
+                      applicationName: 'Submersion',
+                      applicationVersion: '0.1.0',
+                    );
+                  },
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.bug_report),
+                  title: const Text('Report an Issue'),
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Visit github.com/submersion/submersion'),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          // App info card
+          Center(
+            child: Column(
+              children: [
+                Icon(
+                  Icons.scuba_diving,
+                  size: 64,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Submersion',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Version 0.1.0',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'An open-source dive logging application',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   void _showAboutDialog(BuildContext context) {
     showAboutDialog(
@@ -1128,24 +1583,99 @@ class SettingsPage extends ConsumerWidget {
       ],
     );
   }
+}
 
-  String _formatSyncTime(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
+// ============================================================================
+// HELPER WIDGETS & FUNCTIONS
+// ============================================================================
 
-    if (difference.inMinutes < 1) {
-      return 'Just now';
-    } else if (difference.inHours < 1) {
-      return '${difference.inMinutes}m ago';
-    } else if (difference.inDays < 1) {
-      return '${difference.inHours}h ago';
-    } else if (difference.inDays < 7) {
-      return '${difference.inDays}d ago';
-    } else {
-      return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
-    }
+Widget _buildSectionHeader(BuildContext context, String title) {
+  return Text(
+    title,
+    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+          color: Theme.of(context).colorScheme.primary,
+          fontWeight: FontWeight.bold,
+        ),
+  );
+}
+
+Widget _buildInfoCard(BuildContext context, String title, String content) {
+  return Card(
+    color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.info_outline,
+                size: 20,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            content,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+String _getThemeModeName(ThemeMode mode) {
+  switch (mode) {
+    case ThemeMode.system:
+      return 'System default';
+    case ThemeMode.light:
+      return 'Light';
+    case ThemeMode.dark:
+      return 'Dark';
   }
 }
+
+IconData _getThemeModeIcon(ThemeMode mode) {
+  switch (mode) {
+    case ThemeMode.system:
+      return Icons.brightness_auto;
+    case ThemeMode.light:
+      return Icons.light_mode;
+    case ThemeMode.dark:
+      return Icons.dark_mode;
+  }
+}
+
+String _formatSyncTime(DateTime dateTime) {
+  final now = DateTime.now();
+  final difference = now.difference(dateTime);
+
+  if (difference.inMinutes < 1) {
+    return 'Just now';
+  } else if (difference.inHours < 1) {
+    return '${difference.inMinutes}m ago';
+  } else if (difference.inDays < 1) {
+    return '${difference.inHours}h ago';
+  } else if (difference.inDays < 7) {
+    return '${difference.inDays}d ago';
+  } else {
+    return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
+  }
+}
+
+// ============================================================================
+// GRADIENT FACTOR DIALOG
+// ============================================================================
 
 /// Gradient Factor preset configurations
 enum GfPreset {
@@ -1161,13 +1691,11 @@ enum GfPreset {
 
   const GfPreset(this.gfLow, this.gfHigh, this.name, this.description);
 
-  /// Check if the given values match this preset
   bool matches(int low, int high) {
     if (this == GfPreset.custom) return false;
     return gfLow == low && gfHigh == high;
   }
 
-  /// Get the preset that matches the given values, or custom if none match
   static GfPreset fromValues(int low, int high) {
     for (final preset in GfPreset.values) {
       if (preset != GfPreset.custom && preset.matches(low, high)) {
@@ -1178,7 +1706,6 @@ enum GfPreset {
   }
 }
 
-/// Dialog for selecting gradient factor presets or custom values
 class _GradientFactorDialog extends StatefulWidget {
   final int initialGfLow;
   final int initialGfHigh;
@@ -1220,10 +1747,7 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
   void _updateGfLow(int value) {
     setState(() {
       _gfLow = value;
-      // Ensure gfHigh is always >= gfLow
-      if (_gfHigh < _gfLow) {
-        _gfHigh = _gfLow;
-      }
+      if (_gfHigh < _gfLow) _gfHigh = _gfLow;
       _selectedPreset = GfPreset.fromValues(_gfLow, _gfHigh);
     });
   }
@@ -1231,10 +1755,7 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
   void _updateGfHigh(int value) {
     setState(() {
       _gfHigh = value;
-      // Ensure gfLow is always <= gfHigh
-      if (_gfLow > _gfHigh) {
-        _gfLow = _gfHigh;
-      }
+      if (_gfLow > _gfHigh) _gfLow = _gfHigh;
       _selectedPreset = GfPreset.fromValues(_gfLow, _gfHigh);
     });
   }
@@ -1251,7 +1772,6 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Info text
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -1260,11 +1780,7 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
               ),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.info_outline,
-                    size: 20,
-                    color: colorScheme.primary,
-                  ),
+                  Icon(Icons.info_outline, size: 20, color: colorScheme.primary),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -1276,14 +1792,8 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
               ),
             ),
             const SizedBox(height: 16),
-
-            // Presets
-            Text(
-              'Presets',
-              style: textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            Text('Presets',
+                style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             ...GfPreset.values.where((p) => p != GfPreset.custom).map((preset) {
               final isSelected = _selectedPreset == preset;
@@ -1294,9 +1804,7 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
                   borderRadius: BorderRadius.circular(8),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
-                    ),
+                        horizontal: 12, vertical: 10),
                     decoration: BoxDecoration(
                       color: isSelected
                           ? colorScheme.primaryContainer
@@ -1312,26 +1820,18 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                preset.name,
-                                style: textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              Text(
-                                preset.description,
-                                style: textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
-                              ),
+                              Text(preset.name,
+                                  style: textTheme.bodyMedium
+                                      ?.copyWith(fontWeight: FontWeight.w600)),
+                              Text(preset.description,
+                                  style: textTheme.bodySmall?.copyWith(
+                                      color: colorScheme.onSurfaceVariant)),
                             ],
                           ),
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
+                              horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? colorScheme.primary
@@ -1354,26 +1854,18 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
                 ),
               );
             }),
-
             const SizedBox(height: 16),
             const Divider(),
             const SizedBox(height: 16),
-
-            // Custom values section
             Row(
               children: [
-                Text(
-                  'Custom Values',
-                  style: textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                Text('Custom Values',
+                    style:
+                        textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: colorScheme.primaryContainer,
                     borderRadius: BorderRadius.circular(16),
@@ -1389,14 +1881,9 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
               ],
             ),
             const SizedBox(height: 16),
-
-            // GF Low slider
             Row(
               children: [
-                SizedBox(
-                  width: 60,
-                  child: Text('GF Low', style: textTheme.bodyMedium),
-                ),
+                SizedBox(width: 60, child: Text('GF Low', style: textTheme.bodyMedium)),
                 Expanded(
                   child: Slider(
                     value: _gfLow.toDouble(),
@@ -1409,24 +1896,16 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
                 ),
                 SizedBox(
                   width: 36,
-                  child: Text(
-                    '$_gfLow',
-                    style: textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.right,
-                  ),
+                  child: Text('$_gfLow',
+                      style:
+                          textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.right),
                 ),
               ],
             ),
-
-            // GF High slider
             Row(
               children: [
-                SizedBox(
-                  width: 60,
-                  child: Text('GF High', style: textTheme.bodyMedium),
-                ),
+                SizedBox(width: 60, child: Text('GF High', style: textTheme.bodyMedium)),
                 Expanded(
                   child: Slider(
                     value: _gfHigh.toDouble(),
@@ -1439,17 +1918,13 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
                 ),
                 SizedBox(
                   width: 36,
-                  child: Text(
-                    '$_gfHigh',
-                    style: textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.right,
-                  ),
+                  child: Text('$_gfHigh',
+                      style:
+                          textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.right),
                 ),
               ],
             ),
-
             const SizedBox(height: 8),
             Text(
               'Lower values = more conservative (longer NDL/more deco)',
