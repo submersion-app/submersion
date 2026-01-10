@@ -1,0 +1,634 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../shared/widgets/master_detail/master_detail_scaffold.dart';
+import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
+import '../../../dive_log/presentation/providers/dive_computer_providers.dart';
+import '../../../settings/presentation/providers/export_providers.dart';
+import '../../../settings/presentation/widgets/import_progress_dialog.dart';
+import '../widgets/transfer_list_content.dart';
+
+/// Main transfer page with master-detail layout on desktop.
+///
+/// On desktop (>=800px): Shows a split view with section list on left,
+/// selected section content on right.
+/// On narrower screens (<800px): Shows section list with navigation.
+class TransferPage extends ConsumerWidget {
+  const TransferPage({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (ResponsiveBreakpoints.isMasterDetail(context)) {
+      return MasterDetailScaffold(
+        sectionId: 'transfer',
+        masterBuilder: (context, onItemSelected, selectedId) =>
+            TransferListContent(
+              onItemSelected: onItemSelected,
+              selectedId: selectedId,
+              showAppBar: false,
+            ),
+        detailBuilder: (context, sectionId) =>
+            _buildSectionContent(context, ref, sectionId),
+        summaryBuilder: (context) => const _TransferSummaryWidget(),
+      );
+    }
+
+    // Mobile: Check for selected section via query param
+    String? selectedSection;
+    try {
+      selectedSection = GoRouterState.of(context).uri.queryParameters['selected'];
+    } catch (_) {
+      // GoRouter not available (e.g., in tests)
+    }
+
+    if (selectedSection != null) {
+      // Show section detail page
+      return _TransferSectionDetailPage(
+        sectionId: selectedSection,
+        ref: ref,
+      );
+    }
+
+    // Mobile: Show section list
+    return const TransferMobileContent();
+  }
+
+  /// Builds the appropriate section content based on section ID.
+  Widget _buildSectionContent(
+    BuildContext context,
+    WidgetRef ref,
+    String sectionId,
+  ) {
+    switch (sectionId) {
+      case 'import':
+        return _ImportSectionContent(ref: ref);
+      case 'export':
+        return _ExportSectionContent(ref: ref);
+      case 'computers':
+        return _ComputersSectionContent(ref: ref);
+      default:
+        return Center(child: Text('Unknown section: $sectionId'));
+    }
+  }
+}
+
+/// Mobile content showing section list for navigation.
+class TransferMobileContent extends StatelessWidget {
+  const TransferMobileContent({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Transfer')),
+      body: ListView.separated(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemCount: transferSections.length,
+        separatorBuilder: (context, index) => const Divider(height: 1),
+        itemBuilder: (context, index) {
+          final section = transferSections[index];
+          return _MobileTransferTile(section: section);
+        },
+      ),
+    );
+  }
+}
+
+/// Mobile detail page for transfer sections accessed via query params.
+class _TransferSectionDetailPage extends ConsumerWidget {
+  final String sectionId;
+  final WidgetRef ref;
+
+  const _TransferSectionDetailPage({
+    required this.sectionId,
+    required this.ref,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Find the section title
+    final section =
+        transferSections.where((s) => s.id == sectionId).firstOrNull;
+    final title = section?.title ?? 'Transfer';
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(title),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/transfer'),
+        ),
+      ),
+      body: _buildContent(context, ref),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, WidgetRef ref) {
+    switch (sectionId) {
+      case 'import':
+        return _ImportSectionContent(ref: ref);
+      case 'export':
+        return _ExportSectionContent(ref: ref);
+      case 'computers':
+        return _ComputersSectionContent(ref: ref);
+      default:
+        return Center(child: Text('Unknown section: $sectionId'));
+    }
+  }
+}
+
+class _MobileTransferTile extends StatelessWidget {
+  final TransferSection section;
+
+  const _MobileTransferTile({required this.section});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final color = section.color ?? colorScheme.primary;
+
+    return ListTile(
+      leading: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(section.icon, color: color, size: 24),
+      ),
+      title: Text(
+        section.title,
+        style: Theme.of(
+          context,
+        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
+      ),
+      subtitle: Text(
+        section.subtitle,
+        style: Theme.of(
+          context,
+        ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+      ),
+      trailing: Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
+      onTap: () => _navigateToSection(context, section.id),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+    );
+  }
+
+  void _navigateToSection(BuildContext context, String sectionId) {
+    switch (sectionId) {
+      case 'computers':
+        context.push('/dive-computers');
+        break;
+      default:
+        // For sections that don't have dedicated pages,
+        // show them in a detail page using query params
+        final state = GoRouterState.of(context);
+        final currentPath = state.uri.path;
+        context.go('$currentPath?selected=$sectionId');
+    }
+  }
+}
+
+// ============================================================================
+// SECTION CONTENT WIDGETS
+// ============================================================================
+
+/// Import section content
+class _ImportSectionContent extends ConsumerWidget {
+  final WidgetRef ref;
+
+  const _ImportSectionContent({required this.ref});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(context, 'Import Data'),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.table_chart),
+                  title: const Text('Import from CSV'),
+                  subtitle: const Text('Import dives from CSV file'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _handleImport(
+                    context,
+                    ref,
+                    () => ref
+                        .read(exportNotifierProvider.notifier)
+                        .importDivesFromCsv(),
+                  ),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.code),
+                  title: const Text('Import from UDDF'),
+                  subtitle: const Text('Universal Dive Data Format'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _handleImport(
+                    context,
+                    ref,
+                    () => ref
+                        .read(exportNotifierProvider.notifier)
+                        .importDivesFromUddf(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildInfoCard(
+            context,
+            'About Import',
+            'Import dive data from other dive logging applications. '
+                'CSV files allow importing basic dive information, while '
+                'UDDF files can include dive profiles, equipment, and more.',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleImport(
+    BuildContext context,
+    WidgetRef ref,
+    Future<void> Function() importFn,
+  ) async {
+    var dialogShown = false;
+
+    void showDialogIfNeeded(ExportState state) {
+      if (!dialogShown &&
+          state.importPhase != null &&
+          state.status == ExportStatus.exporting &&
+          context.mounted) {
+        dialogShown = true;
+        ImportProgressDialog.show(context);
+      }
+    }
+
+    try {
+      final subscription = ref.listenManual(
+        exportNotifierProvider,
+        (previous, next) => showDialogIfNeeded(next),
+        fireImmediately: true,
+      );
+
+      try {
+        await importFn();
+      } finally {
+        subscription.close();
+      }
+
+      if (context.mounted) {
+        final state = ref.read(exportNotifierProvider);
+        if (state.status != ExportStatus.idle) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message ?? 'Operation completed'),
+              backgroundColor: state.status == ExportStatus.success
+                  ? Colors.green
+                  : Colors.red,
+            ),
+          );
+        }
+        ref.read(exportNotifierProvider.notifier).reset();
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Operation failed: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+}
+
+/// Export section content
+class _ExportSectionContent extends ConsumerWidget {
+  final WidgetRef ref;
+
+  const _ExportSectionContent({required this.ref});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(context, 'Export Data'),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.picture_as_pdf),
+                  title: const Text('PDF Logbook'),
+                  subtitle: const Text('Printable dive logbook'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _handleExport(
+                    context,
+                    ref,
+                    () => ref
+                        .read(exportNotifierProvider.notifier)
+                        .exportDivesToPdf(),
+                  ),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.code),
+                  title: const Text('UDDF Export'),
+                  subtitle: const Text('Universal Dive Data Format'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _handleExport(
+                    context,
+                    ref,
+                    () => ref
+                        .read(exportNotifierProvider.notifier)
+                        .exportDivesToUddf(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildSectionHeader(context, 'CSV Export'),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.table_chart),
+                  title: const Text('Dives as CSV'),
+                  subtitle: const Text('Spreadsheet format'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _handleExport(
+                    context,
+                    ref,
+                    () => ref
+                        .read(exportNotifierProvider.notifier)
+                        .exportDivesToCsv(),
+                  ),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.location_on),
+                  title: const Text('Sites as CSV'),
+                  subtitle: const Text('Export dive sites'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _handleExport(
+                    context,
+                    ref,
+                    () => ref
+                        .read(exportNotifierProvider.notifier)
+                        .exportSitesToCsv(),
+                  ),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.build),
+                  title: const Text('Equipment as CSV'),
+                  subtitle: const Text('Export equipment inventory'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _handleExport(
+                    context,
+                    ref,
+                    () => ref
+                        .read(exportNotifierProvider.notifier)
+                        .exportEquipmentToCsv(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildInfoCard(
+            context,
+            'About Export',
+            'Export your dive data in various formats. '
+                'PDF creates a printable logbook. UDDF is a universal format '
+                'compatible with most dive logging software. CSV files can be '
+                'opened in spreadsheet applications.',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleExport(
+    BuildContext context,
+    WidgetRef ref,
+    Future<void> Function() exportFn,
+  ) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      useRootNavigator: true,
+      builder: (dialogContext) => const AlertDialog(
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 24),
+            Text('Exporting...'),
+          ],
+        ),
+      ),
+    );
+
+    try {
+      await exportFn();
+      if (context.mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) {
+            Navigator.of(context, rootNavigator: true).pop();
+            final state = ref.read(exportNotifierProvider);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message ?? 'Export completed'),
+                backgroundColor: state.status == ExportStatus.success
+                    ? Colors.green
+                    : Colors.red,
+              ),
+            );
+            ref.read(exportNotifierProvider.notifier).reset();
+          }
+        });
+      }
+    } catch (e) {
+      if (context.mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) {
+            Navigator.of(context, rootNavigator: true).pop();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Export failed: $e'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        });
+      }
+    }
+  }
+}
+
+/// Dive Computers section content
+class _ComputersSectionContent extends ConsumerWidget {
+  final WidgetRef ref;
+
+  const _ComputersSectionContent({required this.ref});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final computersAsync = ref.watch(allDiveComputersProvider);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(context, 'Dive Computers'),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.bluetooth_searching),
+                  title: const Text('Connect New Computer'),
+                  subtitle: const Text('Discover and pair a dive computer'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/dive-computers/discover'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.devices),
+                  title: const Text('Manage Computers'),
+                  subtitle: computersAsync.when(
+                    data: (computers) => Text(
+                      computers.isEmpty
+                          ? 'No computers saved'
+                          : '${computers.length} saved ${computers.length == 1 ? 'computer' : 'computers'}',
+                    ),
+                    loading: () => const Text('Loading...'),
+                    error: (e, st) => const Text('Error loading computers'),
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/dive-computers'),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildInfoCard(
+            context,
+            'About Dive Computers',
+            'Connect your dive computer via Bluetooth to download dive logs '
+                'directly to the app. Supported computers include Suunto, '
+                'Shearwater, Garmin, Mares, and many other popular brands.',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Summary widget shown when no section is selected (desktop)
+class _TransferSummaryWidget extends StatelessWidget {
+  const _TransferSummaryWidget();
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.sync_alt,
+            size: 64,
+            color: colorScheme.primary.withValues(alpha: 0.5),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Transfer',
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Import and export dive data',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Select a section from the list',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// HELPER WIDGETS
+// ============================================================================
+
+Widget _buildSectionHeader(BuildContext context, String title) {
+  return Text(
+    title,
+    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+      color: Theme.of(context).colorScheme.primary,
+      fontWeight: FontWeight.bold,
+    ),
+  );
+}
+
+Widget _buildInfoCard(BuildContext context, String title, String content) {
+  return Card(
+    color: Theme.of(
+      context,
+    ).colorScheme.primaryContainer.withValues(alpha: 0.3),
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.info_outline,
+                size: 20,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(content, style: Theme.of(context).textTheme.bodySmall),
+        ],
+      ),
+    ),
+  );
+}

@@ -16,7 +16,7 @@ class SiteListPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final fab = FloatingActionButton.extended(
       onPressed: () {
-        if (ResponsiveBreakpoints.isDesktop(context)) {
+        if (ResponsiveBreakpoints.isMasterDetail(context)) {
           final state = GoRouterState.of(context);
           final currentPath = state.uri.path;
           context.go('$currentPath?mode=new');
@@ -28,7 +28,7 @@ class SiteListPage extends ConsumerWidget {
       label: const Text('Add Site'),
     );
 
-    if (ResponsiveBreakpoints.isDesktop(context)) {
+    if (ResponsiveBreakpoints.isMasterDetail(context)) {
       return MasterDetailScaffold(
         sectionId: 'sites',
         masterBuilder: (context, onItemSelected, selectedId) => SiteListContent(

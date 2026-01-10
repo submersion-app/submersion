@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-/// Settings section data model.
-class SettingsSection {
+/// Transfer section data model.
+class TransferSection {
   final String id;
   final IconData icon;
   final String title;
   final String subtitle;
   final Color? color;
 
-  const SettingsSection({
+  const TransferSection({
     required this.id,
     required this.icon,
     required this.title,
@@ -17,65 +17,35 @@ class SettingsSection {
   });
 }
 
-/// List of all settings sections.
-const settingsSections = [
-  SettingsSection(
-    id: 'profile',
-    icon: Icons.person,
-    title: 'Diver Profile',
-    subtitle: 'Active diver & profiles',
+/// List of all transfer sections.
+const transferSections = [
+  TransferSection(
+    id: 'import',
+    icon: Icons.file_download,
+    title: 'Import',
+    subtitle: 'CSV, UDDF files',
   ),
-  SettingsSection(
-    id: 'units',
-    icon: Icons.straighten,
-    title: 'Units',
-    subtitle: 'Measurement preferences',
+  TransferSection(
+    id: 'export',
+    icon: Icons.file_upload,
+    title: 'Export',
+    subtitle: 'CSV, UDDF, PDF logbook',
   ),
-  SettingsSection(
-    id: 'decompression',
-    icon: Icons.timeline,
-    title: 'Decompression',
-    subtitle: 'Gradient factors',
-  ),
-  SettingsSection(
-    id: 'appearance',
-    icon: Icons.palette,
-    title: 'Appearance',
-    subtitle: 'Theme & display',
-  ),
-  SettingsSection(
-    id: 'manage',
-    icon: Icons.folder_shared,
-    title: 'Manage',
-    subtitle: 'Trips, buddies, certifications',
-  ),
-  SettingsSection(
-    id: 'api',
-    icon: Icons.cloud,
-    title: 'API Integrations',
-    subtitle: 'Weather & tide services',
-  ),
-  SettingsSection(
-    id: 'data',
-    icon: Icons.storage,
-    title: 'Data',
-    subtitle: 'Backup, restore & storage',
-  ),
-  SettingsSection(
-    id: 'about',
-    icon: Icons.info_outline,
-    title: 'About',
-    subtitle: 'App info & licenses',
+  TransferSection(
+    id: 'computers',
+    icon: Icons.bluetooth,
+    title: 'Dive Computers',
+    subtitle: 'Download from device',
   ),
 ];
 
-/// Content widget for the settings section list, used in master-detail layout.
-class SettingsListContent extends StatelessWidget {
+/// Content widget for the transfer section list, used in master-detail layout.
+class TransferListContent extends StatelessWidget {
   final void Function(String?)? onItemSelected;
   final String? selectedId;
   final bool showAppBar;
 
-  const SettingsListContent({
+  const TransferListContent({
     super.key,
     this.onItemSelected,
     this.selectedId,
@@ -88,7 +58,7 @@ class SettingsListContent extends StatelessWidget {
 
     return Scaffold(
       appBar: showAppBar
-          ? AppBar(title: const Text('Settings'))
+          ? AppBar(title: const Text('Transfer'))
           : PreferredSize(
               preferredSize: const Size.fromHeight(56),
               child: Container(
@@ -99,7 +69,7 @@ class SettingsListContent extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          'Settings',
+                          'Transfer',
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                       ),
@@ -110,13 +80,13 @@ class SettingsListContent extends StatelessWidget {
             ),
       body: ListView.separated(
         padding: const EdgeInsets.symmetric(vertical: 8),
-        itemCount: settingsSections.length,
+        itemCount: transferSections.length,
         separatorBuilder: (context, index) => const Divider(height: 1),
         itemBuilder: (context, index) {
-          final section = settingsSections[index];
+          final section = transferSections[index];
           final isSelected = selectedId == section.id;
 
-          return _SettingsSectionTile(
+          return _TransferSectionTile(
             section: section,
             isSelected: isSelected,
             onTap: () {
@@ -131,12 +101,12 @@ class SettingsListContent extends StatelessWidget {
   }
 }
 
-class _SettingsSectionTile extends StatelessWidget {
-  final SettingsSection section;
+class _TransferSectionTile extends StatelessWidget {
+  final TransferSection section;
   final bool isSelected;
   final VoidCallback onTap;
 
-  const _SettingsSectionTile({
+  const _TransferSectionTile({
     required this.section,
     required this.isSelected,
     required this.onTap,

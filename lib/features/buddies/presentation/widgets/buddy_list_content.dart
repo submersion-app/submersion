@@ -166,7 +166,7 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
           : null;
 
       if (context.mounted) {
-        if (ResponsiveBreakpoints.isDesktop(context)) {
+        if (ResponsiveBreakpoints.isMasterDetail(context)) {
           // For desktop, pass data via query params (simplified approach)
           final state = GoRouterState.of(context);
           context.go('${state.uri.path}?mode=new');

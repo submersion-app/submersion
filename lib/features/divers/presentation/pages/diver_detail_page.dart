@@ -36,7 +36,7 @@ class _DiverDetailPageState extends ConsumerState<DiverDetailPage> {
     // On desktop, redirect standalone detail pages to master-detail view
     if (!widget.embedded &&
         !_hasRedirected &&
-        ResponsiveBreakpoints.isDesktop(context)) {
+        ResponsiveBreakpoints.isMasterDetail(context)) {
       _hasRedirected = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {

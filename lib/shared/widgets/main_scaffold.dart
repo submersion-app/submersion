@@ -21,6 +21,7 @@ class _MainScaffoldState extends State<MainScaffold> {
     '/buddies',
     '/dive-centers',
     '/certifications',
+    '/transfer',
     '/settings',
   ];
 
@@ -41,7 +42,8 @@ class _MainScaffoldState extends State<MainScaffold> {
       if (location.startsWith('/buddies')) return 6;
       if (location.startsWith('/dive-centers')) return 7;
       if (location.startsWith('/certifications')) return 8;
-      if (location.startsWith('/settings')) return 9;
+      if (location.startsWith('/transfer')) return 9;
+      if (location.startsWith('/settings')) return 10;
       return 0;
     } else {
       // Mobile: Dashboard, Dives, Sites, Trips, More
@@ -92,6 +94,9 @@ class _MainScaffoldState extends State<MainScaffold> {
           context.go('/certifications');
           break;
         case 9:
+          context.go('/transfer');
+          break;
+        case 10:
           context.go('/settings');
           break;
       }
@@ -176,6 +181,14 @@ class _MainScaffoldState extends State<MainScaffold> {
               onTap: () {
                 Navigator.pop(context);
                 context.go('/certifications');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.sync_alt),
+              title: const Text('Transfer'),
+              onTap: () {
+                Navigator.pop(context);
+                context.go('/transfer');
               },
             ),
             ListTile(
@@ -277,6 +290,11 @@ class _MainScaffoldState extends State<MainScaffold> {
                   icon: Icon(Icons.card_membership_outlined),
                   selectedIcon: Icon(Icons.card_membership),
                   label: Text('Certifications'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.sync_alt_outlined),
+                  selectedIcon: Icon(Icons.sync_alt),
+                  label: Text('Transfer'),
                 ),
                 NavigationRailDestination(
                   icon: Icon(Icons.settings_outlined),

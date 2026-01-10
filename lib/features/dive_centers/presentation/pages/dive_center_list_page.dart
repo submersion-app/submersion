@@ -16,7 +16,7 @@ class DiveCenterListPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final fab = FloatingActionButton.extended(
       onPressed: () {
-        if (ResponsiveBreakpoints.isDesktop(context)) {
+        if (ResponsiveBreakpoints.isMasterDetail(context)) {
           final state = GoRouterState.of(context);
           final currentPath = state.uri.path;
           context.go('$currentPath?mode=new');
@@ -29,7 +29,7 @@ class DiveCenterListPage extends ConsumerWidget {
     );
 
     // Desktop: Use master-detail layout
-    if (ResponsiveBreakpoints.isDesktop(context)) {
+    if (ResponsiveBreakpoints.isMasterDetail(context)) {
       return MasterDetailScaffold(
         sectionId: 'dive-centers',
         masterBuilder: (context, onItemSelected, selectedId) =>

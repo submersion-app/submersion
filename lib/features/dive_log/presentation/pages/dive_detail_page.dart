@@ -94,7 +94,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     // This ensures all dive detail navigation shows the split layout on desktop
     if (!widget.embedded &&
         !_hasRedirected &&
-        ResponsiveBreakpoints.isDesktop(context)) {
+        ResponsiveBreakpoints.isMasterDetail(context)) {
       _hasRedirected = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
