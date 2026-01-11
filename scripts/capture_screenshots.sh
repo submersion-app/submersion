@@ -43,6 +43,12 @@ echo ""
 echo "Output directory: $SCREENSHOTS_DIR"
 echo ""
 
+# Detect CI environment (no GUI available for AppleScript rotation)
+IS_CI="${CI:-false}"
+if [ "$IS_CI" = "true" ]; then
+  echo "CI environment detected - will temporarily modify Info.plist for iPad landscape"
+fi
+
 # Generate UDDF test data using Python script
 # This creates consistent, realistic dive data for screenshots
 echo "Generating UDDF test data..."
@@ -92,9 +98,46 @@ for device_config in "${DEVICES[@]}"; do
   echo "Booting simulator..."
   xcrun simctl boot "$DEVICE_UDID" 2>/dev/null || true
 
-  # Wait for simulator to fully boot
+  # Open Simulator.app to show the device window (required for rotation)
+  echo "Opening Simulator app..."
+  open -a Simulator
+
+  # Wait for simulator to fully boot and app to open
   echo "Waiting for simulator to boot..."
   sleep 5
+
+  # Handle landscape orientation for iPad
+  if [ "$orientation" = "landscape" ]; then
+    if [ "$IS_CI" = "true" ]; then
+      # CI mode: Temporarily modify Info.plist to force landscape-only for iPad
+      echo "Temporarily modifying Info.plist for landscape-only iPad..."
+      PLIST_PATH="$PROJECT_ROOT/ios/Runner/Info.plist"
+      PLIST_BACKUP="$PLIST_PATH.backup"
+      cp "$PLIST_PATH" "$PLIST_BACKUP"
+
+      # Use PlistBuddy to set iPad orientations to landscape-only
+      /usr/libexec/PlistBuddy -c "Delete :UISupportedInterfaceOrientations~ipad" "$PLIST_PATH" 2>/dev/null || true
+      /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations~ipad array" "$PLIST_PATH"
+      /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations~ipad:0 string UIInterfaceOrientationLandscapeLeft" "$PLIST_PATH"
+      /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations~ipad:1 string UIInterfaceOrientationLandscapeRight" "$PLIST_PATH"
+      echo "Info.plist temporarily modified for landscape iPad"
+    else
+      # Local mode: Use AppleScript to rotate the simulator window
+      echo "Rotating simulator to landscape..."
+      osascript <<'APPLESCRIPT'
+tell application "Simulator" to activate
+delay 1
+tell application "System Events"
+  tell process "Simulator"
+    -- Cmd+Right Arrow rotates right
+    key code 124 using command down
+  end tell
+end tell
+APPLESCRIPT
+      sleep 2
+      echo "Simulator rotated to landscape"
+    fi
+  fi
 
   # Override status bar for clean screenshots
   echo "Setting up status bar appearance..."
@@ -125,6 +168,16 @@ for device_config in "${DEVICES[@]}"; do
     2>&1 || {
       echo "Warning: Screenshot tests encountered issues on $simulator_name"
     }
+
+  # Restore Info.plist if we modified it for CI landscape mode
+  if [ "$orientation" = "landscape" ] && [ "$IS_CI" = "true" ]; then
+    PLIST_PATH="$PROJECT_ROOT/ios/Runner/Info.plist"
+    PLIST_BACKUP="$PLIST_PATH.backup"
+    if [ -f "$PLIST_BACKUP" ]; then
+      echo "Restoring original Info.plist..."
+      mv "$PLIST_BACKUP" "$PLIST_PATH"
+    fi
+  fi
 
   # Shutdown simulator
   echo "Shutting down simulator..."
