@@ -63,9 +63,7 @@ void main() {
       // Launch the app with proper provider overrides
       await tester.pumpWidget(
         ProviderScope(
-          overrides: [
-            sharedPreferencesProvider.overrideWithValue(prefs),
-          ],
+          overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
           child: const SubmersionApp(),
         ),
       );
@@ -124,15 +122,17 @@ void main() {
         await tester.tap(mapButton.first);
         await tester.pumpAndSettle();
         await screenshotHelper.waitForContent(
-            tester,
-            duration: const Duration(seconds: 3)); // Map tiles need time
+          tester,
+          duration: const Duration(seconds: 3),
+        ); // Map tiles need time
         await screenshotHelper.takeScreenshot(tester, 'sites_map');
       } else if (mapOutlinedButton.evaluate().isNotEmpty) {
         await tester.tap(mapOutlinedButton.first);
         await tester.pumpAndSettle();
         await screenshotHelper.waitForContent(
-            tester,
-            duration: const Duration(seconds: 3));
+          tester,
+          duration: const Duration(seconds: 3),
+        );
         await screenshotHelper.takeScreenshot(tester, 'sites_map');
       }
 
@@ -158,8 +158,9 @@ void main() {
         await tester.tap(statisticsText.first);
         await tester.pumpAndSettle();
         await screenshotHelper.waitForContent(
-            tester,
-            duration: const Duration(seconds: 2)); // Charts need time
+          tester,
+          duration: const Duration(seconds: 2),
+        ); // Charts need time
         await screenshotHelper.takeScreenshot(tester, 'statistics');
       }
 

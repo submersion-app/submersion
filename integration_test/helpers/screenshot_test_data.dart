@@ -33,16 +33,20 @@ class ScreenshotTestDataSeeder {
   Future<void> _createDiver() async {
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
-    await db.into(db.divers).insert(DiversCompanion.insert(
-          id: _diverId,
-          name: 'Alex Morgan',
-          email: const Value('alex@example.com'),
-          phone: const Value('+1 555-0123'),
-          bloodType: const Value('O+'),
-          isDefault: const Value(true),
-          createdAt: now,
-          updatedAt: now,
-        ));
+    await db
+        .into(db.divers)
+        .insert(
+          DiversCompanion.insert(
+            id: _diverId,
+            name: 'Alex Morgan',
+            email: const Value('alex@example.com'),
+            phone: const Value('+1 555-0123'),
+            bloodType: const Value('O+'),
+            isDefault: const Value(true),
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
   }
 
   Future<void> _createDiveSites() async {
@@ -91,8 +95,7 @@ class ScreenshotTestDataSeeder {
         'lon': 34.2500,
         'maxDepth': 40.0,
         'difficulty': 'Intermediate',
-        'description':
-            'Spectacular walls and shark reef at the tip of Sinai.',
+        'description': 'Spectacular walls and shark reef at the tip of Sinai.',
       },
       // Southeast Asia
       {
@@ -113,8 +116,7 @@ class ScreenshotTestDataSeeder {
         'lon': 98.0250,
         'maxDepth': 35.0,
         'difficulty': 'Advanced',
-        'description':
-            'Famous for whale shark and manta ray encounters.',
+        'description': 'Famous for whale shark and manta ray encounters.',
       },
       {
         'name': 'Barracuda Point',
@@ -124,8 +126,7 @@ class ScreenshotTestDataSeeder {
         'lon': 118.6289,
         'maxDepth': 40.0,
         'difficulty': 'Advanced',
-        'description':
-            'Massive schools of barracuda forming tornado spirals.',
+        'description': 'Massive schools of barracuda forming tornado spirals.',
       },
       // Pacific
       {
@@ -136,8 +137,7 @@ class ScreenshotTestDataSeeder {
         'lon': 134.2167,
         'maxDepth': 35.0,
         'difficulty': 'Advanced',
-        'description':
-            'World-famous wall dive with sharks and large pelagics.',
+        'description': 'World-famous wall dive with sharks and large pelagics.',
       },
       {
         'name': 'SS Yongala',
@@ -159,8 +159,7 @@ class ScreenshotTestDataSeeder {
         'lon': 33.6500,
         'maxDepth': 42.0,
         'difficulty': 'Intermediate',
-        'description':
-            'Swedish ferry with 104 trucks on board, sunk in 1980.',
+        'description': 'Swedish ferry with 104 trucks on board, sunk in 1980.',
       },
       // Americas
       {
@@ -182,27 +181,30 @@ class ScreenshotTestDataSeeder {
         'lon': -121.9000,
         'maxDepth': 20.0,
         'difficulty': 'Beginner',
-        'description':
-            'Kelp forests with seals, nudibranchs, and octopus.',
+        'description': 'Kelp forests with seals, nudibranchs, and octopus.',
       },
     ];
 
     for (final site in sites) {
-      await db.into(db.diveSites).insert(DiveSitesCompanion.insert(
-            id: _uuid.v4(),
-            diverId: Value(_diverId),
-            name: site['name'] as String,
-            description: Value(site['description'] as String),
-            latitude: Value(site['lat'] as double),
-            longitude: Value(site['lon'] as double),
-            maxDepth: Value(site['maxDepth'] as double),
-            difficulty: Value(site['difficulty'] as String),
-            country: Value(site['country'] as String),
-            region: Value(site['region'] as String),
-            rating: Value(4.0 + Random().nextDouble()),
-            createdAt: now,
-            updatedAt: now,
-          ));
+      await db
+          .into(db.diveSites)
+          .insert(
+            DiveSitesCompanion.insert(
+              id: _uuid.v4(),
+              diverId: Value(_diverId),
+              name: site['name'] as String,
+              description: Value(site['description'] as String),
+              latitude: Value(site['lat'] as double),
+              longitude: Value(site['lon'] as double),
+              maxDepth: Value(site['maxDepth'] as double),
+              difficulty: Value(site['difficulty'] as String),
+              country: Value(site['country'] as String),
+              region: Value(site['region'] as String),
+              rating: Value(4.0 + Random().nextDouble()),
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
     }
   }
 
@@ -217,7 +219,7 @@ class ScreenshotTestDataSeeder {
         'brand': 'Apeks',
         'model': 'XTX 200',
         'status': 'active',
-        'serviceInterval': 365
+        'serviceInterval': 365,
       },
       {
         'name': 'BCD',
@@ -225,7 +227,7 @@ class ScreenshotTestDataSeeder {
         'brand': 'ScubaPro',
         'model': 'Hydros Pro',
         'status': 'active',
-        'serviceInterval': 365
+        'serviceInterval': 365,
       },
       {
         'name': 'Dive Computer',
@@ -233,7 +235,7 @@ class ScreenshotTestDataSeeder {
         'brand': 'Shearwater',
         'model': 'Perdix 2',
         'status': 'active',
-        'serviceInterval': null
+        'serviceInterval': null,
       },
       {
         'name': '5mm Wetsuit',
@@ -241,7 +243,7 @@ class ScreenshotTestDataSeeder {
         'brand': 'Fourth Element',
         'model': 'Xenos',
         'status': 'active',
-        'serviceInterval': null
+        'serviceInterval': null,
       },
       {
         'name': 'Mask',
@@ -249,7 +251,7 @@ class ScreenshotTestDataSeeder {
         'brand': 'Atomic',
         'model': 'Venom',
         'status': 'active',
-        'serviceInterval': null
+        'serviceInterval': null,
       },
       {
         'name': 'Fins',
@@ -257,7 +259,7 @@ class ScreenshotTestDataSeeder {
         'brand': 'Mares',
         'model': 'Avanti Quattro+',
         'status': 'active',
-        'serviceInterval': null
+        'serviceInterval': null,
       },
       {
         'name': 'Dive Light',
@@ -265,7 +267,7 @@ class ScreenshotTestDataSeeder {
         'brand': 'Big Blue',
         'model': 'VL4200P',
         'status': 'active',
-        'serviceInterval': null
+        'serviceInterval': null,
       },
       {
         'name': 'SMB',
@@ -273,7 +275,7 @@ class ScreenshotTestDataSeeder {
         'brand': 'Halcyon',
         'model': 'Diver Alert Marker',
         'status': 'active',
-        'serviceInterval': null
+        'serviceInterval': null,
       },
       {
         'name': 'AL80 Tank',
@@ -281,7 +283,7 @@ class ScreenshotTestDataSeeder {
         'brand': 'Luxfer',
         'model': 'AL80',
         'status': 'active',
-        'serviceInterval': 365
+        'serviceInterval': 365,
       },
       {
         'name': 'Backup Regulator',
@@ -289,26 +291,30 @@ class ScreenshotTestDataSeeder {
         'brand': 'Apeks',
         'model': 'XL4+',
         'status': 'needsService',
-        'serviceInterval': 365
+        'serviceInterval': 365,
       },
     ];
 
     for (final item in equipment) {
-      await db.into(db.equipment).insert(EquipmentCompanion.insert(
-            id: _uuid.v4(),
-            diverId: Value(_diverId),
-            name: item['name'] as String,
-            type: item['type'] as String,
-            brand: Value(item['brand'] as String),
-            model: Value(item['model'] as String),
-            status: Value(item['status'] as String),
-            lastServiceDate: Value(sixMonthsAgo),
-            serviceIntervalDays: item['serviceInterval'] != null
-                ? Value(item['serviceInterval'] as int)
-                : const Value.absent(),
-            createdAt: now,
-            updatedAt: now,
-          ));
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: _uuid.v4(),
+              diverId: Value(_diverId),
+              name: item['name'] as String,
+              type: item['type'] as String,
+              brand: Value(item['brand'] as String),
+              model: Value(item['model'] as String),
+              status: Value(item['status'] as String),
+              lastServiceDate: Value(sixMonthsAgo),
+              serviceIntervalDays: item['serviceInterval'] != null
+                  ? Value(item['serviceInterval'] as int)
+                  : const Value.absent(),
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
     }
   }
 
@@ -320,45 +326,49 @@ class ScreenshotTestDataSeeder {
         'name': 'Sarah Chen',
         'email': 'sarah.chen@email.com',
         'certLevel': 'PADI Rescue Diver',
-        'agency': 'PADI'
+        'agency': 'PADI',
       },
       {
         'name': 'Marcus Johnson',
         'email': 'marcus.j@email.com',
         'certLevel': 'SSI Advanced Open Water',
-        'agency': 'SSI'
+        'agency': 'SSI',
       },
       {
         'name': 'Elena Rodriguez',
         'email': 'elena.r@email.com',
         'certLevel': 'PADI Divemaster',
-        'agency': 'PADI'
+        'agency': 'PADI',
       },
       {
         'name': 'James Wilson',
         'email': 'jwilson@email.com',
         'certLevel': 'NAUI Open Water',
-        'agency': 'NAUI'
+        'agency': 'NAUI',
       },
       {
         'name': 'Yuki Tanaka',
         'email': 'yuki.t@email.com',
         'certLevel': 'TDI Advanced Nitrox',
-        'agency': 'TDI'
+        'agency': 'TDI',
       },
     ];
 
     for (final buddy in buddies) {
-      await db.into(db.buddies).insert(BuddiesCompanion.insert(
-            id: _uuid.v4(),
-            diverId: Value(_diverId),
-            name: buddy['name'] as String,
-            email: Value(buddy['email'] as String),
-            certificationLevel: Value(buddy['certLevel'] as String),
-            certificationAgency: Value(buddy['agency'] as String),
-            createdAt: now,
-            updatedAt: now,
-          ));
+      await db
+          .into(db.buddies)
+          .insert(
+            BuddiesCompanion.insert(
+              id: _uuid.v4(),
+              diverId: Value(_diverId),
+              name: buddy['name'] as String,
+              email: Value(buddy['email'] as String),
+              certificationLevel: Value(buddy['certLevel'] as String),
+              certificationAgency: Value(buddy['agency'] as String),
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
     }
   }
 
@@ -381,15 +391,19 @@ class ScreenshotTestDataSeeder {
       final duration = (35 + random.nextInt(30)) * 60; // 35-65 min in seconds
       final waterTemp = 18.0 + random.nextDouble() * 10; // 18-28C
 
-      final visibility = ['poor', 'moderate', 'good', 'excellent']
-          [random.nextInt(4)];
+      final visibility = [
+        'poor',
+        'moderate',
+        'good',
+        'excellent',
+      ][random.nextInt(4)];
       final diveTypes = [
         'recreational',
         'reef',
         'wreck',
         'drift',
         'night',
-        'deep'
+        'deep',
       ];
       final diveType = diveTypes[random.nextInt(diveTypes.length)];
 
@@ -398,45 +412,61 @@ class ScreenshotTestDataSeeder {
 
       final diveId = _uuid.v4();
 
-      await db.into(db.dives).insert(DivesCompanion.insert(
-            id: diveId,
-            diverId: Value(_diverId),
-            diveNumber: Value(75 - i), // Number dives in reverse
-            diveDateTime: diveTimestamp,
-            entryTime: Value(diveTimestamp),
-            exitTime: Value(diveTimestamp + duration),
-            duration: Value(duration),
-            maxDepth: Value(maxDepth),
-            avgDepth: Value(avgDepth),
-            waterTemp: Value(waterTemp),
-            visibility: Value(visibility),
-            diveType: Value(diveType),
-            siteId: Value(site.id),
-            rating: Value(rating),
-            notes: Value(_generateDiveNotes(diveType, site.name)),
-            createdAt: diveTimestamp,
-            updatedAt: diveTimestamp,
-          ));
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion.insert(
+              id: diveId,
+              diverId: Value(_diverId),
+              diveNumber: Value(75 - i), // Number dives in reverse
+              diveDateTime: diveTimestamp,
+              entryTime: Value(diveTimestamp),
+              exitTime: Value(diveTimestamp + duration),
+              duration: Value(duration),
+              maxDepth: Value(maxDepth),
+              avgDepth: Value(avgDepth),
+              waterTemp: Value(waterTemp),
+              visibility: Value(visibility),
+              diveType: Value(diveType),
+              siteId: Value(site.id),
+              rating: Value(rating),
+              notes: Value(_generateDiveNotes(diveType, site.name)),
+              createdAt: diveTimestamp,
+              updatedAt: diveTimestamp,
+            ),
+          );
 
       // Create tank entry
-      await db.into(db.diveTanks).insert(DiveTanksCompanion.insert(
-            id: _uuid.v4(),
-            diveId: diveId,
-            volume: const Value(11.1),
-            workingPressure: const Value(207),
-            startPressure: Value(200 + random.nextInt(10)),
-            endPressure: Value(40 + random.nextInt(30)),
-            o2Percent: const Value(21.0),
-          ));
+      await db
+          .into(db.diveTanks)
+          .insert(
+            DiveTanksCompanion.insert(
+              id: _uuid.v4(),
+              diveId: diveId,
+              volume: const Value(11.1),
+              workingPressure: const Value(207),
+              startPressure: Value(200 + random.nextInt(10)),
+              endPressure: Value(40 + random.nextInt(30)),
+              o2Percent: const Value(21.0),
+            ),
+          );
 
       // Create depth profile with realistic dive shape
       await _createDiveProfile(
-          diveId, duration, maxDepth, waterTemp + random.nextDouble() * 2);
+        diveId,
+        duration,
+        maxDepth,
+        waterTemp + random.nextDouble() * 2,
+      );
     }
   }
 
   Future<void> _createDiveProfile(
-      String diveId, int duration, double maxDepth, double temp) async {
+    String diveId,
+    int duration,
+    double maxDepth,
+    double temp,
+  ) async {
     final random = Random();
 
     // Create profile points every 10 seconds
@@ -472,14 +502,22 @@ class ScreenshotTestDataSeeder {
 
       depth = depth.clamp(0.0, maxDepth);
 
-      await db.into(db.diveProfiles).insert(DiveProfilesCompanion.insert(
-            id: _uuid.v4(),
-            diveId: diveId,
-            timestamp: timestamp,
-            depth: depth,
-            temperature: Value(temp - (depth * 0.1)), // Temp decreases with depth
-            pressure: Value(200 - (timestamp / duration * 150)), // Gradual gas use
-          ));
+      await db
+          .into(db.diveProfiles)
+          .insert(
+            DiveProfilesCompanion.insert(
+              id: _uuid.v4(),
+              diveId: diveId,
+              timestamp: timestamp,
+              depth: depth,
+              temperature: Value(
+                temp - (depth * 0.1),
+              ), // Temp decreases with depth
+              pressure: Value(
+                200 - (timestamp / duration * 150),
+              ), // Gradual gas use
+            ),
+          );
     }
   }
 
