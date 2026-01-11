@@ -153,69 +153,65 @@ void main() {
       await screenshotHelper.takeScreenshot(tester, 'dive_list');
 
       // 3. Dive Detail - tap on a dive card
-      // On iPad master-detail layout, we need to tap a card in the LIST pane (left),
-      // not in the summary pane (right). Find cards that are descendants of ListView.
+      // On iPad master-detail layout, there may be multiple ListViews (one in master,
+      // one in detail summary). Find InkWells inside Cards which are the tappable areas.
       final random = Random();
 
-      // Find the ListView containing dive cards
-      final listView = find.byType(ListView);
-      if (listView.evaluate().isNotEmpty) {
-        // Find cards that are descendants of the ListView (these are the dive list items)
-        final diveCards = find.descendant(
-          of: listView.first,
-          matching: find.byType(Card),
+      // Find all InkWells that are inside Cards (these are the tappable list items)
+      final cardInkWells = find.descendant(
+        of: find.byType(Card),
+        matching: find.byType(InkWell),
+      );
+
+      // ignore: avoid_print
+      print('Found ${cardInkWells.evaluate().length} InkWells in Cards');
+
+      if (cardInkWells.evaluate().length > 3) {
+        // Pick a random index, skipping first few which might be summary cards
+        final maxIndex = min(cardInkWells.evaluate().length - 1, 10);
+        final randomIndex = 2 + random.nextInt(max(1, maxIndex - 2));
+        // ignore: avoid_print
+        print(
+          'Selecting InkWell at index $randomIndex of ${cardInkWells.evaluate().length}',
         );
 
-        // ignore: avoid_print
-        print('Found ${diveCards.evaluate().length} cards in ListView');
+        await tester.tap(cardInkWells.at(randomIndex));
+        await tester.pumpAndSettle();
+        await screenshotHelper.waitForContent(
+          tester,
+          duration: const Duration(seconds: 2),
+        );
 
-        if (diveCards.evaluate().length > 2) {
-          // Pick a random card index (avoiding first which might be a header card)
-          final maxIndex = min(diveCards.evaluate().length - 1, 8);
-          final randomIndex = 1 + random.nextInt(maxIndex);
+        // Verify we're on a dive detail page by looking for dive-specific content.
+        // The detail pane should now show dive profile toggles or depth info.
+        final pressureToggle = find.text('Pressure');
+        final depthLabel = find.textContaining('Max Depth');
+
+        // Check for dive-specific elements (profile chart toggles or depth info)
+        final hasDiveContent =
+            pressureToggle.evaluate().isNotEmpty ||
+            depthLabel.evaluate().isNotEmpty;
+
+        if (hasDiveContent) {
+          // Enable Pressure and SAC toggles in the dive profile chart
+          await _enableProfileToggles(tester);
+          await screenshotHelper.waitForContent(tester);
+          await screenshotHelper.takeScreenshot(tester, 'dive_detail');
+        } else {
+          // Selection may not have worked - log warning
           // ignore: avoid_print
           print(
-            'Selecting dive card at index $randomIndex of ${diveCards.evaluate().length} cards',
+            'WARNING: Did not find dive content after tap, detail pane may not have updated',
           );
+          // Still take a screenshot to see what's shown
+          await screenshotHelper.takeScreenshot(tester, 'dive_detail');
+        }
 
-          await tester.tap(diveCards.at(randomIndex));
+        // Go back to dive list (on mobile) or clear selection (on tablet)
+        final backButton = find.byTooltip('Back');
+        if (backButton.evaluate().isNotEmpty) {
+          await tester.tap(backButton.first);
           await tester.pumpAndSettle();
-          await screenshotHelper.waitForContent(
-            tester,
-            duration: const Duration(seconds: 2),
-          );
-
-          // Verify we're on a dive detail page by looking for dive-specific content.
-          // The detail pane should now show dive profile toggles or depth info.
-          final pressureToggle = find.text('Pressure');
-          final depthLabel = find.textContaining('Max Depth');
-
-          // Check for dive-specific elements (profile chart toggles or depth info)
-          final hasDiveContent =
-              pressureToggle.evaluate().isNotEmpty ||
-              depthLabel.evaluate().isNotEmpty;
-
-          if (hasDiveContent) {
-            // Enable Pressure and SAC toggles in the dive profile chart
-            await _enableProfileToggles(tester);
-            await screenshotHelper.waitForContent(tester);
-            await screenshotHelper.takeScreenshot(tester, 'dive_detail');
-          } else {
-            // Selection may not have worked - log warning
-            // ignore: avoid_print
-            print(
-              'WARNING: Did not find dive content after tap, detail pane may not have updated',
-            );
-            // Still take a screenshot to see what's shown
-            await screenshotHelper.takeScreenshot(tester, 'dive_detail');
-          }
-
-          // Go back to dive list (on mobile) or clear selection (on tablet)
-          final backButton = find.byTooltip('Back');
-          if (backButton.evaluate().isNotEmpty) {
-            await tester.tap(backButton.first);
-            await tester.pumpAndSettle();
-          }
         }
       }
 
