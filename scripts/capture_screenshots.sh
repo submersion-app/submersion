@@ -43,11 +43,20 @@ echo ""
 echo "Output directory: $SCREENSHOTS_DIR"
 echo ""
 
-# Detect CI environment (no GUI available for AppleScript rotation)
+# Detect CI environment
 IS_CI="${CI:-false}"
-if [ "$IS_CI" = "true" ]; then
-  echo "CI environment detected - will temporarily modify Info.plist for iPad landscape"
-fi
+
+# Trap to restore Info.plist if script is interrupted
+PLIST_PATH="$PROJECT_ROOT/ios/Runner/Info.plist"
+PLIST_BACKUP="$PLIST_PATH.backup"
+cleanup() {
+  if [ -f "$PLIST_BACKUP" ]; then
+    echo ""
+    echo "Restoring Info.plist due to script interruption..."
+    mv "$PLIST_BACKUP" "$PLIST_PATH"
+  fi
+}
+trap cleanup EXIT INT TERM
 
 # Generate UDDF test data using Python script
 # This creates consistent, realistic dive data for screenshots
@@ -99,42 +108,23 @@ for device_config in "${DEVICES[@]}"; do
   xcrun simctl boot "$DEVICE_UDID" 2>/dev/null || true
 
   # Handle landscape orientation for iPad
-  # CI mode modifies Info.plist (no GUI needed), local mode uses AppleScript (needs GUI)
+  # Modify Info.plist to force landscape-only (most reliable approach)
   if [ "$orientation" = "landscape" ]; then
-    if [ "$IS_CI" = "true" ]; then
-      # CI mode: Temporarily modify Info.plist to force landscape-only for iPad
-      # No need to open Simulator GUI - flutter test works headless
-      echo "Temporarily modifying Info.plist for landscape-only iPad..."
-      PLIST_PATH="$PROJECT_ROOT/ios/Runner/Info.plist"
-      PLIST_BACKUP="$PLIST_PATH.backup"
-      cp "$PLIST_PATH" "$PLIST_BACKUP"
+    echo "Temporarily modifying Info.plist for landscape-only iPad..."
+    cp "$PLIST_PATH" "$PLIST_BACKUP"
 
-      # Use PlistBuddy to set iPad orientations to landscape-only
-      /usr/libexec/PlistBuddy -c "Delete :UISupportedInterfaceOrientations~ipad" "$PLIST_PATH" 2>/dev/null || true
-      /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations~ipad array" "$PLIST_PATH"
-      /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations~ipad:0 string UIInterfaceOrientationLandscapeLeft" "$PLIST_PATH"
-      /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations~ipad:1 string UIInterfaceOrientationLandscapeRight" "$PLIST_PATH"
-      echo "Info.plist temporarily modified for landscape iPad"
-    else
-      # Local mode: Open Simulator GUI and use AppleScript to rotate
+    # Use PlistBuddy to set iPad orientations to landscape-only
+    /usr/libexec/PlistBuddy -c "Delete :UISupportedInterfaceOrientations~ipad" "$PLIST_PATH" 2>/dev/null || true
+    /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations~ipad array" "$PLIST_PATH"
+    /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations~ipad:0 string UIInterfaceOrientationLandscapeLeft" "$PLIST_PATH"
+    /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations~ipad:1 string UIInterfaceOrientationLandscapeRight" "$PLIST_PATH"
+    echo "Info.plist temporarily modified for landscape iPad"
+
+    # Open Simulator GUI for local visibility (not needed for rotation anymore)
+    if [ "$IS_CI" != "true" ]; then
       echo "Opening Simulator app..."
       open -a Simulator
-      echo "Waiting for simulator window..."
-      sleep 5
-
-      echo "Rotating simulator to landscape..."
-      osascript <<'APPLESCRIPT'
-tell application "Simulator" to activate
-delay 1
-tell application "System Events"
-  tell process "Simulator"
-    -- Cmd+Right Arrow rotates right
-    key code 124 using command down
-  end tell
-end tell
-APPLESCRIPT
-      sleep 2
-      echo "Simulator rotated to landscape"
+      sleep 3
     fi
   else
     # Portrait mode - open Simulator GUI locally for visibility, but not required
@@ -176,14 +166,10 @@ APPLESCRIPT
       echo "Warning: Screenshot tests encountered issues on $simulator_name"
     }
 
-  # Restore Info.plist if we modified it for CI landscape mode
-  if [ "$orientation" = "landscape" ] && [ "$IS_CI" = "true" ]; then
-    PLIST_PATH="$PROJECT_ROOT/ios/Runner/Info.plist"
-    PLIST_BACKUP="$PLIST_PATH.backup"
-    if [ -f "$PLIST_BACKUP" ]; then
-      echo "Restoring original Info.plist..."
-      mv "$PLIST_BACKUP" "$PLIST_PATH"
-    fi
+  # Restore Info.plist if we modified it for landscape mode
+  if [ -f "$PLIST_BACKUP" ]; then
+    echo "Restoring original Info.plist..."
+    mv "$PLIST_BACKUP" "$PLIST_PATH"
   fi
 
   # Shutdown simulator
