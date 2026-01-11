@@ -32,9 +32,13 @@ platform :ios do
       UI.user_error!("Screenshots directory not found at #{screenshots_path}. Run 'fastlane screenshots' first.")
     end
 
+    # Load API key - prefer environment variables, fall back to JSON file
+    api_key = load_api_key
+
     UI.message("Uploading screenshots to App Store Connect...")
 
     upload_to_app_store(
+      api_key: api_key,
       skip_binary_upload: true,
       skip_metadata: true,
       skip_app_version_update: true,
@@ -47,6 +51,48 @@ platform :ios do
     )
 
     UI.success("Screenshots uploaded successfully!")
+  end
+
+  # ============================================================================
+  # Helper Methods
+  # ============================================================================
+
+  # Loads API key from environment variables or falls back to api_key.json
+  def load_api_key
+    # Check for environment variables first (preferred for CI)
+    if ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"] &&
+       ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"] &&
+       ENV["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"]
+
+      UI.message("Using API key from environment variables")
+      return app_store_connect_api_key(
+        key_id: ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"],
+        issuer_id: ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"],
+        key_filepath: ENV["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"],
+        in_house: false
+      )
+    end
+
+    # Fall back to JSON file for local development
+    json_path = "fastlane/api_key.json"
+    if File.exist?(json_path)
+      UI.message("Using API key from api_key.json")
+      config = JSON.parse(File.read(json_path))
+      return app_store_connect_api_key(
+        key_id: config["key_id"],
+        issuer_id: config["issuer_id"],
+        key_filepath: config["key_filepath"],
+        in_house: config["in_house"] || false
+      )
+    end
+
+    UI.user_error!(
+      "No API key found. Either set environment variables:\n" \
+      "  APP_STORE_CONNECT_API_KEY_KEY_ID\n" \
+      "  APP_STORE_CONNECT_API_KEY_ISSUER_ID\n" \
+      "  APP_STORE_CONNECT_API_KEY_KEY_FILEPATH\n" \
+      "Or create fastlane/api_key.json"
+    )
   end
 
   desc "Capture screenshots and upload to App Store Connect"

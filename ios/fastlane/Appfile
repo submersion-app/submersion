@@ -7,7 +7,7 @@
 app_identifier("app.submersion")
 
 # Your Apple Developer Portal / App Store Connect username
-# apple_id("your-apple-id@email.com")
+apple_id("ericgriffin@gmail.com")
 
 # Your team ID if you're in multiple teams
 # team_id("YOUR_TEAM_ID")
