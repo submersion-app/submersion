@@ -16,11 +16,11 @@ cd "$PROJECT_ROOT"
 
 # Check dart format
 echo "📝 Checking code formatting..."
-if ! dart format --set-exit-if-changed lib/ test/ > /dev/null 2>&1; then
+if ! dart format --set-exit-if-changed . > /dev/null 2>&1; then
     echo "❌ Format check failed!"
     echo ""
     echo "The following files need formatting:"
-    dart format --set-exit-if-changed lib/ test/ 2>&1 || true
+    dart format --set-exit-if-changed . 2>&1 || true
     echo ""
     echo "Run 'dart format lib/ test/' to fix formatting issues."
     exit 1
