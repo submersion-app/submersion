@@ -28,8 +28,8 @@ class ScreenshotHelper {
     required this.binding,
     String? deviceName,
     String? outputDir,
-  })  : deviceName = deviceName ?? _kDeviceName,
-        outputDir = outputDir ?? _kOutputDir {
+  }) : deviceName = deviceName ?? _kDeviceName,
+       outputDir = outputDir ?? _kOutputDir {
     // Ensure output directory exists
     final dir = Directory('${this.outputDir}/${this.deviceName}');
     if (!dir.existsSync()) {
