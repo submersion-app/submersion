@@ -9,12 +9,15 @@ import UIKit
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    // Get the Flutter engine's binary messenger
-    if let controller = window?.rootViewController as? FlutterViewController {
-      bookmarkHandler = SecurityScopedBookmarkHandler(messenger: controller.binaryMessenger)
+    GeneratedPluginRegistrant.register(with: self)
+
+    // Use FlutterPluginRegistry API to get the binary messenger
+    // This avoids the deprecation warning about accessing rootViewController
+    // in didFinishLaunchingWithOptions after UISceneDelegate migration
+    if let registrar = self.registrar(forPlugin: "SecurityScopedBookmarkHandler") {
+      bookmarkHandler = SecurityScopedBookmarkHandler(messenger: registrar.messenger())
     }
 
-    GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
