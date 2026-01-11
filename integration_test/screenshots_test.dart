@@ -279,10 +279,34 @@ void main() {
           }
         }
 
+        // Wait for map to render
+        await screenshotHelper.waitForContent(
+          tester,
+          duration: const Duration(seconds: 2),
+        );
+
+        // Find and tap on a marker to zoom in and show site details
+        // Markers use Icons.scuba_diving as their icon
+        final mapMarkers = find.byIcon(Icons.scuba_diving);
+        // ignore: avoid_print
+        print('Found ${mapMarkers.evaluate().length} scuba_diving markers on map');
+
+        if (mapMarkers.evaluate().length > 0) {
+          // Tap the first visible marker to select it and zoom in
+          await tester.tap(mapMarkers.first);
+          await tester.pumpAndSettle();
+
+          // Wait for map to animate to the selected site
+          await screenshotHelper.waitForContent(
+            tester,
+            duration: const Duration(seconds: 2),
+          );
+        }
+
         // Wait for map tiles to render after zoom/pan animation
         await screenshotHelper.waitForContent(
           tester,
-          duration: const Duration(seconds: 4),
+          duration: const Duration(seconds: 2),
         );
         await screenshotHelper.takeScreenshot(tester, 'sites_map');
 
