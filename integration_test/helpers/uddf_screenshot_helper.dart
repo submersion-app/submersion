@@ -34,7 +34,9 @@ class UddfScreenshotImporter {
 
   /// Imports all data from UDDF content string into the test database.
   Future<void> importFromContent(String uddfContent) async {
-    final importResult = await _exportService.importAllDataFromUddf(uddfContent);
+    final importResult = await _exportService.importAllDataFromUddf(
+      uddfContent,
+    );
 
     final now = DateTime.now();
     final nowMillis = now.millisecondsSinceEpoch;
@@ -55,7 +57,9 @@ class UddfScreenshotImporter {
       final uddfId = siteData['uddfId'] as String?;
       final newId = _uuid.v4();
 
-      await db.into(db.diveSites).insert(
+      await db
+          .into(db.diveSites)
+          .insert(
             DiveSitesCompanion.insert(
               id: newId,
               diverId: Value(diverId),
@@ -85,7 +89,9 @@ class UddfScreenshotImporter {
       final uddfId = buddyData['uddfId'] as String?;
       final newId = _uuid.v4();
 
-      await db.into(db.buddies).insert(
+      await db
+          .into(db.buddies)
+          .insert(
             BuddiesCompanion.insert(
               id: newId,
               diverId: Value(diverId),
@@ -119,7 +125,9 @@ class UddfScreenshotImporter {
         equipType = typeValue;
       }
 
-      await db.into(db.equipment).insert(
+      await db
+          .into(db.equipment)
+          .insert(
             EquipmentCompanion.insert(
               id: newId,
               diverId: Value(diverId),
@@ -173,7 +181,9 @@ class UddfScreenshotImporter {
         rating = ratingValue;
       }
 
-      await db.into(db.dives).insert(
+      await db
+          .into(db.dives)
+          .insert(
             DivesCompanion.insert(
               id: diveId,
               diverId: Value(diverId),
@@ -197,7 +207,9 @@ class UddfScreenshotImporter {
       final profileData = diveData['profile'] as List<Map<String, dynamic>>?;
       if (profileData != null && profileData.isNotEmpty) {
         for (final point in profileData) {
-          await db.into(db.diveProfiles).insert(
+          await db
+              .into(db.diveProfiles)
+              .insert(
                 DiveProfilesCompanion.insert(
                   id: _uuid.v4(),
                   diveId: diveId,
@@ -239,7 +251,9 @@ class UddfScreenshotImporter {
             endPressure = ep;
           }
 
-          await db.into(db.diveTanks).insert(
+          await db
+              .into(db.diveTanks)
+              .insert(
                 DiveTanksCompanion.insert(
                   id: _uuid.v4(),
                   diveId: diveId,
@@ -270,7 +284,9 @@ class UddfScreenshotImporter {
 
   /// Creates a default diver profile for the test data.
   Future<void> _createDiver(String diverId, int now) async {
-    await db.into(db.divers).insert(
+    await db
+        .into(db.divers)
+        .insert(
           DiversCompanion.insert(
             id: diverId,
             name: 'Alex Rivera',
