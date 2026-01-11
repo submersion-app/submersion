@@ -190,7 +190,8 @@ void main() {
         final depthLabel = find.textContaining('Max Depth');
 
         // Check for dive-specific elements (profile chart toggles or depth info)
-        final hasDiveContent = pressureToggle.evaluate().isNotEmpty ||
+        final hasDiveContent =
+            pressureToggle.evaluate().isNotEmpty ||
             depthLabel.evaluate().isNotEmpty;
 
         if (hasDiveContent) {
@@ -201,7 +202,9 @@ void main() {
         } else {
           // We might have tapped a site card - go back and try again
           // ignore: avoid_print
-          print('WARNING: Did not find dive content, may have tapped wrong card');
+          print(
+            'WARNING: Did not find dive content, may have tapped wrong card',
+          );
           final backButton = find.byTooltip('Back');
           if (backButton.evaluate().isNotEmpty) {
             await tester.tap(backButton.first);
