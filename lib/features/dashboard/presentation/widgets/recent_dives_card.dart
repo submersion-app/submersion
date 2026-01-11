@@ -175,7 +175,7 @@ class _DiveListTile extends StatelessWidget {
                   ),
                 if (dive.duration != null)
                   Text(
-                    '${dive.duration}min',
+                    _formatDuration(dive.duration!),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -192,5 +192,16 @@ class _DiveListTile extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Formats a duration as "Xh Ym" or "Xm" for display.
+  String _formatDuration(Duration duration) {
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes.remainder(60);
+
+    if (hours > 0) {
+      return '${hours}h ${minutes}m';
+    }
+    return '${duration.inMinutes}m';
   }
 }

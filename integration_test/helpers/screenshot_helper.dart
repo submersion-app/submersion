@@ -2,6 +2,17 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
+/// Compile-time constants passed via --dart-define from the capture script.
+/// These are needed because environment variables don't cross the host→simulator boundary.
+const String _kOutputDir = String.fromEnvironment(
+  'SCREENSHOT_OUTPUT_DIR',
+  defaultValue: 'screenshots',
+);
+const String _kDeviceName = String.fromEnvironment(
+  'SCREENSHOT_DEVICE_NAME',
+  defaultValue: 'device',
+);
+
 /// Helper class for capturing screenshots during integration tests.
 ///
 /// This helper manages screenshot capture with consistent naming conventions
@@ -15,28 +26,15 @@ class ScreenshotHelper {
 
   ScreenshotHelper({
     required this.binding,
-    required this.deviceName,
+    String? deviceName,
     String? outputDir,
-  }) : outputDir = outputDir ?? getOutputDir() {
+  })  : deviceName = deviceName ?? _kDeviceName,
+        outputDir = outputDir ?? _kOutputDir {
     // Ensure output directory exists
-    final dir = Directory('${this.outputDir}/$deviceName');
+    final dir = Directory('${this.outputDir}/${this.deviceName}');
     if (!dir.existsSync()) {
       dir.createSync(recursive: true);
     }
-  }
-
-  /// Gets the output directory from environment variable.
-  ///
-  /// The capture script sets SCREENSHOT_OUTPUT_DIR to an absolute path
-  /// because the iOS simulator runs in a sandboxed environment where
-  /// relative paths don't point to the project directory.
-  static String getOutputDir() {
-    final envOutputDir = Platform.environment['SCREENSHOT_OUTPUT_DIR'];
-    if (envOutputDir != null && envOutputDir.isNotEmpty) {
-      return envOutputDir;
-    }
-    // Fallback for local testing (may not work on simulator)
-    return 'screenshots';
   }
 
   /// Takes a screenshot with the given name.
@@ -83,17 +81,5 @@ class ScreenshotHelper {
     await tester.pumpAndSettle();
     await Future.delayed(duration);
     await tester.pumpAndSettle();
-  }
-
-  /// Gets the device name from environment or platform detection.
-  static String getDeviceName() {
-    // Check environment variable first (set by capture script)
-    final envDeviceName = Platform.environment['SCREENSHOT_DEVICE_NAME'];
-    if (envDeviceName != null && envDeviceName.isNotEmpty) {
-      return envDeviceName;
-    }
-
-    // Default fallback
-    return 'device';
   }
 }

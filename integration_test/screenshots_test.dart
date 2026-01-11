@@ -1,14 +1,16 @@
 /// App Store Screenshot Automation Tests
 ///
 /// This integration test captures screenshots of key app screens for
-/// App Store submission. Run with:
+/// App Store submission. Run via the capture script:
 ///
 /// ```bash
-/// flutter test integration_test/screenshots_test.dart -d "iPhone 15 Pro Max"
+/// ./scripts/capture_screenshots.sh
+/// # Or via fastlane:
+/// cd ios && bundle exec fastlane screenshots
 /// ```
 ///
-/// Screenshots are saved to the build directory and can be collected
-/// using the capture_screenshots.sh script.
+/// Screenshots are saved to `screenshots/{device_name}/` directory.
+/// The output path and device name are passed via --dart-define.
 library;
 
 import 'package:flutter/material.dart';
@@ -45,12 +47,9 @@ void main() {
     final seeder = ScreenshotTestDataSeeder(testDb);
     await seeder.seedAll();
 
-    // Initialize screenshot helper with device name from environment
-    final deviceName = ScreenshotHelper.getDeviceName();
-    screenshotHelper = ScreenshotHelper(
-      binding: binding,
-      deviceName: deviceName,
-    );
+    // Initialize screenshot helper
+    // Device name and output dir are passed via --dart-define from capture script
+    screenshotHelper = ScreenshotHelper(binding: binding);
   });
 
   tearDownAll(() async {
@@ -89,6 +88,10 @@ void main() {
         await tester.tap(listTiles.at(1)); // Skip header if present
         await tester.pumpAndSettle();
         await screenshotHelper.waitForContent(tester);
+
+        // Enable Pressure and SAC toggles in the dive profile chart
+        await _enableProfileToggles(tester);
+        await screenshotHelper.waitForContent(tester);
         await screenshotHelper.takeScreenshot(tester, 'dive_detail');
 
         // Go back to dive list
@@ -100,6 +103,10 @@ void main() {
       } else if (cards.evaluate().length > 1) {
         await tester.tap(cards.at(1));
         await tester.pumpAndSettle();
+        await screenshotHelper.waitForContent(tester);
+
+        // Enable Pressure and SAC toggles in the dive profile chart
+        await _enableProfileToggles(tester);
         await screenshotHelper.waitForContent(tester);
         await screenshotHelper.takeScreenshot(tester, 'dive_detail');
 
@@ -186,6 +193,25 @@ void main() {
       }
     });
   });
+}
+
+/// Enables Pressure and SAC toggles in the dive profile chart.
+/// These toggles show additional data curves on the profile graph.
+Future<void> _enableProfileToggles(WidgetTester tester) async {
+  // The toggles are text labels that can be tapped
+  // Look for Pressure toggle and tap it if found
+  final pressureToggle = find.text('Pressure');
+  if (pressureToggle.evaluate().isNotEmpty) {
+    await tester.tap(pressureToggle.first);
+    await tester.pumpAndSettle();
+  }
+
+  // Look for SAC toggle and tap it if found
+  final sacToggle = find.text('SAC');
+  if (sacToggle.evaluate().isNotEmpty) {
+    await tester.tap(sacToggle.first);
+    await tester.pumpAndSettle();
+  }
 }
 
 /// Taps a bottom navigation item by its icon.
