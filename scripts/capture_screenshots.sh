@@ -2,16 +2,17 @@
 #
 # App Store Screenshot Capture Script
 #
-# This script captures screenshots on multiple iOS simulators for App Store submission.
-# It boots each simulator, overrides the status bar for consistent appearance,
+# This script captures screenshots on multiple iOS simulators and macOS for App Store submission.
+# For iOS: boots each simulator, overrides the status bar for consistent appearance,
 # runs Flutter integration tests to capture screenshots, and organizes the output.
+# For macOS: runs Flutter integration tests directly on the desktop.
 #
 # Usage:
 #   ./scripts/capture_screenshots.sh
 #
 # Requirements:
 #   - Xcode with iOS simulators installed
-#   - Flutter SDK
+#   - Flutter SDK with macOS desktop support enabled
 #   - Run from the project root directory
 
 set -e
@@ -25,6 +26,7 @@ UDDF_FILE="$PROJECT_ROOT/integration_test/fixtures/screenshot_test_data.uddf"
 # Pre-create them here as well for visibility
 mkdir -p "$SCREENSHOTS_DIR/iPhone_6_7_inch"
 mkdir -p "$SCREENSHOTS_DIR/iPad_13_inch"
+mkdir -p "$SCREENSHOTS_DIR/macOS"
 mkdir -p "$(dirname "$UDDF_FILE")"
 
 # Device configurations
@@ -169,6 +171,40 @@ for device_config in "${DEVICES[@]}"; do
   echo "Completed: $simulator_name"
   echo ""
 done
+
+# ==========================================
+# macOS Screenshots
+# ==========================================
+echo "=========================================="
+echo "Processing: macOS"
+echo "=========================================="
+
+# Check if we're on macOS
+if [[ "$(uname)" == "Darwin" ]]; then
+  echo "Running macOS screenshot capture..."
+  cd "$PROJECT_ROOT"
+
+  # For macOS, use a dedicated screenshot script that:
+  # 1. Builds and runs the app
+  # 2. Uses native macOS screencapture for reliable screenshots
+  # This avoids the unreliable flutter integration test infrastructure on desktop
+  if [ -f "$SCRIPT_DIR/capture_macos_screenshots.sh" ]; then
+    bash "$SCRIPT_DIR/capture_macos_screenshots.sh" \
+      --output-dir "$SCREENSHOTS_DIR/macOS" \
+      --uddf-file "$UDDF_FILE" \
+      2>&1 || {
+        echo "Warning: macOS screenshot capture encountered issues"
+      }
+  else
+    echo "Warning: macOS screenshot script not found at $SCRIPT_DIR/capture_macos_screenshots.sh"
+    echo "Skipping macOS screenshots."
+  fi
+
+  echo "Completed: macOS"
+else
+  echo "Warning: Not running on macOS. Skipping macOS screenshots."
+fi
+echo ""
 
 echo "=========================================="
 echo "Screenshot capture complete!"
