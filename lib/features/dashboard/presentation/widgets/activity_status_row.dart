@@ -29,25 +29,24 @@ class _DaysSinceLastDiveCard extends ConsumerWidget {
 
     return daysAsync.when(
       data: (days) {
-        final color = _getDaysColor(days);
         final displayText = days == null
             ? '-'
             : days == 0
-            ? 'Today!'
-            : '$days';
+                ? 'Today!'
+                : '$days';
         final subtitle = days == null
             ? 'No dives yet'
             : days == 0
-            ? 'Last dive'
-            : days == 1
-            ? 'Day since diving'
-            : 'Days since diving';
+                ? 'Last dive'
+                : days == 1
+                    ? 'Day since diving'
+                    : 'Days since diving';
 
         return _StatusCard(
           value: displayText,
           label: subtitle,
           icon: Icons.access_time,
-          color: color,
+          color: theme.colorScheme.primary,
         );
       },
       loading: () => _StatusCard(
@@ -64,13 +63,6 @@ class _DaysSinceLastDiveCard extends ConsumerWidget {
         color: theme.colorScheme.error,
       ),
     );
-  }
-
-  Color _getDaysColor(int? days) {
-    if (days == null) return Colors.grey;
-    if (days <= 7) return Colors.green;
-    if (days <= 30) return Colors.orange;
-    return Colors.red.shade400;
   }
 }
 

@@ -153,102 +153,147 @@ void main() {
       await screenshotHelper.takeScreenshot(tester, 'dive_list');
 
       // 3. Dive Detail - tap on a dive card
-      // Find cards that are dive items by looking for cards containing dive-specific
-      // content (scuba diving icon indicates a dive card vs site card with location icon)
+      // On iPad master-detail layout, we need to tap a card in the LIST pane (left),
+      // not in the summary pane (right). Find cards that are descendants of ListView.
       final random = Random();
 
-      // Look for cards within the dive list - they should have scuba_diving icons
-      // as leading icons (vs location_on icons for site cards)
-      final diveCards = find.byWidgetPredicate((widget) {
-        if (widget is Card) {
-          // Check if this card is a descendant of a widget tree that contains
-          // dive-related content (we'll tap it and verify after)
-          return true;
-        }
-        return false;
-      });
+      // Find the ListView containing dive cards
+      final listView = find.byType(ListView);
+      if (listView.evaluate().isNotEmpty) {
+        // Find cards that are descendants of the ListView (these are the dive list items)
+        final diveCards = find.descendant(
+          of: listView.first,
+          matching: find.byType(Card),
+        );
 
-      if (diveCards.evaluate().length > 2) {
-        // Pick a random card index (avoiding first which might be a header card)
-        final maxIndex = min(diveCards.evaluate().length - 1, 10);
-        final randomIndex = 1 + random.nextInt(maxIndex);
         // ignore: avoid_print
-        print(
-          'Selecting dive card at index $randomIndex of ${diveCards.evaluate().length} cards',
-        );
+        print('Found ${diveCards.evaluate().length} cards in ListView');
 
-        await tester.tap(diveCards.at(randomIndex));
-        await tester.pumpAndSettle();
-        await screenshotHelper.waitForContent(
-          tester,
-          duration: const Duration(seconds: 2),
-        );
-
-        // Verify we're on a dive detail page by looking for dive-specific content.
-        // If we accidentally tapped a site, navigate back.
-        final pressureToggle = find.text('Pressure');
-        final depthLabel = find.textContaining('Max Depth');
-
-        // Check for dive-specific elements (profile chart toggles or depth info)
-        final hasDiveContent =
-            pressureToggle.evaluate().isNotEmpty ||
-            depthLabel.evaluate().isNotEmpty;
-
-        if (hasDiveContent) {
-          // Enable Pressure and SAC toggles in the dive profile chart
-          await _enableProfileToggles(tester);
-          await screenshotHelper.waitForContent(tester);
-          await screenshotHelper.takeScreenshot(tester, 'dive_detail');
-        } else {
-          // We might have tapped a site card - go back and try again
+        if (diveCards.evaluate().length > 2) {
+          // Pick a random card index (avoiding first which might be a header card)
+          final maxIndex = min(diveCards.evaluate().length - 1, 8);
+          final randomIndex = 1 + random.nextInt(maxIndex);
           // ignore: avoid_print
           print(
-            'WARNING: Did not find dive content, may have tapped wrong card',
+            'Selecting dive card at index $randomIndex of ${diveCards.evaluate().length} cards',
           );
+
+          await tester.tap(diveCards.at(randomIndex));
+          await tester.pumpAndSettle();
+          await screenshotHelper.waitForContent(
+            tester,
+            duration: const Duration(seconds: 2),
+          );
+
+          // Verify we're on a dive detail page by looking for dive-specific content.
+          // The detail pane should now show dive profile toggles or depth info.
+          final pressureToggle = find.text('Pressure');
+          final depthLabel = find.textContaining('Max Depth');
+
+          // Check for dive-specific elements (profile chart toggles or depth info)
+          final hasDiveContent =
+              pressureToggle.evaluate().isNotEmpty ||
+              depthLabel.evaluate().isNotEmpty;
+
+          if (hasDiveContent) {
+            // Enable Pressure and SAC toggles in the dive profile chart
+            await _enableProfileToggles(tester);
+            await screenshotHelper.waitForContent(tester);
+            await screenshotHelper.takeScreenshot(tester, 'dive_detail');
+          } else {
+            // Selection may not have worked - log warning
+            // ignore: avoid_print
+            print(
+              'WARNING: Did not find dive content after tap, detail pane may not have updated',
+            );
+            // Still take a screenshot to see what's shown
+            await screenshotHelper.takeScreenshot(tester, 'dive_detail');
+          }
+
+          // Go back to dive list (on mobile) or clear selection (on tablet)
           final backButton = find.byTooltip('Back');
           if (backButton.evaluate().isNotEmpty) {
             await tester.tap(backButton.first);
             await tester.pumpAndSettle();
           }
         }
-
-        // Go back to dive list (on mobile) or clear selection (on tablet)
-        final backButton = find.byTooltip('Back');
-        if (backButton.evaluate().isNotEmpty) {
-          await tester.tap(backButton.first);
-          await tester.pumpAndSettle();
-        }
       }
 
       // 4. Navigate to Sites
       await _tapBottomNavItem(tester, Icons.location_on_outlined);
       await screenshotHelper.waitForContent(tester);
-      await screenshotHelper.takeScreenshot(tester, 'sites_list');
 
-      // 5. Sites Map view - look for map icon button in app bar
-      final mapButton = find.byIcon(Icons.map);
-      final mapOutlinedButton = find.byIcon(Icons.map_outlined);
-      bool navigatedToMap = false;
+      // On iPad, select a site to show its details in the right pane
+      // Find the ListView containing site cards
+      final sitesListView = find.byType(ListView);
+      if (sitesListView.evaluate().isNotEmpty) {
+        final siteCards = find.descendant(
+          of: sitesListView.first,
+          matching: find.byType(Card),
+        );
 
-      if (mapButton.evaluate().isNotEmpty) {
-        await tester.tap(mapButton.first);
-        await tester.pumpAndSettle();
-        navigatedToMap = true;
-      } else if (mapOutlinedButton.evaluate().isNotEmpty) {
-        await tester.tap(mapOutlinedButton.first);
-        await tester.pumpAndSettle();
-        navigatedToMap = true;
+        // ignore: avoid_print
+        print('Found ${siteCards.evaluate().length} cards in sites ListView');
+
+        if (siteCards.evaluate().length > 1) {
+          // Tap on the second site card (skip first in case it's a header)
+          final cardIndex = min(2, siteCards.evaluate().length - 1);
+          await tester.tap(siteCards.at(cardIndex));
+          await tester.pumpAndSettle();
+          await screenshotHelper.waitForContent(
+            tester,
+            duration: const Duration(seconds: 1),
+          );
+        }
       }
 
-      if (navigatedToMap) {
-        // Wait for map page to load
+      await screenshotHelper.takeScreenshot(tester, 'sites_list');
+
+      // 5. Sites Map view - find the map button with tooltip 'Map View'
+      // On iPad master-detail layout, there may be multiple icons, so use tooltip
+      final mapViewButton = find.byTooltip('Map View');
+      bool navigatedToMap = false;
+
+      if (mapViewButton.evaluate().isNotEmpty) {
+        // ignore: avoid_print
+        print('Found Map View button, tapping...');
+        await tester.tap(mapViewButton.first);
+        await tester.pumpAndSettle();
+
+        // Wait for navigation
         await screenshotHelper.waitForContent(
           tester,
           duration: const Duration(seconds: 2),
         );
 
+        // Verify we're on the map page by looking for map-specific elements
+        // The SiteMapPage has title "Dive Sites Map" and a "List View" button
+        final mapPageTitle = find.text('Dive Sites Map');
+        final listViewButton = find.byTooltip('List View');
+
+        navigatedToMap = mapPageTitle.evaluate().isNotEmpty ||
+            listViewButton.evaluate().isNotEmpty;
+
+        // ignore: avoid_print
+        print('Navigation to map successful: $navigatedToMap');
+      } else {
+        // Fallback: try finding by icon
+        final mapButton = find.byIcon(Icons.map);
+        if (mapButton.evaluate().isNotEmpty) {
+          await tester.tap(mapButton.first);
+          await tester.pumpAndSettle();
+          await screenshotHelper.waitForContent(
+            tester,
+            duration: const Duration(seconds: 2),
+          );
+
+          final mapPageTitle = find.text('Dive Sites Map');
+          navigatedToMap = mapPageTitle.evaluate().isNotEmpty;
+        }
+      }
+
+      if (navigatedToMap) {
         // Tap "Fit All Sites" button to center the map on all dive site markers
-        // This button has tooltip 'Fit All Sites' and icon Icons.my_location
         final fitAllSitesButton = find.byTooltip('Fit All Sites');
         if (fitAllSitesButton.evaluate().isNotEmpty) {
           await tester.tap(fitAllSitesButton.first);
@@ -270,7 +315,7 @@ void main() {
         await screenshotHelper.takeScreenshot(tester, 'sites_map');
 
         // Navigate back to sites list for next steps
-        final listButton = find.byIcon(Icons.list);
+        final listButton = find.byTooltip('List View');
         if (listButton.evaluate().isNotEmpty) {
           await tester.tap(listButton.first);
           await tester.pumpAndSettle();
@@ -281,6 +326,9 @@ void main() {
             await tester.pumpAndSettle();
           }
         }
+      } else {
+        // ignore: avoid_print
+        print('WARNING: Could not navigate to map view');
       }
 
       // 6. Navigate to Equipment via "More" menu
@@ -293,6 +341,33 @@ void main() {
         await tester.tap(equipmentText.first);
         await tester.pumpAndSettle();
         await screenshotHelper.waitForContent(tester);
+
+        // On iPad, select an equipment item to show its details in the right pane
+        // Find the ListView containing equipment cards
+        final equipmentListView = find.byType(ListView);
+        if (equipmentListView.evaluate().isNotEmpty) {
+          final equipmentCards = find.descendant(
+            of: equipmentListView.first,
+            matching: find.byType(Card),
+          );
+
+          // ignore: avoid_print
+          print(
+            'Found ${equipmentCards.evaluate().length} cards in equipment ListView',
+          );
+
+          if (equipmentCards.evaluate().length > 1) {
+            // Tap on the second equipment card (skip first in case it's a header)
+            final cardIndex = min(2, equipmentCards.evaluate().length - 1);
+            await tester.tap(equipmentCards.at(cardIndex));
+            await tester.pumpAndSettle();
+            await screenshotHelper.waitForContent(
+              tester,
+              duration: const Duration(seconds: 1),
+            );
+          }
+        }
+
         await screenshotHelper.takeScreenshot(tester, 'equipment');
       }
 
