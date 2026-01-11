@@ -422,7 +422,9 @@ class ScreenshotTestDataSeeder {
               diveNumber: Value(75 - i), // Number dives in reverse
               diveDateTime: diveTimestamp,
               entryTime: Value(diveTimestamp),
-              exitTime: Value(diveTimestamp + durationMs), // exit = entry + duration
+              exitTime: Value(
+                diveTimestamp + durationMs,
+              ), // exit = entry + duration
               duration: Value(durationSeconds * 60), // duration in seconds
               maxDepth: Value(maxDepth),
               avgDepth: Value(avgDepth),
@@ -507,7 +509,8 @@ class ScreenshotTestDataSeeder {
       // SAC rate increases with depth (Boyle's Law effect)
       final depthFactor = 1 + (depth / 10); // More consumption at depth
       final baseConsumption = (timestamp / duration) * 150;
-      final depthAdjustedConsumption = baseConsumption * (0.7 + 0.3 * depthFactor);
+      final depthAdjustedConsumption =
+          baseConsumption * (0.7 + 0.3 * depthFactor);
       // Add small random variation to simulate breathing patterns
       final breathingVariation = (random.nextDouble() - 0.5) * 2;
       final pressure = (200 - depthAdjustedConsumption + breathingVariation)
