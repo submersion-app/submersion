@@ -31,16 +31,16 @@ class ScreenshotTestDataSeeder {
   }
 
   Future<void> _createDiver() async {
-    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final now = DateTime.now().millisecondsSinceEpoch;
 
     await db
         .into(db.divers)
         .insert(
           DiversCompanion.insert(
             id: _diverId,
-            name: 'Alex Morgan',
-            email: const Value('alex@example.com'),
-            phone: const Value('+1 555-0123'),
+            name: 'Eric Griffin',
+            email: const Value('eric@example.com'),
+            phone: const Value('+1 123-456-7890'),
             bloodType: const Value('O+'),
             isDefault: const Value(true),
             createdAt: now,
@@ -50,7 +50,7 @@ class ScreenshotTestDataSeeder {
   }
 
   Future<void> _createDiveSites() async {
-    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final now = DateTime.now().millisecondsSinceEpoch;
 
     final sites = [
       // Caribbean
@@ -209,8 +209,8 @@ class ScreenshotTestDataSeeder {
   }
 
   Future<void> _createEquipment() async {
-    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    final sixMonthsAgo = now - (180 * 24 * 60 * 60);
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final sixMonthsAgo = now - (180 * 24 * 60 * 60 * 1000); // 180 days in ms
 
     final equipment = [
       {
@@ -319,7 +319,7 @@ class ScreenshotTestDataSeeder {
   }
 
   Future<void> _createBuddies() async {
-    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final now = DateTime.now().millisecondsSinceEpoch;
 
     final buddies = [
       {
@@ -383,12 +383,13 @@ class ScreenshotTestDataSeeder {
     for (var i = 0; i < 75; i++) {
       final daysAgo = random.nextInt(730); // Up to 2 years
       final diveDate = now.subtract(Duration(days: daysAgo));
-      final diveTimestamp = diveDate.millisecondsSinceEpoch ~/ 1000;
+      final diveTimestamp = diveDate.millisecondsSinceEpoch; // milliseconds!
 
       // Varied dive parameters
       final maxDepth = 12.0 + random.nextDouble() * 30; // 12-42m
       final avgDepth = maxDepth * (0.5 + random.nextDouble() * 0.2);
-      final duration = (35 + random.nextInt(30)) * 60; // 35-65 min in seconds
+      final durationSeconds = 35 + random.nextInt(30); // 35-65 min
+      final durationMs = durationSeconds * 60 * 1000; // convert to milliseconds
       final waterTemp = 18.0 + random.nextDouble() * 10; // 18-28C
 
       final visibility = [
@@ -421,8 +422,8 @@ class ScreenshotTestDataSeeder {
               diveNumber: Value(75 - i), // Number dives in reverse
               diveDateTime: diveTimestamp,
               entryTime: Value(diveTimestamp),
-              exitTime: Value(diveTimestamp + duration),
-              duration: Value(duration),
+              exitTime: Value(diveTimestamp + durationMs), // exit = entry + duration
+              duration: Value(durationSeconds * 60), // duration in seconds
               maxDepth: Value(maxDepth),
               avgDepth: Value(avgDepth),
               waterTemp: Value(waterTemp),
@@ -454,7 +455,7 @@ class ScreenshotTestDataSeeder {
       // Create depth profile with realistic dive shape
       await _createDiveProfile(
         diveId,
-        duration,
+        durationSeconds * 60, // duration in seconds for profile
         maxDepth,
         waterTemp + random.nextDouble() * 2,
       );
@@ -502,6 +503,16 @@ class ScreenshotTestDataSeeder {
 
       depth = depth.clamp(0.0, maxDepth);
 
+      // Realistic pressure consumption: faster at depth due to ambient pressure
+      // SAC rate increases with depth (Boyle's Law effect)
+      final depthFactor = 1 + (depth / 10); // More consumption at depth
+      final baseConsumption = (timestamp / duration) * 150;
+      final depthAdjustedConsumption = baseConsumption * (0.7 + 0.3 * depthFactor);
+      // Add small random variation to simulate breathing patterns
+      final breathingVariation = (random.nextDouble() - 0.5) * 2;
+      final pressure = (200 - depthAdjustedConsumption + breathingVariation)
+          .clamp(40.0, 210.0);
+
       await db
           .into(db.diveProfiles)
           .insert(
@@ -513,9 +524,7 @@ class ScreenshotTestDataSeeder {
               temperature: Value(
                 temp - (depth * 0.1),
               ), // Temp decreases with depth
-              pressure: Value(
-                200 - (timestamp / duration * 150),
-              ), // Gradual gas use
+              pressure: Value(pressure), // Realistic gas consumption
             ),
           );
     }
