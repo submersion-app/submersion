@@ -112,3 +112,4 @@ Tables defined in `lib/core/database/database.dart`:
 
 ## Claude Specific Instructions
 - Use agents proactively
+- All Dart code should pass "dart format" with no changes

@@ -161,9 +161,12 @@ void main() {
       if (listTiles.evaluate().length > 2) {
         // Pick a random index, skipping index 0 (may be header)
         final maxIndex = listTiles.evaluate().length - 1;
-        final randomIndex = 1 + random.nextInt(maxIndex); // Range: 1 to maxIndex
+        final randomIndex =
+            1 + random.nextInt(maxIndex); // Range: 1 to maxIndex
         // ignore: avoid_print
-        print('Selecting dive at index $randomIndex of ${listTiles.evaluate().length} items');
+        print(
+          'Selecting dive at index $randomIndex of ${listTiles.evaluate().length} items',
+        );
 
         await tester.tap(listTiles.at(randomIndex));
         await tester.pumpAndSettle();
@@ -183,9 +186,12 @@ void main() {
       } else if (cards.evaluate().length > 1) {
         // Pick a random card, skipping index 0 (may be header)
         final maxIndex = cards.evaluate().length - 1;
-        final randomIndex = 1 + random.nextInt(maxIndex); // Range: 1 to maxIndex
+        final randomIndex =
+            1 + random.nextInt(maxIndex); // Range: 1 to maxIndex
         // ignore: avoid_print
-        print('Selecting dive card at index $randomIndex of ${cards.evaluate().length} cards');
+        print(
+          'Selecting dive card at index $randomIndex of ${cards.evaluate().length} cards',
+        );
 
         await tester.tap(cards.at(randomIndex));
         await tester.pumpAndSettle();
