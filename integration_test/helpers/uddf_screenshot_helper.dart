@@ -1,22 +1,80 @@
 import 'dart:io';
 
-import 'package:drift/drift.dart';
-import 'package:submersion/core/database/database.dart';
-import 'package:submersion/core/constants/enums.dart' as enums;
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export_service.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
+import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
+import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:uuid/uuid.dart';
 
 /// Imports UDDF test data into the database for App Store screenshots.
 ///
 /// This helper reads a pre-generated UDDF file (from generate_uddf_test_data.py)
-/// and imports the data directly into the test database. This provides more
-/// consistent and realistic data than manually seeding.
+/// and imports the data using the same logic as the full UI import.
+/// This ensures all data types are properly imported with cross-references.
 class UddfScreenshotImporter {
-  final AppDatabase db;
   final ExportService _exportService = ExportService();
   final _uuid = const Uuid();
 
-  UddfScreenshotImporter(this.db);
+  // Repositories - created from the test database
+  final DiverRepository _diverRepository;
+  final DiveRepository _diveRepository;
+  final SiteRepository _siteRepository;
+  final BuddyRepository _buddyRepository;
+  final EquipmentRepository _equipmentRepository;
+  final EquipmentSetRepository _equipmentSetRepository;
+  final TripRepository _tripRepository;
+  final DiveCenterRepository _diveCenterRepository;
+  final CertificationRepository _certificationRepository;
+  final TagRepository _tagRepository;
+  final DiveTypeRepository _diveTypeRepository;
+  final TankPressureRepository _tankPressureRepository;
+
+  UddfScreenshotImporter({
+    required DiverRepository diverRepository,
+    required DiveRepository diveRepository,
+    required SiteRepository siteRepository,
+    required BuddyRepository buddyRepository,
+    required EquipmentRepository equipmentRepository,
+    required EquipmentSetRepository equipmentSetRepository,
+    required TripRepository tripRepository,
+    required DiveCenterRepository diveCenterRepository,
+    required CertificationRepository certificationRepository,
+    required TagRepository tagRepository,
+    required DiveTypeRepository diveTypeRepository,
+    required TankPressureRepository tankPressureRepository,
+  }) : _diverRepository = diverRepository,
+       _diveRepository = diveRepository,
+       _siteRepository = siteRepository,
+       _buddyRepository = buddyRepository,
+       _equipmentRepository = equipmentRepository,
+       _equipmentSetRepository = equipmentSetRepository,
+       _tripRepository = tripRepository,
+       _diveCenterRepository = diveCenterRepository,
+       _certificationRepository = certificationRepository,
+       _tagRepository = tagRepository,
+       _diveTypeRepository = diveTypeRepository,
+       _tankPressureRepository = tankPressureRepository;
 
   /// Imports all data from a UDDF file into the test database.
   ///
@@ -33,55 +91,142 @@ class UddfScreenshotImporter {
   }
 
   /// Imports all data from UDDF content string into the test database.
+  /// Uses the same logic as the full UI import to handle all data types.
   Future<void> importFromContent(String uddfContent) async {
     final importResult = await _exportService.importAllDataFromUddf(
       uddfContent,
     );
 
     final now = DateTime.now();
-    final nowMillis = now.millisecondsSinceEpoch;
 
     // Create diver first
     final diverId = _uuid.v4();
-    await _createDiver(diverId, nowMillis);
+    final diver = Diver(
+      id: diverId,
+      name: 'Eric Griffin',
+      email: 'ericgriffin@gmail.com',
+      phone: '+1 123-234-7890',
+      bloodType: 'A+',
+      isDefault: true,
+      createdAt: now,
+      updatedAt: now,
+    );
+    await _diverRepository.createDiver(diver);
 
     // Build ID mappings for cross-references
-    final siteIdMapping = <String, String>{}; // UDDF site ID -> new site ID
+    final tripIdMapping = <String, String>{}; // UDDF trip ID -> new trip ID
+    final equipmentIdMapping =
+        <String, String>{}; // UDDF equipment ID -> new equipment ID
     final buddyIdMapping = <String, String>{}; // UDDF buddy ID -> new buddy ID
+    final diveCenterIdMapping =
+        <String, String>{}; // UDDF center ID -> new center ID
+    final tagIdMapping = <String, String>{}; // UDDF tag ID -> new tag ID
+    final siteIdMapping = <String, DiveSite>{}; // UDDF site ID -> new DiveSite
 
-    // Import dive sites
-    for (final siteData in importResult.sites) {
-      final siteName = siteData['name'] as String?;
-      if (siteName == null || siteName.isEmpty) continue;
+    // Track import counts for summary
+    var tripsImported = 0;
+    var equipmentImported = 0;
+    var equipmentSetsImported = 0;
+    var buddiesImported = 0;
+    var diveCentersImported = 0;
+    var certificationsImported = 0;
+    var customDiveTypesImported = 0;
+    var tagsImported = 0;
+    var sitesImported = 0;
+    var divesImported = 0;
 
-      final uddfId = siteData['uddfId'] as String?;
+    // 1. Import Trips
+    for (final tripData in importResult.trips) {
+      final tripName = tripData['name'] as String?;
+      if (tripName == null || tripName.isEmpty) continue;
+
+      final uddfId = tripData['uddfId'] as String?;
       final newId = _uuid.v4();
 
-      await db
-          .into(db.diveSites)
-          .insert(
-            DiveSitesCompanion.insert(
-              id: newId,
-              diverId: Value(diverId),
-              name: siteName,
-              description: const Value(''),
-              latitude: Value(siteData['latitude'] as double?),
-              longitude: Value(siteData['longitude'] as double?),
-              maxDepth: Value(siteData['maxDepth'] as double?),
-              country: Value(siteData['country'] as String?),
-              region: Value(siteData['region'] as String?),
-              rating: Value(siteData['rating'] as double?),
-              createdAt: nowMillis,
-              updatedAt: nowMillis,
-            ),
-          );
+      final trip = Trip(
+        id: newId,
+        diverId: diverId,
+        name: tripName,
+        startDate: tripData['startDate'] as DateTime? ?? now,
+        endDate: tripData['endDate'] as DateTime? ?? now,
+        location: tripData['location'] as String?,
+        resortName: tripData['resortName'] as String?,
+        liveaboardName: tripData['liveaboardName'] as String?,
+        notes: tripData['notes'] as String? ?? '',
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      await _tripRepository.createTrip(trip);
 
       if (uddfId != null) {
-        siteIdMapping[uddfId] = newId;
+        tripIdMapping[uddfId] = newId;
       }
+      tripsImported++;
     }
 
-    // Import buddies
+    // 2. Import Equipment
+    for (final equipData in importResult.equipment) {
+      final equipName = equipData['name'] as String?;
+      if (equipName == null || equipName.isEmpty) continue;
+
+      final uddfId = equipData['uddfId'] as String?;
+      final newId = _uuid.v4();
+
+      // Parse equipment type - may already be enum or string
+      EquipmentType equipType;
+      final typeValue = equipData['type'];
+      if (typeValue is EquipmentType) {
+        equipType = typeValue;
+      } else if (typeValue is String) {
+        equipType =
+            _parseEnumValue(typeValue, EquipmentType.values) ??
+            EquipmentType.other;
+      } else {
+        equipType = EquipmentType.other;
+      }
+
+      // Parse equipment status - may already be enum or string
+      EquipmentStatus equipStatus;
+      final statusValue = equipData['status'];
+      if (statusValue is EquipmentStatus) {
+        equipStatus = statusValue;
+      } else if (statusValue is String) {
+        equipStatus =
+            _parseEnumValue(statusValue, EquipmentStatus.values) ??
+            EquipmentStatus.active;
+      } else {
+        equipStatus = EquipmentStatus.active;
+      }
+
+      final item = EquipmentItem(
+        id: newId,
+        diverId: diverId,
+        name: equipName,
+        type: equipType,
+        brand: equipData['brand'] as String?,
+        model: equipData['model'] as String?,
+        serialNumber: equipData['serialNumber'] as String?,
+        size: equipData['size'] as String?,
+        status: equipStatus,
+        purchaseDate: equipData['purchaseDate'] as DateTime?,
+        purchasePrice: equipData['purchasePrice'] as double?,
+        purchaseCurrency: equipData['purchaseCurrency'] as String? ?? 'USD',
+        lastServiceDate: equipData['lastServiceDate'] as DateTime?,
+        serviceIntervalDays: equipData['serviceIntervalDays'] as int?,
+        notes: equipData['notes'] as String? ?? '',
+        isActive: equipData['isActive'] as bool? ?? true,
+      );
+
+      await _equipmentRepository.createEquipment(item);
+
+      if (uddfId != null) {
+        equipmentIdMapping[uddfId] = newId;
+      }
+      equipmentImported++;
+    }
+
+    // 3. Import Buddies
     for (final buddyData in importResult.buddies) {
       final buddyName = buddyData['name'] as String?;
       if (buddyName == null || buddyName.isEmpty) continue;
@@ -89,214 +234,586 @@ class UddfScreenshotImporter {
       final uddfId = buddyData['uddfId'] as String?;
       final newId = _uuid.v4();
 
-      await db
-          .into(db.buddies)
-          .insert(
-            BuddiesCompanion.insert(
-              id: newId,
-              diverId: Value(diverId),
-              name: buddyName,
-              email: Value(buddyData['email'] as String?),
-              phone: Value(buddyData['phone'] as String?),
-              notes: Value(buddyData['notes'] as String? ?? ''),
-              createdAt: nowMillis,
-              updatedAt: nowMillis,
-            ),
-          );
+      final buddy = Buddy(
+        id: newId,
+        diverId: diverId,
+        name: buddyName,
+        email: buddyData['email'] as String?,
+        phone: buddyData['phone'] as String?,
+        certificationLevel:
+            buddyData['certificationLevel'] as CertificationLevel?,
+        certificationAgency:
+            buddyData['certificationAgency'] as CertificationAgency?,
+        notes: buddyData['notes'] as String? ?? '',
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      await _buddyRepository.createBuddy(buddy);
 
       if (uddfId != null) {
         buddyIdMapping[uddfId] = newId;
       }
+      buddiesImported++;
     }
 
-    // Import equipment
-    for (final equipData in importResult.equipment) {
-      final equipName = equipData['name'] as String?;
-      if (equipName == null || equipName.isEmpty) continue;
+    // 4. Import Dive Centers
+    for (final centerData in importResult.diveCenters) {
+      final centerName = centerData['name'] as String?;
+      if (centerName == null || centerName.isEmpty) continue;
+
+      final uddfId = centerData['uddfId'] as String?;
+      final newId = _uuid.v4();
+
+      // Parse affiliations - may already be List<String> or String
+      List<String> affiliations = [];
+      final affiliationsValue = centerData['affiliations'];
+      if (affiliationsValue is List) {
+        affiliations = affiliationsValue
+            .cast<String>()
+            .where((s) => s.isNotEmpty)
+            .toList();
+      } else if (affiliationsValue is String && affiliationsValue.isNotEmpty) {
+        affiliations = affiliationsValue
+            .split(',')
+            .map((s) => s.trim())
+            .where((s) => s.isNotEmpty)
+            .toList();
+      }
+
+      final center = DiveCenter(
+        id: newId,
+        diverId: diverId,
+        name: centerName,
+        location: centerData['location'] as String?,
+        latitude: centerData['latitude'] as double?,
+        longitude: centerData['longitude'] as double?,
+        country: centerData['country'] as String?,
+        phone: centerData['phone'] as String?,
+        email: centerData['email'] as String?,
+        website: centerData['website'] as String?,
+        affiliations: affiliations,
+        rating: centerData['rating'] as double?,
+        notes: centerData['notes'] as String? ?? '',
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      await _diveCenterRepository.createDiveCenter(center);
+
+      if (uddfId != null) {
+        diveCenterIdMapping[uddfId] = newId;
+      }
+      diveCentersImported++;
+    }
+
+    // 5. Import Certifications
+    for (final certData in importResult.certifications) {
+      final certName = certData['name'] as String?;
+      if (certName == null || certName.isEmpty) continue;
 
       final newId = _uuid.v4();
 
-      // Parse equipment type to string for database
-      String equipType = 'other';
-      final typeValue = equipData['type'];
-      if (typeValue is enums.EquipmentType) {
-        equipType = typeValue.name;
-      } else if (typeValue is String) {
-        equipType = typeValue;
+      // Parse agency - may already be enum or string
+      CertificationAgency agency;
+      final agencyValue = certData['agency'];
+      if (agencyValue is CertificationAgency) {
+        agency = agencyValue;
+      } else if (agencyValue is String) {
+        agency =
+            _parseEnumValue(agencyValue, CertificationAgency.values) ??
+            CertificationAgency.padi;
+      } else {
+        agency = CertificationAgency.padi;
       }
 
-      await db
-          .into(db.equipment)
-          .insert(
-            EquipmentCompanion.insert(
-              id: newId,
-              diverId: Value(diverId),
-              name: equipName,
-              type: equipType,
-              brand: Value(equipData['brand'] as String?),
-              model: Value(equipData['model'] as String?),
-              serialNumber: Value(equipData['serialNumber'] as String?),
-              notes: const Value(''),
-              createdAt: nowMillis,
-              updatedAt: nowMillis,
-            ),
-          );
+      // Parse level - may already be enum or string
+      CertificationLevel? level;
+      final levelValue = certData['level'];
+      if (levelValue is CertificationLevel) {
+        level = levelValue;
+      } else if (levelValue is String) {
+        level = _parseEnumValue(levelValue, CertificationLevel.values);
+      }
+
+      final certification = Certification(
+        id: newId,
+        diverId: diverId,
+        name: certName,
+        agency: agency,
+        level: level,
+        cardNumber: certData['cardNumber'] as String?,
+        issueDate: certData['issueDate'] as DateTime?,
+        expiryDate: certData['expiryDate'] as DateTime?,
+        instructorName: certData['instructorName'] as String?,
+        instructorNumber: certData['instructorNumber'] as String?,
+        notes: certData['notes'] as String? ?? '',
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      await _certificationRepository.createCertification(certification);
+      certificationsImported++;
     }
 
-    // Import dives with profiles
+    // 6. Import Tags
+    for (final tagData in importResult.tags) {
+      final tagName = tagData['name'] as String?;
+      if (tagName == null || tagName.isEmpty) continue;
+
+      final uddfId = tagData['uddfId'] as String?;
+      final newId = _uuid.v4();
+
+      final tag = Tag(
+        id: newId,
+        diverId: diverId,
+        name: tagName,
+        colorHex: tagData['color'] as String?,
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      await _tagRepository.createTag(tag);
+
+      if (uddfId != null) {
+        tagIdMapping[uddfId] = newId;
+      }
+      tagsImported++;
+    }
+
+    // 7. Import Custom Dive Types (only non-built-in types)
+    for (final typeData in importResult.customDiveTypes) {
+      final typeName = typeData['name'] as String?;
+      final isBuiltIn = typeData['isBuiltIn'] as bool? ?? false;
+
+      // Skip built-in types - they should already exist
+      if (isBuiltIn || typeName == null || typeName.isEmpty) continue;
+
+      final typeId =
+          typeData['id'] as String? ?? DiveTypeEntity.generateSlug(typeName);
+
+      final diveType = DiveTypeEntity(
+        id: typeId,
+        diverId: diverId,
+        name: typeName,
+        isBuiltIn: false,
+        sortOrder: typeData['sortOrder'] as int? ?? 100,
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      try {
+        await _diveTypeRepository.createDiveType(diveType);
+        customDiveTypesImported++;
+      } catch (e) {
+        // Ignore duplicates - dive type might already exist
+      }
+    }
+
+    // 8. Import Dive Sites
+    for (final siteData in importResult.sites) {
+      final siteName = siteData['name'] as String?;
+      if (siteName == null || siteName.isEmpty) continue;
+
+      final uddfId = siteData['uddfId'] as String?;
+      final lat = siteData['latitude'] as double?;
+      final lon = siteData['longitude'] as double?;
+
+      final newSite = DiveSite(
+        id: _uuid.v4(),
+        diverId: diverId,
+        name: siteName,
+        description: siteData['description'] as String? ?? '',
+        location: (lat != null && lon != null) ? GeoPoint(lat, lon) : null,
+        maxDepth: siteData['maxDepth'] as double?,
+        country: siteData['country'] as String?,
+        region: siteData['region'] as String?,
+        rating: siteData['rating'] as double?,
+        notes: siteData['notes'] as String? ?? '',
+      );
+
+      final createdSite = await _siteRepository.createSite(newSite);
+
+      if (uddfId != null) {
+        siteIdMapping[uddfId] = createdSite;
+      }
+      sitesImported++;
+    }
+
+    // 9. Import Equipment Sets (after equipment, so we can map IDs)
+    for (final setData in importResult.equipmentSets) {
+      final setName = setData['name'] as String?;
+      if (setName == null || setName.isEmpty) continue;
+
+      final newId = _uuid.v4();
+
+      // Map equipment item references to new IDs
+      final itemRefsValue = setData['equipmentRefs'];
+      final itemRefs = itemRefsValue is List
+          ? itemRefsValue.whereType<String>().toList()
+          : <String>[];
+      final mappedItemIds = <String>[];
+      for (final oldRef in itemRefs) {
+        final newItemId = equipmentIdMapping[oldRef];
+        if (newItemId != null) {
+          mappedItemIds.add(newItemId);
+        }
+      }
+
+      final equipmentSet = EquipmentSet(
+        id: newId,
+        diverId: diverId,
+        name: setName,
+        description: setData['description'] as String? ?? '',
+        equipmentIds: mappedItemIds,
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      await _equipmentSetRepository.createSet(equipmentSet);
+      equipmentSetsImported++;
+    }
+
+    // 10. Import Dives (after sites, trips, buddies, dive centers so we can link them)
     for (final diveData in importResult.dives) {
-      final diveId = _uuid.v4();
-
-      // Get linked site ID
-      String? siteId;
-      final linkedSiteId = diveData['siteId'] as String?;
-      if (linkedSiteId != null) {
-        siteId = siteIdMapping[linkedSiteId];
-      }
-
-      // Parse dive date
-      int diveDateTime = nowMillis;
-      final dateValue = diveData['dateTime'];
-      if (dateValue is DateTime) {
-        diveDateTime = dateValue.millisecondsSinceEpoch;
-      } else if (dateValue is int) {
-        diveDateTime = dateValue;
-      }
-
-      // Parse visibility to string
-      String? visibility;
-      final visValue = diveData['visibility'];
-      if (visValue is enums.Visibility) {
-        visibility = visValue.name;
-      } else if (visValue is String) {
-        visibility = visValue;
-      }
-
-      // Parse rating (may be double, convert to int)
-      int? rating;
-      final ratingValue = diveData['rating'];
-      if (ratingValue is double) {
-        rating = ratingValue.round();
-      } else if (ratingValue is int) {
-        rating = ratingValue;
-      }
-
-      await db
-          .into(db.dives)
-          .insert(
-            DivesCompanion.insert(
-              id: diveId,
-              diverId: Value(diverId),
-              diveNumber: Value(diveData['diveNumber'] as int?),
-              diveDateTime: diveDateTime,
-              siteId: Value(siteId),
-              maxDepth: Value(diveData['maxDepth'] as double?),
-              avgDepth: Value(diveData['avgDepth'] as double?),
-              duration: Value(diveData['duration'] as int?),
-              visibility: Value(visibility),
-              waterTemp: Value(diveData['waterTemp'] as double?),
-              airTemp: Value(diveData['airTemp'] as double?),
-              rating: Value(rating),
-              notes: Value(diveData['notes'] as String? ?? ''),
-              createdAt: nowMillis,
-              updatedAt: nowMillis,
-            ),
-          );
-
-      // Import dive profile points
+      // Build profile points if present
       final profileData = diveData['profile'] as List<Map<String, dynamic>>?;
-      if (profileData != null && profileData.isNotEmpty) {
-        for (final point in profileData) {
-          await db
-              .into(db.diveProfiles)
-              .insert(
-                DiveProfilesCompanion.insert(
-                  id: _uuid.v4(),
-                  diveId: diveId,
-                  timestamp: point['timestamp'] as int? ?? 0,
-                  depth: point['depth'] as double? ?? 0.0,
-                  temperature: Value(point['temperature'] as double?),
-                  pressure: Value(point['pressure'] as double?),
+      final profile =
+          profileData
+              ?.map(
+                (p) => DiveProfilePoint(
+                  timestamp: p['timestamp'] as int? ?? 0,
+                  depth: p['depth'] as double? ?? 0.0,
+                  temperature: p['temperature'] as double?,
+                  pressure: p['pressure'] as double?,
                 ),
-              );
+              )
+              .toList() ??
+          [];
+
+      // Build tanks from parsed tank data
+      List<DiveTank> tanks = [];
+      final tanksData = diveData['tanks'] as List<Map<String, dynamic>>?;
+      if (tanksData != null && tanksData.isNotEmpty) {
+        tanks = tanksData.map((t) {
+          // Parse material - may be enum or string
+          TankMaterial? material;
+          final materialValue = t['material'];
+          if (materialValue is TankMaterial) {
+            material = materialValue;
+          } else if (materialValue is String) {
+            material = _parseEnumValue(materialValue, TankMaterial.values);
+          }
+
+          // Parse role - may be enum or string
+          TankRole role;
+          final roleValue = t['role'];
+          if (roleValue is TankRole) {
+            role = roleValue;
+          } else if (roleValue is String) {
+            role =
+                _parseEnumValue(roleValue, TankRole.values) ?? TankRole.backGas;
+          } else {
+            role = TankRole.backGas;
+          }
+
+          return DiveTank(
+            id: _uuid.v4(),
+            volume: t['volume'] as double?,
+            startPressure: t['startPressure'] as int?,
+            endPressure: t['endPressure'] as int?,
+            workingPressure: t['workingPressure'] as int?,
+            gasMix: t['gasMix'] as GasMix? ?? const GasMix(),
+            material: material,
+            role: role,
+            order: t['order'] as int? ?? 0,
+          );
+        }).toList();
+      } else {
+        // Fall back to gas mix from samples
+        final gasMix = diveData['gasMix'] as GasMix?;
+        if (gasMix != null) {
+          tanks = [DiveTank(id: _uuid.v4(), gasMix: gasMix)];
         }
       }
 
-      // Import dive tanks
-      final tankData = diveData['tanks'] as List<Map<String, dynamic>>?;
-      if (tankData != null && tankData.isNotEmpty) {
-        for (final tank in tankData) {
-          // Convert double pressures to int for database
-          int? workingPressure;
-          final wp = tank['workingPressure'];
-          if (wp is double) {
-            workingPressure = wp.round();
-          } else if (wp is int) {
-            workingPressure = wp;
-          }
-
-          int? startPressure;
-          final sp = tank['startPressure'];
-          if (sp is double) {
-            startPressure = sp.round();
-          } else if (sp is int) {
-            startPressure = sp;
-          }
-
-          int? endPressure;
-          final ep = tank['endPressure'];
-          if (ep is double) {
-            endPressure = ep.round();
-          } else if (ep is int) {
-            endPressure = ep;
-          }
-
-          await db
-              .into(db.diveTanks)
-              .insert(
-                DiveTanksCompanion.insert(
-                  id: _uuid.v4(),
-                  diveId: diveId,
-                  volume: Value(tank['volume'] as double?),
-                  workingPressure: Value(workingPressure),
-                  startPressure: Value(startPressure),
-                  endPressure: Value(endPressure),
-                  o2Percent: Value(tank['o2Percent'] as double? ?? 21.0),
-                  hePercent: Value(tank['hePercent'] as double? ?? 0.0),
-                ),
-              );
+      // Link to imported site
+      DiveSite? linkedSite;
+      final siteDataMap = diveData['site'] as Map<String, dynamic>?;
+      if (siteDataMap != null) {
+        final uddfSiteId = siteDataMap['uddfId'] as String?;
+        if (uddfSiteId != null && siteIdMapping.containsKey(uddfSiteId)) {
+          linkedSite = siteIdMapping[uddfSiteId];
         }
       }
+
+      // Link to imported trip
+      String? linkedTripId;
+      final tripRef = diveData['tripRef'] as String?;
+      if (tripRef != null && tripIdMapping.containsKey(tripRef)) {
+        linkedTripId = tripIdMapping[tripRef];
+      }
+
+      // Link to imported dive center
+      DiveCenter? linkedDiveCenter;
+      final diveCenterRef = diveData['diveCenterRef'] as String?;
+      if (diveCenterRef != null &&
+          diveCenterIdMapping.containsKey(diveCenterRef)) {
+        final newCenterId = diveCenterIdMapping[diveCenterRef]!;
+        linkedDiveCenter = await _diveCenterRepository.getDiveCenterById(
+          newCenterId,
+        );
+      }
+
+      // Link to imported equipment
+      final linkedEquipment = <EquipmentItem>[];
+      final equipmentRefsRaw = diveData['equipmentRefs'];
+      if (equipmentRefsRaw != null) {
+        final equipmentRefs = equipmentRefsRaw is List
+            ? equipmentRefsRaw.whereType<String>().toList()
+            : <String>[];
+        for (final oldRef in equipmentRefs) {
+          final newEquipmentId = equipmentIdMapping[oldRef];
+          if (newEquipmentId != null) {
+            final equipment = await _equipmentRepository.getEquipmentById(
+              newEquipmentId,
+            );
+            if (equipment != null) {
+              linkedEquipment.add(equipment);
+            }
+          }
+        }
+      }
+
+      // Parse dive type
+      final diveTypeId = diveData['diveType'] as String? ?? 'recreational';
+
+      // Include weight used in notes if available
+      var notes = diveData['notes'] as String? ?? '';
+      final weightUsed = diveData['weightUsed'] as double?;
+      if (weightUsed != null && weightUsed > 0) {
+        if (notes.isNotEmpty) notes += '\n';
+        notes += 'Weight used: ${weightUsed.toStringAsFixed(1)} kg';
+      }
+
+      final diveId = _uuid.v4();
+      final dateTime = diveData['dateTime'] as DateTime? ?? now;
+      final runtime = diveData['runtime'] as Duration?;
+      final entryTime = dateTime;
+      final exitTime = runtime != null ? dateTime.add(runtime) : null;
+
+      // Parse marine life sightings
+      final sightingsData =
+          diveData['sightings'] as List<Map<String, dynamic>>?;
+      final sightings = <MarineSighting>[];
+      if (sightingsData != null) {
+        for (final sightingData in sightingsData) {
+          final speciesRef = sightingData['speciesRef'] as String?;
+          if (speciesRef != null && speciesRef.isNotEmpty) {
+            // Extract species name from ref
+            String speciesName = speciesRef;
+            if (speciesRef.startsWith('species_')) {
+              speciesName = speciesRef
+                  .substring(8)
+                  .split('_')
+                  .map(
+                    (word) => word.isNotEmpty
+                        ? word[0].toUpperCase() + word.substring(1)
+                        : word,
+                  )
+                  .join(' ');
+            }
+            sightings.add(
+              MarineSighting(
+                id: _uuid.v4(),
+                speciesId: speciesRef,
+                speciesName: speciesName,
+                count: sightingData['count'] as int? ?? 1,
+                notes: sightingData['notes'] as String? ?? '',
+              ),
+            );
+          }
+        }
+      }
+
+      // Create dive object
+      var dive = Dive(
+        id: diveId,
+        diverId: diverId,
+        diveNumber: diveData['diveNumber'] as int?,
+        dateTime: dateTime,
+        entryTime: entryTime,
+        exitTime: exitTime,
+        duration: diveData['duration'] as Duration?,
+        runtime: runtime,
+        maxDepth: diveData['maxDepth'] as double?,
+        avgDepth: diveData['avgDepth'] as double?,
+        waterTemp: diveData['waterTemp'] as double?,
+        airTemp: diveData['airTemp'] as double?,
+        surfacePressure: diveData['surfacePressure'] as double?,
+        surfaceInterval: diveData['surfaceInterval'] as Duration?,
+        gradientFactorLow: diveData['gradientFactorLow'] as int?,
+        gradientFactorHigh: diveData['gradientFactorHigh'] as int?,
+        diveComputerModel: diveData['diveComputerModel'] as String?,
+        diveComputerSerial: diveData['diveComputerSerial'] as String?,
+        buddy: diveData['buddy'] as String?,
+        diveMaster: diveData['diveMaster'] as String?,
+        rating: diveData['rating'] as int?,
+        notes: notes,
+        visibility: diveData['visibility'] as Visibility?,
+        diveTypeId: diveTypeId,
+        profile: profile,
+        tanks: tanks,
+        site: linkedSite,
+        tripId: linkedTripId,
+        diveCenter: linkedDiveCenter,
+        equipment: linkedEquipment,
+        sightings: sightings,
+        // Dive condition fields
+        currentDirection: diveData['currentDirection'] as CurrentDirection?,
+        currentStrength: diveData['currentStrength'] as CurrentStrength?,
+        swellHeight: diveData['swellHeight'] as double?,
+        entryMethod: diveData['entryMethod'] as EntryMethod?,
+        exitMethod: diveData['exitMethod'] as EntryMethod?,
+        waterType: diveData['waterType'] as WaterType?,
+        altitude: diveData['altitude'] as double?,
+      );
+
+      // Auto-calculate bottom time from profile if not set and profile exists
+      if (dive.duration == null && dive.profile.isNotEmpty) {
+        final calculatedDuration = dive.calculateBottomTimeFromProfile();
+        if (calculatedDuration != null) {
+          dive = dive.copyWith(duration: calculatedDuration);
+        }
+      }
+
+      await _diveRepository.createDive(dive);
+
+      // Store per-tank pressure data if profile has pressure information
+      if (profileData != null && tanks.isNotEmpty) {
+        final pressuresByTank =
+            <String, List<({int timestamp, double pressure})>>{};
+
+        for (final p in profileData) {
+          final timestamp = p['timestamp'] as int? ?? 0;
+
+          // Check for multi-tank pressure data first (new format)
+          final allTankPressures =
+              p['allTankPressures'] as List<Map<String, dynamic>>?;
+          if (allTankPressures != null && allTankPressures.isNotEmpty) {
+            for (final tp in allTankPressures) {
+              final pressure = tp['pressure'] as double?;
+              final tankIdx = tp['tankIndex'] as int? ?? 0;
+              if (pressure != null && tankIdx >= 0 && tankIdx < tanks.length) {
+                final tankId = tanks[tankIdx].id;
+                pressuresByTank.putIfAbsent(tankId, () => []).add((
+                  timestamp: timestamp,
+                  pressure: pressure,
+                ));
+              }
+            }
+          } else {
+            // Fall back to legacy single pressure field
+            final pressure = p['pressure'] as double?;
+            final tankIdx = (p['tankIndex'] as int?) ?? 0;
+
+            if (pressure != null && tankIdx >= 0 && tankIdx < tanks.length) {
+              final tankId = tanks[tankIdx].id;
+              pressuresByTank.putIfAbsent(tankId, () => []).add((
+                timestamp: timestamp,
+                pressure: pressure,
+              ));
+            }
+          }
+        }
+
+        if (pressuresByTank.isNotEmpty) {
+          await _tankPressureRepository.insertTankPressures(
+            diveId,
+            pressuresByTank,
+          );
+        }
+      }
+
+      // Link buddies to the dive
+      final buddyRefsValue = diveData['buddyRefs'];
+      final buddyRefs = buddyRefsValue is List
+          ? buddyRefsValue.whereType<String>().toList()
+          : <String>[];
+      for (final buddyRef in buddyRefs) {
+        final newBuddyId = buddyIdMapping[buddyRef];
+        if (newBuddyId != null) {
+          await _buddyRepository.addBuddyToDive(
+            diveId,
+            newBuddyId,
+            BuddyRole.buddy,
+          );
+        }
+      }
+
+      // Handle inline buddy names that weren't in the diver section
+      final unmatchedNamesValue = diveData['unmatchedBuddyNames'];
+      final unmatchedNames = unmatchedNamesValue is List
+          ? unmatchedNamesValue.whereType<String>().toList()
+          : <String>[];
+      for (final buddyName in unmatchedNames) {
+        final buddy = await _buddyRepository.findOrCreateByName(buddyName);
+        await _buddyRepository.addBuddyToDive(
+          diveId,
+          buddy.id,
+          BuddyRole.buddy,
+        );
+        buddiesImported++;
+      }
+
+      // Link tags to the dive
+      final tagRefsValue = diveData['tagRefs'];
+      final tagRefs = tagRefsValue is List
+          ? tagRefsValue.whereType<String>().toList()
+          : <String>[];
+      for (final tagRef in tagRefs) {
+        final newTagId = tagIdMapping[tagRef];
+        if (newTagId != null) {
+          await _tagRepository.addTagToDive(diveId, newTagId);
+        }
+      }
+
+      divesImported++;
     }
 
     // Print summary
     // ignore: avoid_print
     print('UDDF Import complete:');
     // ignore: avoid_print
-    print('   - Sites: ${importResult.sites.length}');
+    print('  - Trips: $tripsImported');
     // ignore: avoid_print
-    print('   - Buddies: ${importResult.buddies.length}');
+    print('  - Equipment: $equipmentImported');
     // ignore: avoid_print
-    print('   - Equipment: ${importResult.equipment.length}');
+    print('  - Equipment sets: $equipmentSetsImported');
     // ignore: avoid_print
-    print('   - Dives: ${importResult.dives.length}');
+    print('  - Buddies: $buddiesImported');
+    // ignore: avoid_print
+    print('  - Dive centers: $diveCentersImported');
+    // ignore: avoid_print
+    print('  - Certifications: $certificationsImported');
+    // ignore: avoid_print
+    print('  - Custom dive types: $customDiveTypesImported');
+    // ignore: avoid_print
+    print('  - Tags: $tagsImported');
+    // ignore: avoid_print
+    print('  - Sites: $sitesImported');
+    // ignore: avoid_print
+    print('  - Dives: $divesImported');
   }
 
-  /// Creates a default diver profile for the test data.
-  Future<void> _createDiver(String diverId, int now) async {
-    await db
-        .into(db.divers)
-        .insert(
-          DiversCompanion.insert(
-            id: diverId,
-            name: 'Alex Rivera',
-            email: const Value('alex.rivera@example.com'),
-            phone: const Value('+1 555-DIVE'),
-            bloodType: const Value('A+'),
-            isDefault: const Value(true),
-            createdAt: now,
-            updatedAt: now,
-          ),
-        );
+  /// Parse an enum value from a string
+  T? _parseEnumValue<T extends Enum>(String value, List<T> values) {
+    final lowerValue = value.toLowerCase();
+    for (final enumValue in values) {
+      if (enumValue.name.toLowerCase() == lowerValue) {
+        return enumValue;
+      }
+    }
+    return null;
   }
 }
