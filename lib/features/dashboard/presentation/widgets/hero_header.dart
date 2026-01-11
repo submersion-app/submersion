@@ -84,14 +84,20 @@ class HeroHeader extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                // Headline stats
+                // Headline stats - responsive based on screen width
                 statsAsync.when(
-                  data: (stats) => Text(
-                    _buildHeadlineStats(stats),
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: textColor.withValues(alpha: 0.9),
-                    ),
-                  ),
+                  data: (stats) {
+                    // Use LayoutBuilder to get available width
+                    // On narrow screens (phones), hide hours to save space
+                    final screenWidth = MediaQuery.sizeOf(context).width;
+                    final showHours = screenWidth > 400;
+                    return Text(
+                      _buildHeadlineStats(stats, showHours: showHours),
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: textColor.withValues(alpha: 0.9),
+                      ),
+                    );
+                  },
                   loading: () => Text(
                     'Loading your dive stats...',
                     style: theme.textTheme.bodyLarge?.copyWith(
@@ -124,7 +130,7 @@ class HeroHeader extends ConsumerWidget {
     }
   }
 
-  String _buildHeadlineStats(DiveStatistics stats) {
+  String _buildHeadlineStats(DiveStatistics stats, {bool showHours = true}) {
     if (stats.totalDives == 0) {
       return 'Ready to log your first dive?';
     }
@@ -137,16 +143,18 @@ class HeroHeader extends ConsumerWidget {
         : '${stats.totalDives} dives logged';
     parts.add(diveText);
 
-    // Total hours
-    final hours = stats.totalTimeSeconds / 3600;
-    if (hours >= 1) {
-      final hoursText = hours < 10
-          ? '${hours.toStringAsFixed(1)} hours underwater'
-          : '${hours.round()} hours underwater';
-      parts.add(hoursText);
-    } else if (stats.totalTimeSeconds > 0) {
-      final minutes = stats.totalTimeSeconds ~/ 60;
-      parts.add('$minutes minutes underwater');
+    // Total hours - only show on wider screens
+    if (showHours) {
+      final hours = stats.totalTimeSeconds / 3600;
+      if (hours >= 1) {
+        final hoursText = hours < 10
+            ? '${hours.toStringAsFixed(1)} hours underwater'
+            : '${hours.round()} hours underwater';
+        parts.add(hoursText);
+      } else if (stats.totalTimeSeconds > 0) {
+        final minutes = stats.totalTimeSeconds ~/ 60;
+        parts.add('$minutes minutes underwater');
+      }
     }
 
     return parts.join(' • ');

@@ -14,6 +14,7 @@
 library;
 
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -151,13 +152,20 @@ void main() {
       await screenshotHelper.waitForContent(tester);
       await screenshotHelper.takeScreenshot(tester, 'dive_list');
 
-      // 3. Dive Detail - tap on first dive card
+      // 3. Dive Detail - tap on a random dive card for variety in screenshots
       final listTiles = find.byType(ListTile);
       final cards = find.byType(Card);
+      final random = Random();
 
-      // Try to find and tap a dive item
+      // Try to find and tap a dive item (pick random one for visual variety)
       if (listTiles.evaluate().length > 2) {
-        await tester.tap(listTiles.at(1)); // Skip header if present
+        // Pick a random index, skipping index 0 (may be header)
+        final maxIndex = listTiles.evaluate().length - 1;
+        final randomIndex = 1 + random.nextInt(maxIndex); // Range: 1 to maxIndex
+        // ignore: avoid_print
+        print('Selecting dive at index $randomIndex of ${listTiles.evaluate().length} items');
+
+        await tester.tap(listTiles.at(randomIndex));
         await tester.pumpAndSettle();
         await screenshotHelper.waitForContent(tester);
 
@@ -173,7 +181,13 @@ void main() {
           await tester.pumpAndSettle();
         }
       } else if (cards.evaluate().length > 1) {
-        await tester.tap(cards.at(1));
+        // Pick a random card, skipping index 0 (may be header)
+        final maxIndex = cards.evaluate().length - 1;
+        final randomIndex = 1 + random.nextInt(maxIndex); // Range: 1 to maxIndex
+        // ignore: avoid_print
+        print('Selecting dive card at index $randomIndex of ${cards.evaluate().length} cards');
+
+        await tester.tap(cards.at(randomIndex));
         await tester.pumpAndSettle();
         await screenshotHelper.waitForContent(tester);
 
