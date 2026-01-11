@@ -513,23 +513,64 @@ Future<void> _enableProfileToggles(WidgetTester tester) async {
 }
 
 /// Taps a bottom navigation item by its icon.
+/// Uses position filtering to ensure we tap the icon in the bottom navigation
+/// area, not icons with the same IconData elsewhere (e.g., app bar menus).
 Future<void> _tapBottomNavItem(WidgetTester tester, IconData icon) async {
-  // Try to find the icon in the bottom navigation
+  // Get the screen height to identify bottom navigation area
+  final screenSize = tester.view.physicalSize / tester.view.devicePixelRatio;
+  final bottomNavThreshold =
+      screenSize.height * 0.8; // Bottom 20% is likely nav bar
+
+  // Try to find the icon in the bottom navigation area
   final iconFinder = find.byIcon(icon);
-  if (iconFinder.evaluate().isNotEmpty) {
-    await tester.tap(iconFinder.first);
-    await tester.pumpAndSettle();
-  } else {
-    // Try the selected version of the icon (some icons change when selected)
+  Widget? targetIcon = _findIconInBottomNav(
+    tester,
+    iconFinder,
+    bottomNavThreshold,
+  );
+
+  // If not found, try the selected version of the icon
+  if (targetIcon == null) {
     final selectedIcon = _getSelectedIcon(icon);
     if (selectedIcon != null) {
       final selectedIconFinder = find.byIcon(selectedIcon);
-      if (selectedIconFinder.evaluate().isNotEmpty) {
-        await tester.tap(selectedIconFinder.first);
-        await tester.pumpAndSettle();
+      targetIcon = _findIconInBottomNav(
+        tester,
+        selectedIconFinder,
+        bottomNavThreshold,
+      );
+    }
+  }
+
+  if (targetIcon != null) {
+    await tester.tap(find.byWidget(targetIcon), warnIfMissed: false);
+    await tester.pumpAndSettle();
+  } else {
+    // Fallback: tap first icon found (original behavior)
+    if (iconFinder.evaluate().isNotEmpty) {
+      await tester.tap(iconFinder.first, warnIfMissed: false);
+      await tester.pumpAndSettle();
+    }
+  }
+}
+
+/// Finds an icon widget that is positioned in the bottom navigation area.
+Widget? _findIconInBottomNav(
+  WidgetTester tester,
+  Finder finder,
+  double bottomNavThreshold,
+) {
+  for (final element in finder.evaluate()) {
+    final renderBox = element.renderObject as RenderBox?;
+    if (renderBox != null && renderBox.hasSize) {
+      final position = renderBox.localToGlobal(Offset.zero);
+      // Check if the icon is in the bottom portion of the screen
+      if (position.dy >= bottomNavThreshold) {
+        return element.widget;
       }
     }
   }
+  return null;
 }
 
 /// Gets the selected variant of an outlined icon.
