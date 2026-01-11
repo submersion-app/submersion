@@ -1,0 +1,27 @@
+# App Store Connect Configuration
+#
+# Update these values with your actual App Store Connect credentials.
+# See: https://docs.fastlane.tools/getting-started/ios/setup/
+
+# Your app's bundle identifier
+app_identifier("app.submersion")
+
+# Your Apple Developer Portal / App Store Connect username
+# apple_id("your-apple-id@email.com")
+
+# Your team ID if you're in multiple teams
+# team_id("YOUR_TEAM_ID")
+
+# App Store Connect API Key (recommended over password authentication)
+# Generate at: https://appstoreconnect.apple.com/access/api
+#
+# To use API key authentication, either:
+# 1. Set environment variables:
+#    - APP_STORE_CONNECT_API_KEY_KEY_ID
+#    - APP_STORE_CONNECT_API_KEY_ISSUER_ID
+#    - APP_STORE_CONNECT_API_KEY_KEY (base64 encoded .p8 content)
+#
+# 2. Or use a key file:
+#    api_key_path("fastlane/AuthKey_XXXXX.p8")
+
+# For CI environments, use environment variables to avoid committing secrets
