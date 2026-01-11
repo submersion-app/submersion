@@ -38,6 +38,7 @@ import 'package:submersion/features/equipment/data/repositories/equipment_set_re
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
+import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:drift/native.dart';
 
 import 'helpers/screenshot_helper.dart';
@@ -153,29 +154,26 @@ void main() {
       await screenshotHelper.takeScreenshot(tester, 'dive_list');
 
       // 3. Dive Detail - tap on a dive card
-      // On iPad master-detail layout, there may be multiple ListViews (one in master,
-      // one in detail summary). Find InkWells inside Cards which are the tappable areas.
+      // Use DiveListTile widget type to specifically target dive log entries,
+      // avoiding other Cards in the UI (like summary cards in the detail pane).
       final random = Random();
 
-      // Find all InkWells that are inside Cards (these are the tappable list items)
-      final cardInkWells = find.descendant(
-        of: find.byType(Card),
-        matching: find.byType(InkWell),
-      );
+      // Find all DiveListTile widgets - these are specifically the dive log entries
+      final diveListTiles = find.byType(DiveListTile);
 
       // ignore: avoid_print
-      print('Found ${cardInkWells.evaluate().length} InkWells in Cards');
+      print('Found ${diveListTiles.evaluate().length} DiveListTile widgets');
 
-      if (cardInkWells.evaluate().length > 3) {
-        // Pick a random index, skipping first few which might be summary cards
-        final maxIndex = min(cardInkWells.evaluate().length - 1, 10);
-        final randomIndex = 2 + random.nextInt(max(1, maxIndex - 2));
+      if (diveListTiles.evaluate().length > 2) {
+        // Pick a random dive tile, avoiding the very first one
+        final maxIndex = min(diveListTiles.evaluate().length - 1, 10);
+        final randomIndex = 1 + random.nextInt(max(1, maxIndex));
         // ignore: avoid_print
         print(
-          'Selecting InkWell at index $randomIndex of ${cardInkWells.evaluate().length}',
+          'Selecting DiveListTile at index $randomIndex of ${diveListTiles.evaluate().length}',
         );
 
-        await tester.tap(cardInkWells.at(randomIndex));
+        await tester.tap(diveListTiles.at(randomIndex));
         await tester.pumpAndSettle();
         await screenshotHelper.waitForContent(
           tester,
@@ -289,9 +287,11 @@ void main() {
         // Markers use Icons.scuba_diving as their icon
         final mapMarkers = find.byIcon(Icons.scuba_diving);
         // ignore: avoid_print
-        print('Found ${mapMarkers.evaluate().length} scuba_diving markers on map');
+        print(
+          'Found ${mapMarkers.evaluate().length} scuba_diving markers on map',
+        );
 
-        if (mapMarkers.evaluate().length > 0) {
+        if (mapMarkers.evaluate().isNotEmpty) {
           // Tap the first visible marker to select it and zoom in
           await tester.tap(mapMarkers.first);
           await tester.pumpAndSettle();
