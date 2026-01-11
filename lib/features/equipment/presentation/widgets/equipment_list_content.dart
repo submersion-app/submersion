@@ -440,9 +440,9 @@ class EquipmentListTile extends StatelessWidget {
           ),
           Text(
             '$days days',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.w500,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
           ),
         ],
       );
