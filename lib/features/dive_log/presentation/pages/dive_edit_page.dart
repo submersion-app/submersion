@@ -1448,10 +1448,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Conditions',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text('Conditions', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 16),
             Consumer(
               builder: (context, ref, child) {
@@ -2379,7 +2376,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     }
     return null;
   }
-
 }
 
 /// Site picker bottom sheet with nearby site suggestions
