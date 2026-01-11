@@ -47,8 +47,6 @@ echo ""
 echo "Generating UDDF test data..."
 if command -v python3 &> /dev/null; then
   python3 "$SCRIPT_DIR/generate_uddf_test_data.py" \
-    --num-dives 25 \
-    --max-sites 15 \
     -o "$UDDF_FILE" || {
       echo "Warning: Failed to generate UDDF test data. Using existing file if available."
     }
