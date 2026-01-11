@@ -43,9 +43,6 @@ echo ""
 echo "Output directory: $SCREENSHOTS_DIR"
 echo ""
 
-# Detect CI environment
-IS_CI="${CI:-false}"
-
 # Trap to restore Info.plist if script is interrupted
 PLIST_PATH="$PROJECT_ROOT/ios/Runner/Info.plist"
 PLIST_BACKUP="$PLIST_PATH.backup"
@@ -120,18 +117,11 @@ for device_config in "${DEVICES[@]}"; do
     /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations~ipad:1 string UIInterfaceOrientationLandscapeRight" "$PLIST_PATH"
     echo "Info.plist temporarily modified for landscape iPad"
 
-    # Open Simulator GUI for local visibility (not needed for rotation anymore)
-    if [ "$IS_CI" != "true" ]; then
-      echo "Opening Simulator app..."
-      open -a Simulator
-      sleep 3
-    fi
+    # Simulator runs headlessly - no need to open GUI
+    echo "Waiting for simulator to boot..."
+    sleep 3
   else
-    # Portrait mode - open Simulator GUI locally for visibility, but not required
-    if [ "$IS_CI" != "true" ]; then
-      echo "Opening Simulator app..."
-      open -a Simulator
-    fi
+    # Portrait mode - simulator runs headlessly
     echo "Waiting for simulator to boot..."
     sleep 3
   fi
