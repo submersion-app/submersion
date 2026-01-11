@@ -17,14 +17,20 @@ class ScreenshotHelper {
     required this.binding,
     required this.deviceName,
     this.outputDir = 'screenshots',
-  });
+  }) {
+    // Ensure output directory exists
+    final dir = Directory('$outputDir/$deviceName');
+    if (!dir.existsSync()) {
+      dir.createSync(recursive: true);
+    }
+  }
 
   /// Takes a screenshot with the given name.
   ///
   /// The screenshot is saved with a prefix based on the device name and
   /// an incrementing index to maintain order.
   ///
-  /// Example filename: `iPhone_16_Pro_Max_01_dashboard.png`
+  /// Example filename: `iPhone_6_7_inch/iPhone_6_7_inch_01_dashboard.png`
   Future<void> takeScreenshot(
     WidgetTester tester,
     String name, {
@@ -43,11 +49,14 @@ class ScreenshotHelper {
     final paddedIndex = _screenshotIndex.toString().padLeft(2, '0');
     final filename = '${deviceName}_${paddedIndex}_$name';
 
-    await binding.takeScreenshot(filename);
+    // Capture screenshot bytes and save to file
+    final bytes = await binding.takeScreenshot(filename);
+    final file = File('$outputDir/$deviceName/$filename.png');
+    await file.writeAsBytes(bytes);
 
     // Log for visibility during test runs
     // ignore: avoid_print
-    print('📸 Screenshot captured: $filename');
+    print('📸 Screenshot saved: ${file.path}');
   }
 
   /// Waits for content to load with visual feedback.

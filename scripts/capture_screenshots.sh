@@ -19,9 +19,9 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 SCREENSHOTS_DIR="$PROJECT_ROOT/screenshots"
-BUILD_DIR="$PROJECT_ROOT/build"
 
-# Create output directories
+# Note: Output directories are created by the ScreenshotHelper in Dart
+# Pre-create them here as well for visibility
 mkdir -p "$SCREENSHOTS_DIR/iPhone_6_7_inch"
 mkdir -p "$SCREENSHOTS_DIR/iPad_13_inch"
 
@@ -93,6 +93,7 @@ for device_config in "${DEVICES[@]}"; do
     2>/dev/null || echo "Note: Status bar override may not be supported on this simulator version"
 
   # Run integration tests with screenshot capture
+  # Screenshots are saved directly to screenshots/{device_name}/ by the ScreenshotHelper
   echo "Running screenshot tests..."
   cd "$PROJECT_ROOT"
 
@@ -102,12 +103,6 @@ for device_config in "${DEVICES[@]}"; do
     2>&1 || {
       echo "Warning: Screenshot tests encountered issues on $simulator_name"
     }
-
-  # Move screenshots from build directory to organized output
-  echo "Organizing screenshots..."
-  if [ -d "$BUILD_DIR" ]; then
-    find "$BUILD_DIR" -name "${output_name}_*.png" -exec mv {} "$SCREENSHOTS_DIR/$output_name/" \; 2>/dev/null || true
-  fi
 
   # Shutdown simulator
   echo "Shutting down simulator..."
