@@ -1,0 +1,218 @@
+/// App Store Screenshot Automation Tests
+///
+/// This integration test captures screenshots of key app screens for
+/// App Store submission. Run with:
+///
+/// ```bash
+/// flutter test integration_test/screenshots_test.dart -d "iPhone 15 Pro Max"
+/// ```
+///
+/// Screenshots are saved to the build directory and can be collected
+/// using the capture_screenshots.sh script.
+library;
+
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/app.dart';
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:drift/native.dart';
+
+import 'helpers/screenshot_helper.dart';
+import 'helpers/screenshot_test_data.dart';
+
+void main() {
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
+  late AppDatabase testDb;
+  late ScreenshotHelper screenshotHelper;
+  late SharedPreferences prefs;
+
+  setUpAll(() async {
+    // Initialize SharedPreferences with empty values
+    SharedPreferences.setMockInitialValues({});
+    prefs = await SharedPreferences.getInstance();
+
+    // Create in-memory database for testing
+    testDb = AppDatabase(NativeDatabase.memory());
+    DatabaseService.instance.setTestDatabase(testDb);
+
+    // Seed with screenshot-worthy test data
+    final seeder = ScreenshotTestDataSeeder(testDb);
+    await seeder.seedAll();
+
+    // Initialize screenshot helper with device name from environment
+    final deviceName = ScreenshotHelper.getDeviceName();
+    screenshotHelper = ScreenshotHelper(
+      binding: binding,
+      deviceName: deviceName,
+    );
+  });
+
+  tearDownAll(() async {
+    await testDb.close();
+    DatabaseService.instance.resetForTesting();
+  });
+
+  group('App Store Screenshots', () {
+    testWidgets('Capture all screens', (WidgetTester tester) async {
+      // Launch the app with proper provider overrides
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+          ],
+          child: const SubmersionApp(),
+        ),
+      );
+
+      // Wait for initial load - app starts on /dashboard
+      await tester.pumpAndSettle(const Duration(seconds: 3));
+      await screenshotHelper.waitForContent(tester);
+
+      // 1. Dashboard (initial screen)
+      await screenshotHelper.takeScreenshot(tester, 'dashboard');
+
+      // 2. Navigate to Dives - tap on scuba diving icon in bottom nav
+      await _tapBottomNavItem(tester, Icons.scuba_diving_outlined);
+      await screenshotHelper.waitForContent(tester);
+      await screenshotHelper.takeScreenshot(tester, 'dive_list');
+
+      // 3. Dive Detail - tap on first dive card
+      final listTiles = find.byType(ListTile);
+      final cards = find.byType(Card);
+
+      // Try to find and tap a dive item
+      if (listTiles.evaluate().length > 2) {
+        await tester.tap(listTiles.at(1)); // Skip header if present
+        await tester.pumpAndSettle();
+        await screenshotHelper.waitForContent(tester);
+        await screenshotHelper.takeScreenshot(tester, 'dive_detail');
+
+        // Go back to dive list
+        final backButton = find.byTooltip('Back');
+        if (backButton.evaluate().isNotEmpty) {
+          await tester.tap(backButton.first);
+          await tester.pumpAndSettle();
+        }
+      } else if (cards.evaluate().length > 1) {
+        await tester.tap(cards.at(1));
+        await tester.pumpAndSettle();
+        await screenshotHelper.waitForContent(tester);
+        await screenshotHelper.takeScreenshot(tester, 'dive_detail');
+
+        final backButton = find.byTooltip('Back');
+        if (backButton.evaluate().isNotEmpty) {
+          await tester.tap(backButton.first);
+          await tester.pumpAndSettle();
+        }
+      }
+
+      // 4. Navigate to Sites
+      await _tapBottomNavItem(tester, Icons.location_on_outlined);
+      await screenshotHelper.waitForContent(tester);
+      await screenshotHelper.takeScreenshot(tester, 'sites_list');
+
+      // 5. Sites Map view - look for map icon button in app bar
+      final mapButton = find.byIcon(Icons.map);
+      final mapOutlinedButton = find.byIcon(Icons.map_outlined);
+      if (mapButton.evaluate().isNotEmpty) {
+        await tester.tap(mapButton.first);
+        await tester.pumpAndSettle();
+        await screenshotHelper.waitForContent(
+            tester,
+            duration: const Duration(seconds: 3)); // Map tiles need time
+        await screenshotHelper.takeScreenshot(tester, 'sites_map');
+      } else if (mapOutlinedButton.evaluate().isNotEmpty) {
+        await tester.tap(mapOutlinedButton.first);
+        await tester.pumpAndSettle();
+        await screenshotHelper.waitForContent(
+            tester,
+            duration: const Duration(seconds: 3));
+        await screenshotHelper.takeScreenshot(tester, 'sites_map');
+      }
+
+      // 6. Navigate to Equipment via "More" menu
+      await _tapBottomNavItem(tester, Icons.more_horiz_outlined);
+      await tester.pumpAndSettle();
+
+      // Find and tap Equipment in the menu/list
+      final equipmentText = find.text('Equipment');
+      if (equipmentText.evaluate().isNotEmpty) {
+        await tester.tap(equipmentText.first);
+        await tester.pumpAndSettle();
+        await screenshotHelper.waitForContent(tester);
+        await screenshotHelper.takeScreenshot(tester, 'equipment');
+      }
+
+      // 7. Navigate to Statistics via "More" menu
+      await _tapBottomNavItem(tester, Icons.more_horiz_outlined);
+      await tester.pumpAndSettle();
+
+      final statisticsText = find.text('Statistics');
+      if (statisticsText.evaluate().isNotEmpty) {
+        await tester.tap(statisticsText.first);
+        await tester.pumpAndSettle();
+        await screenshotHelper.waitForContent(
+            tester,
+            duration: const Duration(seconds: 2)); // Charts need time
+        await screenshotHelper.takeScreenshot(tester, 'statistics');
+      }
+
+      // 8. Navigate to Records
+      // First check if Records is directly accessible or under Statistics
+      final recordsText = find.text('Records');
+      if (recordsText.evaluate().isNotEmpty) {
+        await tester.tap(recordsText.first);
+        await tester.pumpAndSettle();
+        await screenshotHelper.waitForContent(tester);
+        await screenshotHelper.takeScreenshot(tester, 'records');
+      } else {
+        // Try via More menu
+        await _tapBottomNavItem(tester, Icons.more_horiz_outlined);
+        await tester.pumpAndSettle();
+        final recordsInMore = find.text('Records');
+        if (recordsInMore.evaluate().isNotEmpty) {
+          await tester.tap(recordsInMore.first);
+          await tester.pumpAndSettle();
+          await screenshotHelper.waitForContent(tester);
+          await screenshotHelper.takeScreenshot(tester, 'records');
+        }
+      }
+    });
+  });
+}
+
+/// Taps a bottom navigation item by its icon.
+Future<void> _tapBottomNavItem(WidgetTester tester, IconData icon) async {
+  // Try to find the icon in the bottom navigation
+  final iconFinder = find.byIcon(icon);
+  if (iconFinder.evaluate().isNotEmpty) {
+    await tester.tap(iconFinder.first);
+    await tester.pumpAndSettle();
+  } else {
+    // Try the selected version of the icon (some icons change when selected)
+    final selectedIcon = _getSelectedIcon(icon);
+    if (selectedIcon != null) {
+      final selectedIconFinder = find.byIcon(selectedIcon);
+      if (selectedIconFinder.evaluate().isNotEmpty) {
+        await tester.tap(selectedIconFinder.first);
+        await tester.pumpAndSettle();
+      }
+    }
+  }
+}
+
+/// Gets the selected variant of an outlined icon.
+IconData? _getSelectedIcon(IconData outlinedIcon) {
+  if (outlinedIcon == Icons.home_outlined) return Icons.home;
+  if (outlinedIcon == Icons.scuba_diving_outlined) return Icons.scuba_diving;
+  if (outlinedIcon == Icons.location_on_outlined) return Icons.location_on;
+  if (outlinedIcon == Icons.flight_outlined) return Icons.flight;
+  if (outlinedIcon == Icons.more_horiz_outlined) return Icons.more_horiz;
+  return null;
+}

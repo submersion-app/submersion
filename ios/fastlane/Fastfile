@@ -1,0 +1,82 @@
+# Fastfile for Submersion App Store Automation
+#
+# Usage:
+#   bundle exec fastlane screenshots       # Capture screenshots
+#   bundle exec fastlane upload_screenshots # Upload to App Store Connect
+#   bundle exec fastlane capture_and_upload # Both in one command
+
+default_platform(:ios)
+
+platform :ios do
+  # ============================================================================
+  # Screenshot Lanes
+  # ============================================================================
+
+  desc "Capture App Store screenshots on iPhone and iPad simulators"
+  lane :screenshots do
+    UI.message("Starting screenshot capture...")
+
+    # Run the capture script from project root
+    sh("cd ../.. && ./scripts/capture_screenshots.sh")
+
+    UI.success("Screenshots captured successfully!")
+    UI.message("Screenshots saved to: ../../screenshots/")
+  end
+
+  desc "Upload screenshots to App Store Connect"
+  lane :upload_screenshots do
+    # Check if screenshots exist
+    screenshots_path = "../../screenshots"
+
+    unless File.directory?(screenshots_path)
+      UI.user_error!("Screenshots directory not found at #{screenshots_path}. Run 'fastlane screenshots' first.")
+    end
+
+    UI.message("Uploading screenshots to App Store Connect...")
+
+    upload_to_app_store(
+      skip_binary_upload: true,
+      skip_metadata: true,
+      skip_app_version_update: true,
+      screenshots_path: screenshots_path,
+      overwrite_screenshots: true,
+
+      # Uncomment to preview changes before uploading:
+      # precheck_include_in_app_purchases: false,
+      # force: false,  # Set to true to skip confirmation prompts
+    )
+
+    UI.success("Screenshots uploaded successfully!")
+  end
+
+  desc "Capture screenshots and upload to App Store Connect"
+  lane :capture_and_upload do
+    screenshots
+    upload_screenshots
+  end
+
+  # ============================================================================
+  # Utility Lanes
+  # ============================================================================
+
+  desc "Clean up screenshot directories"
+  lane :clean_screenshots do
+    screenshots_path = "../../screenshots"
+
+    if File.directory?(screenshots_path)
+      FileUtils.rm_rf(screenshots_path)
+      UI.success("Cleaned screenshots directory")
+    else
+      UI.message("No screenshots directory to clean")
+    end
+  end
+
+  desc "List available simulators for screenshots"
+  lane :list_simulators do
+    UI.message("Available iPhone simulators:")
+    sh("xcrun simctl list devices available | grep iPhone | head -10")
+
+    UI.message("\nAvailable iPad simulators:")
+    sh("xcrun simctl list devices available | grep iPad | head -10")
+  end
+end
