@@ -427,9 +427,24 @@ class EquipmentListTile extends StatelessWidget {
     }
 
     if (item.daysUntilService != null) {
-      return Text(
-        '${item.daysUntilService} days',
-        style: Theme.of(context).textTheme.bodySmall,
+      final days = item.daysUntilService!;
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text(
+            'Service in',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+          Text(
+            '$days days',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       );
     }
 

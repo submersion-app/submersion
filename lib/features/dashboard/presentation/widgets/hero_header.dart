@@ -87,10 +87,10 @@ class HeroHeader extends ConsumerWidget {
                 // Headline stats - responsive based on screen width
                 statsAsync.when(
                   data: (stats) {
-                    // Use LayoutBuilder to get available width
-                    // On narrow screens (phones), hide hours to save space
+                    // On phones (< 600px), only show dive count to save space
+                    // On tablets/desktop, show both dives and hours
                     final screenWidth = MediaQuery.sizeOf(context).width;
-                    final showHours = screenWidth > 400;
+                    final showHours = screenWidth >= 600;
                     return Text(
                       _buildHeadlineStats(stats, showHours: showHours),
                       style: theme.textTheme.bodyLarge?.copyWith(

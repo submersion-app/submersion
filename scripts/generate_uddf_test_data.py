@@ -1465,7 +1465,7 @@ def map_cert_level(padi_level: str) -> str:
 def calculate_service_date(purchase_date: str, reference_date: datetime = None) -> str:
     """Calculate a realistic last service date based on purchase date."""
     if reference_date is None:
-        reference_date = datetime.now() - timedelta(days=5)  # Default to 5 days ago
+        reference_date = datetime.now() - timedelta(weeks=2)  # Default to a few weeks ago
 
     if not purchase_date:
         return (reference_date - timedelta(days=365)).strftime("%Y-%m-%d")
@@ -2063,8 +2063,8 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf", sam
 
     random.seed(42)
 
-    # Calculate date range: 5 years ago to 5 days ago
-    end_date = datetime.now() - timedelta(days=5)
+    # Calculate date range: 5 years ago to a few weeks ago
+    end_date = datetime.now() - timedelta(weeks=2)
     start_date = end_date - timedelta(days=5*365)  # 5 years before end_date
 
     print(f"Generating dives from {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}")
@@ -2238,9 +2238,12 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf", sam
 
     # Calculate average days between dives to fit requested number in date range
     total_days = (end_date - start_date).days
-    # Target average: slightly less than total_days/num_dives to ensure we complete
-    # Account for trip dives (multiple per day) by reducing target average
-    avg_step_days = max(1, (total_days / num_dives) * 0.7)  # 70% of naive average
+    # Estimate trip dives (multiple dives per day during trips reduce needed steps)
+    # Assume ~30% of dives are during trips with 2-3 dives/day average
+    estimated_trip_dives = num_dives * 0.3
+    estimated_non_trip_dives = num_dives - estimated_trip_dives
+    # Calculate step size to ensure we span the full date range
+    avg_step_days = max(1, total_days / estimated_non_trip_dives)
     print(f"Average step between non-trip dives: {avg_step_days:.1f} days")
 
     dive_types = [
@@ -2628,10 +2631,10 @@ def generate_uddf(num_dives: int = 500, output_path: str = "test_data.uddf", sam
 
         # Move date forward for next dive (if not in a trip, or sometimes within a trip)
         if active_trip is None:
-            if random.random() > 0.3:
-                # Use calculated step size with random variation (0.5x to 1.5x)
-                step = max(1, int(avg_step_days * random.uniform(0.5, 1.5)))
-                current_date += timedelta(days=step)
+            # Always advance the date for non-trip dives to ensure even distribution
+            # Use calculated step size with random variation (0.7x to 1.3x)
+            step = max(1, int(avg_step_days * random.uniform(0.7, 1.3)))
+            current_date += timedelta(days=step)
         else:
             # Multiple dives per day during trips (30% chance to move to next day)
             if random.random() < 0.3:
