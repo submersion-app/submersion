@@ -223,44 +223,48 @@ void main() {
       await screenshotHelper.waitForContent(tester);
       await screenshotHelper.takeScreenshot(tester, 'sites_list');
 
-      // 5. Sites Map view - find the map button by tooltip
-      // The IconButton has tooltip: 'Map View', which is more reliable than finding by icon
+      // 5. Sites Map view - find the map button and invoke it directly
+      // On iPad, the compact app bar's IconButton may have hit-testing issues
+      // due to overlapping gesture detectors, so we invoke the callback directly
       bool navigatedToMap = false;
 
-      // Find the Map View button by its tooltip - this targets the IconButton directly
-      final mapViewButton = find.byTooltip('Map View');
+      // Find IconButtons with the map icon - more direct than finding by tooltip
+      final mapIconButtons = find.ancestor(
+        of: find.byIcon(Icons.map),
+        matching: find.byType(IconButton),
+      );
       // ignore: avoid_print
-      print('Found ${mapViewButton.evaluate().length} Map View buttons');
+      print('Found ${mapIconButtons.evaluate().length} map IconButtons');
 
-      if (mapViewButton.evaluate().isNotEmpty) {
-        // On iPad master-detail, there may be multiple Map View buttons
-        // (one in master pane, one in detail pane). Find one in the upper area.
-        bool tapped = false;
-        for (int i = 0; i < mapViewButton.evaluate().length; i++) {
-          final element = mapViewButton.evaluate().toList()[i];
+      if (mapIconButtons.evaluate().isNotEmpty) {
+        // Find a map button in the app bar area (y < 100)
+        IconButton? targetButton;
+        for (int i = 0; i < mapIconButtons.evaluate().length; i++) {
+          final element = mapIconButtons.evaluate().toList()[i];
           final renderBox = element.renderObject as RenderBox?;
           if (renderBox != null) {
             final position = renderBox.localToGlobal(Offset.zero);
             // ignore: avoid_print
-            print('Map View button $i at position: $position');
+            print('Map IconButton $i at position: $position');
 
-            // Look for button in app bar area (y < 100)
             if (position.dy < 100) {
+              targetButton = element.widget as IconButton;
               // ignore: avoid_print
-              print('Tapping Map View button at index $i');
-              await tester.tap(mapViewButton.at(i));
-              await tester.pumpAndSettle();
-              tapped = true;
+              print('Selected map IconButton at index $i');
               break;
             }
           }
         }
 
-        // If no button in upper area found, just tap the first one
-        if (!tapped) {
+        // Fallback to first button if none found in app bar area
+        targetButton ??= mapIconButtons.evaluate().first.widget as IconButton;
+
+        // Invoke the button's onPressed callback directly
+        // This bypasses hit-testing issues with overlapping gesture detectors
+        if (targetButton.onPressed != null) {
           // ignore: avoid_print
-          print('No Map View button in app bar area, tapping first one');
-          await tester.tap(mapViewButton.first);
+          print('Invoking map button onPressed callback directly');
+          targetButton.onPressed!();
           await tester.pumpAndSettle();
         }
 
