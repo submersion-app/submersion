@@ -1,0 +1,30 @@
+name: Upload Screenshots
+
+on:
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  upload:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: ios
+
+      - name: Decode API Key
+        run: |
+          echo "${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}" | base64 -d > ios/fastlane/AuthKey.p8
+
+      - name: Upload Screenshots
+        env:
+          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: fastlane/AuthKey.p8
+        run: |
+          cd ios
+          bundle exec fastlane upload_screenshots
