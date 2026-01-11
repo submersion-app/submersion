@@ -19,11 +19,13 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 SCREENSHOTS_DIR="$PROJECT_ROOT/screenshots"
+UDDF_FILE="$PROJECT_ROOT/integration_test/fixtures/screenshot_test_data.uddf"
 
 # Note: Output directories are created by the ScreenshotHelper in Dart
 # Pre-create them here as well for visibility
 mkdir -p "$SCREENSHOTS_DIR/iPhone_6_7_inch"
 mkdir -p "$SCREENSHOTS_DIR/iPad_13_inch"
+mkdir -p "$(dirname "$UDDF_FILE")"
 
 # Device configurations
 # Format: "Simulator Name Pattern|Output Folder Name"
@@ -38,6 +40,22 @@ echo "App Store Screenshot Capture"
 echo "=========================================="
 echo ""
 echo "Output directory: $SCREENSHOTS_DIR"
+echo ""
+
+# Generate UDDF test data using Python script
+# This creates consistent, realistic dive data for screenshots
+echo "Generating UDDF test data..."
+if command -v python3 &> /dev/null; then
+  python3 "$SCRIPT_DIR/generate_uddf_test_data.py" \
+    --num-dives 25 \
+    --max-sites 15 \
+    -o "$UDDF_FILE" || {
+      echo "Warning: Failed to generate UDDF test data. Using existing file if available."
+    }
+  echo "UDDF test data generated: $UDDF_FILE"
+else
+  echo "Warning: python3 not found. Using existing UDDF file if available."
+fi
 echo ""
 
 # Check for available simulators
@@ -103,6 +121,7 @@ for device_config in "${DEVICES[@]}"; do
     --dart-define=SCREENSHOT_MODE=true \
     --dart-define=SCREENSHOT_DEVICE_NAME="$output_name" \
     --dart-define=SCREENSHOT_OUTPUT_DIR="$SCREENSHOTS_DIR" \
+    --dart-define=UDDF_TEST_DATA_PATH="$UDDF_FILE" \
     2>&1 || {
       echo "Warning: Screenshot tests encountered issues on $simulator_name"
     }
