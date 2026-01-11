@@ -165,13 +165,18 @@ void main() {
       print('Found ${diveListTiles.evaluate().length} DiveListTile widgets');
 
       if (diveListTiles.evaluate().length > 2) {
-        // Pick a random dive tile, avoiding the very first one
-        final maxIndex = min(diveListTiles.evaluate().length - 1, 10);
+        // Pick a random dive tile from the visible ones (avoid items that may be off-screen)
+        // On landscape iPad, fewer items are visible, so limit to first 5 items
+        final maxIndex = min(diveListTiles.evaluate().length - 1, 4);
         final randomIndex = 1 + random.nextInt(max(1, maxIndex));
         // ignore: avoid_print
         print(
           'Selecting DiveListTile at index $randomIndex of ${diveListTiles.evaluate().length}',
         );
+
+        // First ensure the item is visible by scrolling to it
+        await tester.ensureVisible(diveListTiles.at(randomIndex));
+        await tester.pumpAndSettle();
 
         await tester.tap(diveListTiles.at(randomIndex));
         await tester.pumpAndSettle();
@@ -218,16 +223,46 @@ void main() {
       await screenshotHelper.waitForContent(tester);
       await screenshotHelper.takeScreenshot(tester, 'sites_list');
 
-      // 5. Sites Map view - find the map button with tooltip 'Map View'
-      // On iPad master-detail layout, there may be multiple icons, so use tooltip
-      final mapViewButton = find.byTooltip('Map View');
+      // 5. Sites Map view - find the map button by tooltip
+      // The IconButton has tooltip: 'Map View', which is more reliable than finding by icon
       bool navigatedToMap = false;
 
+      // Find the Map View button by its tooltip - this targets the IconButton directly
+      final mapViewButton = find.byTooltip('Map View');
+      // ignore: avoid_print
+      print('Found ${mapViewButton.evaluate().length} Map View buttons');
+
       if (mapViewButton.evaluate().isNotEmpty) {
-        // ignore: avoid_print
-        print('Found Map View button, tapping...');
-        await tester.tap(mapViewButton.first);
-        await tester.pumpAndSettle();
+        // On iPad master-detail, there may be multiple Map View buttons
+        // (one in master pane, one in detail pane). Find one in the upper area.
+        bool tapped = false;
+        for (int i = 0; i < mapViewButton.evaluate().length; i++) {
+          final element = mapViewButton.evaluate().toList()[i];
+          final renderBox = element.renderObject as RenderBox?;
+          if (renderBox != null) {
+            final position = renderBox.localToGlobal(Offset.zero);
+            // ignore: avoid_print
+            print('Map View button $i at position: $position');
+
+            // Look for button in app bar area (y < 100)
+            if (position.dy < 100) {
+              // ignore: avoid_print
+              print('Tapping Map View button at index $i');
+              await tester.tap(mapViewButton.at(i));
+              await tester.pumpAndSettle();
+              tapped = true;
+              break;
+            }
+          }
+        }
+
+        // If no button in upper area found, just tap the first one
+        if (!tapped) {
+          // ignore: avoid_print
+          print('No Map View button in app bar area, tapping first one');
+          await tester.tap(mapViewButton.first);
+          await tester.pumpAndSettle();
+        }
 
         // Wait for navigation
         await screenshotHelper.waitForContent(
@@ -236,7 +271,6 @@ void main() {
         );
 
         // Verify we're on the map page by looking for map-specific elements
-        // The SiteMapPage has title "Dive Sites Map" and a "List View" button
         final mapPageTitle = find.text('Dive Sites Map');
         final listViewButton = find.byTooltip('List View');
 
@@ -246,20 +280,6 @@ void main() {
 
         // ignore: avoid_print
         print('Navigation to map successful: $navigatedToMap');
-      } else {
-        // Fallback: try finding by icon
-        final mapButton = find.byIcon(Icons.map);
-        if (mapButton.evaluate().isNotEmpty) {
-          await tester.tap(mapButton.first);
-          await tester.pumpAndSettle();
-          await screenshotHelper.waitForContent(
-            tester,
-            duration: const Duration(seconds: 2),
-          );
-
-          final mapPageTitle = find.text('Dive Sites Map');
-          navigatedToMap = mapPageTitle.evaluate().isNotEmpty;
-        }
       }
 
       if (navigatedToMap) {
@@ -277,23 +297,23 @@ void main() {
           }
         }
 
-        // Wait for map to render
+        // Wait longer for map tiles and markers to render
         await screenshotHelper.waitForContent(
           tester,
-          duration: const Duration(seconds: 2),
+          duration: const Duration(seconds: 3),
         );
 
-        // Find and tap on a marker to zoom in and show site details
-        // Markers use Icons.scuba_diving as their icon
-        final mapMarkers = find.byIcon(Icons.scuba_diving);
+        // Find markers - could be individual (Icons.scuba_diving) or clustered
+        // Clustered markers show a number in a circle, not an icon
+        final individualMarkers = find.byIcon(Icons.scuba_diving);
         // ignore: avoid_print
         print(
-          'Found ${mapMarkers.evaluate().length} scuba_diving markers on map',
+          'Found ${individualMarkers.evaluate().length} individual scuba_diving markers',
         );
 
-        if (mapMarkers.evaluate().isNotEmpty) {
+        if (individualMarkers.evaluate().isNotEmpty) {
           // Tap the first visible marker to select it and zoom in
-          await tester.tap(mapMarkers.first);
+          await tester.tap(individualMarkers.first);
           await tester.pumpAndSettle();
 
           // Wait for map to animate to the selected site
@@ -301,9 +321,72 @@ void main() {
             tester,
             duration: const Duration(seconds: 2),
           );
+        } else {
+          // Markers are clustered - find clusters and tap to zoom in
+          // Clusters are rendered as circular containers with a number (count) text
+          // ignore: avoid_print
+          print(
+            'No individual markers found - markers are clustered, zooming in...',
+          );
+
+          // Try tapping clusters up to 3 times to zoom in enough to see individual markers
+          for (int attempt = 0; attempt < 3; attempt++) {
+            // Find cluster markers - they contain just a number in text
+            // Look for Text widgets that contain only digits (cluster counts)
+            final allText = find.byType(Text);
+            Finder? clusterFinder;
+
+            for (final element in allText.evaluate()) {
+              final textWidget = element.widget as Text;
+              final textData = textWidget.data;
+              if (textData != null &&
+                  textData.isNotEmpty &&
+                  int.tryParse(textData) != null &&
+                  int.parse(textData) > 1 &&
+                  int.parse(textData) < 100) {
+                // This looks like a cluster count
+                clusterFinder = find.byWidget(textWidget);
+                break;
+              }
+            }
+
+            if (clusterFinder != null && clusterFinder.evaluate().isNotEmpty) {
+              // ignore: avoid_print
+              print(
+                'Found cluster marker, tapping to zoom in (attempt ${attempt + 1})',
+              );
+              await tester.tap(clusterFinder.first);
+              await tester.pumpAndSettle();
+              await screenshotHelper.waitForContent(
+                tester,
+                duration: const Duration(seconds: 2),
+              );
+
+              // Check if individual markers are now visible
+              final markersAfterZoom = find.byIcon(Icons.scuba_diving);
+              if (markersAfterZoom.evaluate().isNotEmpty) {
+                // ignore: avoid_print
+                print(
+                  'Found ${markersAfterZoom.evaluate().length} individual markers after zoom',
+                );
+                // Tap a marker to select it
+                await tester.tap(markersAfterZoom.first);
+                await tester.pumpAndSettle();
+                await screenshotHelper.waitForContent(
+                  tester,
+                  duration: const Duration(seconds: 1),
+                );
+                break;
+              }
+            } else {
+              // ignore: avoid_print
+              print('No cluster markers found on attempt ${attempt + 1}');
+              break;
+            }
+          }
         }
 
-        // Wait for map tiles to render after zoom/pan animation
+        // Wait for map tiles to render after any zoom/pan animation
         await screenshotHelper.waitForContent(
           tester,
           duration: const Duration(seconds: 2),
