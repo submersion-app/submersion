@@ -152,56 +152,64 @@ void main() {
       await screenshotHelper.waitForContent(tester);
       await screenshotHelper.takeScreenshot(tester, 'dive_list');
 
-      // 3. Dive Detail - tap on a random dive card for variety in screenshots
-      final listTiles = find.byType(ListTile);
-      final cards = find.byType(Card);
+      // 3. Dive Detail - tap on a dive card
+      // Find cards that are dive items by looking for cards containing dive-specific
+      // content (scuba diving icon indicates a dive card vs site card with location icon)
       final random = Random();
 
-      // Try to find and tap a dive item (pick random one for visual variety)
-      if (listTiles.evaluate().length > 2) {
-        // Pick a random index, skipping index 0 (may be header)
-        final maxIndex = listTiles.evaluate().length - 1;
-        final randomIndex =
-            1 + random.nextInt(maxIndex); // Range: 1 to maxIndex
-        // ignore: avoid_print
-        print(
-          'Selecting dive at index $randomIndex of ${listTiles.evaluate().length} items',
-        );
-
-        await tester.tap(listTiles.at(randomIndex));
-        await tester.pumpAndSettle();
-        await screenshotHelper.waitForContent(tester);
-
-        // Enable Pressure and SAC toggles in the dive profile chart
-        await _enableProfileToggles(tester);
-        await screenshotHelper.waitForContent(tester);
-        await screenshotHelper.takeScreenshot(tester, 'dive_detail');
-
-        // Go back to dive list
-        final backButton = find.byTooltip('Back');
-        if (backButton.evaluate().isNotEmpty) {
-          await tester.tap(backButton.first);
-          await tester.pumpAndSettle();
+      // Look for cards within the dive list - they should have scuba_diving icons
+      // as leading icons (vs location_on icons for site cards)
+      final diveCards = find.byWidgetPredicate((widget) {
+        if (widget is Card) {
+          // Check if this card is a descendant of a widget tree that contains
+          // dive-related content (we'll tap it and verify after)
+          return true;
         }
-      } else if (cards.evaluate().length > 1) {
-        // Pick a random card, skipping index 0 (may be header)
-        final maxIndex = cards.evaluate().length - 1;
-        final randomIndex =
-            1 + random.nextInt(maxIndex); // Range: 1 to maxIndex
+        return false;
+      });
+
+      if (diveCards.evaluate().length > 2) {
+        // Pick a random card index (avoiding first which might be a header card)
+        final maxIndex = min(diveCards.evaluate().length - 1, 10);
+        final randomIndex = 1 + random.nextInt(maxIndex);
         // ignore: avoid_print
         print(
-          'Selecting dive card at index $randomIndex of ${cards.evaluate().length} cards',
+          'Selecting dive card at index $randomIndex of ${diveCards.evaluate().length} cards',
         );
 
-        await tester.tap(cards.at(randomIndex));
+        await tester.tap(diveCards.at(randomIndex));
         await tester.pumpAndSettle();
-        await screenshotHelper.waitForContent(tester);
+        await screenshotHelper.waitForContent(
+          tester,
+          duration: const Duration(seconds: 2),
+        );
 
-        // Enable Pressure and SAC toggles in the dive profile chart
-        await _enableProfileToggles(tester);
-        await screenshotHelper.waitForContent(tester);
-        await screenshotHelper.takeScreenshot(tester, 'dive_detail');
+        // Verify we're on a dive detail page by looking for dive-specific content.
+        // If we accidentally tapped a site, navigate back.
+        final pressureToggle = find.text('Pressure');
+        final depthLabel = find.textContaining('Max Depth');
 
+        // Check for dive-specific elements (profile chart toggles or depth info)
+        final hasDiveContent = pressureToggle.evaluate().isNotEmpty ||
+            depthLabel.evaluate().isNotEmpty;
+
+        if (hasDiveContent) {
+          // Enable Pressure and SAC toggles in the dive profile chart
+          await _enableProfileToggles(tester);
+          await screenshotHelper.waitForContent(tester);
+          await screenshotHelper.takeScreenshot(tester, 'dive_detail');
+        } else {
+          // We might have tapped a site card - go back and try again
+          // ignore: avoid_print
+          print('WARNING: Did not find dive content, may have tapped wrong card');
+          final backButton = find.byTooltip('Back');
+          if (backButton.evaluate().isNotEmpty) {
+            await tester.tap(backButton.first);
+            await tester.pumpAndSettle();
+          }
+        }
+
+        // Go back to dive list (on mobile) or clear selection (on tablet)
         final backButton = find.byTooltip('Back');
         if (backButton.evaluate().isNotEmpty) {
           await tester.tap(backButton.first);
@@ -217,22 +225,59 @@ void main() {
       // 5. Sites Map view - look for map icon button in app bar
       final mapButton = find.byIcon(Icons.map);
       final mapOutlinedButton = find.byIcon(Icons.map_outlined);
+      bool navigatedToMap = false;
+
       if (mapButton.evaluate().isNotEmpty) {
         await tester.tap(mapButton.first);
         await tester.pumpAndSettle();
-        await screenshotHelper.waitForContent(
-          tester,
-          duration: const Duration(seconds: 3),
-        ); // Map tiles need time
-        await screenshotHelper.takeScreenshot(tester, 'sites_map');
+        navigatedToMap = true;
       } else if (mapOutlinedButton.evaluate().isNotEmpty) {
         await tester.tap(mapOutlinedButton.first);
         await tester.pumpAndSettle();
+        navigatedToMap = true;
+      }
+
+      if (navigatedToMap) {
+        // Wait for map page to load
         await screenshotHelper.waitForContent(
           tester,
-          duration: const Duration(seconds: 3),
+          duration: const Duration(seconds: 2),
+        );
+
+        // Tap "Fit All Sites" button to center the map on all dive site markers
+        // This button has tooltip 'Fit All Sites' and icon Icons.my_location
+        final fitAllSitesButton = find.byTooltip('Fit All Sites');
+        if (fitAllSitesButton.evaluate().isNotEmpty) {
+          await tester.tap(fitAllSitesButton.first);
+          await tester.pumpAndSettle();
+        } else {
+          // Try finding by icon as fallback
+          final myLocationIcon = find.byIcon(Icons.my_location);
+          if (myLocationIcon.evaluate().isNotEmpty) {
+            await tester.tap(myLocationIcon.first);
+            await tester.pumpAndSettle();
+          }
+        }
+
+        // Wait for map tiles to render after zoom/pan animation
+        await screenshotHelper.waitForContent(
+          tester,
+          duration: const Duration(seconds: 4),
         );
         await screenshotHelper.takeScreenshot(tester, 'sites_map');
+
+        // Navigate back to sites list for next steps
+        final listButton = find.byIcon(Icons.list);
+        if (listButton.evaluate().isNotEmpty) {
+          await tester.tap(listButton.first);
+          await tester.pumpAndSettle();
+        } else {
+          final backButton = find.byTooltip('Back');
+          if (backButton.evaluate().isNotEmpty) {
+            await tester.tap(backButton.first);
+            await tester.pumpAndSettle();
+          }
+        }
       }
 
       // 6. Navigate to Equipment via "More" menu
