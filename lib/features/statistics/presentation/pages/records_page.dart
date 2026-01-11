@@ -235,10 +235,8 @@ class RecordsPage extends ConsumerWidget {
                   children: [
                     Text(
                       value,
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: color,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(color: color, fontWeight: FontWeight.bold),
                       overflow: TextOverflow.ellipsis,
                     ),
                     if (record.diveNumber != null)
