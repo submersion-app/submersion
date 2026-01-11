@@ -16,13 +16,27 @@ class ScreenshotHelper {
   ScreenshotHelper({
     required this.binding,
     required this.deviceName,
-    this.outputDir = 'screenshots',
-  }) {
+    String? outputDir,
+  }) : outputDir = outputDir ?? getOutputDir() {
     // Ensure output directory exists
-    final dir = Directory('$outputDir/$deviceName');
+    final dir = Directory('${this.outputDir}/$deviceName');
     if (!dir.existsSync()) {
       dir.createSync(recursive: true);
     }
+  }
+
+  /// Gets the output directory from environment variable.
+  ///
+  /// The capture script sets SCREENSHOT_OUTPUT_DIR to an absolute path
+  /// because the iOS simulator runs in a sandboxed environment where
+  /// relative paths don't point to the project directory.
+  static String getOutputDir() {
+    final envOutputDir = Platform.environment['SCREENSHOT_OUTPUT_DIR'];
+    if (envOutputDir != null && envOutputDir.isNotEmpty) {
+      return envOutputDir;
+    }
+    // Fallback for local testing (may not work on simulator)
+    return 'screenshots';
   }
 
   /// Takes a screenshot with the given name.
