@@ -50,12 +50,6 @@ const settingsSections = [
     subtitle: 'Trips, buddies, certifications',
   ),
   SettingsSection(
-    id: 'api',
-    icon: Icons.cloud,
-    title: 'API Integrations',
-    subtitle: 'Weather & tide services',
-  ),
-  SettingsSection(
     id: 'data',
     icon: Icons.storage,
     title: 'Data',

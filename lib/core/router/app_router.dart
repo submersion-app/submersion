@@ -45,7 +45,6 @@ import '../../features/statistics/presentation/pages/statistics_time_patterns_pa
 import '../../features/statistics/presentation/pages/statistics_equipment_page.dart';
 import '../../features/statistics/presentation/pages/statistics_profile_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
-import '../../features/settings/presentation/pages/api_keys_page.dart';
 import '../../features/settings/presentation/pages/appearance_page.dart';
 import '../../features/settings/presentation/pages/cloud_sync_page.dart';
 import '../../features/settings/presentation/pages/storage_settings_page.dart';
@@ -462,11 +461,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) =>
                 const NoTransitionPage(child: SettingsPage()),
             routes: [
-              GoRoute(
-                path: 'api-keys',
-                name: 'apiKeys',
-                builder: (context, state) => const ApiKeysPage(),
-              ),
               GoRoute(
                 path: 'cloud-sync',
                 name: 'cloudSync',
