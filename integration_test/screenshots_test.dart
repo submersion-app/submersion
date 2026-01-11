@@ -271,7 +271,8 @@ void main() {
         final mapPageTitle = find.text('Dive Sites Map');
         final listViewButton = find.byTooltip('List View');
 
-        navigatedToMap = mapPageTitle.evaluate().isNotEmpty ||
+        navigatedToMap =
+            mapPageTitle.evaluate().isNotEmpty ||
             listViewButton.evaluate().isNotEmpty;
 
         // ignore: avoid_print

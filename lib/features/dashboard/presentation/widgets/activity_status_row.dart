@@ -32,15 +32,15 @@ class _DaysSinceLastDiveCard extends ConsumerWidget {
         final displayText = days == null
             ? '-'
             : days == 0
-                ? 'Today!'
-                : '$days';
+            ? 'Today!'
+            : '$days';
         final subtitle = days == null
             ? 'No dives yet'
             : days == 0
-                ? 'Last dive'
-                : days == 1
-                    ? 'Day since diving'
-                    : 'Days since diving';
+            ? 'Last dive'
+            : days == 1
+            ? 'Day since diving'
+            : 'Days since diving';
 
         return _StatusCard(
           value: displayText,
