@@ -94,10 +94,13 @@ for device_config in "${DEVICES[@]}"; do
 
   # Run integration tests with screenshot capture
   # Screenshots are saved directly to screenshots/{device_name}/ by the ScreenshotHelper
+  # We pass the absolute path because the simulator runs in a sandboxed environment
   echo "Running screenshot tests..."
   cd "$PROJECT_ROOT"
 
-  SCREENSHOT_DEVICE_NAME="$output_name" flutter test integration_test/screenshots_test.dart \
+  SCREENSHOT_DEVICE_NAME="$output_name" \
+  SCREENSHOT_OUTPUT_DIR="$SCREENSHOTS_DIR" \
+  flutter test integration_test/screenshots_test.dart \
     -d "$DEVICE_UDID" \
     --dart-define=SCREENSHOT_MODE=true \
     2>&1 || {
