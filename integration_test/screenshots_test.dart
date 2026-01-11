@@ -16,6 +16,7 @@ library;
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -46,6 +47,13 @@ import 'helpers/uddf_screenshot_helper.dart';
 const String _kUddfTestDataPath = String.fromEnvironment(
   'UDDF_TEST_DATA_PATH',
   defaultValue: '',
+);
+
+/// Device orientation, passed via --dart-define from capture script.
+/// Values: 'portrait' or 'landscape'
+const String _kOrientation = String.fromEnvironment(
+  'SCREENSHOT_ORIENTATION',
+  defaultValue: 'portrait',
 );
 
 void main() {
@@ -108,6 +116,21 @@ void main() {
 
   group('App Store Screenshots', () {
     testWidgets('Capture all screens', (WidgetTester tester) async {
+      // Set device orientation based on --dart-define value
+      // iPad screenshots are taken in landscape, iPhone in portrait
+      if (_kOrientation == 'landscape') {
+        await SystemChrome.setPreferredOrientations([
+          DeviceOrientation.landscapeLeft,
+          DeviceOrientation.landscapeRight,
+        ]);
+      } else {
+        await SystemChrome.setPreferredOrientations([
+          DeviceOrientation.portraitUp,
+          DeviceOrientation.portraitDown,
+        ]);
+      }
+      await tester.pumpAndSettle();
+
       // Launch the app with proper provider overrides
       await tester.pumpWidget(
         ProviderScope(

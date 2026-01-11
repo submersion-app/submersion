@@ -229,24 +229,27 @@ class RecordsPage extends ConsumerWidget {
                   ],
                 ),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    value,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: color,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  if (record.diveNumber != null)
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
                     Text(
-                      'Dive #${record.diveNumber}',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      value,
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: color,
+                        fontWeight: FontWeight.bold,
                       ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                ],
+                    if (record.diveNumber != null)
+                      Text(
+                        'Dive #${record.diveNumber}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                  ],
+                ),
               ),
               const SizedBox(width: 8),
               Icon(
@@ -305,21 +308,24 @@ class RecordsPage extends ConsumerWidget {
                   ],
                 ),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    units.formatDate(record.dateTime),
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  if (record.diveNumber != null)
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
                     Text(
-                      'Dive #${record.diveNumber}',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                      units.formatDate(record.dateTime),
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                ],
+                    if (record.diveNumber != null)
+                      Text(
+                        'Dive #${record.diveNumber}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                  ],
+                ),
               ),
               const SizedBox(width: 8),
               Icon(
