@@ -222,31 +222,6 @@ void main() {
       // 4. Navigate to Sites
       await _tapBottomNavItem(tester, Icons.location_on_outlined);
       await screenshotHelper.waitForContent(tester);
-
-      // On iPad, select a site to show its details in the right pane
-      // Find the ListView containing site cards
-      final sitesListView = find.byType(ListView);
-      if (sitesListView.evaluate().isNotEmpty) {
-        final siteCards = find.descendant(
-          of: sitesListView.first,
-          matching: find.byType(Card),
-        );
-
-        // ignore: avoid_print
-        print('Found ${siteCards.evaluate().length} cards in sites ListView');
-
-        if (siteCards.evaluate().length > 1) {
-          // Tap on the second site card (skip first in case it's a header)
-          final cardIndex = min(2, siteCards.evaluate().length - 1);
-          await tester.tap(siteCards.at(cardIndex));
-          await tester.pumpAndSettle();
-          await screenshotHelper.waitForContent(
-            tester,
-            duration: const Duration(seconds: 1),
-          );
-        }
-      }
-
       await screenshotHelper.takeScreenshot(tester, 'sites_list');
 
       // 5. Sites Map view - find the map button with tooltip 'Map View'
