@@ -98,18 +98,12 @@ for device_config in "${DEVICES[@]}"; do
   echo "Booting simulator..."
   xcrun simctl boot "$DEVICE_UDID" 2>/dev/null || true
 
-  # Open Simulator.app to show the device window (required for rotation)
-  echo "Opening Simulator app..."
-  open -a Simulator
-
-  # Wait for simulator to fully boot and app to open
-  echo "Waiting for simulator to boot..."
-  sleep 5
-
   # Handle landscape orientation for iPad
+  # CI mode modifies Info.plist (no GUI needed), local mode uses AppleScript (needs GUI)
   if [ "$orientation" = "landscape" ]; then
     if [ "$IS_CI" = "true" ]; then
       # CI mode: Temporarily modify Info.plist to force landscape-only for iPad
+      # No need to open Simulator GUI - flutter test works headless
       echo "Temporarily modifying Info.plist for landscape-only iPad..."
       PLIST_PATH="$PROJECT_ROOT/ios/Runner/Info.plist"
       PLIST_BACKUP="$PLIST_PATH.backup"
@@ -122,7 +116,12 @@ for device_config in "${DEVICES[@]}"; do
       /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations~ipad:1 string UIInterfaceOrientationLandscapeRight" "$PLIST_PATH"
       echo "Info.plist temporarily modified for landscape iPad"
     else
-      # Local mode: Use AppleScript to rotate the simulator window
+      # Local mode: Open Simulator GUI and use AppleScript to rotate
+      echo "Opening Simulator app..."
+      open -a Simulator
+      echo "Waiting for simulator window..."
+      sleep 5
+
       echo "Rotating simulator to landscape..."
       osascript <<'APPLESCRIPT'
 tell application "Simulator" to activate
@@ -137,6 +136,14 @@ APPLESCRIPT
       sleep 2
       echo "Simulator rotated to landscape"
     fi
+  else
+    # Portrait mode - open Simulator GUI locally for visibility, but not required
+    if [ "$IS_CI" != "true" ]; then
+      echo "Opening Simulator app..."
+      open -a Simulator
+    fi
+    echo "Waiting for simulator to boot..."
+    sleep 3
   fi
 
   # Override status bar for clean screenshots
