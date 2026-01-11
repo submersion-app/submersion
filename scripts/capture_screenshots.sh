@@ -28,11 +28,12 @@ mkdir -p "$SCREENSHOTS_DIR/iPad_13_inch"
 mkdir -p "$(dirname "$UDDF_FILE")"
 
 # Device configurations
-# Format: "Simulator Name Pattern|Output Folder Name"
+# Format: "Simulator Name Pattern|Output Folder Name|Orientation"
 # Using patterns to match available simulators (names vary by Xcode version)
+# Orientation: portrait or landscape (iPad screenshots look better in landscape)
 DEVICES=(
-  "iPhone 15 Pro Max|iPhone_6_7_inch"
-  "iPad Pro 13-inch|iPad_13_inch"
+  "iPhone 15 Pro Max|iPhone_6_7_inch|portrait"
+  "iPad Pro 13-inch|iPad_13_inch|landscape"
 )
 
 echo "=========================================="
@@ -71,10 +72,10 @@ xcrun simctl list devices available | grep -E "(iPhone 16 Pro Max|iPad Pro.*13)"
 echo ""
 
 for device_config in "${DEVICES[@]}"; do
-  IFS='|' read -r simulator_name output_name <<< "$device_config"
+  IFS='|' read -r simulator_name output_name orientation <<< "$device_config"
 
   echo "=========================================="
-  echo "Processing: $simulator_name"
+  echo "Processing: $simulator_name ($orientation)"
   echo "=========================================="
 
   # Get the device UDID
@@ -119,6 +120,7 @@ for device_config in "${DEVICES[@]}"; do
     --dart-define=SCREENSHOT_MODE=true \
     --dart-define=SCREENSHOT_DEVICE_NAME="$output_name" \
     --dart-define=SCREENSHOT_OUTPUT_DIR="$SCREENSHOTS_DIR" \
+    --dart-define=SCREENSHOT_ORIENTATION="$orientation" \
     --dart-define=UDDF_TEST_DATA_PATH="$UDDF_FILE" \
     2>&1 || {
       echo "Warning: Screenshot tests encountered issues on $simulator_name"
