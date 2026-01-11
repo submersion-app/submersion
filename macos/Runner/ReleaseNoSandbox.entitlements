@@ -20,10 +20,8 @@
 	<key>com.apple.security.files.downloads.read-write</key>
 	<true/>
 
-	<!-- Network access -->
+	<!-- Network access (client only - for cloud sync, no server functionality) -->
 	<key>com.apple.security.network.client</key>
-	<true/>
-	<key>com.apple.security.network.server</key>
 	<true/>
 </dict>
 </plist>

@@ -10,7 +10,6 @@ import '../../../../shared/widgets/master_detail/master_detail_scaffold.dart';
 import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
 import '../../../divers/domain/entities/diver.dart';
 import '../../../divers/presentation/providers/diver_providers.dart';
-import '../providers/api_key_providers.dart';
 import '../providers/export_providers.dart';
 import '../providers/settings_providers.dart';
 import '../providers/storage_providers.dart';
@@ -80,8 +79,6 @@ class SettingsPage extends ConsumerWidget {
         return _AppearanceSectionContent(ref: ref);
       case 'manage':
         return const _ManageSectionContent();
-      case 'api':
-        return _ApiSectionContent(ref: ref);
       case 'data':
         return _DataSectionContent(ref: ref);
       case 'about':
@@ -155,8 +152,6 @@ class _SettingsSectionDetailPage extends ConsumerWidget {
         return _AppearanceSectionContent(ref: ref);
       case 'manage':
         return const _ManageSectionContent();
-      case 'api':
-        return _ApiSectionContent(ref: ref);
       case 'data':
         return _DataSectionContent(ref: ref);
       case 'about':
@@ -213,9 +208,6 @@ class _MobileSettingsTile extends StatelessWidget {
         break;
       case 'appearance':
         context.push('/settings/appearance');
-        break;
-      case 'api':
-        context.push('/settings/api-keys');
         break;
       default:
         // For sections that don't have dedicated pages,
@@ -1162,60 +1154,6 @@ class _ManageSectionContent extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// API section content
-class _ApiSectionContent extends ConsumerWidget {
-  final WidgetRef ref;
-
-  const _ApiSectionContent({required this.ref});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final apiKeys = ref.watch(apiKeyProvider);
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionHeader(context, 'API Integrations'),
-          const SizedBox(height: 8),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.cloud),
-              title: const Text('Weather & Tide APIs'),
-              subtitle: Builder(
-                builder: (context) {
-                  if (apiKeys.isLoading) {
-                    return const Text('Loading...');
-                  }
-                  final configured = <String>[];
-                  if (apiKeys.hasWeatherKey) configured.add('Weather');
-                  if (apiKeys.hasTideKey) configured.add('Tides');
-                  return Text(
-                    configured.isEmpty
-                        ? 'Not configured'
-                        : '${configured.join(', ')} configured',
-                  );
-                },
-              ),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.push('/settings/api-keys'),
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildInfoCard(
-            context,
-            'About API Keys',
-            'Configure API keys to enable weather forecasts and tide information '
-                'for your dive sites. These services require free API keys from '
-                'third-party providers.',
           ),
         ],
       ),
