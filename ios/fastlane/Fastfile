@@ -26,7 +26,7 @@ platform :ios do
   desc "Upload screenshots to App Store Connect"
   lane :upload_screenshots do
     # Check if screenshots exist
-    screenshots_path = "../../screenshots"
+    screenshots_path = File.absolute_path("../../screenshots")
 
     unless File.directory?(screenshots_path)
       UI.user_error!("Screenshots directory not found at #{screenshots_path}. Run 'fastlane screenshots' first.")
@@ -44,10 +44,7 @@ platform :ios do
       skip_app_version_update: true,
       screenshots_path: screenshots_path,
       overwrite_screenshots: true,
-
-      # Uncomment to preview changes before uploading:
-      # precheck_include_in_app_purchases: false,
-      # force: false,  # Set to true to skip confirmation prompts
+      ignore_language_directory_validation: true,  # We have device folders alongside locale folders
     )
 
     UI.success("Screenshots uploaded successfully!")
