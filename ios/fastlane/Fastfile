@@ -272,8 +272,8 @@ platform :ios do
     UI.success("All build artifacts cleaned!")
   end
 
-  desc "List all available lanes"
-  lane :list do
+  desc "Show all available lanes"
+  lane :lanes_help do
     UI.message("Available Fastlane lanes:")
     UI.message("")
     UI.message("  Screenshots:")
@@ -295,6 +295,6 @@ platform :ios do
     UI.message("    clean              - Clean all build artifacts")
     UI.message("    clean_screenshots  - Clean screenshot directory")
     UI.message("    list_simulators    - List available simulators")
-    UI.message("    list               - Show this help")
+    UI.message("    lanes_help         - Show this help")
   end
 end
