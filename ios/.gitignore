@@ -35,6 +35,12 @@ fastlane/Preview.html
 fastlane/screenshots/
 fastlane/test_output/
 
+# Fastlane build output
+fastlane/build/
+build/
+*.ipa
+*.dSYM.zip
+
 # Ruby bundle (installed locally)
 vendor/bundle/
 .bundle/

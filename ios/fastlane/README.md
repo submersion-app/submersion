@@ -39,6 +39,38 @@ Upload screenshots to App Store Connect
 
 Capture screenshots and upload to App Store Connect
 
+### ios build
+
+```sh
+[bundle exec] fastlane ios build
+```
+
+Build the iOS app for App Store distribution
+
+### ios beta
+
+```sh
+[bundle exec] fastlane ios beta
+```
+
+Build and upload to TestFlight for beta testing
+
+### ios release
+
+```sh
+[bundle exec] fastlane ios release
+```
+
+Build and upload to App Store for production release
+
+### ios full_release
+
+```sh
+[bundle exec] fastlane ios full_release
+```
+
+Full release: capture screenshots, upload everything, and submit build
+
 ### ios clean_screenshots
 
 ```sh

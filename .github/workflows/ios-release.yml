@@ -1,0 +1,121 @@
+# iOS App Store Release Workflow
+#
+# Triggers:
+#   - Push a tag like v1.0.0 to trigger a production release
+#   - Push a tag like v1.0.0-beta.1 to trigger a TestFlight release
+#   - Manual trigger via workflow_dispatch
+#
+# Required Secrets:
+#   - APP_STORE_CONNECT_API_KEY_ID: Your API Key ID from App Store Connect
+#   - APP_STORE_CONNECT_API_ISSUER_ID: Your Issuer ID from App Store Connect
+#   - APP_STORE_CONNECT_API_KEY_BASE64: Base64-encoded .p8 private key
+#   - MATCH_PASSWORD: Password to decrypt Match certificates
+#   - MATCH_GIT_BASIC_AUTHORIZATION: Base64-encoded "username:token" for Match repo access
+
+name: iOS Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      lane:
+        description: 'Fastlane lane to run'
+        required: true
+        default: 'beta'
+        type: choice
+        options:
+          - beta
+          - release
+          - full_release
+
+# Cancel in-progress runs for the same ref
+concurrency:
+  group: ios-release-${{ github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-release:
+    name: Build and Release iOS
+    runs-on: macos-14
+    timeout-minutes: 60
+
+    env:
+      # Use environment variables for any github context values
+      TAG_NAME: ${{ github.ref_name }}
+      EVENT_NAME: ${{ github.event_name }}
+      INPUT_LANE: ${{ github.event.inputs.lane }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: 'stable'
+          cache: true
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: ios
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Setup App Store Connect API Key
+        working-directory: ios
+        env:
+          APP_STORE_CONNECT_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+        run: |
+          mkdir -p fastlane
+          echo "$APP_STORE_CONNECT_API_KEY_BASE64" | base64 --decode > fastlane/AuthKey.p8
+
+      - name: Determine lane from tag
+        id: lane
+        run: |
+          if [ "$EVENT_NAME" == "workflow_dispatch" ]; then
+            echo "lane=$INPUT_LANE" >> "$GITHUB_OUTPUT"
+          elif echo "$TAG_NAME" | grep -qE '\-(beta|rc)'; then
+            echo "lane=beta" >> "$GITHUB_OUTPUT"
+          else
+            echo "lane=release" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Sync code signing (Match)
+        working-directory: ios
+        env:
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: fastlane/AuthKey.p8
+        run: bundle exec fastlane sync_signing
+
+      - name: Run Fastlane
+        working-directory: ios
+        env:
+          FASTLANE_LANE: ${{ steps.lane.outputs.lane }}
+          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: fastlane/AuthKey.p8
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+        run: bundle exec fastlane "$FASTLANE_LANE"
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: Submersion-${{ github.sha }}.ipa
+          path: ios/build/Submersion.ipa
+          retention-days: 30
+
+      - name: Cleanup sensitive files
+        if: always()
+        run: rm -f ios/fastlane/AuthKey.p8
