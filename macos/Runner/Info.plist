@@ -62,6 +62,8 @@
 	<string>NSApplication</string>
 	<key>FLTEnableMergedPlatformUIThread</key>
 	<false/>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Submersion uses Bluetooth to connect to dive computers and import dive data.</string>
 	<key>UTImportedTypeDeclarations</key>
 	<array>
 		<dict>
