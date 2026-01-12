@@ -213,41 +213,73 @@ echo "=========================================="
 echo "Organizing screenshots for Fastlane"
 echo "=========================================="
 
-# Fastlane's deliver expects: screenshots/<locale>/<device_type>/screenshot.png
-# We need to reorganize from our capture structure to Fastlane's expected structure
+# Fastlane's deliver expects: screenshots/<locale>/screenshot.png
+# Screenshots go DIRECTLY in locale folder - fastlane identifies device by image resolution
+# We keep device prefix in filename to distinguish between devices
+# IMPORTANT: App Store rejects PNGs with alpha channels - we must strip them
 
 LOCALE="en-US"
 FASTLANE_DIR="$SCREENSHOTS_DIR/$LOCALE"
 mkdir -p "$FASTLANE_DIR"
 
-# Map our device folder names to App Store Connect display types
+# Remove alpha channel from PNG files
+# App Store Connect requires screenshots without transparency (IMAGE_ALPHA_NOT_ALLOWED error)
+strip_alpha() {
+  local file="$1"
+  local output="$2"
+
+  # Try ImageMagick first (most reliable)
+  if command -v convert &> /dev/null; then
+    convert "$file" -background white -alpha remove -alpha off "$output"
+    return 0
+  fi
+
+  # Fall back to Python with PIL/Pillow
+  if command -v python3 &> /dev/null; then
+    python3 -c "
+from PIL import Image
+import sys
+img = Image.open('$file')
+if img.mode == 'RGBA':
+    background = Image.new('RGB', img.size, (255, 255, 255))
+    background.paste(img, mask=img.split()[3])
+    background.save('$output')
+else:
+    img.convert('RGB').save('$output')
+" 2>/dev/null && return 0
+  fi
+
+  # Last resort: just copy (will likely fail App Store validation)
+  echo "Warning: Could not strip alpha from $file (install ImageMagick or Pillow)"
+  cp "$file" "$output"
+}
+
+# Copy screenshots from device folder to locale folder (flat structure)
+# Also strips alpha channel for App Store compatibility
 organize_device() {
   local source_name="$1"
-  local appstore_name="$2"
   local source_dir="$SCREENSHOTS_DIR/$source_name"
-  local dest_dir="$FASTLANE_DIR/$appstore_name"
 
   if [ -d "$source_dir" ] && [ "$(ls -A "$source_dir"/*.png 2>/dev/null)" ]; then
-    echo "Organizing: $source_name -> $appstore_name"
-    mkdir -p "$dest_dir"
+    echo "Organizing: $source_name -> $LOCALE/"
 
     for file in "$source_dir"/*.png; do
       if [ -f "$file" ]; then
         filename=$(basename "$file")
-        # Remove the device prefix from filename (e.g., "iPhone_6_7_inch_01_..." -> "01_...")
-        new_filename="${filename#${source_name}_}"
-        cp "$file" "$dest_dir/$new_filename"
+        # Keep device prefix in filename for organization
+        # Strip alpha channel for App Store compatibility
+        strip_alpha "$file" "$FASTLANE_DIR/$filename"
       fi
     done
 
-    local count=$(ls "$dest_dir"/*.png 2>/dev/null | wc -l | tr -d ' ')
-    echo "  Copied $count screenshots"
+    local count=$(ls "$source_dir"/*.png 2>/dev/null | wc -l | tr -d ' ')
+    echo "  Processed $count screenshots (alpha removed)"
   fi
 }
 
 # Organize iOS screenshots for Fastlane
-organize_device "iPhone_6_7_inch" 'iPhone 6.7" Display'
-organize_device "iPad_13_inch" 'iPad Pro 13" Display'
+organize_device "iPhone_6_7_inch"
+organize_device "iPad_13_inch"
 
 echo ""
 echo "Fastlane-ready screenshots: $FASTLANE_DIR"
