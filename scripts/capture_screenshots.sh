@@ -206,6 +206,53 @@ else
 fi
 echo ""
 
+# ==========================================
+# Organize for Fastlane
+# ==========================================
+echo "=========================================="
+echo "Organizing screenshots for Fastlane"
+echo "=========================================="
+
+# Fastlane's deliver expects: screenshots/<locale>/<device_type>/screenshot.png
+# We need to reorganize from our capture structure to Fastlane's expected structure
+
+LOCALE="en-US"
+FASTLANE_DIR="$SCREENSHOTS_DIR/$LOCALE"
+mkdir -p "$FASTLANE_DIR"
+
+# Map our device folder names to App Store Connect display types
+organize_device() {
+  local source_name="$1"
+  local appstore_name="$2"
+  local source_dir="$SCREENSHOTS_DIR/$source_name"
+  local dest_dir="$FASTLANE_DIR/$appstore_name"
+
+  if [ -d "$source_dir" ] && [ "$(ls -A "$source_dir"/*.png 2>/dev/null)" ]; then
+    echo "Organizing: $source_name -> $appstore_name"
+    mkdir -p "$dest_dir"
+
+    for file in "$source_dir"/*.png; do
+      if [ -f "$file" ]; then
+        filename=$(basename "$file")
+        # Remove the device prefix from filename (e.g., "iPhone_6_7_inch_01_..." -> "01_...")
+        new_filename="${filename#${source_name}_}"
+        cp "$file" "$dest_dir/$new_filename"
+      fi
+    done
+
+    local count=$(ls "$dest_dir"/*.png 2>/dev/null | wc -l | tr -d ' ')
+    echo "  Copied $count screenshots"
+  fi
+}
+
+# Organize iOS screenshots for Fastlane
+organize_device "iPhone_6_7_inch" 'iPhone 6.7" Display'
+organize_device "iPad_13_inch" 'iPad Pro 13" Display'
+
+echo ""
+echo "Fastlane-ready screenshots: $FASTLANE_DIR"
+echo ""
+
 echo "=========================================="
 echo "Screenshot capture complete!"
 echo "=========================================="
@@ -231,5 +278,5 @@ done
 
 echo "Next steps:"
 echo "  1. Review screenshots in $SCREENSHOTS_DIR"
-echo "  2. Upload to App Store Connect:"
+echo "  2. Upload to App Store Connect (screenshots are already organized for Fastlane):"
 echo "     cd ios && bundle exec fastlane upload_screenshots"
