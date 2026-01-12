@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export_service.dart';
+import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
@@ -411,6 +412,7 @@ class UddfScreenshotImporter {
     }
 
     // 8. Import Dive Sites
+    final locationService = LocationService.instance;
     for (final siteData in importResult.sites) {
       final siteName = siteData['name'] as String?;
       if (siteName == null || siteName.isEmpty) continue;
@@ -419,6 +421,17 @@ class UddfScreenshotImporter {
       final lat = siteData['latitude'] as double?;
       final lon = siteData['longitude'] as double?;
 
+      // Get country/region from UDDF data first
+      var country = siteData['country'] as String?;
+      var region = siteData['region'] as String?;
+
+      // If coordinates exist but country/region are missing, use reverse geolocation
+      if (lat != null && lon != null && (country == null || country.isEmpty)) {
+        final geoResult = await locationService.reverseGeocode(lat, lon);
+        country = geoResult.country;
+        region = geoResult.region;
+      }
+
       final newSite = DiveSite(
         id: _uuid.v4(),
         diverId: diverId,
@@ -426,8 +439,8 @@ class UddfScreenshotImporter {
         description: siteData['description'] as String? ?? '',
         location: (lat != null && lon != null) ? GeoPoint(lat, lon) : null,
         maxDepth: siteData['maxDepth'] as double?,
-        country: siteData['country'] as String?,
-        region: siteData['region'] as String?,
+        country: country,
+        region: region,
         rating: siteData['rating'] as double?,
         notes: siteData['notes'] as String? ?? '',
       );
