@@ -1,9 +1,17 @@
 # Fastfile for Submersion App Store Automation
 #
 # Usage:
-#   bundle exec fastlane screenshots       # Capture screenshots
-#   bundle exec fastlane upload_screenshots # Upload to App Store Connect
+#   bundle exec fastlane screenshots        # Capture screenshots
+#   bundle exec fastlane upload_screenshots # Upload screenshots to App Store Connect
 #   bundle exec fastlane capture_and_upload # Both in one command
+#
+#   bundle exec fastlane build              # Build IPA for App Store
+#   bundle exec fastlane beta               # Build + upload to TestFlight
+#   bundle exec fastlane release            # Build + upload to App Store
+#   bundle exec fastlane full_release       # Screenshots + build + upload
+#
+#   bundle exec fastlane sync_signing       # Sync code signing certs (Match)
+#   bundle exec fastlane setup_signing      # First-time Match setup (creates certs)
 
 default_platform(:ios)
 
@@ -99,6 +107,129 @@ platform :ios do
   end
 
   # ============================================================================
+  # Code Signing Lanes (Match)
+  # ============================================================================
+
+  desc "Sync code signing certificates and provisioning profiles"
+  lane :sync_signing do
+    # Creates a temporary keychain for CI environments
+    if ENV["CI"]
+      create_keychain(
+        name: "fastlane_keychain",
+        password: ENV["MATCH_PASSWORD"] || "temporary",
+        default_keychain: true,
+        unlock: true,
+        timeout: 3600,
+        lock_when_sleeps: false
+      )
+    end
+
+    match(
+      type: "appstore",
+      readonly: true,
+      keychain_name: ENV["CI"] ? "fastlane_keychain" : nil,
+      keychain_password: ENV["CI"] ? (ENV["MATCH_PASSWORD"] || "temporary") : nil
+    )
+
+    UI.success("Code signing synced successfully!")
+  end
+
+  desc "Setup Match for the first time (creates new certificates)"
+  lane :setup_signing do
+    UI.important("This will create new App Store distribution certificates and profiles.")
+    UI.important("Only run this once per team, or when certificates expire.")
+
+    match(
+      type: "appstore",
+      readonly: false  # Allow creating new certs
+    )
+
+    UI.success("Code signing setup complete!")
+    UI.message("Your certificates are now stored in your Match git repository.")
+  end
+
+  # ============================================================================
+  # Build Lanes
+  # ============================================================================
+
+  desc "Build the iOS app for App Store distribution"
+  lane :build do
+    # Build the Flutter app first (release mode, no codesign - Xcode handles signing)
+    UI.message("Building Flutter app...")
+    sh("cd ../.. && flutter build ios --release --no-codesign")
+
+    # Get the latest build number from TestFlight and increment
+    api_key = load_api_key
+    latest_build = latest_testflight_build_number(api_key: api_key)
+    new_build_number = latest_build + 1
+
+    UI.message("Incrementing build number to #{new_build_number}...")
+    increment_build_number(
+      build_number: new_build_number,
+      xcodeproj: "Runner.xcodeproj"
+    )
+
+    # Build and sign the IPA
+    UI.message("Building and signing IPA...")
+    build_ios_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      export_method: "app-store",
+      output_directory: "./build",
+      output_name: "Submersion.ipa"
+    )
+
+    UI.success("Build complete! IPA saved to ios/build/Submersion.ipa")
+  end
+
+  # ============================================================================
+  # Upload Lanes
+  # ============================================================================
+
+  desc "Build and upload to TestFlight for beta testing"
+  lane :beta do
+    build
+
+    api_key = load_api_key
+
+    UI.message("Uploading to TestFlight...")
+    upload_to_testflight(
+      api_key: api_key,
+      ipa: "./build/Submersion.ipa",
+      skip_waiting_for_build_processing: true
+    )
+
+    UI.success("Build uploaded to TestFlight! It will be available for testing once processing completes.")
+  end
+
+  desc "Build and upload to App Store for production release"
+  lane :release do
+    build
+
+    api_key = load_api_key
+
+    UI.message("Uploading to App Store Connect...")
+    upload_to_app_store(
+      api_key: api_key,
+      ipa: "./build/Submersion.ipa",
+      skip_screenshots: true,        # Upload screenshots separately
+      skip_metadata: true,           # Set to false to upload metadata from fastlane/metadata/
+      submit_for_review: false,      # Set to true to auto-submit for review
+      automatic_release: false,      # Set to true to auto-release when approved
+      precheck_include_in_app_purchases: false
+    )
+
+    UI.success("Build uploaded to App Store Connect!")
+  end
+
+  desc "Full release: capture screenshots, upload everything, and submit build"
+  lane :full_release do
+    screenshots
+    upload_screenshots
+    release
+  end
+
+  # ============================================================================
   # Utility Lanes
   # ============================================================================
 
@@ -121,5 +252,49 @@ platform :ios do
 
     UI.message("\nAvailable iPad simulators:")
     sh("xcrun simctl list devices available | grep iPad | head -10")
+  end
+
+  desc "Clean build artifacts"
+  lane :clean do
+    # Clean Flutter build
+    sh("cd ../.. && flutter clean")
+
+    # Clean Xcode derived data
+    clear_derived_data
+
+    # Clean local build output
+    build_path = "./build"
+    if File.directory?(build_path)
+      FileUtils.rm_rf(build_path)
+      UI.message("Cleaned build directory")
+    end
+
+    UI.success("All build artifacts cleaned!")
+  end
+
+  desc "List all available lanes"
+  lane :list do
+    UI.message("Available Fastlane lanes:")
+    UI.message("")
+    UI.message("  Screenshots:")
+    UI.message("    screenshots        - Capture App Store screenshots")
+    UI.message("    upload_screenshots - Upload screenshots to App Store Connect")
+    UI.message("    capture_and_upload - Both in one command")
+    UI.message("")
+    UI.message("  Code Signing:")
+    UI.message("    sync_signing       - Sync certificates from Match repo (readonly)")
+    UI.message("    setup_signing      - First-time setup (creates new certs)")
+    UI.message("")
+    UI.message("  Build & Release:")
+    UI.message("    build              - Build IPA for App Store")
+    UI.message("    beta               - Build + upload to TestFlight")
+    UI.message("    release            - Build + upload to App Store")
+    UI.message("    full_release       - Screenshots + build + upload")
+    UI.message("")
+    UI.message("  Utilities:")
+    UI.message("    clean              - Clean all build artifacts")
+    UI.message("    clean_screenshots  - Clean screenshot directory")
+    UI.message("    list_simulators    - List available simulators")
+    UI.message("    list               - Show this help")
   end
 end
