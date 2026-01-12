@@ -39,5 +39,26 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
+
+    # Enable permission_handler permissions for iOS
+    # See: https://pub.dev/packages/permission_handler#setup
+    target.build_configurations.each do |config|
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
+        '$(inherited)',
+        # Bluetooth permissions (required for dive computer connectivity)
+        'PERMISSION_BLUETOOTH=1',
+        # Location permissions (for dive site GPS)
+        'PERMISSION_LOCATION=1',
+        'PERMISSION_LOCATION_WHENINUSE=1',
+        'PERMISSION_LOCATION_ALWAYS=1',
+        # Camera permission (for dive photos)
+        'PERMISSION_CAMERA=1',
+        # Photo library permissions (for dive photos)
+        'PERMISSION_PHOTOS=1',
+        'PERMISSION_PHOTOS_ADD_ONLY=1',
+        # Contacts permission (for dive buddies)
+        'PERMISSION_CONTACTS=1',
+      ]
+    end
   end
 end

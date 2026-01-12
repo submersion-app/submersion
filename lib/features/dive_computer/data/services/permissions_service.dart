@@ -164,7 +164,7 @@ class DiveComputerPermissionsService {
   }
 
   /// Open the app settings page for the user to enable permissions.
-  Future<bool> openAppSettings() async {
+  Future<bool> openSettings() async {
     return await openAppSettings();
   }
 
@@ -177,11 +177,11 @@ class DiveComputerPermissionsService {
         await FlutterBluePlus.turnOn();
       } catch (e) {
         // If that fails, open settings
-        await openAppSettings();
+        await openSettings();
       }
     } else {
       // On iOS/macOS, we can only suggest the user open settings
-      await openAppSettings();
+      await openSettings();
     }
   }
 }
