@@ -24,6 +24,16 @@ APP_NAME="Submersion"
 WINDOW_WAIT_TIMEOUT=30
 SCREENSHOT_INDEX=0
 
+# App Store Connect required screenshot dimensions (pixels):
+# 1280×800, 1440×900, 2560×1600, 2880×1800
+#
+# On Retina displays (2x), AppleScript uses POINTS not pixels.
+# screencapture outputs at native resolution (2x), so:
+# - For 2560×1600 pixel output, set window to 1280×800 points
+# - For 2880×1800 pixel output, set window to 1440×900 points
+SCREENSHOT_WIDTH=1280   # points (will produce 2560px on Retina)
+SCREENSHOT_HEIGHT=800   # points (will produce 1600px on Retina)
+
 # Parse arguments
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -42,6 +52,21 @@ echo "macOS Screenshot Capture"
 echo "========================"
 echo "Output directory: $OUTPUT_DIR"
 echo ""
+
+# Check dependencies first (before spending time on build)
+check_cliclick() {
+  if ! command -v cliclick &> /dev/null; then
+    echo ""
+    echo "Error: cliclick is required but not installed."
+    echo "Flutter apps don't respond to AppleScript synthetic clicks."
+    echo ""
+    echo "Install with Homebrew:"
+    echo "  brew install cliclick"
+    echo ""
+    exit 1
+  fi
+}
+check_cliclick
 
 # Ensure output directory exists
 mkdir -p "$OUTPUT_DIR"
@@ -83,6 +108,26 @@ end tell
 EOF
 }
 
+# Function to resize window to exact App Store dimensions
+resize_window() {
+  local width="$1"
+  local height="$2"
+  osascript << EOF 2>/dev/null
+tell application "System Events"
+  tell process "Submersion"
+    if (count of windows) > 0 then
+      -- First move to safe position (top-left, below menu bar)
+      set position of window 1 to {0, 25}
+      delay 0.2
+      -- Then resize
+      set size of window 1 to {$width, $height}
+    end if
+  end tell
+end tell
+EOF
+  sleep 0.5
+}
+
 # Function to capture a screenshot
 capture_screenshot() {
   local name="$1"
@@ -117,11 +162,12 @@ capture_screenshot() {
   return 1
 }
 
-# Function to click at absolute screen position
+# Function to click at absolute screen position using cliclick
+# (AppleScript clicks don't work with Flutter's Metal/Skia rendering)
 click_at_abs() {
   local x="$1"
   local y="$2"
-  osascript -e "tell application \"System Events\" to click at {$x, $y}" 2>/dev/null
+  cliclick c:"$x","$y"
   sleep 0.3
 }
 
@@ -146,7 +192,37 @@ click_at() {
   click_at_abs "$abs_x" "$abs_y"
 }
 
-# Function to click bottom nav item (0=Dashboard, 1=Dives, 2=Sites, 3=Trips, 4=More)
+# Function to click NavigationRail item (desktop layout, left side)
+# Items: 0=Home, 1=Dives, 2=Sites, 3=Trips, 4=Equipment, 5=Statistics, 6=Buddies, etc.
+click_nav_rail() {
+  local index="$1"
+
+  local bounds
+  bounds=$(get_window_bounds)
+
+  if [ -z "$bounds" ]; then
+    echo "Warning: Could not get window bounds for nav rail click"
+    return 1
+  fi
+
+  IFS=',' read -r win_x win_y win_w win_h <<< "$bounds"
+
+  # NavigationRail is on the left, ~72px wide (collapsed) or ~190px (extended)
+  # At >=1200px (our 1280px window), rail is extended with collapse button at top
+  # Flutter NavigationRail items are ~56px tall in Material 3
+  # Leading collapse button: ~48px, plus some padding
+  local rail_x=36  # Center of collapsed rail icons
+  local item_height=50
+  local top_offset=60  # Collapse button + minimal padding
+
+  local nav_y=$((top_offset + (item_height * index) + (item_height / 2)))
+
+  echo "  Clicking nav rail item $index at ($rail_x, $nav_y)"
+  click_at "$rail_x" "$nav_y"
+  sleep 2.5
+}
+
+# Legacy function for mobile layout (kept for reference)
 click_bottom_nav() {
   local index="$1"
 
@@ -165,7 +241,7 @@ click_bottom_nav() {
   local item_x=$(( (item_width * index) + (item_width / 2) ))
 
   click_at "$item_x" "$nav_y"
-  sleep 1
+  sleep 2.5
 }
 
 # Kill any existing instance
@@ -203,6 +279,21 @@ if [ $elapsed -ge $WINDOW_WAIT_TIMEOUT ]; then
   exit 1
 fi
 
+# Resize window to App Store dimensions (points → 2x pixels on Retina)
+echo "Resizing window to ${SCREENSHOT_WIDTH}x${SCREENSHOT_HEIGHT} points (→ $((SCREENSHOT_WIDTH * 2))x$((SCREENSHOT_HEIGHT * 2)) pixels on Retina)..."
+resize_window "$SCREENSHOT_WIDTH" "$SCREENSHOT_HEIGHT"
+
+# Verify the resize worked
+bounds=$(get_window_bounds)
+if [ -n "$bounds" ]; then
+  IFS=',' read -r x y w h <<< "$bounds"
+  echo "Window resized to: ${w}x${h}"
+  if [ "$w" -ne "$SCREENSHOT_WIDTH" ] || [ "$h" -ne "$SCREENSHOT_HEIGHT" ]; then
+    echo "Warning: Window size (${w}x${h}) doesn't match target (${SCREENSHOT_WIDTH}x${SCREENSHOT_HEIGHT})"
+    echo "This may be due to minimum window size constraints in the app."
+  fi
+fi
+
 # Wait for app to fully render
 echo "Waiting for app to render..."
 sleep 3
@@ -211,46 +302,55 @@ echo ""
 echo "Capturing screenshots..."
 echo ""
 
-# 1. Dashboard (initial screen)
+# Desktop layout uses NavigationRail on left side
+# Rail items: 0=Home, 1=Dives, 2=Sites, 3=Trips, 4=Equipment, 5=Statistics
+
+# 1. Home/Dashboard (initial screen)
 capture_screenshot "dashboard"
 
 # 2. Dives
 echo "→ Navigating to Dives"
-click_bottom_nav 1
-sleep 1
+click_nav_rail 1
+sleep 2
 capture_screenshot "dive_list"
 
-# 3. Sites
-echo "→ Navigating to Sites"
-click_bottom_nav 2
-sleep 1
-capture_screenshot "sites_list"
-
-# 4. More menu
-echo "→ Navigating to More"
-click_bottom_nav 4
-sleep 1
-capture_screenshot "more_menu"
-
-# 5. Try Equipment (first item in More menu)
-echo "→ Navigating to Equipment"
+# 3. Dive Detail - click on first dive in the list
+echo "→ Selecting first dive for detail view"
 bounds=$(get_window_bounds)
 if [ -n "$bounds" ]; then
   IFS=',' read -r wx wy ww wh <<< "$bounds"
-  # Click first menu item (Equipment) - approximately 150px from top
-  click_at $((ww / 2)) 150
-  sleep 1.5
-  capture_screenshot "equipment"
-
-  # 6. Back to More, then Statistics
-  echo "→ Navigating to Statistics"
-  click_bottom_nav 4
-  sleep 0.5
-  # Click second menu item (Statistics) - approximately 220px from top
-  click_at $((ww / 2)) 220
-  sleep 1.5
-  capture_screenshot "statistics"
+  # Master-detail layout: NavigationRail (~80px) | List (~300px) | Detail (rest)
+  # Click in the LIST pane, not the detail pane
+  # List pane starts at ~80px and is ~300px wide, so center is ~230px from left
+  list_x=230
+  click_at "$list_x" 150
+  sleep 2
+  capture_screenshot "dive_detail"
 fi
+
+# 4. Sites
+echo "→ Navigating to Sites"
+click_nav_rail 2
+sleep 2
+capture_screenshot "sites_list"
+
+# 5. Trips
+echo "→ Navigating to Trips"
+click_nav_rail 3
+sleep 2
+capture_screenshot "trips"
+
+# 6. Equipment
+echo "→ Navigating to Equipment"
+click_nav_rail 4
+sleep 2
+capture_screenshot "equipment"
+
+# 7. Statistics
+echo "→ Navigating to Statistics"
+click_nav_rail 5
+sleep 2
+capture_screenshot "statistics"
 
 echo ""
 echo "=========================================="
