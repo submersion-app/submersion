@@ -98,6 +98,9 @@ dev_dependencies:
 dependency_overrides:
   flutter_blue_plus_winrt:
     path: third_party/flutter_blue_plus_winrt
+  # Pin to 9.4.5 to avoid CNAuthorizationStatusLimited compile error
+  # See: https://github.com/Baseflow/flutter-permission-handler/issues/1450
+  permission_handler_apple: 9.4.5
 
 flutter:
   uses-material-design: true
