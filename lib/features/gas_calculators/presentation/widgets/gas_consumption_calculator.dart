@@ -52,239 +52,245 @@ class GasConsumptionCalculator extends ConsumerWidget {
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Input card
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Dive Parameters',
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Depth slider - displays in user's unit, stores in meters
-                  _buildSliderSection(
-                    context,
-                    icon: Icons.arrow_downward,
-                    label: 'Average Depth',
-                    value: displayDepth,
-                    unit: depthSymbol,
-                    min: minDepthDisplay,
-                    max: maxDepthDisplay,
-                    divisions: isMetricDepth ? 45 : 150,
-                    onChanged: (value) {
-                      ref.read(consumptionDepthProvider.notifier).state = units
-                          .depthToMeters(value);
-                    },
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Time slider
-                  _buildSliderSection(
-                    context,
-                    icon: Icons.timer,
-                    label: 'Dive Time',
-                    value: time.toDouble(),
-                    unit: 'min',
-                    min: 5,
-                    max: 90,
-                    divisions: 85,
-                    onChanged: (value) {
-                      ref.read(consumptionTimeProvider.notifier).state = value
-                          .toInt();
-                    },
-                  ),
-                  const SizedBox(height: 20),
-
-                  // SAC rate slider
-                  _buildSliderSection(
-                    context,
-                    icon: Icons.air,
-                    label: 'SAC Rate',
-                    value: sac,
-                    unit: 'L/min',
-                    min: 8,
-                    max: 30,
-                    divisions: 22,
-                    onChanged: (value) {
-                      ref.read(consumptionSacProvider.notifier).state = value;
-                    },
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Tank size selector
-                  Text(
-                    'Tank Size',
-                    style: textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 700),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Input card
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      for (final size in tankSizes)
-                        _buildTankChip(
-                          context,
-                          ref,
-                          size,
-                          displayTankSize.round() == size.round(),
-                          volumeSymbol,
-                          isMetricVolume,
-                          units,
+                      Text(
+                        'Dive Parameters',
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
                         ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
+                      ),
+                      const SizedBox(height: 16),
 
-          // Results card
-          Card(
-            color: result.exceedsTank
-                ? colorScheme.errorContainer
-                : colorScheme.primaryContainer,
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  Text(
-                    'Gas Consumption',
-                    style: textTheme.titleMedium?.copyWith(
-                      color: result.exceedsTank
-                          ? colorScheme.onErrorContainer
-                          : colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildResultColumn(
+                      // Depth slider - displays in user's unit, stores in meters
+                      _buildSliderSection(
                         context,
-                        label: 'Volume',
-                        value: displayVolume.toStringAsFixed(0),
-                        unit: volumeSymbol,
-                        isError: result.exceedsTank,
+                        icon: Icons.arrow_downward,
+                        label: 'Average Depth',
+                        value: displayDepth,
+                        unit: depthSymbol,
+                        min: minDepthDisplay,
+                        max: maxDepthDisplay,
+                        divisions: isMetricDepth ? 45 : 150,
+                        onChanged: (value) {
+                          ref.read(consumptionDepthProvider.notifier).state =
+                              units.depthToMeters(value);
+                        },
                       ),
-                      Container(
-                        width: 1,
-                        height: 60,
-                        color:
-                            (result.exceedsTank
-                                    ? colorScheme.onErrorContainer
-                                    : colorScheme.onPrimaryContainer)
-                                .withValues(alpha: 0.3),
-                      ),
-                      _buildResultColumn(
+                      const SizedBox(height: 20),
+
+                      // Time slider
+                      _buildSliderSection(
                         context,
-                        label: 'Pressure',
-                        value: displayPressure.toStringAsFixed(0),
-                        unit: pressureSymbol,
-                        isError: result.exceedsTank,
+                        icon: Icons.timer,
+                        label: 'Dive Time',
+                        value: time.toDouble(),
+                        unit: 'min',
+                        min: 5,
+                        max: 90,
+                        divisions: 85,
+                        onChanged: (value) {
+                          ref.read(consumptionTimeProvider.notifier).state =
+                              value.toInt();
+                        },
+                      ),
+                      const SizedBox(height: 20),
+
+                      // SAC rate slider
+                      _buildSliderSection(
+                        context,
+                        icon: Icons.air,
+                        label: 'SAC Rate',
+                        value: sac,
+                        unit: 'L/min',
+                        min: 8,
+                        max: 30,
+                        divisions: 22,
+                        onChanged: (value) {
+                          ref.read(consumptionSacProvider.notifier).state =
+                              value;
+                        },
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Tank size selector
+                      Text(
+                        'Tank Size',
+                        style: textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          for (final size in tankSizes)
+                            _buildTankChip(
+                              context,
+                              ref,
+                              size,
+                              displayTankSize.round() == size.round(),
+                              volumeSymbol,
+                              isMetricVolume,
+                              units,
+                            ),
+                        ],
                       ),
                     ],
                   ),
-                  if (result.exceedsTank) ...[
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: colorScheme.error.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Results card
+              Card(
+                color: result.exceedsTank
+                    ? colorScheme.errorContainer
+                    : colorScheme.primaryContainer,
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Gas Consumption',
+                        style: textTheme.titleMedium?.copyWith(
+                          color: result.exceedsTank
+                              ? colorScheme.onErrorContainer
+                              : colorScheme.onPrimaryContainer,
+                        ),
                       ),
-                      child: Row(
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          Icon(Icons.warning, color: colorScheme.error),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'Consumption exceeds a ${maxFillPressure.toStringAsFixed(0)} $pressureSymbol fill! '
-                              'Reduce dive time or depth.',
-                              style: textTheme.bodySmall?.copyWith(
-                                color: colorScheme.error,
-                                fontWeight: FontWeight.w500,
+                          _buildResultColumn(
+                            context,
+                            label: 'Volume',
+                            value: displayVolume.toStringAsFixed(0),
+                            unit: volumeSymbol,
+                            isError: result.exceedsTank,
+                          ),
+                          Container(
+                            width: 1,
+                            height: 60,
+                            color:
+                                (result.exceedsTank
+                                        ? colorScheme.onErrorContainer
+                                        : colorScheme.onPrimaryContainer)
+                                    .withValues(alpha: 0.3),
+                          ),
+                          _buildResultColumn(
+                            context,
+                            label: 'Pressure',
+                            value: displayPressure.toStringAsFixed(0),
+                            unit: pressureSymbol,
+                            isError: result.exceedsTank,
+                          ),
+                        ],
+                      ),
+                      if (result.exceedsTank) ...[
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: colorScheme.error.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.warning, color: colorScheme.error),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Consumption exceeds a ${maxFillPressure.toStringAsFixed(0)} $pressureSymbol fill! '
+                                  'Reduce dive time or depth.',
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.error,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
                               ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Breakdown card
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.calculate,
+                            size: 20,
+                            color: colorScheme.primary,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Calculation Breakdown',
+                            style: textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Breakdown card
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.calculate,
-                        size: 20,
-                        color: colorScheme.primary,
+                      const SizedBox(height: 12),
+                      _buildBreakdownRow(
+                        context,
+                        'Ambient pressure at ${displayDepth.toStringAsFixed(0)}$depthSymbol',
+                        '${((depth / 10) + 1).toStringAsFixed(2)} ATM',
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Calculation Breakdown',
-                        style: textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                      _buildBreakdownRow(
+                        context,
+                        'Gas consumption at depth',
+                        '${units.convertVolume(sac * ((depth / 10) + 1)).toStringAsFixed(1)} $volumeSymbol/min',
+                      ),
+                      _buildBreakdownRow(
+                        context,
+                        'Total gas for $time minutes',
+                        '${displayVolume.toStringAsFixed(0)} $volumeSymbol',
+                      ),
+                      _buildBreakdownRow(
+                        context,
+                        'Tank capacity (${displayTankSize.toStringAsFixed(0)}$volumeSymbol @ ${maxFillPressure.toStringAsFixed(0)} $pressureSymbol)',
+                        '${units.convertVolume(tankSize * 200).toStringAsFixed(0)} $volumeSymbol',
+                      ),
+                      const Divider(height: 24),
+                      _buildBreakdownRow(
+                        context,
+                        'Remaining gas',
+                        '${units.convertVolume((tankSize * 200) - result.liters).toStringAsFixed(0)} $volumeSymbol '
+                            '(${units.convertPressure(200 - result.bar).toStringAsFixed(0)} $pressureSymbol)',
+                        isHighlight: true,
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  _buildBreakdownRow(
-                    context,
-                    'Ambient pressure at ${displayDepth.toStringAsFixed(0)}$depthSymbol',
-                    '${((depth / 10) + 1).toStringAsFixed(2)} ATM',
-                  ),
-                  _buildBreakdownRow(
-                    context,
-                    'Gas consumption at depth',
-                    '${units.convertVolume(sac * ((depth / 10) + 1)).toStringAsFixed(1)} $volumeSymbol/min',
-                  ),
-                  _buildBreakdownRow(
-                    context,
-                    'Total gas for $time minutes',
-                    '${displayVolume.toStringAsFixed(0)} $volumeSymbol',
-                  ),
-                  _buildBreakdownRow(
-                    context,
-                    'Tank capacity (${displayTankSize.toStringAsFixed(0)}$volumeSymbol @ ${maxFillPressure.toStringAsFixed(0)} $pressureSymbol)',
-                    '${units.convertVolume(tankSize * 200).toStringAsFixed(0)} $volumeSymbol',
-                  ),
-                  const Divider(height: 24),
-                  _buildBreakdownRow(
-                    context,
-                    'Remaining gas',
-                    '${units.convertVolume((tankSize * 200) - result.liters).toStringAsFixed(0)} $volumeSymbol '
-                        '(${units.convertPressure(200 - result.bar).toStringAsFixed(0)} $pressureSymbol)',
-                    isHighlight: true,
-                  ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

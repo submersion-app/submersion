@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/utils/unit_formatter.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../providers/dashboard_providers.dart';
 
 /// Card showing personal dive records in a horizontal scrollable format
@@ -11,6 +13,8 @@ class PersonalRecordsCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final recordsAsync = ref.watch(personalRecordsProvider);
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
     final theme = Theme.of(context);
 
     return recordsAsync.when(
@@ -23,11 +27,14 @@ class PersonalRecordsCard extends ConsumerWidget {
 
         // Deepest dive
         if (records.deepestDive != null) {
+          final displayDepth = units.convertDepth(
+            records.deepestDive!.maxDepth!,
+          );
           recordWidgets.add(
             _RecordChip(
               icon: Icons.arrow_downward,
               label: 'Deepest',
-              value: '${records.deepestDive!.maxDepth!.toStringAsFixed(1)}m',
+              value: '${displayDepth.toStringAsFixed(1)}${units.depthSymbol}',
               subtitle: records.deepestDive!.site?.name,
               color: Colors.indigo,
               onTap: () => context.push('/dives/${records.deepestDive!.id}'),
@@ -51,11 +58,15 @@ class PersonalRecordsCard extends ConsumerWidget {
 
         // Coldest dive
         if (records.coldestDive != null) {
+          final displayTemp = units.convertTemperature(
+            records.coldestDive!.waterTemp!,
+          );
           recordWidgets.add(
             _RecordChip(
               icon: Icons.ac_unit,
               label: 'Coldest',
-              value: '${records.coldestDive!.waterTemp!.toStringAsFixed(0)}°C',
+              value:
+                  '${displayTemp.toStringAsFixed(0)}${units.temperatureSymbol}',
               subtitle: records.coldestDive!.site?.name,
               color: Colors.blue,
               onTap: () => context.push('/dives/${records.coldestDive!.id}'),
@@ -65,11 +76,15 @@ class PersonalRecordsCard extends ConsumerWidget {
 
         // Warmest dive
         if (records.warmestDive != null) {
+          final displayTemp = units.convertTemperature(
+            records.warmestDive!.waterTemp!,
+          );
           recordWidgets.add(
             _RecordChip(
               icon: Icons.whatshot,
               label: 'Warmest',
-              value: '${records.warmestDive!.waterTemp!.toStringAsFixed(0)}°C',
+              value:
+                  '${displayTemp.toStringAsFixed(0)}${units.temperatureSymbol}',
               subtitle: records.warmestDive!.site?.name,
               color: Colors.orange,
               onTap: () => context.push('/dives/${records.warmestDive!.id}'),

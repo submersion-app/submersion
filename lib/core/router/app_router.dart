@@ -110,7 +110,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
           // Planning Hub with ShellRoute for master/detail on wide screens
           ShellRoute(
-            builder: (context, state, child) => PlanningShell(child: child),
+            pageBuilder: (context, state, child) =>
+                NoTransitionPage(child: PlanningShell(child: child)),
             routes: [
               GoRoute(
                 path: '/planning',
