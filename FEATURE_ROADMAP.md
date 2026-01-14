@@ -5,7 +5,7 @@
 > **Current Version:** 1.1.0 (v1.1 Complete)
 > **Status:** v1.0 ✅ COMPLETE | v1.1 ✅ COMPLETE | v1.5 🚧 In Progress
 >
-> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete | Search & Filtering (Category 10.1) ✅ Complete | Deco Calculator (Category 11.2) ✅ Complete | Gas Calculators (Category 11.3) ✅ Complete
+> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete | Search & Filtering (Category 10.1) ✅ Complete | Tools & Calculators (Category 11) ✅ Complete
 
 ---
 
@@ -776,6 +776,20 @@
 
 # Category 11: Planning & Calculators
 
+## 11.0 Tools Landing Page
+
+| Feature | Status | Phase | Notes |
+|---------|--------|-------|-------|
+| Tools hub page | ✅ Implemented | v1.5 | Unified entry point at `/tools` |
+| Calculator navigation | ✅ Implemented | v1.5 | Cards for Deco, Gas, Weight calculators |
+
+**v1.5 Tasks:**
+- [x] Tools landing page at `/tools` with card-based navigation
+- [x] NavigationRail "Calculator" destination links to Tools page
+- [x] Consolidated "Tools" entry in More menu (mobile)
+
+---
+
 ## 11.1 Dive Planner
 
 | Feature | Status | Phase | Notes |
@@ -1349,5 +1363,5 @@
 
 ---
 
-**Document Version:** 2.7
+**Document Version:** 2.8
 **Last Updated:** 2026-01-14
