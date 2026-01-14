@@ -31,6 +31,11 @@ class QuickActionsCard extends StatelessWidget {
                   icon: const Icon(Icons.add),
                   label: const Text('Log Dive'),
                 ),
+                FilledButton.tonalIcon(
+                  onPressed: () => context.go('/planner'),
+                  icon: const Icon(Icons.edit_calendar),
+                  label: const Text('Plan Dive'),
+                ),
                 OutlinedButton.icon(
                   onPressed: () => context.go('/statistics'),
                   icon: const Icon(Icons.bar_chart),

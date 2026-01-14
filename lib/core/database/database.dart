@@ -150,6 +150,10 @@ class Dives extends Table {
   IntColumn get scrubberRemainingMinutes =>
       integer().nullable()(); // Remaining at dive start
 
+  // Dive planner flag (v1.5)
+  BoolColumn get isPlanned =>
+      boolean().withDefault(const Constant(false))(); // True for planned dives
+
   // Primary computer used for this dive
   TextColumn get computerId =>
       text().nullable().references(DiveComputers, #id)();
@@ -755,7 +759,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration {
@@ -955,6 +959,12 @@ class AppDatabase extends _$AppDatabase {
           );
           await customStatement(
             'ALTER TABLE dive_profiles ADD COLUMN pp_o2 REAL',
+          );
+        }
+        if (from < 12) {
+          // Add isPlanned column for dive planner feature
+          await customStatement(
+            'ALTER TABLE dives ADD COLUMN is_planned INTEGER NOT NULL DEFAULT 0',
           );
         }
       },
