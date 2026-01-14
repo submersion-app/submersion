@@ -3,7 +3,9 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/utils/unit_formatter.dart';
 import '../../../dive_log/domain/entities/dive.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../providers/dashboard_providers.dart';
 
 /// A card showing recent dives with compact list items
@@ -13,6 +15,8 @@ class RecentDivesCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final recentDivesAsync = ref.watch(recentDivesProvider);
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
     final theme = Theme.of(context);
 
     return Card(
@@ -44,7 +48,7 @@ class RecentDivesCard extends ConsumerWidget {
                 }
                 return Column(
                   children: dives
-                      .map((dive) => _DiveListTile(dive: dive))
+                      .map((dive) => _DiveListTile(dive: dive, units: units))
                       .toList(),
                 );
               },
@@ -106,8 +110,9 @@ class RecentDivesCard extends ConsumerWidget {
 
 class _DiveListTile extends StatelessWidget {
   final Dive dive;
+  final UnitFormatter units;
 
-  const _DiveListTile({required this.dive});
+  const _DiveListTile({required this.dive, required this.units});
 
   @override
   Widget build(BuildContext context) {
@@ -168,7 +173,7 @@ class _DiveListTile extends StatelessWidget {
               children: [
                 if (dive.maxDepth != null)
                   Text(
-                    '${dive.maxDepth!.toStringAsFixed(1)}m',
+                    '${units.convertDepth(dive.maxDepth!).toStringAsFixed(1)}${units.depthSymbol}',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w500,
                     ),

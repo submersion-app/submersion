@@ -32,168 +32,173 @@ class ModCalculator extends ConsumerWidget {
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Input card
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Input Parameters',
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // O2 percentage slider
-                  _buildSliderSection(
-                    context,
-                    label: 'Oxygen (O₂)',
-                    value: o2,
-                    unit: '%',
-                    min: 21,
-                    max: 100,
-                    divisions: 79,
-                    onChanged: (value) {
-                      ref.read(modO2Provider.notifier).state = value;
-                    },
-                  ),
-                  const SizedBox(height: 24),
-
-                  // ppO2 limit selector
-                  Text(
-                    'ppO₂ Limit',
-                    style: textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 700),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Input card
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      for (final limit in [1.2, 1.4, 1.6])
-                        Expanded(
-                          child: Padding(
-                            padding: EdgeInsets.only(
-                              right: limit != 1.6 ? 8 : 0,
-                            ),
-                            child: _buildPpO2Chip(
-                              context,
-                              ref,
-                              limit,
-                              ppO2 == limit,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _getPpO2Description(ppO2),
-                    style: textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Result card
-          Card(
-            color: colorScheme.primaryContainer,
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  Text(
-                    'Maximum Operating Depth',
-                    style: textTheme.titleMedium?.copyWith(
-                      color: colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    '${displayMod.toStringAsFixed(1)} $primaryUnit',
-                    style: textTheme.displayMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                  Text(
-                    '(${secondaryMod.toStringAsFixed(0)} $secondaryUnit)',
-                    style: textTheme.titleMedium?.copyWith(
-                      color: colorScheme.onPrimaryContainer.withValues(
-                        alpha: 0.7,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  // Warning thresholds stay in meters (internal calculation)
-                  Icon(
-                    mod < 10
-                        ? Icons.warning
-                        : mod < 30
-                        ? Icons.info
-                        : Icons.check_circle,
-                    size: 32,
-                    color: mod < 10
-                        ? Colors.orange
-                        : mod < 30
-                        ? colorScheme.onPrimaryContainer
-                        : Colors.green,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Info card
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.info_outline,
-                        size: 20,
-                        color: colorScheme.primary,
-                      ),
-                      const SizedBox(width: 8),
                       Text(
-                        'About MOD',
-                        style: textTheme.titleSmall?.copyWith(
+                        'Input Parameters',
+                        style: textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
                       ),
+                      const SizedBox(height: 16),
+
+                      // O2 percentage slider
+                      _buildSliderSection(
+                        context,
+                        label: 'Oxygen (O₂)',
+                        value: o2,
+                        unit: '%',
+                        min: 21,
+                        max: 100,
+                        divisions: 79,
+                        onChanged: (value) {
+                          ref.read(modO2Provider.notifier).state = value;
+                        },
+                      ),
+                      const SizedBox(height: 24),
+
+                      // ppO2 limit selector
+                      Text(
+                        'ppO₂ Limit',
+                        style: textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          for (final limit in [1.2, 1.4, 1.6])
+                            Expanded(
+                              child: Padding(
+                                padding: EdgeInsets.only(
+                                  right: limit != 1.6 ? 8 : 0,
+                                ),
+                                child: _buildPpO2Chip(
+                                  context,
+                                  ref,
+                                  limit,
+                                  ppO2 == limit,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _getPpO2Description(ppO2),
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'MOD is the deepest you can safely dive on a specific gas mix '
-                    'without exceeding oxygen toxicity limits.\n\n'
-                    '• 1.4 bar ppO₂: Recommended working limit\n'
-                    '• 1.6 bar ppO₂: Maximum deco/emergency limit\n\n'
-                    'Higher O₂ = shallower MOD = longer NDL\n'
-                    'Lower O₂ = deeper MOD = shorter NDL',
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
+              const SizedBox(height: 16),
+
+              // Result card
+              Card(
+                color: colorScheme.primaryContainer,
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Maximum Operating Depth',
+                        style: textTheme.titleMedium?.copyWith(
+                          color: colorScheme.onPrimaryContainer,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        '${displayMod.toStringAsFixed(1)} $primaryUnit',
+                        style: textTheme.displayMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onPrimaryContainer,
+                        ),
+                      ),
+                      Text(
+                        '(${secondaryMod.toStringAsFixed(0)} $secondaryUnit)',
+                        style: textTheme.titleMedium?.copyWith(
+                          color: colorScheme.onPrimaryContainer.withValues(
+                            alpha: 0.7,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Warning thresholds stay in meters (internal calculation)
+                      Icon(
+                        mod < 10
+                            ? Icons.warning
+                            : mod < 30
+                            ? Icons.info
+                            : Icons.check_circle,
+                        size: 32,
+                        color: mod < 10
+                            ? Colors.orange
+                            : mod < 30
+                            ? colorScheme.onPrimaryContainer
+                            : Colors.green,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Info card
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            size: 20,
+                            color: colorScheme.primary,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'About MOD',
+                            style: textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'MOD is the deepest you can safely dive on a specific gas mix '
+                        'without exceeding oxygen toxicity limits.\n\n'
+                        '• 1.4 bar ppO₂: Recommended working limit\n'
+                        '• 1.6 bar ppO₂: Maximum deco/emergency limit\n\n'
+                        'Higher O₂ = shallower MOD = longer NDL\n'
+                        'Lower O₂ = deeper MOD = shorter NDL',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

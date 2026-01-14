@@ -38,181 +38,189 @@ class BestMixCalculator extends ConsumerWidget {
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Input card
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Target Dive',
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Depth slider - displays in user's unit, stores in meters
-                  _buildSliderSection(
-                    context,
-                    icon: Icons.arrow_downward,
-                    label: 'Target Depth',
-                    value: displayDepth,
-                    unit: depthSymbol,
-                    min: minDepthDisplay,
-                    max: maxDepthDisplay,
-                    divisions: isMetric ? 54 : 180, // 1m or 1ft increments
-                    onChanged: (value) {
-                      // Convert display unit back to meters for storage
-                      ref.read(bestMixDepthProvider.notifier).state = units
-                          .depthToMeters(value);
-                    },
-                  ),
-                  const SizedBox(height: 24),
-
-                  // ppO2 limit selector
-                  Text(
-                    'ppO₂ Limit',
-                    style: textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 700),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Input card
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      for (final limit in [1.2, 1.4, 1.6])
-                        Expanded(
-                          child: Padding(
-                            padding: EdgeInsets.only(
-                              right: limit != 1.6 ? 8 : 0,
-                            ),
-                            child: _buildPpO2Chip(
-                              context,
-                              ref,
-                              limit,
-                              ppO2 == limit,
-                            ),
-                          ),
+                      Text(
+                        'Target Dive',
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
                         ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Depth slider - displays in user's unit, stores in meters
+                      _buildSliderSection(
+                        context,
+                        icon: Icons.arrow_downward,
+                        label: 'Target Depth',
+                        value: displayDepth,
+                        unit: depthSymbol,
+                        min: minDepthDisplay,
+                        max: maxDepthDisplay,
+                        divisions: isMetric ? 54 : 180, // 1m or 1ft increments
+                        onChanged: (value) {
+                          // Convert display unit back to meters for storage
+                          ref.read(bestMixDepthProvider.notifier).state = units
+                              .depthToMeters(value);
+                        },
+                      ),
+                      const SizedBox(height: 24),
+
+                      // ppO2 limit selector
+                      Text(
+                        'ppO₂ Limit',
+                        style: textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          for (final limit in [1.2, 1.4, 1.6])
+                            Expanded(
+                              child: Padding(
+                                padding: EdgeInsets.only(
+                                  right: limit != 1.6 ? 8 : 0,
+                                ),
+                                child: _buildPpO2Chip(
+                                  context,
+                                  ref,
+                                  limit,
+                                  ppO2 == limit,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
                     ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
-          const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-          // Result card
-          Card(
-            color: colorScheme.primaryContainer,
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  Text(
-                    'Best Oxygen Mix',
-                    style: textTheme.titleMedium?.copyWith(
-                      color: colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    '${clampedO2.toStringAsFixed(0)}%',
-                    style: textTheme.displayLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: colorScheme.onPrimaryContainer.withValues(
-                        alpha: 0.1,
+              // Result card
+              Card(
+                color: colorScheme.primaryContainer,
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Best Oxygen Mix',
+                        style: textTheme.titleMedium?.copyWith(
+                          color: colorScheme.onPrimaryContainer,
+                        ),
                       ),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      suggestion,
-                      style: textTheme.titleMedium?.copyWith(
-                        color: colorScheme.onPrimaryContainer,
-                        fontWeight: FontWeight.w600,
+                      const SizedBox(height: 16),
+                      Text(
+                        '${clampedO2.toStringAsFixed(0)}%',
+                        style: textTheme.displayLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onPrimaryContainer,
+                        ),
                       ),
-                    ),
-                  ),
-                  if (!isAirOk) ...[
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.orange.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(8),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: colorScheme.onPrimaryContainer.withValues(
+                            alpha: 0.1,
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          suggestion,
+                          style: textTheme.titleMedium?.copyWith(
+                            color: colorScheme.onPrimaryContainer,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.warning_amber, color: Colors.orange),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'Depth exceeds air MOD at ${ppO2.toStringAsFixed(1)} bar. '
-                              'Consider using air or trimix.',
-                              style: textTheme.bodySmall?.copyWith(
-                                color: Colors.orange.shade900,
+                      if (!isAirOk) ...[
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.warning_amber,
+                                color: Colors.orange,
                               ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Depth exceeds air MOD at ${ppO2.toStringAsFixed(1)} bar. '
+                                  'Consider using air or trimix.',
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color: Colors.orange.shade900,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Common mixes reference
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.list_alt,
+                            size: 20,
+                            color: colorScheme.primary,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Common Mixes Reference',
+                            style: textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Common mixes reference
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.list_alt,
-                        size: 20,
-                        color: colorScheme.primary,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Common Mixes Reference',
-                        style: textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      const SizedBox(height: 12),
+                      _buildMixRow(context, 'Air', 21, ppO2, units),
+                      _buildMixRow(context, 'EAN32', 32, ppO2, units),
+                      _buildMixRow(context, 'EAN36', 36, ppO2, units),
+                      _buildMixRow(context, 'EAN40', 40, ppO2, units),
+                      _buildMixRow(context, 'EAN50', 50, ppO2, units),
+                      _buildMixRow(context, 'Oxygen', 100, ppO2, units),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  _buildMixRow(context, 'Air', 21, ppO2, units),
-                  _buildMixRow(context, 'EAN32', 32, ppO2, units),
-                  _buildMixRow(context, 'EAN36', 36, ppO2, units),
-                  _buildMixRow(context, 'EAN40', 40, ppO2, units),
-                  _buildMixRow(context, 'EAN50', 50, ppO2, units),
-                  _buildMixRow(context, 'Oxygen', 100, ppO2, units),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

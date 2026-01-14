@@ -147,41 +147,62 @@ class _DivePlannerPageState extends ConsumerState<DivePlannerPage>
   }
 
   Widget _buildPlanTab() {
-    return ListView(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
-      children: const [
-        // Settings section
-        PlanSettingsPanel(),
-        SizedBox(height: 16),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 700),
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Settings section
+              PlanSettingsPanel(),
+              SizedBox(height: 16),
 
-        // Tanks section
-        PlanTankList(),
-        SizedBox(height: 16),
+              // Tanks section
+              PlanTankList(),
+              SizedBox(height: 16),
 
-        // Segments section
-        SegmentList(),
-      ],
+              // Segments section
+              SegmentList(),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
   Widget _buildResultsTab() {
-    return ListView(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
-      children: const [
-        // Decompression info
-        DecoResultsPanel(),
-        SizedBox(height: 16),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 700),
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Decompression info
+              DecoResultsPanel(),
+              SizedBox(height: 16),
 
-        // Gas consumption
-        GasResultsPanel(),
-      ],
+              // Gas consumption
+              GasResultsPanel(),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
   Widget _buildProfileTab() {
-    return const Padding(
-      padding: EdgeInsets.all(16),
-      child: PlanProfileChart(),
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 700),
+          child: const PlanProfileChart(),
+        ),
+      ),
     );
   }
 

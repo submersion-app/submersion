@@ -112,4 +112,5 @@ Tables defined in `lib/core/database/database.dart`:
 
 ## Claude Specific Instructions
 - Use agents proactively
+- Anything displaying units should respect the active diver's unit settings
 - All Dart code should pass "dart format" with no changes

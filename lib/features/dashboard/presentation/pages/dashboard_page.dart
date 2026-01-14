@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import '../../../../core/utils/unit_formatter.dart';
 import '../../../dive_log/data/repositories/dive_repository_impl.dart';
 import '../../../dive_log/presentation/providers/dive_providers.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../providers/dashboard_providers.dart';
 import '../widgets/activity_status_row.dart';
 import '../widgets/alerts_card.dart';
@@ -19,6 +21,8 @@ class DashboardPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final statsAsync = ref.watch(diveStatisticsProvider);
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
 
     return Scaffold(
       body: SafeArea(
@@ -45,7 +49,7 @@ class DashboardPage extends ConsumerWidget {
                 const ActivityStatusRow(),
                 const SizedBox(height: 16),
                 // Key Stats Section
-                _buildStatsSection(context, statsAsync),
+                _buildStatsSection(context, statsAsync, units),
                 const SizedBox(height: 16),
                 // Personal Records Section
                 const PersonalRecordsCard(),
@@ -68,12 +72,13 @@ class DashboardPage extends ConsumerWidget {
   Widget _buildStatsSection(
     BuildContext context,
     AsyncValue<DiveStatistics> statsAsync,
+    UnitFormatter units,
   ) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isWide = screenWidth >= 600;
 
     return statsAsync.when(
-      data: (stats) => _buildStatsGrid(context, stats, isWide),
+      data: (stats) => _buildStatsGrid(context, stats, isWide, units),
       loading: () => _buildStatsGridLoading(isWide),
       error: (error, _) => _buildStatsGridError(context),
     );
@@ -83,7 +88,9 @@ class DashboardPage extends ConsumerWidget {
     BuildContext context,
     DiveStatistics stats,
     bool isWide,
+    UnitFormatter units,
   ) {
+    final displayMaxDepth = units.convertDepth(stats.maxDepth);
     final cards = [
       StatSummaryCard(
         icon: Icons.waves,
@@ -101,7 +108,7 @@ class DashboardPage extends ConsumerWidget {
         icon: Icons.arrow_downward,
         label: 'Max Depth',
         value: stats.maxDepth > 0
-            ? '${stats.maxDepth.toStringAsFixed(1)}m'
+            ? '${displayMaxDepth.toStringAsFixed(1)}${units.depthSymbol}'
             : '-',
         iconColor: Colors.indigo,
       ),
