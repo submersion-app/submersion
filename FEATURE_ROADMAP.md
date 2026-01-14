@@ -5,7 +5,7 @@
 > **Current Version:** 1.1.0 (v1.1 Complete)
 > **Status:** v1.0 ✅ COMPLETE | v1.1 ✅ COMPLETE | v1.5 🚧 In Progress
 >
-> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete | Search & Filtering (Category 10.1) ✅ Complete | Deco Calculator (Category 11.2) ✅ Complete
+> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete | Search & Filtering (Category 10.1) ✅ Complete | Deco Calculator (Category 11.2) ✅ Complete | Gas Calculators (Category 11.3) ✅ Complete
 
 ---
 
@@ -809,18 +809,18 @@
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| MOD calculator | ✅ Implemented | MVP | In GasMix entity |
+| MOD calculator | ✅ Implemented | MVP | In GasMix entity + dedicated calculator |
 | EAD / END calculator | ✅ Implemented | MVP | In GasMix entity |
-| Best-mix calculator | 📋 Planned | v1.5 | Target depth → O₂% |
-| Gas consumption calculator | 📋 Planned | v1.5 | Based on SAC, depth, time |
-| Rock-bottom calculator | 📋 Planned | v1.5 | Emergency gas reserve |
+| Best-mix calculator | ✅ Implemented | v1.5 | Target depth → O₂% |
+| Gas consumption calculator | ✅ Implemented | v1.5 | Based on SAC, depth, time |
+| Rock-bottom calculator | ✅ Implemented | v1.5 | Emergency gas reserve |
 
 **v1.5 Tasks:**
-- [ ] Calculators page with tabs: MOD, Best Mix, Gas Consumption, Rock Bottom
-- [ ] MOD: Input O₂%, ppO₂ limit → Output MOD
-- [ ] Best Mix: Input target depth, ppO₂ limit → Output ideal O₂%
-- [ ] Gas Consumption: Input depth, time, SAC, tank size → Output pressure consumed
-- [ ] Rock Bottom: Input depth, ascent rate, SAC, buddy SAC, tank size → Output min reserve pressure
+- [x] Calculators page with tabs: MOD, Best Mix, Gas Consumption, Rock Bottom - `lib/features/gas_calculators/`
+- [x] MOD: Input O₂%, ppO₂ limit → Output MOD (with feet conversion)
+- [x] Best Mix: Input target depth, ppO₂ limit → Output ideal O₂% (with common mix suggestions)
+- [x] Gas Consumption: Input depth, time, SAC, tank size → Output pressure consumed (with breakdown)
+- [x] Rock Bottom: Input depth, ascent rate, SAC, buddy SAC, tank size → Output min reserve pressure (buddy breathing scenario)
 
 ---
 

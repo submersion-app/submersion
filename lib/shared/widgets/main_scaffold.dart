@@ -18,6 +18,7 @@ class _MainScaffoldState extends State<MainScaffold> {
   static const _moreRoutes = [
     '/planner',
     '/tools',
+    '/tools/gas-calculators',
     '/equipment',
     '/statistics',
     '/buddies',
@@ -167,6 +168,14 @@ class _MainScaffoldState extends State<MainScaffold> {
               onTap: () {
                 Navigator.pop(context);
                 context.go('/tools/deco-calculator');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.science),
+              title: const Text('Gas Calculators'),
+              onTap: () {
+                Navigator.pop(context);
+                context.go('/tools/gas-calculators');
               },
             ),
             ListTile(
