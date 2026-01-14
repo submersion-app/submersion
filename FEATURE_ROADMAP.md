@@ -5,7 +5,7 @@
 > **Current Version:** 1.1.0 (v1.1 Complete)
 > **Status:** v1.0 ✅ COMPLETE | v1.1 ✅ COMPLETE | v1.5 🚧 In Progress
 >
-> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete - multi-level planning, deco calculations, gas consumption, profile visualization
+> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete | Search & Filtering (Category 10.1) ✅ Complete | Deco Calculator (Category 11.2) ✅ Complete
 
 ---
 
@@ -703,14 +703,18 @@
 | Filter by date range | ✅ Implemented | MVP | |
 | Filter by location, depth | ✅ Implemented | MVP | |
 | Bulk delete with undo | ✅ Implemented | v1.0 | Multi-select mode |
-| Filter by tags, gas, gear | 📋 Planned | v1.5 | |
+| Filter by tags, gas, gear | ✅ Implemented | v1.5 | Multi-select equipment, gas mix O2%, rating, duration |
+| Advanced Search page | ✅ Implemented | v1.5 | Full-page search form at `/dives/search` |
+| Bulk export | ✅ Implemented | v1.5 | Export selected dives to CSV/UDDF/PDF |
+| Bulk edit | ✅ Implemented | v1.5 | Change trip, add/remove tags on multiple dives |
 | Saved filters ("Smart Logs") | 📋 Planned | v2.0 | Persistent filter sets |
 
-**v1.5 Tasks:**
-- [ ] Expand filter UI with all available criteria (tags, equipment, buddy, gas mix, certification)
-- [ ] "Advanced Search" page with all filter options
-- [ ] Bulk export (export selected dives to CSV/UDDF/PDF)
-- [ ] Bulk edit (change trip, add tag to multiple dives)
+**v1.5 Tasks (Complete):**
+- [x] Expand filter UI with all available criteria (buddy name, equipment, gas mix O2%, rating, duration)
+- [x] "Advanced Search" page with collapsible sections for all filter options
+- [x] Bulk export (export selected dives to CSV/UDDF/PDF from selection mode)
+- [x] Bulk edit (change trip, add/remove tags on multiple dives)
+- [x] Repository bulk methods (`bulkUpdateTrip`, `bulkAddTags`, `bulkRemoveTags`)
 
 **v2.0 Tasks:**
 - [ ] Save filter configurations as "Smart Logs"
@@ -789,14 +793,15 @@
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Real-time simulation | 📋 Planned | v1.5 | Interactive depth/time |
-| NDL, ceiling, tissue loading | 📋 Planned | v1.5 | Visual display |
+| Real-time simulation | ✅ Implemented | v1.5 | Interactive depth/time sliders |
+| NDL, ceiling, tissue loading | ✅ Implemented | v1.5 | Visual display with 16-compartment chart |
 
 **v1.5 Tasks:**
-- [ ] Deco Calculator page (separate from planner)
-- [ ] Sliders for depth, time, gas mix
-- [ ] Real-time display of: NDL, ceiling, TTS, tissue loading bar chart (16 compartments)
-- [ ] "Add to Planner" button to convert calc to plan
+- [x] Deco Calculator page (separate from planner) - `lib/features/deco_calculator/`
+- [x] Sliders for depth (0-60m), time (0-120min), gas mix (O2/He with presets)
+- [x] Real-time display of: NDL, ceiling, TTS, tissue loading bar chart (16 compartments)
+- [x] Gas safety warnings: ppO2, MOD, END with color-coded status
+- [x] "Add to Planner" button to convert calc to plan
 
 ---
 
@@ -1318,6 +1323,10 @@
 - [x] Dive planner with multi-level segments, deco schedules, gas consumption projections
 - [x] Quick Plan dialog for simple rectangular profiles
 - [x] Profile chart visualization of planned dives
+- [x] Expanded filter UI (buddy, equipment, gas mix O2%, rating, duration)
+- [x] Advanced Search page with full filter form (`/dives/search`)
+- [x] Bulk export from selection mode (CSV, PDF, UDDF)
+- [x] Bulk edit from selection mode (change trip, add/remove tags)
 - [ ] Performance with 5000+ dives
 
 ## v2.0 (Planned)
@@ -1340,5 +1349,5 @@
 
 ---
 
-**Document Version:** 2.6
+**Document Version:** 2.7
 **Last Updated:** 2026-01-14

@@ -17,6 +17,7 @@ class _MainScaffoldState extends State<MainScaffold> {
   // Routes that appear in the "More" menu on mobile
   static const _moreRoutes = [
     '/planner',
+    '/tools',
     '/equipment',
     '/statistics',
     '/buddies',
@@ -33,19 +34,20 @@ class _MainScaffoldState extends State<MainScaffold> {
     final location = GoRouterState.of(context).uri.path;
 
     if (isWideScreen) {
-      // Wide screen: Home, Planner, then all items in the rail
+      // Wide screen: Home, Planner, Calculator, then all items in the rail
       if (location.startsWith('/dashboard')) return 0;
       if (location.startsWith('/planner')) return 1;
-      if (location.startsWith('/dives')) return 2;
-      if (location.startsWith('/sites')) return 3;
-      if (location.startsWith('/trips')) return 4;
-      if (location.startsWith('/equipment')) return 5;
-      if (location.startsWith('/statistics')) return 6;
-      if (location.startsWith('/buddies')) return 7;
-      if (location.startsWith('/dive-centers')) return 8;
-      if (location.startsWith('/certifications')) return 9;
-      if (location.startsWith('/transfer')) return 10;
-      if (location.startsWith('/settings')) return 11;
+      if (location.startsWith('/tools')) return 2;
+      if (location.startsWith('/dives')) return 3;
+      if (location.startsWith('/sites')) return 4;
+      if (location.startsWith('/trips')) return 5;
+      if (location.startsWith('/equipment')) return 6;
+      if (location.startsWith('/statistics')) return 7;
+      if (location.startsWith('/buddies')) return 8;
+      if (location.startsWith('/dive-centers')) return 9;
+      if (location.startsWith('/certifications')) return 10;
+      if (location.startsWith('/transfer')) return 11;
+      if (location.startsWith('/settings')) return 12;
       return 0;
     } else {
       // Mobile: Dashboard, Dives, Sites, Trips, More
@@ -75,33 +77,36 @@ class _MainScaffoldState extends State<MainScaffold> {
           context.go('/planner');
           break;
         case 2:
-          context.go('/dives');
+          context.go('/tools/deco-calculator');
           break;
         case 3:
-          context.go('/sites');
+          context.go('/dives');
           break;
         case 4:
-          context.go('/trips');
+          context.go('/sites');
           break;
         case 5:
-          context.go('/equipment');
+          context.go('/trips');
           break;
         case 6:
-          context.go('/statistics');
+          context.go('/equipment');
           break;
         case 7:
-          context.go('/buddies');
+          context.go('/statistics');
           break;
         case 8:
-          context.go('/dive-centers');
+          context.go('/buddies');
           break;
         case 9:
-          context.go('/certifications');
+          context.go('/dive-centers');
           break;
         case 10:
-          context.go('/transfer');
+          context.go('/certifications');
           break;
         case 11:
+          context.go('/transfer');
+          break;
+        case 12:
           context.go('/settings');
           break;
       }
@@ -154,6 +159,14 @@ class _MainScaffoldState extends State<MainScaffold> {
               onTap: () {
                 Navigator.pop(context);
                 context.go('/planner');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.calculate),
+              title: const Text('Deco Calculator'),
+              onTap: () {
+                Navigator.pop(context);
+                context.go('/tools/deco-calculator');
               },
             ),
             ListTile(
@@ -268,6 +281,11 @@ class _MainScaffoldState extends State<MainScaffold> {
                   icon: Icon(Icons.edit_calendar_outlined),
                   selectedIcon: Icon(Icons.edit_calendar),
                   label: Text('Planner'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.calculate_outlined),
+                  selectedIcon: Icon(Icons.calculate),
+                  label: Text('Calculator'),
                 ),
                 NavigationRailDestination(
                   icon: Icon(Icons.scuba_diving_outlined),
