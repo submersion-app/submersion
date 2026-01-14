@@ -117,17 +117,21 @@ class Dives extends Table {
   RealColumn get otu => real().nullable()(); // OTU accumulated this dive
 
   // CCR Setpoints (v1.5) - in bar
-  RealColumn get setpointLow => real().nullable()(); // ~0.7 bar for descent/ascent
+  RealColumn get setpointLow =>
+      real().nullable()(); // ~0.7 bar for descent/ascent
   RealColumn get setpointHigh => real().nullable()(); // ~1.2-1.3 bar for bottom
   RealColumn get setpointDeco => real().nullable()(); // ~1.3-1.6 bar for deco
 
   // SCR Configuration (v1.5)
   TextColumn get scrType => text().nullable()(); // 'cmf', 'pascr', 'escr'
-  RealColumn get scrInjectionRate => real().nullable()(); // L/min at surface (CMF)
+  RealColumn get scrInjectionRate =>
+      real().nullable()(); // L/min at surface (CMF)
   RealColumn get scrAdditionRatio =>
       real().nullable()(); // e.g., 0.33 for 1:3 (PASCR)
-  TextColumn get scrOrificeSize => text().nullable()(); // '40', '50', '60' (Dolphin)
-  RealColumn get assumedVo2 => real().nullable()(); // Assumed O2 consumption L/min
+  TextColumn get scrOrificeSize =>
+      text().nullable()(); // '40', '50', '60' (Dolphin)
+  RealColumn get assumedVo2 =>
+      real().nullable()(); // Assumed O2 consumption L/min
 
   // Diluent/Supply Gas (v1.5) - quick reference for CCR/SCR
   RealColumn get diluentO2 => real().nullable()(); // Diluent/supply O2%
@@ -177,7 +181,8 @@ class DiveProfiles extends Table {
   IntColumn get ndl => integer().nullable()(); // no-deco limit in seconds
 
   // CCR/SCR rebreather data (v1.5)
-  RealColumn get setpoint => real().nullable()(); // Current setpoint at sample (bar)
+  RealColumn get setpoint =>
+      real().nullable()(); // Current setpoint at sample (bar)
   RealColumn get ppO2 => real().nullable()(); // Measured/calculated ppO2 (bar)
 
   @override
@@ -901,9 +906,7 @@ class AppDatabase extends _$AppDatabase {
           );
 
           // SCR Configuration
-          await customStatement(
-            'ALTER TABLE dives ADD COLUMN scr_type TEXT',
-          );
+          await customStatement('ALTER TABLE dives ADD COLUMN scr_type TEXT');
           await customStatement(
             'ALTER TABLE dives ADD COLUMN scr_injection_rate REAL',
           );
@@ -918,12 +921,8 @@ class AppDatabase extends _$AppDatabase {
           );
 
           // Diluent/Supply Gas
-          await customStatement(
-            'ALTER TABLE dives ADD COLUMN diluent_o2 REAL',
-          );
-          await customStatement(
-            'ALTER TABLE dives ADD COLUMN diluent_he REAL',
-          );
+          await customStatement('ALTER TABLE dives ADD COLUMN diluent_o2 REAL');
+          await customStatement('ALTER TABLE dives ADD COLUMN diluent_he REAL');
 
           // Loop FO2 measurements (SCR)
           await customStatement(

@@ -203,7 +203,8 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
         setpointHigh: dive.setpointHigh,
         setpointLow: dive.setpointLow,
         scrInjectionRate: dive.scrInjectionRate,
-        scrSupplyO2Percent: dive.diluentGas?.o2, // For SCR, diluent is the supply gas
+        scrSupplyO2Percent:
+            dive.diluentGas?.o2, // For SCR, diluent is the supply gas
         scrVo2: dive.assumedVo2 ?? 1.3,
       );
     } catch (e, stackTrace) {

@@ -1057,11 +1057,16 @@ class ProfileAnalysisService {
       }
 
       // Calculate CNS for this segment
-      totalCns += _o2ToxicityCalculator.calculateCnsForSegment(avgPpO2, duration);
+      totalCns += _o2ToxicityCalculator.calculateCnsForSegment(
+        avgPpO2,
+        duration,
+      );
 
       // Calculate OTU for this segment
-      totalOtu +=
-          _o2ToxicityCalculator.calculateOtuForSegment(avgPpO2, duration);
+      totalOtu += _o2ToxicityCalculator.calculateOtuForSegment(
+        avgPpO2,
+        duration,
+      );
 
       // Track time above thresholds
       if (avgPpO2 > _o2ToxicityCalculator.ppO2CriticalThreshold) {

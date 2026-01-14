@@ -67,7 +67,8 @@ class ScrSettingsPanel extends StatefulWidget {
     String? scrubberType,
     int? scrubberDurationMinutes,
     int? scrubberRemainingMinutes,
-  }) onChanged;
+  })
+  onChanged;
 
   const ScrSettingsPanel({
     super.key,
@@ -175,8 +176,9 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
       orificeSize: _orificeSizeController.text.isNotEmpty
           ? _orificeSizeController.text
           : null,
-      supplyGas:
-          supplyO2 != null ? GasMix(o2: supplyO2, he: supplyHe ?? 0) : null,
+      supplyGas: supplyO2 != null
+          ? GasMix(o2: supplyO2, he: supplyHe ?? 0)
+          : null,
       assumedVo2: double.tryParse(_assumedVo2Controller.text),
       loopO2Min: double.tryParse(_loopO2MinController.text),
       loopO2Max: double.tryParse(_loopO2MaxController.text),
@@ -202,10 +204,7 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
             // Header
             Row(
               children: [
-                Icon(
-                  Icons.sync_alt,
-                  color: theme.colorScheme.primary,
-                ),
+                Icon(Icons.sync_alt, color: theme.colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
                   'SCR Settings',
@@ -261,8 +260,9 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
                       suffixText: '%',
                       isDense: true,
                     ),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     onChanged: (_) {
                       setState(() {});
                       _notifyChange();
@@ -278,8 +278,9 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
                       suffixText: '%',
                       isDense: true,
                     ),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     onChanged: (_) {
                       setState(() {});
                       _notifyChange();
@@ -302,7 +303,10 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
             const SizedBox(height: 16),
 
             // Loop O₂ measurements (optional)
-            Text('Measured Loop O₂ (optional)', style: theme.textTheme.titleSmall),
+            Text(
+              'Measured Loop O₂ (optional)',
+              style: theme.textTheme.titleSmall,
+            ),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -314,8 +318,9 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
                       suffixText: '%',
                       isDense: true,
                     ),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     onChanged: (_) => _notifyChange(),
                   ),
                 ),
@@ -328,8 +333,9 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
                       suffixText: '%',
                       isDense: true,
                     ),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     onChanged: (_) => _notifyChange(),
                   ),
                 ),
@@ -342,8 +348,9 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
                       suffixText: '%',
                       isDense: true,
                     ),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     onChanged: (_) => _notifyChange(),
                   ),
                 ),
@@ -419,8 +426,9 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
                   isDense: true,
                   hintText: 'e.g., 8.0',
                 ),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 onChanged: (_) => _notifyChange(),
               ),
             ),
@@ -434,8 +442,9 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
                   isDense: true,
                   hintText: '1.30',
                 ),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 onChanged: (_) => _notifyChange(),
               ),
             ),
@@ -466,8 +475,9 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
                   isDense: true,
                   hintText: 'e.g., 0.33 (1:3)',
                 ),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 onChanged: (_) => _notifyChange(),
               ),
             ),
@@ -481,8 +491,9 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
                   isDense: true,
                   hintText: '1.30',
                 ),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 onChanged: (_) => _notifyChange(),
               ),
             ),
@@ -521,8 +532,9 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
                   isDense: true,
                   hintText: '1.30',
                 ),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 onChanged: (_) => _notifyChange(),
               ),
             ),
@@ -572,9 +584,7 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
     final supplyO2 = double.tryParse(_supplyO2Controller.text);
     final vo2 = double.tryParse(_assumedVo2Controller.text) ?? 1.3;
 
-    if (injectionRate == null ||
-        supplyO2 == null ||
-        injectionRate <= vo2) {
+    if (injectionRate == null || supplyO2 == null || injectionRate <= vo2) {
       return const SizedBox.shrink();
     }
 

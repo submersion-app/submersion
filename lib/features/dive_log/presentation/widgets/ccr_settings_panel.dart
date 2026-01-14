@@ -44,7 +44,8 @@ class CcrSettingsPanel extends StatefulWidget {
     int? scrubberDurationMinutes,
     int? scrubberRemainingMinutes,
     double? loopVolume,
-  }) onChanged;
+  })
+  onChanged;
 
   const CcrSettingsPanel({
     super.key,
@@ -153,10 +154,7 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
             // Header
             Row(
               children: [
-                Icon(
-                  Icons.loop,
-                  color: theme.colorScheme.primary,
-                ),
+                Icon(Icons.loop, color: theme.colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
                   'CCR Settings',
@@ -182,8 +180,9 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
                       isDense: true,
                       hintText: '0.70',
                     ),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     onChanged: (_) => _notifyChange(),
                   ),
                 ),
@@ -197,8 +196,9 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
                       isDense: true,
                       hintText: '1.30',
                     ),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     onChanged: (_) => _notifyChange(),
                   ),
                 ),
@@ -212,8 +212,9 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
                       isDense: true,
                       hintText: '1.60',
                     ),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     onChanged: (_) => _notifyChange(),
                   ),
                 ),
@@ -236,8 +237,9 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
                       suffixText: '%',
                       isDense: true,
                     ),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     onChanged: (_) {
                       setState(() {});
                       _notifyChange();
@@ -253,8 +255,9 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
                       suffixText: '%',
                       isDense: true,
                     ),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     onChanged: (_) {
                       setState(() {});
                       _notifyChange();
@@ -335,8 +338,9 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
                       isDense: true,
                       hintText: 'e.g., 6.0',
                     ),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     onChanged: (_) => _notifyChange(),
                   ),
                 ),

@@ -29,10 +29,7 @@ class DiveModeSelector extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Dive Mode',
-          style: Theme.of(context).textTheme.titleSmall,
-        ),
+        Text('Dive Mode', style: Theme.of(context).textTheme.titleSmall),
         const SizedBox(height: 8),
         SegmentedButton<DiveMode>(
           segments: DiveMode.values.map((mode) {
@@ -57,8 +54,8 @@ class DiveModeSelector extends StatelessWidget {
         Text(
           _getDescriptionForMode(selectedMode),
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
       ],
     );
