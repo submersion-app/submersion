@@ -219,11 +219,74 @@ class O2ToxicityCalculator {
     );
   }
 
-  /// Calculate ppO2 curve for a dive profile.
+  /// Calculate ppO2 curve for a dive profile (Open Circuit).
   ///
   /// Returns a list of ppO2 values corresponding to each depth point.
   List<double> calculatePpO2Curve(List<double> depths, double o2Fraction) {
     return depths.map((d) => calculatePpO2(d, o2Fraction)).toList();
+  }
+
+  /// Calculate ppO2 curve for a CCR dive profile.
+  ///
+  /// For CCR, ppO2 equals the setpoint (constant) throughout the dive.
+  /// Optionally uses different setpoints for different depth phases.
+  ///
+  /// [depths] - depth at each sample point
+  /// [setpointHigh] - working setpoint (used for bottom phase)
+  /// [setpointLow] - optional low setpoint for descent/ascent
+  /// [lowSetpointMaxDepth] - depth at which to switch from low to high setpoint
+  List<double> calculatePpO2CurveCCR(
+    List<double> depths, {
+    required double setpointHigh,
+    double? setpointLow,
+    double lowSetpointMaxDepth = 6.0,
+  }) {
+    if (setpointLow == null) {
+      // Single setpoint for entire dive
+      return List.filled(depths.length, setpointHigh);
+    }
+
+    // Variable setpoint based on depth phase
+    return depths.map((depth) {
+      // Use low setpoint for shallow depths (descent/ascent)
+      if (depth < lowSetpointMaxDepth) {
+        return setpointLow;
+      }
+      return setpointHigh;
+    }).toList();
+  }
+
+  /// Calculate ppO2 curve for an SCR dive profile.
+  ///
+  /// For SCR, ppO2 varies with depth and is based on the steady-state
+  /// loop FO2 which depends on injection rate and assumed VO2.
+  ///
+  /// Returns average ppO2 at each depth (between min and max workload values).
+  List<double> calculatePpO2CurveSCR(
+    List<double> depths, {
+    required double injectionRateLpm,
+    required double supplyO2Percent,
+    double vo2 = 1.3, // Average metabolic rate
+  }) {
+    // Calculate steady-state loop FO2
+    final supplyO2Fraction = supplyO2Percent / 100.0;
+
+    // Avoid division by zero
+    if (injectionRateLpm <= vo2) {
+      // Invalid configuration - return zeros (would cause hypoxia)
+      return List.filled(depths.length, 0.0);
+    }
+
+    // Steady-state loop FO2 formula:
+    // FO2 = (Qmix × Fmix - VO2) / (Qmix - VO2)
+    final loopFo2 =
+        (injectionRateLpm * supplyO2Fraction - vo2) / (injectionRateLpm - vo2);
+
+    // Calculate ppO2 at each depth using the loop FO2
+    return depths.map((depth) {
+      final ambientPressure = 1.0 + (depth / 10.0);
+      return ambientPressure * loopFo2;
+    }).toList();
   }
 
   /// Calculate CNS recovery after surface interval.

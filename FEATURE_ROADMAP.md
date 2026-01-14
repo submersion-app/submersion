@@ -1,11 +1,11 @@
 # Submersion Feature Roadmap
 ## Comprehensive Development Plan
 
-> **Last Updated:** 2026-01-04
+> **Last Updated:** 2026-01-14
 > **Current Version:** 1.1.0 (v1.1 Complete)
 > **Status:** v1.0 ✅ COMPLETE | v1.1 ✅ COMPLETE | v1.5 🚧 In Progress
 >
-> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete - SAC trends, temperature graphs, dive frequency, gas mix distribution
+> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete - setpoints, diluent gas, scrubber tracking, SCR injection rate, loop FO₂ calculation
 
 ---
 
@@ -317,9 +317,9 @@
 | TTS calculation | ✅ Implemented | v1.5 | Time To Surface with deco stops |
 | Deco stop schedule | ✅ Implemented | v1.5 | Stop depth/time with deep stop support |
 | Calculated vs DC ceiling | 📋 Planned | v1.5 | Compare app calc with computer |
-| OC/CCR support | 📋 Planned | v1.5 | Open Circuit / Closed Circuit Rebreather |
-| SCR support | 📋 Planned | v2.0 | Semi-Closed Rebreather |
-| Setpoints, diluent, bailout | 📋 Planned | v1.5 | CCR-specific fields |
+| OC/CCR support | ✅ Implemented | v1.5 | Open Circuit / Closed Circuit Rebreather |
+| SCR support | ✅ Implemented | v1.5 | Semi-Closed Rebreather (moved from v2.0) |
+| Setpoints, diluent, bailout | ✅ Implemented | v1.5 | CCR-specific fields |
 
 **v1.5 Tasks (Deco Algorithm Implementation):**
 - [x] Implement Bühlmann ZH-L16C algorithm in Dart
@@ -333,11 +333,18 @@
 - [x] DecoInfoPanel with tissue loading visualization
 - [x] 141 unit tests for deco algorithms
 
-**v1.5 CCR Support:**
-- [ ] Add `dive_mode` enum (OC, CCR, SCR) to dives table
-- [ ] CCR-specific fields: setpoint(s), diluent, bailout gas
-- [ ] Setpoint changes as profile events
-- [ ] ppO₂ calculation and display
+**v1.5 CCR/SCR Support (Complete):**
+- [x] Add `dive_mode` enum (OC, CCR, SCR) to dives table
+- [x] CCR-specific fields: setpoint(s), diluent, bailout gas
+- [x] Setpoint changes as profile events
+- [x] ppO₂ calculation and display (constant for CCR, variable for SCR)
+- [x] SCR support: injection rate, supply gas, loop FO₂ calculation
+- [x] SCR types: CMF (Constant Mass Flow), PASCR (Passive Addition), ESCR
+- [x] Scrubber tracking: type, rated duration, remaining time
+- [x] Diluent/supply gas templates (trimix diluents, enriched nitrox for SCR)
+- [x] Dive mode selector UI with OC/CCR/SCR segmented button
+- [x] CCR settings panel (setpoints, diluent gas selector, scrubber info)
+- [x] SCR settings panel (type selector, injection rate, supply gas, loop O₂ measurements)
 
 ---
 
@@ -1212,6 +1219,21 @@
 -- divers (multi-user support - fully implemented)
 -- diver_settings (per-diver preferences)
 -- sync_metadata, sync_records, deletion_log (cloud sync infrastructure)
+
+-- CCR/SCR fields on dives table:
+-- dive_mode (oc, ccr, scr)
+-- setpoint_low, setpoint_high, setpoint_deco (CCR setpoints in bar)
+-- diluent_o2, diluent_he (CCR diluent gas composition)
+-- scr_type (cmf, pascr, escr)
+-- scr_injection_rate (L/min at surface for CMF)
+-- scr_addition_ratio (e.g., 0.33 for 1:3 PASCR)
+-- scr_orifice_size (e.g., '40', '50', '60')
+-- assumed_vo2 (assumed O2 consumption L/min)
+-- loop_o2_min, loop_o2_max, loop_o2_avg (measured loop FO2)
+-- loop_volume (liters)
+-- scrubber_type, scrubber_duration_minutes, scrubber_remaining_minutes
+
+-- Tank roles extended: diluent, oxygen_supply (for CCR)
 ```
 
 ## v2.0 Tables (Planned)
@@ -1285,6 +1307,11 @@
 - [x] Dive frequency charts (dives per year)
 - [x] Gas mix distribution (pie chart)
 - [x] Time pattern analysis (day of week, time of day, seasonal)
+- [x] CCR (Closed Circuit Rebreather) support with setpoints, diluent gas, scrubber tracking
+- [x] SCR (Semi-Closed Rebreather) support with injection rate, supply gas, loop FO₂ calculation
+- [x] SCR types: CMF, PASCR, ESCR with type-specific configuration
+- [x] Dive mode selector UI and settings panels for CCR/SCR
+- [x] Diluent and SCR supply gas templates
 - [ ] Dive planner with deco schedules
 - [ ] Performance with 5000+ dives
 
@@ -1308,5 +1335,5 @@
 
 ---
 
-**Document Version:** 2.5
-**Last Updated:** 2026-01-04
+**Document Version:** 2.6
+**Last Updated:** 2026-01-14

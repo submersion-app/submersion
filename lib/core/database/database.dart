@@ -115,6 +115,37 @@ class Dives extends Table {
       real().withDefault(const Constant(0))(); // CNS% at dive start
   RealColumn get cnsEnd => real().nullable()(); // CNS% at dive end
   RealColumn get otu => real().nullable()(); // OTU accumulated this dive
+
+  // CCR Setpoints (v1.5) - in bar
+  RealColumn get setpointLow => real().nullable()(); // ~0.7 bar for descent/ascent
+  RealColumn get setpointHigh => real().nullable()(); // ~1.2-1.3 bar for bottom
+  RealColumn get setpointDeco => real().nullable()(); // ~1.3-1.6 bar for deco
+
+  // SCR Configuration (v1.5)
+  TextColumn get scrType => text().nullable()(); // 'cmf', 'pascr', 'escr'
+  RealColumn get scrInjectionRate => real().nullable()(); // L/min at surface (CMF)
+  RealColumn get scrAdditionRatio =>
+      real().nullable()(); // e.g., 0.33 for 1:3 (PASCR)
+  TextColumn get scrOrificeSize => text().nullable()(); // '40', '50', '60' (Dolphin)
+  RealColumn get assumedVo2 => real().nullable()(); // Assumed O2 consumption L/min
+
+  // Diluent/Supply Gas (v1.5) - quick reference for CCR/SCR
+  RealColumn get diluentO2 => real().nullable()(); // Diluent/supply O2%
+  RealColumn get diluentHe => real().nullable()(); // Diluent/supply He%
+
+  // Loop FO2 measurements (v1.5) - for SCR dives
+  RealColumn get loopO2Min => real().nullable()(); // Min loop O2%
+  RealColumn get loopO2Max => real().nullable()(); // Max loop O2%
+  RealColumn get loopO2Avg => real().nullable()(); // Avg loop O2%
+
+  // Shared rebreather fields (v1.5)
+  RealColumn get loopVolume => real().nullable()(); // Loop volume in liters
+  TextColumn get scrubberType => text().nullable()(); // e.g., 'Sofnolime 797'
+  IntColumn get scrubberDurationMinutes =>
+      integer().nullable()(); // Rated scrubber duration
+  IntColumn get scrubberRemainingMinutes =>
+      integer().nullable()(); // Remaining at dive start
+
   // Primary computer used for this dive
   TextColumn get computerId =>
       text().nullable().references(DiveComputers, #id)();
@@ -144,6 +175,10 @@ class DiveProfiles extends Table {
   RealColumn get ascentRate => real().nullable()(); // m/min
   RealColumn get ceiling => real().nullable()(); // deco ceiling in meters
   IntColumn get ndl => integer().nullable()(); // no-deco limit in seconds
+
+  // CCR/SCR rebreather data (v1.5)
+  RealColumn get setpoint => real().nullable()(); // Current setpoint at sample (bar)
+  RealColumn get ppO2 => real().nullable()(); // Measured/calculated ppO2 (bar)
 
   @override
   Set<Column> get primaryKey => {id};
@@ -715,7 +750,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration {
@@ -849,6 +884,78 @@ class AppDatabase extends _$AppDatabase {
           );
           await customStatement(
             "ALTER TABLE diver_settings ADD COLUMN date_format TEXT NOT NULL DEFAULT 'mmmDYYYY'",
+          );
+        }
+        if (from < 11) {
+          // CCR/SCR Rebreather Support (v1.5)
+
+          // CCR Setpoints (bar)
+          await customStatement(
+            'ALTER TABLE dives ADD COLUMN setpoint_low REAL',
+          );
+          await customStatement(
+            'ALTER TABLE dives ADD COLUMN setpoint_high REAL',
+          );
+          await customStatement(
+            'ALTER TABLE dives ADD COLUMN setpoint_deco REAL',
+          );
+
+          // SCR Configuration
+          await customStatement(
+            'ALTER TABLE dives ADD COLUMN scr_type TEXT',
+          );
+          await customStatement(
+            'ALTER TABLE dives ADD COLUMN scr_injection_rate REAL',
+          );
+          await customStatement(
+            'ALTER TABLE dives ADD COLUMN scr_addition_ratio REAL',
+          );
+          await customStatement(
+            'ALTER TABLE dives ADD COLUMN scr_orifice_size TEXT',
+          );
+          await customStatement(
+            'ALTER TABLE dives ADD COLUMN assumed_vo2 REAL',
+          );
+
+          // Diluent/Supply Gas
+          await customStatement(
+            'ALTER TABLE dives ADD COLUMN diluent_o2 REAL',
+          );
+          await customStatement(
+            'ALTER TABLE dives ADD COLUMN diluent_he REAL',
+          );
+
+          // Loop FO2 measurements (SCR)
+          await customStatement(
+            'ALTER TABLE dives ADD COLUMN loop_o2_min REAL',
+          );
+          await customStatement(
+            'ALTER TABLE dives ADD COLUMN loop_o2_max REAL',
+          );
+          await customStatement(
+            'ALTER TABLE dives ADD COLUMN loop_o2_avg REAL',
+          );
+
+          // Shared rebreather fields
+          await customStatement(
+            'ALTER TABLE dives ADD COLUMN loop_volume REAL',
+          );
+          await customStatement(
+            'ALTER TABLE dives ADD COLUMN scrubber_type TEXT',
+          );
+          await customStatement(
+            'ALTER TABLE dives ADD COLUMN scrubber_duration_minutes INTEGER',
+          );
+          await customStatement(
+            'ALTER TABLE dives ADD COLUMN scrubber_remaining_minutes INTEGER',
+          );
+
+          // DiveProfiles CCR/SCR fields
+          await customStatement(
+            'ALTER TABLE dive_profiles ADD COLUMN setpoint REAL',
+          );
+          await customStatement(
+            'ALTER TABLE dive_profiles ADD COLUMN pp_o2 REAL',
           );
         }
       },

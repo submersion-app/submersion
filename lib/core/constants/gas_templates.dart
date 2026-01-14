@@ -109,6 +109,58 @@ class GasTemplates {
     maxOperatingDepth: 46.0,
   );
 
+  // CCR Diluent mixes (normoxic and hypoxic trimix for deep CCR)
+  static const diluentAir = GasTemplate(
+    name: 'diluent_air',
+    displayName: 'Air Diluent',
+    o2: 21.0,
+    description: 'Standard air diluent for shallow CCR',
+    maxOperatingDepth: 56.7,
+  );
+
+  static const diluentTx1260 = GasTemplate(
+    name: 'diluent_tx1260',
+    displayName: 'Tx 12/60',
+    o2: 12.0,
+    he: 60.0,
+    description: 'Hypoxic diluent for deep CCR',
+    maxOperatingDepth: 106.7,
+  );
+
+  static const diluentTx1070 = GasTemplate(
+    name: 'diluent_tx1070',
+    displayName: 'Tx 10/70',
+    o2: 10.0,
+    he: 70.0,
+    description: 'Hypoxic diluent for very deep CCR',
+    maxOperatingDepth: 130.0,
+  );
+
+  // SCR Supply gases (enriched nitrox for injection)
+  static const scrEan40 = GasTemplate(
+    name: 'scr_ean40',
+    displayName: 'SCR EAN40',
+    o2: 40.0,
+    description: 'SCR supply gas - 40% O2',
+    maxOperatingDepth: 25.0,
+  );
+
+  static const scrEan50 = GasTemplate(
+    name: 'scr_ean50',
+    displayName: 'SCR EAN50',
+    o2: 50.0,
+    description: 'SCR supply gas - 50% O2',
+    maxOperatingDepth: 18.0,
+  );
+
+  static const scrEan60 = GasTemplate(
+    name: 'scr_ean60',
+    displayName: 'SCR EAN60',
+    o2: 60.0,
+    description: 'SCR supply gas - 60% O2',
+    maxOperatingDepth: 13.3,
+  );
+
   /// Templates organized by category
   static const List<GasTemplate> recreational = [air, ean32, ean36];
   static const List<GasTemplate> nitrox = [ean32, ean36, ean40];
@@ -118,6 +170,24 @@ class GasTemplates {
     helitrox2525,
     tmx1845,
     tmx1555,
+  ];
+
+  /// CCR diluent gas presets
+  static const List<GasTemplate> diluents = [
+    diluentAir,
+    tmx2135,
+    tmx1845,
+    tmx1555,
+    diluentTx1260,
+    diluentTx1070,
+  ];
+
+  /// SCR supply gas presets (enriched nitrox)
+  static const List<GasTemplate> scrSupply = [
+    scrEan40,
+    scrEan50,
+    scrEan60,
+    oxygen,
   ];
 
   /// All templates
@@ -132,6 +202,12 @@ class GasTemplates {
     helitrox2525,
     tmx1845,
     tmx1555,
+    diluentAir,
+    diluentTx1260,
+    diluentTx1070,
+    scrEan40,
+    scrEan50,
+    scrEan60,
   ];
 
   /// Get template by name
