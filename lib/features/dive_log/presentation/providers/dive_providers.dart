@@ -15,11 +15,19 @@ class DiveFilterState {
   final String? siteId;
   final String? tripId;
   final String? diveCenterId;
-  final String? equipmentId;
   final double? minDepth;
   final double? maxDepth;
   final bool? favoritesOnly;
   final List<String> tagIds;
+
+  // v1.5: Additional filter criteria
+  final List<String> equipmentIds; // Upgraded from single equipmentId
+  final String? buddyNameFilter; // Text search on buddy field
+  final double? minO2Percent; // Gas mix O2 filter (min)
+  final double? maxO2Percent; // Gas mix O2 filter (max)
+  final int? minRating; // Minimum star rating (1-5)
+  final int? minDurationMinutes; // Minimum dive duration
+  final int? maxDurationMinutes; // Maximum dive duration
 
   const DiveFilterState({
     this.startDate,
@@ -28,11 +36,18 @@ class DiveFilterState {
     this.siteId,
     this.tripId,
     this.diveCenterId,
-    this.equipmentId,
     this.minDepth,
     this.maxDepth,
     this.favoritesOnly,
     this.tagIds = const [],
+    // v1.5 filters
+    this.equipmentIds = const [],
+    this.buddyNameFilter,
+    this.minO2Percent,
+    this.maxO2Percent,
+    this.minRating,
+    this.minDurationMinutes,
+    this.maxDurationMinutes,
   });
 
   bool get hasActiveFilters =>
@@ -42,11 +57,18 @@ class DiveFilterState {
       siteId != null ||
       tripId != null ||
       diveCenterId != null ||
-      equipmentId != null ||
       minDepth != null ||
       maxDepth != null ||
       favoritesOnly == true ||
-      tagIds.isNotEmpty;
+      tagIds.isNotEmpty ||
+      // v1.5 filters
+      equipmentIds.isNotEmpty ||
+      (buddyNameFilter != null && buddyNameFilter!.isNotEmpty) ||
+      minO2Percent != null ||
+      maxO2Percent != null ||
+      minRating != null ||
+      minDurationMinutes != null ||
+      maxDurationMinutes != null;
 
   DiveFilterState copyWith({
     DateTime? startDate,
@@ -55,22 +77,36 @@ class DiveFilterState {
     String? siteId,
     String? tripId,
     String? diveCenterId,
-    String? equipmentId,
     double? minDepth,
     double? maxDepth,
     bool? favoritesOnly,
     List<String>? tagIds,
+    // v1.5 filters
+    List<String>? equipmentIds,
+    String? buddyNameFilter,
+    double? minO2Percent,
+    double? maxO2Percent,
+    int? minRating,
+    int? minDurationMinutes,
+    int? maxDurationMinutes,
+    // Clear flags
     bool clearStartDate = false,
     bool clearEndDate = false,
     bool clearDiveType = false,
     bool clearSiteId = false,
     bool clearTripId = false,
     bool clearDiveCenterId = false,
-    bool clearEquipmentId = false,
     bool clearMinDepth = false,
     bool clearMaxDepth = false,
     bool clearFavoritesOnly = false,
     bool clearTagIds = false,
+    bool clearEquipmentIds = false,
+    bool clearBuddyNameFilter = false,
+    bool clearMinO2Percent = false,
+    bool clearMaxO2Percent = false,
+    bool clearMinRating = false,
+    bool clearMinDurationMinutes = false,
+    bool clearMaxDurationMinutes = false,
   }) {
     return DiveFilterState(
       startDate: clearStartDate ? null : (startDate ?? this.startDate),
@@ -81,13 +117,32 @@ class DiveFilterState {
       diveCenterId: clearDiveCenterId
           ? null
           : (diveCenterId ?? this.diveCenterId),
-      equipmentId: clearEquipmentId ? null : (equipmentId ?? this.equipmentId),
       minDepth: clearMinDepth ? null : (minDepth ?? this.minDepth),
       maxDepth: clearMaxDepth ? null : (maxDepth ?? this.maxDepth),
       favoritesOnly: clearFavoritesOnly
           ? null
           : (favoritesOnly ?? this.favoritesOnly),
       tagIds: clearTagIds ? const [] : (tagIds ?? this.tagIds),
+      // v1.5 filters
+      equipmentIds: clearEquipmentIds
+          ? const []
+          : (equipmentIds ?? this.equipmentIds),
+      buddyNameFilter: clearBuddyNameFilter
+          ? null
+          : (buddyNameFilter ?? this.buddyNameFilter),
+      minO2Percent: clearMinO2Percent
+          ? null
+          : (minO2Percent ?? this.minO2Percent),
+      maxO2Percent: clearMaxO2Percent
+          ? null
+          : (maxO2Percent ?? this.maxO2Percent),
+      minRating: clearMinRating ? null : (minRating ?? this.minRating),
+      minDurationMinutes: clearMinDurationMinutes
+          ? null
+          : (minDurationMinutes ?? this.minDurationMinutes),
+      maxDurationMinutes: clearMaxDurationMinutes
+          ? null
+          : (maxDurationMinutes ?? this.maxDurationMinutes),
     );
   }
 
@@ -123,10 +178,10 @@ class DiveFilterState {
         return false;
       }
 
-      // Equipment filter
-      if (equipmentId != null) {
-        final hasEquipment = dive.equipment.any((e) => e.id == equipmentId);
-        if (!hasEquipment) {
+      // Equipment filter (match any selected equipment)
+      if (equipmentIds.isNotEmpty) {
+        final diveEquipmentIds = dive.equipment.map((e) => e.id).toSet();
+        if (!equipmentIds.any((eqId) => diveEquipmentIds.contains(eqId))) {
           return false;
         }
       }
@@ -150,6 +205,54 @@ class DiveFilterState {
       if (tagIds.isNotEmpty) {
         final diveTagIds = dive.tags.map((t) => t.id).toSet();
         if (!tagIds.any((tagId) => diveTagIds.contains(tagId))) {
+          return false;
+        }
+      }
+
+      // v1.5: Buddy name filter (text search on buddy field)
+      if (buddyNameFilter != null && buddyNameFilter!.isNotEmpty) {
+        final buddyLower = dive.buddy?.toLowerCase() ?? '';
+        if (!buddyLower.contains(buddyNameFilter!.toLowerCase())) {
+          return false;
+        }
+      }
+
+      // v1.5: Gas mix O2% filter (check any tank)
+      if (minO2Percent != null || maxO2Percent != null) {
+        if (dive.tanks.isEmpty) {
+          return false;
+        }
+        // Check if any tank matches the O2% criteria
+        final hasMatchingTank = dive.tanks.any((tank) {
+          final o2 = tank.gasMix.o2;
+          if (minO2Percent != null && o2 < minO2Percent!) return false;
+          if (maxO2Percent != null && o2 > maxO2Percent!) return false;
+          return true;
+        });
+        if (!hasMatchingTank) {
+          return false;
+        }
+      }
+
+      // v1.5: Rating filter
+      if (minRating != null) {
+        if (dive.rating == null || dive.rating! < minRating!) {
+          return false;
+        }
+      }
+
+      // v1.5: Duration filter
+      if (minDurationMinutes != null || maxDurationMinutes != null) {
+        final durationMinutes = dive.duration?.inMinutes;
+        if (durationMinutes == null) {
+          return false;
+        }
+        if (minDurationMinutes != null &&
+            durationMinutes < minDurationMinutes!) {
+          return false;
+        }
+        if (maxDurationMinutes != null &&
+            durationMinutes > maxDurationMinutes!) {
           return false;
         }
       }
@@ -381,6 +484,41 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
     await _repository.setFavorite(diveId, isFavorite);
     await _loadDives();
     _ref.invalidate(diveProvider(diveId));
+  }
+
+  // ============================================================================
+  // Bulk Operations
+  // ============================================================================
+
+  /// Bulk update trip for multiple dives
+  Future<void> bulkUpdateTrip(List<String> diveIds, String? tripId) async {
+    await _repository.bulkUpdateTrip(diveIds, tripId);
+    await _loadDives();
+    _ref.invalidate(diveStatisticsProvider);
+    // Invalidate individual dive providers
+    for (final diveId in diveIds) {
+      _ref.invalidate(diveProvider(diveId));
+    }
+  }
+
+  /// Bulk add tags to multiple dives
+  Future<void> bulkAddTags(List<String> diveIds, List<String> tagIds) async {
+    await _repository.bulkAddTags(diveIds, tagIds);
+    await _loadDives();
+    // Invalidate individual dive providers
+    for (final diveId in diveIds) {
+      _ref.invalidate(diveProvider(diveId));
+    }
+  }
+
+  /// Bulk remove tags from multiple dives
+  Future<void> bulkRemoveTags(List<String> diveIds, List<String> tagIds) async {
+    await _repository.bulkRemoveTags(diveIds, tagIds);
+    await _loadDives();
+    // Invalidate individual dive providers
+    for (final diveId in diveIds) {
+      _ref.invalidate(diveProvider(diveId));
+    }
   }
 }
 

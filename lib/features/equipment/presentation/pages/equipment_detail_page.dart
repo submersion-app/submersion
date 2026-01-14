@@ -375,7 +375,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
                 onTap: count > 0
                     ? () {
                         ref.read(diveFilterProvider.notifier).state =
-                            DiveFilterState(equipmentId: equipmentId);
+                            DiveFilterState(equipmentIds: [equipmentId]);
                         context.go('/dives');
                       }
                     : null,

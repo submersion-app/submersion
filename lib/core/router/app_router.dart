@@ -19,6 +19,7 @@ import '../../features/dive_centers/presentation/pages/dive_center_edit_page.dar
 import '../../features/dive_log/presentation/pages/dive_list_page.dart';
 import '../../features/dive_log/presentation/pages/dive_detail_page.dart';
 import '../../features/dive_log/presentation/pages/dive_edit_page.dart';
+import '../../features/dive_log/presentation/pages/dive_search_page.dart';
 import '../../features/dive_sites/presentation/pages/site_list_page.dart';
 import '../../features/dive_sites/presentation/pages/site_detail_page.dart';
 import '../../features/dive_sites/presentation/pages/site_edit_page.dart';
@@ -127,6 +128,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'new',
                 name: 'newDive',
                 builder: (context, state) => const DiveEditPage(),
+              ),
+              GoRoute(
+                path: 'search',
+                name: 'diveSearch',
+                builder: (context, state) => const DiveSearchPage(),
               ),
               GoRoute(
                 path: ':diveId',

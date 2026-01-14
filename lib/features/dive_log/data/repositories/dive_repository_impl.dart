@@ -1998,6 +1998,66 @@ class DiveRepository {
       rethrow;
     }
   }
+
+  // ============================================================================
+  // Bulk Operations
+  // ============================================================================
+
+  /// Bulk update trip for multiple dives
+  Future<void> bulkUpdateTrip(List<String> diveIds, String? tripId) async {
+    if (diveIds.isEmpty) return;
+
+    try {
+      await (_db.update(_db.dives)..where((t) => t.id.isIn(diveIds))).write(
+        DivesCompanion(
+          tripId: Value(tripId),
+          updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+        ),
+      );
+      _log.info('Bulk updated trip for ${diveIds.length} dives');
+    } catch (e, stackTrace) {
+      _log.error('Failed to bulk update trip', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Bulk add tags to multiple dives
+  Future<void> bulkAddTags(List<String> diveIds, List<String> tagIds) async {
+    if (diveIds.isEmpty || tagIds.isEmpty) return;
+
+    try {
+      for (final diveId in diveIds) {
+        for (final tagId in tagIds) {
+          await _db
+              .into(_db.diveTags)
+              .insertOnConflictUpdate(
+                DiveTagsCompanion(diveId: Value(diveId), tagId: Value(tagId)),
+              );
+        }
+      }
+      _log.info('Bulk added ${tagIds.length} tags to ${diveIds.length} dives');
+    } catch (e, stackTrace) {
+      _log.error('Failed to bulk add tags', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Bulk remove tags from multiple dives
+  Future<void> bulkRemoveTags(List<String> diveIds, List<String> tagIds) async {
+    if (diveIds.isEmpty || tagIds.isEmpty) return;
+
+    try {
+      await (_db.delete(
+        _db.diveTags,
+      )..where((t) => t.diveId.isIn(diveIds) & t.tagId.isIn(tagIds))).go();
+      _log.info(
+        'Bulk removed ${tagIds.length} tags from ${diveIds.length} dives',
+      );
+    } catch (e, stackTrace) {
+      _log.error('Failed to bulk remove tags', e, stackTrace);
+      rethrow;
+    }
+  }
 }
 
 /// Statistics summary for dives

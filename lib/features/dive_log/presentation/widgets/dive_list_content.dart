@@ -5,10 +5,12 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/utils/unit_formatter.dart';
 import '../../../dive_sites/presentation/providers/site_providers.dart';
 import '../../../settings/presentation/providers/settings_providers.dart';
+import '../../../settings/presentation/providers/export_providers.dart';
 import '../../../dive_types/presentation/providers/dive_type_providers.dart';
 import '../../../equipment/presentation/providers/equipment_providers.dart';
 import '../../../trips/presentation/providers/trip_providers.dart';
 import '../../../dive_centers/presentation/providers/dive_center_providers.dart';
+import '../../../tags/presentation/providers/tag_providers.dart';
 import '../../domain/entities/dive.dart';
 import '../providers/dive_providers.dart';
 import '../pages/dive_list_page.dart';
@@ -242,6 +244,468 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     }
   }
 
+  void _showExportDialog(List<Dive> allDives) {
+    final selectedDives = allDives
+        .where((d) => _selectedIds.contains(d.id))
+        .toList();
+    final count = selectedDives.length;
+
+    showModalBottomSheet(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Text(
+                    'Export $count ${count == 1 ? 'Dive' : 'Dives'}',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(sheetContext),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.picture_as_pdf),
+              title: const Text('PDF Logbook'),
+              subtitle: const Text('Printable dive log pages'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                _exportSelected(selectedDives, 'pdf');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.table_chart),
+              title: const Text('CSV'),
+              subtitle: const Text('Spreadsheet format'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                _exportSelected(selectedDives, 'csv');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.code),
+              title: const Text('UDDF'),
+              subtitle: const Text('Universal Dive Data Format'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                _exportSelected(selectedDives, 'uddf');
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _exportSelected(List<Dive> selectedDives, String format) async {
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => const AlertDialog(
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 24),
+            Text('Exporting...'),
+          ],
+        ),
+      ),
+    );
+
+    try {
+      final exportService = ref.read(exportServiceProvider);
+
+      switch (format) {
+        case 'pdf':
+          await exportService.exportDivesToPdf(selectedDives);
+          break;
+        case 'csv':
+          await exportService.exportDivesToCsv(selectedDives);
+          break;
+        case 'uddf':
+          // Collect unique sites from selected dives
+          final sites = selectedDives
+              .where((d) => d.site != null)
+              .map((d) => d.site!)
+              .toSet()
+              .toList();
+          await exportService.exportDivesToUddf(selectedDives, sites: sites);
+          break;
+      }
+
+      if (mounted) {
+        Navigator.of(context).pop(); // Close loading dialog
+        _exitSelectionMode();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Exported ${selectedDives.length} ${selectedDives.length == 1 ? 'dive' : 'dives'} successfully',
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.of(context).pop(); // Close loading dialog
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Export failed: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showBulkEditSheet(List<Dive> allDives) {
+    final count = _selectedIds.length;
+
+    showModalBottomSheet(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Text(
+                    'Edit $count ${count == 1 ? 'Dive' : 'Dives'}',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(sheetContext),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.flight),
+              title: const Text('Change Trip'),
+              subtitle: const Text('Move selected dives to a trip'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                _showTripSelector();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.label),
+              title: const Text('Add Tags'),
+              subtitle: const Text('Add tags to selected dives'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                _showAddTagsDialog();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.label_off),
+              title: const Text('Remove Tags'),
+              subtitle: const Text('Remove tags from selected dives'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                _showRemoveTagsDialog();
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showTripSelector() {
+    final trips = ref.read(allTripsProvider);
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Select Trip'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: trips.when(
+            data: (tripList) => ListView(
+              shrinkWrap: true,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.clear),
+                  title: const Text('No Trip'),
+                  subtitle: const Text('Remove from trip'),
+                  onTap: () {
+                    Navigator.pop(dialogContext);
+                    _bulkUpdateTrip(null);
+                  },
+                ),
+                const Divider(),
+                ...tripList.map(
+                  (trip) => ListTile(
+                    leading: const Icon(Icons.flight),
+                    title: Text(trip.name),
+                    onTap: () {
+                      Navigator.pop(dialogContext);
+                      _bulkUpdateTrip(trip.id);
+                    },
+                  ),
+                ),
+              ],
+            ),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (_, _) => const Text('Error loading trips'),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _bulkUpdateTrip(String? tripId) async {
+    final count = _selectedIds.length;
+    final diveIds = _selectedIds.toList();
+
+    try {
+      await ref
+          .read(diveListNotifierProvider.notifier)
+          .bulkUpdateTrip(diveIds, tripId);
+
+      _exitSelectionMode();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              tripId == null
+                  ? 'Removed $count ${count == 1 ? 'dive' : 'dives'} from trip'
+                  : 'Moved $count ${count == 1 ? 'dive' : 'dives'} to trip',
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update trip: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showAddTagsDialog() {
+    final tagsAsync = ref.read(tagListNotifierProvider);
+
+    tagsAsync.whenData((allTags) {
+      if (allTags.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No tags available. Create tags first.'),
+          ),
+        );
+        return;
+      }
+
+      final selectedTagIds = <String>{};
+
+      showDialog(
+        context: context,
+        builder: (dialogContext) => StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            title: const Text('Add Tags'),
+            content: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: allTags.map((tag) {
+                final isSelected = selectedTagIds.contains(tag.id);
+                return FilterChip(
+                  label: Text(tag.name),
+                  selected: isSelected,
+                  selectedColor: tag.color.withValues(alpha: 0.3),
+                  checkmarkColor: tag.color,
+                  onSelected: (selected) {
+                    setDialogState(() {
+                      if (selected) {
+                        selectedTagIds.add(tag.id);
+                      } else {
+                        selectedTagIds.remove(tag.id);
+                      }
+                    });
+                  },
+                );
+              }).toList(),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: selectedTagIds.isEmpty
+                    ? null
+                    : () {
+                        Navigator.pop(dialogContext);
+                        _bulkAddTags(selectedTagIds.toList());
+                      },
+                child: const Text('Add'),
+              ),
+            ],
+          ),
+        ),
+      );
+    });
+  }
+
+  Future<void> _bulkAddTags(List<String> tagIds) async {
+    final count = _selectedIds.length;
+    final diveIds = _selectedIds.toList();
+
+    try {
+      await ref
+          .read(diveListNotifierProvider.notifier)
+          .bulkAddTags(diveIds, tagIds);
+
+      _exitSelectionMode();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Added ${tagIds.length} ${tagIds.length == 1 ? 'tag' : 'tags'} to $count ${count == 1 ? 'dive' : 'dives'}',
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to add tags: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showRemoveTagsDialog() {
+    final tagsAsync = ref.read(tagListNotifierProvider);
+
+    tagsAsync.whenData((allTags) {
+      if (allTags.isEmpty) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('No tags available.')));
+        return;
+      }
+
+      final selectedTagIds = <String>{};
+
+      showDialog(
+        context: context,
+        builder: (dialogContext) => StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            title: const Text('Remove Tags'),
+            content: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: allTags.map((tag) {
+                final isSelected = selectedTagIds.contains(tag.id);
+                return FilterChip(
+                  label: Text(tag.name),
+                  selected: isSelected,
+                  selectedColor: Colors.red.withValues(alpha: 0.3),
+                  checkmarkColor: Colors.red,
+                  onSelected: (selected) {
+                    setDialogState(() {
+                      if (selected) {
+                        selectedTagIds.add(tag.id);
+                      } else {
+                        selectedTagIds.remove(tag.id);
+                      }
+                    });
+                  },
+                );
+              }).toList(),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: selectedTagIds.isEmpty
+                    ? null
+                    : () {
+                        Navigator.pop(dialogContext);
+                        _bulkRemoveTags(selectedTagIds.toList());
+                      },
+                style: FilledButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.error,
+                ),
+                child: const Text('Remove'),
+              ),
+            ],
+          ),
+        ),
+      );
+    });
+  }
+
+  Future<void> _bulkRemoveTags(List<String> tagIds) async {
+    final count = _selectedIds.length;
+    final diveIds = _selectedIds.toList();
+
+    try {
+      await ref
+          .read(diveListNotifierProvider.notifier)
+          .bulkRemoveTags(diveIds, tagIds);
+
+      _exitSelectionMode();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Removed ${tagIds.length} ${tagIds.length == 1 ? 'tag' : 'tags'} from $count ${count == 1 ? 'dive' : 'dives'}',
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to remove tags: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   void _handleItemTap(Dive dive) {
     if (_isSelectionMode) {
       _toggleSelection(dive.id);
@@ -321,9 +785,21 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           onSelected: (value) {
             if (value == 'numbering') {
               showDiveNumberingDialog(context);
+            } else if (value == 'advanced_search') {
+              context.go('/dives/search');
             }
           },
           itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 'advanced_search',
+              child: Row(
+                children: [
+                  Icon(Icons.manage_search),
+                  SizedBox(width: 12),
+                  Text('Advanced Search'),
+                ],
+              ),
+            ),
             const PopupMenuItem(
               value: 'numbering',
               child: Row(
@@ -411,6 +887,18 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           ),
         if (_selectedIds.isNotEmpty)
           IconButton(
+            icon: const Icon(Icons.upload),
+            tooltip: 'Export Selected',
+            onPressed: () => _showExportDialog(dives),
+          ),
+        if (_selectedIds.isNotEmpty)
+          IconButton(
+            icon: const Icon(Icons.edit),
+            tooltip: 'Edit Selected',
+            onPressed: () => _showBulkEditSheet(dives),
+          ),
+        if (_selectedIds.isNotEmpty)
+          IconButton(
             icon: Icon(
               Icons.delete,
               color: Theme.of(context).colorScheme.error,
@@ -453,6 +941,20 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               visualDensity: VisualDensity.compact,
               tooltip: 'Select All',
               onPressed: () => _selectAll(dives),
+            ),
+          if (_selectedIds.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.upload, size: 20),
+              visualDensity: VisualDensity.compact,
+              tooltip: 'Export Selected',
+              onPressed: () => _showExportDialog(dives),
+            ),
+          if (_selectedIds.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.edit, size: 20),
+              visualDensity: VisualDensity.compact,
+              tooltip: 'Edit Selected',
+              onPressed: () => _showBulkEditSheet(dives),
             ),
           if (_selectedIds.isNotEmpty)
             IconButton(
@@ -607,14 +1109,18 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       );
     }
 
-    if (filter.equipmentId != null) {
-      final equipmentName =
-          ref.watch(equipmentItemProvider(filter.equipmentId!)).value?.name ??
-          'Equipment';
+    if (filter.equipmentIds.isNotEmpty) {
+      final label = filter.equipmentIds.length == 1
+          ? (ref
+                    .watch(equipmentItemProvider(filter.equipmentIds.first))
+                    .value
+                    ?.name ??
+                'Equipment')
+          : '${filter.equipmentIds.length} Equipment';
       chips.add(
-        _buildFilterChip(context, equipmentName, () {
+        _buildFilterChip(context, label, () {
           ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-            clearEquipmentId: true,
+            equipmentIds: [],
           );
         }),
       );
