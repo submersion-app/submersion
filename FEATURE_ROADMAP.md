@@ -5,7 +5,7 @@
 > **Current Version:** 1.1.0 (v1.1 Complete)
 > **Status:** v1.0 ✅ COMPLETE | v1.1 ✅ COMPLETE | v1.5 🚧 In Progress
 >
-> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete - setpoints, diluent gas, scrubber tracking, SCR injection rate, loop FO₂ calculation
+> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete - multi-level planning, deco calculations, gas consumption, profile visualization
 
 ---
 
@@ -352,22 +352,25 @@
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Dive planner (multi-level) | 📋 Planned | v1.5 | Plan dives before doing them |
-| Multi-gas planning | 📋 Planned | v1.5 | Gas switches, deco gases |
-| Repetitive dive planning | 📋 Planned | v1.5 | Surface interval, tissue loading |
-| Gas consumption projections | 📋 Planned | v1.5 | Based on SAC history |
+| Dive planner (multi-level) | ✅ Implemented | v1.5 | Plan dives before doing them |
+| Multi-gas planning | ✅ Implemented | v1.5 | Gas switches, deco gases |
+| Repetitive dive planning | ✅ Implemented | v1.5 | Surface interval, tissue loading |
+| Gas consumption projections | ✅ Implemented | v1.5 | Based on SAC history |
 | What-if scenarios | 📋 Planned | v2.0 | Deeper/longer/different gas |
 | Lost gas scenarios | 📋 Planned | v2.0 | Plan for lost decompression gas |
 | Turn pressure planning | 📋 Planned | v2.0 | Calculate gas turn pressures for penetration dives |
 | Range plans | 📋 Planned | v2.0 | Multiple profiles with different depths/times |
 
 **v1.5 Tasks:**
-- [ ] Dive Planner page with depth/time segment editor
-- [ ] Add segments (depth, duration, gas mix)
-- [ ] Real-time deco calculation as user edits plan
-- [ ] Display: runtime, TTS, NDL, ceiling, gas consumed per tank
-- [ ] Save planned dives to database (mark as `planned: true`)
-- [ ] Convert planned dive to actual dive after logging
+- [x] Dive Planner page with depth/time segment editor
+- [x] Add segments (depth, duration, gas mix)
+- [x] Real-time deco calculation as user edits plan
+- [x] Display: runtime, TTS, NDL, ceiling, gas consumed per tank
+- [x] Save planned dives to database (mark as `isPlanned: true`)
+- [x] Convert planned dive to actual dive after logging
+- [x] Quick Plan dialog for simple rectangular profiles
+- [x] Tank management with gas mix configuration
+- [x] Profile chart visualization of planned dive
 
 **v2.0 Tasks:**
 - [ ] Repetitive dive planner with tissue loading from previous dive
@@ -773,10 +776,10 @@
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Open-circuit planner | 📋 Planned | v1.5 | Multi-level plans |
-| Multi-gas plans | 📋 Planned | v1.5 | With deco stops |
-| Repetitive dive planning | 📋 Planned | v1.5 | Surface interval, tissue loading |
-| Save planned dives | 📋 Planned | v1.5 | Mark as "planned" in DB |
+| Open-circuit planner | ✅ Implemented | v1.5 | Multi-level plans |
+| Multi-gas plans | ✅ Implemented | v1.5 | With deco stops |
+| Repetitive dive planning | ✅ Implemented | v1.5 | Surface interval, tissue loading |
+| Save planned dives | ✅ Implemented | v1.5 | Mark as "isPlanned" in DB |
 
 *See "4.5 Planning Utilities" for detailed task list*
 
@@ -1312,7 +1315,9 @@
 - [x] SCR types: CMF, PASCR, ESCR with type-specific configuration
 - [x] Dive mode selector UI and settings panels for CCR/SCR
 - [x] Diluent and SCR supply gas templates
-- [ ] Dive planner with deco schedules
+- [x] Dive planner with multi-level segments, deco schedules, gas consumption projections
+- [x] Quick Plan dialog for simple rectangular profiles
+- [x] Profile chart visualization of planned dives
 - [ ] Performance with 5000+ dives
 
 ## v2.0 (Planned)

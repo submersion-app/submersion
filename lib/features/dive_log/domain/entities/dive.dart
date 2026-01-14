@@ -94,6 +94,9 @@ class Dive extends Equatable {
   final double? loopVolume; // Loop volume in liters
   final ScrubberInfo? scrubber;
 
+  // Dive planner flag (v1.5)
+  final bool isPlanned; // True for planned dives (not yet executed)
+
   const Dive({
     required this.id,
     this.diverId,
@@ -157,6 +160,8 @@ class Dive extends Equatable {
     this.loopO2Avg,
     this.loopVolume,
     this.scrubber,
+    // Dive planner (v1.5)
+    this.isPlanned = false,
   });
 
   /// Effective start time of the dive (entryTime if set, otherwise dateTime)
@@ -401,6 +406,8 @@ class Dive extends Equatable {
     double? loopO2Avg,
     double? loopVolume,
     ScrubberInfo? scrubber,
+    // Dive planner
+    bool? isPlanned,
   }) {
     return Dive(
       id: id ?? this.id,
@@ -465,6 +472,8 @@ class Dive extends Equatable {
       loopO2Avg: loopO2Avg ?? this.loopO2Avg,
       loopVolume: loopVolume ?? this.loopVolume,
       scrubber: scrubber ?? this.scrubber,
+      // Dive planner
+      isPlanned: isPlanned ?? this.isPlanned,
     );
   }
 
@@ -532,6 +541,8 @@ class Dive extends Equatable {
     loopO2Avg,
     loopVolume,
     scrubber,
+    // Dive planner
+    isPlanned,
   ];
 }
 

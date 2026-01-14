@@ -56,6 +56,7 @@ import '../../features/dive_computer/presentation/pages/device_detail_page.dart'
 import '../../features/dive_computer/presentation/pages/device_download_page.dart';
 import '../../features/dive_computer/presentation/pages/device_discovery_page.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
+import '../../features/dive_planner/presentation/pages/dive_planner_page.dart';
 import '../../shared/widgets/main_scaffold.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -98,6 +99,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             name: 'dashboard',
             pageBuilder: (context, state) =>
                 const NoTransitionPage(child: DashboardPage()),
+          ),
+
+          // Dive Planner
+          GoRoute(
+            path: '/planner',
+            name: 'divePlanner',
+            builder: (context, state) => const DivePlannerPage(),
+            routes: [
+              GoRoute(
+                path: ':planId',
+                name: 'editPlan',
+                builder: (context, state) =>
+                    DivePlannerPage(planId: state.pathParameters['planId']),
+              ),
+            ],
           ),
 
           // Dive Log

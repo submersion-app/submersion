@@ -280,6 +280,8 @@ class DiveRepository {
               scrubberType: Value(dive.scrubber?.type),
               scrubberDurationMinutes: Value(dive.scrubber?.ratedMinutes),
               scrubberRemainingMinutes: Value(dive.scrubber?.remainingMinutes),
+              // Dive planner (v1.5)
+              isPlanned: Value(dive.isPlanned),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -434,6 +436,8 @@ class DiveRepository {
           scrubberType: Value(dive.scrubber?.type),
           scrubberDurationMinutes: Value(dive.scrubber?.ratedMinutes),
           scrubberRemainingMinutes: Value(dive.scrubber?.remainingMinutes),
+          // Dive planner (v1.5)
+          isPlanned: Value(dive.isPlanned),
           updatedAt: Value(now),
         ),
       );
@@ -1175,6 +1179,8 @@ class DiveRepository {
               remainingMinutes: row.scrubberRemainingMinutes,
             )
           : null,
+      // Dive planner (v1.5)
+      isPlanned: row.isPlanned,
     );
   }
 
@@ -1459,6 +1465,8 @@ class DiveRepository {
               remainingMinutes: row.scrubberRemainingMinutes,
             )
           : null,
+      // Dive planner (v1.5)
+      isPlanned: row.isPlanned,
     );
   }
 
@@ -1519,6 +1527,113 @@ class DiveRepository {
       return Future.wait(rows.map(_mapRowToDive));
     } catch (e, stackTrace) {
       _log.error('Failed to get favorite dives', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  // ============================================================================
+  // Planned Dive Operations (v1.5)
+  // ============================================================================
+
+  /// Get all planned dives (not yet executed)
+  Future<List<domain.Dive>> getPlannedDives({String? diverId}) async {
+    try {
+      final query = _db.select(_db.dives)
+        ..where((t) => t.isPlanned.equals(true))
+        ..orderBy([
+          (t) => OrderingTerm.desc(coalesce([t.entryTime, t.diveDateTime])),
+        ]);
+
+      if (diverId != null) {
+        query.where((t) => t.diverId.equals(diverId));
+      }
+
+      final rows = await query.get();
+      return Future.wait(rows.map(_mapRowToDive));
+    } catch (e, stackTrace) {
+      _log.error('Failed to get planned dives', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Create a new planned dive
+  Future<domain.Dive> createPlannedDive(domain.Dive plan) async {
+    try {
+      // Ensure isPlanned is true
+      final plannedDive = plan.copyWith(isPlanned: true);
+      return createDive(plannedDive);
+    } catch (e, stackTrace) {
+      _log.error('Failed to create planned dive', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Convert a planned dive to an actual dive
+  /// Sets isPlanned to false and optionally updates the dateTime
+  Future<String> convertPlanToActualDive(
+    String planId, {
+    DateTime? actualDateTime,
+  }) async {
+    try {
+      _log.info('Converting planned dive to actual: $planId');
+
+      // Get the planned dive first
+      final plannedDive = await getDiveById(planId);
+      if (plannedDive == null) {
+        throw Exception('Planned dive not found: $planId');
+      }
+
+      if (!plannedDive.isPlanned) {
+        throw Exception('Dive is not a planned dive: $planId');
+      }
+
+      // Get next dive number for the actual dive
+      final diveNumber = await getNextDiveNumber(diverId: plannedDive.diverId);
+
+      // Update the dive to mark it as actual
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await (_db.update(_db.dives)..where((t) => t.id.equals(planId))).write(
+        DivesCompanion(
+          isPlanned: const Value(false),
+          diveDateTime: actualDateTime != null
+              ? Value(actualDateTime.millisecondsSinceEpoch)
+              : const Value.absent(),
+          entryTime: actualDateTime != null
+              ? Value(actualDateTime.millisecondsSinceEpoch)
+              : const Value.absent(),
+          diveNumber: Value(diveNumber),
+          updatedAt: Value(now),
+        ),
+      );
+
+      _log.info('Converted planned dive to actual: $planId');
+      return planId;
+    } catch (e, stackTrace) {
+      _log.error('Failed to convert planned dive: $planId', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Delete a planned dive
+  Future<void> deletePlannedDive(String planId) async {
+    try {
+      _log.info('Deleting planned dive: $planId');
+
+      // Verify it's a planned dive
+      final dive = await getDiveById(planId);
+      if (dive == null) {
+        throw Exception('Planned dive not found: $planId');
+      }
+
+      if (!dive.isPlanned) {
+        throw Exception('Dive is not a planned dive: $planId');
+      }
+
+      // Delete using existing delete method
+      await deleteDive(planId);
+      _log.info('Deleted planned dive: $planId');
+    } catch (e, stackTrace) {
+      _log.error('Failed to delete planned dive: $planId', e, stackTrace);
       rethrow;
     }
   }
