@@ -67,6 +67,33 @@ class Dive extends Equatable {
   final bool isFavorite;
   final List<Tag> tags;
 
+  // Dive mode (v1.5) - OC, CCR, or SCR
+  final DiveMode diveMode;
+
+  // CCR Setpoints (v1.5) - in bar
+  final double? setpointLow; // ~0.7 bar for descent/ascent
+  final double? setpointHigh; // ~1.2-1.3 bar for bottom
+  final double? setpointDeco; // ~1.3-1.6 bar for deco
+
+  // SCR Configuration (v1.5)
+  final ScrType? scrType;
+  final double? scrInjectionRate; // L/min at surface (CMF)
+  final double? scrAdditionRatio; // e.g., 0.33 for 1:3 (PASCR)
+  final String? scrOrificeSize; // '40', '50', '60' (Dolphin)
+  final double? assumedVo2; // Assumed O2 consumption L/min
+
+  // Diluent/Supply Gas (v1.5)
+  final GasMix? diluentGas;
+
+  // Loop FO2 measurements (v1.5) - for SCR dives
+  final double? loopO2Min; // Min loop O2%
+  final double? loopO2Max; // Max loop O2%
+  final double? loopO2Avg; // Avg loop O2%
+
+  // Shared rebreather fields (v1.5)
+  final double? loopVolume; // Loop volume in liters
+  final ScrubberInfo? scrubber;
+
   const Dive({
     required this.id,
     this.diverId,
@@ -114,6 +141,22 @@ class Dive extends Equatable {
     this.weights = const [],
     this.isFavorite = false,
     this.tags = const [],
+    // CCR/SCR fields (v1.5)
+    this.diveMode = DiveMode.oc,
+    this.setpointLow,
+    this.setpointHigh,
+    this.setpointDeco,
+    this.scrType,
+    this.scrInjectionRate,
+    this.scrAdditionRatio,
+    this.scrOrificeSize,
+    this.assumedVo2,
+    this.diluentGas,
+    this.loopO2Min,
+    this.loopO2Max,
+    this.loopO2Avg,
+    this.loopVolume,
+    this.scrubber,
   });
 
   /// Effective start time of the dive (entryTime if set, otherwise dateTime)
@@ -140,6 +183,30 @@ class Dive extends Equatable {
 
   /// Total weight from all weight entries
   double get totalWeight => weights.fold(0.0, (sum, w) => sum + w.amountKg);
+
+  // CCR/SCR computed properties
+
+  /// Whether this is a CCR dive
+  bool get isCCR => diveMode == DiveMode.ccr;
+
+  /// Whether this is an SCR dive
+  bool get isSCR => diveMode == DiveMode.scr;
+
+  /// Whether this is any type of rebreather dive
+  bool get isRebreather => isCCR || isSCR;
+
+  /// Get the diluent tank (for CCR dives)
+  DiveTank? get diluentTank {
+    try {
+      return tanks.firstWhere((t) => t.role == TankRole.diluent);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Get all bailout tanks
+  List<DiveTank> get bailoutTanks =>
+      tanks.where((t) => t.role == TankRole.bailout).toList();
 
   /// Air consumption rate in L/min at surface (Surface Air Consumption)
   /// Calculates total gas consumed across all tanks with valid data.
@@ -318,6 +385,22 @@ class Dive extends Equatable {
     List<DiveWeight>? weights,
     bool? isFavorite,
     List<Tag>? tags,
+    // CCR/SCR fields
+    DiveMode? diveMode,
+    double? setpointLow,
+    double? setpointHigh,
+    double? setpointDeco,
+    ScrType? scrType,
+    double? scrInjectionRate,
+    double? scrAdditionRatio,
+    String? scrOrificeSize,
+    double? assumedVo2,
+    GasMix? diluentGas,
+    double? loopO2Min,
+    double? loopO2Max,
+    double? loopO2Avg,
+    double? loopVolume,
+    ScrubberInfo? scrubber,
   }) {
     return Dive(
       id: id ?? this.id,
@@ -366,6 +449,22 @@ class Dive extends Equatable {
       weights: weights ?? this.weights,
       isFavorite: isFavorite ?? this.isFavorite,
       tags: tags ?? this.tags,
+      // CCR/SCR fields
+      diveMode: diveMode ?? this.diveMode,
+      setpointLow: setpointLow ?? this.setpointLow,
+      setpointHigh: setpointHigh ?? this.setpointHigh,
+      setpointDeco: setpointDeco ?? this.setpointDeco,
+      scrType: scrType ?? this.scrType,
+      scrInjectionRate: scrInjectionRate ?? this.scrInjectionRate,
+      scrAdditionRatio: scrAdditionRatio ?? this.scrAdditionRatio,
+      scrOrificeSize: scrOrificeSize ?? this.scrOrificeSize,
+      assumedVo2: assumedVo2 ?? this.assumedVo2,
+      diluentGas: diluentGas ?? this.diluentGas,
+      loopO2Min: loopO2Min ?? this.loopO2Min,
+      loopO2Max: loopO2Max ?? this.loopO2Max,
+      loopO2Avg: loopO2Avg ?? this.loopO2Avg,
+      loopVolume: loopVolume ?? this.loopVolume,
+      scrubber: scrubber ?? this.scrubber,
     );
   }
 
@@ -417,6 +516,22 @@ class Dive extends Equatable {
     weights,
     isFavorite,
     tags,
+    // CCR/SCR fields
+    diveMode,
+    setpointLow,
+    setpointHigh,
+    setpointDeco,
+    scrType,
+    scrInjectionRate,
+    scrAdditionRatio,
+    scrOrificeSize,
+    assumedVo2,
+    diluentGas,
+    loopO2Min,
+    loopO2Max,
+    loopO2Avg,
+    loopVolume,
+    scrubber,
   ];
 }
 
@@ -427,6 +542,9 @@ class DiveProfilePoint extends Equatable {
   final double? pressure; // bar
   final double? temperature; // celsius
   final int? heartRate; // bpm
+  // CCR/SCR rebreather data (v1.5)
+  final double? setpoint; // Current setpoint at this sample (bar)
+  final double? ppO2; // Measured/calculated ppO2 (bar)
 
   const DiveProfilePoint({
     required this.timestamp,
@@ -434,6 +552,8 @@ class DiveProfilePoint extends Equatable {
     this.pressure,
     this.temperature,
     this.heartRate,
+    this.setpoint,
+    this.ppO2,
   });
 
   @override
@@ -443,6 +563,8 @@ class DiveProfilePoint extends Equatable {
     pressure,
     temperature,
     heartRate,
+    setpoint,
+    ppO2,
   ];
 }
 
@@ -600,4 +722,46 @@ class MarineSighting extends Equatable {
 
   @override
   List<Object?> get props => [id, speciesId, speciesName, count, notes];
+}
+
+/// CO₂ scrubber information for rebreather dives (v1.5)
+class ScrubberInfo extends Equatable {
+  final String type; // e.g., 'Sofnolime 797', 'ExtendAir'
+  final int? ratedMinutes; // Manufacturer rated duration
+  final int? remainingMinutes; // Estimated remaining at dive start
+
+  const ScrubberInfo({
+    required this.type,
+    this.ratedMinutes,
+    this.remainingMinutes,
+  });
+
+  /// Percentage of scrubber life used (0-100)
+  double? get usedPercent {
+    if (ratedMinutes == null || remainingMinutes == null) return null;
+    if (ratedMinutes == 0) return 100.0;
+    return ((ratedMinutes! - remainingMinutes!) / ratedMinutes!) * 100;
+  }
+
+  /// Percentage of scrubber life remaining (0-100)
+  double? get remainingPercent {
+    final used = usedPercent;
+    if (used == null) return null;
+    return 100.0 - used;
+  }
+
+  ScrubberInfo copyWith({
+    String? type,
+    int? ratedMinutes,
+    int? remainingMinutes,
+  }) {
+    return ScrubberInfo(
+      type: type ?? this.type,
+      ratedMinutes: ratedMinutes ?? this.ratedMinutes,
+      remainingMinutes: remainingMinutes ?? this.remainingMinutes,
+    );
+  }
+
+  @override
+  List<Object?> get props => [type, ratedMinutes, remainingMinutes];
 }

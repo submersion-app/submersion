@@ -234,6 +234,26 @@ class ProfileEvent extends Equatable {
     );
   }
 
+  /// Create a setpoint change event (CCR dives)
+  factory ProfileEvent.setpointChange({
+    required String id,
+    required String diveId,
+    required int timestamp,
+    required double setpoint,
+    double? depth,
+    required DateTime createdAt,
+  }) {
+    return ProfileEvent(
+      id: id,
+      diveId: diveId,
+      timestamp: timestamp,
+      eventType: ProfileEventType.setpointChange,
+      value: setpoint,
+      depth: depth,
+      createdAt: createdAt,
+    );
+  }
+
   ProfileEvent copyWith({
     String? id,
     String? diveId,

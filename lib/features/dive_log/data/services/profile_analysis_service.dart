@@ -10,6 +10,7 @@ import '../../../../core/deco/constants/buhlmann_coefficients.dart';
 import '../../../../core/deco/entities/deco_status.dart';
 import '../../../../core/deco/entities/o2_exposure.dart';
 import '../../../../core/deco/o2_toxicity_calculator.dart';
+import '../../../../core/deco/scr_calculator.dart';
 import '../../domain/entities/profile_event.dart';
 
 /// Represents SAC calculated over a segment of the dive.
@@ -239,6 +240,13 @@ class ProfileAnalysisService {
   /// [heFraction] is the helium fraction (0.0-1.0), default 0.
   /// [startCns] is starting CNS% from previous dives.
   /// [pressures] is optional tank pressure data for SAC calculation.
+  /// [diveMode] is the dive mode (OC, CCR, SCR), default OC.
+  /// [setpointHigh] is the CCR high setpoint (bar), used for bottom phase.
+  /// [setpointLow] is the optional CCR low setpoint (bar), for descent/ascent.
+  /// [lowSetpointMaxDepth] is the depth (m) to switch from low to high setpoint.
+  /// [scrInjectionRate] is the SCR injection rate (L/min at surface).
+  /// [scrSupplyO2Percent] is the SCR supply gas O2 percentage.
+  /// [scrVo2] is the assumed metabolic O2 consumption (L/min) for SCR.
   ProfileAnalysis analyze({
     required String diveId,
     required List<double> depths,
@@ -247,6 +255,13 @@ class ProfileAnalysisService {
     double heFraction = 0.0,
     double startCns = 0.0,
     List<double>? pressures,
+    DiveMode diveMode = DiveMode.oc,
+    double? setpointHigh,
+    double? setpointLow,
+    double lowSetpointMaxDepth = 6.0,
+    double? scrInjectionRate,
+    double? scrSupplyO2Percent,
+    double scrVo2 = ScrCalculator.defaultVo2,
   }) {
     if (depths.isEmpty || depths.length != timestamps.length) {
       return ProfileAnalysis.empty();
@@ -275,19 +290,68 @@ class ProfileAnalysisService {
     final ceilingCurve = decoStatuses.map((s) => s.ceilingMeters).toList();
     final ndlCurve = decoStatuses.map((s) => s.ndlSeconds).toList();
 
-    // Calculate O2 exposure
-    final o2Exposure = _o2ToxicityCalculator.calculateDiveExposure(
-      depths: depths,
-      timestamps: timestamps,
-      o2Fraction: o2Fraction,
-      startCns: startCns,
-    );
+    // Calculate ppO2 curve based on dive mode
+    final List<double> ppO2Curve;
+    switch (diveMode) {
+      case DiveMode.ccr:
+        // CCR: ppO2 equals the setpoint (constant or variable by depth phase)
+        if (setpointHigh != null) {
+          ppO2Curve = _o2ToxicityCalculator.calculatePpO2CurveCCR(
+            depths,
+            setpointHigh: setpointHigh,
+            setpointLow: setpointLow,
+            lowSetpointMaxDepth: lowSetpointMaxDepth,
+          );
+        } else {
+          // Fallback to OC calculation if no setpoint provided
+          ppO2Curve = _o2ToxicityCalculator.calculatePpO2Curve(
+            depths,
+            o2Fraction,
+          );
+        }
+      case DiveMode.scr:
+        // SCR: ppO2 varies with depth based on steady-state loop FO2
+        if (scrInjectionRate != null && scrSupplyO2Percent != null) {
+          ppO2Curve = _o2ToxicityCalculator.calculatePpO2CurveSCR(
+            depths,
+            injectionRateLpm: scrInjectionRate,
+            supplyO2Percent: scrSupplyO2Percent,
+            vo2: scrVo2,
+          );
+        } else {
+          // Fallback to OC calculation if SCR params not provided
+          ppO2Curve = _o2ToxicityCalculator.calculatePpO2Curve(
+            depths,
+            o2Fraction,
+          );
+        }
+      case DiveMode.oc:
+        // OC: ppO2 = ambient pressure × FO2
+        ppO2Curve = _o2ToxicityCalculator.calculatePpO2Curve(
+          depths,
+          o2Fraction,
+        );
+    }
 
-    // Calculate ppO2 curve
-    final ppO2Curve = _o2ToxicityCalculator.calculatePpO2Curve(
-      depths,
-      o2Fraction,
-    );
+    // Calculate O2 exposure using the ppO2 curve
+    // For CCR/SCR, we need to calculate based on actual ppO2 values
+    final O2Exposure o2Exposure;
+    if (diveMode == DiveMode.oc) {
+      o2Exposure = _o2ToxicityCalculator.calculateDiveExposure(
+        depths: depths,
+        timestamps: timestamps,
+        o2Fraction: o2Fraction,
+        startCns: startCns,
+      );
+    } else {
+      // For CCR/SCR, calculate O2 exposure from ppO2 curve
+      o2Exposure = _calculateO2ExposureFromPpO2Curve(
+        ppO2Curve: ppO2Curve,
+        timestamps: timestamps,
+        depths: depths,
+        startCns: startCns,
+      );
+    }
 
     // Calculate basic stats
     double maxDepth = 0;
@@ -955,6 +1019,68 @@ class ProfileAnalysisService {
     segments.sort((a, b) => a.startTimestamp.compareTo(b.startTimestamp));
 
     return segments;
+  }
+
+  /// Calculate O2 exposure (CNS and OTU) from a pre-calculated ppO2 curve.
+  ///
+  /// Used for CCR/SCR dives where ppO2 is known directly rather than
+  /// calculated from gas fraction and depth.
+  O2Exposure _calculateO2ExposureFromPpO2Curve({
+    required List<double> ppO2Curve,
+    required List<int> timestamps,
+    required List<double> depths,
+    required double startCns,
+  }) {
+    if (ppO2Curve.isEmpty || ppO2Curve.length != timestamps.length) {
+      return O2Exposure(cnsStart: startCns, cnsEnd: startCns);
+    }
+
+    double totalCns = 0.0;
+    double totalOtu = 0.0;
+    double maxPpO2 = 0.0;
+    double depthAtMaxPpO2 = 0.0;
+    int timeAboveWarning = 0;
+    int timeAboveCritical = 0;
+
+    for (int i = 1; i < ppO2Curve.length; i++) {
+      final duration = timestamps[i] - timestamps[i - 1];
+      if (duration <= 0) continue;
+
+      // Use average ppO2 for segment
+      final avgPpO2 = (ppO2Curve[i - 1] + ppO2Curve[i]) / 2.0;
+      final avgDepth = (depths[i - 1] + depths[i]) / 2.0;
+
+      // Track max ppO2
+      if (avgPpO2 > maxPpO2) {
+        maxPpO2 = avgPpO2;
+        depthAtMaxPpO2 = avgDepth;
+      }
+
+      // Calculate CNS for this segment
+      totalCns += _o2ToxicityCalculator.calculateCnsForSegment(avgPpO2, duration);
+
+      // Calculate OTU for this segment
+      totalOtu +=
+          _o2ToxicityCalculator.calculateOtuForSegment(avgPpO2, duration);
+
+      // Track time above thresholds
+      if (avgPpO2 > _o2ToxicityCalculator.ppO2CriticalThreshold) {
+        timeAboveCritical += duration;
+        timeAboveWarning += duration;
+      } else if (avgPpO2 > _o2ToxicityCalculator.ppO2WarningThreshold) {
+        timeAboveWarning += duration;
+      }
+    }
+
+    return O2Exposure(
+      cnsStart: startCns,
+      cnsEnd: startCns + totalCns,
+      otu: totalOtu,
+      maxPpO2: maxPpO2,
+      maxPpO2Depth: depthAtMaxPpO2,
+      timeAboveWarning: timeAboveWarning,
+      timeAboveCritical: timeAboveCritical,
+    );
   }
 
   /// Get analysis at a specific timestamp.

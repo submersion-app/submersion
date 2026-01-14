@@ -188,7 +188,7 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
       // Analyze the profile
       _log.debug(
         'Analyzing profile for dive $diveId with ${depths.length} points, '
-        'pressures: ${pressures?.length ?? 0}',
+        'pressures: ${pressures?.length ?? 0}, mode: ${dive.diveMode}',
       );
       return service.analyze(
         diveId: diveId,
@@ -198,6 +198,13 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
         heFraction: heFraction,
         startCns: 0.0, // TODO: Calculate from previous dive
         pressures: pressures,
+        // CCR/SCR parameters
+        diveMode: dive.diveMode,
+        setpointHigh: dive.setpointHigh,
+        setpointLow: dive.setpointLow,
+        scrInjectionRate: dive.scrInjectionRate,
+        scrSupplyO2Percent: dive.diluentGas?.o2, // For SCR, diluent is the supply gas
+        scrVo2: dive.assumedVo2 ?? 1.3,
       );
     } catch (e, stackTrace) {
       _log.error('Failed to analyze profile for dive: $diveId', e, stackTrace);
@@ -243,6 +250,13 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
       heFraction: heFraction,
       startCns: 0.0,
       pressures: pressures.length == depths.length ? pressures : null,
+      // CCR/SCR parameters
+      diveMode: dive.diveMode,
+      setpointHigh: dive.setpointHigh,
+      setpointLow: dive.setpointLow,
+      scrInjectionRate: dive.scrInjectionRate,
+      scrSupplyO2Percent: dive.diluentGas?.o2,
+      scrVo2: dive.assumedVo2 ?? 1.3,
     );
   } catch (e, stackTrace) {
     _log.error('Failed to analyze profile for dive: ${dive.id}', e, stackTrace);

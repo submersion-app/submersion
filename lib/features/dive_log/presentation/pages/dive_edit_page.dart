@@ -29,6 +29,9 @@ import '../../../dive_types/presentation/providers/dive_type_providers.dart';
 import '../../domain/entities/dive.dart';
 import '../../domain/entities/dive_weight.dart';
 import '../providers/dive_providers.dart';
+import '../widgets/ccr_settings_panel.dart';
+import '../widgets/dive_mode_selector.dart';
+import '../widgets/scr_settings_panel.dart';
 import '../widgets/tank_editor.dart';
 
 class DiveEditPage extends ConsumerStatefulWidget {
@@ -104,6 +107,28 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   // Tags
   List<Tag> _selectedTags = [];
+
+  // Dive mode and rebreather settings
+  DiveMode _diveMode = DiveMode.oc;
+  // CCR settings
+  double? _setpointLow;
+  double? _setpointHigh;
+  double? _setpointDeco;
+  GasMix? _diluentGas;
+  String? _scrubberType;
+  int? _scrubberDurationMinutes;
+  int? _scrubberRemainingMinutes;
+  double? _loopVolume;
+  // SCR settings
+  ScrType? _scrType;
+  double? _scrInjectionRate;
+  double? _scrAdditionRatio;
+  String? _scrOrificeSize;
+  GasMix? _scrSupplyGas;
+  double? _assumedVo2;
+  double? _loopO2Min;
+  double? _loopO2Max;
+  double? _loopO2Avg;
 
   // Existing dive for editing
   Dive? _existingDive;
@@ -250,6 +275,26 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
           // Load tags
           _selectedTags = List.from(dive.tags);
+
+          // Load CCR/SCR rebreather settings
+          _diveMode = dive.diveMode;
+          _setpointLow = dive.setpointLow;
+          _setpointHigh = dive.setpointHigh;
+          _setpointDeco = dive.setpointDeco;
+          _diluentGas = dive.diluentGas;
+          _scrubberType = dive.scrubber?.type;
+          _scrubberDurationMinutes = dive.scrubber?.ratedMinutes;
+          _scrubberRemainingMinutes = dive.scrubber?.remainingMinutes;
+          _loopVolume = dive.loopVolume;
+          _scrType = dive.scrType;
+          _scrInjectionRate = dive.scrInjectionRate;
+          _scrAdditionRatio = dive.scrAdditionRatio;
+          _scrOrificeSize = dive.scrOrificeSize;
+          _scrSupplyGas = dive.diluentGas; // SCR uses diluent field for supply gas
+          _assumedVo2 = dive.assumedVo2;
+          _loopO2Min = dive.loopO2Min;
+          _loopO2Max = dive.loopO2Max;
+          _loopO2Avg = dive.loopO2Avg;
         });
         // Load existing sightings and buddies
         _loadSightings();
@@ -347,6 +392,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _buildDiveCenterSection(),
           const SizedBox(height: 16),
           _buildDepthDurationSection(units),
+          const SizedBox(height: 16),
+          _buildDiveModeSection(),
           const SizedBox(height: 16),
           _buildTankSection(),
           const SizedBox(height: 16),
@@ -1025,6 +1072,110 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 ),
               ],
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDiveModeSection() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Dive mode selector
+            DiveModeSelector(
+              selectedMode: _diveMode,
+              onChanged: (mode) {
+                setState(() => _diveMode = mode);
+              },
+            ),
+
+            // CCR settings panel (shown when CCR mode selected)
+            if (_diveMode == DiveMode.ccr) ...[
+              const SizedBox(height: 16),
+              CcrSettingsPanel(
+                setpointLow: _setpointLow,
+                setpointHigh: _setpointHigh,
+                setpointDeco: _setpointDeco,
+                diluentGas: _diluentGas,
+                scrubberType: _scrubberType,
+                scrubberDurationMinutes: _scrubberDurationMinutes,
+                scrubberRemainingMinutes: _scrubberRemainingMinutes,
+                loopVolume: _loopVolume,
+                onChanged: ({
+                  double? setpointLow,
+                  double? setpointHigh,
+                  double? setpointDeco,
+                  GasMix? diluentGas,
+                  String? scrubberType,
+                  int? scrubberDurationMinutes,
+                  int? scrubberRemainingMinutes,
+                  double? loopVolume,
+                }) {
+                  setState(() {
+                    _setpointLow = setpointLow;
+                    _setpointHigh = setpointHigh;
+                    _setpointDeco = setpointDeco;
+                    _diluentGas = diluentGas;
+                    _scrubberType = scrubberType;
+                    _scrubberDurationMinutes = scrubberDurationMinutes;
+                    _scrubberRemainingMinutes = scrubberRemainingMinutes;
+                    _loopVolume = loopVolume;
+                  });
+                },
+              ),
+            ],
+
+            // SCR settings panel (shown when SCR mode selected)
+            if (_diveMode == DiveMode.scr) ...[
+              const SizedBox(height: 16),
+              ScrSettingsPanel(
+                scrType: _scrType,
+                injectionRate: _scrInjectionRate,
+                additionRatio: _scrAdditionRatio,
+                orificeSize: _scrOrificeSize,
+                supplyGas: _scrSupplyGas,
+                assumedVo2: _assumedVo2,
+                loopO2Min: _loopO2Min,
+                loopO2Max: _loopO2Max,
+                loopO2Avg: _loopO2Avg,
+                scrubberType: _scrubberType,
+                scrubberDurationMinutes: _scrubberDurationMinutes,
+                scrubberRemainingMinutes: _scrubberRemainingMinutes,
+                onChanged: ({
+                  ScrType? scrType,
+                  double? injectionRate,
+                  double? additionRatio,
+                  String? orificeSize,
+                  GasMix? supplyGas,
+                  double? assumedVo2,
+                  double? loopO2Min,
+                  double? loopO2Max,
+                  double? loopO2Avg,
+                  String? scrubberType,
+                  int? scrubberDurationMinutes,
+                  int? scrubberRemainingMinutes,
+                }) {
+                  setState(() {
+                    _scrType = scrType;
+                    _scrInjectionRate = injectionRate;
+                    _scrAdditionRatio = additionRatio;
+                    _scrOrificeSize = orificeSize;
+                    _scrSupplyGas = supplyGas;
+                    _assumedVo2 = assumedVo2;
+                    _loopO2Min = loopO2Min;
+                    _loopO2Max = loopO2Max;
+                    _loopO2Avg = loopO2Avg;
+                    _scrubberType = scrubberType;
+                    _scrubberDurationMinutes = scrubberDurationMinutes;
+                    _scrubberRemainingMinutes = scrubberRemainingMinutes;
+                  });
+                },
+              ),
+            ],
           ],
         ),
       ),
@@ -2296,6 +2447,31 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         // Preserve legacy buddy/divemaster text fields
         buddy: _existingDive?.buddy,
         diveMaster: _existingDive?.diveMaster,
+        // CCR/SCR rebreather settings
+        diveMode: _diveMode,
+        setpointLow: _diveMode == DiveMode.ccr ? _setpointLow : null,
+        setpointHigh: _diveMode == DiveMode.ccr ? _setpointHigh : null,
+        setpointDeco: _diveMode == DiveMode.ccr ? _setpointDeco : null,
+        diluentGas: _diveMode == DiveMode.ccr
+            ? _diluentGas
+            : (_diveMode == DiveMode.scr ? _scrSupplyGas : null),
+        loopVolume: _diveMode == DiveMode.ccr ? _loopVolume : null,
+        scrubber: (_diveMode == DiveMode.ccr || _diveMode == DiveMode.scr) &&
+                _scrubberType != null
+            ? ScrubberInfo(
+                type: _scrubberType!,
+                ratedMinutes: _scrubberDurationMinutes,
+                remainingMinutes: _scrubberRemainingMinutes,
+              )
+            : null,
+        scrType: _diveMode == DiveMode.scr ? _scrType : null,
+        scrInjectionRate: _diveMode == DiveMode.scr ? _scrInjectionRate : null,
+        scrAdditionRatio: _diveMode == DiveMode.scr ? _scrAdditionRatio : null,
+        scrOrificeSize: _diveMode == DiveMode.scr ? _scrOrificeSize : null,
+        assumedVo2: _diveMode == DiveMode.scr ? _assumedVo2 : null,
+        loopO2Min: _diveMode == DiveMode.scr ? _loopO2Min : null,
+        loopO2Max: _diveMode == DiveMode.scr ? _loopO2Max : null,
+        loopO2Avg: _diveMode == DiveMode.scr ? _loopO2Avg : null,
       );
 
       // Save using the notifier

@@ -261,6 +261,25 @@ class DiveRepository {
               weightType: Value(dive.weightType?.name),
               // Favorite flag
               isFavorite: Value(dive.isFavorite),
+              // CCR/SCR rebreather fields (v1.5)
+              diveMode: Value(dive.diveMode.code),
+              setpointLow: Value(dive.setpointLow),
+              setpointHigh: Value(dive.setpointHigh),
+              setpointDeco: Value(dive.setpointDeco),
+              scrType: Value(dive.scrType?.code),
+              scrInjectionRate: Value(dive.scrInjectionRate),
+              scrAdditionRatio: Value(dive.scrAdditionRatio),
+              scrOrificeSize: Value(dive.scrOrificeSize),
+              assumedVo2: Value(dive.assumedVo2),
+              diluentO2: Value(dive.diluentGas?.o2),
+              diluentHe: Value(dive.diluentGas?.he),
+              loopO2Min: Value(dive.loopO2Min),
+              loopO2Max: Value(dive.loopO2Max),
+              loopO2Avg: Value(dive.loopO2Avg),
+              loopVolume: Value(dive.loopVolume),
+              scrubberType: Value(dive.scrubber?.type),
+              scrubberDurationMinutes: Value(dive.scrubber?.ratedMinutes),
+              scrubberRemainingMinutes: Value(dive.scrubber?.remainingMinutes),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -396,6 +415,25 @@ class DiveRepository {
           weightType: Value(dive.weightType?.name),
           // Favorite flag
           isFavorite: Value(dive.isFavorite),
+          // CCR/SCR rebreather fields (v1.5)
+          diveMode: Value(dive.diveMode.code),
+          setpointLow: Value(dive.setpointLow),
+          setpointHigh: Value(dive.setpointHigh),
+          setpointDeco: Value(dive.setpointDeco),
+          scrType: Value(dive.scrType?.code),
+          scrInjectionRate: Value(dive.scrInjectionRate),
+          scrAdditionRatio: Value(dive.scrAdditionRatio),
+          scrOrificeSize: Value(dive.scrOrificeSize),
+          assumedVo2: Value(dive.assumedVo2),
+          diluentO2: Value(dive.diluentGas?.o2),
+          diluentHe: Value(dive.diluentGas?.he),
+          loopO2Min: Value(dive.loopO2Min),
+          loopO2Max: Value(dive.loopO2Max),
+          loopO2Avg: Value(dive.loopO2Avg),
+          loopVolume: Value(dive.loopVolume),
+          scrubberType: Value(dive.scrubber?.type),
+          scrubberDurationMinutes: Value(dive.scrubber?.ratedMinutes),
+          scrubberRemainingMinutes: Value(dive.scrubber?.remainingMinutes),
           updatedAt: Value(now),
         ),
       );
@@ -1113,6 +1151,30 @@ class DiveRepository {
       weights: const [], // Weights not loaded for list views (use detail view)
       isFavorite: row.isFavorite,
       tags: tags,
+      // CCR/SCR rebreather fields (v1.5)
+      diveMode: DiveMode.fromCode(row.diveMode),
+      setpointLow: row.setpointLow,
+      setpointHigh: row.setpointHigh,
+      setpointDeco: row.setpointDeco,
+      scrType: ScrType.fromCode(row.scrType),
+      scrInjectionRate: row.scrInjectionRate,
+      scrAdditionRatio: row.scrAdditionRatio,
+      scrOrificeSize: row.scrOrificeSize,
+      assumedVo2: row.assumedVo2,
+      diluentGas: row.diluentO2 != null
+          ? domain.GasMix(o2: row.diluentO2!, he: row.diluentHe ?? 0)
+          : null,
+      loopO2Min: row.loopO2Min,
+      loopO2Max: row.loopO2Max,
+      loopO2Avg: row.loopO2Avg,
+      loopVolume: row.loopVolume,
+      scrubber: row.scrubberType != null
+          ? domain.ScrubberInfo(
+              type: row.scrubberType!,
+              ratedMinutes: row.scrubberDurationMinutes,
+              remainingMinutes: row.scrubberRemainingMinutes,
+            )
+          : null,
     );
   }
 
@@ -1373,6 +1435,30 @@ class DiveRepository {
       weights: weights,
       isFavorite: row.isFavorite,
       tags: tags,
+      // CCR/SCR rebreather fields (v1.5)
+      diveMode: DiveMode.fromCode(row.diveMode),
+      setpointLow: row.setpointLow,
+      setpointHigh: row.setpointHigh,
+      setpointDeco: row.setpointDeco,
+      scrType: ScrType.fromCode(row.scrType),
+      scrInjectionRate: row.scrInjectionRate,
+      scrAdditionRatio: row.scrAdditionRatio,
+      scrOrificeSize: row.scrOrificeSize,
+      assumedVo2: row.assumedVo2,
+      diluentGas: row.diluentO2 != null
+          ? domain.GasMix(o2: row.diluentO2!, he: row.diluentHe ?? 0)
+          : null,
+      loopO2Min: row.loopO2Min,
+      loopO2Max: row.loopO2Max,
+      loopO2Avg: row.loopO2Avg,
+      loopVolume: row.loopVolume,
+      scrubber: row.scrubberType != null
+          ? domain.ScrubberInfo(
+              type: row.scrubberType!,
+              ratedMinutes: row.scrubberDurationMinutes,
+              remainingMinutes: row.scrubberRemainingMinutes,
+            )
+          : null,
     );
   }
 

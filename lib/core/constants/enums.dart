@@ -234,7 +234,9 @@ enum TankRole {
   bailout('Bailout'),
   sidemountLeft('Sidemount Left'),
   sidemountRight('Sidemount Right'),
-  pony('Pony Bottle');
+  pony('Pony Bottle'),
+  diluent('Diluent'), // CCR diluent tank
+  oxygenSupply('O₂ Supply'); // CCR oxygen supply cylinder
 
   final String displayName;
   const TankRole(this.displayName);
@@ -267,6 +269,29 @@ enum DiveMode {
     return DiveMode.values.firstWhere(
       (e) => e.code == code,
       orElse: () => DiveMode.oc,
+    );
+  }
+}
+
+/// Semi-Closed Rebreather type
+enum ScrType {
+  cmf('Constant Mass Flow', 'CMF'),
+  pascr('Passive Addition', 'PASCR'),
+  escr('Electronically Controlled', 'ESCR');
+
+  final String displayName;
+  final String shortName;
+  const ScrType(this.displayName, this.shortName);
+
+  /// Short code for database storage
+  String get code => name;
+
+  /// Parse from database value
+  static ScrType? fromCode(String? code) {
+    if (code == null) return null;
+    return ScrType.values.firstWhere(
+      (e) => e.code == code,
+      orElse: () => ScrType.cmf,
     );
   }
 }
