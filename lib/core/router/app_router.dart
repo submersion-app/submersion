@@ -52,6 +52,7 @@ import '../../features/settings/presentation/pages/storage_settings_page.dart';
 import '../../features/transfer/presentation/pages/transfer_page.dart';
 import '../../features/dive_types/presentation/pages/dive_types_page.dart';
 import '../../features/tools/presentation/pages/weight_calculator_page.dart';
+import '../../features/deco_calculator/presentation/pages/deco_calculator_page.dart';
 import '../../features/dive_computer/presentation/pages/device_list_page.dart';
 import '../../features/dive_computer/presentation/pages/device_detail_page.dart';
 import '../../features/dive_computer/presentation/pages/device_download_page.dart';
@@ -543,6 +544,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/tools/weight-calculator',
             name: 'weightCalculator',
             builder: (context, state) => const WeightCalculatorPage(),
+          ),
+          GoRoute(
+            path: '/tools/deco-calculator',
+            name: 'decoCalculator',
+            builder: (context, state) => const DecoCalculatorPage(),
           ),
         ],
       ),
