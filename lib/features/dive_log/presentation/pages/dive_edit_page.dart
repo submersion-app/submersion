@@ -290,7 +290,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _scrInjectionRate = dive.scrInjectionRate;
           _scrAdditionRatio = dive.scrAdditionRatio;
           _scrOrificeSize = dive.scrOrificeSize;
-          _scrSupplyGas = dive.diluentGas; // SCR uses diluent field for supply gas
+          _scrSupplyGas =
+              dive.diluentGas; // SCR uses diluent field for supply gas
           _assumedVo2 = dive.assumedVo2;
           _loopO2Min = dive.loopO2Min;
           _loopO2Max = dive.loopO2Max;
@@ -1105,27 +1106,28 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 scrubberDurationMinutes: _scrubberDurationMinutes,
                 scrubberRemainingMinutes: _scrubberRemainingMinutes,
                 loopVolume: _loopVolume,
-                onChanged: ({
-                  double? setpointLow,
-                  double? setpointHigh,
-                  double? setpointDeco,
-                  GasMix? diluentGas,
-                  String? scrubberType,
-                  int? scrubberDurationMinutes,
-                  int? scrubberRemainingMinutes,
-                  double? loopVolume,
-                }) {
-                  setState(() {
-                    _setpointLow = setpointLow;
-                    _setpointHigh = setpointHigh;
-                    _setpointDeco = setpointDeco;
-                    _diluentGas = diluentGas;
-                    _scrubberType = scrubberType;
-                    _scrubberDurationMinutes = scrubberDurationMinutes;
-                    _scrubberRemainingMinutes = scrubberRemainingMinutes;
-                    _loopVolume = loopVolume;
-                  });
-                },
+                onChanged:
+                    ({
+                      double? setpointLow,
+                      double? setpointHigh,
+                      double? setpointDeco,
+                      GasMix? diluentGas,
+                      String? scrubberType,
+                      int? scrubberDurationMinutes,
+                      int? scrubberRemainingMinutes,
+                      double? loopVolume,
+                    }) {
+                      setState(() {
+                        _setpointLow = setpointLow;
+                        _setpointHigh = setpointHigh;
+                        _setpointDeco = setpointDeco;
+                        _diluentGas = diluentGas;
+                        _scrubberType = scrubberType;
+                        _scrubberDurationMinutes = scrubberDurationMinutes;
+                        _scrubberRemainingMinutes = scrubberRemainingMinutes;
+                        _loopVolume = loopVolume;
+                      });
+                    },
               ),
             ],
 
@@ -1145,35 +1147,36 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 scrubberType: _scrubberType,
                 scrubberDurationMinutes: _scrubberDurationMinutes,
                 scrubberRemainingMinutes: _scrubberRemainingMinutes,
-                onChanged: ({
-                  ScrType? scrType,
-                  double? injectionRate,
-                  double? additionRatio,
-                  String? orificeSize,
-                  GasMix? supplyGas,
-                  double? assumedVo2,
-                  double? loopO2Min,
-                  double? loopO2Max,
-                  double? loopO2Avg,
-                  String? scrubberType,
-                  int? scrubberDurationMinutes,
-                  int? scrubberRemainingMinutes,
-                }) {
-                  setState(() {
-                    _scrType = scrType;
-                    _scrInjectionRate = injectionRate;
-                    _scrAdditionRatio = additionRatio;
-                    _scrOrificeSize = orificeSize;
-                    _scrSupplyGas = supplyGas;
-                    _assumedVo2 = assumedVo2;
-                    _loopO2Min = loopO2Min;
-                    _loopO2Max = loopO2Max;
-                    _loopO2Avg = loopO2Avg;
-                    _scrubberType = scrubberType;
-                    _scrubberDurationMinutes = scrubberDurationMinutes;
-                    _scrubberRemainingMinutes = scrubberRemainingMinutes;
-                  });
-                },
+                onChanged:
+                    ({
+                      ScrType? scrType,
+                      double? injectionRate,
+                      double? additionRatio,
+                      String? orificeSize,
+                      GasMix? supplyGas,
+                      double? assumedVo2,
+                      double? loopO2Min,
+                      double? loopO2Max,
+                      double? loopO2Avg,
+                      String? scrubberType,
+                      int? scrubberDurationMinutes,
+                      int? scrubberRemainingMinutes,
+                    }) {
+                      setState(() {
+                        _scrType = scrType;
+                        _scrInjectionRate = injectionRate;
+                        _scrAdditionRatio = additionRatio;
+                        _scrOrificeSize = orificeSize;
+                        _scrSupplyGas = supplyGas;
+                        _assumedVo2 = assumedVo2;
+                        _loopO2Min = loopO2Min;
+                        _loopO2Max = loopO2Max;
+                        _loopO2Avg = loopO2Avg;
+                        _scrubberType = scrubberType;
+                        _scrubberDurationMinutes = scrubberDurationMinutes;
+                        _scrubberRemainingMinutes = scrubberRemainingMinutes;
+                      });
+                    },
               ),
             ],
           ],
@@ -2456,7 +2459,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             ? _diluentGas
             : (_diveMode == DiveMode.scr ? _scrSupplyGas : null),
         loopVolume: _diveMode == DiveMode.ccr ? _loopVolume : null,
-        scrubber: (_diveMode == DiveMode.ccr || _diveMode == DiveMode.scr) &&
+        scrubber:
+            (_diveMode == DiveMode.ccr || _diveMode == DiveMode.scr) &&
                 _scrubberType != null
             ? ScrubberInfo(
                 type: _scrubberType!,
