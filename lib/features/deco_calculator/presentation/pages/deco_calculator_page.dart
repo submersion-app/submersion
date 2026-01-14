@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import '../../../../core/utils/unit_formatter.dart';
 import '../../../dive_log/domain/entities/dive.dart';
 import '../../../dive_log/presentation/widgets/deco_info_panel.dart';
 import '../../../dive_planner/presentation/providers/dive_planner_providers.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../providers/deco_calculator_providers.dart';
 import '../widgets/depth_slider.dart';
 import '../widgets/gas_mix_selector.dart';
@@ -98,6 +100,8 @@ class DecoCalculatorPage extends ConsumerWidget {
     final o2 = ref.read(calcO2Provider);
     final he = ref.read(calcHeProvider);
     final gasMix = GasMix(o2: o2, he: he);
+    final settings = ref.read(settingsProvider);
+    final units = UnitFormatter(settings);
 
     // Get the planner notifier
     final planNotifier = ref.read(divePlanNotifierProvider.notifier);
@@ -113,13 +117,14 @@ class DecoCalculatorPage extends ConsumerWidget {
     planNotifier.addSimplePlan(maxDepth: depth, bottomTimeMinutes: time);
 
     // Navigate to planner
-    context.go('/planner');
+    context.go('/planning/dive-planner');
 
-    // Show confirmation
+    // Show confirmation with user's preferred units
+    final displayDepth = units.convertDepth(depth);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Created plan: ${depth.toStringAsFixed(0)}m for ${time}min on ${gasMix.name}',
+          'Created plan: ${displayDepth.toStringAsFixed(0)}${units.depthSymbol} for ${time}min on ${gasMix.name}',
         ),
         duration: const Duration(seconds: 2),
       ),

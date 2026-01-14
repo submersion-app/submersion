@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import '../../../../core/constants/units.dart';
+import '../../../../core/utils/unit_formatter.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../providers/gas_calculators_providers.dart';
 
 /// Rock Bottom calculator.
@@ -12,15 +15,47 @@ class RockBottomCalculator extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final depth = ref.watch(rockBottomDepthProvider);
-    final ascentRate = ref.watch(rockBottomAscentRateProvider);
-    final sac = ref.watch(rockBottomSacProvider);
-    final buddySac = ref.watch(rockBottomBuddySacProvider);
-    final tankSize = ref.watch(rockBottomTankSizeProvider);
+    final depth = ref.watch(rockBottomDepthProvider); // Depth in meters
+    final ascentRate = ref.watch(rockBottomAscentRateProvider); // m/min
+    final sac = ref.watch(rockBottomSacProvider); // L/min
+    final buddySac = ref.watch(rockBottomBuddySacProvider); // L/min
+    final tankSize = ref.watch(rockBottomTankSizeProvider); // Liters
     final includeSafetyStop = ref.watch(rockBottomSafetyStopProvider);
     final result = ref.watch(rockBottomResultProvider);
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+
+    // Unit conversion helpers
+    final isMetricDepth = settings.depthUnit == DepthUnit.meters;
+    final isMetricVolume = settings.volumeUnit == VolumeUnit.liters;
+    final depthSymbol = units.depthSymbol;
+    final volumeSymbol = units.volumeSymbol;
+    final pressureSymbol = units.pressureSymbol;
+
+    // Display values for depth
+    final displayDepth = units.convertDepth(depth);
+    final minDepthDisplay = units.convertDepth(10);
+    final maxDepthDisplay = units.convertDepth(50);
+
+    // Ascent rate in user's depth unit per minute
+    final displayAscentRate = units.convertDepth(ascentRate);
+    final minAscentDisplay = units.convertDepth(6);
+    final maxAscentDisplay = units.convertDepth(12);
+
+    // Result values in user's units
+    final displayPressure = units.convertPressure(result.totalBar);
+    final displayVolume = units.convertVolume(result.totalLiters);
+
+    // Tank sizes
+    final tankSizes = isMetricVolume
+        ? [10.0, 12.0, 15.0, 18.0]
+        : [63.0, 80.0, 100.0, 120.0];
+    final displayTankSize = units.convertVolume(tankSize);
+
+    // Safety stop depth display
+    final safetyStopDepthDisplay = units.convertDepth(5);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -47,13 +82,14 @@ class RockBottomCalculator extends ConsumerWidget {
                     context,
                     icon: Icons.arrow_downward,
                     label: 'Maximum Depth',
-                    value: depth,
-                    unit: 'm',
-                    min: 10,
-                    max: 50,
-                    divisions: 40,
+                    value: displayDepth,
+                    unit: depthSymbol,
+                    min: minDepthDisplay,
+                    max: maxDepthDisplay,
+                    divisions: isMetricDepth ? 40 : 132,
                     onChanged: (value) {
-                      ref.read(rockBottomDepthProvider.notifier).state = value;
+                      ref.read(rockBottomDepthProvider.notifier).state = units
+                          .depthToMeters(value);
                     },
                   ),
                   const SizedBox(height: 20),
@@ -63,14 +99,14 @@ class RockBottomCalculator extends ConsumerWidget {
                     context,
                     icon: Icons.arrow_upward,
                     label: 'Ascent Rate',
-                    value: ascentRate,
-                    unit: 'm/min',
-                    min: 6,
-                    max: 12,
-                    divisions: 6,
+                    value: displayAscentRate,
+                    unit: '$depthSymbol/min',
+                    min: minAscentDisplay,
+                    max: maxAscentDisplay,
+                    divisions: isMetricDepth ? 6 : 20,
                     onChanged: (value) {
                       ref.read(rockBottomAscentRateProvider.notifier).state =
-                          value;
+                          units.depthToMeters(value);
                     },
                   ),
                 ],
@@ -162,15 +198,25 @@ class RockBottomCalculator extends ConsumerWidget {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      for (final size in [10.0, 12.0, 15.0, 18.0])
-                        _buildTankChip(context, ref, size, tankSize == size),
+                      for (final size in tankSizes)
+                        _buildTankChip(
+                          context,
+                          ref,
+                          size,
+                          displayTankSize.round() == size.round(),
+                          volumeSymbol,
+                          isMetricVolume,
+                          units,
+                        ),
                     ],
                   ),
                   const SizedBox(height: 16),
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
                     title: const Text('Include Safety Stop'),
-                    subtitle: const Text('3 minutes at 5m'),
+                    subtitle: Text(
+                      '3 minutes at ${safetyStopDepthDisplay.toStringAsFixed(0)}$depthSymbol',
+                    ),
                     value: includeSafetyStop,
                     onChanged: (value) {
                       ref.read(rockBottomSafetyStopProvider.notifier).state =
@@ -209,14 +255,14 @@ class RockBottomCalculator extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    '${result.totalBar.toStringAsFixed(0)} bar',
+                    '${displayPressure.toStringAsFixed(0)} $pressureSymbol',
                     style: textTheme.displayMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: colorScheme.onErrorContainer,
                     ),
                   ),
                   Text(
-                    '(${result.totalLiters.toStringAsFixed(0)} L)',
+                    '(${displayVolume.toStringAsFixed(0)} $volumeSymbol)',
                     style: textTheme.titleMedium?.copyWith(
                       color: colorScheme.onErrorContainer.withValues(
                         alpha: 0.7,
@@ -233,7 +279,7 @@ class RockBottomCalculator extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      'Turn the dive when reaching ${result.totalBar.toStringAsFixed(0)} bar remaining',
+                      'Turn the dive when reaching ${displayPressure.toStringAsFixed(0)} $pressureSymbol remaining',
                       textAlign: TextAlign.center,
                       style: textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onErrorContainer,
@@ -278,26 +324,26 @@ class RockBottomCalculator extends ConsumerWidget {
                   ),
                   _buildBreakdownRow(
                     context,
-                    'Ascent time to ${includeSafetyStop ? '5m' : 'surface'}',
+                    'Ascent time to ${includeSafetyStop ? '${safetyStopDepthDisplay.toStringAsFixed(0)}$depthSymbol' : 'surface'}',
                     '${((depth - (includeSafetyStop ? 5 : 0)) / ascentRate).toStringAsFixed(1)} min',
                   ),
                   _buildBreakdownRow(
                     context,
                     'Ascent gas required',
-                    '${result.ascentGas.toStringAsFixed(0)} L',
+                    '${units.convertVolume(result.ascentGas).toStringAsFixed(0)} $volumeSymbol',
                   ),
                   if (includeSafetyStop)
                     _buildBreakdownRow(
                       context,
-                      'Safety stop gas (3 min @ 5m)',
-                      '${result.safetyStopGas.toStringAsFixed(0)} L',
+                      'Safety stop gas (3 min @ ${safetyStopDepthDisplay.toStringAsFixed(0)}$depthSymbol)',
+                      '${units.convertVolume(result.safetyStopGas).toStringAsFixed(0)} $volumeSymbol',
                     ),
                   const Divider(height: 24),
                   _buildBreakdownRow(
                     context,
                     'Total reserve needed',
-                    '${result.totalLiters.toStringAsFixed(0)} L = '
-                        '${result.totalBar.toStringAsFixed(0)} bar',
+                    '${displayVolume.toStringAsFixed(0)} $volumeSymbol = '
+                        '${displayPressure.toStringAsFixed(0)} $pressureSymbol',
                     isHighlight: true,
                   ),
                 ],
@@ -423,14 +469,19 @@ class RockBottomCalculator extends ConsumerWidget {
     WidgetRef ref,
     double size,
     bool isSelected,
+    String volumeSymbol,
+    bool isMetricVolume,
+    UnitFormatter units,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return FilterChip(
-      label: Text('${size.toStringAsFixed(0)}L'),
+      label: Text('${size.toStringAsFixed(0)}$volumeSymbol'),
       selected: isSelected,
       onSelected: (_) {
-        ref.read(rockBottomTankSizeProvider.notifier).state = size;
+        // Convert display unit back to liters for storage
+        final sizeInLiters = isMetricVolume ? size : units.volumeToLiters(size);
+        ref.read(rockBottomTankSizeProvider.notifier).state = sizeInLiters;
       },
       selectedColor: colorScheme.primaryContainer,
       checkmarkColor: colorScheme.onPrimaryContainer,

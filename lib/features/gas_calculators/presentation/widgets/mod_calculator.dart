@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import '../../../../core/constants/units.dart';
+import '../../../../core/utils/unit_formatter.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../providers/gas_calculators_providers.dart';
 
 /// Maximum Operating Depth (MOD) calculator.
@@ -13,9 +16,19 @@ class ModCalculator extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final o2 = ref.watch(modO2Provider);
     final ppO2 = ref.watch(modPpO2Provider);
-    final mod = ref.watch(modResultProvider);
+    final mod = ref.watch(modResultProvider); // MOD in meters
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+
+    // Convert MOD to user's preferred unit
+    final isMetric = settings.depthUnit == DepthUnit.meters;
+    final displayMod = units.convertDepth(mod);
+    final primaryUnit = units.depthSymbol;
+    // Secondary unit (the other system)
+    final secondaryMod = isMetric ? mod * 3.28084 : mod;
+    final secondaryUnit = isMetric ? 'ft' : 'm';
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -106,14 +119,14 @@ class ModCalculator extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    '${mod.toStringAsFixed(1)} m',
+                    '${displayMod.toStringAsFixed(1)} $primaryUnit',
                     style: textTheme.displayMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: colorScheme.onPrimaryContainer,
                     ),
                   ),
                   Text(
-                    '(${(mod * 3.28084).toStringAsFixed(0)} ft)',
+                    '(${secondaryMod.toStringAsFixed(0)} $secondaryUnit)',
                     style: textTheme.titleMedium?.copyWith(
                       color: colorScheme.onPrimaryContainer.withValues(
                         alpha: 0.7,
@@ -121,6 +134,7 @@ class ModCalculator extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  // Warning thresholds stay in meters (internal calculation)
                   Icon(
                     mod < 10
                         ? Icons.warning

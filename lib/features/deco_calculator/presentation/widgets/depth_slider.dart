@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import '../../../../core/constants/units.dart';
+import '../../../../core/utils/unit_formatter.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../providers/deco_calculator_providers.dart';
 
 /// Slider for adjusting dive depth (0-60m / 0-200ft).
@@ -9,9 +12,18 @@ class DepthSlider extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final depth = ref.watch(calcDepthProvider);
+    final depth = ref.watch(calcDepthProvider); // Stored in meters
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+
+    // Unit conversion
+    final isMetric = settings.depthUnit == DepthUnit.meters;
+    final depthSymbol = units.depthSymbol;
+    final displayDepth = units.convertDepth(depth);
+    const minDisplay = 0.0;
+    final maxDisplay = units.convertDepth(60);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -38,7 +50,7 @@ class DepthSlider extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Text(
-                '${depth.toStringAsFixed(0)} m',
+                '${displayDepth.toStringAsFixed(0)} $depthSymbol',
                 style: textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: colorScheme.onPrimaryContainer,
@@ -56,12 +68,15 @@ class DepthSlider extends ConsumerWidget {
             overlayColor: colorScheme.primary.withValues(alpha: 0.12),
           ),
           child: Slider(
-            value: depth,
-            min: 0,
-            max: 60,
-            divisions: 60,
+            value: displayDepth,
+            min: minDisplay,
+            max: maxDisplay,
+            divisions: isMetric ? 60 : 200,
             onChanged: (value) {
-              ref.read(calcDepthProvider.notifier).state = value;
+              // Convert back to meters for storage
+              ref.read(calcDepthProvider.notifier).state = units.depthToMeters(
+                value,
+              );
             },
           ),
         ),
@@ -71,13 +86,13 @@ class DepthSlider extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '0m',
+                '0$depthSymbol',
                 style: textTheme.labelSmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
               ),
               Text(
-                '60m',
+                '${maxDisplay.toStringAsFixed(0)}$depthSymbol',
                 style: textTheme.labelSmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),

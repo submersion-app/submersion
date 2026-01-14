@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import '../../../../core/constants/units.dart';
+import '../../../../core/utils/unit_formatter.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../providers/gas_calculators_providers.dart';
 
 /// Gas Consumption calculator.
@@ -12,13 +15,40 @@ class GasConsumptionCalculator extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final depth = ref.watch(consumptionDepthProvider);
+    final depth = ref.watch(consumptionDepthProvider); // Depth in meters
     final time = ref.watch(consumptionTimeProvider);
-    final sac = ref.watch(consumptionSacProvider);
-    final tankSize = ref.watch(consumptionTankSizeProvider);
+    final sac = ref.watch(consumptionSacProvider); // SAC in L/min
+    final tankSize = ref.watch(consumptionTankSizeProvider); // Tank in liters
     final result = ref.watch(consumptionResultProvider);
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+
+    // Unit conversion helpers
+    final isMetricDepth = settings.depthUnit == DepthUnit.meters;
+    final isMetricVolume = settings.volumeUnit == VolumeUnit.liters;
+    final depthSymbol = units.depthSymbol;
+    final volumeSymbol = units.volumeSymbol;
+    final pressureSymbol = units.pressureSymbol;
+
+    // Display values
+    final displayDepth = units.convertDepth(depth);
+    final minDepthDisplay = units.convertDepth(5);
+    final maxDepthDisplay = units.convertDepth(50);
+
+    // Convert result values for display
+    final displayVolume = units.convertVolume(result.liters);
+    final displayPressure = units.convertPressure(result.bar);
+
+    // Tank sizes in user's volume unit
+    final tankSizes = isMetricVolume
+        ? [10.0, 12.0, 15.0, 18.0] // Liters
+        : [63.0, 80.0, 100.0, 120.0]; // Cubic feet (common US tank sizes)
+    final displayTankSize = units.convertVolume(tankSize);
+
+    // Warning threshold in user's pressure unit
+    final maxFillPressure = units.convertPressure(200);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -40,18 +70,19 @@ class GasConsumptionCalculator extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
 
-                  // Depth slider
+                  // Depth slider - displays in user's unit, stores in meters
                   _buildSliderSection(
                     context,
                     icon: Icons.arrow_downward,
                     label: 'Average Depth',
-                    value: depth,
-                    unit: 'm',
-                    min: 5,
-                    max: 50,
-                    divisions: 45,
+                    value: displayDepth,
+                    unit: depthSymbol,
+                    min: minDepthDisplay,
+                    max: maxDepthDisplay,
+                    divisions: isMetricDepth ? 45 : 150,
                     onChanged: (value) {
-                      ref.read(consumptionDepthProvider.notifier).state = value;
+                      ref.read(consumptionDepthProvider.notifier).state = units
+                          .depthToMeters(value);
                     },
                   ),
                   const SizedBox(height: 20),
@@ -101,8 +132,16 @@ class GasConsumptionCalculator extends ConsumerWidget {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      for (final size in [10.0, 12.0, 15.0, 18.0])
-                        _buildTankChip(context, ref, size, tankSize == size),
+                      for (final size in tankSizes)
+                        _buildTankChip(
+                          context,
+                          ref,
+                          size,
+                          displayTankSize.round() == size.round(),
+                          volumeSymbol,
+                          isMetricVolume,
+                          units,
+                        ),
                     ],
                   ),
                 ],
@@ -135,8 +174,8 @@ class GasConsumptionCalculator extends ConsumerWidget {
                       _buildResultColumn(
                         context,
                         label: 'Volume',
-                        value: result.liters.toStringAsFixed(0),
-                        unit: 'L',
+                        value: displayVolume.toStringAsFixed(0),
+                        unit: volumeSymbol,
                         isError: result.exceedsTank,
                       ),
                       Container(
@@ -151,8 +190,8 @@ class GasConsumptionCalculator extends ConsumerWidget {
                       _buildResultColumn(
                         context,
                         label: 'Pressure',
-                        value: result.bar.toStringAsFixed(0),
-                        unit: 'bar',
+                        value: displayPressure.toStringAsFixed(0),
+                        unit: pressureSymbol,
                         isError: result.exceedsTank,
                       ),
                     ],
@@ -171,7 +210,7 @@ class GasConsumptionCalculator extends ConsumerWidget {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'Consumption exceeds a 200 bar fill! '
+                              'Consumption exceeds a ${maxFillPressure.toStringAsFixed(0)} $pressureSymbol fill! '
                               'Reduce dive time or depth.',
                               style: textTheme.bodySmall?.copyWith(
                                 color: colorScheme.error,
@@ -215,30 +254,30 @@ class GasConsumptionCalculator extends ConsumerWidget {
                   const SizedBox(height: 12),
                   _buildBreakdownRow(
                     context,
-                    'Ambient pressure at ${depth.toStringAsFixed(0)}m',
+                    'Ambient pressure at ${displayDepth.toStringAsFixed(0)}$depthSymbol',
                     '${((depth / 10) + 1).toStringAsFixed(2)} ATM',
                   ),
                   _buildBreakdownRow(
                     context,
                     'Gas consumption at depth',
-                    '${(sac * ((depth / 10) + 1)).toStringAsFixed(1)} L/min',
+                    '${units.convertVolume(sac * ((depth / 10) + 1)).toStringAsFixed(1)} $volumeSymbol/min',
                   ),
                   _buildBreakdownRow(
                     context,
                     'Total gas for $time minutes',
-                    '${result.liters.toStringAsFixed(0)} L',
+                    '${displayVolume.toStringAsFixed(0)} $volumeSymbol',
                   ),
                   _buildBreakdownRow(
                     context,
-                    'Tank capacity (${tankSize.toStringAsFixed(0)}L @ 200 bar)',
-                    '${(tankSize * 200).toStringAsFixed(0)} L',
+                    'Tank capacity (${displayTankSize.toStringAsFixed(0)}$volumeSymbol @ ${maxFillPressure.toStringAsFixed(0)} $pressureSymbol)',
+                    '${units.convertVolume(tankSize * 200).toStringAsFixed(0)} $volumeSymbol',
                   ),
                   const Divider(height: 24),
                   _buildBreakdownRow(
                     context,
                     'Remaining gas',
-                    '${((tankSize * 200) - result.liters).toStringAsFixed(0)} L '
-                        '(${(200 - result.bar).toStringAsFixed(0)} bar)',
+                    '${units.convertVolume((tankSize * 200) - result.liters).toStringAsFixed(0)} $volumeSymbol '
+                        '(${units.convertPressure(200 - result.bar).toStringAsFixed(0)} $pressureSymbol)',
                     isHighlight: true,
                   ),
                 ],
@@ -323,14 +362,19 @@ class GasConsumptionCalculator extends ConsumerWidget {
     WidgetRef ref,
     double size,
     bool isSelected,
+    String volumeSymbol,
+    bool isMetricVolume,
+    UnitFormatter units,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return FilterChip(
-      label: Text('${size.toStringAsFixed(0)}L'),
+      label: Text('${size.toStringAsFixed(0)}$volumeSymbol'),
       selected: isSelected,
       onSelected: (_) {
-        ref.read(consumptionTankSizeProvider.notifier).state = size;
+        // Convert display unit back to liters for storage
+        final sizeInLiters = isMetricVolume ? size : units.volumeToLiters(size);
+        ref.read(consumptionTankSizeProvider.notifier).state = sizeInLiters;
       },
       selectedColor: colorScheme.primaryContainer,
       checkmarkColor: colorScheme.onPrimaryContainer,

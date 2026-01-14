@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
@@ -51,7 +52,9 @@ import '../../features/settings/presentation/pages/cloud_sync_page.dart';
 import '../../features/settings/presentation/pages/storage_settings_page.dart';
 import '../../features/transfer/presentation/pages/transfer_page.dart';
 import '../../features/dive_types/presentation/pages/dive_types_page.dart';
-import '../../features/tools/presentation/pages/tools_page.dart';
+import '../../features/planning/presentation/pages/planning_page.dart';
+import '../../features/planning/presentation/widgets/planning_shell.dart';
+import '../../features/planning/presentation/widgets/planning_welcome.dart';
 import '../../features/tools/presentation/pages/weight_calculator_page.dart';
 import '../../features/deco_calculator/presentation/pages/deco_calculator_page.dart';
 import '../../features/gas_calculators/presentation/pages/gas_calculators_page.dart';
@@ -105,17 +108,53 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 const NoTransitionPage(child: DashboardPage()),
           ),
 
-          // Dive Planner
-          GoRoute(
-            path: '/planner',
-            name: 'divePlanner',
-            builder: (context, state) => const DivePlannerPage(),
+          // Planning Hub with ShellRoute for master/detail on wide screens
+          ShellRoute(
+            builder: (context, state, child) => PlanningShell(child: child),
             routes: [
               GoRoute(
-                path: ':planId',
-                name: 'editPlan',
-                builder: (context, state) =>
-                    DivePlannerPage(planId: state.pathParameters['planId']),
+                path: '/planning',
+                name: 'planning',
+                pageBuilder: (context, state) {
+                  // On wide screens show welcome placeholder, on mobile show hub
+                  final isWide = MediaQuery.of(context).size.width >= 900;
+                  return NoTransitionPage(
+                    child: isWide
+                        ? const PlanningWelcome()
+                        : const PlanningPage(),
+                  );
+                },
+                routes: [
+                  GoRoute(
+                    path: 'dive-planner',
+                    name: 'divePlanner',
+                    builder: (context, state) => const DivePlannerPage(),
+                    routes: [
+                      GoRoute(
+                        path: ':planId',
+                        name: 'editPlan',
+                        builder: (context, state) => DivePlannerPage(
+                          planId: state.pathParameters['planId'],
+                        ),
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: 'deco-calculator',
+                    name: 'decoCalculator',
+                    builder: (context, state) => const DecoCalculatorPage(),
+                  ),
+                  GoRoute(
+                    path: 'gas-calculators',
+                    name: 'gasCalculators',
+                    builder: (context, state) => const GasCalculatorsPage(),
+                  ),
+                  GoRoute(
+                    path: 'weight-calculator',
+                    name: 'weightCalculator',
+                    builder: (context, state) => const WeightCalculatorPage(),
+                  ),
+                ],
               ),
             ],
           ),
@@ -537,31 +576,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     ),
                   ),
                 ],
-              ),
-            ],
-          ),
-
-          // Tools
-          GoRoute(
-            path: '/tools',
-            name: 'tools',
-            pageBuilder: (context, state) =>
-                const NoTransitionPage(child: ToolsPage()),
-            routes: [
-              GoRoute(
-                path: 'weight-calculator',
-                name: 'weightCalculator',
-                builder: (context, state) => const WeightCalculatorPage(),
-              ),
-              GoRoute(
-                path: 'deco-calculator',
-                name: 'decoCalculator',
-                builder: (context, state) => const DecoCalculatorPage(),
-              ),
-              GoRoute(
-                path: 'gas-calculators',
-                name: 'gasCalculators',
-                builder: (context, state) => const GasCalculatorsPage(),
               ),
             ],
           ),
