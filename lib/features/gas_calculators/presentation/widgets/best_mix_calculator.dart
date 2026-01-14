@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import '../../../../core/constants/units.dart';
+import '../../../../core/utils/unit_formatter.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../providers/gas_calculators_providers.dart';
 
 /// Best Mix calculator - finds the ideal O2% for a target depth.
@@ -12,12 +15,22 @@ class BestMixCalculator extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final depth = ref.watch(bestMixDepthProvider);
+    final depth = ref.watch(bestMixDepthProvider); // Depth in meters
     final ppO2 = ref.watch(bestMixPpO2Provider);
     final idealO2 = ref.watch(bestMixResultProvider);
     final suggestion = ref.watch(bestMixSuggestionProvider);
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+
+    // Unit conversion
+    final isMetric = settings.depthUnit == DepthUnit.meters;
+    final depthSymbol = units.depthSymbol;
+    final displayDepth = units.convertDepth(depth);
+    // Slider range in user's unit (6-60m or ~20-200ft)
+    final minDepthDisplay = units.convertDepth(6);
+    final maxDepthDisplay = units.convertDepth(60);
 
     // Clamp O2 to valid range
     final clampedO2 = idealO2.clamp(21.0, 100.0);
@@ -43,18 +56,20 @@ class BestMixCalculator extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
 
-                  // Depth slider
+                  // Depth slider - displays in user's unit, stores in meters
                   _buildSliderSection(
                     context,
                     icon: Icons.arrow_downward,
                     label: 'Target Depth',
-                    value: depth,
-                    unit: 'm',
-                    min: 6,
-                    max: 60,
-                    divisions: 54,
+                    value: displayDepth,
+                    unit: depthSymbol,
+                    min: minDepthDisplay,
+                    max: maxDepthDisplay,
+                    divisions: isMetric ? 54 : 180, // 1m or 1ft increments
                     onChanged: (value) {
-                      ref.read(bestMixDepthProvider.notifier).state = value;
+                      // Convert display unit back to meters for storage
+                      ref.read(bestMixDepthProvider.notifier).state = units
+                          .depthToMeters(value);
                     },
                   ),
                   const SizedBox(height: 24),
@@ -187,12 +202,12 @@ class BestMixCalculator extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  _buildMixRow(context, 'Air', 21, ppO2),
-                  _buildMixRow(context, 'EAN32', 32, ppO2),
-                  _buildMixRow(context, 'EAN36', 36, ppO2),
-                  _buildMixRow(context, 'EAN40', 40, ppO2),
-                  _buildMixRow(context, 'EAN50', 50, ppO2),
-                  _buildMixRow(context, 'Oxygen', 100, ppO2),
+                  _buildMixRow(context, 'Air', 21, ppO2, units),
+                  _buildMixRow(context, 'EAN32', 32, ppO2, units),
+                  _buildMixRow(context, 'EAN36', 36, ppO2, units),
+                  _buildMixRow(context, 'EAN40', 40, ppO2, units),
+                  _buildMixRow(context, 'EAN50', 50, ppO2, units),
+                  _buildMixRow(context, 'Oxygen', 100, ppO2, units),
                 ],
               ),
             ),
@@ -314,12 +329,15 @@ class BestMixCalculator extends ConsumerWidget {
     String name,
     int o2,
     double ppO2Limit,
+    UnitFormatter units,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    // Calculate MOD for this mix
-    final mod = ((ppO2Limit / (o2 / 100)) - 1) * 10;
+    // Calculate MOD for this mix (in meters)
+    final modMeters = ((ppO2Limit / (o2 / 100)) - 1) * 10;
+    // Convert to user's preferred unit
+    final displayMod = units.convertDepth(modMeters);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -342,7 +360,7 @@ class BestMixCalculator extends ConsumerWidget {
           ),
           const Spacer(),
           Text(
-            'MOD: ${mod.toStringAsFixed(0)}m',
+            'MOD: ${displayMod.toStringAsFixed(0)}${units.depthSymbol}',
             style: textTheme.bodySmall?.copyWith(
               color: colorScheme.primary,
               fontWeight: FontWeight.w500,
