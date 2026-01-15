@@ -64,6 +64,7 @@ import '../../features/dive_computer/presentation/pages/device_download_page.dar
 import '../../features/dive_computer/presentation/pages/device_discovery_page.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../../features/dive_planner/presentation/pages/dive_planner_page.dart';
+import '../../features/surface_interval_tool/presentation/pages/surface_interval_tool_page.dart';
 import '../../shared/widgets/main_scaffold.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -154,6 +155,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     path: 'weight-calculator',
                     name: 'weightCalculator',
                     builder: (context, state) => const WeightCalculatorPage(),
+                  ),
+                  GoRoute(
+                    path: 'surface-interval',
+                    name: 'surfaceInterval',
+                    builder: (context, state) =>
+                        const SurfaceIntervalToolPage(),
                   ),
                 ],
               ),

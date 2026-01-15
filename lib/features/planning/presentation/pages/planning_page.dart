@@ -74,6 +74,20 @@ class PlanningPage extends StatelessWidget {
                 'tank material, water type, and body weight.',
             onTap: () => context.go('/planning/weight-calculator'),
           ),
+          const SizedBox(height: 12),
+
+          // Surface Interval Tool Card
+          _PlanningCard(
+            icon: Icons.timer,
+            iconColor: Colors.teal,
+            title: 'Surface Interval',
+            subtitle: 'Plan repetitive dive intervals',
+            description:
+                'Calculate the minimum surface interval needed between dives '
+                'based on tissue loading. Visualize how your 16 tissue '
+                'compartments off-gas over time.',
+            onTap: () => context.go('/planning/surface-interval'),
+          ),
           const SizedBox(height: 24),
 
           // Info Card
