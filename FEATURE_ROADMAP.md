@@ -5,7 +5,7 @@
 > **Current Version:** 1.1.0 (v1.1 Complete)
 > **Status:** v1.0 ✅ COMPLETE | v1.1 ✅ COMPLETE | v1.5 🚧 In Progress
 >
-> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete | Search & Filtering (Category 10.1) ✅ Complete | Tools & Calculators (Category 11) ✅ Complete
+> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Profile Visualization (Category 2.1) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete | Search & Filtering (Category 10.1) ✅ Complete | Tools & Calculators (Category 11) ✅ Complete
 
 ---
 
@@ -113,11 +113,11 @@
 | Ceiling / NDL curve | ✅ Implemented | v1.5 | Bühlmann ZH-L16C with GF support |
 | ppO₂ curve, CNS/OTU | ✅ Implemented | v1.5 | O2ToxicityCard with NOAA tables |
 | SAC/RMV overlay | ✅ Implemented | v1.5 | Instantaneous gas consumption |
-| Profile export as PNG | 📋 Planned | v2.0 | Export chart image for sharing |
-| Range analysis | 📋 Planned | v2.0 | Select portion of dive for min/max/avg stats |
-| Step-through playback | 📋 Planned | v2.0 | Step through dive in 10-second increments |
-| Heart rate overlay | 📋 Planned | v2.0 | From compatible dive computers |
-| O2/He/N2 saturation display | 📋 Planned | v2.0 | Tissue gas saturation visualization |
+| Profile export as PNG | ✅ Implemented | v1.5 | Export chart image to Photos or file |
+| Range analysis | ✅ Implemented | v1.5 | Drag handles for min/max/avg stats |
+| Step-through playback | ✅ Implemented | v1.5 | Animated playback with real-time stats |
+| Heart rate overlay | ✅ Implemented | v1.5 | Toggle red HR line on chart |
+| Tissue saturation display | ✅ Implemented | v1.5 | 16-compartment bar chart with N2/He |
 
 **v1.5 Tasks:**
 - [x] Profile event markers (ProfileEvent entity with type, timestamp, severity)
@@ -129,6 +129,14 @@
 - [x] Deco ceiling curve on profile chart
 - [x] Interactive timeline updates deco/O2 panels
 - [x] SAC/RMV overlay on profile chart
+- [x] Profile export as PNG (RepaintBoundary + save to Photos/file)
+- [x] Range selection with drag handles (RangeSelectionOverlay widget)
+- [x] Range stats panel (min/max/avg for selected portion)
+- [x] Step-through playback (PlaybackNotifier with Timer-based advance)
+- [x] Playback controls (play/pause, step forward/back, seek slider)
+- [x] Playback stats panel (real-time interpolated values at cursor)
+- [x] Heart rate overlay toggle (red dashed line with HR data)
+- [x] Tissue saturation chart (16-compartment bar chart with N2/He split)
 
 ---
 
@@ -1341,6 +1349,11 @@
 - [x] Advanced Search page with full filter form (`/dives/search`)
 - [x] Bulk export from selection mode (CSV, PDF, UDDF)
 - [x] Bulk edit from selection mode (change trip, add/remove tags)
+- [x] Profile export as PNG (save to Photos or choose file location)
+- [x] Range analysis with drag handles (min/max/avg stats for selected portion)
+- [x] Step-through playback with animated cursor and real-time stats
+- [x] Heart rate overlay toggle on profile chart
+- [x] 16-compartment tissue saturation bar chart (N2/He visualization)
 - [ ] Performance with 5000+ dives
 
 ## v2.0 (Planned)
