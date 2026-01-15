@@ -8,6 +8,7 @@ import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.d
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 
 class BuddyDetailPage extends ConsumerStatefulWidget {
   final String buddyId;
@@ -479,7 +480,15 @@ class _BuddyDetailContent extends ConsumerWidget {
                     onPressed: ids.isEmpty
                         ? null
                         : () {
-                            // Navigate to filtered dive list (future enhancement)
+                            // Set filter to show only shared dives with this buddy
+                            ref
+                                .read(diveFilterProvider.notifier)
+                                .state = DiveFilterState(
+                              diveIds: ids,
+                              buddyId: buddy.id,
+                            );
+                            // Navigate to dive list
+                            context.go('/dives');
                           },
                     child: Text('View All (${ids.length})'),
                   ),
