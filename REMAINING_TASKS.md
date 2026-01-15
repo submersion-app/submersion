@@ -285,15 +285,6 @@ This document contains only the features and tasks that are **not yet completed*
 
 ## Category 2: Dive Profile & Telemetry
 
-### 2.1 Profile Visualization
-| Feature | Notes |
-|---------|-------|
-| Profile export as PNG | Export chart image for sharing |
-| Range analysis | Select portion of dive for min/max/avg stats |
-| Step-through playback | Step through dive in 10-second increments |
-| Heart rate overlay | From compatible dive computers |
-| O2/He/N2 saturation display | Tissue gas saturation visualization |
-
 ### 2.2 Multi-Profile Support
 | Feature | Notes |
 |---------|-------|
@@ -317,7 +308,6 @@ This document contains only the features and tasks that are **not yet completed*
 - [ ] Smoothing algorithm (moving average)
 - [ ] Manual profile editor with touch/mouse drawing
 - [ ] Segment selection and adjustment UI
-- [ ] Profile export as PNG image for sharing
 
 ---
 
@@ -765,7 +755,7 @@ This document contains only the features and tasks that are **not yet completed*
 | Phase | Remaining Features | Remaining Tasks |
 |-------|-------------------|-----------------|
 | **v1.5** | ~25 features | ~45 tasks |
-| **v2.0** | ~80+ features | ~120+ tasks |
+| **v2.0** | ~75+ features | ~115+ tasks |
 | **v3.0** | ~5 features | Future scope |
 
 ## v1.5 Priority Areas
