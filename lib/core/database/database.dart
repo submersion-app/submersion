@@ -589,6 +589,26 @@ class DiveTags extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Custom tank presets (user-defined tank configurations)
+class TankPresets extends Table {
+  TextColumn get id => text()();
+  TextColumn get diverId =>
+      text().nullable().references(Divers, #id)(); // Owner of preset
+  TextColumn get name => text()(); // Internal name/identifier
+  TextColumn get displayName => text()(); // User-friendly display name
+  RealColumn get volumeLiters => real()(); // Water volume in liters
+  IntColumn get workingPressureBar => integer()(); // Rated working pressure
+  TextColumn get material => text()(); // aluminum, steel, carbonFiber
+  TextColumn get description =>
+      text().withDefault(const Constant(''))(); // Optional description
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Dive computers (devices that record dive data)
 class DiveComputers extends Table {
   TextColumn get id => text()();
@@ -745,6 +765,7 @@ class DeletionLog extends Table {
     Tags,
     DiveTags,
     DiveTypes,
+    TankPresets,
     DiveComputers,
     DiveProfileEvents,
     GasSwitches,
@@ -759,7 +780,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 12;
+  int get schemaVersion => 13;
 
   @override
   MigrationStrategy get migration {
@@ -966,6 +987,24 @@ class AppDatabase extends _$AppDatabase {
           await customStatement(
             'ALTER TABLE dives ADD COLUMN is_planned INTEGER NOT NULL DEFAULT 0',
           );
+        }
+        if (from < 13) {
+          // Add custom tank presets table
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS tank_presets (
+              id TEXT NOT NULL PRIMARY KEY,
+              diver_id TEXT REFERENCES divers(id),
+              name TEXT NOT NULL,
+              display_name TEXT NOT NULL,
+              volume_liters REAL NOT NULL,
+              working_pressure_bar INTEGER NOT NULL,
+              material TEXT NOT NULL,
+              description TEXT NOT NULL DEFAULT '',
+              sort_order INTEGER NOT NULL DEFAULT 0,
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL
+            )
+          ''');
         }
       },
       beforeOpen: (details) async {

@@ -52,6 +52,8 @@ import '../../features/settings/presentation/pages/cloud_sync_page.dart';
 import '../../features/settings/presentation/pages/storage_settings_page.dart';
 import '../../features/transfer/presentation/pages/transfer_page.dart';
 import '../../features/dive_types/presentation/pages/dive_types_page.dart';
+import '../../features/tank_presets/presentation/pages/tank_presets_page.dart';
+import '../../features/tank_presets/presentation/pages/tank_preset_edit_page.dart';
 import '../../features/planning/presentation/pages/planning_page.dart';
 import '../../features/planning/presentation/widgets/planning_shell.dart';
 import '../../features/planning/presentation/widgets/planning_welcome.dart';
@@ -556,6 +558,27 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/dive-types',
             name: 'diveTypes',
             builder: (context, state) => const DiveTypesPage(),
+          ),
+
+          // Tank Presets Management
+          GoRoute(
+            path: '/tank-presets',
+            name: 'tankPresets',
+            builder: (context, state) => const TankPresetsPage(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'newTankPreset',
+                builder: (context, state) => const TankPresetEditPage(),
+              ),
+              GoRoute(
+                path: ':presetId/edit',
+                name: 'editTankPreset',
+                builder: (context, state) => TankPresetEditPage(
+                  presetId: state.pathParameters['presetId'],
+                ),
+              ),
+            ],
           ),
 
           // Dive Computers
