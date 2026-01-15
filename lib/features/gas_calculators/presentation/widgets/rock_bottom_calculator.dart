@@ -155,7 +155,7 @@ class RockBottomCalculator extends ConsumerWidget {
                         icon: Icons.person,
                         label: 'Your SAC',
                         value: sac,
-                        unit: 'L/min',
+                        unit: '$volumeSymbol/min',
                         min: 15,
                         max: 35,
                         divisions: 20,
@@ -172,7 +172,7 @@ class RockBottomCalculator extends ConsumerWidget {
                         icon: Icons.people,
                         label: 'Buddy SAC',
                         value: buddySac,
-                        unit: 'L/min',
+                        unit: '$volumeSymbol/min',
                         min: 15,
                         max: 40,
                         divisions: 25,
@@ -329,7 +329,7 @@ class RockBottomCalculator extends ConsumerWidget {
                       _buildBreakdownRow(
                         context,
                         'Combined stressed SAC',
-                        '${(sac + buddySac).toStringAsFixed(0)} L/min',
+                        '${(sac + buddySac).toStringAsFixed(0)} $volumeSymbol/min',
                       ),
                       _buildBreakdownRow(
                         context,

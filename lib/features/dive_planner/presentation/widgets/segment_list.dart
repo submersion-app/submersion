@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/providers/provider.dart';
+import '../../../../core/utils/unit_formatter.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../../domain/entities/plan_segment.dart';
 import '../providers/dive_planner_providers.dart';
 import 'segment_editor.dart';
@@ -14,6 +16,8 @@ class SegmentList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final planState = ref.watch(divePlanNotifierProvider);
     final theme = Theme.of(context);
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
 
     return Card(
       child: Padding(
@@ -61,6 +65,7 @@ class SegmentList extends ConsumerWidget {
                   return _SegmentTile(
                     key: ValueKey(segment.id),
                     segment: segment,
+                    units: units,
                     index: index,
                     onEdit: () => _showEditSegmentDialog(context, ref, segment),
                     onDelete: () => ref
@@ -120,6 +125,7 @@ class SegmentList extends ConsumerWidget {
 
 class _SegmentTile extends StatelessWidget {
   final PlanSegment segment;
+  final UnitFormatter units;
   final int index;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -127,6 +133,7 @@ class _SegmentTile extends StatelessWidget {
   const _SegmentTile({
     super.key,
     required this.segment,
+    required this.units,
     required this.index,
     required this.onEdit,
     required this.onDelete,
@@ -138,7 +145,7 @@ class _SegmentTile extends StatelessWidget {
 
     return ListTile(
       leading: _SegmentIcon(type: segment.type),
-      title: Text(segment.description),
+      title: Text(_formatDescription()),
       subtitle: Text(
         '${segment.durationFormatted} • ${segment.gasMix.name}',
         style: theme.textTheme.bodySmall,
@@ -158,6 +165,28 @@ class _SegmentTile extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// Format the segment description with proper unit settings.
+  String _formatDescription() {
+    final startDepth = units.formatDepth(segment.startDepth);
+    final endDepth = units.formatDepth(segment.endDepth);
+    final durationMin = segment.durationSeconds ~/ 60;
+
+    switch (segment.type) {
+      case SegmentType.descent:
+        return 'Descent $startDepth → $endDepth';
+      case SegmentType.bottom:
+        return 'Bottom $startDepth for $durationMin min';
+      case SegmentType.ascent:
+        return 'Ascent $startDepth → $endDepth';
+      case SegmentType.decoStop:
+        return 'Deco $startDepth for $durationMin min';
+      case SegmentType.gasSwitch:
+        return 'Gas switch to ${segment.gasMix.name}';
+      case SegmentType.safetyStop:
+        return 'Safety stop $startDepth for $durationMin min';
+    }
   }
 }
 

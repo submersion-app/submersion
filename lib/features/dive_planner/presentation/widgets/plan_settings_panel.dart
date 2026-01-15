@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/providers/provider.dart';
+import '../../../../core/utils/unit_formatter.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../providers/dive_planner_providers.dart';
 
 /// Panel for configuring dive plan settings (GF, SAC, site).
@@ -11,6 +13,8 @@ class PlanSettingsPanel extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final planState = ref.watch(divePlanNotifierProvider);
     final theme = Theme.of(context);
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
 
     return Card(
       child: Padding(
@@ -74,7 +78,8 @@ class PlanSettingsPanel extends ConsumerWidget {
                     min: 8,
                     max: 30,
                     divisions: 22,
-                    label: '${planState.sacRate.toStringAsFixed(0)} L/min',
+                    label:
+                        '${planState.sacRate.toStringAsFixed(0)} ${units.volumeSymbol}/min',
                     onChanged: (value) {
                       ref
                           .read(divePlanNotifierProvider.notifier)
@@ -83,9 +88,9 @@ class PlanSettingsPanel extends ConsumerWidget {
                   ),
                 ),
                 SizedBox(
-                  width: 70,
+                  width: 80,
                   child: Text(
-                    '${planState.sacRate.toStringAsFixed(0)} L/min',
+                    '${planState.sacRate.toStringAsFixed(0)} ${units.volumeSymbol}/min',
                     style: theme.textTheme.bodyMedium,
                   ),
                 ),

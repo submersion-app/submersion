@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/providers/provider.dart';
+import '../../../../core/utils/unit_formatter.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../providers/dive_planner_providers.dart';
 
 /// Simple dialog for creating a basic rectangular dive plan.
@@ -29,6 +31,8 @@ class _SimplePlanDialogState extends ConsumerState<SimplePlanDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
 
     return AlertDialog(
       title: const Text('Quick Plan'),
@@ -54,14 +58,14 @@ class _SimplePlanDialogState extends ConsumerState<SimplePlanDialog> {
                   min: 5,
                   max: 40,
                   divisions: 35,
-                  label: '${_depth.toStringAsFixed(0)}m',
+                  label: units.formatDepth(_depth),
                   onChanged: (v) => setState(() => _depth = v),
                 ),
               ),
               SizedBox(
-                width: 50,
+                width: 60,
                 child: Text(
-                  '${_depth.toStringAsFixed(0)}m',
+                  units.formatDepth(_depth),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -119,7 +123,7 @@ class _SimplePlanDialogState extends ConsumerState<SimplePlanDialog> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '↓ Descent to ${_depth.toStringAsFixed(0)}m',
+                  '↓ Descent to ${units.formatDepth(_depth)}',
                   style: theme.textTheme.bodySmall,
                 ),
                 Text(

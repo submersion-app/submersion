@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../providers/deco_calculator_providers.dart';
 
@@ -13,6 +15,8 @@ class GasWarningsDisplay extends ConsumerWidget {
     final ppO2 = ref.watch(calcPpO2Provider);
     final mod = ref.watch(calcMODProvider);
     final end = ref.watch(calcENDProvider);
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -60,7 +64,7 @@ class GasWarningsDisplay extends ConsumerWidget {
                   child: _buildMetric(
                     context,
                     label: 'ppO₂',
-                    value: '${ppO2.toStringAsFixed(2)} bar',
+                    value: units.formatPressure(ppO2),
                     status: ppO2Status,
                     tooltip: _getPpO2Tooltip(ppO2),
                   ),
@@ -72,7 +76,7 @@ class GasWarningsDisplay extends ConsumerWidget {
                   child: _buildMetric(
                     context,
                     label: 'MOD',
-                    value: '${mod.toStringAsFixed(0)} m',
+                    value: units.formatDepth(mod),
                     status: modStatus,
                     tooltip: modStatus == WarningStatus.ok
                         ? 'Within safe operating depth'
@@ -86,7 +90,7 @@ class GasWarningsDisplay extends ConsumerWidget {
                   child: _buildMetric(
                     context,
                     label: 'END',
-                    value: '${end.toStringAsFixed(0)} m',
+                    value: units.formatDepth(end),
                     status: endStatus,
                     tooltip: _getEndTooltip(end),
                   ),

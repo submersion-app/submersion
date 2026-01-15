@@ -3,7 +3,9 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../core/constants/enums.dart';
 import '../../../../core/providers/provider.dart';
+import '../../../../core/utils/unit_formatter.dart';
 import '../../../dive_log/domain/entities/dive.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../providers/dive_planner_providers.dart';
 
 const _uuid = Uuid();
@@ -16,6 +18,8 @@ class PlanTankList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final planState = ref.watch(divePlanNotifierProvider);
     final theme = Theme.of(context);
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
 
     return Card(
       child: Padding(
@@ -38,7 +42,7 @@ class PlanTankList extends ConsumerWidget {
                 IconButton(
                   icon: const Icon(Icons.add),
                   tooltip: 'Add Tank',
-                  onPressed: () => _showAddTankDialog(context, ref),
+                  onPressed: () => _showAddTankDialog(context, ref, units),
                 ),
               ],
             ),
@@ -51,7 +55,8 @@ class PlanTankList extends ConsumerWidget {
               children: planState.tanks.map((tank) {
                 return _TankChip(
                   tank: tank,
-                  onEdit: () => _showEditTankDialog(context, ref, tank),
+                  units: units,
+                  onEdit: () => _showEditTankDialog(context, ref, tank, units),
                   onDelete: planState.tanks.length > 1
                       ? () => ref
                             .read(divePlanNotifierProvider.notifier)
@@ -66,10 +71,15 @@ class PlanTankList extends ConsumerWidget {
     );
   }
 
-  void _showAddTankDialog(BuildContext context, WidgetRef ref) {
+  void _showAddTankDialog(
+    BuildContext context,
+    WidgetRef ref,
+    UnitFormatter units,
+  ) {
     showDialog(
       context: context,
       builder: (context) => _TankEditDialog(
+        units: units,
         onSave: (tank) {
           ref.read(divePlanNotifierProvider.notifier).addTank(tank);
         },
@@ -77,11 +87,17 @@ class PlanTankList extends ConsumerWidget {
     );
   }
 
-  void _showEditTankDialog(BuildContext context, WidgetRef ref, DiveTank tank) {
+  void _showEditTankDialog(
+    BuildContext context,
+    WidgetRef ref,
+    DiveTank tank,
+    UnitFormatter units,
+  ) {
     showDialog(
       context: context,
       builder: (context) => _TankEditDialog(
         tank: tank,
+        units: units,
         onSave: (updated) {
           ref
               .read(divePlanNotifierProvider.notifier)
@@ -94,10 +110,16 @@ class PlanTankList extends ConsumerWidget {
 
 class _TankChip extends StatelessWidget {
   final DiveTank tank;
+  final UnitFormatter units;
   final VoidCallback onEdit;
   final VoidCallback? onDelete;
 
-  const _TankChip({required this.tank, required this.onEdit, this.onDelete});
+  const _TankChip({
+    required this.tank,
+    required this.units,
+    required this.onEdit,
+    this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -120,7 +142,7 @@ class _TankChip extends StatelessWidget {
         children: [
           Text(tank.name ?? tank.gasMix.name),
           Text(
-            '${tank.startPressure ?? "--"} bar • ${tank.volume?.toStringAsFixed(0) ?? "--"}L',
+            '${units.formatPressure(tank.startPressure?.toDouble())} • ${units.formatVolume(tank.volume)}',
             style: theme.textTheme.bodySmall,
           ),
         ],
@@ -134,9 +156,10 @@ class _TankChip extends StatelessWidget {
 
 class _TankEditDialog extends StatefulWidget {
   final DiveTank? tank;
+  final UnitFormatter units;
   final ValueChanged<DiveTank> onSave;
 
-  const _TankEditDialog({this.tank, required this.onSave});
+  const _TankEditDialog({this.tank, required this.units, required this.onSave});
 
   @override
   State<_TankEditDialog> createState() => _TankEditDialogState();
@@ -202,7 +225,9 @@ class _TankEditDialogState extends State<_TankEditDialog> {
                 Expanded(
                   child: TextField(
                     controller: _volumeController,
-                    decoration: const InputDecoration(labelText: 'Volume (L)'),
+                    decoration: InputDecoration(
+                      labelText: 'Volume (${widget.units.volumeSymbol})',
+                    ),
                     keyboardType: TextInputType.number,
                   ),
                 ),
@@ -210,7 +235,9 @@ class _TankEditDialogState extends State<_TankEditDialog> {
                 Expanded(
                   child: TextField(
                     controller: _pressureController,
-                    decoration: const InputDecoration(labelText: 'Start (bar)'),
+                    decoration: InputDecoration(
+                      labelText: 'Start (${widget.units.pressureSymbol})',
+                    ),
                     keyboardType: TextInputType.number,
                   ),
                 ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/providers/provider.dart';
+import '../../../../core/utils/unit_formatter.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../../domain/entities/plan_result.dart';
 import '../providers/dive_planner_providers.dart';
 
@@ -18,6 +20,8 @@ class GasResultsPanel extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final results = ref.watch(planResultsProvider);
     final theme = Theme.of(context);
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
 
     return Card(
       child: Padding(
@@ -54,7 +58,8 @@ class GasResultsPanel extends ConsumerWidget {
               )
             else
               ...results.gasConsumptions.map(
-                (consumption) => _GasConsumptionCard(consumption: consumption),
+                (consumption) =>
+                    _GasConsumptionCard(consumption: consumption, units: units),
               ),
           ],
         ),
@@ -65,8 +70,9 @@ class GasResultsPanel extends ConsumerWidget {
 
 class _GasConsumptionCard extends StatelessWidget {
   final GasConsumption consumption;
+  final UnitFormatter units;
 
-  const _GasConsumptionCard({required this.consumption});
+  const _GasConsumptionCard({required this.consumption, required this.units});
 
   @override
   Widget build(BuildContext context) {
@@ -145,7 +151,7 @@ class _GasConsumptionCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      '${consumption.gasUsedBar.toStringAsFixed(0)} bar',
+                      units.formatPressure(consumption.gasUsedBar),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -165,7 +171,7 @@ class _GasConsumptionCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      consumption.remainingFormatted,
+                      _formatRemainingPressure(),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: hasWarning ? theme.colorScheme.error : null,
@@ -209,7 +215,7 @@ class _GasConsumptionCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  'Below minimum reserve (${consumption.minGasReserve} bar)',
+                  'Below minimum reserve (${units.formatPressure(consumption.minGasReserve?.toDouble())})',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.error,
                   ),
@@ -220,6 +226,14 @@ class _GasConsumptionCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// Format remaining pressure with proper unit settings.
+  String _formatRemainingPressure() {
+    final remaining = consumption.remainingPressure;
+    if (remaining == null) return '--';
+    if (remaining <= 0) return 'EMPTY';
+    return units.formatPressure(remaining.toDouble());
   }
 
   Color _getGasColor(double o2Percent) {

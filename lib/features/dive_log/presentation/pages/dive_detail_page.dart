@@ -99,8 +99,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   /// Key for capturing the profile chart as an image for PNG export
   final GlobalKey _profileChartExportKey = GlobalKey();
 
+  /// Key for capturing the entire dive details page as an image for PNG export
+  final GlobalKey _pageExportKey = GlobalKey();
+
   /// Whether an export is currently in progress
   bool _isExportingProfile = false;
+
+  /// Whether a page export is currently in progress
+  bool _isExportingPage = false;
 
   String get diveId => widget.diveId;
 
@@ -166,48 +172,51 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
     final body = SingleChildScrollView(
       padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildHeaderSection(context, ref, dive, units),
-          const SizedBox(height: 24),
-          if (dive.profile.isNotEmpty) ...[
-            _buildProfileSection(context, ref, dive),
+      child: RepaintBoundary(
+        key: _pageExportKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeaderSection(context, ref, dive, units),
             const SizedBox(height: 24),
-            _buildDecoSection(context, ref, dive),
+            if (dive.profile.isNotEmpty) ...[
+              _buildProfileSection(context, ref, dive),
+              const SizedBox(height: 24),
+              _buildDecoSection(context, ref, dive),
+              const SizedBox(height: 24),
+              _buildO2ToxicitySection(context, ref, dive),
+              const SizedBox(height: 24),
+              _buildSacSegmentsSection(context, ref, dive),
+            ],
+            _buildDetailsSection(context, ref, dive, units),
+            if (_hasConditions(dive)) ...[
+              const SizedBox(height: 24),
+              _buildConditionsSection(context, dive),
+            ],
+            if (_hasWeights(dive)) ...[
+              const SizedBox(height: 24),
+              _buildWeightSection(context, dive, units),
+            ],
+            if (dive.tags.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              _buildTagsSection(context, dive),
+            ],
             const SizedBox(height: 24),
-            _buildO2ToxicitySection(context, ref, dive),
+            _buildBuddiesSection(context, ref),
             const SizedBox(height: 24),
-            _buildSacSegmentsSection(context, ref, dive),
+            if (dive.tanks.isNotEmpty) ...[
+              _buildTanksSection(context, dive, units),
+            ],
+            if (dive.equipment.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              _buildEquipmentSection(context, ref, dive),
+            ],
+            _buildSightingsSection(context, ref),
+            const SizedBox(height: 24),
+            _buildNotesSection(context, dive),
+            const SizedBox(height: 32),
           ],
-          _buildDetailsSection(context, ref, dive, units),
-          if (_hasConditions(dive)) ...[
-            const SizedBox(height: 24),
-            _buildConditionsSection(context, dive),
-          ],
-          if (_hasWeights(dive)) ...[
-            const SizedBox(height: 24),
-            _buildWeightSection(context, dive, units),
-          ],
-          if (dive.tags.isNotEmpty) ...[
-            const SizedBox(height: 24),
-            _buildTagsSection(context, dive),
-          ],
-          const SizedBox(height: 24),
-          _buildBuddiesSection(context, ref),
-          const SizedBox(height: 24),
-          if (dive.tanks.isNotEmpty) ...[
-            _buildTanksSection(context, dive, units),
-          ],
-          if (dive.equipment.isNotEmpty) ...[
-            const SizedBox(height: 24),
-            _buildEquipmentSection(context, ref, dive),
-          ],
-          _buildSightingsSection(context, ref),
-          const SizedBox(height: 24),
-          _buildNotesSection(context, dive),
-          const SizedBox(height: 32),
-        ],
+        ),
       ),
     );
 
@@ -1532,6 +1541,231 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     }
   }
 
+  /// Export the entire dive details page as a PNG image
+  Future<void> _exportDiveDetailsPage(Dive dive) async {
+    // Show options bottom sheet
+    final action = await showModalBottomSheet<_ProfileExportAction>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 32,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.outline,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Export Dive Details Image',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Save to Photos'),
+              subtitle: const Text('Save image to your photo library'),
+              onTap: () =>
+                  Navigator.pop(context, _ProfileExportAction.saveToPhotos),
+            ),
+            ListTile(
+              leading: const Icon(Icons.folder),
+              title: const Text('Save to Files'),
+              subtitle: const Text('Choose a location to save the file'),
+              onTap: () =>
+                  Navigator.pop(context, _ProfileExportAction.saveToFile),
+            ),
+            ListTile(
+              leading: const Icon(Icons.share),
+              title: const Text('Share'),
+              subtitle: const Text('Share via other apps'),
+              onTap: () => Navigator.pop(context, _ProfileExportAction.share),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+
+    if (action == null) return;
+
+    setState(() => _isExportingPage = true);
+
+    try {
+      // Wait for the next frame to ensure the content is fully rendered
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      final boundary =
+          _pageExportKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
+
+      if (boundary == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not capture dive details')),
+          );
+        }
+        return;
+      }
+
+      // Capture at 2x resolution for better quality
+      final image = await boundary.toImage(pixelRatio: 2.0);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+
+      if (byteData == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not generate image')),
+          );
+        }
+        return;
+      }
+
+      final pngBytes = byteData.buffer.asUint8List();
+
+      // Generate filename with dive number and date
+      final dateStr =
+          '${dive.dateTime.year}-${dive.dateTime.month.toString().padLeft(2, '0')}-${dive.dateTime.day.toString().padLeft(2, '0')}';
+      final diveNum = dive.diveNumber?.toString() ?? dive.id.substring(0, 8);
+      final fileName = 'dive_details_${diveNum}_$dateStr.png';
+
+      final exportService = ExportService();
+
+      switch (action) {
+        case _ProfileExportAction.saveToPhotos:
+          await exportService.saveImageToPhotos(pngBytes, fileName);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Image saved to Photos')),
+            );
+          }
+        case _ProfileExportAction.saveToFile:
+          final savedPath = await exportService.saveImageToFile(
+            pngBytes,
+            fileName,
+          );
+          if (mounted && savedPath != null) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('Image saved')));
+          }
+        case _ProfileExportAction.share:
+          await exportService.exportImageAsPng(pngBytes, fileName);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Export failed: $e')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isExportingPage = false);
+      }
+    }
+  }
+
+  /// Export the dive as a PDF with save/share options
+  Future<void> _exportDivePdf(Dive dive) async {
+    // Show options bottom sheet
+    final action = await showModalBottomSheet<_PdfExportAction>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 32,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.outline,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text('Export PDF', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            ListTile(
+              leading: const Icon(Icons.folder),
+              title: const Text('Save to Files'),
+              subtitle: const Text('Choose a location to save the file'),
+              onTap: () => Navigator.pop(context, _PdfExportAction.saveToFile),
+            ),
+            ListTile(
+              leading: const Icon(Icons.share),
+              title: const Text('Share'),
+              subtitle: const Text('Share via other apps'),
+              onTap: () => Navigator.pop(context, _PdfExportAction.share),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+
+    if (action == null) return;
+
+    // Show loading dialog while generating PDF
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => const AlertDialog(
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 24),
+            Text('Generating PDF...'),
+          ],
+        ),
+      ),
+    );
+
+    try {
+      final exportService = ref.read(exportServiceProvider);
+      final result = await exportService.generateDivePdfBytes([dive]);
+
+      // Close loading dialog BEFORE opening file picker to avoid navigator lock issues
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+
+      if (!mounted) return;
+
+      switch (action) {
+        case _PdfExportAction.saveToFile:
+          final savedPath = await exportService.savePdfToFile(
+            result.bytes,
+            result.fileName,
+          );
+          if (mounted && savedPath != null) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('PDF saved')));
+          }
+        case _PdfExportAction.share:
+          await exportService.sharePdfBytes(result.bytes, result.fileName);
+      }
+    } catch (e) {
+      // Try to close loading dialog if it's still open
+      if (mounted) {
+        try {
+          Navigator.of(context, rootNavigator: true).pop();
+        } catch (_) {
+          // Dialog may already be closed
+        }
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Export failed: $e')));
+      }
+    }
+  }
+
   void _showFullscreenProfile(BuildContext context, WidgetRef ref, Dive dive) {
     final analysis = ref.read(diveProfileAnalysisProvider(dive));
     final gasSwitches = ref.read(gasSwitchesProvider(dive.id)).valueOrNull;
@@ -2466,12 +2700,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               subtitle: const Text('Printable dive log page'),
               onTap: () {
                 Navigator.of(sheetContext).pop();
-                _handleSingleDiveExport(
-                  context,
-                  ref,
-                  () =>
-                      ref.read(exportServiceProvider).exportDivesToPdf([dive]),
-                );
+                _exportDivePdf(dive);
               },
             ),
             ListTile(
@@ -2502,6 +2731,25 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   ], sites: dive.site != null ? [dive.site!] : []),
                 );
               },
+            ),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.image),
+              title: const Text('Page as Image'),
+              subtitle: const Text('Screenshot of entire dive details'),
+              trailing: _isExportingPage
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : null,
+              onTap: _isExportingPage
+                  ? null
+                  : () {
+                      Navigator.of(sheetContext).pop();
+                      _exportDiveDetailsPage(dive);
+                    },
             ),
             const SizedBox(height: 8),
           ],
@@ -2959,3 +3207,6 @@ class _WeightDisplay {
 
 /// Actions available for profile chart export
 enum _ProfileExportAction { saveToPhotos, saveToFile, share }
+
+/// Actions available for PDF export
+enum _PdfExportAction { saveToFile, share }

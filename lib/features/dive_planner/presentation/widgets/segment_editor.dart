@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../../core/providers/provider.dart';
+import '../../../../core/utils/unit_formatter.dart';
 import '../../../dive_log/domain/entities/dive.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../../domain/entities/plan_segment.dart';
 
 const _uuid = Uuid();
 
 /// Dialog for creating and editing dive plan segments.
-class SegmentEditor extends StatefulWidget {
+class SegmentEditor extends ConsumerStatefulWidget {
   /// Segment to edit (null for new segment).
   final PlanSegment? segment;
 
@@ -25,16 +28,17 @@ class SegmentEditor extends StatefulWidget {
   });
 
   @override
-  State<SegmentEditor> createState() => _SegmentEditorState();
+  ConsumerState<SegmentEditor> createState() => _SegmentEditorState();
 }
 
-class _SegmentEditorState extends State<SegmentEditor> {
+class _SegmentEditorState extends ConsumerState<SegmentEditor> {
   late SegmentType _type;
   late TextEditingController _startDepthController;
   late TextEditingController _endDepthController;
   late TextEditingController _durationController;
   late TextEditingController _rateController;
   late String _selectedTankId;
+  bool _unitsInitialized = false;
 
   @override
   void initState() {
@@ -42,6 +46,7 @@ class _SegmentEditorState extends State<SegmentEditor> {
     final segment = widget.segment;
 
     _type = segment?.type ?? SegmentType.bottom;
+    // Initialize with raw meter values - will convert in first build
     _startDepthController = TextEditingController(
       text: segment != null ? segment.startDepth.toStringAsFixed(0) : '0',
     );
@@ -52,7 +57,7 @@ class _SegmentEditorState extends State<SegmentEditor> {
       text: segment != null ? (segment.durationSeconds ~/ 60).toString() : '20',
     );
     _rateController = TextEditingController(
-      text: segment?.rate?.toStringAsFixed(0) ?? '10',
+      text: segment?.rate?.abs().toStringAsFixed(0) ?? '10',
     );
     _selectedTankId = segment?.tankId ?? widget.availableTanks.first.id;
   }
@@ -71,6 +76,14 @@ class _SegmentEditorState extends State<SegmentEditor> {
     final isNew = widget.segment == null;
     final showRate =
         _type == SegmentType.descent || _type == SegmentType.ascent;
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
+
+    // Convert meter values to user's preferred units on first build
+    if (!_unitsInitialized) {
+      _unitsInitialized = true;
+      _convertControllersToUserUnits(units);
+    }
 
     return AlertDialog(
       title: Text(isNew ? 'Add Segment' : 'Edit Segment'),
@@ -117,8 +130,8 @@ class _SegmentEditorState extends State<SegmentEditor> {
                 Expanded(
                   child: TextField(
                     controller: _startDepthController,
-                    decoration: const InputDecoration(
-                      labelText: 'Start Depth (m)',
+                    decoration: InputDecoration(
+                      labelText: 'Start Depth (${units.depthSymbol})',
                     ),
                     keyboardType: TextInputType.number,
                     enabled: _type != SegmentType.gasSwitch,
@@ -128,8 +141,8 @@ class _SegmentEditorState extends State<SegmentEditor> {
                 Expanded(
                   child: TextField(
                     controller: _endDepthController,
-                    decoration: const InputDecoration(
-                      labelText: 'End Depth (m)',
+                    decoration: InputDecoration(
+                      labelText: 'End Depth (${units.depthSymbol})',
                     ),
                     keyboardType: TextInputType.number,
                     enabled: _type != SegmentType.gasSwitch,
@@ -158,8 +171,8 @@ class _SegmentEditorState extends State<SegmentEditor> {
                 controller: _rateController,
                 decoration: InputDecoration(
                   labelText: _type == SegmentType.descent
-                      ? 'Descent Rate (m/min)'
-                      : 'Ascent Rate (m/min)',
+                      ? 'Descent Rate (${units.depthSymbol}/min)'
+                      : 'Ascent Rate (${units.depthSymbol}/min)',
                 ),
                 keyboardType: TextInputType.number,
               ),
@@ -201,25 +214,47 @@ class _SegmentEditorState extends State<SegmentEditor> {
     );
   }
 
+  /// Convert controller values from meters to user's preferred units.
+  void _convertControllersToUserUnits(UnitFormatter units) {
+    final startDepthMeters = double.tryParse(_startDepthController.text) ?? 0;
+    final endDepthMeters = double.tryParse(_endDepthController.text) ?? 0;
+    final rateMeters = double.tryParse(_rateController.text) ?? 10;
+
+    _startDepthController.text = units
+        .convertDepth(startDepthMeters)
+        .toStringAsFixed(0);
+    _endDepthController.text = units
+        .convertDepth(endDepthMeters)
+        .toStringAsFixed(0);
+    _rateController.text = units.convertDepth(rateMeters).toStringAsFixed(0);
+  }
+
   void _updateDefaultsForType(SegmentType type) {
+    final settings = ref.read(settingsProvider);
+    final units = UnitFormatter(settings);
+
     switch (type) {
       case SegmentType.descent:
         _startDepthController.text = '0';
-        _rateController.text = '18';
+        // 18 m/min default descent rate
+        _rateController.text = units.convertDepth(18).toStringAsFixed(0);
         break;
       case SegmentType.bottom:
         // Keep end depth as target
         _startDepthController.text = _endDepthController.text;
         break;
       case SegmentType.ascent:
-        _rateController.text = '9';
+        // 9 m/min default ascent rate
+        _rateController.text = units.convertDepth(9).toStringAsFixed(0);
         break;
       case SegmentType.decoStop:
         _durationController.text = '3';
         break;
       case SegmentType.safetyStop:
-        _startDepthController.text = '5';
-        _endDepthController.text = '5';
+        // 5m default safety stop depth
+        final safetyDepth = units.convertDepth(5).toStringAsFixed(0);
+        _startDepthController.text = safetyDepth;
+        _endDepthController.text = safetyDepth;
         _durationController.text = '3';
         break;
       case SegmentType.gasSwitch:
@@ -246,24 +281,34 @@ class _SegmentEditorState extends State<SegmentEditor> {
   }
 
   void _save() {
+    final settings = ref.read(settingsProvider);
+    final units = UnitFormatter(settings);
+
     final selectedTank = widget.availableTanks.firstWhere(
       (t) => t.id == _selectedTankId,
     );
 
-    final startDepth = double.tryParse(_startDepthController.text) ?? 0;
-    final endDepth = double.tryParse(_endDepthController.text) ?? 0;
+    // Parse values in user's units and convert to meters for storage
+    final startDepthUserUnits =
+        double.tryParse(_startDepthController.text) ?? 0;
+    final endDepthUserUnits = double.tryParse(_endDepthController.text) ?? 0;
     final durationMinutes = int.tryParse(_durationController.text) ?? 0;
-    final rate = double.tryParse(_rateController.text) ?? 10;
+    final rateUserUnits = double.tryParse(_rateController.text) ?? 10;
+
+    // Convert depths and rate from user units to meters
+    final startDepthMeters = units.depthToMeters(startDepthUserUnits);
+    final endDepthMeters = units.depthToMeters(endDepthUserUnits);
+    final rateMeters = units.depthToMeters(rateUserUnits);
 
     final segment = PlanSegment(
       id: widget.segment?.id ?? _uuid.v4(),
       type: _type,
-      startDepth: startDepth,
-      endDepth: endDepth,
+      startDepth: startDepthMeters,
+      endDepth: endDepthMeters,
       durationSeconds: durationMinutes * 60,
       tankId: _selectedTankId,
       gasMix: selectedTank.gasMix,
-      rate: rate,
+      rate: rateMeters,
       order: widget.segment?.order ?? 0,
     );
 

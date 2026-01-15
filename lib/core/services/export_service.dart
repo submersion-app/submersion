@@ -493,8 +493,45 @@ class ExportService {
 
   // ==================== PDF EXPORT ====================
 
-  /// Generate PDF dive logbook
+  /// Generate PDF dive logbook bytes without sharing.
+  /// Returns a record with PDF bytes and suggested filename.
+  ///
+  /// Use this when you need to save the PDF to a file or show save options.
+  /// For direct sharing, use [exportDivesToPdf] instead.
+  Future<({List<int> bytes, String fileName})> generateDivePdfBytes(
+    List<Dive> dives, {
+    String title = 'Dive Logbook',
+    List<Sighting>? allSightings,
+  }) async {
+    final pdfBytes = await _buildDivePdf(
+      dives,
+      title: title,
+      allSightings: allSightings,
+    );
+    final fileName = 'dive_logbook_${_dateFormat.format(DateTime.now())}.pdf';
+    return (bytes: pdfBytes, fileName: fileName);
+  }
+
+  /// Generate PDF dive logbook and share via system share sheet
   Future<String> exportDivesToPdf(
+    List<Dive> dives, {
+    String title = 'Dive Logbook',
+    List<Sighting>? allSightings,
+  }) async {
+    final result = await generateDivePdfBytes(
+      dives,
+      title: title,
+      allSightings: allSightings,
+    );
+    return _saveAndShareFileBytes(
+      result.bytes,
+      result.fileName,
+      'application/pdf',
+    );
+  }
+
+  /// Internal method to build PDF document bytes
+  Future<List<int>> _buildDivePdf(
     List<Dive> dives, {
     String title = 'Dive Logbook',
     List<Sighting>? allSightings,
@@ -624,9 +661,7 @@ class ExportService {
       );
     }
 
-    final pdfBytes = await pdf.save();
-    final fileName = 'dive_logbook_${_dateFormat.format(DateTime.now())}.pdf';
-    return _saveAndShareFileBytes(pdfBytes, fileName, 'application/pdf');
+    return await pdf.save();
   }
 
   pw.Widget _buildPdfStatRow(String label, String value) {
@@ -5070,6 +5105,49 @@ class ExportService {
     if (!Platform.isAndroid) {
       final file = File(result);
       await file.writeAsBytes(Uint8List.fromList(pngBytes));
+    }
+
+    return result;
+  }
+
+  /// Share PDF bytes via the system share sheet.
+  ///
+  /// Example:
+  /// ```dart
+  /// final pdfBytes = await exportService.generateDivePdfBytes([dive]);
+  /// await exportService.sharePdfBytes(pdfBytes, 'dive_logbook.pdf');
+  /// ```
+  Future<String> sharePdfBytes(List<int> pdfBytes, String fileName) async {
+    return _saveAndShareFileBytes(pdfBytes, fileName, 'application/pdf');
+  }
+
+  /// Save PDF bytes to a user-selected file location.
+  ///
+  /// Opens a file picker dialog allowing the user to choose where to save.
+  /// Returns the saved file path, or null if the user cancelled.
+  ///
+  /// Example:
+  /// ```dart
+  /// final pdfBytes = await exportService.generateDivePdfBytes([dive]);
+  /// final path = await exportService.savePdfToFile(pdfBytes, 'dive_logbook.pdf');
+  /// if (path != null) print('Saved to: $path');
+  /// ```
+  Future<String?> savePdfToFile(List<int> pdfBytes, String fileName) async {
+    final result = await FilePicker.platform.saveFile(
+      dialogTitle: 'Save PDF',
+      fileName: fileName,
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+      bytes: Uint8List.fromList(pdfBytes),
+    );
+
+    if (result == null) return null;
+
+    // On some platforms, saveFile returns a path but doesn't write the file
+    // So we need to write it ourselves
+    if (!Platform.isAndroid) {
+      final file = File(result);
+      await file.writeAsBytes(Uint8List.fromList(pdfBytes));
     }
 
     return result;
