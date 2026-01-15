@@ -147,62 +147,35 @@ class _DivePlannerPageState extends ConsumerState<DivePlannerPage>
   }
 
   Widget _buildPlanTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 700),
-          child: const Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Settings section
-              PlanSettingsPanel(),
-              SizedBox(height: 16),
-
-              // Tanks section
-              PlanTankList(),
-              SizedBox(height: 16),
-
-              // Segments section
-              SegmentList(),
-            ],
-          ),
-        ),
+    return const SingleChildScrollView(
+      padding: EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          PlanSettingsPanel(),
+          SizedBox(height: 16),
+          PlanTankList(),
+          SizedBox(height: 16),
+          SegmentList(),
+        ],
       ),
     );
   }
 
   Widget _buildResultsTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 700),
-          child: const Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Decompression info
-              DecoResultsPanel(),
-              SizedBox(height: 16),
-
-              // Gas consumption
-              GasResultsPanel(),
-            ],
-          ),
-        ),
+    return const SingleChildScrollView(
+      padding: EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [DecoResultsPanel(), SizedBox(height: 16), GasResultsPanel()],
       ),
     );
   }
 
   Widget _buildProfileTab() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 700),
-          child: const PlanProfileChart(),
-        ),
-      ),
+    return const Padding(
+      padding: EdgeInsets.all(16),
+      child: PlanProfileChart(),
     );
   }
 

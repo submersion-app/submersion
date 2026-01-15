@@ -42,57 +42,43 @@ class DecoCalculatorPage extends ConsumerWidget {
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 700),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Input parameters card
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Dive Parameters',
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w600),
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Depth slider
-                        const DepthSlider(),
-                        const SizedBox(height: 24),
-
-                        // Time slider
-                        const TimeSlider(),
-                        const SizedBox(height: 24),
-
-                        // Gas mix selector
-                        const GasMixSelector(),
-                      ],
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Input parameters card
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Dive Parameters',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 12),
+                    const DepthSlider(),
+                    const SizedBox(height: 16),
+                    const TimeSlider(),
+                    const SizedBox(height: 16),
+                    const GasMixSelector(),
+                  ],
                 ),
-                const SizedBox(height: 16),
-
-                // Gas warnings
-                const GasWarningsDisplay(),
-                const SizedBox(height: 16),
-
-                // Deco status panel (reusing existing widget)
-                DecoInfoPanel(
-                  status: decoStatus,
-                  showTissueChart: true,
-                  showDecoStops: true,
-                  showHeader: true,
-                  useCard: true,
-                ),
-              ],
+              ),
             ),
-          ),
+            const SizedBox(height: 12),
+            const GasWarningsDisplay(),
+            const SizedBox(height: 12),
+            DecoInfoPanel(
+              status: decoStatus,
+              showTissueChart: true,
+              showDecoStops: true,
+              showHeader: true,
+              useCard: true,
+            ),
+          ],
         ),
       ),
     );
