@@ -7,6 +7,8 @@ import '../../../../core/constants/tank_presets.dart';
 import '../../../../core/constants/units.dart';
 import '../../../../core/utils/unit_formatter.dart';
 import '../../../settings/presentation/providers/settings_providers.dart';
+import '../../../tank_presets/domain/entities/tank_preset_entity.dart';
+import '../../../tank_presets/presentation/providers/tank_preset_providers.dart';
 import '../../domain/entities/dive.dart';
 
 /// Callback when tank data changes
@@ -42,7 +44,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   late TextEditingController _heController;
   late TankRole _role;
   late TankMaterial? _material;
-  TankPreset? _selectedPreset;
+  TankPresetEntity? _selectedPreset;
 
   @override
   void initState() {
@@ -99,9 +101,13 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     _role = widget.tank.role;
     _material = widget.tank.material;
     // Initialize selected preset from tank's presetName
-    _selectedPreset = widget.tank.presetName != null
-        ? TankPresets.byName(widget.tank.presetName!)
-        : null;
+    // Check built-in presets first, async lookup for custom presets happens in build
+    if (widget.tank.presetName != null) {
+      final builtIn = TankPresets.byName(widget.tank.presetName!);
+      if (builtIn != null) {
+        _selectedPreset = TankPresetEntity.fromBuiltIn(builtIn);
+      }
+    }
   }
 
   @override
@@ -265,36 +271,70 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   }
 
   Widget _buildPresetAndRoleRow(UnitFormatter units) {
+    final presetsAsync = ref.watch(tankPresetsProvider);
+
     return Row(
       children: [
         // Tank preset dropdown
         Expanded(
-          child: DropdownButtonFormField<TankPreset?>(
-            key: ValueKey(_selectedPreset?.name),
-            initialValue: _selectedPreset,
-            decoration: const InputDecoration(
-              labelText: 'Tank Preset',
-              isDense: true,
-            ),
-            items: [
-              const DropdownMenuItem<TankPreset?>(
-                value: null,
-                child: Text('Select Preset...'),
-              ),
-              ...TankPresets.all.map(
-                (preset) => DropdownMenuItem(
-                  value: preset,
-                  child: Text(preset.displayName),
+          child: presetsAsync.when(
+            loading: () => const LinearProgressIndicator(),
+            error: (e, st) => Text('Error: $e'),
+            data: (presets) {
+              final customPresets = presets.where((p) => !p.isBuiltIn).toList();
+              final builtInPresets = presets.where((p) => p.isBuiltIn).toList();
+
+              // Find the matching preset from the loaded list to ensure object equality
+              // This is necessary because DropdownButtonFormField requires the value
+              // to be the exact same instance as one of the items
+              final presetName =
+                  _selectedPreset?.name ?? widget.tank.presetName;
+              final matchingPreset = presetName != null
+                  ? presets.where((p) => p.name == presetName).firstOrNull
+                  : null;
+
+              return DropdownButtonFormField<TankPresetEntity?>(
+                key: ValueKey(matchingPreset?.id ?? 'no-preset'),
+                initialValue: matchingPreset,
+                decoration: const InputDecoration(
+                  labelText: 'Tank Preset',
+                  isDense: true,
                 ),
-              ),
-            ],
-            onChanged: (preset) {
-              if (preset != null) {
-                _applyPreset(preset);
-              } else {
-                setState(() => _selectedPreset = null);
-                _notifyChange();
-              }
+                items: [
+                  const DropdownMenuItem<TankPresetEntity?>(
+                    value: null,
+                    child: Text('Select Preset...'),
+                  ),
+                  // Custom presets first (shown with a star icon)
+                  ...customPresets.map(
+                    (preset) => DropdownMenuItem(
+                      value: preset,
+                      child: Row(
+                        children: [
+                          const Icon(Icons.star, size: 16),
+                          const SizedBox(width: 8),
+                          Text(preset.displayName),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Built-in presets
+                  ...builtInPresets.map(
+                    (preset) => DropdownMenuItem(
+                      value: preset,
+                      child: Text(preset.displayName),
+                    ),
+                  ),
+                ],
+                onChanged: (preset) {
+                  if (preset != null) {
+                    _applyPreset(preset);
+                  } else {
+                    setState(() => _selectedPreset = null);
+                    _notifyChange();
+                  }
+                },
+              );
             },
           ),
         ),
@@ -536,7 +576,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     );
   }
 
-  void _applyPreset(TankPreset preset) {
+  void _applyPreset(TankPresetEntity preset) {
     final settings = ref.read(settingsProvider);
     final units = UnitFormatter(settings);
 
