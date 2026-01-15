@@ -84,7 +84,8 @@ class PreviousDiveInput extends ConsumerWidget {
                   ref.read(siFirstDiveDepthProvider.notifier).state = value;
                 },
               ),
-              minLabel: '${units.convertDepth(6).toStringAsFixed(0)} $depthSymbol',
+              minLabel:
+                  '${units.convertDepth(6).toStringAsFixed(0)} $depthSymbol',
               maxLabel: '${maxDisplayDepth.toStringAsFixed(0)} $depthSymbol',
             ),
             const SizedBox(height: 16),
@@ -101,8 +102,8 @@ class PreviousDiveInput extends ConsumerWidget {
                 max: 120,
                 divisions: 23,
                 onChanged: (value) {
-                  ref.read(siFirstDiveTimeProvider.notifier).state =
-                      value.round();
+                  ref.read(siFirstDiveTimeProvider.notifier).state = value
+                      .round();
                 },
               ),
               minLabel: '5 min',
@@ -161,7 +162,8 @@ class PreviousDiveInput extends ConsumerWidget {
                   ref.read(siFirstDiveO2Provider.notifier).state = value;
                   // Ensure O2 + He doesn't exceed 100%
                   if (value + he > 100) {
-                    ref.read(siFirstDiveHeProvider.notifier).state = 100 - value;
+                    ref.read(siFirstDiveHeProvider.notifier).state =
+                        100 - value;
                   }
                 },
               ),
@@ -185,7 +187,8 @@ class PreviousDiveInput extends ConsumerWidget {
                   ref.read(siFirstDiveHeProvider.notifier).state = value;
                   // Ensure O2 + He doesn't exceed 100%
                   if (o2 + value > 100) {
-                    ref.read(siFirstDiveO2Provider.notifier).state = 100 - value;
+                    ref.read(siFirstDiveO2Provider.notifier).state =
+                        100 - value;
                   }
                 },
               ),
