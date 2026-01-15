@@ -1,7 +1,7 @@
-import '../../../../features/dive_log/data/repositories/dive_computer_repository_impl.dart';
-import '../../../../features/dive_log/domain/entities/dive_computer.dart';
-import '../../domain/services/download_manager.dart';
-import 'dive_parser.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/features/dive_computer/domain/services/download_manager.dart';
+import 'package:submersion/features/dive_computer/data/services/dive_parser.dart';
 
 /// Mode for importing dives.
 enum ImportMode {

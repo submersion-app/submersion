@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../providers/export_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 
 /// Dialog shown during UDDF/CSV import with progress tracking
 class ImportProgressDialog extends ConsumerWidget {

@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../shared/widgets/master_detail/master_detail_scaffold.dart';
-import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
-import '../widgets/certification_list_content.dart';
-import '../widgets/certification_summary_widget.dart';
-import 'certification_detail_page.dart';
-import 'certification_edit_page.dart';
+import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/features/certifications/presentation/widgets/certification_list_content.dart';
+import 'package:submersion/features/certifications/presentation/widgets/certification_summary_widget.dart';
+import 'package:submersion/features/certifications/presentation/pages/certification_detail_page.dart';
+import 'package:submersion/features/certifications/presentation/pages/certification_edit_page.dart';
 
 class CertificationListPage extends ConsumerWidget {
   const CertificationListPage({super.key});

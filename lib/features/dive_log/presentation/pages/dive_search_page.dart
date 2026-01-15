@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../../../core/utils/unit_formatter.dart';
-import '../../../dive_centers/presentation/providers/dive_center_providers.dart';
-import '../../../dive_sites/presentation/providers/site_providers.dart';
-import '../../../dive_types/presentation/providers/dive_type_providers.dart';
-import '../../../settings/presentation/providers/settings_providers.dart';
-import '../../../tags/presentation/providers/tag_providers.dart';
-import '../../../trips/presentation/providers/trip_providers.dart';
-import '../providers/dive_providers.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 
 /// Advanced search page with all filter options in collapsible sections.
 ///

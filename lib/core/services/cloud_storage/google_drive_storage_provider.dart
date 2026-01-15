@@ -5,8 +5,8 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:googleapis_auth/googleapis_auth.dart' as gapis_auth;
 
-import '../logger_service.dart';
-import 'cloud_storage_provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 
 /// Google Drive implementation of CloudStorageProvider
 ///

@@ -1,13 +1,13 @@
 import 'package:equatable/equatable.dart';
 
-import '../../../../core/constants/enums.dart';
-import '../../../dive_centers/domain/entities/dive_center.dart';
-import '../../../dive_sites/domain/entities/dive_site.dart';
-import '../../../dive_types/domain/entities/dive_type_entity.dart';
-import '../../../equipment/domain/entities/equipment_item.dart';
-import '../../../tags/domain/entities/tag.dart';
-import '../../../trips/domain/entities/trip.dart';
-import 'dive_weight.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 
 /// Core dive log entry entity
 class Dive extends Equatable {

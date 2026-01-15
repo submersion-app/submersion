@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
-import '../../../../core/services/logger_service.dart';
-import '../../domain/services/download_manager.dart';
-import 'libdc_parser_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/dive_computer/domain/services/download_manager.dart';
+import 'package:submersion/features/dive_computer/data/services/libdc_parser_service.dart';
 
 /// Aqualung/Pelagic BLE service UUIDs
 /// These devices use a UART-like service for communication

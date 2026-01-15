@@ -2,7 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../providers/surface_interval_providers.dart';
+import 'package:submersion/features/surface_interval_tool/presentation/providers/surface_interval_providers.dart';
 
 /// Interactive chart showing tissue saturation recovery over time.
 /// Displays 16 tissue compartments as colored lines decreasing toward

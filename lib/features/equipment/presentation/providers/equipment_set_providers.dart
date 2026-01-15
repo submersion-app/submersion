@@ -1,8 +1,8 @@
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../../divers/presentation/providers/diver_providers.dart';
-import '../../data/repositories/equipment_set_repository_impl.dart';
-import '../../domain/entities/equipment_set.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 
 /// Repository provider
 final equipmentSetRepositoryProvider = Provider<EquipmentSetRepository>((ref) {

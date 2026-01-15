@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/utils/unit_formatter.dart';
-import '../../data/services/profile_analysis_service.dart';
-import '../../domain/entities/dive.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// Panel showing real-time dive statistics at the current playback position.
 ///

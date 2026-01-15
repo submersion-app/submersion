@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/providers/provider.dart';
-import '../providers/dive_planner_providers.dart';
-import '../widgets/deco_results_panel.dart';
-import '../widgets/gas_results_panel.dart';
-import '../widgets/plan_profile_chart.dart';
-import '../widgets/plan_settings_panel.dart';
-import '../widgets/plan_tank_list.dart';
-import '../widgets/segment_list.dart';
-import '../widgets/simple_plan_dialog.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/deco_results_panel.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/gas_results_panel.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/plan_profile_chart.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/plan_settings_panel.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/plan_tank_list.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/segment_list.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/simple_plan_dialog.dart';
 
 /// Main dive planner page with three tabs: Plan, Results, Profile.
 ///

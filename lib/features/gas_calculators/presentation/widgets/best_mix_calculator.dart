@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../../../core/constants/units.dart';
-import '../../../../core/utils/unit_formatter.dart';
-import '../../../settings/presentation/providers/settings_providers.dart';
-import '../providers/gas_calculators_providers.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/gas_calculators/presentation/providers/gas_calculators_providers.dart';
 
 /// Best Mix calculator - finds the ideal O2% for a target depth.
 ///

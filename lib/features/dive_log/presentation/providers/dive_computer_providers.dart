@@ -1,8 +1,8 @@
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../../divers/presentation/providers/diver_providers.dart';
-import '../../data/repositories/dive_computer_repository_impl.dart';
-import '../../domain/entities/dive_computer.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 
 /// Repository provider for dive computers
 final diveComputerRepositoryProvider = Provider<DiveComputerRepository>((ref) {

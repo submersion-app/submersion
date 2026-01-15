@@ -3,8 +3,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../domain/entities/trip.dart';
-import '../providers/trip_providers.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 
 /// A widget for selecting a trip, with optional auto-suggest based on date
 class TripPicker extends ConsumerStatefulWidget {

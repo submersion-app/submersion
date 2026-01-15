@@ -1,12 +1,12 @@
 import 'package:uuid/uuid.dart';
 
-import '../../../../core/deco/buhlmann_algorithm.dart';
-import '../../../../core/deco/constants/buhlmann_coefficients.dart';
-import '../../../../core/deco/entities/tissue_compartment.dart';
-import '../../../../core/deco/o2_toxicity_calculator.dart';
-import '../../../dive_log/domain/entities/dive.dart';
-import '../../domain/entities/plan_result.dart';
-import '../../domain/entities/plan_segment.dart';
+import 'package:submersion/core/deco/buhlmann_algorithm.dart';
+import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/deco/entities/tissue_compartment.dart';
+import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
+import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 
 /// Service for calculating dive plan results.
 ///

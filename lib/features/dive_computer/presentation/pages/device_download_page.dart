@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../dive_log/domain/entities/dive_computer.dart';
-import '../../../dive_log/presentation/providers/dive_computer_providers.dart';
-import '../../../dive_log/presentation/providers/dive_providers.dart';
-import '../../../divers/presentation/providers/diver_providers.dart';
-import '../../data/services/dive_import_service.dart';
-import '../../domain/entities/device_model.dart';
-import '../../domain/services/download_manager.dart';
-import '../providers/discovery_providers.dart';
-import '../providers/download_providers.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
+import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
+import 'package:submersion/features/dive_computer/domain/services/download_manager.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 
 /// Page for downloading dives from a known/saved dive computer.
 ///

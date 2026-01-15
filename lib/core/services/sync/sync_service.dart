@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import '../../data/repositories/sync_repository.dart';
-import '../cloud_storage/cloud_storage_provider.dart';
-import '../logger_service.dart';
-import 'sync_data_serializer.dart';
+import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 
 /// Sync operation result
 enum SyncResultStatus {

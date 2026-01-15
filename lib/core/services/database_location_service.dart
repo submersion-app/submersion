@@ -7,8 +7,8 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../domain/entities/storage_config.dart';
-import 'security_scoped_bookmark_service.dart';
+import 'package:submersion/core/domain/entities/storage_config.dart';
+import 'package:submersion/core/services/security_scoped_bookmark_service.dart';
 
 /// Service for managing database file location
 ///

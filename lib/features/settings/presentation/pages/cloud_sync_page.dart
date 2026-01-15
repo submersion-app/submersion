@@ -5,10 +5,10 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/data/repositories/sync_repository.dart'
+import 'package:submersion/core/data/repositories/sync_repository.dart'
     show CloudProviderType;
-import '../providers/sync_providers.dart';
-import '../widgets/conflict_resolution_dialog.dart';
+import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/conflict_resolution_dialog.dart';
 
 class CloudSyncPage extends ConsumerWidget {
   const CloudSyncPage({super.key});

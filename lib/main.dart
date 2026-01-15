@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'app.dart';
-import 'core/domain/entities/storage_config.dart';
-import 'core/services/database_location_service.dart';
-import 'core/services/database_service.dart';
-import 'core/services/security_scoped_bookmark_service.dart';
-import 'features/marine_life/data/repositories/species_repository.dart';
-import 'features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/app.dart';
+import 'package:submersion/core/domain/entities/storage_config.dart';
+import 'package:submersion/core/services/database_location_service.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/security_scoped_bookmark_service.dart';
+import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

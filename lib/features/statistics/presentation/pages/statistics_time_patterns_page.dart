@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import '../providers/statistics_providers.dart';
-import '../widgets/stat_charts.dart';
-import '../widgets/stat_section_card.dart';
+import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
+import 'package:submersion/features/statistics/presentation/widgets/stat_charts.dart';
+import 'package:submersion/features/statistics/presentation/widgets/stat_section_card.dart';
 
 class StatisticsTimePatternsPage extends ConsumerWidget {
   final bool embedded;

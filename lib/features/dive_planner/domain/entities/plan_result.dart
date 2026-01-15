@@ -1,8 +1,8 @@
 import 'package:equatable/equatable.dart';
 
-import '../../../../core/deco/entities/tissue_compartment.dart';
-import '../../../dive_log/domain/entities/dive.dart';
-import 'plan_segment.dart';
+import 'package:submersion/core/deco/entities/tissue_compartment.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 
 /// Types of warnings that can occur during dive planning.
 enum PlanWarningType {

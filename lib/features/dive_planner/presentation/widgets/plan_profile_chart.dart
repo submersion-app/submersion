@@ -1,11 +1,11 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../core/providers/provider.dart';
-import '../../../../core/utils/unit_formatter.dart';
-import '../../../dive_log/domain/entities/dive.dart';
-import '../../../settings/presentation/providers/settings_providers.dart';
-import '../providers/dive_planner_providers.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 
 /// Visual chart showing the planned dive profile.
 ///

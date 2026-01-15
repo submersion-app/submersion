@@ -1,10 +1,10 @@
 import 'dart:math' as math;
 
-import '../../../../core/constants/enums.dart';
-import '../../domain/entities/cylinder_sac.dart';
-import '../../domain/entities/dive.dart';
-import '../../domain/entities/gas_switch.dart';
-import 'profile_analysis_service.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 
 /// Service for calculating SAC (Surface Air Consumption) metrics
 /// per segment and per cylinder.

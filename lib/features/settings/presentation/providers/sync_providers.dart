@@ -2,17 +2,17 @@ import 'dart:async';
 
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../../../core/data/repositories/sync_repository.dart';
-import '../../../../core/domain/entities/storage_config.dart';
-import '../../../../core/services/logger_service.dart';
-import '../../../../core/services/cloud_storage/cloud_storage_provider.dart';
-import '../../../../core/services/cloud_storage/google_drive_storage_provider.dart';
-import '../../../../core/services/cloud_storage/icloud_storage_provider.dart';
-import '../../../../core/services/sync/sync_data_serializer.dart';
-import '../../../../core/services/sync/sync_initializer.dart';
-import '../../../../core/services/sync/sync_service.dart';
-import 'settings_providers.dart';
-import 'storage_providers.dart';
+import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/domain/entities/storage_config.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/services/cloud_storage/google_drive_storage_provider.dart';
+import 'package:submersion/core/services/cloud_storage/icloud_storage_provider.dart';
+import 'package:submersion/core/services/sync/sync_data_serializer.dart';
+import 'package:submersion/core/services/sync/sync_initializer.dart';
+import 'package:submersion/core/services/sync/sync_service.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
 
 /// Sync repository provider
 final syncRepositoryProvider = Provider<SyncRepository>((ref) {

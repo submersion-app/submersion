@@ -1,7 +1,7 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Keys for dive detail page UI preferences stored in SharedPreferences
 class DiveDetailUiKeys {

@@ -4,8 +4,8 @@ import 'dart:io';
 import 'package:dive_computer/framework/dive_computer_ffi_bindings_generated.dart';
 import 'package:ffi/ffi.dart';
 
-import '../../../../core/services/logger_service.dart';
-import '../../domain/services/download_manager.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/dive_computer/domain/services/download_manager.dart';
 
 class _LibdcParserService {}
 

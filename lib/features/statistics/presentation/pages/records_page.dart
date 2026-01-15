@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/utils/unit_formatter.dart';
-import '../../../dive_log/data/repositories/dive_repository_impl.dart';
-import '../../../dive_log/presentation/providers/dive_providers.dart';
-import '../../../settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 class RecordsPage extends ConsumerWidget {
   const RecordsPage({super.key});

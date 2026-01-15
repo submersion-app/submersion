@@ -4,9 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
-import '../../domain/entities/diver.dart';
-import '../providers/diver_providers.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
 class DiverDetailPage extends ConsumerStatefulWidget {
   final String diverId;

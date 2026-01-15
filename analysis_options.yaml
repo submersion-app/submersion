@@ -16,3 +16,4 @@ linter:
     - prefer_final_locals
     - avoid_print
     - require_trailing_commas
+    - always_use_package_imports

@@ -2,10 +2,10 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../../../../core/providers/provider.dart';
-import '../../../../core/utils/unit_formatter.dart';
-import '../../domain/entities/dive.dart';
-import '../providers/profile_range_provider.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
 
 /// Panel showing statistics for a selected range of the dive profile.
 ///

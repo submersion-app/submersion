@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../providers/gas_calculators_providers.dart';
-import '../widgets/best_mix_calculator.dart';
-import '../widgets/gas_consumption_calculator.dart';
-import '../widgets/mod_calculator.dart';
-import '../widgets/rock_bottom_calculator.dart';
+import 'package:submersion/features/gas_calculators/presentation/providers/gas_calculators_providers.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/best_mix_calculator.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/gas_consumption_calculator.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/mod_calculator.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/rock_bottom_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 /// Gas Calculators page with tabbed interface.

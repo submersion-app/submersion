@@ -2,11 +2,11 @@ import 'dart:io';
 
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../../../core/domain/entities/storage_config.dart';
-import '../../../../core/services/database_location_service.dart';
-import '../../../../core/services/database_migration_service.dart';
-import '../../../../core/services/database_service.dart';
-import 'settings_providers.dart';
+import 'package:submersion/core/domain/entities/storage_config.dart';
+import 'package:submersion/core/services/database_location_service.dart';
+import 'package:submersion/core/services/database_migration_service.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Platform capabilities for storage options
 class StoragePlatformCapabilities {

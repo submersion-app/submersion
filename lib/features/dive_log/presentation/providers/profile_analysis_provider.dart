@@ -1,10 +1,10 @@
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../../../core/services/logger_service.dart';
-import '../../../settings/presentation/providers/settings_providers.dart';
-import '../../data/services/profile_analysis_service.dart';
-import '../../domain/entities/dive.dart';
-import 'dive_providers.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 
 /// Combines pressure data from multiple tanks into a single pressure series.
 ///

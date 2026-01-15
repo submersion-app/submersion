@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../data/repositories/statistics_repository.dart';
+import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
 
 /// A widget for displaying ranked items with progress bars
 class RankingList extends StatelessWidget {

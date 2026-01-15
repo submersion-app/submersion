@@ -1,9 +1,9 @@
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../../../core/constants/enums.dart';
-import '../../../divers/presentation/providers/diver_providers.dart';
-import '../../data/repositories/certification_repository.dart';
-import '../../domain/entities/certification.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
+import 'package:submersion/features/certifications/domain/entities/certification.dart';
 
 /// Repository provider
 final certificationRepositoryProvider = Provider<CertificationRepository>((

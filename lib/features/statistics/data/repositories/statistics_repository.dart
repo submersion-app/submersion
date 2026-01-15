@@ -1,8 +1,8 @@
 import 'package:drift/drift.dart';
 
-import '../../../../core/database/database.dart';
-import '../../../../core/services/database_service.dart';
-import '../../../../core/services/logger_service.dart';
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 
 /// Data point for line chart trends
 class TrendDataPoint {

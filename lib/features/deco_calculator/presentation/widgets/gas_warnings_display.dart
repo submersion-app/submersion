@@ -3,7 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
-import '../providers/deco_calculator_providers.dart';
+import 'package:submersion/features/deco_calculator/presentation/providers/deco_calculator_providers.dart';
 
 /// Displays gas-related warnings (ppO2, MOD, END).
 class GasWarningsDisplay extends ConsumerWidget {

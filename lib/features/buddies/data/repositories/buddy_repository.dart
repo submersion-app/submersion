@@ -1,11 +1,12 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../../core/database/database.dart';
-import '../../../../core/services/database_service.dart';
-import '../../../../core/services/logger_service.dart';
-import '../../../../core/constants/enums.dart';
-import '../../domain/entities/buddy.dart' as domain;
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart'
+    as domain;
 
 class BuddyRepository {
   AppDatabase get _db => DatabaseService.instance.database;

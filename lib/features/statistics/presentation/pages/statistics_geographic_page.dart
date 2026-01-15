@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import '../providers/statistics_providers.dart';
-import '../widgets/ranking_list.dart';
-import '../widgets/stat_section_card.dart';
+import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
+import 'package:submersion/features/statistics/presentation/widgets/ranking_list.dart';
+import 'package:submersion/features/statistics/presentation/widgets/stat_section_card.dart';
 
 class StatisticsGeographicPage extends ConsumerWidget {
   final bool embedded;

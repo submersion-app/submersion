@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../../../features/dive_log/data/repositories/dive_computer_repository_impl.dart';
-import '../../../../features/dive_log/domain/entities/dive_computer.dart';
-import '../../data/services/dive_import_service.dart';
-import '../../data/services/libdc_download_manager.dart';
-import '../../domain/entities/device_model.dart';
-import '../../domain/services/download_manager.dart';
-import '../widgets/pin_entry_dialog.dart';
-import 'discovery_providers.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
+import 'package:submersion/features/dive_computer/data/services/libdc_download_manager.dart';
+import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
+import 'package:submersion/features/dive_computer/domain/services/download_manager.dart';
+import 'package:submersion/features/dive_computer/presentation/widgets/pin_entry_dialog.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
 
 /// Provider for the dive computer repository.
 final diveComputerRepositoryProvider = Provider<DiveComputerRepository>((ref) {

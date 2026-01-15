@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../shared/widgets/master_detail/master_detail_scaffold.dart';
-import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
-import '../../../dive_log/presentation/providers/dive_computer_providers.dart';
-import '../../../settings/presentation/providers/export_providers.dart';
-import '../../../settings/presentation/widgets/import_progress_dialog.dart';
-import '../widgets/transfer_list_content.dart';
+import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/import_progress_dialog.dart';
+import 'package:submersion/features/transfer/presentation/widgets/transfer_list_content.dart';
 
 /// Main transfer page with master-detail layout on desktop.
 ///

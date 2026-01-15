@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/deco/entities/deco_status.dart';
-import '../../../../core/deco/entities/tissue_compartment.dart';
+import 'package:submersion/core/deco/entities/deco_status.dart';
+import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 
 /// Panel displaying decompression status and tissue loading.
 class DecoInfoPanel extends StatelessWidget {

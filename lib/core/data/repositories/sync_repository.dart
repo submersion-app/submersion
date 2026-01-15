@@ -1,9 +1,9 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../database/database.dart';
-import '../../services/database_service.dart';
-import '../../services/logger_service.dart';
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 
 /// Sync status for individual records
 enum SyncStatus { synced, pending, conflict }

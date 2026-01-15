@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../providers/surface_interval_providers.dart';
-import '../widgets/next_dive_input.dart';
-import '../widgets/previous_dive_input.dart';
-import '../widgets/surface_interval_result.dart';
-import '../widgets/tissue_recovery_chart.dart';
+import 'package:submersion/features/surface_interval_tool/presentation/providers/surface_interval_providers.dart';
+import 'package:submersion/features/surface_interval_tool/presentation/widgets/next_dive_input.dart';
+import 'package:submersion/features/surface_interval_tool/presentation/widgets/previous_dive_input.dart';
+import 'package:submersion/features/surface_interval_tool/presentation/widgets/surface_interval_result.dart';
+import 'package:submersion/features/surface_interval_tool/presentation/widgets/tissue_recovery_chart.dart';
 
 /// Surface Interval Tool page for planning repetitive dives.
 ///

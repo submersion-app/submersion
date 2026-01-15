@@ -1,4 +1,4 @@
-import 'enums.dart';
+import 'package:submersion/core/constants/enums.dart';
 
 /// Predefined tank configurations for common tanks
 class TankPreset {

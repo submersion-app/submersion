@@ -1,7 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
-import '../../data/repositories/statistics_repository.dart';
+import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
 
 /// A reusable line chart for trend data
 class TrendLineChart extends StatelessWidget {

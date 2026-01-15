@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/utils/unit_formatter.dart';
-import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
-import '../../../../core/constants/enums.dart';
-import '../../../settings/presentation/providers/settings_providers.dart';
-import '../../../dive_log/presentation/providers/dive_providers.dart';
-import '../../../trips/presentation/providers/trip_providers.dart';
-import '../../domain/entities/equipment_item.dart';
-import '../../domain/entities/service_record.dart';
-import '../providers/equipment_providers.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/service_record.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 
 class EquipmentDetailPage extends ConsumerStatefulWidget {
   final String equipmentId;

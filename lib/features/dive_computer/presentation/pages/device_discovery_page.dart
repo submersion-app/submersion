@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../features/dive_log/domain/entities/dive_computer.dart';
-import '../../../../features/dive_log/presentation/providers/dive_computer_providers.dart';
-import '../../../../features/dive_log/presentation/providers/dive_providers.dart';
-import '../../../../features/divers/presentation/providers/diver_providers.dart';
-import '../../data/services/dive_import_service.dart';
-import '../../domain/entities/device_model.dart';
-import '../providers/discovery_providers.dart';
-import '../providers/download_providers.dart';
-import '../widgets/scan_step_widget.dart';
-import '../widgets/download_step_widget.dart';
-import '../widgets/summary_step_widget.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
+import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
+import 'package:submersion/features/dive_computer/presentation/widgets/scan_step_widget.dart';
+import 'package:submersion/features/dive_computer/presentation/widgets/download_step_widget.dart';
+import 'package:submersion/features/dive_computer/presentation/widgets/summary_step_widget.dart';
 
 /// Multi-step wizard for discovering and connecting to dive computers.
 class DeviceDiscoveryPage extends ConsumerStatefulWidget {

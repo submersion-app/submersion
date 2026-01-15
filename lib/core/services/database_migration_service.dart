@@ -5,9 +5,9 @@ import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
-import '../domain/entities/storage_config.dart';
-import 'database_location_service.dart';
-import 'database_service.dart';
+import 'package:submersion/core/domain/entities/storage_config.dart';
+import 'package:submersion/core/services/database_location_service.dart';
+import 'package:submersion/core/services/database_service.dart';
 
 /// Result of a database migration operation
 class MigrationResult {

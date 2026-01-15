@@ -4,22 +4,22 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../../../../core/utils/unit_formatter.dart';
-import '../../../../shared/widgets/master_detail/master_detail_scaffold.dart';
-import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
-import '../../../dive_sites/presentation/providers/site_providers.dart';
-import '../../../dive_types/presentation/providers/dive_type_providers.dart';
-import '../../../settings/presentation/providers/settings_providers.dart';
-import '../../../tags/domain/entities/tag.dart';
-import '../../../tags/presentation/providers/tag_providers.dart';
-import '../../../tags/presentation/widgets/tag_input_widget.dart';
-import '../../domain/entities/dive.dart';
-import '../providers/dive_providers.dart';
-import '../widgets/dive_list_content.dart';
-import '../widgets/dive_profile_chart.dart';
-import '../widgets/dive_summary_widget.dart';
-import 'dive_detail_page.dart';
-import 'dive_edit_page.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_summary_widget.dart';
+import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
+import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 
 /// Main dive list page with master-detail layout on desktop.
 ///

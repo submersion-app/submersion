@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../../../core/utils/unit_formatter.dart';
-import '../../../dive_log/domain/entities/dive.dart';
-import '../../../dive_log/presentation/widgets/deco_info_panel.dart';
-import '../../../dive_planner/presentation/providers/dive_planner_providers.dart';
-import '../../../settings/presentation/providers/settings_providers.dart';
-import '../providers/deco_calculator_providers.dart';
-import '../widgets/depth_slider.dart';
-import '../widgets/gas_mix_selector.dart';
-import '../widgets/gas_warnings_display.dart';
-import '../widgets/time_slider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/deco_info_panel.dart';
+import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/deco_calculator/presentation/providers/deco_calculator_providers.dart';
+import 'package:submersion/features/deco_calculator/presentation/widgets/depth_slider.dart';
+import 'package:submersion/features/deco_calculator/presentation/widgets/gas_mix_selector.dart';
+import 'package:submersion/features/deco_calculator/presentation/widgets/gas_warnings_display.dart';
+import 'package:submersion/features/deco_calculator/presentation/widgets/time_slider.dart';
 
 /// Interactive deco calculator page with real-time calculations.
 ///

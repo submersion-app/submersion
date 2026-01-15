@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../../../core/domain/entities/storage_config.dart';
-import '../../../../core/services/database_migration_service.dart';
-import '../providers/storage_providers.dart';
-import '../widgets/existing_database_dialog.dart';
-import '../widgets/migration_confirmation_dialog.dart';
-import '../widgets/migration_progress_dialog.dart';
+import 'package:submersion/core/domain/entities/storage_config.dart';
+import 'package:submersion/core/services/database_migration_service.dart';
+import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/existing_database_dialog.dart';
+import 'package:submersion/features/settings/presentation/widgets/migration_confirmation_dialog.dart';
+import 'package:submersion/features/settings/presentation/widgets/migration_progress_dialog.dart';
 
 class StorageSettingsPage extends ConsumerStatefulWidget {
   const StorageSettingsPage({super.key});

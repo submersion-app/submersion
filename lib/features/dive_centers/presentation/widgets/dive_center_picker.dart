@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../domain/entities/dive_center.dart';
-import '../providers/dive_center_providers.dart';
+import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
+import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 
 /// A bottom sheet widget for selecting a dive center from a list
 class DiveCenterPickerSheet extends ConsumerWidget {

@@ -1,8 +1,8 @@
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../../../core/constants/enums.dart';
-import '../../data/repositories/species_repository.dart';
-import '../../domain/entities/species.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
+import 'package:submersion/features/marine_life/domain/entities/species.dart';
 
 /// Repository provider
 final speciesRepositoryProvider = Provider<SpeciesRepository>((ref) {

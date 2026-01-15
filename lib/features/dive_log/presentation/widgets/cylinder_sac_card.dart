@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/constants/units.dart';
-import '../../../../core/utils/unit_formatter.dart';
-import '../../domain/entities/cylinder_sac.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
 
 /// Card displaying per-cylinder SAC (Surface Air Consumption) metrics.
 ///

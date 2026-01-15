@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../domain/entities/dive_computer.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 
 /// Widget for selecting between multiple dive profiles (computers).
 class ProfileSelectorWidget extends StatelessWidget {

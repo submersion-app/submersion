@@ -4,19 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/constants/units.dart';
-import '../../../../core/domain/entities/storage_config.dart';
-import '../../../../shared/widgets/master_detail/master_detail_scaffold.dart';
-import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
-import '../../../divers/domain/entities/diver.dart';
-import '../../../divers/presentation/providers/diver_providers.dart';
-import '../providers/export_providers.dart';
-import '../providers/settings_providers.dart';
-import '../providers/storage_providers.dart';
-import '../providers/sync_providers.dart';
-import '../widgets/import_progress_dialog.dart';
-import '../widgets/settings_list_content.dart';
-import '../widgets/settings_summary_widget.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/domain/entities/storage_config.dart';
+import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/import_progress_dialog.dart';
+import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
+import 'package:submersion/features/settings/presentation/widgets/settings_summary_widget.dart';
 
 /// Main settings page with master-detail layout on desktop.
 ///

@@ -3,10 +3,10 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../features/dive_log/data/repositories/dive_computer_repository_impl.dart';
-import '../../../../features/dive_log/domain/entities/dive_computer.dart';
-import '../../../../features/dive_log/presentation/providers/dive_computer_providers.dart';
-import '../providers/download_providers.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 
 /// Page displaying details about a specific dive computer.
 class DeviceDetailPage extends ConsumerWidget {

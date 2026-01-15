@@ -4,10 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
-import '../../../dive_log/presentation/providers/dive_providers.dart';
-import '../../domain/entities/dive_center.dart';
-import '../providers/dive_center_providers.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
+import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 
 class DiveCenterDetailPage extends ConsumerStatefulWidget {
   final String centerId;

@@ -1,10 +1,11 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../../core/constants/enums.dart';
-import '../../../../core/database/database.dart';
-import '../../../../core/services/database_service.dart';
-import '../../domain/entities/species.dart' as domain;
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/marine_life/domain/entities/species.dart'
+    as domain;
 
 class SpeciesRepository {
   AppDatabase get _db => DatabaseService.instance.database;

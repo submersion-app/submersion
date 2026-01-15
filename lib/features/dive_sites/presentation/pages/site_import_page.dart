@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../data/services/dive_site_api_service.dart';
-import '../../domain/entities/dive_site.dart';
-import '../providers/site_providers.dart';
+import 'package:submersion/features/dive_sites/data/services/dive_site_api_service.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 
 /// Page for searching and importing dive sites from online sources.
 class SiteImportPage extends ConsumerStatefulWidget {

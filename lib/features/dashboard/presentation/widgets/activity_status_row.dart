@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import '../providers/dashboard_providers.dart';
+import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 
 /// A row of activity status cards showing days since last dive, monthly count, and YTD
 class ActivityStatusRow extends ConsumerWidget {

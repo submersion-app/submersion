@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../../../core/constants/units.dart';
-import '../../../../core/utils/unit_formatter.dart';
-import '../../../settings/presentation/providers/settings_providers.dart';
-import '../providers/deco_calculator_providers.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/deco_calculator/presentation/providers/deco_calculator_providers.dart';
 
 /// Slider for adjusting dive depth (0-60m / 0-200ft).
 class DepthSlider extends ConsumerWidget {

@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
-import '../../../dive_log/domain/entities/dive.dart';
-import '../../../dive_log/presentation/providers/dive_providers.dart';
-import '../../domain/entities/trip.dart';
-import '../providers/trip_providers.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 
 class TripDetailPage extends ConsumerStatefulWidget {
   final String tripId;

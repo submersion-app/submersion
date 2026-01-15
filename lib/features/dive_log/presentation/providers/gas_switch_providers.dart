@@ -1,7 +1,7 @@
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../domain/entities/gas_switch.dart';
-import 'dive_providers.dart';
+import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 
 /// Provider for gas switches of a specific dive
 /// Returns gas switches with full tank info for display purposes

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import '../providers/surface_interval_providers.dart';
+import 'package:submersion/features/surface_interval_tool/presentation/providers/surface_interval_providers.dart';
 
 /// Input card for the first (previous) dive parameters.
 /// Allows setting depth, time, and gas mix (O2/He percentages).

@@ -3,9 +3,9 @@ import 'dart:typed_data';
 
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
-import '../../../../core/services/logger_service.dart';
-import '../../domain/services/download_manager.dart';
-import 'libdc_parser_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/dive_computer/domain/services/download_manager.dart';
+import 'package:submersion/features/dive_computer/data/services/libdc_parser_service.dart';
 
 /// Suunto BLE service UUID (shared with EON Steel, EON Core, D5)
 const suuntoServiceUuid = '98ae7120-e62e-11e3-badd-0002a5d5c51b';

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/providers/provider.dart';
-import '../providers/profile_range_provider.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
 
 /// Overlay widget for selecting a time range on the dive profile chart.
 ///

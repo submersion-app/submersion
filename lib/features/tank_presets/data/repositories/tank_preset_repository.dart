@@ -1,12 +1,12 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../../core/constants/enums.dart';
-import '../../../../core/constants/tank_presets.dart' as constants;
-import '../../../../core/database/database.dart';
-import '../../../../core/services/database_service.dart';
-import '../../../../core/services/logger_service.dart';
-import '../../domain/entities/tank_preset_entity.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/tank_presets.dart' as constants;
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 
 class TankPresetRepository {
   AppDatabase get _db => DatabaseService.instance.database;

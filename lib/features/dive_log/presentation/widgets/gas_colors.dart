@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../domain/entities/dive.dart';
-import '../providers/gas_switch_providers.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 
 /// Color scheme for different gas types on dive profile charts.
 ///

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import 'core/theme/app_theme.dart';
-import 'core/router/app_router.dart';
-import 'features/settings/presentation/providers/settings_providers.dart';
-import 'features/settings/presentation/providers/sync_providers.dart';
+import 'package:submersion/core/theme/app_theme.dart';
+import 'package:submersion/core/router/app_router.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 
 class SubmersionApp extends ConsumerWidget {
   const SubmersionApp({super.key});

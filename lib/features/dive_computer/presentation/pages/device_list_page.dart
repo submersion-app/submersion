@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../features/dive_log/domain/entities/dive_computer.dart';
-import '../../../../features/dive_log/presentation/providers/dive_computer_providers.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 
 /// Page displaying a list of saved dive computers.
 class DeviceListPage extends ConsumerWidget {

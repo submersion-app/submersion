@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import '../providers/dashboard_providers.dart';
+import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 
 /// A row of quick stat cards showing top buddy, countries visited, and species discovered
 class QuickStatsRow extends ConsumerWidget {

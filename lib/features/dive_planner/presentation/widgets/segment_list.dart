@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/providers/provider.dart';
-import '../../../../core/utils/unit_formatter.dart';
-import '../../../settings/presentation/providers/settings_providers.dart';
-import '../../domain/entities/plan_segment.dart';
-import '../providers/dive_planner_providers.dart';
-import 'segment_editor.dart';
-import 'simple_plan_dialog.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
+import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/segment_editor.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/simple_plan_dialog.dart';
 
 /// Widget for displaying and managing plan segments.
 class SegmentList extends ConsumerWidget {
