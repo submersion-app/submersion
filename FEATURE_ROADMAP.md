@@ -269,7 +269,7 @@
 | Tank material | ✅ Implemented | v1.1 | Steel, Aluminum, Carbon Fiber |
 | Tank role | ✅ Implemented | v1.1 | Back gas, stage, deco, bailout, sidemount, pony |
 | Tank presets | ✅ Implemented | v1.1 | AL40/63/80, HP80/100/120, LP85, Steel 10/12/15L |
-| Save custom tank presets | 📋 Planned | v1.5 | User-defined configurations |
+| Save custom tank presets | ✅ Implemented | v1.5 | User-defined configurations |
 
 ---
 

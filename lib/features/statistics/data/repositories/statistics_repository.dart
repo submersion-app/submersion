@@ -288,6 +288,50 @@ class StatisticsRepository {
     }
   }
 
+  /// Get average SAC by tank role (back gas, stage, deco, etc.)
+  ///
+  /// Returns a map of tank role to average SAC in bar/min.
+  Future<Map<String, double>> getSacByTankRole({String? diverId}) async {
+    try {
+      final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
+      final params = diverId != null ? [diverId] : [];
+
+      final results = await _db.customSelect('''
+        SELECT
+          t.tank_role,
+          AVG(
+            CASE
+              WHEN d.duration > 0 AND d.avg_depth > 0 AND t.start_pressure > t.end_pressure THEN
+                (t.start_pressure - t.end_pressure) / (d.duration / 60.0) / ((d.avg_depth / 10.0) + 1)
+              ELSE NULL
+            END
+          ) AS avg_sac
+        FROM dives d
+        INNER JOIN dive_tanks t ON t.dive_id = d.id
+        WHERE t.start_pressure IS NOT NULL
+          AND t.end_pressure IS NOT NULL
+          AND d.duration > 0
+          AND d.avg_depth > 0
+          $diverFilter
+        GROUP BY t.tank_role
+        HAVING avg_sac IS NOT NULL
+        ORDER BY avg_sac ASC
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
+
+      final Map<String, double> sacByRole = {};
+      for (final row in results) {
+        final role = row.read<String>('tank_role');
+        final sac = row.read<double>('avg_sac');
+        sacByRole[role] = sac;
+      }
+
+      return sacByRole;
+    } catch (e, stackTrace) {
+      _log.error('Failed to get SAC by tank role', e, stackTrace);
+      return {};
+    }
+  }
+
   // ============================================================================
   // Dive Progression Statistics
   // ============================================================================

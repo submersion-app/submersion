@@ -49,6 +49,13 @@ final sacRecordsProvider =
       }
     });
 
+/// Average SAC by tank role (back gas, stage, deco, etc.)
+final sacByTankRoleProvider = FutureProvider<Map<String, double>>((ref) async {
+  final repository = ref.watch(statisticsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  return repository.getSacByTankRole(diverId: currentDiverId);
+});
+
 // ============================================================================
 // Dive Progression Providers
 // ============================================================================

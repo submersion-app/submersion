@@ -11,6 +11,7 @@ import '../../../../core/deco/entities/deco_status.dart';
 import '../../../../core/deco/entities/o2_exposure.dart';
 import '../../../../core/deco/o2_toxicity_calculator.dart';
 import '../../../../core/deco/scr_calculator.dart';
+import '../../domain/entities/dive.dart' show GasMix;
 import '../../domain/entities/profile_event.dart';
 
 /// Represents SAC calculated over a segment of the dive.
@@ -36,6 +37,21 @@ class SacSegment extends Equatable {
   /// Gas consumed during this segment (bar)
   final double gasConsumed;
 
+  /// Tank ID for gas-switch segmentation (optional)
+  final String? tankId;
+
+  /// Tank display name (optional)
+  final String? tankName;
+
+  /// Gas mix used in this segment (optional)
+  final GasMix? gasMix;
+
+  /// Dive phase for depth-phase segmentation (optional)
+  final DivePhase? phase;
+
+  /// Segmentation type that produced this segment
+  final SacSegmentationType? segmentationType;
+
   const SacSegment({
     required this.startTimestamp,
     required this.endTimestamp,
@@ -44,6 +60,11 @@ class SacSegment extends Equatable {
     required this.maxDepth,
     required this.sacRate,
     required this.gasConsumed,
+    this.tankId,
+    this.tankName,
+    this.gasMix,
+    this.phase,
+    this.segmentationType,
   });
 
   /// Duration of this segment in seconds
@@ -55,6 +76,23 @@ class SacSegment extends Equatable {
   /// Get the midpoint timestamp (useful for charting)
   int get midTimestamp => (startTimestamp + endTimestamp) ~/ 2;
 
+  /// Display label for this segment based on its type
+  String get displayLabel {
+    if (phase != null) {
+      return phase!.displayName;
+    }
+    if (tankName != null) {
+      return tankName!;
+    }
+    if (gasMix != null) {
+      return gasMix!.name;
+    }
+    // Default: time range
+    final startMin = startTimestamp ~/ 60;
+    final endMin = endTimestamp ~/ 60;
+    return '$startMin-${endMin}min';
+  }
+
   @override
   List<Object?> get props => [
     startTimestamp,
@@ -64,6 +102,11 @@ class SacSegment extends Equatable {
     maxDepth,
     sacRate,
     gasConsumed,
+    tankId,
+    tankName,
+    gasMix,
+    phase,
+    segmentationType,
   ];
 }
 
@@ -74,6 +117,72 @@ enum SacSegmentationType {
 
   /// Segments based on depth zones
   depthBased,
+
+  /// Segments divided by gas/tank switches
+  gasSwitch,
+
+  /// Segments based on dive phases (descent, bottom, ascent, etc.)
+  depthPhase;
+
+  /// Display name for UI
+  String get displayName {
+    return switch (this) {
+      SacSegmentationType.timeInterval => 'Time',
+      SacSegmentationType.depthBased => 'Depth',
+      SacSegmentationType.gasSwitch => 'Gas',
+      SacSegmentationType.depthPhase => 'Phase',
+    };
+  }
+
+  /// Icon name for UI
+  String get iconName {
+    return switch (this) {
+      SacSegmentationType.timeInterval => 'timer',
+      SacSegmentationType.depthBased => 'layers',
+      SacSegmentationType.gasSwitch => 'swap_horiz',
+      SacSegmentationType.depthPhase => 'trending_down',
+    };
+  }
+}
+
+/// Represents a phase of the dive for depth-phase segmentation.
+enum DivePhase {
+  /// Descending to depth
+  descent,
+
+  /// At bottom depth (within 15% of max depth)
+  bottom,
+
+  /// Ascending to surface
+  ascent,
+
+  /// Safety stop (3-6m for 3+ minutes)
+  safetyStop,
+
+  /// Decompression stop
+  deco;
+
+  /// Display name for UI
+  String get displayName {
+    return switch (this) {
+      DivePhase.descent => 'Descent',
+      DivePhase.bottom => 'Bottom',
+      DivePhase.ascent => 'Ascent',
+      DivePhase.safetyStop => 'Safety Stop',
+      DivePhase.deco => 'Deco',
+    };
+  }
+
+  /// Short label for compact display
+  String get shortLabel {
+    return switch (this) {
+      DivePhase.descent => '↓',
+      DivePhase.bottom => '—',
+      DivePhase.ascent => '↑',
+      DivePhase.safetyStop => '⏸',
+      DivePhase.deco => '⚠',
+    };
+  }
 }
 
 /// Complete analysis results for a dive profile.

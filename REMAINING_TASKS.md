@@ -28,26 +28,6 @@ This document contains only the features and tasks that are **not yet completed*
 
 ---
 
-## Category 4: Gases, Tanks & Technical Diving
-
-### 4.1 Multiple Tanks Per Dive
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Save custom tank presets | 📋 Planned | User-defined configurations |
-
-### 4.3 Calculated Metrics
-| Feature | Status | Notes |
-|---------|--------|-------|
-| SAC per segment | 📋 Planned | Time-based or depth-based segments |
-| SAC per cylinder | 📋 Planned | For multi-tank dives |
-
-### 4.4 Deco & Algorithms
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Calculated vs DC ceiling | 📋 Planned | Compare app calc with computer |
-
----
-
 ## Category 5: Locations, Dive Sites & Maps
 
 ### 5.1 Dive Site Database
@@ -191,19 +171,6 @@ This document contains only the features and tasks that are **not yet completed*
 
 ---
 
-## Category 11: Planning & Calculators
-
-### 11.4 Convenience Tools
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Surface interval planner | 📋 Planned | How long to wait |
-
-**Tasks:**
-- [ ] Surface Interval Tool: Input previous dive (depth, time, gas) + desired next dive → Output min surface interval
-- [ ] Display tissue loading chart showing saturation decreasing over time
-
----
-
 ## Category 13: Import, Export & Interoperability
 
 ### 13.1 File Formats
@@ -317,25 +284,6 @@ This document contains only the features and tasks that are **not yet completed*
 | Feature | Notes |
 |---------|-------|
 | Wi-Fi / cloud devices | Garmin, Shearwater cloud API |
-
-### 3.3 Download Behavior
-| Feature | Notes |
-|---------|-------|
-| Auto-download when connected | Background sync |
-
-**Tasks:**
-- [ ] Background BLE scanning and auto-download (mobile)
-- [ ] Notification when new dives detected
-
-### 3.4 Device Management
-| Feature | Notes |
-|---------|-------|
-| Firmware update via app | Shearwater-specific |
-| Remote configuration | Set gases, alarms, units |
-
-**Tasks:**
-- [ ] Firmware update wizard (download firmware, flash via BLE)
-- [ ] Computer settings sync (read/write computer config)
 
 ---
 
