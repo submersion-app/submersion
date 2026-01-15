@@ -2,7 +2,9 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/providers/provider.dart';
+import '../../../../core/utils/unit_formatter.dart';
 import '../../../dive_log/domain/entities/dive.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../providers/dive_planner_providers.dart';
 
 /// Visual chart showing the planned dive profile.
@@ -20,6 +22,10 @@ class PlanProfileChart extends ConsumerWidget {
     final profilePoints = ref.watch(planProfilePointsProvider);
     final planState = ref.watch(divePlanNotifierProvider);
     final theme = Theme.of(context);
+
+    // Get unit settings for the active diver
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
 
     if (profilePoints.isEmpty) {
       return Card(
@@ -53,8 +59,9 @@ class PlanProfileChart extends ConsumerWidget {
       );
     }
 
-    // Calculate axis bounds
-    final maxDepth = planState.maxDepth;
+    // Calculate axis bounds (convert to display units)
+    final maxDepthMeters = planState.maxDepth;
+    final maxDepthDisplay = units.convertDepth(maxDepthMeters);
     final maxTime = planState.totalTimeSeconds / 60; // in minutes
 
     return Card(
@@ -77,7 +84,7 @@ class PlanProfileChart extends ConsumerWidget {
                 const Spacer(),
                 _StatChip(
                   label: 'Max',
-                  value: '${maxDepth.toStringAsFixed(0)}m',
+                  value: units.formatDepth(maxDepthMeters),
                 ),
                 const SizedBox(width: 8),
                 _StatChip(
@@ -91,7 +98,13 @@ class PlanProfileChart extends ConsumerWidget {
             // Chart
             Expanded(
               child: LineChart(
-                _buildChartData(profilePoints, maxDepth, maxTime, theme),
+                _buildChartData(
+                  profilePoints,
+                  maxDepthDisplay,
+                  maxTime,
+                  theme,
+                  units,
+                ),
               ),
             ),
 
@@ -106,16 +119,18 @@ class PlanProfileChart extends ConsumerWidget {
 
   LineChartData _buildChartData(
     List<DiveProfilePoint> points,
-    double maxDepth,
+    double maxDepthDisplay,
     double maxTime,
     ThemeData theme,
+    UnitFormatter units,
   ) {
     // Convert profile points to chart spots
+    // Use negative depth values so deeper = lower on chart (inverted Y-axis)
     final spots = points
         .map(
           (p) => FlSpot(
             p.timestamp / 60, // x: time in minutes
-            p.depth, // y: depth (positive down)
+            -units.convertDepth(p.depth), // y: negative depth for inverted axis
           ),
         )
         .toList();
@@ -124,7 +139,7 @@ class PlanProfileChart extends ConsumerWidget {
       gridData: FlGridData(
         show: true,
         drawVerticalLine: true,
-        horizontalInterval: _calculateInterval(maxDepth),
+        horizontalInterval: _calculateInterval(maxDepthDisplay),
         verticalInterval: _calculateInterval(maxTime),
         getDrawingHorizontalLine: (value) => FlLine(
           color: theme.colorScheme.outline.withValues(alpha: 0.2),
@@ -159,16 +174,20 @@ class PlanProfileChart extends ConsumerWidget {
           ),
         ),
         leftTitles: AxisTitles(
-          axisNameWidget: Text('Depth (m)', style: theme.textTheme.labelSmall),
+          axisNameWidget: Text(
+            'Depth (${units.depthSymbol})',
+            style: theme.textTheme.labelSmall,
+          ),
           sideTitles: SideTitles(
             showTitles: true,
             reservedSize: 40,
-            interval: _calculateInterval(maxDepth),
+            interval: _calculateInterval(maxDepthDisplay),
             getTitlesWidget: (value, meta) {
+              // Show positive depth values (negate the negative axis values)
               return SideTitleWidget(
                 meta: meta,
                 child: Text(
-                  value.toStringAsFixed(0),
+                  (-value).toStringAsFixed(0),
                   style: theme.textTheme.labelSmall,
                 ),
               );
@@ -184,8 +203,9 @@ class PlanProfileChart extends ConsumerWidget {
       ),
       minX: 0,
       maxX: maxTime > 0 ? maxTime * 1.05 : 10,
-      minY: 0,
-      maxY: maxDepth > 0 ? maxDepth * 1.1 : 10,
+      // Inverted Y-axis: negative max depth at bottom, 0 at top
+      minY: maxDepthDisplay > 0 ? -maxDepthDisplay * 1.1 : -10,
+      maxY: 0,
       lineBarsData: [
         LineChartBarData(
           spots: spots,
@@ -205,8 +225,8 @@ class PlanProfileChart extends ConsumerWidget {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                theme.colorScheme.primary.withValues(alpha: 0.3),
                 theme.colorScheme.primary.withValues(alpha: 0.05),
+                theme.colorScheme.primary.withValues(alpha: 0.3),
               ],
             ),
           ),
@@ -216,8 +236,10 @@ class PlanProfileChart extends ConsumerWidget {
         touchTooltipData: LineTouchTooltipData(
           getTooltipItems: (touchedSpots) {
             return touchedSpots.map((spot) {
+              // Negate the Y value back to positive for display
+              final depth = -spot.y;
               return LineTooltipItem(
-                '${spot.y.toStringAsFixed(1)}m @ ${spot.x.toStringAsFixed(1)}min',
+                '${depth.toStringAsFixed(1)}${units.depthSymbol} @ ${spot.x.toStringAsFixed(1)}min',
                 TextStyle(
                   color: theme.colorScheme.onSurface,
                   fontWeight: FontWeight.bold,

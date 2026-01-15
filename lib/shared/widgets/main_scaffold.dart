@@ -16,12 +16,12 @@ class _MainScaffoldState extends State<MainScaffold> {
 
   // Routes that appear in the "More" menu on mobile
   static const _moreRoutes = [
-    '/planning',
     '/equipment',
-    '/statistics',
     '/buddies',
     '/dive-centers',
     '/certifications',
+    '/statistics',
+    '/planning',
     '/transfer',
     '/settings',
   ];
@@ -33,17 +33,17 @@ class _MainScaffoldState extends State<MainScaffold> {
     final location = GoRouterState.of(context).uri.path;
 
     if (isWideScreen) {
-      // Wide screen: Home, Planning, then all items in the rail
+      // Wide screen: All items in the rail
       if (location.startsWith('/dashboard')) return 0;
-      if (location.startsWith('/planning')) return 1;
-      if (location.startsWith('/dives')) return 2;
-      if (location.startsWith('/sites')) return 3;
-      if (location.startsWith('/trips')) return 4;
-      if (location.startsWith('/equipment')) return 5;
-      if (location.startsWith('/statistics')) return 6;
-      if (location.startsWith('/buddies')) return 7;
-      if (location.startsWith('/dive-centers')) return 8;
-      if (location.startsWith('/certifications')) return 9;
+      if (location.startsWith('/dives')) return 1;
+      if (location.startsWith('/sites')) return 2;
+      if (location.startsWith('/trips')) return 3;
+      if (location.startsWith('/equipment')) return 4;
+      if (location.startsWith('/buddies')) return 5;
+      if (location.startsWith('/dive-centers')) return 6;
+      if (location.startsWith('/certifications')) return 7;
+      if (location.startsWith('/statistics')) return 8;
+      if (location.startsWith('/planning')) return 9;
       if (location.startsWith('/transfer')) return 10;
       if (location.startsWith('/settings')) return 11;
       return 0;
@@ -72,31 +72,31 @@ class _MainScaffoldState extends State<MainScaffold> {
           context.go('/dashboard');
           break;
         case 1:
-          context.go('/planning');
-          break;
-        case 2:
           context.go('/dives');
           break;
-        case 3:
+        case 2:
           context.go('/sites');
           break;
-        case 4:
+        case 3:
           context.go('/trips');
           break;
-        case 5:
+        case 4:
           context.go('/equipment');
           break;
-        case 6:
-          context.go('/statistics');
-          break;
-        case 7:
+        case 5:
           context.go('/buddies');
           break;
-        case 8:
+        case 6:
           context.go('/dive-centers');
           break;
-        case 9:
+        case 7:
           context.go('/certifications');
+          break;
+        case 8:
+          context.go('/statistics');
+          break;
+        case 9:
+          context.go('/planning');
           break;
         case 10:
           context.go('/transfer');
@@ -149,28 +149,11 @@ class _MainScaffoldState extends State<MainScaffold> {
             ),
             const Divider(height: 1),
             ListTile(
-              leading: const Icon(Icons.edit_calendar),
-              title: const Text('Planning'),
-              subtitle: const Text('Dive Planner, Calculators'),
-              onTap: () {
-                Navigator.pop(context);
-                context.go('/planning');
-              },
-            ),
-            ListTile(
               leading: const Icon(Icons.backpack),
               title: const Text('Equipment'),
               onTap: () {
                 Navigator.pop(context);
                 context.go('/equipment');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.bar_chart),
-              title: const Text('Statistics'),
-              onTap: () {
-                Navigator.pop(context);
-                context.go('/statistics');
               },
             ),
             ListTile(
@@ -195,6 +178,23 @@ class _MainScaffoldState extends State<MainScaffold> {
               onTap: () {
                 Navigator.pop(context);
                 context.go('/certifications');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.bar_chart),
+              title: const Text('Statistics'),
+              onTap: () {
+                Navigator.pop(context);
+                context.go('/statistics');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.edit_calendar),
+              title: const Text('Planning'),
+              subtitle: const Text('Dive Planner, Calculators'),
+              onTap: () {
+                Navigator.pop(context);
+                context.go('/planning');
               },
             ),
             ListTile(
@@ -266,11 +266,6 @@ class _MainScaffoldState extends State<MainScaffold> {
                   label: Text('Home'),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.edit_calendar_outlined),
-                  selectedIcon: Icon(Icons.edit_calendar),
-                  label: Text('Planning'),
-                ),
-                NavigationRailDestination(
                   icon: Icon(Icons.scuba_diving_outlined),
                   selectedIcon: Icon(Icons.scuba_diving),
                   label: Text('Dives'),
@@ -291,11 +286,6 @@ class _MainScaffoldState extends State<MainScaffold> {
                   label: Text('Equipment'),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.bar_chart_outlined),
-                  selectedIcon: Icon(Icons.bar_chart),
-                  label: Text('Statistics'),
-                ),
-                NavigationRailDestination(
                   icon: Icon(Icons.people_outlined),
                   selectedIcon: Icon(Icons.people),
                   label: Text('Buddies'),
@@ -309,6 +299,16 @@ class _MainScaffoldState extends State<MainScaffold> {
                   icon: Icon(Icons.card_membership_outlined),
                   selectedIcon: Icon(Icons.card_membership),
                   label: Text('Certifications'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.bar_chart_outlined),
+                  selectedIcon: Icon(Icons.bar_chart),
+                  label: Text('Statistics'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.edit_calendar_outlined),
+                  selectedIcon: Icon(Icons.edit_calendar),
+                  label: Text('Planning'),
                 ),
                 NavigationRailDestination(
                   icon: Icon(Icons.sync_alt_outlined),

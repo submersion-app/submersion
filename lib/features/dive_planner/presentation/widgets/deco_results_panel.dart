@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/providers/provider.dart';
+import '../../../../core/utils/unit_formatter.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 import '../../domain/entities/plan_result.dart';
 import '../providers/dive_planner_providers.dart';
 
@@ -20,6 +22,8 @@ class DecoResultsPanel extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final results = ref.watch(planResultsProvider);
     final theme = Theme.of(context);
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
 
     return Card(
       child: Padding(
@@ -82,7 +86,7 @@ class DecoResultsPanel extends ConsumerWidget {
               _InfoRow(
                 icon: Icons.layers,
                 label: 'Ceiling',
-                value: '${results.maxCeiling.toStringAsFixed(1)}m',
+                value: units.formatDepth(results.maxCeiling),
               ),
               const SizedBox(height: 8),
             ],
@@ -93,7 +97,9 @@ class DecoResultsPanel extends ConsumerWidget {
               const SizedBox(height: 8),
               Text('Decompression Schedule', style: theme.textTheme.labelLarge),
               const SizedBox(height: 8),
-              ...results.decoSchedule.map((stop) => _DecoStopRow(stop: stop)),
+              ...results.decoSchedule.map(
+                (stop) => _DecoStopRow(stop: stop, units: units),
+              ),
             ],
 
             // Warnings
@@ -108,7 +114,7 @@ class DecoResultsPanel extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
               ...results.warnings.map(
-                (warning) => _WarningRow(warning: warning),
+                (warning) => _WarningRow(warning: warning, units: units),
               ),
             ],
           ],
@@ -124,10 +130,10 @@ class DecoResultsPanel extends ConsumerWidget {
     if (minutes >= 60) {
       final hours = minutes ~/ 60;
       final mins = minutes % 60;
-      return '${hours}h ${mins}m';
+      return '${hours}h ${mins}min';
     }
-    if (secs == 0) return '${minutes}m';
-    return '${minutes}m ${secs}s';
+    if (secs == 0) return '${minutes}min';
+    return '${minutes}min ${secs}s';
   }
 }
 
@@ -211,8 +217,9 @@ class _InfoRow extends StatelessWidget {
 
 class _DecoStopRow extends StatelessWidget {
   final DecoStop stop;
+  final UnitFormatter units;
 
-  const _DecoStopRow({required this.stop});
+  const _DecoStopRow({required this.stop, required this.units});
 
   @override
   Widget build(BuildContext context) {
@@ -232,7 +239,7 @@ class _DecoStopRow extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Text(
-            '${stop.depth.toStringAsFixed(0)}m',
+            units.formatDepth(stop.depth),
             style: theme.textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -254,8 +261,9 @@ class _DecoStopRow extends StatelessWidget {
 
 class _WarningRow extends StatelessWidget {
   final PlanWarning warning;
+  final UnitFormatter units;
 
-  const _WarningRow({required this.warning});
+  const _WarningRow({required this.warning, required this.units});
 
   @override
   Widget build(BuildContext context) {
@@ -275,7 +283,7 @@ class _WarningRow extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              warning.message,
+              _formatWarningMessage(),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: isCritical
                     ? theme.colorScheme.error
@@ -286,5 +294,45 @@ class _WarningRow extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// Format warning message with proper units.
+  String _formatWarningMessage() {
+    switch (warning.type) {
+      case PlanWarningType.ppO2High:
+        // ppO2 is universally expressed in bar (partial pressure)
+        return 'ppO₂ of ${warning.value?.toStringAsFixed(2) ?? "--"} bar exceeds working limit';
+      case PlanWarningType.ppO2Critical:
+        return 'ppO₂ of ${warning.value?.toStringAsFixed(2) ?? "--"} bar exceeds critical limit';
+      case PlanWarningType.gasLow:
+        final threshold = warning.threshold ?? 50;
+        return 'Tank below ${units.formatPressure(threshold)} reserve';
+      case PlanWarningType.gasOut:
+        return 'Tank will be empty';
+      case PlanWarningType.ndlExceeded:
+        return 'Dive enters decompression obligation';
+      case PlanWarningType.cnsWarning:
+        return 'CNS% exceeds ${warning.threshold?.toStringAsFixed(0) ?? "80"}%';
+      case PlanWarningType.cnsCritical:
+        return 'CNS% exceeds 100%';
+      case PlanWarningType.otuWarning:
+        return 'OTU accumulation high';
+      case PlanWarningType.ascentRateHigh:
+        final rate = warning.value;
+        if (rate != null) {
+          return 'Ascent rate ${units.formatDepth(rate)}/min exceeds safe limit';
+        }
+        return 'Ascent rate exceeds safe limit';
+      case PlanWarningType.endHigh:
+        final end = warning.value;
+        if (end != null) {
+          return 'END of ${units.formatDepth(end)} exceeds safe limit';
+        }
+        return 'Equivalent Narcotic Depth too high';
+      case PlanWarningType.minGasViolation:
+        return 'Minimum gas reserve not maintained';
+      case PlanWarningType.modViolation:
+        return 'Gas switch attempted above MOD';
+    }
   }
 }

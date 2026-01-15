@@ -113,7 +113,7 @@ class GasConsumptionCalculator extends ConsumerWidget {
                         icon: Icons.air,
                         label: 'SAC Rate',
                         value: sac,
-                        unit: 'L/min',
+                        unit: '$volumeSymbol/min',
                         min: 8,
                         max: 30,
                         divisions: 22,
