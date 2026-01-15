@@ -24,6 +24,10 @@ class DiveFilterState {
   // v1.5: Additional filter criteria
   final List<String> equipmentIds; // Upgraded from single equipmentId
   final String? buddyNameFilter; // Text search on buddy field
+  final String?
+  buddyId; // Filter by buddy ID (uses dive_buddies junction table)
+  final List<String>
+  diveIds; // Filter to specific dive IDs (e.g., shared dives with buddy)
   final double? minO2Percent; // Gas mix O2 filter (min)
   final double? maxO2Percent; // Gas mix O2 filter (max)
   final int? minRating; // Minimum star rating (1-5)
@@ -44,6 +48,8 @@ class DiveFilterState {
     // v1.5 filters
     this.equipmentIds = const [],
     this.buddyNameFilter,
+    this.buddyId,
+    this.diveIds = const [],
     this.minO2Percent,
     this.maxO2Percent,
     this.minRating,
@@ -65,6 +71,8 @@ class DiveFilterState {
       // v1.5 filters
       equipmentIds.isNotEmpty ||
       (buddyNameFilter != null && buddyNameFilter!.isNotEmpty) ||
+      buddyId != null ||
+      diveIds.isNotEmpty ||
       minO2Percent != null ||
       maxO2Percent != null ||
       minRating != null ||
@@ -85,6 +93,8 @@ class DiveFilterState {
     // v1.5 filters
     List<String>? equipmentIds,
     String? buddyNameFilter,
+    String? buddyId,
+    List<String>? diveIds,
     double? minO2Percent,
     double? maxO2Percent,
     int? minRating,
@@ -103,6 +113,8 @@ class DiveFilterState {
     bool clearTagIds = false,
     bool clearEquipmentIds = false,
     bool clearBuddyNameFilter = false,
+    bool clearBuddyId = false,
+    bool clearDiveIds = false,
     bool clearMinO2Percent = false,
     bool clearMaxO2Percent = false,
     bool clearMinRating = false,
@@ -131,6 +143,8 @@ class DiveFilterState {
       buddyNameFilter: clearBuddyNameFilter
           ? null
           : (buddyNameFilter ?? this.buddyNameFilter),
+      buddyId: clearBuddyId ? null : (buddyId ?? this.buddyId),
+      diveIds: clearDiveIds ? const [] : (diveIds ?? this.diveIds),
       minO2Percent: clearMinO2Percent
           ? null
           : (minO2Percent ?? this.minO2Percent),
@@ -216,6 +230,11 @@ class DiveFilterState {
         if (!buddyLower.contains(buddyNameFilter!.toLowerCase())) {
           return false;
         }
+      }
+
+      // v1.5: Dive IDs filter (for filtering to specific dives, e.g., shared with buddy)
+      if (diveIds.isNotEmpty && !diveIds.contains(dive.id)) {
+        return false;
       }
 
       // v1.5: Gas mix O2% filter (check any tank)
