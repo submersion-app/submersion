@@ -29,6 +29,8 @@ class StatisticsGasPage extends ConsumerWidget {
           const SizedBox(height: 16),
           _buildGasMixSection(context, ref),
           const SizedBox(height: 16),
+          _buildSacByRoleSection(context, ref, units),
+          const SizedBox(height: 16),
           _buildSacRecordsSection(context, ref, units),
         ],
       ),
@@ -100,6 +102,94 @@ class StatisticsGasPage extends ConsumerWidget {
         error: (_, _) => const StatEmptyState(
           icon: Icons.error_outline,
           message: 'Failed to load gas mix data',
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSacByRoleSection(
+    BuildContext context,
+    WidgetRef ref,
+    UnitFormatter units,
+  ) {
+    final sacByRoleAsync = ref.watch(sacByTankRoleProvider);
+    final sacUnit = ref.watch(sacUnitProvider);
+
+    // Determine unit symbol based on SAC calculation method
+    final unitSymbol = sacUnit == SacUnit.litersPerMin
+        ? '${units.volumeSymbol}/min'
+        : '${units.pressureSymbol}/min';
+
+    // Map tank role keys to display names
+    String getRoleDisplayName(String role) {
+      return switch (role) {
+        'backGas' => 'Back Gas',
+        'stage' => 'Stage',
+        'deco' => 'Deco',
+        'bailout' => 'Bailout',
+        'sidemountLeft' => 'Sidemount L',
+        'sidemountRight' => 'Sidemount R',
+        'pony' => 'Pony',
+        'diluent' => 'Diluent',
+        'oxygenSupply' => 'O₂ Supply',
+        _ => role,
+      };
+    }
+
+    return StatSectionCard(
+      title: 'SAC by Tank Role',
+      subtitle: 'Average consumption by tank type',
+      child: sacByRoleAsync.when(
+        data: (data) {
+          if (data.isEmpty) {
+            return const StatEmptyState(
+              icon: Icons.propane_tank,
+              message: 'No multi-tank data available',
+            );
+          }
+
+          return Column(
+            children: data.entries.map((entry) {
+              final role = entry.key;
+              final sac = entry.value;
+              final isFirst = entry.key == data.keys.first;
+
+              return Padding(
+                padding: EdgeInsets.only(top: isFirst ? 0 : 8),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.propane_tank,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        getRoleDisplayName(role),
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ),
+                    Text(
+                      '${sac.toStringAsFixed(1)} $unitSymbol',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          );
+        },
+        loading: () => const SizedBox(
+          height: 100,
+          child: Center(child: CircularProgressIndicator()),
+        ),
+        error: (_, _) => const StatEmptyState(
+          icon: Icons.error_outline,
+          message: 'Failed to load SAC by role',
         ),
       ),
     );

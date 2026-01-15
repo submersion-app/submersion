@@ -21,10 +21,12 @@ import '../../../settings/presentation/providers/export_providers.dart';
 import '../../../settings/presentation/providers/settings_providers.dart';
 import '../../data/services/profile_analysis_service.dart';
 import '../../data/services/profile_markers_service.dart';
+import '../../domain/entities/cylinder_sac.dart';
 import '../../domain/entities/dive.dart';
 import '../../domain/entities/gas_switch.dart';
 import '../providers/dive_detail_ui_providers.dart';
 import '../providers/dive_providers.dart';
+import '../providers/gas_analysis_providers.dart';
 import '../providers/gas_switch_providers.dart';
 import '../providers/profile_analysis_provider.dart';
 import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -1214,17 +1216,43 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     final units = UnitFormatter(settings);
     final sacUnit = ref.watch(sacUnitProvider);
 
-    // Don't show if no SAC segments available
+    // Get the selected segmentation method
+    final selectedMethod = ref.watch(selectedSegmentationProvider);
+
+    // Get segments based on selected method
+    final segments = ref.watch(activeSegmentsForDiveProvider(dive));
+
+    // Check availability of different segmentation methods
+    final hasGasSwitches =
+        ref.watch(hasGasSwitchesProvider(dive.id)).valueOrNull ?? false;
+    final isMultiTank =
+        ref.watch(isMultiTankDiveProvider(dive.id)).valueOrNull ?? false;
+
+    // Get cylinder SAC data for multi-tank dives
+    final cylinderSacAsync = ref.watch(cylinderSacProvider(dive.id));
+
+    // Don't show if no segments available at all
     if (analysis == null ||
-        analysis.sacSegments == null ||
-        analysis.sacSegments!.isEmpty) {
+        (analysis.sacSegments == null || analysis.sacSegments!.isEmpty)) {
+      // Still show cylinder SAC if available
+      if (isMultiTank && cylinderSacAsync.hasValue) {
+        return _buildCylinderSacSection(
+          context,
+          ref,
+          dive,
+          cylinderSacAsync.value!,
+          units,
+          sacUnit,
+        );
+      }
       return const SizedBox.shrink();
     }
 
     // Get collapsed state from provider
     final isExpanded = ref.watch(sacSegmentsSectionExpandedProvider);
 
-    final segments = analysis.sacSegments!;
+    // Use current segments or fall back to time-based
+    final displaySegments = segments ?? analysis.sacSegments!;
 
     // Get tank volume for L/min conversion (use first tank with volume)
     final tankVolume = dive.tanks
@@ -1258,17 +1286,25 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     int? selectedSegmentIndex;
     if (_selectedPointIndex != null && dive.profile.isNotEmpty) {
       final selectedTimestamp = dive.profile[_selectedPointIndex!].timestamp;
-      for (int i = 0; i < segments.length; i++) {
-        if (selectedTimestamp >= segments[i].startTimestamp &&
-            selectedTimestamp <= segments[i].endTimestamp) {
+      for (int i = 0; i < displaySegments.length; i++) {
+        if (selectedTimestamp >= displaySegments[i].startTimestamp &&
+            selectedTimestamp <= displaySegments[i].endTimestamp) {
           selectedSegmentIndex = i;
           break;
         }
       }
     }
 
-    // Collapsed subtitle showing segment count
-    final collapsedSubtitle = '${segments.length} segments (5-min intervals)';
+    // Build collapsed subtitle based on method
+    String getSubtitle() {
+      final count = displaySegments.length;
+      return switch (selectedMethod) {
+        SacSegmentationType.timeInterval => '$count segments (5-min intervals)',
+        SacSegmentationType.depthBased => '$count depth segments',
+        SacSegmentationType.gasSwitch => '$count gas segments',
+        SacSegmentationType.depthPhase => '$count phase segments',
+      };
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1276,7 +1312,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         CollapsibleCardSection(
           title: 'SAC Rate by Segment',
           icon: Icons.air,
-          collapsedSubtitle: collapsedSubtitle,
+          collapsedSubtitle: getSubtitle(),
           isExpanded: isExpanded,
           onToggle: (expanded) {
             ref
@@ -1288,17 +1324,28 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ...segments.asMap().entries.map((entry) {
+                // Segmentation method selector
+                _buildSegmentationSelector(
+                  context,
+                  ref,
+                  selectedMethod,
+                  hasGasSwitches,
+                ),
+                const SizedBox(height: 12),
+
+                // Segment list
+                ...displaySegments.asMap().entries.map((entry) {
                   final index = entry.key;
                   final segment = entry.value;
-                  final startMin = segment.startTimestamp ~/ 60;
-                  final endMin = segment.endTimestamp ~/ 60;
                   final avgDepthDisplay = units.formatDepth(segment.avgDepth);
                   final isSelected = index == selectedSegmentIndex;
 
+                  // Get segment label based on type
+                  final segmentLabel = segment.displayLabel;
+
                   return Container(
                     margin: EdgeInsets.only(
-                      bottom: index < segments.length - 1 ? 8 : 0,
+                      bottom: index < displaySegments.length - 1 ? 8 : 0,
                     ),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 8,
@@ -1319,10 +1366,18 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         : null,
                     child: Row(
                       children: [
+                        // Phase icon for depth-phase segmentation
+                        if (segment.phase != null) ...[
+                          Text(
+                            segment.phase!.shortLabel,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                          const SizedBox(width: 4),
+                        ],
                         SizedBox(
-                          width: 62,
+                          width: segment.phase != null ? 70 : 62,
                           child: Text(
-                            '$startMin-${endMin}min',
+                            segmentLabel,
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
                                   fontWeight: isSelected
@@ -1332,13 +1387,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                                       ? Theme.of(context).colorScheme.primary
                                       : null,
                                 ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         Expanded(
                           child: _buildSacBar(
                             context,
                             segment.sacRate,
-                            segments
+                            displaySegments
                                 .map((s) => s.sacRate)
                                 .reduce((a, b) => a > b ? a : b),
                           ),
@@ -1375,9 +1431,193 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             ),
           ),
         ),
+
+        // Cylinder SAC subsection for multi-tank dives
+        if (isMultiTank && cylinderSacAsync.hasValue) ...[
+          const SizedBox(height: 16),
+          _buildCylinderSacSection(
+            context,
+            ref,
+            dive,
+            cylinderSacAsync.value!,
+            units,
+            sacUnit,
+          ),
+        ],
+
         const SizedBox(height: 24),
       ],
     );
+  }
+
+  /// Build the segmentation method selector chips
+  Widget _buildSegmentationSelector(
+    BuildContext context,
+    WidgetRef ref,
+    SacSegmentationType selected,
+    bool hasGasSwitches,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    // Available methods (gas switch only if switches exist)
+    final methods = [
+      SacSegmentationType.timeInterval,
+      if (hasGasSwitches) SacSegmentationType.gasSwitch,
+      SacSegmentationType.depthPhase,
+    ];
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 4,
+      children: methods.map((method) {
+        final isSelected = method == selected;
+        return FilterChip(
+          label: Text(method.displayName),
+          selected: isSelected,
+          onSelected: (_) {
+            ref.read(selectedSegmentationProvider.notifier).state = method;
+          },
+          avatar: Icon(
+            _getSegmentationIcon(method),
+            size: 16,
+            color: isSelected ? colorScheme.onSecondaryContainer : null,
+          ),
+          visualDensity: VisualDensity.compact,
+        );
+      }).toList(),
+    );
+  }
+
+  /// Get icon for segmentation method
+  IconData _getSegmentationIcon(SacSegmentationType method) {
+    return switch (method) {
+      SacSegmentationType.timeInterval => Icons.timer,
+      SacSegmentationType.depthBased => Icons.layers,
+      SacSegmentationType.gasSwitch => Icons.swap_horiz,
+      SacSegmentationType.depthPhase => Icons.trending_down,
+    };
+  }
+
+  /// Build cylinder SAC section for multi-tank dives
+  Widget _buildCylinderSacSection(
+    BuildContext context,
+    WidgetRef ref,
+    Dive dive,
+    List<CylinderSac> cylinderSacs,
+    UnitFormatter units,
+    SacUnit sacUnit,
+  ) {
+    if (cylinderSacs.isEmpty) return const SizedBox.shrink();
+
+    final isExpanded = ref.watch(cylinderSacExpandedProvider);
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return CollapsibleCardSection(
+      title: 'SAC by Cylinder',
+      icon: Icons.propane_tank,
+      collapsedSubtitle: '${cylinderSacs.length} tanks',
+      isExpanded: isExpanded,
+      onToggle: (expanded) {
+        ref.read(cylinderSacExpandedProvider.notifier).state = expanded;
+      },
+      contentBuilder: (context) => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: cylinderSacs.map((cylinder) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                children: [
+                  // Tank icon with role color
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: colorScheme.primaryContainer.withValues(
+                        alpha: 0.3,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.propane_tank,
+                      size: 16,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // Tank info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          cylinder.displayLabel,
+                          style: textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Text(
+                          '${cylinder.gasMix.name} • ${cylinder.role.displayName}',
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // SAC value
+                  if (cylinder.hasValidSac) ...[
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          _formatCylinderSac(cylinder, units, sacUnit),
+                          style: textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                        if (cylinder.gasUsedBar != null)
+                          Text(
+                            '${units.convertPressure(cylinder.gasUsedBar!.toDouble()).toInt()} ${units.pressureSymbol} used',
+                            style: textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ] else ...[
+                    Text(
+                      '--',
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  /// Format cylinder SAC value
+  String _formatCylinderSac(
+    CylinderSac cylinder,
+    UnitFormatter units,
+    SacUnit sacUnit,
+  ) {
+    if (sacUnit == SacUnit.litersPerMin && cylinder.sacVolume != null) {
+      final value = units.convertVolume(cylinder.sacVolume!);
+      return '${value.toStringAsFixed(1)} ${units.volumeSymbol}/min';
+    } else if (cylinder.sacRate != null) {
+      final value = units.convertPressure(cylinder.sacRate!);
+      return '${value.toStringAsFixed(1)} ${units.pressureSymbol}/min';
+    }
+    return '--';
   }
 
   Widget _buildSacBar(BuildContext context, double sacRate, double maxSac) {
