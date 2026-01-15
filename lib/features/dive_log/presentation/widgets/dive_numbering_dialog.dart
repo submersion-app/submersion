@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../data/repositories/dive_repository_impl.dart';
-import '../providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 
 /// Dialog for managing dive numbering - detecting gaps and renumbering dives
 class DiveNumberingDialog extends ConsumerStatefulWidget {

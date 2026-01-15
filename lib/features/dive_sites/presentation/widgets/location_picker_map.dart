@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../../../../core/services/location_service.dart';
+import 'package:submersion/core/services/location_service.dart';
 
 /// Result from the location picker
 class PickedLocation {

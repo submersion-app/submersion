@@ -5,16 +5,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../../../core/constants/enums.dart';
-import '../../../../core/constants/units.dart';
-import '../../../../core/deco/ascent_rate_calculator.dart';
-import '../../../../core/utils/unit_formatter.dart';
-import '../../../settings/presentation/providers/settings_providers.dart';
-import '../../data/services/profile_markers_service.dart';
-import '../../domain/entities/dive.dart';
-import '../../domain/entities/gas_switch.dart';
-import '../../domain/entities/profile_event.dart';
-import 'gas_colors.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/deco/ascent_rate_calculator.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
 
 /// Interactive dive profile chart showing depth over time with zoom/pan support
 class DiveProfileChart extends ConsumerStatefulWidget {

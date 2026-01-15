@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../shared/widgets/master_detail/master_detail_scaffold.dart';
-import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
-import '../widgets/dive_center_list_content.dart';
-import '../widgets/dive_center_summary_widget.dart';
-import 'dive_center_detail_page.dart';
-import 'dive_center_edit_page.dart';
+import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_list_content.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_summary_widget.dart';
+import 'package:submersion/features/dive_centers/presentation/pages/dive_center_detail_page.dart';
+import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_page.dart';
 
 class DiveCenterListPage extends ConsumerWidget {
   const DiveCenterListPage({super.key});

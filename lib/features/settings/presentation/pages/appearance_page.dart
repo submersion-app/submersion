@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import '../providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 class AppearancePage extends ConsumerWidget {
   const AppearancePage({super.key});

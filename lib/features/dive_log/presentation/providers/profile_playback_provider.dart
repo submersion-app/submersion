@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:equatable/equatable.dart';
 
-import '../../../../core/providers/provider.dart';
+import 'package:submersion/core/providers/provider.dart';
 
 /// State for dive profile playback functionality.
 ///

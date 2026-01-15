@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
-import '../../domain/entities/certification.dart';
-import '../providers/certification_providers.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 
 class CertificationDetailPage extends ConsumerStatefulWidget {
   final String certificationId;

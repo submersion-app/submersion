@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/providers/provider.dart';
-import '../providers/profile_playback_provider.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_playback_provider.dart';
 
 /// Playback controls for stepping through a dive profile.
 ///

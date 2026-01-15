@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import 'equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 
 /// A named collection of equipment items
 class EquipmentSet extends Equatable {

@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../../core/constants/units.dart';
-import '../../../divers/presentation/providers/diver_providers.dart';
-import '../../data/repositories/diver_settings_repository.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 
 /// Unit system preset
 enum UnitPreset {

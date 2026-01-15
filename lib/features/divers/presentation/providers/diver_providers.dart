@@ -1,9 +1,9 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../settings/presentation/providers/settings_providers.dart';
-import '../../data/repositories/diver_repository.dart';
-import '../../domain/entities/diver.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
 
 /// Repository provider
 final diverRepositoryProvider = Provider<DiverRepository>((ref) {

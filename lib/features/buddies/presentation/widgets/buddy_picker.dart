@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/constants/enums.dart';
-import '../../domain/entities/buddy.dart';
-import '../providers/buddy_providers.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 
 /// Widget for selecting buddies for a dive
 class BuddyPicker extends ConsumerWidget {

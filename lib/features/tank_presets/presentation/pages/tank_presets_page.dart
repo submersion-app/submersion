@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../../../core/utils/unit_formatter.dart';
-import '../../../settings/presentation/providers/settings_providers.dart';
-import '../../domain/entities/tank_preset_entity.dart';
-import '../providers/tank_preset_providers.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
+import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 
 class TankPresetsPage extends ConsumerWidget {
   const TankPresetsPage({super.key});

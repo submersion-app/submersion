@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../domain/entities/dive_type_entity.dart';
-import '../providers/dive_type_providers.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 
 class DiveTypesPage extends ConsumerWidget {
   const DiveTypesPage({super.key});

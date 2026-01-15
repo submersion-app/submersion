@@ -1,13 +1,13 @@
 import 'dart:async';
 
-import '../../domain/entities/device_model.dart';
-import '../../domain/services/download_manager.dart';
-import 'aqualung_ble_protocol.dart';
-import 'bluetooth_connection_manager.dart';
-import 'libdc_ffi_download_manager.dart';
-import 'mares_ble_protocol.dart';
-import 'shearwater_ble_protocol.dart';
-import 'suunto_ble_protocol.dart';
+import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
+import 'package:submersion/features/dive_computer/domain/services/download_manager.dart';
+import 'package:submersion/features/dive_computer/data/services/aqualung_ble_protocol.dart';
+import 'package:submersion/features/dive_computer/data/services/bluetooth_connection_manager.dart';
+import 'package:submersion/features/dive_computer/data/services/libdc_ffi_download_manager.dart';
+import 'package:submersion/features/dive_computer/data/services/mares_ble_protocol.dart';
+import 'package:submersion/features/dive_computer/data/services/shearwater_ble_protocol.dart';
+import 'package:submersion/features/dive_computer/data/services/suunto_ble_protocol.dart';
 
 /// Callback for requesting a PIN from the user.
 ///

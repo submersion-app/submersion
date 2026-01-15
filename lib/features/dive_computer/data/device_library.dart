@@ -1,4 +1,4 @@
-import '../domain/entities/device_model.dart';
+import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 
 /// Library of known dive computer models.
 ///

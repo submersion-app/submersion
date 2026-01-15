@@ -1,4 +1,4 @@
-import '../constants/enums.dart';
+import 'package:submersion/core/constants/enums.dart';
 
 /// Weight calculator utility for diving
 /// Calculates recommended weight based on exposure suit, tank type, and water type

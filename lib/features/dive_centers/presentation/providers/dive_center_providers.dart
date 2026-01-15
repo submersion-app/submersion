@@ -1,8 +1,8 @@
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../../divers/presentation/providers/diver_providers.dart';
-import '../../data/repositories/dive_center_repository.dart';
-import '../../domain/entities/dive_center.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
+import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 
 /// Repository provider
 final diveCenterRepositoryProvider = Provider<DiveCenterRepository>((ref) {

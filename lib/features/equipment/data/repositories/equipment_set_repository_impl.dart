@@ -1,10 +1,11 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../../core/database/database.dart';
-import '../../../../core/services/database_service.dart';
-import '../../domain/entities/equipment_set.dart' as domain;
-import 'equipment_repository_impl.dart';
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_set.dart'
+    as domain;
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 
 class EquipmentSetRepository {
   AppDatabase get _db => DatabaseService.instance.database;

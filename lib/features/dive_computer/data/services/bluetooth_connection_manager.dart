@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
-import '../../domain/entities/device_model.dart';
-import '../../domain/services/connection_manager.dart';
-import '../device_library.dart';
-import 'permissions_service.dart';
+import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
+import 'package:submersion/features/dive_computer/domain/services/connection_manager.dart';
+import 'package:submersion/features/dive_computer/data/device_library.dart';
+import 'package:submersion/features/dive_computer/data/services/permissions_service.dart';
 
 /// Implementation of [ConnectionManager] for Bluetooth devices.
 ///

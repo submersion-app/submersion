@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/constants/enums.dart';
-import '../../../../shared/widgets/master_detail/master_detail_scaffold.dart';
-import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
-import '../../../divers/presentation/providers/diver_providers.dart';
-import '../../domain/entities/equipment_item.dart';
-import '../providers/equipment_providers.dart';
-import '../widgets/equipment_list_content.dart';
-import '../widgets/equipment_summary_widget.dart';
-import 'equipment_detail_page.dart';
-import 'equipment_edit_page.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_list_content.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_summary_widget.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_edit_page.dart';
 
 class EquipmentListPage extends ConsumerWidget {
   const EquipmentListPage({super.key});

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../../../core/utils/unit_formatter.dart';
-import '../../../settings/presentation/providers/settings_providers.dart';
-import '../providers/statistics_providers.dart';
-import '../widgets/stat_charts.dart';
-import '../widgets/stat_section_card.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
+import 'package:submersion/features/statistics/presentation/widgets/stat_charts.dart';
+import 'package:submersion/features/statistics/presentation/widgets/stat_section_card.dart';
 
 class StatisticsProfilePage extends ConsumerWidget {
   final bool embedded;

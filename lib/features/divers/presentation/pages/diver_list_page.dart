@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../shared/widgets/master_detail/master_detail_scaffold.dart';
-import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
-import '../widgets/diver_list_content.dart';
-import '../widgets/diver_summary_widget.dart';
-import 'diver_detail_page.dart';
-import 'diver_edit_page.dart';
+import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/features/divers/presentation/widgets/diver_list_content.dart';
+import 'package:submersion/features/divers/presentation/widgets/diver_summary_widget.dart';
+import 'package:submersion/features/divers/presentation/pages/diver_detail_page.dart';
+import 'package:submersion/features/divers/presentation/pages/diver_edit_page.dart';
 
 class DiverListPage extends ConsumerWidget {
   const DiverListPage({super.key});

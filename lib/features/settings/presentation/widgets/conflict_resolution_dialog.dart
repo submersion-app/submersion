@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../../../core/services/sync/sync_service.dart';
-import '../providers/sync_providers.dart';
+import 'package:submersion/core/services/sync/sync_service.dart';
+import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 
 /// Dialog for resolving sync conflicts between local and remote data
 class ConflictResolutionDialog extends ConsumerStatefulWidget {

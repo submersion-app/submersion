@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
-import '../../../../core/constants/enums.dart';
-import '../../../../core/constants/tank_presets.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/tank_presets.dart';
 
 /// Domain entity for tank presets (both built-in and custom)
 class TankPresetEntity extends Equatable {

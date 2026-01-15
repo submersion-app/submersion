@@ -1,4 +1,4 @@
-import '../entities/device_model.dart';
+import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 
 /// Progress information during dive download.
 class DownloadProgress {

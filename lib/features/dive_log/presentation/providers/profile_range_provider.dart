@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import '../../../../core/providers/provider.dart';
+import 'package:submersion/core/providers/provider.dart';
 
 /// State for profile range selection functionality.
 ///

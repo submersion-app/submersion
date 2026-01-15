@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 
-import 'logger_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 
 /// Check if we're on a mobile platform (iOS/Android)
 bool get _isMobile => !kIsWeb && (Platform.isIOS || Platform.isAndroid);

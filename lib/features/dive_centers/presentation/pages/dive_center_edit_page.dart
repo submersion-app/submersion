@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../divers/presentation/providers/diver_providers.dart';
-import '../../domain/entities/dive_center.dart';
-import '../providers/dive_center_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
+import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 
 class DiveCenterEditPage extends ConsumerStatefulWidget {
   final String? centerId;

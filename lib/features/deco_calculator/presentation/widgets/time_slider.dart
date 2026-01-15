@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import '../providers/deco_calculator_providers.dart';
+import 'package:submersion/features/deco_calculator/presentation/providers/deco_calculator_providers.dart';
 
 /// Slider for adjusting bottom time (0-120 minutes).
 class TimeSlider extends ConsumerWidget {

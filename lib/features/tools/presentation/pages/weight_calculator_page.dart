@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../../../core/constants/enums.dart';
-import '../../../../core/constants/units.dart';
-import '../../../../core/utils/unit_formatter.dart';
-import '../../../../core/utils/weight_calculator.dart';
-import '../../../settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/core/utils/weight_calculator.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 class WeightCalculatorPage extends ConsumerStatefulWidget {
   const WeightCalculatorPage({super.key});

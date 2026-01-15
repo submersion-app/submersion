@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/services/database_migration_service.dart';
+import 'package:submersion/core/services/database_migration_service.dart';
 
 /// User's choice when an existing database is found
 enum ExistingDatabaseChoice {

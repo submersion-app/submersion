@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/providers/provider.dart';
-import '../../../../core/utils/unit_formatter.dart';
-import '../../../settings/presentation/providers/settings_providers.dart';
-import '../providers/dive_planner_providers.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 
 /// Panel for configuring dive plan settings (GF, SAC, site).
 class PlanSettingsPanel extends ConsumerWidget {

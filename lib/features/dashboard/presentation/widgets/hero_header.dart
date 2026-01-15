@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../../dive_log/data/repositories/dive_repository_impl.dart';
-import '../../../dive_log/presentation/providers/dive_providers.dart';
-import '../providers/dashboard_providers.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 
 /// Hero header widget with personalized greeting and key stats
 class HeroHeader extends ConsumerWidget {

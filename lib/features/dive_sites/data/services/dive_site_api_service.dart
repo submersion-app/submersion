@@ -3,8 +3,8 @@ import 'dart:math';
 
 import 'package:flutter/services.dart' show rootBundle;
 
-import '../../../../core/services/logger_service.dart';
-import '../../domain/entities/dive_site.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
 /// A dive site result from the bundled database.
 class ExternalDiveSite {

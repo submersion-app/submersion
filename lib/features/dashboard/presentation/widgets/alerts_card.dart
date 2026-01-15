@@ -3,8 +3,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../equipment/domain/entities/equipment_item.dart';
-import '../providers/dashboard_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 
 /// A card showing alerts and reminders (equipment service, insurance expiry)
 class AlertsCard extends ConsumerWidget {

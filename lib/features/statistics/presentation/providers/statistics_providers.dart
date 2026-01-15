@@ -1,9 +1,9 @@
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../../../core/constants/units.dart';
-import '../../../divers/presentation/providers/diver_providers.dart';
-import '../../../settings/presentation/providers/settings_providers.dart';
-import '../../data/repositories/statistics_repository.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
 
 /// Repository provider
 final statisticsRepositoryProvider = Provider<StatisticsRepository>((ref) {

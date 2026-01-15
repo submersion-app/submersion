@@ -11,23 +11,23 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
 import 'package:xml/xml.dart';
 
-import '../constants/enums.dart' hide Visibility;
-import '../constants/enums.dart' as enums;
-import '../../features/dive_log/domain/entities/dive.dart';
-import '../../features/dive_sites/domain/entities/dive_site.dart';
-import '../../features/equipment/domain/entities/equipment_item.dart';
-import '../../features/marine_life/domain/entities/species.dart';
-import '../../features/buddies/domain/entities/buddy.dart';
-import '../../features/certifications/domain/entities/certification.dart';
-import '../../features/dive_centers/domain/entities/dive_center.dart';
-import '../../features/dive_log/domain/entities/dive_computer.dart';
-import '../../features/dive_log/domain/entities/dive_weight.dart';
-import '../../features/dive_log/domain/entities/profile_event.dart';
-import '../../features/dive_types/domain/entities/dive_type_entity.dart';
-import '../../features/divers/domain/entities/diver.dart';
-import '../../features/equipment/domain/entities/equipment_set.dart';
-import '../../features/tags/domain/entities/tag.dart';
-import '../../features/trips/domain/entities/trip.dart';
+import 'package:submersion/core/constants/enums.dart' hide Visibility;
+import 'package:submersion/core/constants/enums.dart' as enums;
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/marine_life/domain/entities/species.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
 
 /// Result class for comprehensive UDDF import
 class UddfImportResult {

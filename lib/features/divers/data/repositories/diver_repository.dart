@@ -1,11 +1,12 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../../core/database/database.dart';
-import '../../../../core/services/database_service.dart';
-import '../../../../core/services/logger_service.dart';
-import '../../../settings/data/repositories/diver_settings_repository.dart';
-import '../../domain/entities/diver.dart' as domain;
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart'
+    as domain;
 
 class DiverRepository {
   AppDatabase get _db => DatabaseService.instance.database;

@@ -2,19 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../shared/widgets/master_detail/master_detail_scaffold.dart';
-import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
-import '../widgets/statistics_list_content.dart';
-import '../widgets/statistics_summary_widget.dart';
-import 'statistics_conditions_page.dart';
-import 'statistics_equipment_page.dart';
-import 'statistics_gas_page.dart';
-import 'statistics_geographic_page.dart';
-import 'statistics_marine_life_page.dart';
-import 'statistics_profile_page.dart';
-import 'statistics_progression_page.dart';
-import 'statistics_social_page.dart';
-import 'statistics_time_patterns_page.dart';
+import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/features/statistics/presentation/widgets/statistics_list_content.dart';
+import 'package:submersion/features/statistics/presentation/widgets/statistics_summary_widget.dart';
+import 'package:submersion/features/statistics/presentation/pages/statistics_conditions_page.dart';
+import 'package:submersion/features/statistics/presentation/pages/statistics_equipment_page.dart';
+import 'package:submersion/features/statistics/presentation/pages/statistics_gas_page.dart';
+import 'package:submersion/features/statistics/presentation/pages/statistics_geographic_page.dart';
+import 'package:submersion/features/statistics/presentation/pages/statistics_marine_life_page.dart';
+import 'package:submersion/features/statistics/presentation/pages/statistics_profile_page.dart';
+import 'package:submersion/features/statistics/presentation/pages/statistics_progression_page.dart';
+import 'package:submersion/features/statistics/presentation/pages/statistics_social_page.dart';
+import 'package:submersion/features/statistics/presentation/pages/statistics_time_patterns_page.dart';
 
 /// Main statistics page with master-detail layout on desktop.
 ///

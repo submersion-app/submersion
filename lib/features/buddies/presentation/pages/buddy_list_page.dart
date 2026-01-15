@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../shared/widgets/master_detail/master_detail_scaffold.dart';
-import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
-import '../widgets/buddy_list_content.dart';
-import '../widgets/buddy_summary_widget.dart';
-import 'buddy_detail_page.dart';
-import 'buddy_edit_page.dart';
+import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/features/buddies/presentation/widgets/buddy_list_content.dart';
+import 'package:submersion/features/buddies/presentation/widgets/buddy_summary_widget.dart';
+import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
+import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
 
 class BuddyListPage extends ConsumerWidget {
   const BuddyListPage({super.key});

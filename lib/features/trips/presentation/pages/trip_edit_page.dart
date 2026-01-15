@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../divers/presentation/providers/diver_providers.dart';
-import '../../domain/entities/trip.dart';
-import '../providers/trip_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 
 class TripEditPage extends ConsumerStatefulWidget {
   final String? tripId;

@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../shared/widgets/master_detail/master_detail_scaffold.dart';
-import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
-import '../widgets/trip_list_content.dart';
-import '../widgets/trip_summary_widget.dart';
-import 'trip_detail_page.dart';
-import 'trip_edit_page.dart';
+import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_list_content.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_summary_widget.dart';
+import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
+import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 
 class TripListPage extends ConsumerWidget {
   const TripListPage({super.key});

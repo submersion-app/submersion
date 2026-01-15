@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import '../constants/enums.dart';
+import 'package:submersion/core/constants/enums.dart';
 
 /// Represents an ascent rate data point on the dive profile.
 class AscentRatePoint {

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../domain/entities/tag.dart';
-import '../providers/tag_providers.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 
 /// Widget for selecting and creating tags
 class TagInputWidget extends ConsumerStatefulWidget {

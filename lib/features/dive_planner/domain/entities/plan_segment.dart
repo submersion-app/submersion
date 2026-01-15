@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import '../../../dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// Types of segments in a dive plan.
 ///

@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'entities/o2_exposure.dart';
+import 'package:submersion/core/deco/entities/o2_exposure.dart';
 
 /// Calculator for oxygen toxicity (CNS and OTU).
 ///

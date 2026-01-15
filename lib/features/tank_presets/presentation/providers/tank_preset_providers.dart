@@ -1,8 +1,8 @@
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../../divers/presentation/providers/diver_providers.dart';
-import '../../data/repositories/tank_preset_repository.dart';
-import '../../domain/entities/tank_preset_entity.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/tank_presets/data/repositories/tank_preset_repository.dart';
+import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 
 /// Repository provider
 final tankPresetRepositoryProvider = Provider<TankPresetRepository>((ref) {

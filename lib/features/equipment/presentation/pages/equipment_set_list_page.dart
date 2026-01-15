@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../domain/entities/equipment_set.dart';
-import '../providers/equipment_set_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 
 class EquipmentSetListPage extends ConsumerWidget {
   const EquipmentSetListPage({super.key});

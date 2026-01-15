@@ -1,19 +1,23 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../../core/constants/enums.dart';
-import '../../../../core/database/database.dart';
-import '../../../../core/services/database_service.dart';
-import '../../../../core/services/logger_service.dart';
-import '../../domain/entities/dive.dart' as domain;
-import '../../domain/entities/dive_weight.dart' as domain;
-import '../../domain/entities/gas_switch.dart';
-import '../../../dive_centers/domain/entities/dive_center.dart' as domain;
-import '../../../dive_sites/domain/entities/dive_site.dart' as domain;
-import '../../../equipment/domain/entities/equipment_item.dart';
-import '../../../tags/domain/entities/tag.dart' as domain;
-import '../../../tags/data/repositories/tag_repository.dart';
-import '../../../trips/domain/entities/trip.dart' as domain;
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    as domain;
+import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart'
+    as domain;
+import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart'
+    as domain;
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
+    as domain;
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart' as domain;
+import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart' as domain;
 
 class DiveRepository {
   AppDatabase get _db => DatabaseService.instance.database;

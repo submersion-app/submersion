@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../../divers/presentation/providers/diver_providers.dart';
-import '../providers/settings_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Summary widget displayed when no settings section is selected.
 /// Shows a quick overview of current settings.

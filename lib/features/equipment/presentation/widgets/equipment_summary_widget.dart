@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 
 /// Summary widget shown when no equipment is selected.
 class EquipmentSummaryWidget extends ConsumerWidget {

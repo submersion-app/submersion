@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 
-import 'constants/buhlmann_coefficients.dart';
-import 'entities/deco_status.dart';
-import 'entities/tissue_compartment.dart';
+import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/deco/entities/deco_status.dart';
+import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 
 /// Bühlmann ZH-L16C decompression algorithm implementation.
 ///

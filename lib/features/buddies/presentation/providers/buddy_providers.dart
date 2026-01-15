@@ -1,11 +1,12 @@
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../../../core/constants/enums.dart';
-import '../../../dive_log/domain/entities/dive.dart' as domain;
-import '../../../dive_log/presentation/providers/dive_providers.dart';
-import '../../../divers/presentation/providers/diver_providers.dart';
-import '../../data/repositories/buddy_repository.dart';
-import '../../domain/entities/buddy.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    as domain;
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 
 /// Repository provider
 final buddyRepositoryProvider = Provider<BuddyRepository>((ref) {

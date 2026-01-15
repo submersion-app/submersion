@@ -4,10 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
-import '../../data/repositories/buddy_repository.dart';
-import '../../domain/entities/buddy.dart';
-import '../providers/buddy_providers.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 
 class BuddyDetailPage extends ConsumerStatefulWidget {
   final String buddyId;

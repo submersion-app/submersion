@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import '../../domain/services/connection_manager.dart';
+import 'package:submersion/features/dive_computer/domain/services/connection_manager.dart';
 
 /// Service for handling Bluetooth and location permissions.
 ///

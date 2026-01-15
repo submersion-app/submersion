@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/constants/enums.dart';
-import '../../domain/entities/dive.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// Panel for configuring SCR (Semi-Closed Rebreather) dive settings.
 ///

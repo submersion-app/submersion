@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../providers/diver_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
 /// Summary widget shown in the detail pane when no diver is selected.
 ///

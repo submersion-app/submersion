@@ -1,11 +1,12 @@
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../data/repositories/dive_repository_impl.dart';
-import '../../data/repositories/tank_pressure_repository.dart';
-import '../../domain/entities/dive.dart' as domain;
-import '../../../dive_centers/presentation/providers/dive_center_providers.dart';
-import '../../../divers/presentation/providers/diver_providers.dart';
-import '../../../trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    as domain;
+import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 
 /// Filter state for dive list
 class DiveFilterState {

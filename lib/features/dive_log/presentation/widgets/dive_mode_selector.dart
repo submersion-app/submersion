@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/constants/enums.dart';
+import 'package:submersion/core/constants/enums.dart';
 
 /// A segmented button for selecting the dive mode (OC, CCR, SCR).
 ///

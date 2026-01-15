@@ -6,13 +6,13 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../../../../core/services/location_service.dart';
-import '../../../../core/utils/unit_formatter.dart';
-import '../../../divers/presentation/providers/diver_providers.dart';
-import '../../../settings/presentation/providers/settings_providers.dart';
-import '../../domain/entities/dive_site.dart';
-import '../providers/site_providers.dart';
-import '../widgets/location_picker_map.dart';
+import 'package:submersion/core/services/location_service.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/location_picker_map.dart';
 
 class SiteEditPage extends ConsumerStatefulWidget {
   final String? siteId;

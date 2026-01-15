@@ -1,8 +1,8 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../data/repositories/sync_repository.dart';
-import '../cloud_storage/cloud_storage_provider.dart';
-import '../logger_service.dart';
+import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 
 /// Handles sync initialization and checks on app launch
 class SyncInitializer {

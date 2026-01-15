@@ -2,11 +2,11 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../../../core/utils/unit_formatter.dart';
-import '../../../dive_log/data/repositories/dive_repository_impl.dart';
-import '../../../dive_log/presentation/providers/dive_providers.dart';
-import '../../../settings/presentation/providers/settings_providers.dart';
-import '../../../tags/presentation/providers/tag_providers.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 
 /// Summary widget displayed when no statistics category is selected.
 /// Shows overview cards and charts.

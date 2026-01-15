@@ -1,7 +1,7 @@
 import 'package:intl/intl.dart';
 
-import '../constants/units.dart';
-import '../../features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Utility class for formatting values with the correct units based on settings
 class UnitFormatter {

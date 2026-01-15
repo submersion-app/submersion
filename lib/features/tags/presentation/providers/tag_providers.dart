@@ -1,8 +1,8 @@
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../../divers/presentation/providers/diver_providers.dart';
-import '../../data/repositories/tag_repository.dart';
-import '../../domain/entities/tag.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
 
 /// Repository provider
 final tagRepositoryProvider = Provider<TagRepository>((ref) {

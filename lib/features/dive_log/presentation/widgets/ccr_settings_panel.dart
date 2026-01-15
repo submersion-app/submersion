@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// Panel for configuring CCR (Closed Circuit Rebreather) dive settings.
 ///

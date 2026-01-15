@@ -3,8 +3,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../domain/entities/diver.dart';
-import '../providers/diver_providers.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
 class DiverEditPage extends ConsumerStatefulWidget {
   final String? diverId;

@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
-import '../../../../core/services/logger_service.dart';
-import '../../domain/services/download_manager.dart';
-import 'libdc_parser_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/dive_computer/domain/services/download_manager.dart';
+import 'package:submersion/features/dive_computer/data/services/libdc_parser_service.dart';
 
 /// Shearwater BLE service UUID (full 128-bit custom UUID)
 const shearwaterServiceUuid = 'fe25c237-0ece-443c-b0aa-e02033e7029d';

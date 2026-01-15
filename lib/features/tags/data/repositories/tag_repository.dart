@@ -1,10 +1,10 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../../core/database/database.dart';
-import '../../../../core/services/database_service.dart';
-import '../../../../core/services/logger_service.dart';
-import '../../domain/entities/tag.dart' as domain;
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart' as domain;
 
 class TagRepository {
   AppDatabase get _db => DatabaseService.instance.database;

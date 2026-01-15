@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/deco/entities/deco_status.dart';
-import 'tissue_saturation_chart.dart';
+import 'package:submersion/core/deco/entities/deco_status.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tissue_saturation_chart.dart';
 
 /// Panel showing tissue saturation with header and context information.
 ///

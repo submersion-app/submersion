@@ -1,12 +1,12 @@
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../data/services/gas_analysis_service.dart';
-import '../../data/services/profile_analysis_service.dart';
-import '../../domain/entities/cylinder_sac.dart';
-import '../../domain/entities/dive.dart';
-import 'dive_providers.dart';
-import 'gas_switch_providers.dart';
-import 'profile_analysis_provider.dart';
+import 'package:submersion/features/dive_log/data/services/gas_analysis_service.dart';
+import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
+import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 
 /// Provider for the GasAnalysisService singleton
 final gasAnalysisServiceProvider = Provider<GasAnalysisService>((ref) {

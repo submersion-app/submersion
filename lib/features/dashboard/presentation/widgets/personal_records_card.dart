@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/utils/unit_formatter.dart';
-import '../../../settings/presentation/providers/settings_providers.dart';
-import '../providers/dashboard_providers.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 
 /// Card showing personal dive records in a horizontal scrollable format
 class PersonalRecordsCard extends ConsumerWidget {

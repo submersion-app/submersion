@@ -5,9 +5,9 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../../data/repositories/site_repository_impl.dart';
-import '../../domain/entities/dive_site.dart';
-import '../providers/site_providers.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 
 class SiteMapPage extends ConsumerStatefulWidget {
   const SiteMapPage({super.key});

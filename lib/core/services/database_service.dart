@@ -5,8 +5,8 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
-import '../database/database.dart';
-import 'database_location_service.dart';
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_location_service.dart';
 
 class DatabaseService {
   DatabaseService._();

@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../../../core/utils/unit_formatter.dart';
-import '../../../dive_log/data/repositories/dive_repository_impl.dart';
-import '../../../dive_log/presentation/providers/dive_providers.dart';
-import '../../../settings/presentation/providers/settings_providers.dart';
-import '../providers/dashboard_providers.dart';
-import '../widgets/activity_status_row.dart';
-import '../widgets/alerts_card.dart';
-import '../widgets/hero_header.dart';
-import '../widgets/personal_records_card.dart';
-import '../widgets/quick_actions_card.dart';
-import '../widgets/recent_dives_card.dart';
-import '../widgets/stat_summary_card.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/activity_status_row.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/alerts_card.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/hero_header.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/personal_records_card.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/quick_actions_card.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/recent_dives_card.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/stat_summary_card.dart';
 
 /// Dashboard home page showing dive statistics and alerts
 class DashboardPage extends ConsumerWidget {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../providers/surface_interval_providers.dart';
+import 'package:submersion/features/surface_interval_tool/presentation/providers/surface_interval_providers.dart';
 
 /// Display card showing the calculated minimum surface interval result.
 /// Shows the minimum time needed between dives and current safety status.

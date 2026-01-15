@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../../../features/dive_log/domain/entities/dive_computer.dart';
-import '../providers/download_providers.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 
 /// Widget for the summary step of the discovery wizard.
 class SummaryStepWidget extends ConsumerWidget {

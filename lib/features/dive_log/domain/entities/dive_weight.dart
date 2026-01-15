@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import '../../../../core/constants/enums.dart';
+import 'package:submersion/core/constants/enums.dart';
 
 /// Weight entry for a dive (supports multiple weight types per dive)
 class DiveWeight extends Equatable {

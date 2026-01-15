@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../domain/entities/device_model.dart';
-import '../../domain/services/download_manager.dart';
-import '../providers/download_providers.dart';
+import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
+import 'package:submersion/features/dive_computer/domain/services/download_manager.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 
 /// Widget for the download step of the discovery wizard.
 class DownloadStepWidget extends ConsumerStatefulWidget {

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../data/repositories/site_repository_impl.dart';
-import '../providers/site_providers.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 
 /// Summary widget shown when no site is selected.
 class SiteSummaryWidget extends ConsumerWidget {

@@ -3,16 +3,17 @@ import 'dart:math' as math;
 import 'package:equatable/equatable.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../../core/constants/enums.dart';
-import '../../../../core/deco/ascent_rate_calculator.dart';
-import '../../../../core/deco/buhlmann_algorithm.dart';
-import '../../../../core/deco/constants/buhlmann_coefficients.dart';
-import '../../../../core/deco/entities/deco_status.dart';
-import '../../../../core/deco/entities/o2_exposure.dart';
-import '../../../../core/deco/o2_toxicity_calculator.dart';
-import '../../../../core/deco/scr_calculator.dart';
-import '../../domain/entities/dive.dart' show GasMix;
-import '../../domain/entities/profile_event.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/deco/ascent_rate_calculator.dart';
+import 'package:submersion/core/deco/buhlmann_algorithm.dart';
+import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/deco/entities/deco_status.dart';
+import 'package:submersion/core/deco/entities/o2_exposure.dart';
+import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
+import 'package:submersion/core/deco/scr_calculator.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    show GasMix;
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 
 /// Represents SAC calculated over a segment of the dive.
 class SacSegment extends Equatable {

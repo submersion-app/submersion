@@ -1,9 +1,9 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../../core/database/database.dart';
-import '../../../../core/services/database_service.dart';
-import '../../domain/entities/dive.dart';
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// Repository for managing per-tank time-series pressure data
 ///

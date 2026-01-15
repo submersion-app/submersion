@@ -1,12 +1,12 @@
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../../dive_log/domain/entities/dive.dart';
-import '../../../dive_log/presentation/providers/dive_providers.dart';
-import '../../../divers/domain/entities/diver.dart';
-import '../../../divers/presentation/providers/diver_providers.dart';
-import '../../../equipment/domain/entities/equipment_item.dart';
-import '../../../equipment/presentation/providers/equipment_providers.dart';
-import '../../../statistics/presentation/providers/statistics_providers.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 
 /// Dashboard alerts data class
 class DashboardAlerts {

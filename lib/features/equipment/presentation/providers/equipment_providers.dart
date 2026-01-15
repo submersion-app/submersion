@@ -1,11 +1,11 @@
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../../../core/constants/enums.dart';
-import '../../../divers/presentation/providers/diver_providers.dart';
-import '../../data/repositories/equipment_repository_impl.dart';
-import '../../data/repositories/service_record_repository.dart';
-import '../../domain/entities/equipment_item.dart';
-import '../../domain/entities/service_record.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 
 /// Repository provider
 final equipmentRepositoryProvider = Provider<EquipmentRepository>((ref) {

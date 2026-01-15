@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import '../../../../core/constants/enums.dart';
+import 'package:submersion/core/constants/enums.dart';
 
 /// Dive buddy entity
 class Buddy extends Equatable {

@@ -1,11 +1,11 @@
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../data/device_library.dart';
-import '../../data/services/bluetooth_connection_manager.dart';
-import '../../data/services/permissions_service.dart';
-import '../../data/services/usb_device_scanner.dart';
-import '../../domain/entities/device_model.dart';
-import '../../domain/services/connection_manager.dart';
+import 'package:submersion/features/dive_computer/data/device_library.dart';
+import 'package:submersion/features/dive_computer/data/services/bluetooth_connection_manager.dart';
+import 'package:submersion/features/dive_computer/data/services/permissions_service.dart';
+import 'package:submersion/features/dive_computer/data/services/usb_device_scanner.dart';
+import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
+import 'package:submersion/features/dive_computer/domain/services/connection_manager.dart';
 
 /// Provider for the device library singleton.
 final deviceLibraryProvider = Provider<DeviceLibrary>((ref) {

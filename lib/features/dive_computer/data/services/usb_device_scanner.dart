@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:dive_computer/dive_computer.dart' as dc;
 
-import '../../../../core/services/logger_service.dart';
-import '../../domain/entities/device_model.dart';
-import '../device_library.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
+import 'package:submersion/features/dive_computer/data/device_library.dart';
 
 const _log = LoggerService('UsbDeviceScanner');
 

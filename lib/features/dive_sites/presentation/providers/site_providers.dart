@@ -1,9 +1,10 @@
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../../divers/presentation/providers/diver_providers.dart';
-import '../../data/repositories/site_repository_impl.dart';
-import '../../data/services/dive_site_api_service.dart';
-import '../../domain/entities/dive_site.dart' as domain;
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/dive_sites/data/services/dive_site_api_service.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
+    as domain;
 
 /// Repository provider
 final siteRepositoryProvider = Provider<SiteRepository>((ref) {

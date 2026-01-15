@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/constants/enums.dart';
-import '../../../divers/presentation/providers/diver_providers.dart';
-import '../../domain/entities/buddy.dart';
-import '../providers/buddy_providers.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 
 class BuddyEditPage extends ConsumerStatefulWidget {
   final String? buddyId;

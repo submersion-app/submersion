@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../providers/trip_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 
 /// Summary widget shown when no trip is selected.
 class TripSummaryWidget extends ConsumerWidget {

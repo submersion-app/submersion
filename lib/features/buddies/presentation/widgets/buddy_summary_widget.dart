@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../providers/buddy_providers.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 
 /// Summary widget shown in the detail pane when no buddy is selected.
 ///

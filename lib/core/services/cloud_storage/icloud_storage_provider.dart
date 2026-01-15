@@ -4,8 +4,8 @@ import 'dart:typed_data';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
-import '../logger_service.dart';
-import 'cloud_storage_provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 
 /// iCloud implementation of CloudStorageProvider
 ///

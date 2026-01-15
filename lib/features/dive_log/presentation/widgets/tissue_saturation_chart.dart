@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/deco/entities/tissue_compartment.dart';
+import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 
 /// A 16-bar chart showing tissue compartment saturation levels.
 ///

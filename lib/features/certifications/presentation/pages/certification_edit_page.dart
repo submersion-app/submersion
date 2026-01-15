@@ -3,10 +3,10 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/constants/enums.dart';
-import '../../../divers/presentation/providers/diver_providers.dart';
-import '../../domain/entities/certification.dart';
-import '../providers/certification_providers.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 
 class CertificationEditPage extends ConsumerStatefulWidget {
   final String? certificationId;

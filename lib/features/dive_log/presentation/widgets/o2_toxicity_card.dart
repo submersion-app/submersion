@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/deco/entities/o2_exposure.dart';
+import 'package:submersion/core/deco/entities/o2_exposure.dart';
 
 /// Card displaying oxygen toxicity information (CNS% and OTU).
 class O2ToxicityCard extends StatelessWidget {

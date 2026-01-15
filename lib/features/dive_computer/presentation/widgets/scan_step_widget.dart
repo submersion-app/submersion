@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import '../../domain/entities/device_model.dart';
-import '../providers/discovery_providers.dart';
+import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
 
 /// Widget for the scan/select step of the discovery wizard.
 ///

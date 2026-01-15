@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import 'tissue_compartment.dart';
+import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 
 /// Represents the current decompression status at a point in time.
 class DecoStatus extends Equatable {
