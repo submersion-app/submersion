@@ -4,7 +4,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/constants/enums.dart';
@@ -1625,23 +1624,43 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final timestamp = dateFormat.format(DateTime.now());
       final fileName = 'submersion_backup_$timestamp.db';
 
+      // Create temporary backup first
       final directory = await getApplicationDocumentsDirectory();
-      final backupPath = '${directory.path}/$fileName';
+      final tempBackupPath = '${directory.path}/$fileName';
+      await DatabaseService.instance.backup(tempBackupPath);
 
-      await DatabaseService.instance.backup(backupPath);
-
-      // Share the backup file
-      await SharePlus.instance.share(
-        ShareParams(
-          files: [XFile(backupPath, mimeType: 'application/octet-stream')],
-          subject: 'Submersion Backup',
-        ),
+      // Let user choose where to save the file
+      final savePath = await FilePicker.platform.saveFile(
+        dialogTitle: 'Save Backup',
+        fileName: fileName,
+        type: FileType.any,
+        bytes: await File(tempBackupPath).readAsBytes(),
       );
+
+      if (savePath == null) {
+        // User cancelled - clean up temp file
+        await File(tempBackupPath).delete();
+        state = state.copyWith(
+          status: ExportStatus.idle,
+          message: 'Backup cancelled',
+        );
+        return;
+      }
+
+      // On non-Android platforms, FilePicker doesn't write the bytes automatically
+      if (!Platform.isAndroid) {
+        await File(
+          savePath,
+        ).writeAsBytes(await File(tempBackupPath).readAsBytes());
+      }
+
+      // Clean up temporary file
+      await File(tempBackupPath).delete();
 
       state = state.copyWith(
         status: ExportStatus.success,
-        message: 'Backup created successfully',
-        filePath: backupPath,
+        message: 'Backup saved successfully',
+        filePath: savePath,
       );
     } catch (e) {
       state = state.copyWith(

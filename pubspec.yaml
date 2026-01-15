@@ -79,6 +79,7 @@ dependencies:
   collection: ^1.18.0
   equatable: ^2.0.7
   crypto: ^3.0.3
+  gal: ^2.3.2
 
 dev_dependencies:
   flutter_test:

@@ -85,7 +85,11 @@ class TissueRecoveryChart extends ConsumerWidget {
             // Surface interval slider
             Row(
               children: [
-                Icon(Icons.timer, size: 16, color: colorScheme.onSurfaceVariant),
+                Icon(
+                  Icons.timer,
+                  size: 16,
+                  color: colorScheme.onSurfaceVariant,
+                ),
                 const SizedBox(width: 8),
                 Text('Surface Interval', style: theme.textTheme.bodyMedium),
                 const Spacer(),
@@ -114,8 +118,8 @@ class TissueRecoveryChart extends ConsumerWidget {
               max: 240,
               divisions: 48,
               onChanged: (value) {
-                ref.read(siSurfaceIntervalProvider.notifier).state =
-                    value.round();
+                ref.read(siSurfaceIntervalProvider.notifier).state = value
+                    .round();
               },
             ),
             Padding(
@@ -272,26 +276,32 @@ class TissueRecoveryChart extends ConsumerWidget {
 
                         // Only show a few key compartments to avoid clutter
                         return touchedSpots
-                            .where((spot) =>
-                                spot.barIndex == leadingCompartment ||
-                                spot.barIndex == 0 ||
-                                spot.barIndex == 15)
+                            .where(
+                              (spot) =>
+                                  spot.barIndex == leadingCompartment ||
+                                  spot.barIndex == 0 ||
+                                  spot.barIndex == 15,
+                            )
                             .map((spot) {
-                          final compartmentNum = spot.barIndex + 1;
-                          final category = getCompartmentCategory(spot.barIndex);
-                          return LineTooltipItem(
-                            'C$compartmentNum ($category): ${spot.y.toStringAsFixed(1)}%',
-                            TextStyle(
-                              color: Color(
-                                compartmentColorValues[spot.barIndex],
-                              ),
-                              fontWeight: spot.barIndex == leadingCompartment
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                              fontSize: 12,
-                            ),
-                          );
-                        }).toList();
+                              final compartmentNum = spot.barIndex + 1;
+                              final category = getCompartmentCategory(
+                                spot.barIndex,
+                              );
+                              return LineTooltipItem(
+                                'C$compartmentNum ($category): ${spot.y.toStringAsFixed(1)}%',
+                                TextStyle(
+                                  color: Color(
+                                    compartmentColorValues[spot.barIndex],
+                                  ),
+                                  fontWeight:
+                                      spot.barIndex == leadingCompartment
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                  fontSize: 12,
+                                ),
+                              );
+                            })
+                            .toList();
                       },
                     ),
                   ),

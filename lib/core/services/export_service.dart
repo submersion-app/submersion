@@ -1,6 +1,9 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:csv/csv.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:gal/gal.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
@@ -4996,5 +4999,79 @@ class ExportService {
   Future<String> getExportFilePath(String fileName) async {
     final directory = await getApplicationDocumentsDirectory();
     return '${directory.path}/$fileName';
+  }
+
+  /// Export PNG image bytes (e.g., chart screenshot)
+  ///
+  /// Use this with RenderRepaintBoundary.toImage() to export widgets as images.
+  /// Example:
+  /// ```dart
+  /// final boundary = key.currentContext?.findRenderObject() as RenderRepaintBoundary;
+  /// final image = await boundary.toImage(pixelRatio: 2.0);
+  /// final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+  /// final bytes = byteData!.buffer.asUint8List();
+  /// await exportService.exportImageAsPng(bytes, 'dive_profile.png');
+  /// ```
+  Future<String> exportImageAsPng(List<int> pngBytes, String fileName) async {
+    return _saveAndShareFileBytes(pngBytes, fileName, 'image/png');
+  }
+
+  /// Save an image directly to the device's photo library.
+  ///
+  /// Returns the file path where the image was saved.
+  /// Throws an exception if saving fails.
+  ///
+  /// Example:
+  /// ```dart
+  /// final boundary = key.currentContext?.findRenderObject() as RenderRepaintBoundary;
+  /// final image = await boundary.toImage(pixelRatio: 2.0);
+  /// final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+  /// final bytes = byteData!.buffer.asUint8List();
+  /// await exportService.saveImageToPhotos(bytes, 'dive_profile.png');
+  /// ```
+  Future<String> saveImageToPhotos(List<int> pngBytes, String fileName) async {
+    // First save to a temporary file
+    final directory = await getApplicationDocumentsDirectory();
+    final filePath = '${directory.path}/$fileName';
+    final file = File(filePath);
+    await file.writeAsBytes(Uint8List.fromList(pngBytes));
+
+    // Save to photo gallery
+    await Gal.putImage(filePath, album: 'Submersion');
+
+    // Clean up temp file
+    await file.delete();
+
+    return filePath;
+  }
+
+  /// Save an image to a user-selected file location.
+  ///
+  /// Opens a file picker dialog allowing the user to choose where to save.
+  /// Returns the saved file path, or null if the user cancelled.
+  ///
+  /// Example:
+  /// ```dart
+  /// final path = await exportService.saveImageToFile(bytes, 'dive_profile.png');
+  /// if (path != null) print('Saved to: $path');
+  /// ```
+  Future<String?> saveImageToFile(List<int> pngBytes, String fileName) async {
+    final result = await FilePicker.platform.saveFile(
+      dialogTitle: 'Save Profile Image',
+      fileName: fileName,
+      type: FileType.image,
+      bytes: Uint8List.fromList(pngBytes),
+    );
+
+    if (result == null) return null;
+
+    // On some platforms, saveFile returns a path but doesn't write the file
+    // So we need to write it ourselves
+    if (!Platform.isAndroid) {
+      final file = File(result);
+      await file.writeAsBytes(Uint8List.fromList(pngBytes));
+    }
+
+    return result;
   }
 }

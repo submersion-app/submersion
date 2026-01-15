@@ -79,7 +79,8 @@ class NextDiveInput extends ConsumerWidget {
                   ref.read(siSecondDiveDepthProvider.notifier).state = value;
                 },
               ),
-              minLabel: '${units.convertDepth(6).toStringAsFixed(0)} $depthSymbol',
+              minLabel:
+                  '${units.convertDepth(6).toStringAsFixed(0)} $depthSymbol',
               maxLabel: '${maxDisplayDepth.toStringAsFixed(0)} $depthSymbol',
             ),
             const SizedBox(height: 16),
@@ -96,8 +97,8 @@ class NextDiveInput extends ConsumerWidget {
                 max: 120,
                 divisions: 23,
                 onChanged: (value) {
-                  ref.read(siSecondDiveTimeProvider.notifier).state =
-                      value.round();
+                  ref.read(siSecondDiveTimeProvider.notifier).state = value
+                      .round();
                 },
               ),
               minLabel: '5 min',

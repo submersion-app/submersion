@@ -1,4 +1,7 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -8,6 +11,7 @@ import 'package:latlong2/latlong.dart';
 import '../../../../core/constants/enums.dart';
 import '../../../../core/constants/tank_presets.dart';
 import '../../../../core/constants/units.dart';
+import '../../../../core/services/export_service.dart';
 import '../../../../core/utils/unit_formatter.dart';
 import '../../../buddies/domain/entities/buddy.dart';
 import '../../../buddies/presentation/providers/buddy_providers.dart';
@@ -24,10 +28,17 @@ import '../providers/dive_providers.dart';
 import '../providers/gas_switch_providers.dart';
 import '../providers/profile_analysis_provider.dart';
 import '../../../../shared/widgets/master_detail/responsive_breakpoints.dart';
+import '../providers/profile_playback_provider.dart';
+import '../providers/profile_range_provider.dart';
 import '../widgets/collapsible_section.dart';
 import '../widgets/deco_info_panel.dart';
 import '../widgets/dive_profile_chart.dart';
 import '../widgets/o2_toxicity_card.dart';
+import '../widgets/playback_controls.dart';
+import '../widgets/playback_stats_panel.dart';
+import '../widgets/range_selection_overlay.dart';
+import '../widgets/range_stats_panel.dart';
+import '../widgets/tissue_saturation_panel.dart';
 
 /// Calculate normalization factor to align profile-based SAC with tank-based SAC.
 /// The segments are calculated from profile pressure data, but dive.sacPressure
@@ -84,6 +95,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
   /// Track if we've already initiated a redirect to prevent multiple calls
   bool _hasRedirected = false;
+
+  /// Key for capturing the profile chart as an image for PNG export
+  final GlobalKey _profileChartExportKey = GlobalKey();
+
+  /// Whether an export is currently in progress
+  bool _isExportingProfile = false;
 
   String get diveId => widget.diveId;
 
@@ -681,6 +698,33 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     final tankPressuresAsync = ref.watch(tankPressuresProvider(dive.id));
     final tankPressures = tankPressuresAsync.valueOrNull;
 
+    // Get playback state
+    final playbackState = ref.watch(playbackProvider(dive.id));
+
+    // Get range selection state
+    final rangeState = ref.watch(rangeSelectionProvider(dive.id));
+
+    // Initialize providers with dive duration if needed
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (dive.profile.isNotEmpty) {
+        final maxTimestamp = dive.profile.last.timestamp;
+        final currentPlaybackMax = ref
+            .read(playbackProvider(dive.id))
+            .maxTimestamp;
+        if (currentPlaybackMax == 0) {
+          ref.read(playbackProvider(dive.id).notifier).initialize(maxTimestamp);
+        }
+        final currentRangeMax = ref
+            .read(rangeSelectionProvider(dive.id))
+            .maxTimestamp;
+        if (currentRangeMax == 0) {
+          ref
+              .read(rangeSelectionProvider(dive.id).notifier)
+              .initialize(maxTimestamp);
+        }
+      }
+    });
+
     // Calculate profile markers (with tank pressure data for accurate thresholds)
     final markers = _calculateProfileMarkers(
       dive: dive,
@@ -690,12 +734,17 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       tankPressures: tankPressures,
     );
 
+    // Get unit formatter
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Header row
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -713,6 +762,20 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     ),
                     const SizedBox(width: 8),
                     IconButton(
+                      icon: _isExportingProfile
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.share),
+                      tooltip: 'Export profile as image',
+                      visualDensity: VisualDensity.compact,
+                      onPressed: _isExportingProfile
+                          ? null
+                          : () => _exportProfileChart(dive),
+                    ),
+                    IconButton(
                       icon: const Icon(Icons.fullscreen),
                       tooltip: 'View fullscreen',
                       visualDensity: VisualDensity.compact,
@@ -724,43 +787,156 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               ],
             ),
             const SizedBox(height: 16),
-            DiveProfileChart(
-              profile: dive.profile,
-              diveDuration: dive.calculatedDuration,
-              maxDepth: dive.maxDepth,
-              ceilingCurve: analysis?.ceilingCurve,
-              ascentRates: analysis?.ascentRates,
-              events: analysis?.events,
-              ndlCurve: analysis?.ndlCurve,
-              sacCurve: analysis?.smoothedSacCurve,
-              tankVolume: dive.tanks
-                  .where((t) => t.volume != null && t.volume! > 0)
-                  .map((t) => t.volume!)
-                  .firstOrNull,
-              sacNormalizationFactor: calculateSacNormalizationFactor(
-                dive,
-                analysis,
-              ),
-              markers: markers,
-              showMaxDepthMarker: showMaxDepthMarker,
-              showPressureThresholdMarkers: showPressureThresholdMarkers,
-              tanks: dive.tanks,
-              tankPressures: tankPressures,
-              gasSwitches: gasSwitchesAsync.valueOrNull,
-              onPointSelected: (point) {
-                if (point == null) {
-                  setState(() => _selectedPointIndex = null);
-                  return;
-                }
-                // Find the index of this point in the profile
-                final index = dive.profile.indexWhere(
-                  (p) => p.timestamp == point.timestamp,
+            // Chart with optional range selection overlay
+            LayoutBuilder(
+              builder: (context, constraints) {
+                return Stack(
+                  children: [
+                    DiveProfileChart(
+                      exportKey: _profileChartExportKey,
+                      profile: dive.profile,
+                      diveDuration: dive.calculatedDuration,
+                      maxDepth: dive.maxDepth,
+                      ceilingCurve: analysis?.ceilingCurve,
+                      ascentRates: analysis?.ascentRates,
+                      events: analysis?.events,
+                      ndlCurve: analysis?.ndlCurve,
+                      sacCurve: analysis?.smoothedSacCurve,
+                      tankVolume: dive.tanks
+                          .where((t) => t.volume != null && t.volume! > 0)
+                          .map((t) => t.volume!)
+                          .firstOrNull,
+                      sacNormalizationFactor: calculateSacNormalizationFactor(
+                        dive,
+                        analysis,
+                      ),
+                      markers: markers,
+                      showMaxDepthMarker: showMaxDepthMarker,
+                      showPressureThresholdMarkers:
+                          showPressureThresholdMarkers,
+                      tanks: dive.tanks,
+                      tankPressures: tankPressures,
+                      gasSwitches: gasSwitchesAsync.valueOrNull,
+                      playbackTimestamp: playbackState.isActive
+                          ? playbackState.currentTimestamp
+                          : null,
+                      onPointSelected: (point) {
+                        if (point == null) {
+                          setState(() => _selectedPointIndex = null);
+                          return;
+                        }
+                        // Find the index of this point in the profile
+                        final index = dive.profile.indexWhere(
+                          (p) => p.timestamp == point.timestamp,
+                        );
+                        setState(() {
+                          _selectedPointIndex = index >= 0 ? index : null;
+                        });
+                      },
+                    ),
+                    // Range selection overlay (positioned on top of chart)
+                    if (rangeState.isEnabled)
+                      Positioned.fill(
+                        child: RangeSelectionOverlay(
+                          diveId: dive.id,
+                          chartWidth: constraints.maxWidth,
+                          leftPadding: 45, // Match chart's left axis width
+                          rightPadding: 16,
+                        ),
+                      ),
+                  ],
                 );
-                setState(() {
-                  _selectedPointIndex = index >= 0 ? index : null;
-                });
               },
             ),
+            // Mode toggle buttons (only show when neither mode is active)
+            if (!playbackState.isActive && !rangeState.isEnabled) ...[
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      ref
+                          .read(playbackProvider(dive.id).notifier)
+                          .togglePlaybackMode();
+                    },
+                    icon: const Icon(Icons.play_circle_outline, size: 18),
+                    label: const Text('Playback'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      ref
+                          .read(rangeSelectionProvider(dive.id).notifier)
+                          .enableRangeMode();
+                    },
+                    icon: const Icon(Icons.straighten, size: 18),
+                    label: const Text('Range Analysis'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            // Playback controls and stats (when playback mode is active)
+            if (playbackState.isActive) ...[
+              const SizedBox(height: 16),
+              PlaybackControls(diveId: dive.id),
+              const SizedBox(height: 12),
+              PlaybackStatsPanel(
+                profile: dive.profile,
+                currentTimestamp: playbackState.currentTimestamp,
+                units: units,
+                analysis: analysis,
+              ),
+              // Show compact tissue saturation during playback
+              if (analysis != null && analysis.decoStatuses.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Builder(
+                  builder: (context) {
+                    final timestamp = playbackState.currentTimestamp;
+                    // Find the closest profile index for the current playback time
+                    int closestIndex = 0;
+                    int closestDiff = (dive.profile[0].timestamp - timestamp)
+                        .abs();
+                    for (int i = 1; i < dive.profile.length; i++) {
+                      final diff = (dive.profile[i].timestamp - timestamp)
+                          .abs();
+                      if (diff < closestDiff) {
+                        closestDiff = diff;
+                        closestIndex = i;
+                      }
+                    }
+                    // Use corresponding deco status if available
+                    final status = closestIndex < analysis.decoStatuses.length
+                        ? analysis.decoStatuses[closestIndex]
+                        : analysis.decoStatuses.last;
+                    return CompactTissueSaturation(decoStatus: status);
+                  },
+                ),
+              ],
+            ],
+            // Range stats panel (when range mode is active)
+            if (rangeState.isEnabled && rangeState.hasSelection) ...[
+              const SizedBox(height: 16),
+              RangeStatsPanel(
+                diveId: dive.id,
+                profile: dive.profile,
+                units: units,
+              ),
+            ],
           ],
         ),
       ),
@@ -1226,6 +1402,134 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         ),
       ),
     );
+  }
+
+  /// Export the profile chart as a PNG image and share it
+  Future<void> _exportProfileChart(Dive dive) async {
+    // Show options bottom sheet
+    final action = await showModalBottomSheet<_ProfileExportAction>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 32,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.outline,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Export Profile Image',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Save to Photos'),
+              subtitle: const Text('Save image to your photo library'),
+              onTap: () =>
+                  Navigator.pop(context, _ProfileExportAction.saveToPhotos),
+            ),
+            ListTile(
+              leading: const Icon(Icons.folder),
+              title: const Text('Save to Files'),
+              subtitle: const Text('Choose a location to save the file'),
+              onTap: () =>
+                  Navigator.pop(context, _ProfileExportAction.saveToFile),
+            ),
+            ListTile(
+              leading: const Icon(Icons.share),
+              title: const Text('Share'),
+              subtitle: const Text('Share via other apps'),
+              onTap: () => Navigator.pop(context, _ProfileExportAction.share),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+
+    if (action == null) return;
+
+    setState(() => _isExportingProfile = true);
+
+    try {
+      // Wait for the next frame to ensure the chart is fully rendered
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      final boundary =
+          _profileChartExportKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
+
+      if (boundary == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not capture profile chart')),
+          );
+        }
+        return;
+      }
+
+      // Capture at 2x resolution for better quality
+      final image = await boundary.toImage(pixelRatio: 2.0);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+
+      if (byteData == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not generate image')),
+          );
+        }
+        return;
+      }
+
+      final pngBytes = byteData.buffer.asUint8List();
+
+      // Generate filename with dive number and date
+      final dateStr =
+          '${dive.dateTime.year}-${dive.dateTime.month.toString().padLeft(2, '0')}-${dive.dateTime.day.toString().padLeft(2, '0')}';
+      final diveNum = dive.diveNumber?.toString() ?? dive.id.substring(0, 8);
+      final fileName = 'dive_profile_${diveNum}_$dateStr.png';
+
+      final exportService = ExportService();
+
+      switch (action) {
+        case _ProfileExportAction.saveToPhotos:
+          await exportService.saveImageToPhotos(pngBytes, fileName);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Image saved to Photos')),
+            );
+          }
+        case _ProfileExportAction.saveToFile:
+          final savedPath = await exportService.saveImageToFile(
+            pngBytes,
+            fileName,
+          );
+          if (mounted && savedPath != null) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('Image saved')));
+          }
+        case _ProfileExportAction.share:
+          await exportService.exportImageAsPng(pngBytes, fileName);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Export failed: $e')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isExportingProfile = false);
+      }
+    }
   }
 
   void _showFullscreenProfile(BuildContext context, WidgetRef ref, Dive dive) {
@@ -2652,3 +2956,6 @@ class _WeightDisplay {
 
   const _WeightDisplay({required this.type, required this.amount});
 }
+
+/// Actions available for profile chart export
+enum _ProfileExportAction { saveToPhotos, saveToFile, share }

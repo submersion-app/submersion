@@ -48,8 +48,7 @@ final siFirstDiveFHeProvider = Provider<double>((ref) {
 });
 
 /// Tissue compartments state after first dive completes.
-final siPostDiveCompartmentsProvider =
-    Provider<List<TissueCompartment>>((ref) {
+final siPostDiveCompartmentsProvider = Provider<List<TissueCompartment>>((ref) {
   final depth = ref.watch(siFirstDiveDepthProvider);
   final time = ref.watch(siFirstDiveTimeProvider);
   final fN2 = ref.watch(siFirstDiveFN2Provider);
@@ -73,8 +72,9 @@ final siPostDiveCompartmentsProvider =
 });
 
 /// Tissue compartments after the selected surface interval.
-final siRecoveredCompartmentsProvider =
-    Provider<List<TissueCompartment>>((ref) {
+final siRecoveredCompartmentsProvider = Provider<List<TissueCompartment>>((
+  ref,
+) {
   final postDiveCompartments = ref.watch(siPostDiveCompartmentsProvider);
   final surfaceInterval = ref.watch(siSurfaceIntervalProvider);
 
@@ -170,8 +170,9 @@ class TissueRecoveryPoint {
 
 /// Recovery curve data for all 16 compartments over 4 hours.
 /// Returns a list of 16 lists, each containing loading % at 5-minute intervals.
-final siRecoveryCurveProvider =
-    Provider<List<List<TissueRecoveryPoint>>>((ref) {
+final siRecoveryCurveProvider = Provider<List<List<TissueRecoveryPoint>>>((
+  ref,
+) {
   final postDiveCompartments = ref.watch(siPostDiveCompartmentsProvider);
 
   final curves = <List<TissueRecoveryPoint>>[];
@@ -183,10 +184,7 @@ final siRecoveryCurveProvider =
     // Generate points from 0 to 240 minutes at 5-minute intervals
     for (int minutes = 0; minutes <= 240; minutes += 5) {
       final loading = _calculateCompartmentLoadingAtSurface(comp, minutes);
-      curve.add(TissueRecoveryPoint(
-        minutes: minutes,
-        loadingPercent: loading,
-      ));
+      curve.add(TissueRecoveryPoint(minutes: minutes, loadingPercent: loading));
     }
     curves.add(curve);
   }

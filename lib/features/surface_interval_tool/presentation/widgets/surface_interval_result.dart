@@ -21,9 +21,7 @@ class SurfaceIntervalResult extends ConsumerWidget {
     // Format interval as hours:minutes
     final hours = minInterval ~/ 60;
     final minutes = minInterval % 60;
-    final intervalText = hours > 0
-        ? '${hours}h ${minutes}m'
-        : '$minutes min';
+    final intervalText = hours > 0 ? '${hours}h ${minutes}m' : '$minutes min';
 
     // Format NDL for display
     String ndlText;
@@ -42,9 +40,7 @@ class SurfaceIntervalResult extends ConsumerWidget {
         : '$currentMinutes min';
 
     return Card(
-      color: isSafe
-          ? colorScheme.primaryContainer
-          : colorScheme.errorContainer,
+      color: isSafe ? colorScheme.primaryContainer : colorScheme.errorContainer,
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(

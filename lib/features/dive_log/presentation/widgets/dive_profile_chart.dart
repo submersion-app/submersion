@@ -78,6 +78,14 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// Used for multi-tank pressure visualization
   final Map<String, List<TankPressurePoint>>? tankPressures;
 
+  /// Optional key for exporting the chart as an image.
+  /// When provided, wraps the chart in a RepaintBoundary for screenshot capture.
+  final GlobalKey? exportKey;
+
+  /// Optional playback cursor timestamp in seconds.
+  /// When provided, renders a vertical line at this position for step-through playback.
+  final int? playbackTimestamp;
+
   const DiveProfileChart({
     super.key,
     required this.profile,
@@ -103,6 +111,8 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.gasSwitches,
     this.tanks,
     this.tankPressures,
+    this.exportKey,
+    this.playbackTimestamp,
   });
 
   @override
@@ -481,14 +491,18 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         ),
 
         // The chart with gesture handling
-        SizedBox(
-          height: 200,
-          child: _buildInteractiveChart(
-            context,
-            units,
-            hasTemperatureData: hasTemperatureData,
-            hasPressureData: hasPressureData,
-            hasHeartRateData: hasHeartRateData,
+        // Wrapped in RepaintBoundary for PNG export when exportKey is provided
+        RepaintBoundary(
+          key: widget.exportKey,
+          child: SizedBox(
+            height: 200,
+            child: _buildInteractiveChart(
+              context,
+              units,
+              hasTemperatureData: hasTemperatureData,
+              hasPressureData: hasPressureData,
+              hasHeartRateData: hasHeartRateData,
+            ),
           ),
         ),
 
@@ -1008,6 +1022,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               horizontalLines: _showEvents && widget.events != null
                   ? _buildEventLines(colorScheme)
                   : [],
+              verticalLines: _buildPlaybackCursor(colorScheme),
             ),
             lineTouchData: LineTouchData(
               enabled: true,
@@ -1863,6 +1878,44 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         applyCutOffY: true,
       ),
     );
+  }
+
+  /// Build vertical line for playback cursor
+  List<VerticalLine> _buildPlaybackCursor(ColorScheme colorScheme) {
+    final timestamp = widget.playbackTimestamp;
+    if (timestamp == null) {
+      return [];
+    }
+
+    // Convert timestamp to x position (seconds)
+    final xPosition = timestamp.toDouble();
+
+    return [
+      VerticalLine(
+        x: xPosition,
+        color: colorScheme.primary,
+        strokeWidth: 2,
+        dashArray: [4, 4],
+        label: VerticalLineLabel(
+          show: true,
+          alignment: Alignment.topCenter,
+          padding: const EdgeInsets.only(bottom: 4),
+          style: TextStyle(
+            color: colorScheme.onPrimaryContainer,
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            backgroundColor: colorScheme.primaryContainer.withValues(
+              alpha: 0.9,
+            ),
+          ),
+          labelResolver: (line) {
+            final minutes = timestamp ~/ 60;
+            final seconds = timestamp % 60;
+            return ' ${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')} ';
+          },
+        ),
+      ),
+    ];
   }
 
   /// Build vertical lines for events
