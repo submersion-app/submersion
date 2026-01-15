@@ -87,6 +87,15 @@ class _PlanningSidebar extends StatelessWidget {
             isSelected: location.contains('/weight-calculator'),
             onTap: () => context.go('/planning/weight-calculator'),
           ),
+          const SizedBox(height: 8),
+          _SidebarTile(
+            icon: Icons.timer,
+            iconColor: Colors.teal,
+            title: 'Surface Interval',
+            subtitle: 'Repetitive dive planning',
+            isSelected: location.contains('/surface-interval'),
+            onTap: () => context.go('/planning/surface-interval'),
+          ),
           const SizedBox(height: 24),
           // Info card
           Card(
