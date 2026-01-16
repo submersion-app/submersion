@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
 /// Summary widget shown in the detail pane when no diver is selected.
@@ -72,14 +73,19 @@ class DiverSummaryWidget extends ConsumerWidget {
   Widget _buildOverview(
     BuildContext context,
     WidgetRef ref,
-    List divers,
+    List<Diver> divers,
     String? currentDiverId,
   ) {
     // Find active diver
-    final activeDiver = divers.firstWhere(
-      (d) => d.id == currentDiverId,
-      orElse: () => null,
-    );
+    Diver? activeDiver;
+    if (currentDiverId != null) {
+      for (final diver in divers) {
+        if (diver.id == currentDiverId) {
+          activeDiver = diver;
+          break;
+        }
+      }
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -163,7 +169,7 @@ class DiverSummaryWidget extends ConsumerWidget {
   Widget _buildActiveDiverSection(
     BuildContext context,
     WidgetRef ref,
-    dynamic activeDiver,
+    Diver activeDiver,
   ) {
     final statsAsync = ref.watch(diverStatsProvider(activeDiver.id));
     final theme = Theme.of(context);
@@ -248,7 +254,7 @@ class DiverSummaryWidget extends ConsumerWidget {
 
   Widget _buildDiverListPreview(
     BuildContext context,
-    List divers,
+    List<Diver> divers,
     String? currentDiverId,
   ) {
     final otherDivers = divers
