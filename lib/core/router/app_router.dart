@@ -108,13 +108,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/dashboard',
             name: 'dashboard',
             pageBuilder: (context, state) =>
-                const NoTransitionPage(child: DashboardPage()),
+                NoTransitionPage(
+                  key: state.pageKey,
+                  child: const DashboardPage(),
+                ),
           ),
 
           // Planning Hub with ShellRoute for master/detail on wide screens
           ShellRoute(
             pageBuilder: (context, state, child) =>
-                NoTransitionPage(child: PlanningShell(child: child)),
+                NoTransitionPage(
+                  key: state.pageKey,
+                  child: PlanningShell(child: child),
+                ),
             routes: [
               GoRoute(
                 path: '/planning',
@@ -123,6 +129,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   // On wide screens show welcome placeholder, on mobile show hub
                   final isWide = MediaQuery.of(context).size.width >= 900;
                   return NoTransitionPage(
+                    key: state.pageKey,
                     child: isWide
                         ? const PlanningWelcome()
                         : const PlanningPage(),
@@ -174,7 +181,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/dives',
             name: 'dives',
             pageBuilder: (context, state) =>
-                const NoTransitionPage(child: DiveListPage()),
+                NoTransitionPage(key: state.pageKey, child: const DiveListPage()),
             routes: [
               GoRoute(
                 path: 'new',
@@ -208,7 +215,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/sites',
             name: 'sites',
             pageBuilder: (context, state) =>
-                const NoTransitionPage(child: SiteListPage()),
+                NoTransitionPage(key: state.pageKey, child: const SiteListPage()),
             routes: [
               GoRoute(
                 path: 'map',
@@ -247,7 +254,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/equipment',
             name: 'equipment',
             pageBuilder: (context, state) =>
-                const NoTransitionPage(child: EquipmentListPage()),
+                NoTransitionPage(
+                  key: state.pageKey,
+                  child: const EquipmentListPage(),
+                ),
             routes: [
               GoRoute(
                 path: 'new',
@@ -306,7 +316,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/buddies',
             name: 'buddies',
             pageBuilder: (context, state) =>
-                const NoTransitionPage(child: BuddyListPage()),
+                NoTransitionPage(
+                  key: state.pageKey,
+                  child: const BuddyListPage(),
+                ),
             routes: [
               GoRoute(
                 path: 'new',
@@ -342,7 +355,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/divers',
             name: 'divers',
             pageBuilder: (context, state) =>
-                const NoTransitionPage(child: DiverListPage()),
+                NoTransitionPage(
+                  key: state.pageKey,
+                  child: const DiverListPage(),
+                ),
             routes: [
               GoRoute(
                 path: 'new',
@@ -371,7 +387,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/certifications',
             name: 'certifications',
             pageBuilder: (context, state) =>
-                const NoTransitionPage(child: CertificationListPage()),
+                NoTransitionPage(
+                  key: state.pageKey,
+                  child: const CertificationListPage(),
+                ),
             routes: [
               GoRoute(
                 path: 'new',
@@ -402,7 +421,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/dive-centers',
             name: 'diveCenters',
             pageBuilder: (context, state) =>
-                const NoTransitionPage(child: DiveCenterListPage()),
+                NoTransitionPage(
+                  key: state.pageKey,
+                  child: const DiveCenterListPage(),
+                ),
             routes: [
               GoRoute(
                 path: 'new',
@@ -433,7 +455,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/trips',
             name: 'trips',
             pageBuilder: (context, state) =>
-                const NoTransitionPage(child: TripListPage()),
+                NoTransitionPage(
+                  key: state.pageKey,
+                  child: const TripListPage(),
+                ),
             routes: [
               GoRoute(
                 path: 'new',
@@ -462,7 +487,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/statistics',
             name: 'statistics',
             pageBuilder: (context, state) =>
-                const NoTransitionPage(child: StatisticsPage()),
+                NoTransitionPage(
+                  key: state.pageKey,
+                  child: const StatisticsPage(),
+                ),
             routes: [
               GoRoute(
                 path: 'gas',
@@ -517,7 +545,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/records',
             name: 'records',
             pageBuilder: (context, state) =>
-                const NoTransitionPage(child: RecordsPage()),
+                NoTransitionPage(key: state.pageKey, child: const RecordsPage()),
           ),
 
           // Transfer (Import/Export/Dive Computers)
@@ -525,7 +553,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/transfer',
             name: 'transfer',
             pageBuilder: (context, state) =>
-                const NoTransitionPage(child: TransferPage()),
+                NoTransitionPage(
+                  key: state.pageKey,
+                  child: const TransferPage(),
+                ),
           ),
 
           // Settings
@@ -533,7 +564,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/settings',
             name: 'settings',
             pageBuilder: (context, state) =>
-                const NoTransitionPage(child: SettingsPage()),
+                NoTransitionPage(
+                  key: state.pageKey,
+                  child: const SettingsPage(),
+                ),
             routes: [
               GoRoute(
                 path: 'cloud-sync',
