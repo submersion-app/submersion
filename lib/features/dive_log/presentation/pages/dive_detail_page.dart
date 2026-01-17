@@ -41,6 +41,9 @@ import 'package:submersion/features/dive_log/presentation/widgets/playback_stats
 import 'package:submersion/features/dive_log/presentation/widgets/range_selection_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/range_stats_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_saturation_panel.dart';
+import 'package:submersion/core/tide/entities/tide_extremes.dart';
+import 'package:submersion/features/tides/domain/entities/tide_record.dart';
+import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
 
 /// Calculate normalization factor to align profile-based SAC with tank-based SAC.
 /// The segments are calculated from profile pressure data, but dive.sacPressure
@@ -195,6 +198,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               const SizedBox(height: 24),
               _buildConditionsSection(context, dive),
             ],
+            const SizedBox(height: 24),
+            _buildTideSection(context, ref, dive),
             if (_hasWeights(dive)) ...[
               const SizedBox(height: 24),
               _buildWeightSection(context, dive, units),
@@ -2228,6 +2233,155 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         ),
       ),
     );
+  }
+
+  /// Build the tide conditions section for a dive.
+  ///
+  /// Shows tide data from:
+  /// 1. Stored TideRecord (if saved when dive was logged)
+  /// 2. Calculated from tide model (if dive site has coordinates and tide data)
+  Widget _buildTideSection(BuildContext context, WidgetRef ref, Dive dive) {
+    // First try to get stored tide record
+    final tideRecordAsync = ref.watch(tideRecordForDiveProvider(dive.id));
+
+    return tideRecordAsync.when(
+      data: (tideRecord) {
+        if (tideRecord != null) {
+          // We have a stored tide record - show it
+          return _buildTideCard(context, tideRecord);
+        }
+
+        // No stored record - try to calculate from tide model if we have coordinates
+        if (dive.site?.hasCoordinates != true || dive.entryTime == null) {
+          return const SizedBox.shrink();
+        }
+
+        final location = dive.site!.location!;
+        final entryTime = dive.entryTime!;
+        final calculatorAsync = ref.watch(tideCalculatorProvider(location));
+
+        return calculatorAsync.when(
+          data: (calculator) {
+            if (calculator == null) {
+              return const SizedBox.shrink(); // No tide data for this location
+            }
+
+            // Calculate tide at dive entry time
+            final status = calculator.getStatus(entryTime);
+            final record = TideRecord.fromStatus(
+              id: 'calculated',
+              diveId: dive.id,
+              status: status,
+            );
+
+            return _buildTideCard(context, record, isCalculated: true);
+          },
+          loading: () => const SizedBox.shrink(),
+          error: (_, _) => const SizedBox.shrink(),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
+    );
+  }
+
+  /// Build the tide card with data.
+  Widget _buildTideCard(
+    BuildContext context,
+    TideRecord record, {
+    bool isCalculated = false,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    // Get icon and color based on tide state
+    IconData stateIcon;
+    Color stateColor;
+    switch (record.tideState) {
+      case TideState.rising:
+        stateIcon = Icons.trending_up;
+        stateColor = Colors.blue;
+        break;
+      case TideState.falling:
+        stateIcon = Icons.trending_down;
+        stateColor = Colors.orange;
+        break;
+      case TideState.slackHigh:
+        stateIcon = Icons.horizontal_rule;
+        stateColor = Colors.green;
+        break;
+      case TideState.slackLow:
+        stateIcon = Icons.horizontal_rule;
+        stateColor = Colors.amber;
+        break;
+    }
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text('Tide', style: theme.textTheme.titleMedium),
+                if (isCalculated) ...[
+                  const SizedBox(width: 8),
+                  Tooltip(
+                    message: 'Calculated from tide model',
+                    child: Icon(
+                      Icons.calculate_outlined,
+                      size: 16,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            const Divider(),
+            // Current state with icon
+            Row(
+              children: [
+                Icon(stateIcon, color: stateColor, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _buildDetailRow(
+                    context,
+                    'State',
+                    record.tideState.displayName,
+                  ),
+                ),
+              ],
+            ),
+            _buildDetailRow(context, 'Height', record.formattedHeight),
+            if (record.rateOfChange != null)
+              _buildDetailRow(
+                context,
+                'Rate of Change',
+                '${record.rateOfChange! > 0 ? '+' : ''}${record.rateOfChange!.toStringAsFixed(2)} m/hr',
+              ),
+            if (record.highTideTime != null && record.highTideHeight != null)
+              _buildDetailRow(
+                context,
+                'High Tide',
+                '${record.highTideHeight!.toStringAsFixed(2)}m at ${_formatTime(record.highTideTime!)}',
+              ),
+            if (record.lowTideTime != null && record.lowTideHeight != null)
+              _buildDetailRow(
+                context,
+                'Low Tide',
+                '${record.lowTideHeight!.toStringAsFixed(2)}m at ${_formatTime(record.lowTideTime!)}',
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Format a DateTime as a time string (HH:mm).
+  String _formatTime(DateTime time) {
+    final localTime = time.toLocal();
+    return '${localTime.hour.toString().padLeft(2, '0')}:${localTime.minute.toString().padLeft(2, '0')}';
   }
 
   Widget _buildWeightSection(

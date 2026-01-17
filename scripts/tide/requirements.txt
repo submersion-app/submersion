@@ -1,0 +1,18 @@
+# Python dependencies for tide data extraction
+#
+# IMPORTANT: PyFES is NOT available on PyPI!
+# It must be installed via conda-forge or built from source.
+#
+# Option 1 - Conda (Recommended):
+#   conda install -c conda-forge pyfes
+#
+# Option 2 - Build from source:
+#   git clone https://github.com/CNES/aviso-fes.git
+#   cd aviso-fes
+#   pip install .
+#
+# After installing pyfes, install the remaining dependencies:
+#   pip install -r requirements.txt
+
+# NumPy for numerical operations (pyfes dependency)
+numpy>=1.24.0

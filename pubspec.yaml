@@ -108,4 +108,5 @@ flutter:
 
   assets:
     - assets/data/
+    - assets/data/tide/
     - assets/icon/

@@ -1,0 +1,136 @@
+{
+  "version": "1.0",
+  "source": "Sample Data",
+  "generated": "2025-01-16",
+  "description": "Sample constituent data for popular dive sites. Replace with real FES extraction for production.",
+  "sites": [
+    {
+      "id": "monterey-bay",
+      "name": "Monterey Bay",
+      "lat": 36.6002,
+      "lon": -121.8947,
+      "constituents": {
+        "M2": {"amplitude": 0.52, "phase": 355.0},
+        "S2": {"amplitude": 0.13, "phase": 15.0},
+        "N2": {"amplitude": 0.11, "phase": 335.0},
+        "K2": {"amplitude": 0.04, "phase": 10.0},
+        "K1": {"amplitude": 0.37, "phase": 225.0},
+        "O1": {"amplitude": 0.23, "phase": 205.0},
+        "P1": {"amplitude": 0.12, "phase": 220.0},
+        "Q1": {"amplitude": 0.04, "phase": 195.0}
+      }
+    },
+    {
+      "id": "san-diego",
+      "name": "San Diego",
+      "lat": 32.7157,
+      "lon": -117.1611,
+      "constituents": {
+        "M2": {"amplitude": 0.55, "phase": 350.0},
+        "S2": {"amplitude": 0.14, "phase": 12.0},
+        "N2": {"amplitude": 0.12, "phase": 330.0},
+        "K2": {"amplitude": 0.04, "phase": 8.0},
+        "K1": {"amplitude": 0.35, "phase": 220.0},
+        "O1": {"amplitude": 0.22, "phase": 200.0},
+        "P1": {"amplitude": 0.11, "phase": 215.0},
+        "Q1": {"amplitude": 0.04, "phase": 190.0}
+      }
+    },
+    {
+      "id": "florida-keys",
+      "name": "Florida Keys",
+      "lat": 24.5557,
+      "lon": -81.7826,
+      "constituents": {
+        "M2": {"amplitude": 0.21, "phase": 120.0},
+        "S2": {"amplitude": 0.06, "phase": 145.0},
+        "N2": {"amplitude": 0.05, "phase": 100.0},
+        "K2": {"amplitude": 0.02, "phase": 140.0},
+        "K1": {"amplitude": 0.08, "phase": 25.0},
+        "O1": {"amplitude": 0.06, "phase": 5.0},
+        "P1": {"amplitude": 0.03, "phase": 20.0},
+        "Q1": {"amplitude": 0.01, "phase": 355.0}
+      }
+    },
+    {
+      "id": "great-barrier-reef",
+      "name": "Great Barrier Reef",
+      "lat": -16.2864,
+      "lon": 145.6845,
+      "constituents": {
+        "M2": {"amplitude": 0.85, "phase": 310.0},
+        "S2": {"amplitude": 0.35, "phase": 345.0},
+        "N2": {"amplitude": 0.18, "phase": 290.0},
+        "K2": {"amplitude": 0.10, "phase": 340.0},
+        "K1": {"amplitude": 0.25, "phase": 180.0},
+        "O1": {"amplitude": 0.16, "phase": 160.0},
+        "P1": {"amplitude": 0.08, "phase": 175.0},
+        "Q1": {"amplitude": 0.03, "phase": 150.0}
+      }
+    },
+    {
+      "id": "red-sea-egypt",
+      "name": "Red Sea (Sharm El Sheikh)",
+      "lat": 27.9158,
+      "lon": 34.3300,
+      "constituents": {
+        "M2": {"amplitude": 0.25, "phase": 75.0},
+        "S2": {"amplitude": 0.12, "phase": 95.0},
+        "N2": {"amplitude": 0.05, "phase": 55.0},
+        "K2": {"amplitude": 0.03, "phase": 90.0},
+        "K1": {"amplitude": 0.15, "phase": 320.0},
+        "O1": {"amplitude": 0.08, "phase": 300.0},
+        "P1": {"amplitude": 0.05, "phase": 315.0},
+        "Q1": {"amplitude": 0.02, "phase": 290.0}
+      }
+    },
+    {
+      "id": "cozumel",
+      "name": "Cozumel",
+      "lat": 20.4230,
+      "lon": -86.9223,
+      "constituents": {
+        "M2": {"amplitude": 0.11, "phase": 115.0},
+        "S2": {"amplitude": 0.04, "phase": 140.0},
+        "N2": {"amplitude": 0.03, "phase": 95.0},
+        "K2": {"amplitude": 0.01, "phase": 135.0},
+        "K1": {"amplitude": 0.07, "phase": 20.0},
+        "O1": {"amplitude": 0.05, "phase": 0.0},
+        "P1": {"amplitude": 0.02, "phase": 15.0},
+        "Q1": {"amplitude": 0.01, "phase": 350.0}
+      }
+    },
+    {
+      "id": "palau",
+      "name": "Palau",
+      "lat": 7.5150,
+      "lon": 134.5825,
+      "constituents": {
+        "M2": {"amplitude": 0.40, "phase": 280.0},
+        "S2": {"amplitude": 0.20, "phase": 315.0},
+        "N2": {"amplitude": 0.08, "phase": 260.0},
+        "K2": {"amplitude": 0.05, "phase": 310.0},
+        "K1": {"amplitude": 0.22, "phase": 165.0},
+        "O1": {"amplitude": 0.14, "phase": 145.0},
+        "P1": {"amplitude": 0.07, "phase": 160.0},
+        "Q1": {"amplitude": 0.03, "phase": 135.0}
+      }
+    },
+    {
+      "id": "galapagos",
+      "name": "Galapagos Islands",
+      "lat": -0.9538,
+      "lon": -90.9656,
+      "constituents": {
+        "M2": {"amplitude": 0.65, "phase": 45.0},
+        "S2": {"amplitude": 0.25, "phase": 75.0},
+        "N2": {"amplitude": 0.14, "phase": 25.0},
+        "K2": {"amplitude": 0.07, "phase": 70.0},
+        "K1": {"amplitude": 0.18, "phase": 280.0},
+        "O1": {"amplitude": 0.12, "phase": 260.0},
+        "P1": {"amplitude": 0.06, "phase": 275.0},
+        "Q1": {"amplitude": 0.02, "phase": 250.0}
+      }
+    }
+  ]
+}
