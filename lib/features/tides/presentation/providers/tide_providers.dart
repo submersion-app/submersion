@@ -69,6 +69,8 @@ final hasTideDataProvider = FutureProvider.family<bool, GeoPoint>((
 /// Returns predictions at 10-minute intervals, covering 6 hours before
 /// and 24 hours after the current time. This allows charts to show
 /// the previous tide extreme for context.
+///
+/// Uses background isolate computation to avoid blocking the UI thread.
 final tidePredictionsProvider =
     FutureProvider.family<List<TidePrediction>, GeoPoint>((
       ref,
@@ -80,7 +82,8 @@ final tidePredictionsProvider =
       if (calculator == null) return [];
 
       final now = DateTime.now();
-      return calculator.predict(
+      // Use async isolate-based computation for UI responsiveness
+      return calculator.predictAsync(
         start: now.subtract(const Duration(hours: 6)),
         end: now.add(const Duration(hours: 24)),
         interval: const Duration(minutes: 10),
@@ -88,6 +91,8 @@ final tidePredictionsProvider =
     });
 
 /// Provider for tide predictions over a custom time range.
+///
+/// Uses background isolate computation to avoid blocking the UI thread.
 final tidePredictionsRangeProvider =
     FutureProvider.family<
       List<TidePrediction>,
@@ -98,7 +103,7 @@ final tidePredictionsRangeProvider =
       );
       if (calculator == null) return [];
 
-      return calculator.predict(
+      return calculator.predictAsync(
         start: params.start,
         end: params.end,
         interval: const Duration(minutes: 10),
@@ -110,13 +115,16 @@ final tidePredictionsRangeProvider =
 /// Returns extremes covering 6 hours before and 24 hours after the
 /// current time. This allows charts to show the previous extreme
 /// for context when displaying the current tide position.
+///
+/// Uses background isolate computation to avoid blocking the UI thread.
 final tideExtremesProvider = FutureProvider.family<List<TideExtreme>, GeoPoint>(
   (ref, location) async {
     final calculator = await ref.watch(tideCalculatorProvider(location).future);
     if (calculator == null) return [];
 
     final now = DateTime.now();
-    return calculator.findExtremes(
+    // Use async isolate-based computation for UI responsiveness
+    return calculator.findExtremesAsync(
       start: now.subtract(const Duration(hours: 6)),
       end: now.add(const Duration(hours: 24)),
     );
@@ -124,6 +132,8 @@ final tideExtremesProvider = FutureProvider.family<List<TideExtreme>, GeoPoint>(
 );
 
 /// Provider for tide extremes over a custom time range.
+///
+/// Uses background isolate computation to avoid blocking the UI thread.
 final tideExtremesRangeProvider =
     FutureProvider.family<
       List<TideExtreme>,
@@ -134,10 +144,13 @@ final tideExtremesRangeProvider =
       );
       if (calculator == null) return [];
 
-      return calculator.findExtremes(start: params.start, end: params.end);
+      return calculator.findExtremesAsync(start: params.start, end: params.end);
     });
 
 /// Provider for current tide status at a location.
+///
+/// Uses background isolate computation to avoid blocking the UI thread.
+/// This is one of the most expensive operations as it calculates extremes.
 final currentTideStatusProvider = FutureProvider.family<TideStatus?, GeoPoint>((
   ref,
   location,
@@ -145,7 +158,8 @@ final currentTideStatusProvider = FutureProvider.family<TideStatus?, GeoPoint>((
   final calculator = await ref.watch(tideCalculatorProvider(location).future);
   if (calculator == null) return null;
 
-  return calculator.getStatus(DateTime.now());
+  // Use async isolate-based computation for UI responsiveness
+  return calculator.getStatusAsync(DateTime.now());
 });
 
 /// Provider for current tide state (rising/falling/slack) at a location.

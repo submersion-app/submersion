@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show compute;
+
 import 'package:submersion/core/tide/astronomical_arguments.dart';
 import 'package:submersion/core/tide/constants/harmonic_constituents.dart';
 import 'package:submersion/core/tide/entities/tide_constituent.dart';
@@ -143,11 +145,13 @@ class TideCalculator {
   }) {
     final extremes = <TideExtreme>[];
 
-    // Generate fine-grained predictions for analysis (1-minute resolution)
+    // Generate predictions for analysis (5-minute resolution for performance)
+    // Tidal extremes change slowly enough that 5-minute resolution is sufficient
+    // and provides parabolic interpolation refinement for sub-minute accuracy
     final predictions = predict(
       start: start,
       end: end,
-      interval: const Duration(minutes: 1),
+      interval: const Duration(minutes: 5),
     );
 
     if (predictions.length < 3) return extremes;
@@ -362,4 +366,112 @@ class TideCalculator {
         'z0=${z0.toStringAsFixed(2)}m, '
         'range≈${estimatedTidalRange.toStringAsFixed(1)}m)';
   }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Async methods for background isolate computation
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Async version of [findExtremes] that runs on a background isolate.
+  ///
+  /// Use this for UI-facing code to avoid blocking the main thread.
+  Future<List<TideExtreme>> findExtremesAsync({
+    required DateTime start,
+    required DateTime end,
+  }) {
+    return compute(
+      _findExtremesIsolate,
+      _TideComputeParams(
+        constituents: constituents,
+        z0: z0,
+        start: start,
+        end: end,
+      ),
+    );
+  }
+
+  /// Async version of [getStatus] that runs on a background isolate.
+  ///
+  /// Use this for UI-facing code to avoid blocking the main thread.
+  Future<TideStatus> getStatusAsync(DateTime time) {
+    return compute(
+      _getStatusIsolate,
+      _TideComputeParams(constituents: constituents, z0: z0, time: time),
+    );
+  }
+
+  /// Async version of [predict] that runs on a background isolate.
+  ///
+  /// Use this for large prediction ranges to avoid blocking the main thread.
+  Future<List<TidePrediction>> predictAsync({
+    required DateTime start,
+    required DateTime end,
+    Duration interval = const Duration(minutes: 10),
+  }) {
+    return compute(
+      _predictIsolate,
+      _TideComputeParams(
+        constituents: constituents,
+        z0: z0,
+        start: start,
+        end: end,
+        interval: interval,
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Isolate helper classes and functions
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Parameters for tide computation on a background isolate.
+///
+/// All fields must be serializable for isolate message passing.
+class _TideComputeParams {
+  final Map<String, TideConstituent> constituents;
+  final double z0;
+  final DateTime? start;
+  final DateTime? end;
+  final DateTime? time;
+  final Duration? interval;
+
+  _TideComputeParams({
+    required this.constituents,
+    required this.z0,
+    this.start,
+    this.end,
+    this.time,
+    this.interval,
+  });
+}
+
+/// Top-level function for findExtremes computation on isolate.
+List<TideExtreme> _findExtremesIsolate(_TideComputeParams params) {
+  final calculator = TideCalculator(
+    constituents: params.constituents,
+    z0: params.z0,
+  );
+  return calculator.findExtremes(start: params.start!, end: params.end!);
+}
+
+/// Top-level function for getStatus computation on isolate.
+TideStatus _getStatusIsolate(_TideComputeParams params) {
+  final calculator = TideCalculator(
+    constituents: params.constituents,
+    z0: params.z0,
+  );
+  return calculator.getStatus(params.time!);
+}
+
+/// Top-level function for predict computation on isolate.
+List<TidePrediction> _predictIsolate(_TideComputeParams params) {
+  final calculator = TideCalculator(
+    constituents: params.constituents,
+    z0: params.z0,
+  );
+  return calculator.predict(
+    start: params.start!,
+    end: params.end!,
+    interval: params.interval ?? const Duration(minutes: 10),
+  );
 }
