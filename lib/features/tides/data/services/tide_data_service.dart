@@ -1,10 +1,18 @@
 import 'dart:convert';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show compute;
 import 'package:flutter/services.dart' show rootBundle;
 
 import 'package:submersion/core/tide/entities/tide_constituent.dart';
 import 'package:submersion/core/tide/tide_calculator.dart';
+
+/// Top-level function for parsing JSON on a background isolate.
+///
+/// This prevents JSON parsing from blocking the main UI thread.
+Map<String, dynamic> _parseJsonInIsolate(String jsonStr) {
+  return json.decode(jsonStr) as Map<String, dynamic>;
+}
 
 /// Service for loading and managing tidal constituent data.
 ///
@@ -47,21 +55,25 @@ class TideDataService {
   /// Initialize the service by loading bundled data.
   ///
   /// Call this before using other methods. Safe to call multiple times.
+  /// Uses background isolate for JSON parsing to avoid blocking the UI thread.
   Future<void> initialize() async {
     if (_initialized) return;
 
     try {
-      // Load metadata
-      final metadataStr = await rootBundle.loadString(
-        'assets/data/tide/metadata.json',
-      );
-      _metadata = json.decode(metadataStr) as Map<String, dynamic>;
+      // Load metadata and site constituents in parallel
+      final results = await Future.wait([
+        rootBundle.loadString('assets/data/tide/metadata.json'),
+        rootBundle.loadString('assets/data/tide/constituents_sites.json'),
+      ]);
 
-      // Load site constituents
-      final siteStr = await rootBundle.loadString(
-        'assets/data/tide/constituents_sites.json',
-      );
-      _siteData = json.decode(siteStr) as Map<String, dynamic>;
+      // Parse JSON on background isolates to avoid blocking UI
+      final parsed = await Future.wait([
+        compute(_parseJsonInIsolate, results[0]),
+        compute(_parseJsonInIsolate, results[1]),
+      ]);
+
+      _metadata = parsed[0];
+      _siteData = parsed[1];
 
       _initialized = true;
     } catch (e) {
@@ -76,6 +88,7 @@ class TideDataService {
   ///
   /// Grid data can be large (~50-100 MB), so it's loaded separately
   /// only when needed for interpolation.
+  /// Uses background isolate for JSON parsing to avoid blocking the UI thread.
   Future<void> _loadGridDataIfNeeded() async {
     if (_gridData != null) return;
 
@@ -83,7 +96,8 @@ class TideDataService {
       final gridStr = await rootBundle.loadString(
         'assets/data/tide/constituents_grid.json',
       );
-      _gridData = json.decode(gridStr) as Map<String, dynamic>;
+      // Parse on background isolate - this is especially important for large grid data
+      _gridData = await compute(_parseJsonInIsolate, gridStr);
       _hasGridData = true;
     } catch (e) {
       // Grid data is optional
