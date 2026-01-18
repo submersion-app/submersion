@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
 import 'package:submersion/features/tides/presentation/widgets/current_tide_indicator.dart';
 import 'package:submersion/features/tides/presentation/widgets/tide_chart.dart';
@@ -145,6 +146,7 @@ class _TideSectionContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
+    final settings = ref.watch(settingsProvider);
     final statusAsync = ref.watch(currentTideStatusProvider(location));
     final predictionsAsync = ref.watch(tidePredictionsProvider(location));
     final extremesAsync = ref.watch(tideExtremesProvider(location));
@@ -182,7 +184,11 @@ class _TideSectionContent extends ConsumerWidget {
                 if (status == null) {
                   return const SizedBox.shrink();
                 }
-                return CurrentTideIndicator(status: status, compact: compact);
+                return CurrentTideIndicator(
+                  status: status,
+                  compact: compact,
+                  depthUnit: settings.depthUnit,
+                );
               },
               loading: () => const SizedBox(
                 height: 80,
@@ -214,11 +220,21 @@ class _TideSectionContent extends ConsumerWidget {
                       predictions: predictions,
                       extremes: extremes,
                       height: 180,
+                      timeFormat: settings.timeFormat,
+                      depthUnit: settings.depthUnit,
                     ),
-                    loading: () =>
-                        TideChart(predictions: predictions, height: 180),
-                    error: (_, _) =>
-                        TideChart(predictions: predictions, height: 180),
+                    loading: () => TideChart(
+                      predictions: predictions,
+                      height: 180,
+                      timeFormat: settings.timeFormat,
+                      depthUnit: settings.depthUnit,
+                    ),
+                    error: (_, _) => TideChart(
+                      predictions: predictions,
+                      height: 180,
+                      timeFormat: settings.timeFormat,
+                      depthUnit: settings.depthUnit,
+                    ),
                   );
                 },
                 loading: () => const SizedBox(
@@ -265,6 +281,8 @@ class _TideSectionContent extends ConsumerWidget {
                     maxItems: 4,
                     showPast: false,
                     compact: true,
+                    depthUnit: settings.depthUnit,
+                    timeFormat: settings.timeFormat,
                   );
                 },
                 loading: () => const SizedBox(

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:intl/intl.dart' show DateFormat;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
@@ -44,6 +45,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/tissue_saturat
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
 import 'package:submersion/features/tides/domain/entities/tide_record.dart';
 import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
+import 'package:submersion/features/tides/presentation/widgets/tide_cycle_graph.dart';
 
 /// Calculate normalization factor to align profile-based SAC with tank-based SAC.
 /// The segments are calculated from profile pressure data, but dive.sacPressure
@@ -2248,7 +2250,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       data: (tideRecord) {
         if (tideRecord != null) {
           // We have a stored tide record - show it
-          return _buildTideCard(context, tideRecord);
+          return _buildTideCard(context, tideRecord, entryTime: dive.entryTime);
         }
 
         // No stored record - try to calculate from tide model if we have coordinates
@@ -2274,7 +2276,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               status: status,
             );
 
-            return _buildTideCard(context, record, isCalculated: true);
+            return _buildTideCard(
+              context,
+              record,
+              isCalculated: true,
+              entryTime: entryTime,
+            );
           },
           loading: () => const SizedBox.shrink(),
           error: (_, _) => const SizedBox.shrink(),
@@ -2290,9 +2297,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     BuildContext context,
     TideRecord record, {
     bool isCalculated = false,
+    DateTime? entryTime,
   }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final settings = ref.watch(settingsProvider);
+
+    // Get collapsed state from provider
+    final isExpanded = ref.watch(tideSectionExpandedProvider);
 
     // Get icon and color based on tide state
     IconData stateIcon;
@@ -2316,29 +2328,45 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         break;
     }
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+    // Build collapsed subtitle with tide state and height
+    final collapsedSubtitle =
+        '${record.tideState.displayName} • ${DepthUnit.meters.convert(record.heightMeters, settings.depthUnit).toStringAsFixed(1)}${settings.depthUnit.symbol}';
+
+    return CollapsibleCardSection(
+      title: 'Tide',
+      icon: Icons.waves,
+      collapsedSubtitle: collapsedSubtitle,
+      trailing: isCalculated
+          ? Tooltip(
+              message: 'Calculated from tide model',
+              child: Icon(
+                Icons.calculate_outlined,
+                size: 16,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            )
+          : null,
+      isExpanded: isExpanded,
+      onToggle: (expanded) {
+        ref.read(collapsibleSectionProvider.notifier).setTideExpanded(expanded);
+      },
+      contentBuilder: (context) => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Text('Tide', style: theme.textTheme.titleMedium),
-                if (isCalculated) ...[
-                  const SizedBox(width: 8),
-                  Tooltip(
-                    message: 'Calculated from tide model',
-                    child: Icon(
-                      Icons.calculate_outlined,
-                      size: 16,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ],
-            ),
             const Divider(),
+            // Tide cycle visualization
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: TideCycleGraph(
+                record: record,
+                referenceTime: entryTime,
+                timeFormat: settings.timeFormat,
+                depthUnit: settings.depthUnit,
+                height: 80,
+              ),
+            ),
             // Current state with icon
             Row(
               children: [
@@ -2353,24 +2381,28 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 ),
               ],
             ),
-            _buildDetailRow(context, 'Height', record.formattedHeight),
+            _buildDetailRow(
+              context,
+              'Height',
+              '${DepthUnit.meters.convert(record.heightMeters, settings.depthUnit).toStringAsFixed(2)}${settings.depthUnit.symbol}',
+            ),
             if (record.rateOfChange != null)
               _buildDetailRow(
                 context,
                 'Rate of Change',
-                '${record.rateOfChange! > 0 ? '+' : ''}${record.rateOfChange!.toStringAsFixed(2)} m/hr',
+                '${record.rateOfChange! > 0 ? '+' : ''}${DepthUnit.meters.convert(record.rateOfChange!, settings.depthUnit).toStringAsFixed(2)} ${settings.depthUnit.symbol}/hr',
               ),
             if (record.highTideTime != null && record.highTideHeight != null)
               _buildDetailRow(
                 context,
                 'High Tide',
-                '${record.highTideHeight!.toStringAsFixed(2)}m at ${_formatTime(record.highTideTime!)}',
+                '${DepthUnit.meters.convert(record.highTideHeight!, settings.depthUnit).toStringAsFixed(2)}${settings.depthUnit.symbol} at ${_formatTime(record.highTideTime!, settings.timeFormat)}',
               ),
             if (record.lowTideTime != null && record.lowTideHeight != null)
               _buildDetailRow(
                 context,
                 'Low Tide',
-                '${record.lowTideHeight!.toStringAsFixed(2)}m at ${_formatTime(record.lowTideTime!)}',
+                '${DepthUnit.meters.convert(record.lowTideHeight!, settings.depthUnit).toStringAsFixed(2)}${settings.depthUnit.symbol} at ${_formatTime(record.lowTideTime!, settings.timeFormat)}',
               ),
           ],
         ),
@@ -2378,10 +2410,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
   }
 
-  /// Format a DateTime as a time string (HH:mm).
-  String _formatTime(DateTime time) {
-    final localTime = time.toLocal();
-    return '${localTime.hour.toString().padLeft(2, '0')}:${localTime.minute.toString().padLeft(2, '0')}';
+  /// Format a DateTime as a time string using the given time format.
+  String _formatTime(DateTime time, TimeFormat timeFormat) {
+    return DateFormat(timeFormat.pattern).format(time.toLocal());
   }
 
   Widget _buildWeightSection(

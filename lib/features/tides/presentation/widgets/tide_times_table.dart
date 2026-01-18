@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
 
 /// Table widget displaying high and low tide times.
@@ -35,6 +36,12 @@ class TideTimesTable extends StatelessWidget {
   /// Whether to use a compact display style.
   final bool compact;
 
+  /// Depth unit preference for height display. Defaults to meters.
+  final DepthUnit depthUnit;
+
+  /// Time format preference (12h or 24h). Defaults to 24-hour if not specified.
+  final TimeFormat timeFormat;
+
   const TideTimesTable({
     super.key,
     required this.extremes,
@@ -42,6 +49,8 @@ class TideTimesTable extends StatelessWidget {
     this.showPast = true,
     this.maxItems,
     this.compact = false,
+    this.depthUnit = DepthUnit.meters,
+    this.timeFormat = TimeFormat.twentyFourHour,
   });
 
   @override
@@ -143,8 +152,8 @@ class TideTimesTable extends StatelessWidget {
     final isPast = extreme.time.isBefore(reference);
     final duration = extreme.durationFrom(reference);
 
-    // Format time
-    final timeFormat = DateFormat('HH:mm');
+    // Format time using user preference
+    final timeFormatter = DateFormat(timeFormat.pattern);
     final dateFormat = DateFormat('EEE, MMM d');
     final isToday = _isSameDay(extreme.time, reference);
     final isTomorrow = _isSameDay(
@@ -200,7 +209,7 @@ class TideTimesTable extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    timeFormat.format(extreme.time.toLocal()),
+                    timeFormatter.format(extreme.time.toLocal()),
                     style:
                         (compact ? textTheme.titleMedium : textTheme.titleLarge)
                             ?.copyWith(
@@ -225,7 +234,7 @@ class TideTimesTable extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  '${extreme.heightMeters.toStringAsFixed(2)}m',
+                  '${DepthUnit.meters.convert(extreme.heightMeters, depthUnit).toStringAsFixed(2)}${depthUnit.symbol}',
                   style:
                       (compact ? textTheme.titleSmall : textTheme.titleMedium)
                           ?.copyWith(
@@ -313,7 +322,19 @@ class NextTideTimes extends StatelessWidget {
   /// Reference time for finding "next" tides.
   final DateTime? now;
 
-  const NextTideTimes({super.key, required this.extremes, this.now});
+  /// Depth unit preference for height display. Defaults to meters.
+  final DepthUnit depthUnit;
+
+  /// Time format preference (12h or 24h). Defaults to 24-hour if not specified.
+  final TimeFormat timeFormat;
+
+  const NextTideTimes({
+    super.key,
+    required this.extremes,
+    this.now,
+    this.depthUnit = DepthUnit.meters,
+    this.timeFormat = TimeFormat.twentyFourHour,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -335,7 +356,7 @@ class NextTideTimes extends StatelessWidget {
       orElse: () => null,
     );
 
-    final timeFormat = DateFormat('HH:mm');
+    final timeFormatter = DateFormat(timeFormat.pattern);
 
     return Row(
       children: [
@@ -344,11 +365,11 @@ class NextTideTimes extends StatelessWidget {
           Icon(Icons.arrow_upward, size: 14, color: Colors.red.shade600),
           const SizedBox(width: 4),
           Text(
-            timeFormat.format(nextHigh.time.toLocal()),
+            timeFormatter.format(nextHigh.time.toLocal()),
             style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
           ),
           Text(
-            ' (${nextHigh.heightMeters.toStringAsFixed(1)}m)',
+            ' (${DepthUnit.meters.convert(nextHigh.heightMeters, depthUnit).toStringAsFixed(1)}${depthUnit.symbol})',
             style: textTheme.bodySmall?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
@@ -366,11 +387,11 @@ class NextTideTimes extends StatelessWidget {
           Icon(Icons.arrow_downward, size: 14, color: Colors.blue.shade600),
           const SizedBox(width: 4),
           Text(
-            timeFormat.format(nextLow.time.toLocal()),
+            timeFormatter.format(nextLow.time.toLocal()),
             style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
           ),
           Text(
-            ' (${nextLow.heightMeters.toStringAsFixed(1)}m)',
+            ' (${DepthUnit.meters.convert(nextLow.heightMeters, depthUnit).toStringAsFixed(1)}${depthUnit.symbol})',
             style: textTheme.bodySmall?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),

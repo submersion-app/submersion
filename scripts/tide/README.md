@@ -55,6 +55,13 @@ Download the ocean tide files and extract to a directory, e.g.:
 ├── ...
 ```
 
+### 3. Generate ocean_tide.yaml
+
+Generate ocean_tide.yaml for use later
+```bash
+scripts/tide/generate_fes_config.py fes2022b/ocean_tide_extrapolated
+```
+
 ### 3. Configure FES Data Path
 
 Set the environment variable:
@@ -94,6 +101,13 @@ python extract_fes_constituents.py --lat -16.2864 --lon 145.6845 -o tide_gbr.jso
 For interpolation at any location:
 
 ```bash
+
+# 1-degree resolution (recommended - ~67 MB)
+python3 scripts/tide/extract_fes_constituents.py \
+    --grid --resolution 1 \
+    --config fes2022b/ocean_tide_extrapolated/ocean_tide.yaml \
+    --output assets/data/tide/constituents_grid.json
+
 # 0.25-degree resolution (recommended - ~50-100 MB)
 python extract_fes_constituents.py --grid --resolution 0.25 \
     --output ../../assets/data/tide/constituents_grid.json

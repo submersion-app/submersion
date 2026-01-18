@@ -64,9 +64,11 @@ final hasTideDataProvider = FutureProvider.family<bool, GeoPoint>((
   return service.hasTideData(location.latitude, location.longitude);
 });
 
-/// Provider for tide predictions at a location over the next 24 hours.
+/// Provider for tide predictions at a location.
 ///
-/// Returns predictions at 10-minute intervals.
+/// Returns predictions at 10-minute intervals, covering 6 hours before
+/// and 24 hours after the current time. This allows charts to show
+/// the previous tide extreme for context.
 final tidePredictionsProvider =
     FutureProvider.family<List<TidePrediction>, GeoPoint>((
       ref,
@@ -79,7 +81,7 @@ final tidePredictionsProvider =
 
       final now = DateTime.now();
       return calculator.predict(
-        start: now,
+        start: now.subtract(const Duration(hours: 6)),
         end: now.add(const Duration(hours: 24)),
         interval: const Duration(minutes: 10),
       );
@@ -103,7 +105,11 @@ final tidePredictionsRangeProvider =
       );
     });
 
-/// Provider for tide extremes (high/low tides) over the next 24 hours.
+/// Provider for tide extremes (high/low tides) at a location.
+///
+/// Returns extremes covering 6 hours before and 24 hours after the
+/// current time. This allows charts to show the previous extreme
+/// for context when displaying the current tide position.
 final tideExtremesProvider = FutureProvider.family<List<TideExtreme>, GeoPoint>(
   (ref, location) async {
     final calculator = await ref.watch(tideCalculatorProvider(location).future);
@@ -111,7 +117,7 @@ final tideExtremesProvider = FutureProvider.family<List<TideExtreme>, GeoPoint>(
 
     final now = DateTime.now();
     return calculator.findExtremes(
-      start: now,
+      start: now.subtract(const Duration(hours: 6)),
       end: now.add(const Duration(hours: 24)),
     );
   },

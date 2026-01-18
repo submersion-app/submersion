@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
 
 /// Compact indicator showing current tide state.
@@ -22,10 +23,14 @@ class CurrentTideIndicator extends StatelessWidget {
   /// Whether to show a compact version (no next extreme info).
   final bool compact;
 
+  /// Depth unit preference for height display. Defaults to meters.
+  final DepthUnit depthUnit;
+
   const CurrentTideIndicator({
     super.key,
     required this.status,
     this.compact = false,
+    this.depthUnit = DepthUnit.meters,
   });
 
   @override
@@ -67,14 +72,14 @@ class CurrentTideIndicator extends StatelessWidget {
                             ?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   Text(
-                    'Current: ${status.currentHeight.toStringAsFixed(2)}m',
+                    'Current: ${DepthUnit.meters.convert(status.currentHeight, depthUnit).toStringAsFixed(2)}${depthUnit.symbol}',
                     style:
                         (compact ? textTheme.bodySmall : textTheme.bodyMedium)
                             ?.copyWith(color: colorScheme.onSurfaceVariant),
                   ),
                   if (status.rateOfChange != null && !compact)
                     Text(
-                      '${status.rateOfChange! > 0 ? '+' : ''}${status.rateOfChange!.toStringAsFixed(2)}m/hr',
+                      '${status.rateOfChange! > 0 ? '+' : ''}${DepthUnit.meters.convert(status.rateOfChange!, depthUnit).toStringAsFixed(2)}${depthUnit.symbol}/hr',
                       style: textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -107,7 +112,7 @@ class CurrentTideIndicator extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '${status.nextExtreme!.heightMeters.toStringAsFixed(2)}m',
+                    '${DepthUnit.meters.convert(status.nextExtreme!.heightMeters, depthUnit).toStringAsFixed(2)}${depthUnit.symbol}',
                     style: textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
