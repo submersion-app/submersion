@@ -1,0 +1,16 @@
+{
+  "version": "1.0",
+  "model": "FES2022",
+  "datum": "MSL",
+  "extraction_date": "2026-01-17",
+  "constituents": [
+    "M2", "S2", "N2", "K2", "K1", "O1", "P1", "Q1",
+    "2N2", "Mu2", "Nu2", "L2", "T2", "Eps2", "La2", "R2",
+    "2Q1", "Sig1", "Rho1", "M1", "Chi1", "Pi1", "Phi1", "The1",
+    "J1", "OO1", "Mf", "Mm", "Ssa", "Sa", "Msqm", "Mtm",
+    "M4", "MS4"
+  ],
+  "description": "Tidal harmonic constituents extracted from FES2022 ocean tide model",
+  "source": "CNES/LEGOS via PyFES",
+  "license": "FES2022 data is available under specific terms from AVISO"
+}

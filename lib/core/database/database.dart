@@ -682,6 +682,36 @@ class TankPressureProfiles extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Tide data recorded with a dive for historical reference.
+///
+/// Stores the tide conditions at the time of a dive, including:
+/// - Current height and state (rising/falling)
+/// - Nearby high and low tide information
+///
+/// This enables post-dive analysis of conditions and correlation with dive quality.
+class TideRecords extends Table {
+  TextColumn get id => text()();
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  // Current tide at dive time
+  RealColumn get heightMeters => real()(); // Tide height at dive start
+  TextColumn get tideState => text()(); // rising, falling, slackHigh, slackLow
+  RealColumn get rateOfChange =>
+      real().nullable()(); // meters per hour (positive = rising)
+  // Nearby high tide
+  RealColumn get highTideHeight => real().nullable()(); // Height at high tide
+  IntColumn get highTideTime =>
+      integer().nullable()(); // Unix timestamp of high tide
+  // Nearby low tide
+  RealColumn get lowTideHeight => real().nullable()(); // Height at low tide
+  IntColumn get lowTideTime =>
+      integer().nullable()(); // Unix timestamp of low tide
+  IntColumn get createdAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 // ============================================================================
 // Sync Tables
 // ============================================================================
@@ -770,6 +800,7 @@ class DeletionLog extends Table {
     DiveProfileEvents,
     GasSwitches,
     TankPressureProfiles,
+    TideRecords,
     // Sync tables
     SyncMetadata,
     SyncRecords,
@@ -780,7 +811,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 13;
+  int get schemaVersion => 14;
 
   @override
   MigrationStrategy get migration {
@@ -1004,6 +1035,28 @@ class AppDatabase extends _$AppDatabase {
               created_at INTEGER NOT NULL,
               updated_at INTEGER NOT NULL
             )
+          ''');
+        }
+        if (from < 14) {
+          // Add tide records table for storing tide data with dives
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS tide_records (
+              id TEXT NOT NULL PRIMARY KEY,
+              dive_id TEXT NOT NULL REFERENCES dives(id) ON DELETE CASCADE,
+              height_meters REAL NOT NULL,
+              tide_state TEXT NOT NULL,
+              rate_of_change REAL,
+              high_tide_height REAL,
+              high_tide_time INTEGER,
+              low_tide_height REAL,
+              low_tide_time INTEGER,
+              created_at INTEGER NOT NULL
+            )
+          ''');
+          // Index for efficient lookup by dive
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_tide_records_dive
+            ON tide_records(dive_id)
           ''');
         }
       },

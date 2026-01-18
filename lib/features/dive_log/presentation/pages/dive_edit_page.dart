@@ -33,6 +33,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/ccr_settings_p
 import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_selector.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/scr_settings_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_editor.dart';
+import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
 
 class DiveEditPage extends ConsumerStatefulWidget {
   final String? diveId;
@@ -2511,6 +2512,31 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         await buddyRepository.setBuddiesForDive(savedDiveId, _selectedBuddies);
         // Invalidate the buddies provider so the detail page shows updated data
         ref.invalidate(buddiesForDiveProvider(savedDiveId));
+      }
+
+      // Record tide conditions if site has coordinates
+      if (savedDiveId != null &&
+          _selectedSite != null &&
+          _selectedSite!.hasCoordinates) {
+        try {
+          final tideDataService = ref.read(tideDataServiceProvider);
+          final calculator = await tideDataService.getCalculatorForLocation(
+            _selectedSite!.location!.latitude,
+            _selectedSite!.location!.longitude,
+          );
+          if (calculator != null) {
+            // Record tide status at dive entry time
+            final status = calculator.getStatus(entryDateTime);
+            final tideRepository = ref.read(tideRecordRepositoryProvider);
+            await tideRepository.createFromStatus(
+              diveId: savedDiveId,
+              status: status,
+            );
+          }
+        } catch (e) {
+          // Silently fail - tide recording is optional enhancement
+          debugPrint('Failed to record tide data: $e');
+        }
       }
 
       if (mounted && savedDiveId != null) {

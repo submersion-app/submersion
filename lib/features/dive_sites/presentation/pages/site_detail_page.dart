@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
-import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
-
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/tides/presentation/widgets/tide_section.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
 class SiteDetailPage extends ConsumerStatefulWidget {
   final String siteId;
@@ -134,6 +134,12 @@ class _SiteDetailContent extends ConsumerWidget {
           // Depth Information Section
           _buildDepthSection(context, ref, site),
           const SizedBox(height: 16),
+
+          // Tide Section (only if site has coordinates)
+          if (site.hasCoordinates) ...[
+            TideSection(location: site.location!),
+            const SizedBox(height: 16),
+          ],
 
           // Difficulty Section
           if (site.difficulty != null) ...[

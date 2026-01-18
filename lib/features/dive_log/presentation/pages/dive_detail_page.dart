@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:intl/intl.dart' show DateFormat;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
@@ -41,6 +42,10 @@ import 'package:submersion/features/dive_log/presentation/widgets/playback_stats
 import 'package:submersion/features/dive_log/presentation/widgets/range_selection_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/range_stats_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_saturation_panel.dart';
+import 'package:submersion/core/tide/entities/tide_extremes.dart';
+import 'package:submersion/features/tides/domain/entities/tide_record.dart';
+import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
+import 'package:submersion/features/tides/presentation/widgets/tide_cycle_graph.dart';
 
 /// Calculate normalization factor to align profile-based SAC with tank-based SAC.
 /// The segments are calculated from profile pressure data, but dive.sacPressure
@@ -195,6 +200,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               const SizedBox(height: 24),
               _buildConditionsSection(context, dive),
             ],
+            const SizedBox(height: 24),
+            _buildTideSection(context, ref, dive),
             if (_hasWeights(dive)) ...[
               const SizedBox(height: 24),
               _buildWeightSection(context, dive, units),
@@ -2228,6 +2235,184 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         ),
       ),
     );
+  }
+
+  /// Build the tide conditions section for a dive.
+  ///
+  /// Shows tide data from:
+  /// 1. Stored TideRecord (if saved when dive was logged)
+  /// 2. Calculated from tide model (if dive site has coordinates and tide data)
+  Widget _buildTideSection(BuildContext context, WidgetRef ref, Dive dive) {
+    // First try to get stored tide record
+    final tideRecordAsync = ref.watch(tideRecordForDiveProvider(dive.id));
+
+    return tideRecordAsync.when(
+      data: (tideRecord) {
+        if (tideRecord != null) {
+          // We have a stored tide record - show it
+          return _buildTideCard(context, tideRecord, entryTime: dive.entryTime);
+        }
+
+        // No stored record - try to calculate from tide model if we have coordinates
+        if (dive.site?.hasCoordinates != true || dive.entryTime == null) {
+          return const SizedBox.shrink();
+        }
+
+        final location = dive.site!.location!;
+        final entryTime = dive.entryTime!;
+        final calculatorAsync = ref.watch(tideCalculatorProvider(location));
+
+        return calculatorAsync.when(
+          data: (calculator) {
+            if (calculator == null) {
+              return const SizedBox.shrink(); // No tide data for this location
+            }
+
+            // Calculate tide at dive entry time
+            final status = calculator.getStatus(entryTime);
+            final record = TideRecord.fromStatus(
+              id: 'calculated',
+              diveId: dive.id,
+              status: status,
+            );
+
+            return _buildTideCard(
+              context,
+              record,
+              isCalculated: true,
+              entryTime: entryTime,
+            );
+          },
+          loading: () => const SizedBox.shrink(),
+          error: (_, _) => const SizedBox.shrink(),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
+    );
+  }
+
+  /// Build the tide card with data.
+  Widget _buildTideCard(
+    BuildContext context,
+    TideRecord record, {
+    bool isCalculated = false,
+    DateTime? entryTime,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final settings = ref.watch(settingsProvider);
+
+    // Get collapsed state from provider
+    final isExpanded = ref.watch(tideSectionExpandedProvider);
+
+    // Get icon and color based on tide state
+    IconData stateIcon;
+    Color stateColor;
+    switch (record.tideState) {
+      case TideState.rising:
+        stateIcon = Icons.trending_up;
+        stateColor = Colors.blue;
+        break;
+      case TideState.falling:
+        stateIcon = Icons.trending_down;
+        stateColor = Colors.orange;
+        break;
+      case TideState.slackHigh:
+        stateIcon = Icons.horizontal_rule;
+        stateColor = Colors.green;
+        break;
+      case TideState.slackLow:
+        stateIcon = Icons.horizontal_rule;
+        stateColor = Colors.amber;
+        break;
+    }
+
+    // Build collapsed subtitle with tide state and height
+    final collapsedSubtitle =
+        '${record.tideState.displayName} • ${DepthUnit.meters.convert(record.heightMeters, settings.depthUnit).toStringAsFixed(1)}${settings.depthUnit.symbol}';
+
+    return CollapsibleCardSection(
+      title: 'Tide',
+      icon: Icons.waves,
+      collapsedSubtitle: collapsedSubtitle,
+      trailing: isCalculated
+          ? Tooltip(
+              message: 'Calculated from tide model',
+              child: Icon(
+                Icons.calculate_outlined,
+                size: 16,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            )
+          : null,
+      isExpanded: isExpanded,
+      onToggle: (expanded) {
+        ref.read(collapsibleSectionProvider.notifier).setTideExpanded(expanded);
+      },
+      contentBuilder: (context) => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Divider(),
+            // Tide cycle visualization
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: TideCycleGraph(
+                record: record,
+                referenceTime: entryTime,
+                timeFormat: settings.timeFormat,
+                depthUnit: settings.depthUnit,
+                height: 80,
+              ),
+            ),
+            // Current state with icon
+            Row(
+              children: [
+                Icon(stateIcon, color: stateColor, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _buildDetailRow(
+                    context,
+                    'State',
+                    record.tideState.displayName,
+                  ),
+                ),
+              ],
+            ),
+            _buildDetailRow(
+              context,
+              'Height',
+              '${DepthUnit.meters.convert(record.heightMeters, settings.depthUnit).toStringAsFixed(2)}${settings.depthUnit.symbol}',
+            ),
+            if (record.rateOfChange != null)
+              _buildDetailRow(
+                context,
+                'Rate of Change',
+                '${record.rateOfChange! > 0 ? '+' : ''}${DepthUnit.meters.convert(record.rateOfChange!, settings.depthUnit).toStringAsFixed(2)} ${settings.depthUnit.symbol}/hr',
+              ),
+            if (record.highTideTime != null && record.highTideHeight != null)
+              _buildDetailRow(
+                context,
+                'High Tide',
+                '${DepthUnit.meters.convert(record.highTideHeight!, settings.depthUnit).toStringAsFixed(2)}${settings.depthUnit.symbol} at ${_formatTime(record.highTideTime!, settings.timeFormat)}',
+              ),
+            if (record.lowTideTime != null && record.lowTideHeight != null)
+              _buildDetailRow(
+                context,
+                'Low Tide',
+                '${DepthUnit.meters.convert(record.lowTideHeight!, settings.depthUnit).toStringAsFixed(2)}${settings.depthUnit.symbol} at ${_formatTime(record.lowTideTime!, settings.timeFormat)}',
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Format a DateTime as a time string using the given time format.
+  String _formatTime(DateTime time, TimeFormat timeFormat) {
+    return DateFormat(timeFormat.pattern).format(time.toLocal());
   }
 
   Widget _buildWeightSection(

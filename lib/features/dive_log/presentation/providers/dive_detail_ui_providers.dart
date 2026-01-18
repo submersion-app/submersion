@@ -12,6 +12,7 @@ class DiveDetailUiKeys {
       'dive_detail_sac_segments_expanded';
   static const String equipmentSectionExpanded =
       'dive_detail_equipment_expanded';
+  static const String tideSectionExpanded = 'dive_detail_tide_expanded';
 }
 
 /// State class for collapsible section preferences
@@ -20,12 +21,14 @@ class CollapsibleSectionState {
   final bool o2ToxicityExpanded;
   final bool sacSegmentsExpanded;
   final bool equipmentExpanded;
+  final bool tideExpanded;
 
   const CollapsibleSectionState({
     this.decoExpanded = true,
     this.o2ToxicityExpanded = true,
     this.sacSegmentsExpanded = true,
     this.equipmentExpanded = true,
+    this.tideExpanded = true,
   });
 
   CollapsibleSectionState copyWith({
@@ -33,12 +36,14 @@ class CollapsibleSectionState {
     bool? o2ToxicityExpanded,
     bool? sacSegmentsExpanded,
     bool? equipmentExpanded,
+    bool? tideExpanded,
   }) {
     return CollapsibleSectionState(
       decoExpanded: decoExpanded ?? this.decoExpanded,
       o2ToxicityExpanded: o2ToxicityExpanded ?? this.o2ToxicityExpanded,
       sacSegmentsExpanded: sacSegmentsExpanded ?? this.sacSegmentsExpanded,
       equipmentExpanded: equipmentExpanded ?? this.equipmentExpanded,
+      tideExpanded: tideExpanded ?? this.tideExpanded,
     );
   }
 }
@@ -63,6 +68,8 @@ class CollapsibleSectionNotifier
           _prefs.getBool(DiveDetailUiKeys.sacSegmentsSectionExpanded) ?? true,
       equipmentExpanded:
           _prefs.getBool(DiveDetailUiKeys.equipmentSectionExpanded) ?? true,
+      tideExpanded:
+          _prefs.getBool(DiveDetailUiKeys.tideSectionExpanded) ?? true,
     );
   }
 
@@ -84,6 +91,11 @@ class CollapsibleSectionNotifier
   Future<void> setEquipmentExpanded(bool expanded) async {
     state = state.copyWith(equipmentExpanded: expanded);
     await _prefs.setBool(DiveDetailUiKeys.equipmentSectionExpanded, expanded);
+  }
+
+  Future<void> setTideExpanded(bool expanded) async {
+    state = state.copyWith(tideExpanded: expanded);
+    await _prefs.setBool(DiveDetailUiKeys.tideSectionExpanded, expanded);
   }
 }
 
@@ -117,4 +129,8 @@ final equipmentSectionExpandedProvider = Provider<bool>((ref) {
   return ref.watch(
     collapsibleSectionProvider.select((s) => s.equipmentExpanded),
   );
+});
+
+final tideSectionExpandedProvider = Provider<bool>((ref) {
+  return ref.watch(collapsibleSectionProvider.select((s) => s.tideExpanded));
 });
