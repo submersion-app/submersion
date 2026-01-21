@@ -1,14 +1,17 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
 
 class SiteRepository {
   AppDatabase get _db => DatabaseService.instance.database;
+  final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(SiteRepository);
 
@@ -76,6 +79,13 @@ class SiteRepository {
             ),
           );
 
+      await _syncRepository.markRecordPending(
+        entityType: 'diveSites',
+        recordId: id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+
       _log.info('Created site with id: $id');
       return site.copyWith(id: id);
     } catch (e, stackTrace) {
@@ -112,6 +122,12 @@ class SiteRepository {
           updatedAt: Value(now),
         ),
       );
+      await _syncRepository.markRecordPending(
+        entityType: 'diveSites',
+        recordId: site.id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
       _log.info('Updated site: ${site.id}');
     } catch (e, stackTrace) {
       _log.error('Failed to update site: ${site.id}', e, stackTrace);
@@ -124,6 +140,8 @@ class SiteRepository {
     try {
       _log.info('Deleting site: $id');
       await (_db.delete(_db.diveSites)..where((t) => t.id.equals(id))).go();
+      await _syncRepository.logDeletion(entityType: 'diveSites', recordId: id);
+      SyncEventBus.notifyLocalChange();
       _log.info('Deleted site: $id');
     } catch (e, stackTrace) {
       _log.error('Failed to delete site: $id', e, stackTrace);
@@ -150,6 +168,13 @@ class SiteRepository {
     try {
       _log.info('Bulk deleting ${ids.length} sites');
       await (_db.delete(_db.diveSites)..where((t) => t.id.isIn(ids))).go();
+      for (final id in ids) {
+        await _syncRepository.logDeletion(
+          entityType: 'diveSites',
+          recordId: id,
+        );
+      }
+      SyncEventBus.notifyLocalChange();
       _log.info('Bulk deleted ${ids.length} sites');
     } catch (e, stackTrace) {
       _log.error('Failed to bulk delete sites', e, stackTrace);

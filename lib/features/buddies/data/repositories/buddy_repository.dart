@@ -1,15 +1,18 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
 
 class BuddyRepository {
   AppDatabase get _db => DatabaseService.instance.database;
+  final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(BuddyRepository);
 
@@ -117,6 +120,13 @@ class BuddyRepository {
             ),
           );
 
+      await _syncRepository.markRecordPending(
+        entityType: 'buddies',
+        recordId: id,
+        localUpdatedAt: now.millisecondsSinceEpoch,
+      );
+      SyncEventBus.notifyLocalChange();
+
       _log.info('Created buddy with id: $id');
       return buddy.copyWith(id: id, createdAt: now, updatedAt: now);
     } catch (e, stackTrace) {
@@ -208,6 +218,12 @@ class BuddyRepository {
           updatedAt: Value(now),
         ),
       );
+      await _syncRepository.markRecordPending(
+        entityType: 'buddies',
+        recordId: buddy.id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
       _log.info('Updated buddy: ${buddy.id}');
     } catch (e, stackTrace) {
       _log.error('Failed to update buddy: ${buddy.id}', e, stackTrace);
@@ -221,6 +237,8 @@ class BuddyRepository {
       _log.info('Deleting buddy: $id');
       // Dive buddies will be automatically deleted due to CASCADE
       await (_db.delete(_db.buddies)..where((t) => t.id.equals(id))).go();
+      await _syncRepository.logDeletion(entityType: 'buddies', recordId: id);
+      SyncEventBus.notifyLocalChange();
       _log.info('Deleted buddy: $id');
     } catch (e, stackTrace) {
       _log.error('Failed to delete buddy: $id', e, stackTrace);
@@ -278,25 +296,49 @@ class BuddyRepository {
     List<domain.BuddyWithRole> buddies,
   ) async {
     // Delete existing dive buddies
+    final existing = await (_db.select(
+      _db.diveBuddies,
+    )..where((t) => t.diveId.equals(diveId))).get();
     await (_db.delete(
       _db.diveBuddies,
     )..where((t) => t.diveId.equals(diveId))).go();
+    for (final row in existing) {
+      await _syncRepository.logDeletion(
+        entityType: 'diveBuddies',
+        recordId: row.id,
+      );
+    }
 
     // Insert new dive buddies
     final now = DateTime.now().millisecondsSinceEpoch;
     for (final buddyWithRole in buddies) {
+      final id = _uuid.v4();
       await _db
           .into(_db.diveBuddies)
           .insert(
             DiveBuddiesCompanion(
-              id: Value(_uuid.v4()),
+              id: Value(id),
               diveId: Value(diveId),
               buddyId: Value(buddyWithRole.buddy.id),
               role: Value(buddyWithRole.role.name),
               createdAt: Value(now),
             ),
           );
+      await _syncRepository.markRecordPending(
+        entityType: 'diveBuddies',
+        recordId: id,
+        localUpdatedAt: now,
+      );
     }
+    await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+      DivesCompanion(updatedAt: Value(now)),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'dives',
+      recordId: diveId,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
   }
 
   /// Add a buddy to a dive
@@ -319,27 +361,66 @@ class BuddyRepository {
       await (_db.update(_db.diveBuddies)
             ..where((t) => t.diveId.equals(diveId) & t.buddyId.equals(buddyId)))
           .write(DiveBuddiesCompanion(role: Value(role.name)));
+      await _syncRepository.markRecordPending(
+        entityType: 'diveBuddies',
+        recordId: existing.id,
+        localUpdatedAt: now,
+      );
     } else {
       // Insert new
+      final id = _uuid.v4();
       await _db
           .into(_db.diveBuddies)
           .insert(
             DiveBuddiesCompanion(
-              id: Value(_uuid.v4()),
+              id: Value(id),
               diveId: Value(diveId),
               buddyId: Value(buddyId),
               role: Value(role.name),
               createdAt: Value(now),
             ),
           );
+      await _syncRepository.markRecordPending(
+        entityType: 'diveBuddies',
+        recordId: id,
+        localUpdatedAt: now,
+      );
     }
+    await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+      DivesCompanion(updatedAt: Value(now)),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'dives',
+      recordId: diveId,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
   }
 
   /// Remove a buddy from a dive
   Future<void> removeBuddyFromDive(String diveId, String buddyId) async {
+    final existing = await (_db.select(
+      _db.diveBuddies,
+    )..where((t) => t.diveId.equals(diveId) & t.buddyId.equals(buddyId))).get();
     await (_db.delete(
       _db.diveBuddies,
     )..where((t) => t.diveId.equals(diveId) & t.buddyId.equals(buddyId))).go();
+    for (final row in existing) {
+      await _syncRepository.logDeletion(
+        entityType: 'diveBuddies',
+        recordId: row.id,
+      );
+    }
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+      DivesCompanion(updatedAt: Value(now)),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'dives',
+      recordId: diveId,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
   }
 
   /// Get dive count for a buddy

@@ -2,9 +2,11 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart'
@@ -21,6 +23,7 @@ import 'package:submersion/features/trips/domain/entities/trip.dart' as domain;
 
 class DiveRepository {
   AppDatabase get _db => DatabaseService.instance.database;
+  final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(DiveRepository);
   final TagRepository _tagRepository = TagRepository();
@@ -290,6 +293,11 @@ class DiveRepository {
               updatedAt: Value(now),
             ),
           );
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: id,
+        localUpdatedAt: now,
+      );
 
       // Insert tanks (preserve provided IDs if not empty, otherwise generate new ones)
       for (final tank in dive.tanks) {
@@ -313,15 +321,21 @@ class DiveRepository {
                 presetName: Value(tank.presetName),
               ),
             );
+        await _syncRepository.markRecordPending(
+          entityType: 'diveTanks',
+          recordId: tankId,
+          localUpdatedAt: now,
+        );
       }
 
       // Insert weights
       for (final weight in dive.weights) {
+        final weightId = weight.id.isNotEmpty ? weight.id : _uuid.v4();
         await _db
             .into(_db.diveWeights)
             .insert(
               DiveWeightsCompanion(
-                id: Value(weight.id.isNotEmpty ? weight.id : _uuid.v4()),
+                id: Value(weightId),
                 diveId: Value(id),
                 weightType: Value(weight.weightType.name),
                 amountKg: Value(weight.amountKg),
@@ -329,15 +343,21 @@ class DiveRepository {
                 createdAt: Value(now),
               ),
             );
+        await _syncRepository.markRecordPending(
+          entityType: 'diveWeights',
+          recordId: weightId,
+          localUpdatedAt: now,
+        );
       }
 
       // Insert profile points
       for (final point in dive.profile) {
+        final profileId = _uuid.v4();
         await _db
             .into(_db.diveProfiles)
             .insert(
               DiveProfilesCompanion(
-                id: Value(_uuid.v4()),
+                id: Value(profileId),
                 diveId: Value(id),
                 timestamp: Value(point.timestamp),
                 depth: Value(point.depth),
@@ -346,6 +366,11 @@ class DiveRepository {
                 heartRate: Value(point.heartRate),
               ),
             );
+        await _syncRepository.markRecordPending(
+          entityType: 'diveProfiles',
+          recordId: profileId,
+          localUpdatedAt: now,
+        );
       }
 
       // Insert equipment associations
@@ -358,6 +383,11 @@ class DiveRepository {
                 equipmentId: Value(item.id),
               ),
             );
+        await _syncRepository.markRecordPending(
+          entityType: 'diveEquipment',
+          recordId: '$id|${item.id}',
+          localUpdatedAt: now,
+        );
       }
 
       // Insert tag associations
@@ -365,6 +395,7 @@ class DiveRepository {
         await _tagRepository.setTagsForDive(id, dive.tags);
       }
 
+      SyncEventBus.notifyLocalChange();
       _log.info('Created dive with id: $id');
       return dive.copyWith(id: id);
     } catch (e, stackTrace) {
@@ -445,17 +476,32 @@ class DiveRepository {
           updatedAt: Value(now),
         ),
       );
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: dive.id,
+        localUpdatedAt: now,
+      );
 
       // Update tanks: delete and re-insert
+      final existingTanks = await (_db.select(
+        _db.diveTanks,
+      )..where((t) => t.diveId.equals(dive.id))).get();
       await (_db.delete(
         _db.diveTanks,
       )..where((t) => t.diveId.equals(dive.id))).go();
+      for (final tank in existingTanks) {
+        await _syncRepository.logDeletion(
+          entityType: 'diveTanks',
+          recordId: tank.id,
+        );
+      }
       for (final tank in dive.tanks) {
+        final tankId = tank.id.isNotEmpty ? tank.id : _uuid.v4();
         await _db
             .into(_db.diveTanks)
             .insert(
               DiveTanksCompanion(
-                id: Value(_uuid.v4()),
+                id: Value(tankId),
                 diveId: Value(dive.id),
                 volume: Value(tank.volume),
                 workingPressure: Value(tank.workingPressure),
@@ -470,18 +516,33 @@ class DiveRepository {
                 presetName: Value(tank.presetName),
               ),
             );
+        await _syncRepository.markRecordPending(
+          entityType: 'diveTanks',
+          recordId: tankId,
+          localUpdatedAt: now,
+        );
       }
 
       // Update weights: delete and re-insert
+      final existingWeights = await (_db.select(
+        _db.diveWeights,
+      )..where((t) => t.diveId.equals(dive.id))).get();
       await (_db.delete(
         _db.diveWeights,
       )..where((t) => t.diveId.equals(dive.id))).go();
+      for (final weight in existingWeights) {
+        await _syncRepository.logDeletion(
+          entityType: 'diveWeights',
+          recordId: weight.id,
+        );
+      }
       for (final weight in dive.weights) {
+        final weightId = weight.id.isNotEmpty ? weight.id : _uuid.v4();
         await _db
             .into(_db.diveWeights)
             .insert(
               DiveWeightsCompanion(
-                id: Value(weight.id.isNotEmpty ? weight.id : _uuid.v4()),
+                id: Value(weightId),
                 diveId: Value(dive.id),
                 weightType: Value(weight.weightType.name),
                 amountKg: Value(weight.amountKg),
@@ -489,12 +550,26 @@ class DiveRepository {
                 createdAt: Value(DateTime.now().millisecondsSinceEpoch),
               ),
             );
+        await _syncRepository.markRecordPending(
+          entityType: 'diveWeights',
+          recordId: weightId,
+          localUpdatedAt: now,
+        );
       }
 
       // Update equipment: delete and re-insert
+      final existingEquipment = await (_db.select(
+        _db.diveEquipment,
+      )..where((t) => t.diveId.equals(dive.id))).get();
       await (_db.delete(
         _db.diveEquipment,
       )..where((t) => t.diveId.equals(dive.id))).go();
+      for (final item in existingEquipment) {
+        await _syncRepository.logDeletion(
+          entityType: 'diveEquipment',
+          recordId: '${item.diveId}|${item.equipmentId}',
+        );
+      }
       for (final item in dive.equipment) {
         await _db
             .into(_db.diveEquipment)
@@ -504,11 +579,17 @@ class DiveRepository {
                 equipmentId: Value(item.id),
               ),
             );
+        await _syncRepository.markRecordPending(
+          entityType: 'diveEquipment',
+          recordId: '${dive.id}|${item.id}',
+          localUpdatedAt: now,
+        );
       }
 
       // Update tags
       await _tagRepository.setTagsForDive(dive.id, dive.tags);
 
+      SyncEventBus.notifyLocalChange();
       _log.info('Updated dive: ${dive.id}');
     } catch (e, stackTrace) {
       _log.error('Failed to update dive: ${dive.id}', e, stackTrace);
@@ -521,6 +602,8 @@ class DiveRepository {
     try {
       _log.info('Deleting dive: $id');
       await (_db.delete(_db.dives)..where((t) => t.id.equals(id))).go();
+      await _syncRepository.logDeletion(entityType: 'dives', recordId: id);
+      SyncEventBus.notifyLocalChange();
       _log.info('Deleted dive: $id');
     } catch (e, stackTrace) {
       _log.error('Failed to delete dive: $id', e, stackTrace);
@@ -536,6 +619,10 @@ class DiveRepository {
     try {
       _log.info('Bulk deleting ${ids.length} dives');
       await (_db.delete(_db.dives)..where((t) => t.id.isIn(ids))).go();
+      for (final id in ids) {
+        await _syncRepository.logDeletion(entityType: 'dives', recordId: id);
+      }
+      SyncEventBus.notifyLocalChange();
       _log.info('Bulk deleted ${ids.length} dives');
       return ids;
     } catch (e, stackTrace) {
@@ -1482,13 +1569,20 @@ class DiveRepository {
   Future<void> toggleFavorite(String diveId) async {
     try {
       _log.info('Toggling favorite for dive: $diveId');
+      final now = DateTime.now().millisecondsSinceEpoch;
       await _db.customStatement(
         '''
         UPDATE dives SET is_favorite = NOT is_favorite, updated_at = ?
         WHERE id = ?
       ''',
-        [DateTime.now().millisecondsSinceEpoch, diveId],
+        [now, diveId],
       );
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: diveId,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
       _log.info('Toggled favorite for dive: $diveId');
     } catch (e, stackTrace) {
       _log.error('Failed to toggle favorite for dive: $diveId', e, stackTrace);
@@ -1500,12 +1594,16 @@ class DiveRepository {
   Future<void> setFavorite(String diveId, bool isFavorite) async {
     try {
       _log.info('Setting favorite=$isFavorite for dive: $diveId');
+      final now = DateTime.now().millisecondsSinceEpoch;
       await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
-        DivesCompanion(
-          isFavorite: Value(isFavorite),
-          updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
-        ),
+        DivesCompanion(isFavorite: Value(isFavorite), updatedAt: Value(now)),
       );
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: diveId,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
       _log.info('Set favorite=$isFavorite for dive: $diveId');
     } catch (e, stackTrace) {
       _log.error('Failed to set favorite for dive: $diveId', e, stackTrace);
@@ -1609,6 +1707,12 @@ class DiveRepository {
           updatedAt: Value(now),
         ),
       );
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: planId,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
 
       _log.info('Converted planned dive to actual: $planId');
       return planId;
@@ -1740,6 +1844,20 @@ class DiveRepository {
             ),
           );
 
+      await _syncRepository.markRecordPending(
+        entityType: 'gasSwitches',
+        recordId: id,
+        localUpdatedAt: now,
+      );
+      await (_db.update(_db.dives)..where((t) => t.id.equals(gasSwitch.diveId)))
+          .write(DivesCompanion(updatedAt: Value(now)));
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: gasSwitch.diveId,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+
       _log.info('Created gas switch for dive: ${gasSwitch.diveId}');
       return gasSwitch.copyWith(id: id);
     } catch (e, stackTrace) {
@@ -1751,7 +1869,26 @@ class DiveRepository {
   /// Delete a gas switch
   Future<void> deleteGasSwitch(String id) async {
     try {
+      final existing = await (_db.select(
+        _db.gasSwitches,
+      )..where((t) => t.id.equals(id))).getSingleOrNull();
       await (_db.delete(_db.gasSwitches)..where((t) => t.id.equals(id))).go();
+      if (existing != null) {
+        await _syncRepository.logDeletion(
+          entityType: 'gasSwitches',
+          recordId: existing.id,
+        );
+        final now = DateTime.now().millisecondsSinceEpoch;
+        await (_db.update(_db.dives)
+              ..where((t) => t.id.equals(existing.diveId)))
+            .write(DivesCompanion(updatedAt: Value(now)));
+        await _syncRepository.markRecordPending(
+          entityType: 'dives',
+          recordId: existing.diveId,
+          localUpdatedAt: now,
+        );
+      }
+      SyncEventBus.notifyLocalChange();
       _log.info('Deleted gas switch: $id');
     } catch (e, stackTrace) {
       _log.error('Failed to delete gas switch: $id', e, stackTrace);
@@ -1762,9 +1899,28 @@ class DiveRepository {
   /// Delete all gas switches for a dive
   Future<void> deleteGasSwitchesForDive(String diveId) async {
     try {
+      final existing = await (_db.select(
+        _db.gasSwitches,
+      )..where((t) => t.diveId.equals(diveId))).get();
       await (_db.delete(
         _db.gasSwitches,
       )..where((t) => t.diveId.equals(diveId))).go();
+      for (final row in existing) {
+        await _syncRepository.logDeletion(
+          entityType: 'gasSwitches',
+          recordId: row.id,
+        );
+      }
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+        DivesCompanion(updatedAt: Value(now)),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: diveId,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
       _log.info('Deleted gas switches for dive: $diveId');
     } catch (e, stackTrace) {
       _log.error(
@@ -1782,12 +1938,15 @@ class DiveRepository {
 
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
+      final diveIds = <String>{};
       for (final gs in switches) {
+        final id = gs.id.isEmpty ? _uuid.v4() : gs.id;
+        diveIds.add(gs.diveId);
         await _db
             .into(_db.gasSwitches)
             .insert(
               GasSwitchesCompanion(
-                id: Value(gs.id.isEmpty ? _uuid.v4() : gs.id),
+                id: Value(id),
                 diveId: Value(gs.diveId),
                 timestamp: Value(gs.timestamp),
                 tankId: Value(gs.tankId),
@@ -1795,7 +1954,23 @@ class DiveRepository {
                 createdAt: Value(now),
               ),
             );
+        await _syncRepository.markRecordPending(
+          entityType: 'gasSwitches',
+          recordId: id,
+          localUpdatedAt: now,
+        );
       }
+      for (final diveId in diveIds) {
+        await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+          DivesCompanion(updatedAt: Value(now)),
+        );
+        await _syncRepository.markRecordPending(
+          entityType: 'dives',
+          recordId: diveId,
+          localUpdatedAt: now,
+        );
+      }
+      SyncEventBus.notifyLocalChange();
       _log.info('Inserted ${switches.length} gas switches');
     } catch (e, stackTrace) {
       _log.error('Failed to bulk insert gas switches', e, stackTrace);
@@ -1957,15 +2132,19 @@ class DiveRepository {
 
       int number = startFrom;
       for (final row in rows) {
+        final now = DateTime.now().millisecondsSinceEpoch;
         await (_db.update(_db.dives)..where((t) => t.id.equals(row.id))).write(
-          DivesCompanion(
-            diveNumber: Value(number),
-            updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
-          ),
+          DivesCompanion(diveNumber: Value(number), updatedAt: Value(now)),
+        );
+        await _syncRepository.markRecordPending(
+          entityType: 'dives',
+          recordId: row.id,
+          localUpdatedAt: now,
         );
         number++;
       }
 
+      SyncEventBus.notifyLocalChange();
       _log.info('Renumbered ${rows.length} dives');
     } catch (e, stackTrace) {
       _log.error('Failed to renumber dives', e, stackTrace);
@@ -2012,12 +2191,18 @@ class DiveRepository {
     if (diveIds.isEmpty) return;
 
     try {
+      final now = DateTime.now().millisecondsSinceEpoch;
       await (_db.update(_db.dives)..where((t) => t.id.isIn(diveIds))).write(
-        DivesCompanion(
-          tripId: Value(tripId),
-          updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
-        ),
+        DivesCompanion(tripId: Value(tripId), updatedAt: Value(now)),
       );
+      for (final diveId in diveIds) {
+        await _syncRepository.markRecordPending(
+          entityType: 'dives',
+          recordId: diveId,
+          localUpdatedAt: now,
+        );
+      }
+      SyncEventBus.notifyLocalChange();
       _log.info('Bulk updated trip for ${diveIds.length} dives');
     } catch (e, stackTrace) {
       _log.error('Failed to bulk update trip', e, stackTrace);
@@ -2030,15 +2215,38 @@ class DiveRepository {
     if (diveIds.isEmpty || tagIds.isEmpty) return;
 
     try {
+      final now = DateTime.now().millisecondsSinceEpoch;
       for (final diveId in diveIds) {
         for (final tagId in tagIds) {
+          final diveTagId = _uuid.v4();
           await _db
               .into(_db.diveTags)
               .insertOnConflictUpdate(
-                DiveTagsCompanion(diveId: Value(diveId), tagId: Value(tagId)),
+                DiveTagsCompanion(
+                  id: Value(diveTagId),
+                  diveId: Value(diveId),
+                  tagId: Value(tagId),
+                  createdAt: Value(now),
+                ),
               );
+          await _syncRepository.markRecordPending(
+            entityType: 'diveTags',
+            recordId: diveTagId,
+            localUpdatedAt: now,
+          );
         }
       }
+      await (_db.update(_db.dives)..where((t) => t.id.isIn(diveIds))).write(
+        DivesCompanion(updatedAt: Value(now)),
+      );
+      for (final diveId in diveIds) {
+        await _syncRepository.markRecordPending(
+          entityType: 'dives',
+          recordId: diveId,
+          localUpdatedAt: now,
+        );
+      }
+      SyncEventBus.notifyLocalChange();
       _log.info('Bulk added ${tagIds.length} tags to ${diveIds.length} dives');
     } catch (e, stackTrace) {
       _log.error('Failed to bulk add tags', e, stackTrace);
@@ -2051,9 +2259,30 @@ class DiveRepository {
     if (diveIds.isEmpty || tagIds.isEmpty) return;
 
     try {
+      final existing = await (_db.select(
+        _db.diveTags,
+      )..where((t) => t.diveId.isIn(diveIds) & t.tagId.isIn(tagIds))).get();
       await (_db.delete(
         _db.diveTags,
       )..where((t) => t.diveId.isIn(diveIds) & t.tagId.isIn(tagIds))).go();
+      for (final row in existing) {
+        await _syncRepository.logDeletion(
+          entityType: 'diveTags',
+          recordId: row.id,
+        );
+      }
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await (_db.update(_db.dives)..where((t) => t.id.isIn(diveIds))).write(
+        DivesCompanion(updatedAt: Value(now)),
+      );
+      for (final diveId in diveIds) {
+        await _syncRepository.markRecordPending(
+          entityType: 'dives',
+          recordId: diveId,
+          localUpdatedAt: now,
+        );
+      }
+      SyncEventBus.notifyLocalChange();
       _log.info(
         'Bulk removed ${tagIds.length} tags from ${diveIds.length} dives',
       );

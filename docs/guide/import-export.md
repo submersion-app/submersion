@@ -153,6 +153,16 @@ Full database backup for safety:
 <strong>Warning:</strong> Restoring replaces ALL current data. Create a backup first if you have new data.
 </div>
 
+## Cloud Sync vs Backup
+
+Cloud Sync keeps devices in sync using an app-managed JSON file stored in your
+cloud provider. It is not a replacement for backups:
+
+- **Cloud Sync** keeps multiple devices aligned.
+- **Backups** are point-in-time snapshots you can restore later.
+
+Use backups before major changes or when moving between devices.
+
 ## Importing from Other Apps
 
 ### From Subsurface

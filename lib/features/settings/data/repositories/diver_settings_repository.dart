@@ -3,13 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 class DiverSettingsRepository {
   AppDatabase get _db => DatabaseService.instance.database;
+  final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(DiverSettingsRepository);
 
@@ -83,6 +86,13 @@ class DiverSettingsRepository {
             ),
           );
 
+      await _syncRepository.markRecordPending(
+        entityType: 'diverSettings',
+        recordId: id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+
       _log.info('Created settings for diver: $diverId');
       return s;
     } catch (e, stackTrace) {
@@ -145,6 +155,17 @@ class DiverSettingsRepository {
           updatedAt: Value(now),
         ),
       );
+      final row = await (_db.select(
+        _db.diverSettings,
+      )..where((t) => t.diverId.equals(diverId))).getSingleOrNull();
+      if (row != null) {
+        await _syncRepository.markRecordPending(
+          entityType: 'diverSettings',
+          recordId: row.id,
+          localUpdatedAt: now,
+        );
+        SyncEventBus.notifyLocalChange();
+      }
       _log.info('Updated settings for diver: $diverId');
     } catch (e, stackTrace) {
       _log.error(
@@ -171,9 +192,19 @@ class DiverSettingsRepository {
   /// Delete settings for a diver
   Future<void> deleteSettingsForDiver(String diverId) async {
     try {
+      final rows = await (_db.select(
+        _db.diverSettings,
+      )..where((t) => t.diverId.equals(diverId))).get();
       await (_db.delete(
         _db.diverSettings,
       )..where((t) => t.diverId.equals(diverId))).go();
+      for (final row in rows) {
+        await _syncRepository.logDeletion(
+          entityType: 'diverSettings',
+          recordId: row.id,
+        );
+      }
+      SyncEventBus.notifyLocalChange();
       _log.info('Deleted settings for diver: $diverId');
     } catch (e, stackTrace) {
       _log.error(

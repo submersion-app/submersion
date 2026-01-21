@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart' as db;
 import 'package:submersion/core/database/database.dart'
     show
@@ -15,12 +16,14 @@ import 'package:submersion/core/database/database.dart'
         TankPressureProfilesCompanion;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
     as domain;
 
 /// Repository for managing dive computers and multi-profile support.
 class DiveComputerRepository {
   AppDatabase get _db => DatabaseService.instance.database;
+  final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(DiveComputerRepository);
 
@@ -114,6 +117,13 @@ class DiveComputerRepository {
             ),
           );
 
+      await _syncRepository.markRecordPending(
+        entityType: 'diveComputers',
+        recordId: id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+
       _log.info('Created dive computer with id: $id');
       return computer.copyWith(
         id: id,
@@ -152,6 +162,13 @@ class DiveComputerRepository {
         ),
       );
 
+      await _syncRepository.markRecordPending(
+        entityType: 'diveComputers',
+        recordId: computer.id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+
       _log.info('Updated dive computer: ${computer.id}');
     } catch (e, stackTrace) {
       _log.error(
@@ -168,6 +185,11 @@ class DiveComputerRepository {
     try {
       _log.info('Deleting dive computer: $id');
       await (_db.delete(_db.diveComputers)..where((t) => t.id.equals(id))).go();
+      await _syncRepository.logDeletion(
+        entityType: 'diveComputers',
+        recordId: id,
+      );
+      SyncEventBus.notifyLocalChange();
       _log.info('Deleted dive computer: $id');
     } catch (e, stackTrace) {
       _log.error('Failed to delete dive computer: $id', e, stackTrace);
@@ -179,16 +201,25 @@ class DiveComputerRepository {
   Future<void> setFavoriteComputer(String id, {String? diverId}) async {
     try {
       _log.info('Setting favorite computer: $id');
+      final now = DateTime.now().millisecondsSinceEpoch;
 
       // Clear all favorites for this diver (or all if no diverId)
       if (diverId != null) {
-        await (_db.update(_db.diveComputers)
-              ..where((t) => t.diverId.equals(diverId)))
-            .write(const DiveComputersCompanion(isFavorite: Value(false)));
-      } else {
         await (_db.update(
           _db.diveComputers,
-        )).write(const DiveComputersCompanion(isFavorite: Value(false)));
+        )..where((t) => t.diverId.equals(diverId))).write(
+          DiveComputersCompanion(
+            isFavorite: const Value(false),
+            updatedAt: Value(now),
+          ),
+        );
+      } else {
+        await (_db.update(_db.diveComputers)).write(
+          DiveComputersCompanion(
+            isFavorite: const Value(false),
+            updatedAt: Value(now),
+          ),
+        );
       }
 
       // Set the new favorite
@@ -197,9 +228,19 @@ class DiveComputerRepository {
       )..where((t) => t.id.equals(id))).write(
         DiveComputersCompanion(
           isFavorite: const Value(true),
-          updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+          updatedAt: Value(now),
         ),
       );
+
+      final updated = await _db.select(_db.diveComputers).get();
+      for (final row in updated) {
+        await _syncRepository.markRecordPending(
+          entityType: 'diveComputers',
+          recordId: row.id,
+          localUpdatedAt: now,
+        );
+      }
+      SyncEventBus.notifyLocalChange();
 
       _log.info('Set favorite computer: $id');
     } catch (e, stackTrace) {
@@ -211,6 +252,7 @@ class DiveComputerRepository {
   /// Increment dive count for a computer
   Future<void> incrementDiveCount(String id, {int by = 1}) async {
     try {
+      final now = DateTime.now().millisecondsSinceEpoch;
       await _db.customStatement(
         '''
         UPDATE dive_computers
@@ -218,8 +260,14 @@ class DiveComputerRepository {
             updated_at = ?
         WHERE id = ?
       ''',
-        [by, DateTime.now().millisecondsSinceEpoch, id],
+        [by, now, id],
       );
+      await _syncRepository.markRecordPending(
+        entityType: 'diveComputers',
+        recordId: id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
       _log.error('Failed to increment dive count for: $id', e, stackTrace);
       rethrow;
@@ -238,6 +286,12 @@ class DiveComputerRepository {
           updatedAt: Value(now),
         ),
       );
+      await _syncRepository.markRecordPending(
+        entityType: 'diveComputers',
+        recordId: id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
       _log.error('Failed to update last download for: $id', e, stackTrace);
       rethrow;
@@ -342,6 +396,7 @@ class DiveComputerRepository {
       _log.info(
         'Setting primary profile for dive $diveId to computer $computerId',
       );
+      final now = DateTime.now().millisecondsSinceEpoch;
 
       // Clear all primary flags for this dive
       await _db.customStatement(
@@ -362,6 +417,27 @@ class DiveComputerRepository {
       ''',
         [diveId, computerId],
       );
+
+      final profiles = await (_db.select(
+        _db.diveProfiles,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      for (final profile in profiles) {
+        await _syncRepository.markRecordPending(
+          entityType: 'diveProfiles',
+          recordId: profile.id,
+          localUpdatedAt: now,
+        );
+      }
+
+      await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+        DivesCompanion(updatedAt: Value(now)),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: diveId,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
 
       _log.info('Set primary profile for dive $diveId');
     } catch (e, stackTrace) {
@@ -600,19 +676,20 @@ class DiveComputerRepository {
   }) async {
     try {
       _log.info('Importing profile from computer $computerId');
+      final now = DateTime.now().millisecondsSinceEpoch;
 
       // Try to find an existing dive
-      String? diveId = await findMatchingDive(
+      final matchedDiveId = await findMatchingDive(
         profileStartTime: profileStartTime,
         durationSeconds: durationSeconds,
       );
 
-      bool isNewDive = false;
-      if (diveId == null) {
+      final diveId = matchedDiveId ?? _uuid.v4();
+      final isNewDive = matchedDiveId == null;
+
+      if (isNewDive) {
         // Create a new dive for this profile
         _log.info('No matching dive found, creating new dive');
-        diveId = _uuid.v4();
-        final now = DateTime.now().millisecondsSinceEpoch;
 
         await _db
             .into(_db.dives)
@@ -629,8 +706,13 @@ class DiveComputerRepository {
               ),
             );
 
+        await _syncRepository.markRecordPending(
+          entityType: 'dives',
+          recordId: diveId,
+          localUpdatedAt: now,
+        );
+
         isPrimary = true; // First profile is always primary
-        isNewDive = true;
       }
 
       // Check if this computer already has a profile for this dive
@@ -664,11 +746,12 @@ class DiveComputerRepository {
 
       // Insert profile points (keeping legacy pressure for backward compatibility)
       for (final point in points) {
+        final profileId = _uuid.v4();
         await _db
             .into(_db.diveProfiles)
             .insert(
               DiveProfilesCompanion(
-                id: Value(_uuid.v4()),
+                id: Value(profileId),
                 diveId: Value(diveId),
                 computerId: Value(computerId),
                 timestamp: Value(point.timestamp),
@@ -684,6 +767,11 @@ class DiveComputerRepository {
                 isPrimary: Value(isPrimary),
               ),
             );
+        await _syncRepository.markRecordPending(
+          entityType: 'diveProfiles',
+          recordId: profileId,
+          localUpdatedAt: now,
+        );
       }
 
       // Map to track tank index → tank ID for pressure data
@@ -711,6 +799,11 @@ class DiveComputerRepository {
                   tankRole: const Value('backGas'),
                 ),
               );
+          await _syncRepository.markRecordPending(
+            entityType: 'diveTanks',
+            recordId: tankId,
+            localUpdatedAt: now,
+          );
           _log.info(
             'Created tank ${tank.index}: '
             'O2=${tank.o2Percent}%, start=${tank.startPressure} bar, '
@@ -721,7 +814,7 @@ class DiveComputerRepository {
         // For existing dives, fetch tank IDs
         final existingTanks =
             await (_db.select(_db.diveTanks)
-                  ..where((t) => t.diveId.equals(diveId!))
+                  ..where((t) => t.diveId.equals(diveId))
                   ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]))
                 .get();
         for (final tank in existingTanks) {
@@ -749,15 +842,18 @@ class DiveComputerRepository {
         final insertEntries = pressuresByTank.entries
             .where((entry) => tankIdsByIndex.containsKey(entry.key))
             .toList();
+        final pressureIds = <String>[];
         await _db.batch((batch) {
           for (final entry in insertEntries) {
             final tankId = tankIdsByIndex[entry.key]!;
             for (final point in entry.value) {
+              final pressureId = _uuid.v4();
+              pressureIds.add(pressureId);
               batch.insert(
                 _db.tankPressureProfiles,
                 TankPressureProfilesCompanion.insert(
-                  id: _uuid.v4(),
-                  diveId: diveId!,
+                  id: pressureId,
+                  diveId: diveId,
                   tankId: tankId,
                   timestamp: point.timestamp,
                   pressure: point.pressure,
@@ -766,6 +862,13 @@ class DiveComputerRepository {
             }
           }
         });
+        for (final pressureId in pressureIds) {
+          await _syncRepository.markRecordPending(
+            entityType: 'tankPressureProfiles',
+            recordId: pressureId,
+            localUpdatedAt: now,
+          );
+        }
         for (final entry in insertEntries) {
           _log.info(
             'Imported ${entry.value.length} pressure points for tank ${entry.key}',
@@ -773,10 +876,22 @@ class DiveComputerRepository {
         }
       }
 
+      if (!isNewDive) {
+        await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+          DivesCompanion(updatedAt: Value(now)),
+        );
+        await _syncRepository.markRecordPending(
+          entityType: 'dives',
+          recordId: diveId,
+          localUpdatedAt: now,
+        );
+      }
+
       // Update computer stats
       await incrementDiveCount(computerId);
       await updateLastDownload(computerId);
 
+      SyncEventBus.notifyLocalChange();
       _log.info('Imported ${points.length} profile points for dive $diveId');
       return diveId;
     } catch (e, stackTrace) {
@@ -862,11 +977,13 @@ class DiveComputerRepository {
     String? tankId,
   }) async {
     try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final eventId = _uuid.v4();
       await _db
           .into(_db.diveProfileEvents)
           .insert(
             DiveProfileEventsCompanion(
-              id: Value(_uuid.v4()),
+              id: Value(eventId),
               diveId: Value(diveId),
               timestamp: Value(timestamp),
               eventType: Value(eventType),
@@ -877,6 +994,20 @@ class DiveComputerRepository {
               tankId: Value(tankId),
             ),
           );
+      await _syncRepository.markRecordPending(
+        entityType: 'diveProfileEvents',
+        recordId: eventId,
+        localUpdatedAt: now,
+      );
+      await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+        DivesCompanion(updatedAt: Value(now)),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: diveId,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
       _log.error('Failed to add profile event', e, stackTrace);
       rethrow;
@@ -886,9 +1017,28 @@ class DiveComputerRepository {
   /// Delete all events for a dive
   Future<void> clearEventsForDive(String diveId) async {
     try {
+      final existing = await (_db.select(
+        _db.diveProfileEvents,
+      )..where((t) => t.diveId.equals(diveId))).get();
       await (_db.delete(
         _db.diveProfileEvents,
       )..where((t) => t.diveId.equals(diveId))).go();
+      for (final event in existing) {
+        await _syncRepository.logDeletion(
+          entityType: 'diveProfileEvents',
+          recordId: event.id,
+        );
+      }
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+        DivesCompanion(updatedAt: Value(now)),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: diveId,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
       _log.error('Failed to clear events for dive: $diveId', e, stackTrace);
       rethrow;

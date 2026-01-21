@@ -1,14 +1,17 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart'
     as domain;
 
 class DiveCenterRepository {
   AppDatabase get _db => DatabaseService.instance.database;
+  final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(DiveCenterRepository);
 
@@ -131,6 +134,13 @@ class DiveCenterRepository {
             ),
           );
 
+      await _syncRepository.markRecordPending(
+        entityType: 'diveCenters',
+        recordId: id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+
       _log.info('Created dive center with id: $id');
       return center.copyWith(id: id);
     } catch (e, stackTrace) {
@@ -163,6 +173,12 @@ class DiveCenterRepository {
           updatedAt: Value(now),
         ),
       );
+      await _syncRepository.markRecordPending(
+        entityType: 'diveCenters',
+        recordId: center.id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
       _log.info('Updated dive center: ${center.id}');
     } catch (e, stackTrace) {
       _log.error('Failed to update dive center: ${center.id}', e, stackTrace);
@@ -175,6 +191,11 @@ class DiveCenterRepository {
     try {
       _log.info('Deleting dive center: $id');
       await (_db.delete(_db.diveCenters)..where((t) => t.id.equals(id))).go();
+      await _syncRepository.logDeletion(
+        entityType: 'diveCenters',
+        recordId: id,
+      );
+      SyncEventBus.notifyLocalChange();
       _log.info('Deleted dive center: $id');
     } catch (e, stackTrace) {
       _log.error('Failed to delete dive center: $id', e, stackTrace);

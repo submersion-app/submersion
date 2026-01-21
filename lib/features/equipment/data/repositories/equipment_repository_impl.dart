@@ -1,14 +1,17 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 
 class EquipmentRepository {
   AppDatabase get _db => DatabaseService.instance.database;
+  final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(EquipmentRepository);
 
@@ -167,6 +170,13 @@ class EquipmentRepository {
             ),
           );
 
+      await _syncRepository.markRecordPending(
+        entityType: 'equipment',
+        recordId: id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+
       _log.info('Created equipment with id: $id');
       return equipment.copyWith(id: id);
     } catch (e, stackTrace) {
@@ -208,6 +218,12 @@ class EquipmentRepository {
           updatedAt: Value(now),
         ),
       );
+      await _syncRepository.markRecordPending(
+        entityType: 'equipment',
+        recordId: equipment.id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
       _log.info('Updated equipment: ${equipment.id}');
     } catch (e, stackTrace) {
       _log.error('Failed to update equipment: ${equipment.id}', e, stackTrace);
@@ -220,6 +236,8 @@ class EquipmentRepository {
     try {
       _log.info('Deleting equipment: $id');
       await (_db.delete(_db.equipment)..where((t) => t.id.equals(id))).go();
+      await _syncRepository.logDeletion(entityType: 'equipment', recordId: id);
+      SyncEventBus.notifyLocalChange();
       _log.info('Deleted equipment: $id');
     } catch (e, stackTrace) {
       _log.error('Failed to delete equipment: $id', e, stackTrace);

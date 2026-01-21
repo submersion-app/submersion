@@ -2,13 +2,16 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart'
     as domain;
 
 class SpeciesRepository {
   AppDatabase get _db => DatabaseService.instance.database;
+  final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
 
   /// Get all species
@@ -121,6 +124,13 @@ class SpeciesRepository {
             category: Value(category.name),
           ),
         );
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _syncRepository.markRecordPending(
+      entityType: 'species',
+      recordId: id,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
 
     return domain.Species(
       id: id,
@@ -149,6 +159,21 @@ class SpeciesRepository {
             notes: Value(notes),
           ),
         );
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _syncRepository.markRecordPending(
+      entityType: 'sightings',
+      recordId: id,
+      localUpdatedAt: now,
+    );
+    await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+      DivesCompanion(updatedAt: Value(now)),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'dives',
+      recordId: diveId,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
 
     final species = await getSpeciesById(speciesId);
     return domain.Sighting(
@@ -203,18 +228,69 @@ class SpeciesRepository {
         notes: Value(sighting.notes),
       ),
     );
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _syncRepository.markRecordPending(
+      entityType: 'sightings',
+      recordId: sighting.id,
+      localUpdatedAt: now,
+    );
+    await (_db.update(_db.dives)..where((t) => t.id.equals(sighting.diveId)))
+        .write(DivesCompanion(updatedAt: Value(now)));
+    await _syncRepository.markRecordPending(
+      entityType: 'dives',
+      recordId: sighting.diveId,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
   }
 
   /// Delete sighting
   Future<void> deleteSighting(String id) async {
+    final existing = await (_db.select(
+      _db.sightings,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
     await (_db.delete(_db.sightings)..where((t) => t.id.equals(id))).go();
+    if (existing != null) {
+      await _syncRepository.logDeletion(
+        entityType: 'sightings',
+        recordId: existing.id,
+      );
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await (_db.update(_db.dives)..where((t) => t.id.equals(existing.diveId)))
+          .write(DivesCompanion(updatedAt: Value(now)));
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: existing.diveId,
+        localUpdatedAt: now,
+      );
+    }
+    SyncEventBus.notifyLocalChange();
   }
 
   /// Delete all sightings for a dive
   Future<void> deleteSightingsForDive(String diveId) async {
+    final existing = await (_db.select(
+      _db.sightings,
+    )..where((t) => t.diveId.equals(diveId))).get();
     await (_db.delete(
       _db.sightings,
     )..where((t) => t.diveId.equals(diveId))).go();
+    for (final row in existing) {
+      await _syncRepository.logDeletion(
+        entityType: 'sightings',
+        recordId: row.id,
+      );
+    }
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+      DivesCompanion(updatedAt: Value(now)),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'dives',
+      recordId: diveId,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
   }
 
   /// Seed common species data

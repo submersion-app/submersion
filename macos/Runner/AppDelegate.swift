@@ -4,11 +4,13 @@ import FlutterMacOS
 @main
 class AppDelegate: FlutterAppDelegate {
   private var bookmarkHandler: SecurityScopedBookmarkHandler?
+  private var icloudHandler: ICloudContainerHandler?
 
   override func applicationDidFinishLaunching(_ notification: Notification) {
     // Get the Flutter engine's binary messenger
     if let controller = mainFlutterWindow?.contentViewController as? FlutterViewController {
       bookmarkHandler = SecurityScopedBookmarkHandler(messenger: controller.engine.binaryMessenger)
+      icloudHandler = ICloudContainerHandler(messenger: controller.engine.binaryMessenger)
     }
   }
 

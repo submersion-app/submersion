@@ -1,14 +1,17 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart'
     as domain;
 
 class ServiceRecordRepository {
   AppDatabase get _db => DatabaseService.instance.database;
+  final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
 
   /// Get all service records for an equipment item
@@ -67,6 +70,13 @@ class ServiceRecordRepository {
           ),
         );
 
+    await _syncRepository.markRecordPending(
+      entityType: 'serviceRecords',
+      recordId: id,
+      localUpdatedAt: now.millisecondsSinceEpoch,
+    );
+    SyncEventBus.notifyLocalChange();
+
     // Update the equipment's lastServiceDate
     await _updateEquipmentLastServiceDate(
       record.equipmentId,
@@ -95,6 +105,13 @@ class ServiceRecordRepository {
       ),
     );
 
+    await _syncRepository.markRecordPending(
+      entityType: 'serviceRecords',
+      recordId: record.id,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
+
     // Update equipment's lastServiceDate if this is the most recent record
     final mostRecent = await getMostRecentRecord(record.equipmentId);
     if (mostRecent != null) {
@@ -111,6 +128,11 @@ class ServiceRecordRepository {
     final record = await getRecordById(id);
 
     await (_db.delete(_db.serviceRecords)..where((t) => t.id.equals(id))).go();
+    await _syncRepository.logDeletion(
+      entityType: 'serviceRecords',
+      recordId: id,
+    );
+    SyncEventBus.notifyLocalChange();
 
     // Update equipment's lastServiceDate if needed
     if (record != null) {
@@ -217,6 +239,12 @@ class ServiceRecordRepository {
         updatedAt: Value(now),
       ),
     );
+    await _syncRepository.markRecordPending(
+      entityType: 'equipment',
+      recordId: equipmentId,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
   }
 
   /// Clear the equipment's lastServiceDate field
@@ -230,6 +258,12 @@ class ServiceRecordRepository {
         updatedAt: Value(now),
       ),
     );
+    await _syncRepository.markRecordPending(
+      entityType: 'equipment',
+      recordId: equipmentId,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
   }
 
   domain.ServiceRecord _mapRowToServiceRecord(ServiceRecord row) {

@@ -29,10 +29,15 @@ class SyncRepository {
       final query = _db.select(_db.syncMetadata)
         ..where((t) => t.id.equals(_globalMetadataId));
 
-      final existing = await query.getSingleOrNull();
-      if (existing != null) {
-        return existing;
+      SyncMetadataData? existing;
+      try {
+        existing = await query.getSingleOrNull();
+      } catch (e, stackTrace) {
+        _log.warning('Sync metadata read failed, attempting repair', e, stackTrace);
+        await _repairSyncMetadataRow();
+        existing = await query.getSingleOrNull();
       }
+      if (existing != null) return existing;
 
       // Create new metadata with a unique device ID
       final now = DateTime.now().millisecondsSinceEpoch;
@@ -57,6 +62,54 @@ class SyncRepository {
       _log.error('Failed to get or create sync metadata', e, stackTrace);
       rethrow;
     }
+  }
+
+  Future<void> _repairSyncMetadataRow() async {
+    final rows = await _db.customSelect(
+      '''
+      SELECT id, device_id, sync_version, created_at, updated_at
+      FROM sync_metadata
+      WHERE id = ?
+      ''',
+      variables: [Variable.withString(_globalMetadataId)],
+    ).get();
+
+    if (rows.isEmpty) return;
+
+    final row = rows.first.data;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final rawDeviceId = row['device_id'];
+    final rawSyncVersion = row['sync_version'];
+    final rawCreatedAt = row['created_at'];
+    final rawUpdatedAt = row['updated_at'];
+
+    final needsRepair =
+        rawDeviceId == null ||
+        rawDeviceId is! String ||
+        (rawDeviceId as String).isEmpty ||
+        rawSyncVersion == null ||
+        rawSyncVersion is! int ||
+        rawCreatedAt == null ||
+        rawCreatedAt is! int ||
+        rawUpdatedAt == null ||
+        rawUpdatedAt is! int;
+
+    if (!needsRepair) return;
+
+    final deviceId =
+        rawDeviceId is String && rawDeviceId.isNotEmpty ? rawDeviceId : _uuid.v4();
+    final syncVersion = rawSyncVersion is int ? rawSyncVersion : 1;
+    final createdAt = rawCreatedAt is int ? rawCreatedAt : now;
+    final updatedAt = rawUpdatedAt is int ? rawUpdatedAt : now;
+
+    await _db.customStatement(
+      '''
+      UPDATE sync_metadata
+      SET device_id = ?, sync_version = ?, created_at = ?, updated_at = ?
+      WHERE id = ?
+      ''',
+      [deviceId, syncVersion, createdAt, updatedAt, _globalMetadataId],
+    );
   }
 
   /// Get the device ID for this installation
@@ -198,14 +251,21 @@ class SyncRepository {
       final now = DateTime.now().millisecondsSinceEpoch;
       final id = '${entityType}_$recordId';
 
-      await (_db.update(_db.syncRecords)..where((t) => t.id.equals(id))).write(
-        SyncRecordsCompanion(
-          syncStatus: const Value('synced'),
-          syncedAt: Value(now),
-          conflictData: const Value(null),
-          updatedAt: Value(now),
-        ),
-      );
+      await _db
+          .into(_db.syncRecords)
+          .insertOnConflictUpdate(
+            SyncRecordsCompanion(
+              id: Value(id),
+              entityType: Value(entityType),
+              recordId: Value(recordId),
+              localUpdatedAt: Value(now),
+              syncStatus: const Value('synced'),
+              syncedAt: Value(now),
+              conflictData: const Value(null),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
     } catch (e, stackTrace) {
       _log.error(
         'Failed to mark record synced: $entityType/$recordId',
@@ -221,18 +281,26 @@ class SyncRepository {
     required String entityType,
     required String recordId,
     required String conflictDataJson,
+    required int localUpdatedAt,
   }) async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
       final id = '${entityType}_$recordId';
 
-      await (_db.update(_db.syncRecords)..where((t) => t.id.equals(id))).write(
-        SyncRecordsCompanion(
-          syncStatus: const Value('conflict'),
-          conflictData: Value(conflictDataJson),
-          updatedAt: Value(now),
-        ),
-      );
+      await _db
+          .into(_db.syncRecords)
+          .insertOnConflictUpdate(
+            SyncRecordsCompanion(
+              id: Value(id),
+              entityType: Value(entityType),
+              recordId: Value(recordId),
+              localUpdatedAt: Value(localUpdatedAt),
+              syncStatus: const Value('conflict'),
+              conflictData: Value(conflictDataJson),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
 
       _log.warning('Marked conflict for: $entityType/$recordId');
     } catch (e, stackTrace) {
@@ -277,6 +345,19 @@ class SyncRepository {
     } catch (e, stackTrace) {
       _log.error('Failed to get pending count', e, stackTrace);
       return 0;
+    }
+  }
+
+  /// Clear all pending sync records
+  Future<void> clearPendingRecords() async {
+    try {
+      await (_db.delete(
+        _db.syncRecords,
+      )..where((t) => t.syncStatus.equals('pending'))).go();
+      _log.info('Cleared pending sync records');
+    } catch (e, stackTrace) {
+      _log.error('Failed to clear pending sync records', e, stackTrace);
+      rethrow;
     }
   }
 
@@ -329,10 +410,11 @@ class SyncRepository {
   Future<void> logDeletion({
     required String entityType,
     required String recordId,
+    int? deletedAt,
   }) async {
     try {
       final id = _uuid.v4();
-      final now = DateTime.now().millisecondsSinceEpoch;
+      final now = deletedAt ?? DateTime.now().millisecondsSinceEpoch;
 
       await _db
           .into(_db.deletionLog)
@@ -378,6 +460,25 @@ class SyncRepository {
       _log.error('Failed to get all deletions', e, stackTrace);
       rethrow;
     }
+  }
+
+  /// Log a deletion if one doesn't already exist for the same record
+  Future<void> logDeletionIfMissing({
+    required String entityType,
+    required String recordId,
+    required int deletedAt,
+  }) async {
+    final existing =
+        await (_db.select(_db.deletionLog)
+              ..where((t) => t.entityType.equals(entityType))
+              ..where((t) => t.recordId.equals(recordId)))
+            .getSingleOrNull();
+    if (existing != null) return;
+    await logDeletion(
+      entityType: entityType,
+      recordId: recordId,
+      deletedAt: deletedAt,
+    );
   }
 
   /// Clear old deletions (older than given days)

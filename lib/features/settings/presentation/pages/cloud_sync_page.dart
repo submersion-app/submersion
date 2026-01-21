@@ -20,6 +20,7 @@ class CloudSyncPage extends ConsumerWidget {
     final isCustomFolderMode = ref.watch(
       isCloudSyncDisabledByCustomFolderProvider,
     );
+    final behaviorSettings = ref.watch(syncBehaviorProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Cloud Sync')),
@@ -36,6 +37,13 @@ class CloudSyncPage extends ConsumerWidget {
             const Divider(),
             _buildConflictsSection(context, ref, syncState),
           ],
+          const Divider(),
+          _buildBehaviorSection(
+            context,
+            ref,
+            behaviorSettings,
+            isCustomFolderMode,
+          ),
           const Divider(),
           _buildAdvancedSection(context, ref),
         ],
@@ -352,6 +360,60 @@ class CloudSyncPage extends ConsumerWidget {
             ),
         ],
       ),
+    );
+  }
+
+  Widget _buildBehaviorSection(
+    BuildContext context,
+    WidgetRef ref,
+    SyncBehaviorSettings settings,
+    bool isCustomFolderMode,
+  ) {
+    final disabled = isCustomFolderMode;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text(
+            'Sync Behavior',
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+        ),
+        SwitchListTile(
+          title: const Text('Auto Sync'),
+          subtitle: const Text('Sync automatically after changes'),
+          value: settings.autoSyncEnabled,
+          onChanged: disabled
+              ? null
+              : (value) => ref
+                    .read(syncBehaviorProvider.notifier)
+                    .setAutoSyncEnabled(value),
+        ),
+        SwitchListTile(
+          title: const Text('Sync on Launch'),
+          subtitle: const Text('Check for updates at startup'),
+          value: settings.syncOnLaunch,
+          onChanged: disabled
+              ? null
+              : (value) => ref
+                    .read(syncBehaviorProvider.notifier)
+                    .setSyncOnLaunch(value),
+        ),
+        SwitchListTile(
+          title: const Text('Sync on Resume'),
+          subtitle: const Text('Check for updates when app becomes active'),
+          value: settings.syncOnResume,
+          onChanged: disabled
+              ? null
+              : (value) => ref
+                    .read(syncBehaviorProvider.notifier)
+                    .setSyncOnResume(value),
+        ),
+      ],
     );
   }
 

@@ -1,14 +1,17 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart'
     as domain;
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 
 class EquipmentSetRepository {
   AppDatabase get _db => DatabaseService.instance.database;
+  final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
   final _equipmentRepo = EquipmentRepository();
 
@@ -75,6 +78,11 @@ class EquipmentSetRepository {
             updatedAt: Value(now),
           ),
         );
+    await _syncRepository.markRecordPending(
+      entityType: 'equipmentSets',
+      recordId: id,
+      localUpdatedAt: now,
+    );
 
     // Add equipment items to set
     for (final equipmentId in set.equipmentIds) {
@@ -86,7 +94,13 @@ class EquipmentSetRepository {
               equipmentId: Value(equipmentId),
             ),
           );
+      await _syncRepository.markRecordPending(
+        entityType: 'equipmentSetItems',
+        recordId: '$id|$equipmentId',
+        localUpdatedAt: now,
+      );
     }
+    SyncEventBus.notifyLocalChange();
 
     return set.copyWith(
       id: id,
@@ -108,11 +122,25 @@ class EquipmentSetRepository {
         updatedAt: Value(now),
       ),
     );
+    await _syncRepository.markRecordPending(
+      entityType: 'equipmentSets',
+      recordId: set.id,
+      localUpdatedAt: now,
+    );
 
     // Update equipment items: delete and re-insert
+    final existingItems = await (_db.select(
+      _db.equipmentSetItems,
+    )..where((t) => t.setId.equals(set.id))).get();
     await (_db.delete(
       _db.equipmentSetItems,
     )..where((t) => t.setId.equals(set.id))).go();
+    for (final item in existingItems) {
+      await _syncRepository.logDeletion(
+        entityType: 'equipmentSetItems',
+        recordId: '${item.setId}|${item.equipmentId}',
+      );
+    }
     for (final equipmentId in set.equipmentIds) {
       await _db
           .into(_db.equipmentSetItems)
@@ -122,12 +150,23 @@ class EquipmentSetRepository {
               equipmentId: Value(equipmentId),
             ),
           );
+      await _syncRepository.markRecordPending(
+        entityType: 'equipmentSetItems',
+        recordId: '${set.id}|$equipmentId',
+        localUpdatedAt: now,
+      );
     }
+    SyncEventBus.notifyLocalChange();
   }
 
   /// Delete an equipment set
   Future<void> deleteSet(String id) async {
     await (_db.delete(_db.equipmentSets)..where((t) => t.id.equals(id))).go();
+    await _syncRepository.logDeletion(
+      entityType: 'equipmentSets',
+      recordId: id,
+    );
+    SyncEventBus.notifyLocalChange();
   }
 
   /// Add equipment item to set
@@ -144,10 +183,26 @@ class EquipmentSetRepository {
     final now = DateTime.now().millisecondsSinceEpoch;
     await (_db.update(_db.equipmentSets)..where((t) => t.id.equals(setId)))
         .write(EquipmentSetsCompanion(updatedAt: Value(now)));
+    await _syncRepository.markRecordPending(
+      entityType: 'equipmentSetItems',
+      recordId: '$setId|$equipmentId',
+      localUpdatedAt: now,
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'equipmentSets',
+      recordId: setId,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
   }
 
   /// Remove equipment item from set
   Future<void> removeItemFromSet(String setId, String equipmentId) async {
+    final existing =
+        await (_db.select(_db.equipmentSetItems)..where(
+              (t) => t.setId.equals(setId) & t.equipmentId.equals(equipmentId),
+            ))
+            .get();
     await (_db.delete(_db.equipmentSetItems)..where(
           (t) => t.setId.equals(setId) & t.equipmentId.equals(equipmentId),
         ))
@@ -156,6 +211,18 @@ class EquipmentSetRepository {
     final now = DateTime.now().millisecondsSinceEpoch;
     await (_db.update(_db.equipmentSets)..where((t) => t.id.equals(setId)))
         .write(EquipmentSetsCompanion(updatedAt: Value(now)));
+    for (final item in existing) {
+      await _syncRepository.logDeletion(
+        entityType: 'equipmentSetItems',
+        recordId: '${item.setId}|${item.equipmentId}',
+      );
+    }
+    await _syncRepository.markRecordPending(
+      entityType: 'equipmentSets',
+      recordId: setId,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
   }
 
   domain.EquipmentSet _mapRowToSet(

@@ -1,14 +1,17 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart'
     as domain;
 
 class DiveTypeRepository {
   AppDatabase get _db => DatabaseService.instance.database;
+  final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(DiveTypeRepository);
 
@@ -167,6 +170,13 @@ class DiveTypeRepository {
             ),
           );
 
+      await _syncRepository.markRecordPending(
+        entityType: 'diveTypes',
+        recordId: uniqueId,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+
       _log.info(
         'Created dive type with id: $uniqueId for diver: ${diveType.diverId}',
       );
@@ -203,6 +213,12 @@ class DiveTypeRepository {
           updatedAt: Value(now),
         ),
       );
+      await _syncRepository.markRecordPending(
+        entityType: 'diveTypes',
+        recordId: diveType.id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
       _log.info('Updated dive type: ${diveType.id}');
     } catch (e, stackTrace) {
       _log.error('Failed to update dive type: ${diveType.id}', e, stackTrace);
@@ -221,6 +237,8 @@ class DiveTypeRepository {
 
       _log.info('Deleting dive type: $id');
       await (_db.delete(_db.diveTypes)..where((t) => t.id.equals(id))).go();
+      await _syncRepository.logDeletion(entityType: 'diveTypes', recordId: id);
+      SyncEventBus.notifyLocalChange();
       _log.info('Deleted dive type: $id');
     } catch (e, stackTrace) {
       _log.error('Failed to delete dive type: $id', e, stackTrace);

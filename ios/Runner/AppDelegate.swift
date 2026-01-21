@@ -4,6 +4,7 @@ import UIKit
 @main
 @objc class AppDelegate: FlutterAppDelegate {
   private var bookmarkHandler: SecurityScopedBookmarkHandler?
+  private var icloudHandler: ICloudContainerHandler?
 
   override func application(
     _ application: UIApplication,
@@ -14,8 +15,11 @@ import UIKit
     // Use FlutterPluginRegistry API to get the binary messenger
     // This avoids the deprecation warning about accessing rootViewController
     // in didFinishLaunchingWithOptions after UISceneDelegate migration
-    if let registrar = self.registrar(forPlugin: "SecurityScopedBookmarkHandler") {
-      bookmarkHandler = SecurityScopedBookmarkHandler(messenger: registrar.messenger())
+    if let bookmarkRegistrar = self.registrar(forPlugin: "SecurityScopedBookmarkHandler") {
+      bookmarkHandler = SecurityScopedBookmarkHandler(messenger: bookmarkRegistrar.messenger())
+    }
+    if let icloudRegistrar = self.registrar(forPlugin: "ICloudContainerHandler") {
+      icloudHandler = ICloudContainerHandler(messenger: icloudRegistrar.messenger())
     }
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
