@@ -114,3 +114,36 @@ Tables defined in `lib/core/database/database.dart`:
 - Use agents proactively
 - Anything displaying units should respect the active diver's unit settings
 - All Dart code should pass "dart format" with no changes
+
+## Critical Rules
+
+### 1. Code Organization
+
+- Many small files over few large files
+- High cohesion, low coupling
+- 200-400 lines typical, 800 max per file
+- Organize by feature/domain, not by type
+
+### 2. Code Style
+
+- No emojis in code, comments, or documentation
+- Immutability always - never mutate objects or arrays
+- No console.log in production code
+- Proper error handling with try/catch
+- Input validation with Zod or similar
+
+### 3. Testing
+
+- TDD: Write tests first
+- 80% minimum coverage
+- Unit tests for utilities
+- Integration tests for APIs
+- E2E tests for critical flows
+
+### 4. Security
+
+- No hardcoded secrets
+- Environment variables for sensitive data
+- Validate all user inputs
+- Parameterized queries only
+- CSRF protection enabled
