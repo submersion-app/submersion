@@ -143,10 +143,14 @@ class ICloudStorageProvider
 
       // Step 1: Get sync folder with timeout
       _log.info('uploadFile: Step 1 - getting sync folder...');
-      final syncFolder = await getOrCreateSyncFolder()
-          .timeout(const Duration(seconds: 15), onTimeout: () {
-        throw const CloudStorageException('Timeout getting sync folder (15s)');
-      });
+      final syncFolder = await getOrCreateSyncFolder().timeout(
+        const Duration(seconds: 15),
+        onTimeout: () {
+          throw const CloudStorageException(
+            'Timeout getting sync folder (15s)',
+          );
+        },
+      );
       _log.info('uploadFile: Step 1 DONE - sync folder: $syncFolder');
 
       final filePath = path.join(syncFolder, filename);
@@ -157,9 +161,7 @@ class ICloudStorageProvider
       await ICloudNativeService.writeFile(filePath, data).timeout(
         const Duration(seconds: 30),
         onTimeout: () {
-          throw const CloudStorageException(
-            'Timeout writing to iCloud (30s)',
-          );
+          throw const CloudStorageException('Timeout writing to iCloud (30s)');
         },
       );
       _log.info('uploadFile: Step 2 DONE - write complete');

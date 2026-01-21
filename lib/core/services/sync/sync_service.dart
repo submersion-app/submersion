@@ -281,9 +281,9 @@ class SyncService {
       SyncPayload? remotePayload;
       String? remoteFileId;
       try {
-        remoteFileId = await _resolveRemoteFileId(provider).timeout(
-          const Duration(seconds: 8),
-        );
+        remoteFileId = await _resolveRemoteFileId(
+          provider,
+        ).timeout(const Duration(seconds: 8));
       } on TimeoutException {
         _log.warning('Timed out checking for remote sync file');
         remoteFileId = null;
@@ -297,7 +297,9 @@ class SyncService {
           if (lastSyncTime != null) {
             final info = await provider.getFileInfo(remoteFileId);
             if (info != null && !info.modifiedTime.isAfter(lastSyncTime)) {
-              _log.debug('Remote sync file not newer than last sync; skipping.');
+              _log.debug(
+                'Remote sync file not newer than last sync; skipping.',
+              );
               remoteFileId = null;
             }
           }
@@ -393,9 +395,9 @@ class SyncService {
 
       final syncFolder = await _withStep(
         'resolve sync folder',
-        () => provider
-            .getOrCreateSyncFolder()
-            .timeout(const Duration(seconds: 10)),
+        () => provider.getOrCreateSyncFolder().timeout(
+          const Duration(seconds: 10),
+        ),
       );
       const filename = CloudStorageProviderMixin.canonicalSyncFileName;
 
@@ -405,11 +407,7 @@ class SyncService {
       final result = await _withStep(
         'upload sync file',
         () => provider
-            .uploadFile(
-              localData,
-              filename,
-              folderId: syncFolder,
-            )
+            .uploadFile(localData, filename, folderId: syncFolder)
             .timeout(const Duration(seconds: 180)),
       );
       _log.debug('Upload complete! fileId = ${result.fileId}');

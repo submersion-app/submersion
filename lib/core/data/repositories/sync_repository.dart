@@ -33,7 +33,11 @@ class SyncRepository {
       try {
         existing = await query.getSingleOrNull();
       } catch (e, stackTrace) {
-        _log.warning('Sync metadata read failed, attempting repair', e, stackTrace);
+        _log.warning(
+          'Sync metadata read failed, attempting repair',
+          e,
+          stackTrace,
+        );
         await _repairSyncMetadataRow();
         existing = await query.getSingleOrNull();
       }
@@ -65,14 +69,16 @@ class SyncRepository {
   }
 
   Future<void> _repairSyncMetadataRow() async {
-    final rows = await _db.customSelect(
-      '''
+    final rows = await _db
+        .customSelect(
+          '''
       SELECT id, device_id, sync_version, created_at, updated_at
       FROM sync_metadata
       WHERE id = ?
       ''',
-      variables: [Variable.withString(_globalMetadataId)],
-    ).get();
+          variables: [Variable.withString(_globalMetadataId)],
+        )
+        .get();
 
     if (rows.isEmpty) return;
 
@@ -96,8 +102,9 @@ class SyncRepository {
 
     if (!needsRepair) return;
 
-    final deviceId =
-        rawDeviceId is String && rawDeviceId.isNotEmpty ? rawDeviceId : _uuid.v4();
+    final deviceId = rawDeviceId is String && rawDeviceId.isNotEmpty
+        ? rawDeviceId
+        : _uuid.v4();
     final syncVersion = rawSyncVersion is int ? rawSyncVersion : 1;
     final createdAt = rawCreatedAt is int ? rawCreatedAt : now;
     final updatedAt = rawUpdatedAt is int ? rawUpdatedAt : now;

@@ -165,8 +165,9 @@ class SyncState {
   }) {
     return SyncState(
       status: status ?? this.status,
-      message:
-          identical(message, _messageSentinel) ? this.message : message as String?,
+      message: identical(message, _messageSentinel)
+          ? this.message
+          : message as String?,
       progress: progress ?? this.progress,
       lastSync: lastSync ?? this.lastSync,
       pendingChanges: pendingChanges ?? this.pendingChanges,

@@ -332,10 +332,7 @@ class SyncDataSerializer {
         ),
         trips: await _safeExport('trips', () => _exportTrips(sinceMs)),
         tags: await _safeExport('tags', () => _exportTags(sinceMs)),
-        diveTags: await _safeExport(
-          'diveTags',
-          () => _exportDiveTags(sinceMs),
-        ),
+        diveTags: await _safeExport('diveTags', () => _exportDiveTags(sinceMs)),
         diveTypes: await _safeExport(
           'diveTypes',
           () => _exportDiveTypes(sinceMs),
@@ -356,10 +353,7 @@ class SyncDataSerializer {
           'tideRecords',
           () => _exportTideRecords(sinceMs),
         ),
-        settings: await _safeExport(
-          'settings',
-          () => _exportSettings(sinceMs),
-        ),
+        settings: await _safeExport('settings', () => _exportSettings(sinceMs)),
         species: await _safeExport('species', _exportSpecies),
         sightings: await _safeExport('sightings', _exportSightings),
         diveProfileEvents: await _safeExport(
