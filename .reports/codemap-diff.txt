@@ -1,0 +1,47 @@
+Codemap Generation Report
+=========================
+Generated: 2026-01-21
+Previous Version: None (initial generation)
+
+Files Generated:
+----------------
+1. codemaps/architecture.md - Overall system architecture
+2. codemaps/data.md - Database schema and domain entities
+3. codemaps/frontend.md - UI structure and navigation
+
+Codebase Statistics:
+--------------------
+Total Dart files: 303
+Total lines of code: ~163,000
+Database tables: 32
+Feature modules: 26
+Schema version: 14
+
+Change Summary:
+---------------
+This is the initial codemap generation.
+Diff percentage: N/A (no previous version)
+
+Key Architecture Highlights:
+----------------------------
+- Feature-first architecture with clean layer separation
+- Riverpod for state management (Provider, FutureProvider, StateNotifier)
+- Drift ORM for SQLite database
+- go_router with ShellRoute for navigation
+- Multi-platform support (iOS, Android, macOS, Windows, Linux)
+
+Largest Files (potential refactoring candidates):
+-------------------------------------------------
+- database.g.dart: 42,693 lines (generated, expected)
+- export_service.dart: 5,155 lines
+- dive_detail_page.dart: 3,637 lines
+- dive_edit_page.dart: 3,559 lines
+- dive_repository_impl.dart: 2,491 lines
+- dive_profile_chart.dart: 2,213 lines
+- settings_page.dart: 1,926 lines
+
+Notes:
+------
+- Backend codemap not generated (Flutter app, no separate backend)
+- All codemaps use token-lean format for efficiency
+- Timestamps included for freshness tracking
