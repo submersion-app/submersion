@@ -9,7 +9,9 @@ import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.da
 import 'package:submersion/core/services/cloud_storage/google_drive_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/icloud_storage_provider.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/services/sync/sync_initializer.dart';
+import 'package:submersion/core/services/sync/sync_preferences.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
@@ -23,6 +25,70 @@ final syncRepositoryProvider = Provider<SyncRepository>((ref) {
 final syncDataSerializerProvider = Provider<SyncDataSerializer>((ref) {
   return SyncDataSerializer();
 });
+
+/// Sync preferences provider
+final syncPreferencesProvider = Provider<SyncPreferences>((ref) {
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return SyncPreferences(prefs);
+});
+
+/// Behavior settings for auto-sync
+class SyncBehaviorSettings {
+  final bool autoSyncEnabled;
+  final bool syncOnLaunch;
+  final bool syncOnResume;
+
+  const SyncBehaviorSettings({
+    required this.autoSyncEnabled,
+    required this.syncOnLaunch,
+    required this.syncOnResume,
+  });
+
+  SyncBehaviorSettings copyWith({
+    bool? autoSyncEnabled,
+    bool? syncOnLaunch,
+    bool? syncOnResume,
+  }) {
+    return SyncBehaviorSettings(
+      autoSyncEnabled: autoSyncEnabled ?? this.autoSyncEnabled,
+      syncOnLaunch: syncOnLaunch ?? this.syncOnLaunch,
+      syncOnResume: syncOnResume ?? this.syncOnResume,
+    );
+  }
+}
+
+class SyncBehaviorNotifier extends StateNotifier<SyncBehaviorSettings> {
+  final SyncPreferences _prefs;
+
+  SyncBehaviorNotifier(this._prefs)
+    : super(
+        SyncBehaviorSettings(
+          autoSyncEnabled: _prefs.autoSyncEnabled,
+          syncOnLaunch: _prefs.syncOnLaunch,
+          syncOnResume: _prefs.syncOnResume,
+        ),
+      );
+
+  Future<void> setAutoSyncEnabled(bool value) async {
+    await _prefs.setAutoSyncEnabled(value);
+    state = state.copyWith(autoSyncEnabled: value);
+  }
+
+  Future<void> setSyncOnLaunch(bool value) async {
+    await _prefs.setSyncOnLaunch(value);
+    state = state.copyWith(syncOnLaunch: value);
+  }
+
+  Future<void> setSyncOnResume(bool value) async {
+    await _prefs.setSyncOnResume(value);
+    state = state.copyWith(syncOnResume: value);
+  }
+}
+
+final syncBehaviorProvider =
+    StateNotifierProvider<SyncBehaviorNotifier, SyncBehaviorSettings>((ref) {
+      return SyncBehaviorNotifier(ref.watch(syncPreferencesProvider));
+    });
 
 /// Selected cloud provider type
 final selectedCloudProviderTypeProvider = StateProvider<CloudProviderType?>(
@@ -76,6 +142,7 @@ class SyncState {
   final int pendingChanges;
   final int conflicts;
   final bool isAuthenticated;
+  static const Object _messageSentinel = Object();
 
   const SyncState({
     this.status = SyncStatus.idle,
@@ -89,7 +156,7 @@ class SyncState {
 
   SyncState copyWith({
     SyncStatus? status,
-    String? message,
+    Object? message = _messageSentinel,
     double? progress,
     DateTime? lastSync,
     int? pendingChanges,
@@ -98,7 +165,9 @@ class SyncState {
   }) {
     return SyncState(
       status: status ?? this.status,
-      message: message ?? this.message,
+      message: identical(message, _messageSentinel)
+          ? this.message
+          : message as String?,
       progress: progress ?? this.progress,
       lastSync: lastSync ?? this.lastSync,
       pendingChanges: pendingChanges ?? this.pendingChanges,
@@ -113,9 +182,12 @@ class SyncNotifier extends StateNotifier<SyncState> {
   final SyncRepository _syncRepository;
   final Ref _ref;
   final _log = LoggerService.forClass(SyncNotifier);
+  StreamSubscription<void>? _changeSubscription;
+  Timer? _autoSyncTimer;
 
   SyncNotifier(this._syncRepository, this._ref) : super(const SyncState()) {
     _initialize();
+    _listenForChanges();
   }
 
   /// Get the current sync service (reads dynamically to get latest cloudProvider)
@@ -124,6 +196,23 @@ class SyncNotifier extends StateNotifier<SyncState> {
   Future<void> _initialize() async {
     // Load initial state
     await refreshState();
+  }
+
+  void _listenForChanges() {
+    _changeSubscription = SyncEventBus.changes.listen((_) {
+      _scheduleAutoSync();
+    });
+  }
+
+  void _scheduleAutoSync() {
+    final settings = _ref.read(syncBehaviorProvider);
+    if (!settings.autoSyncEnabled) return;
+    if (state.status == SyncStatus.syncing) return;
+
+    _autoSyncTimer?.cancel();
+    _autoSyncTimer = Timer(const Duration(seconds: 5), () {
+      performSync();
+    });
   }
 
   void _setupProgressCallback() {
@@ -149,6 +238,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
         conflicts: conflictCount,
         isAuthenticated: isAvailable,
         status: conflictCount > 0 ? SyncStatus.hasConflicts : SyncStatus.idle,
+        message: null,
       );
     } catch (e) {
       state = state.copyWith(
@@ -181,11 +271,14 @@ class SyncNotifier extends StateNotifier<SyncState> {
       _log.debug('Result: ${result.status}, message: ${result.message}');
 
       if (result.isSuccess) {
+        final defaultMessage = result.conflictsFound > 0
+            ? 'Sync completed with conflicts'
+            : 'Sync completed successfully';
         state = state.copyWith(
           status: result.conflictsFound > 0
               ? SyncStatus.hasConflicts
               : SyncStatus.success,
-          message: result.message ?? 'Sync completed successfully',
+          message: result.message ?? defaultMessage,
           lastSync: result.lastSyncTime,
           conflicts: result.conflictsFound,
           progress: 1.0,
@@ -198,15 +291,20 @@ class SyncNotifier extends StateNotifier<SyncState> {
         );
       }
     } catch (e) {
+      final phase = state.message ?? 'sync';
       state = state.copyWith(
         status: SyncStatus.error,
-        message: 'Sync error: $e',
+        message: 'Sync error during $phase: $e',
         progress: null,
       );
     }
 
-    // Refresh state after sync
-    await refreshState();
+    // Refresh state after a brief delay so status is readable.
+    if (state.status == SyncStatus.success ||
+        state.status == SyncStatus.hasConflicts) {
+      await Future.delayed(const Duration(seconds: 2));
+      await refreshState();
+    }
   }
 
   /// Resolve a conflict
@@ -232,6 +330,13 @@ class SyncNotifier extends StateNotifier<SyncState> {
   Future<void> resetSyncState() async {
     await _syncService.resetSyncState();
     await refreshState();
+  }
+
+  @override
+  void dispose() {
+    _autoSyncTimer?.cancel();
+    _changeSubscription?.cancel();
+    super.dispose();
   }
 }
 

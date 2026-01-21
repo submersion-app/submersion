@@ -6,11 +6,51 @@ import 'package:submersion/core/router/app_router.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 
-class SubmersionApp extends ConsumerWidget {
+class SubmersionApp extends ConsumerStatefulWidget {
   const SubmersionApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SubmersionApp> createState() => _SubmersionAppState();
+}
+
+class _SubmersionAppState extends ConsumerState<SubmersionApp>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _maybeSyncOnLaunch();
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _maybeSyncOnResume();
+    }
+  }
+
+  void _maybeSyncOnLaunch() {
+    final settings = ref.read(syncBehaviorProvider);
+    if (!settings.autoSyncEnabled || !settings.syncOnLaunch) return;
+    ref.read(syncStateProvider.notifier).performSync();
+  }
+
+  void _maybeSyncOnResume() {
+    final settings = ref.read(syncBehaviorProvider);
+    if (!settings.autoSyncEnabled || !settings.syncOnResume) return;
+    ref.read(syncStateProvider.notifier).performSync();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final router = ref.watch(appRouterProvider);
     final themeMode = ref.watch(themeModeProvider);
 

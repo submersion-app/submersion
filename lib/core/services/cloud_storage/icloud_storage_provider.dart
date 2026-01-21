@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -6,6 +7,7 @@ import 'package:path/path.dart' as path;
 
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
 
 /// iCloud implementation of CloudStorageProvider
 ///
@@ -93,49 +95,32 @@ class ICloudStorageProvider
 
     try {
       _log.info('Platform: macOS=${Platform.isMacOS}, iOS=${Platform.isIOS}');
-      if (Platform.isMacOS) {
-        // On macOS, use the app's container in ~/Library/Mobile Documents/
-        final home = Platform.environment['HOME'];
-        _log.info('HOME = $home');
-        if (home != null) {
-          // The container ID should match your iCloud container identifier
-          // Format: iCloud~bundleid (with dots replaced by tildes)
-          final containerPath = path.join(
-            home,
-            'Library',
-            'Mobile Documents',
-            'iCloud~app~submersion',
-            'Documents',
-          );
-          _log.info('iCloud container path: $containerPath');
-          final container = Directory(containerPath);
 
-          // Create if doesn't exist
-          final exists = await container.exists();
-          _log.info('Container exists: $exists');
-          if (!exists) {
-            await container.create(recursive: true);
-            _log.info('Created container directory');
-          }
+      final containerPath = await ICloudNativeService.getContainerPath();
+      if (containerPath != null) {
+        _log.info('iCloud container path: $containerPath');
+        final container = Directory(containerPath);
 
-          _icloudContainer = container;
-          return container;
+        final exists = await container.exists();
+        _log.info('Container exists: $exists');
+        if (!exists) {
+          await container.create(recursive: true);
+          _log.info('Created container directory');
         }
-      } else if (Platform.isIOS) {
-        _log.warning(
-          'iOS: Using local Documents directory (not real iCloud Drive)',
-        );
-        // On iOS, use getApplicationDocumentsDirectory
-        // Files here are backed up to iCloud if iCloud backup is enabled
-        // For explicit iCloud Drive storage, we need a different approach
-        final docsDir = await getApplicationDocumentsDirectory();
 
-        // Create an iCloud subdirectory
+        _icloudContainer = container;
+        return container;
+      }
+
+      if (Platform.isIOS) {
+        _log.warning(
+          'iOS: Falling back to local Documents directory (iCloud unavailable)',
+        );
+        final docsDir = await getApplicationDocumentsDirectory();
         final icloudDir = Directory(path.join(docsDir.path, 'iCloud'));
         if (!await icloudDir.exists()) {
           await icloudDir.create(recursive: true);
         }
-
         _icloudContainer = icloudDir;
         return icloudDir;
       }
@@ -154,16 +139,37 @@ class ICloudStorageProvider
     String? folderId,
   }) async {
     try {
-      final syncFolder = await getOrCreateSyncFolder();
-      final file = File(path.join(syncFolder, filename));
+      _log.info('uploadFile: START for $filename (${data.length} bytes)');
 
-      await file.writeAsBytes(data);
+      // Step 1: Get sync folder with timeout
+      _log.info('uploadFile: Step 1 - getting sync folder...');
+      final syncFolder = await getOrCreateSyncFolder().timeout(
+        const Duration(seconds: 15),
+        onTimeout: () {
+          throw const CloudStorageException(
+            'Timeout getting sync folder (15s)',
+          );
+        },
+      );
+      _log.info('uploadFile: Step 1 DONE - sync folder: $syncFolder');
 
-      _log.info('Uploaded file to iCloud: ${file.path}');
+      final filePath = path.join(syncFolder, filename);
 
-      return UploadResult(fileId: file.path, uploadTime: DateTime.now());
+      // Step 2: Write directly to iCloud using native file coordination
+      // Native code handles direct file write with timeout
+      _log.info('uploadFile: Step 2 - writing to iCloud via native: $filePath');
+      await ICloudNativeService.writeFile(filePath, data).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          throw const CloudStorageException('Timeout writing to iCloud (30s)');
+        },
+      );
+      _log.info('uploadFile: Step 2 DONE - write complete');
+
+      _log.info('uploadFile: SUCCESS - $filePath');
+      return UploadResult(fileId: filePath, uploadTime: DateTime.now());
     } catch (e, stackTrace) {
-      _log.error('Failed to upload file to iCloud: $filename', e, stackTrace);
+      _log.error('uploadFile: FAILED - $e', e, stackTrace);
       throw CloudStorageException('Upload failed: $e', e, stackTrace);
     }
   }
@@ -175,6 +181,11 @@ class ICloudStorageProvider
 
       if (!await file.exists()) {
         throw CloudStorageException('File not found: $fileId');
+      }
+
+      final downloaded = await ICloudNativeService.downloadIfNeeded(fileId);
+      if (!downloaded) {
+        throw CloudStorageException('iCloud file not downloaded: $fileId');
       }
 
       final data = await file.readAsBytes();
@@ -195,6 +206,8 @@ class ICloudStorageProvider
       if (!await file.exists()) {
         return null;
       }
+
+      await ICloudNativeService.downloadIfNeeded(fileId);
 
       final stat = await file.stat();
 
@@ -223,6 +236,10 @@ class ICloudStorageProvider
         return [];
       }
 
+      // Refresh the folder to ensure we see files synced from other devices.
+      // On iOS especially, iCloud files may not be visible until explicitly downloaded.
+      await ICloudNativeService.refreshFolder(folderPath);
+
       final files = <CloudFileInfo>[];
 
       await for (final entity in folder.list()) {
@@ -233,6 +250,9 @@ class ICloudStorageProvider
           if (namePattern != null && !filename.contains(namePattern)) {
             continue;
           }
+
+          // Ensure the file is downloaded before reading its stats
+          await ICloudNativeService.downloadIfNeeded(entity.path);
 
           final stat = await entity.stat();
           files.add(
@@ -331,5 +351,21 @@ class ICloudStorageProvider
     }
 
     return syncFolderPath;
+  }
+
+  /// Get or create the media folder in the iCloud container.
+  Future<String> getOrCreateMediaFolder() async {
+    final container = await _getICloudContainer();
+    if (container == null) {
+      throw const CloudStorageException('iCloud container not available');
+    }
+
+    final mediaFolderPath = path.join(container.path, 'Media');
+    final mediaFolder = Directory(mediaFolderPath);
+    if (!await mediaFolder.exists()) {
+      await mediaFolder.create(recursive: true);
+      _log.info('Created media folder: $mediaFolderPath');
+    }
+    return mediaFolderPath;
   }
 }

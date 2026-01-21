@@ -1,8 +1,10 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// Repository for managing per-tank time-series pressure data
@@ -11,6 +13,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 /// from AI transmitters for multi-tank dives.
 class TankPressureRepository {
   AppDatabase get _db => DatabaseService.instance.database;
+  final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
 
   /// Get all tank pressure data for a dive, grouped by tank ID
@@ -73,14 +76,19 @@ class TankPressureRepository {
     String diveId,
     Map<String, List<({int timestamp, double pressure})>> pressuresByTank,
   ) async {
+    if (pressuresByTank.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final insertedIds = <String>[];
     await _db.batch((batch) {
       for (final entry in pressuresByTank.entries) {
         final tankId = entry.key;
         for (final point in entry.value) {
+          final id = _uuid.v4();
+          insertedIds.add(id);
           batch.insert(
             _db.tankPressureProfiles,
             TankPressureProfilesCompanion.insert(
-              id: _uuid.v4(),
+              id: id,
               diveId: diveId,
               tankId: tankId,
               timestamp: point.timestamp,
@@ -90,13 +98,48 @@ class TankPressureRepository {
         }
       }
     });
+    for (final id in insertedIds) {
+      await _syncRepository.markRecordPending(
+        entityType: 'tankPressureProfiles',
+        recordId: id,
+        localUpdatedAt: now,
+      );
+    }
+    await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+      DivesCompanion(updatedAt: Value(now)),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'dives',
+      recordId: diveId,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
   }
 
   /// Delete all tank pressure data for a dive
   Future<void> deleteTankPressuresForDive(String diveId) async {
+    final existing = await (_db.select(
+      _db.tankPressureProfiles,
+    )..where((t) => t.diveId.equals(diveId))).get();
     await (_db.delete(
       _db.tankPressureProfiles,
     )..where((t) => t.diveId.equals(diveId))).go();
+    for (final row in existing) {
+      await _syncRepository.logDeletion(
+        entityType: 'tankPressureProfiles',
+        recordId: row.id,
+      );
+    }
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+      DivesCompanion(updatedAt: Value(now)),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'dives',
+      recordId: diveId,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
   }
 
   /// Replace all tank pressure data for a dive

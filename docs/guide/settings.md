@@ -130,12 +130,17 @@ Configure cloud synchronization:
 3. Sign in if prompted
 4. Sync is enabled
 
+Submersion uses an app-managed JSON sync file stored in a **Submersion Sync** folder
+in your cloud provider. If you switch to a custom storage folder, app-managed cloud
+sync is disabled and your storage provider handles syncing instead.
+
 ### Sync Options
 
 | Option | Description |
 |--------|-------------|
 | **Auto Sync** | Sync automatically when data changes |
-| **Wi-Fi Only** | Only sync on Wi-Fi |
+| **Sync on Launch** | Run a sync when the app starts |
+| **Sync on Resume** | Run a sync when returning to the app |
 | **Sync Now** | Manual sync trigger |
 | **Last Sync** | When last synced |
 

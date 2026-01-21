@@ -2,8 +2,10 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart'
     as domain;
@@ -11,6 +13,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart'
 class DiverRepository {
   AppDatabase get _db => DatabaseService.instance.database;
   final DiverSettingsRepository _settingsRepository = DiverSettingsRepository();
+  final SyncRepository _syncRepository = SyncRepository();
   static const _uuid = Uuid();
   static final _log = LoggerService.forClass(DiverRepository);
 
@@ -100,6 +103,13 @@ class DiverRepository {
       // Create default settings for the new diver
       await _settingsRepository.createSettingsForDiver(id);
 
+      await _syncRepository.markRecordPending(
+        entityType: 'divers',
+        recordId: id,
+        localUpdatedAt: now.millisecondsSinceEpoch,
+      );
+      SyncEventBus.notifyLocalChange();
+
       _log.info('Created diver with id: $id');
       return diver.copyWith(id: id, createdAt: now, updatedAt: now);
     } catch (e, stackTrace) {
@@ -136,6 +146,12 @@ class DiverRepository {
           updatedAt: Value(now),
         ),
       );
+      await _syncRepository.markRecordPending(
+        entityType: 'divers',
+        recordId: diver.id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
       _log.info('Updated diver: ${diver.id}');
     } catch (e, stackTrace) {
       _log.error('Failed to update diver: ${diver.id}', e, stackTrace);
@@ -195,12 +211,23 @@ class DiverRepository {
       );
 
       // Delete diver settings (not nullable, so delete instead of nullify)
+      final settingsRows = await (_db.select(
+        _db.diverSettings,
+      )..where((t) => t.diverId.equals(id))).get();
       await (_db.delete(
         _db.diverSettings,
       )..where((t) => t.diverId.equals(id))).go();
+      for (final row in settingsRows) {
+        await _syncRepository.logDeletion(
+          entityType: 'diverSettings',
+          recordId: row.id,
+        );
+      }
 
       // Now delete the diver
       await (_db.delete(_db.divers)..where((t) => t.id.equals(id))).go();
+      await _syncRepository.logDeletion(entityType: 'divers', recordId: id);
+      SyncEventBus.notifyLocalChange();
       _log.info('Deleted diver: $id');
     } catch (e, stackTrace) {
       _log.error('Failed to delete diver: $id', e, stackTrace);
@@ -212,12 +239,25 @@ class DiverRepository {
   Future<void> setDefaultDiver(String id) async {
     try {
       _log.info('Setting default diver: $id');
+      final now = DateTime.now().millisecondsSinceEpoch;
       // Clear all defaults
-      await _db.customStatement('UPDATE divers SET is_default = 0');
+      await _db.customStatement(
+        'UPDATE divers SET is_default = 0, updated_at = ?',
+        [now],
+      );
       // Set new default
       await (_db.update(_db.divers)..where((t) => t.id.equals(id))).write(
-        const DiversCompanion(isDefault: Value(true)),
+        DiversCompanion(isDefault: const Value(true), updatedAt: Value(now)),
       );
+      final allDivers = await _db.select(_db.divers).get();
+      for (final diver in allDivers) {
+        await _syncRepository.markRecordPending(
+          entityType: 'divers',
+          recordId: diver.id,
+          localUpdatedAt: now,
+        );
+      }
+      SyncEventBus.notifyLocalChange();
       _log.info('Set default diver: $id');
     } catch (e, stackTrace) {
       _log.error('Failed to set default diver: $id', e, stackTrace);

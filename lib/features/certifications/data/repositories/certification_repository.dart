@@ -1,15 +1,18 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart'
     as domain;
 
 class CertificationRepository {
   AppDatabase get _db => DatabaseService.instance.database;
+  final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(CertificationRepository);
 
@@ -130,6 +133,13 @@ class CertificationRepository {
             ),
           );
 
+      await _syncRepository.markRecordPending(
+        entityType: 'certifications',
+        recordId: id,
+        localUpdatedAt: now.millisecondsSinceEpoch,
+      );
+      SyncEventBus.notifyLocalChange();
+
       _log.info('Created certification with id: $id');
       return cert.copyWith(id: id, createdAt: now, updatedAt: now);
     } catch (e, stackTrace) {
@@ -162,6 +172,12 @@ class CertificationRepository {
           updatedAt: Value(now),
         ),
       );
+      await _syncRepository.markRecordPending(
+        entityType: 'certifications',
+        recordId: cert.id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
       _log.info('Updated certification: ${cert.id}');
     } catch (e, stackTrace) {
       _log.error('Failed to update certification: ${cert.id}', e, stackTrace);
@@ -176,6 +192,11 @@ class CertificationRepository {
       await (_db.delete(
         _db.certifications,
       )..where((t) => t.id.equals(id))).go();
+      await _syncRepository.logDeletion(
+        entityType: 'certifications',
+        recordId: id,
+      );
+      SyncEventBus.notifyLocalChange();
       _log.info('Deleted certification: $id');
     } catch (e, stackTrace) {
       _log.error('Failed to delete certification: $id', e, stackTrace);

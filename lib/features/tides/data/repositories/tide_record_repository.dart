@@ -1,8 +1,10 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
 import 'package:submersion/features/tides/domain/entities/tide_record.dart'
     as domain;
@@ -13,6 +15,7 @@ import 'package:submersion/features/tides/domain/entities/tide_record.dart'
 /// that were captured at the time of a dive.
 class TideRecordRepository {
   AppDatabase get _db => DatabaseService.instance.database;
+  final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
 
   /// Get the tide record for a specific dive.
@@ -45,6 +48,7 @@ class TideRecordRepository {
   ///
   /// If a record already exists for this dive, it will be replaced.
   Future<domain.TideRecord> saveTideRecord(domain.TideRecord record) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
     final companion = TideRecordsCompanion(
       id: Value(record.id),
       diveId: Value(record.diveId),
@@ -59,6 +63,20 @@ class TideRecordRepository {
     );
 
     await _db.into(_db.tideRecords).insertOnConflictUpdate(companion);
+
+    await _syncRepository.markRecordPending(
+      entityType: 'tideRecords',
+      recordId: record.id,
+      localUpdatedAt: now,
+    );
+    await (_db.update(_db.dives)..where((t) => t.id.equals(record.diveId)))
+        .write(DivesCompanion(updatedAt: Value(now)));
+    await _syncRepository.markRecordPending(
+      entityType: 'dives',
+      recordId: record.diveId,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
 
     return record;
   }
@@ -81,9 +99,28 @@ class TideRecordRepository {
 
   /// Delete the tide record for a dive.
   Future<void> deleteTideRecordForDive(String diveId) async {
+    final existing = await (_db.select(
+      _db.tideRecords,
+    )..where((t) => t.diveId.equals(diveId))).get();
     await (_db.delete(
       _db.tideRecords,
     )..where((t) => t.diveId.equals(diveId))).go();
+    for (final record in existing) {
+      await _syncRepository.logDeletion(
+        entityType: 'tideRecords',
+        recordId: record.id,
+      );
+    }
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+      DivesCompanion(updatedAt: Value(now)),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'dives',
+      recordId: diveId,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
   }
 
   /// Check if a dive has a tide record.

@@ -1,13 +1,16 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart' as domain;
 
 class TagRepository {
   AppDatabase get _db => DatabaseService.instance.database;
+  final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(TagRepository);
 
@@ -83,6 +86,13 @@ class TagRepository {
             ),
           );
 
+      await _syncRepository.markRecordPending(
+        entityType: 'tags',
+        recordId: id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+
       _log.info('Created tag with id: $id');
       return tag.copyWith(id: id);
     } catch (e, stackTrace) {
@@ -135,6 +145,12 @@ class TagRepository {
           updatedAt: Value(now),
         ),
       );
+      await _syncRepository.markRecordPending(
+        entityType: 'tags',
+        recordId: tag.id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
       _log.info('Updated tag: ${tag.id}');
     } catch (e, stackTrace) {
       _log.error('Failed to update tag: ${tag.id}', e, stackTrace);
@@ -147,6 +163,8 @@ class TagRepository {
     try {
       _log.info('Deleting tag: $id');
       await (_db.delete(_db.tags)..where((t) => t.id.equals(id))).go();
+      await _syncRepository.logDeletion(entityType: 'tags', recordId: id);
+      SyncEventBus.notifyLocalChange();
       _log.info('Deleted tag: $id');
     } catch (e, stackTrace) {
       _log.error('Failed to delete tag: $id', e, stackTrace);
@@ -246,25 +264,51 @@ class TagRepository {
       final newTagIds = tags.map((t) => t.id).toSet();
       final removedTagIds = existingTagIds.difference(newTagIds);
 
+      final existingDiveTags = await (_db.select(
+        _db.diveTags,
+      )..where((t) => t.diveId.equals(diveId))).get();
+
       // Delete existing tags for this dive
       await (_db.delete(
         _db.diveTags,
       )..where((t) => t.diveId.equals(diveId))).go();
+      for (final diveTag in existingDiveTags) {
+        await _syncRepository.logDeletion(
+          entityType: 'diveTags',
+          recordId: diveTag.id,
+        );
+      }
 
       // Insert new tags
       final now = DateTime.now().millisecondsSinceEpoch;
       for (final tag in tags) {
+        final id = _uuid.v4();
         await _db
             .into(_db.diveTags)
             .insert(
               DiveTagsCompanion(
-                id: Value(_uuid.v4()),
+                id: Value(id),
                 diveId: Value(diveId),
                 tagId: Value(tag.id),
                 createdAt: Value(now),
               ),
             );
+        await _syncRepository.markRecordPending(
+          entityType: 'diveTags',
+          recordId: id,
+          localUpdatedAt: now,
+        );
       }
+
+      await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+        DivesCompanion(updatedAt: Value(now)),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: diveId,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
 
       // Clean up any tags that are no longer used
       for (final tagId in removedTagIds) {
@@ -283,17 +327,33 @@ class TagRepository {
     try {
       _log.info('Adding tag $tagId to dive: $diveId');
       final now = DateTime.now().millisecondsSinceEpoch;
+      final id = _uuid.v4();
 
       await _db
           .into(_db.diveTags)
           .insert(
             DiveTagsCompanion(
-              id: Value(_uuid.v4()),
+              id: Value(id),
               diveId: Value(diveId),
               tagId: Value(tagId),
               createdAt: Value(now),
             ),
           );
+
+      await _syncRepository.markRecordPending(
+        entityType: 'diveTags',
+        recordId: id,
+        localUpdatedAt: now,
+      );
+      await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+        DivesCompanion(updatedAt: Value(now)),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: diveId,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
 
       _log.info('Added tag $tagId to dive: $diveId');
     } catch (e, stackTrace) {
@@ -306,9 +366,28 @@ class TagRepository {
   Future<void> removeTagFromDive(String diveId, String tagId) async {
     try {
       _log.info('Removing tag $tagId from dive: $diveId');
+      final existing = await (_db.select(
+        _db.diveTags,
+      )..where((t) => t.diveId.equals(diveId) & t.tagId.equals(tagId))).get();
       await (_db.delete(
         _db.diveTags,
       )..where((t) => t.diveId.equals(diveId) & t.tagId.equals(tagId))).go();
+      for (final row in existing) {
+        await _syncRepository.logDeletion(
+          entityType: 'diveTags',
+          recordId: row.id,
+        );
+      }
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+        DivesCompanion(updatedAt: Value(now)),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: diveId,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
 
       // Clean up the tag if it's no longer used
       await _deleteTagIfUnused(tagId);

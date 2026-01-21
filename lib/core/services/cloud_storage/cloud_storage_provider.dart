@@ -144,7 +144,9 @@ abstract class CloudStorageProvider {
 /// Mixin providing common functionality for cloud storage providers
 mixin CloudStorageProviderMixin {
   static const String syncFolderName = 'Submersion Sync';
-  static const String syncFilePrefix = 'submersion_sync_';
+  static const String syncFileStem = 'submersion_sync';
+  static const String canonicalSyncFileName = '$syncFileStem.json';
+  static const String syncFilePrefix = '${syncFileStem}_';
   static const String syncFileExtension = '.json';
 
   /// Generate a sync filename with timestamp
@@ -155,7 +157,16 @@ mixin CloudStorageProviderMixin {
 
   /// Check if a filename matches the sync file pattern
   bool isSyncFile(String filename) {
+    if (filename == canonicalSyncFileName) {
+      return true;
+    }
     return filename.startsWith(syncFilePrefix) &&
         filename.endsWith(syncFileExtension);
+  }
+
+  /// Returns true if the filename looks like an iCloud conflicted copy.
+  bool isConflictCopy(String filename) {
+    final lower = filename.toLowerCase();
+    return lower.contains('conflicted copy') || lower.contains('conflict');
   }
 }

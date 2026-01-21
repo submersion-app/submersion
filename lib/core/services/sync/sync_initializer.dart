@@ -75,7 +75,9 @@ class SyncInitializer {
 
       // Get local last sync time
       final localLastSync = await _syncRepository.getLastSyncTime();
-      final remoteFileId = await _syncRepository.getRemoteFileId();
+      var remoteFileId = await _syncRepository.getRemoteFileId();
+
+      remoteFileId ??= await _discoverRemoteFile(provider);
 
       if (remoteFileId == null) {
         // No remote file yet - first sync needed
@@ -137,6 +139,41 @@ class SyncInitializer {
         message: 'Sync check failed: $e',
       );
     }
+  }
+
+  Future<String?> _discoverRemoteFile(CloudStorageProvider provider) async {
+    try {
+      final files = await provider.listFiles(
+        namePattern: CloudStorageProviderMixin.syncFileStem,
+      );
+      if (files.isEmpty) return null;
+
+      final canonical = files.firstWhere(
+        (f) => f.name == CloudStorageProviderMixin.canonicalSyncFileName,
+        orElse: () => files.first,
+      );
+
+      final candidates = files.where((f) => !_isConflictCopy(f.name)).toList();
+      final selected = candidates.isNotEmpty
+          ? _pickLatest(candidates)
+          : canonical;
+
+      await _syncRepository.setRemoteFileId(selected.id);
+      return selected.id;
+    } catch (e) {
+      _log.warning('Failed to discover remote sync file: $e');
+      return null;
+    }
+  }
+
+  CloudFileInfo _pickLatest(List<CloudFileInfo> files) {
+    files.sort((a, b) => b.modifiedTime.compareTo(a.modifiedTime));
+    return files.first;
+  }
+
+  bool _isConflictCopy(String filename) {
+    final lower = filename.toLowerCase();
+    return lower.contains('conflicted copy') || lower.contains('conflict');
   }
 }
 

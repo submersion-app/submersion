@@ -3,13 +3,16 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/tank_presets.dart' as constants;
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 
 class TankPresetRepository {
   AppDatabase get _db => DatabaseService.instance.database;
+  final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(TankPresetRepository);
 
@@ -156,6 +159,12 @@ class TankPresetRepository {
               updatedAt: Value(now),
             ),
           );
+      await _syncRepository.markRecordPending(
+        entityType: 'tankPresets',
+        recordId: uniqueId,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
 
       _log.info(
         'Created tank preset with id: $uniqueId for diver: ${preset.diverId}',
@@ -198,6 +207,12 @@ class TankPresetRepository {
           updatedAt: Value(now),
         ),
       );
+      await _syncRepository.markRecordPending(
+        entityType: 'tankPresets',
+        recordId: preset.id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
       _log.info('Updated tank preset: ${preset.id}');
     } catch (e, stackTrace) {
       _log.error('Failed to update tank preset: ${preset.id}', e, stackTrace);
@@ -216,6 +231,11 @@ class TankPresetRepository {
 
       _log.info('Deleting tank preset: $id');
       await (_db.delete(_db.tankPresets)..where((t) => t.id.equals(id))).go();
+      await _syncRepository.logDeletion(
+        entityType: 'tankPresets',
+        recordId: id,
+      );
+      SyncEventBus.notifyLocalChange();
       _log.info('Deleted tank preset: $id');
     } catch (e, stackTrace) {
       _log.error('Failed to delete tank preset: $id', e, stackTrace);

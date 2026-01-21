@@ -1,13 +1,16 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart' as domain;
 
 class TripRepository {
   AppDatabase get _db => DatabaseService.instance.database;
+  final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(TripRepository);
 
@@ -114,6 +117,13 @@ class TripRepository {
             ),
           );
 
+      await _syncRepository.markRecordPending(
+        entityType: 'trips',
+        recordId: id,
+        localUpdatedAt: now.millisecondsSinceEpoch,
+      );
+      SyncEventBus.notifyLocalChange();
+
       _log.info('Created trip with id: $id');
       return trip.copyWith(id: id, createdAt: now, updatedAt: now);
     } catch (e, stackTrace) {
@@ -140,6 +150,12 @@ class TripRepository {
           updatedAt: Value(now),
         ),
       );
+      await _syncRepository.markRecordPending(
+        entityType: 'trips',
+        recordId: trip.id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
       _log.info('Updated trip: ${trip.id}');
     } catch (e, stackTrace) {
       _log.error('Failed to update trip: ${trip.id}', e, stackTrace);
@@ -161,6 +177,8 @@ class TripRepository {
 
       // Then delete the trip
       await (_db.delete(_db.trips)..where((t) => t.id.equals(id))).go();
+      await _syncRepository.logDeletion(entityType: 'trips', recordId: id);
+      SyncEventBus.notifyLocalChange();
       _log.info('Deleted trip: $id');
     } catch (e, stackTrace) {
       _log.error('Failed to delete trip: $id', e, stackTrace);
