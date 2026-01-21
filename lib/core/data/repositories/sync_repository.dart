@@ -92,7 +92,7 @@ class SyncRepository {
     final needsRepair =
         rawDeviceId == null ||
         rawDeviceId is! String ||
-        (rawDeviceId as String).isEmpty ||
+        rawDeviceId.isEmpty ||
         rawSyncVersion == null ||
         rawSyncVersion is! int ||
         rawCreatedAt == null ||
