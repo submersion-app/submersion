@@ -14,6 +14,8 @@ import 'package:submersion/features/dive_log/data/services/profile_markers_servi
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_legend.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
 
 /// Interactive dive profile chart showing depth over time with zoom/pan support
@@ -225,46 +227,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     return null;
   }
 
-  /// Build per-tank pressure toggles
-  List<Widget> _buildTankPressureToggles(BuildContext context) {
-    if (!_hasMultiTankPressure) return [];
-
-    final tankPressures = widget.tankPressures!;
-    final toggles = <Widget>[];
-
-    final sortedTankIds = _sortedTankIds(tankPressures.keys);
-
-    for (var i = 0; i < sortedTankIds.length; i++) {
-      final tankId = sortedTankIds[i];
-      final tank = _getTankById(tankId);
-
-      // Initialize visibility if not set
-      _showTankPressure.putIfAbsent(tankId, () => true);
-
-      // Get color based on gas mix
-      final color = tank != null
-          ? GasColors.forGasMix(tank.gasMix)
-          : _getTankColor(i);
-
-      // Build label
-      final label = tank?.name ?? 'Tank ${i + 1}';
-
-      toggles.add(
-        _buildMetricToggle(
-          context,
-          color: color,
-          label: label,
-          isEnabled: _showTankPressure[tankId] ?? true,
-          onTap: () => setState(() {
-            _showTankPressure[tankId] = !(_showTankPressure[tankId] ?? true);
-          }),
-        ),
-      );
-    }
-
-    return toggles;
-  }
-
   /// Get color for tank by index (fallback when no gas mix info)
   Color _getTankColor(int index) {
     const colors = [
@@ -361,133 +323,57 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final hasHeartRateData = widget.profile.any((p) => p.heartRate != null);
     final colorScheme = Theme.of(context).colorScheme;
 
-    // Define colors for each metric
-    const pressureColor = Colors.orange;
-    const heartRateColor = Colors.red;
+    // Watch legend state from provider
+    final legendState = ref.watch(profileLegendProvider);
+
+    // Sync local state with provider for backward compatibility
+    // This allows the chart rendering logic to continue using local state
+    _showTemperature = legendState.showTemperature;
+    _showPressure = legendState.showPressure;
+    _showHeartRate = legendState.showHeartRate;
+    _showSac = legendState.showSac;
+    _showCeiling = legendState.showCeiling;
+    _showAscentRateColors = legendState.showAscentRateColors;
+    _showEvents = legendState.showEvents;
+    _showMaxDepthMarkerLocal = legendState.showMaxDepthMarker;
+    _showPressureMarkersLocal = legendState.showPressureMarkers;
+    _showGasSwitchMarkers = legendState.showGasSwitchMarkers;
+    // Sync per-tank pressure visibility
+    for (final entry in legendState.showTankPressure.entries) {
+      _showTankPressure[entry.key] = entry.value;
+    }
+
+    // Build legend config based on available data
+    final legendConfig = ProfileLegendConfig(
+      hasTemperatureData: hasTemperatureData,
+      hasPressureData: hasPressureData,
+      hasHeartRateData: hasHeartRateData,
+      hasSacCurve: widget.sacCurve != null && widget.sacCurve!.isNotEmpty,
+      hasCeilingCurve: widget.ceilingCurve != null,
+      hasAscentRates: widget.ascentRates != null,
+      hasEvents: widget.events != null && widget.events!.isNotEmpty,
+      hasMaxDepthMarker: widget.showMaxDepthMarker && _hasMaxDepthMarker,
+      hasPressureMarkers:
+          widget.showPressureThresholdMarkers && _hasPressureMarkers,
+      hasGasSwitches:
+          widget.gasSwitches != null && widget.gasSwitches!.isNotEmpty,
+      hasMultiTankPressure: _hasMultiTankPressure,
+      tanks: widget.tanks,
+      tankPressures: widget.tankPressures,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Chart header with toggles and zoom controls
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Wrap(
-            spacing: 12,
-            runSpacing: 8,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              // Depth legend (always shown)
-              _buildLegendItem(
-                context,
-                color: colorScheme.primary,
-                label: 'Depth',
-              ),
-              // Temperature toggle
-              if (hasTemperatureData)
-                _buildMetricToggle(
-                  context,
-                  color: colorScheme.tertiary,
-                  label: 'Temp',
-                  isEnabled: _showTemperature,
-                  onTap: () =>
-                      setState(() => _showTemperature = !_showTemperature),
-                ),
-              // Pressure toggles - per-tank if multi-tank data, legacy otherwise
-              if (_hasMultiTankPressure)
-                ..._buildTankPressureToggles(context)
-              else if (hasPressureData)
-                _buildMetricToggle(
-                  context,
-                  color: pressureColor,
-                  label: 'Pressure',
-                  isEnabled: _showPressure,
-                  onTap: () => setState(() => _showPressure = !_showPressure),
-                ),
-              // Heart rate toggle
-              if (hasHeartRateData)
-                _buildMetricToggle(
-                  context,
-                  color: heartRateColor,
-                  label: 'HR',
-                  isEnabled: _showHeartRate,
-                  onTap: () => setState(() => _showHeartRate = !_showHeartRate),
-                ),
-              // SAC curve toggle (if data available)
-              if (widget.sacCurve != null && widget.sacCurve!.isNotEmpty)
-                _buildMetricToggle(
-                  context,
-                  color: Colors.teal,
-                  label: 'SAC',
-                  isEnabled: _showSac,
-                  onTap: () => setState(() => _showSac = !_showSac),
-                ),
-              // Ceiling toggle (if data available)
-              if (widget.ceilingCurve != null)
-                _buildMetricToggle(
-                  context,
-                  color: Colors.amber.shade700,
-                  label: 'Ceiling',
-                  isEnabled: _showCeiling,
-                  onTap: () => setState(() => _showCeiling = !_showCeiling),
-                ),
-              // Ascent rate coloring toggle (if data available)
-              if (widget.ascentRates != null)
-                _buildMetricToggle(
-                  context,
-                  color: Colors.green,
-                  label: 'Rate',
-                  isEnabled: _showAscentRateColors,
-                  onTap: () => setState(
-                    () => _showAscentRateColors = !_showAscentRateColors,
-                  ),
-                ),
-              // Events toggle (if data available)
-              if (widget.events != null && widget.events!.isNotEmpty)
-                _buildMetricToggle(
-                  context,
-                  color: Colors.purple,
-                  label: 'Events',
-                  isEnabled: _showEvents,
-                  onTap: () => setState(() => _showEvents = !_showEvents),
-                ),
-              // Max depth marker toggle (if enabled in settings and markers exist)
-              if (widget.showMaxDepthMarker && _hasMaxDepthMarker)
-                _buildMetricToggle(
-                  context,
-                  color: Colors.red,
-                  label: 'Max',
-                  isEnabled: _showMaxDepthMarkerLocal,
-                  onTap: () => setState(
-                    () => _showMaxDepthMarkerLocal = !_showMaxDepthMarkerLocal,
-                  ),
-                ),
-              // Pressure threshold markers toggle (if enabled in settings)
-              if (widget.showPressureThresholdMarkers && _hasPressureMarkers)
-                _buildMetricToggle(
-                  context,
-                  color: Colors.orange,
-                  label: 'Tank Pressure Thresholds',
-                  isEnabled: _showPressureMarkersLocal,
-                  onTap: () => setState(
-                    () =>
-                        _showPressureMarkersLocal = !_showPressureMarkersLocal,
-                  ),
-                ),
-              // Gas switch markers toggle (if gas switches exist)
-              if (widget.gasSwitches != null && widget.gasSwitches!.isNotEmpty)
-                _buildMetricToggle(
-                  context,
-                  color: GasColors.nitrox,
-                  label: 'Gas',
-                  isEnabled: _showGasSwitchMarkers,
-                  onTap: () => setState(
-                    () => _showGasSwitchMarkers = !_showGasSwitchMarkers,
-                  ),
-                ),
-              // Zoom controls (pushed to end)
-              _buildZoomControls(context),
-            ],
-          ),
+        // Chart header with legend and zoom controls (decluttered)
+        DiveProfileLegend(
+          config: legendConfig,
+          zoomLevel: _zoomLevel,
+          minZoom: _minZoom,
+          maxZoom: _maxZoom,
+          onZoomIn: _zoomIn,
+          onZoomOut: _zoomOut,
+          onResetZoom: _resetZoom,
         ),
 
         // The chart with gesture handling
@@ -517,60 +403,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               ),
             ),
           ),
-      ],
-    );
-  }
-
-  Widget _buildZoomControls(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isZoomed = _zoomLevel > 1.0;
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Zoom out button
-        IconButton(
-          onPressed: _zoomLevel > _minZoom ? _zoomOut : null,
-          icon: const Icon(Icons.remove),
-          iconSize: 18,
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-          tooltip: 'Zoom out',
-        ),
-        // Zoom level indicator
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(
-            '${_zoomLevel.toStringAsFixed(1)}x',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.w500,
-              color: isZoomed
-                  ? colorScheme.primary
-                  : colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ),
-        // Zoom in button
-        IconButton(
-          onPressed: _zoomLevel < _maxZoom ? _zoomIn : null,
-          icon: const Icon(Icons.add),
-          iconSize: 18,
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-          tooltip: 'Zoom in',
-        ),
-        // Reset button (only show when zoomed)
-        if (isZoomed) ...[
-          const SizedBox(width: 4),
-          IconButton(
-            onPressed: _resetZoom,
-            icon: const Icon(Icons.fit_screen),
-            iconSize: 18,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-            tooltip: 'Reset zoom',
-          ),
-        ],
       ],
     );
   }
@@ -688,74 +520,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               'No dive profile data',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLegendItem(
-    BuildContext context, {
-    required Color color,
-    required String label,
-  }) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 12,
-          height: 3,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
-        const SizedBox(width: 4),
-        Text(label, style: Theme.of(context).textTheme.bodySmall),
-      ],
-    );
-  }
-
-  Widget _buildMetricToggle(
-    BuildContext context, {
-    required Color color,
-    required String label,
-    required bool isEnabled,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(4),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              isEnabled ? Icons.check_box : Icons.check_box_outline_blank,
-              size: 16,
-              color: isEnabled
-                  ? color
-                  : Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: 4),
-            Container(
-              width: 12,
-              height: 3,
-              decoration: BoxDecoration(
-                color: isEnabled ? color : color.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: isEnabled
-                    ? null
-                    : Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ],
@@ -1391,6 +1155,53 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       }
                     }
 
+                    // Marker info (if touching near a marker)
+                    final markers = widget.markers;
+                    if (markers != null && markers.isNotEmpty) {
+                      final timestamp = point.timestamp;
+                      // Find markers within 3 seconds of current point
+                      const timestampThreshold = 3;
+
+                      for (final marker in markers) {
+                        // Skip markers based on toggle state
+                        if (marker.type == ProfileMarkerType.maxDepth) {
+                          if (!widget.showMaxDepthMarker ||
+                              !_showMaxDepthMarkerLocal) {
+                            continue;
+                          }
+                        } else {
+                          if (!widget.showPressureThresholdMarkers ||
+                              !_showPressureMarkersLocal) {
+                            continue;
+                          }
+                        }
+
+                        // Check if marker is near current timestamp
+                        if ((marker.timestamp - timestamp).abs() <=
+                            timestampThreshold) {
+                          final markerColor = marker.getColor();
+                          lines.add(
+                            TextSpan(
+                              text: '◆ ',
+                              style: TextStyle(
+                                color: markerColor,
+                                fontSize: 10,
+                              ),
+                            ),
+                          );
+                          lines.add(
+                            TextSpan(
+                              text: '${marker.chartLabel}\n',
+                              style: TextStyle(
+                                color: colorScheme.onInverseSurface,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          );
+                        }
+                      }
+                    }
+
                     return LineTooltipItem(
                       '', // Empty base text, using children instead
                       TextStyle(color: colorScheme.onInverseSurface),
@@ -1402,17 +1213,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             ),
           ),
         ),
-        // Marker labels overlay
-        _buildMarkerLabelsOverlay(
-          units,
-          visibleMinX: visibleMinX,
-          visibleMaxX: visibleMaxX,
-          visibleMinDepth: visibleMinDepth,
-          visibleMaxDepth: visibleMaxDepth,
-          totalMaxDepth: totalMaxDepth,
-          minPressure: minPressure,
-          maxPressure: maxPressure,
-        ),
+        // Marker labels removed - marker info now shown in tooltip when tapping near markers
       ],
     );
   }
@@ -1926,129 +1727,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // might not support this well in lineBarsData context.
     // For now, return empty - events will be shown differently
     return [];
-  }
-
-  /// Build marker labels overlay positioned on the chart
-  Widget _buildMarkerLabelsOverlay(
-    UnitFormatter units, {
-    required double visibleMinX,
-    required double visibleMaxX,
-    required double visibleMinDepth,
-    required double visibleMaxDepth,
-    required double totalMaxDepth,
-    double? minPressure,
-    double? maxPressure,
-  }) {
-    final markers = widget.markers;
-    if (markers == null || markers.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final chartWidth = constraints.maxWidth;
-        final chartHeight = constraints.maxHeight;
-        final visibleRangeX = visibleMaxX - visibleMinX;
-        final visibleRangeY = visibleMaxDepth - visibleMinDepth;
-
-        final labels = <Widget>[];
-
-        for (final marker in markers) {
-          // Skip markers based on settings
-          if (marker.type == ProfileMarkerType.maxDepth) {
-            if (!widget.showMaxDepthMarker || !_showMaxDepthMarkerLocal) {
-              continue;
-            }
-          } else {
-            if (!widget.showPressureThresholdMarkers ||
-                !_showPressureMarkersLocal) {
-              continue;
-            }
-          }
-
-          // Calculate marker position
-          final markerX = marker.timestamp.toDouble();
-
-          // Skip if X is out of visible range
-          if (markerX < visibleMinX || markerX > visibleMaxX) {
-            continue;
-          }
-
-          // Calculate Y position based on marker type
-          double markerY;
-          if (marker.type == ProfileMarkerType.maxDepth) {
-            // Max depth marker: position on depth line
-            markerY = units.convertDepth(marker.depth);
-            // Check if in visible depth range
-            if (markerY < visibleMinDepth || markerY > visibleMaxDepth) {
-              continue;
-            }
-          } else {
-            // Pressure threshold marker: position on pressure line
-            // Map the pressure value to the depth axis, same as pressure line rendering
-            if (minPressure != null &&
-                maxPressure != null &&
-                marker.value != null) {
-              markerY = _mapValueToDepth(
-                marker.value!,
-                totalMaxDepth,
-                minPressure,
-                maxPressure,
-              );
-              // For pressure markers, check if within visible depth range
-              if (markerY < visibleMinDepth || markerY > visibleMaxDepth) {
-                continue;
-              }
-            } else {
-              // Fallback to depth if no pressure range
-              markerY = units.convertDepth(marker.depth);
-              if (markerY < visibleMinDepth || markerY > visibleMaxDepth) {
-                continue;
-              }
-            }
-          }
-
-          // Convert data coordinates to pixel coordinates
-          final pixelX = ((markerX - visibleMinX) / visibleRangeX) * chartWidth;
-          final pixelY =
-              ((markerY - visibleMinDepth) / visibleRangeY) * chartHeight;
-
-          final color = marker.getColor();
-          final isMaxDepth = marker.type == ProfileMarkerType.maxDepth;
-
-          labels.add(
-            Positioned(
-              left: pixelX + 8, // Offset to the right of the marker dot
-              top: pixelY - 8, // Slightly above the marker
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.9),
-                  borderRadius: BorderRadius.circular(4),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.3),
-                      blurRadius: 2,
-                      offset: const Offset(1, 1),
-                    ),
-                  ],
-                ),
-                child: Text(
-                  marker.chartLabel,
-                  style: TextStyle(
-                    color: isMaxDepth ? Colors.white : Colors.black87,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          );
-        }
-
-        return Stack(children: labels);
-      },
-    );
   }
 
   /// Build marker lines for max depth and pressure thresholds
