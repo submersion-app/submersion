@@ -744,72 +744,64 @@ class DiveComputerRepository {
         isPrimary = true;
       }
 
-      // Insert profile points (keeping legacy pressure for backward compatibility)
-      for (final point in points) {
-        final profileId = _uuid.v4();
-        await _db
-            .into(_db.diveProfiles)
-            .insert(
-              DiveProfilesCompanion(
-                id: Value(profileId),
-                diveId: Value(diveId),
-                computerId: Value(computerId),
-                timestamp: Value(point.timestamp),
-                depth: Value(point.depth),
-                // Store primary tank pressure for legacy compatibility
-                pressure: Value(
-                  point.tankIndex == 0 || point.tankIndex == null
-                      ? point.pressure
-                      : null,
-                ),
-                temperature: Value(point.temperature),
-                heartRate: Value(point.heartRate),
-                isPrimary: Value(isPrimary),
+      // Batch insert profile points for performance (~100x faster than individual)
+      // No individual sync records needed - parent dive sync covers child data
+      await _db.batch((batch) {
+        for (final point in points) {
+          batch.insert(
+            _db.diveProfiles,
+            DiveProfilesCompanion(
+              id: Value(_uuid.v4()),
+              diveId: Value(diveId),
+              computerId: Value(computerId),
+              timestamp: Value(point.timestamp),
+              depth: Value(point.depth),
+              // Store primary tank pressure for legacy compatibility
+              pressure: Value(
+                point.tankIndex == 0 || point.tankIndex == null
+                    ? point.pressure
+                    : null,
               ),
-            );
-        await _syncRepository.markRecordPending(
-          entityType: 'diveProfiles',
-          recordId: profileId,
-          localUpdatedAt: now,
-        );
-      }
+              temperature: Value(point.temperature),
+              heartRate: Value(point.heartRate),
+              isPrimary: Value(isPrimary),
+            ),
+          );
+        }
+      });
 
       // Map to track tank index → tank ID for pressure data
       final tankIdsByIndex = <int, String>{};
 
-      // Insert tanks for new dives
+      // Insert tanks for new dives (batch insert for performance)
       if (isNewDive && tanks != null && tanks.isNotEmpty) {
         _log.info('Importing ${tanks.length} tanks for dive $diveId');
-        for (final tank in tanks) {
-          final tankId = _uuid.v4();
-          tankIdsByIndex[tank.index] = tankId;
+        await _db.batch((batch) {
+          for (final tank in tanks) {
+            final tankId = _uuid.v4();
+            tankIdsByIndex[tank.index] = tankId;
 
-          await _db
-              .into(_db.diveTanks)
-              .insert(
-                DiveTanksCompanion(
-                  id: Value(tankId),
-                  diveId: Value(diveId),
-                  volume: Value(tank.volumeLiters),
-                  startPressure: Value(tank.startPressure?.round()),
-                  endPressure: Value(tank.endPressure?.round()),
-                  o2Percent: Value(tank.o2Percent),
-                  hePercent: Value(tank.hePercent),
-                  tankOrder: Value(tank.index),
-                  tankRole: const Value('backGas'),
-                ),
-              );
-          await _syncRepository.markRecordPending(
-            entityType: 'diveTanks',
-            recordId: tankId,
-            localUpdatedAt: now,
-          );
-          _log.info(
-            'Created tank ${tank.index}: '
-            'O2=${tank.o2Percent}%, start=${tank.startPressure} bar, '
-            'end=${tank.endPressure} bar',
-          );
-        }
+            batch.insert(
+              _db.diveTanks,
+              DiveTanksCompanion(
+                id: Value(tankId),
+                diveId: Value(diveId),
+                volume: Value(tank.volumeLiters),
+                startPressure: Value(tank.startPressure?.round()),
+                endPressure: Value(tank.endPressure?.round()),
+                o2Percent: Value(tank.o2Percent),
+                hePercent: Value(tank.hePercent),
+                tankOrder: Value(tank.index),
+                tankRole: const Value('backGas'),
+              ),
+            );
+            _log.info(
+              'Created tank ${tank.index}: '
+              'O2=${tank.o2Percent}%, start=${tank.startPressure} bar, '
+              'end=${tank.endPressure} bar',
+            );
+          }
+        });
       } else if (!isNewDive) {
         // For existing dives, fetch tank IDs
         final existingTanks =
@@ -822,7 +814,7 @@ class DiveComputerRepository {
         }
       }
 
-      // Insert per-tank pressure time-series data
+      // Insert per-tank pressure time-series data (batch insert, no individual sync)
       if (tankIdsByIndex.isNotEmpty) {
         // Group pressure readings by tank index
         final pressuresByTank =
@@ -838,21 +830,19 @@ class DiveComputerRepository {
           }
         }
 
-        // Batch insert pressure data for each tank.
+        // Batch insert pressure data for each tank
+        // No individual sync records - parent dive sync covers child data
         final insertEntries = pressuresByTank.entries
             .where((entry) => tankIdsByIndex.containsKey(entry.key))
             .toList();
-        final pressureIds = <String>[];
         await _db.batch((batch) {
           for (final entry in insertEntries) {
             final tankId = tankIdsByIndex[entry.key]!;
             for (final point in entry.value) {
-              final pressureId = _uuid.v4();
-              pressureIds.add(pressureId);
               batch.insert(
                 _db.tankPressureProfiles,
                 TankPressureProfilesCompanion.insert(
-                  id: pressureId,
+                  id: _uuid.v4(),
                   diveId: diveId,
                   tankId: tankId,
                   timestamp: point.timestamp,
@@ -862,13 +852,6 @@ class DiveComputerRepository {
             }
           }
         });
-        for (final pressureId in pressureIds) {
-          await _syncRepository.markRecordPending(
-            entityType: 'tankPressureProfiles',
-            recordId: pressureId,
-            localUpdatedAt: now,
-          );
-        }
         for (final entry in insertEntries) {
           _log.info(
             'Imported ${entry.value.length} pressure points for tank ${entry.key}',

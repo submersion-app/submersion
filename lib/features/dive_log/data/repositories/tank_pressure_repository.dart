@@ -72,23 +72,22 @@ class TankPressureRepository {
   /// Bulk insert tank pressure data for a dive
   ///
   /// [pressuresByTank] maps tank IDs to lists of (timestamp, pressure) tuples
+  /// Uses batch insert for performance - no individual sync records needed
+  /// since parent dive sync covers all child data.
   Future<void> insertTankPressures(
     String diveId,
     Map<String, List<({int timestamp, double pressure})>> pressuresByTank,
   ) async {
     if (pressuresByTank.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
-    final insertedIds = <String>[];
     await _db.batch((batch) {
       for (final entry in pressuresByTank.entries) {
         final tankId = entry.key;
         for (final point in entry.value) {
-          final id = _uuid.v4();
-          insertedIds.add(id);
           batch.insert(
             _db.tankPressureProfiles,
             TankPressureProfilesCompanion.insert(
-              id: id,
+              id: _uuid.v4(),
               diveId: diveId,
               tankId: tankId,
               timestamp: point.timestamp,
@@ -98,13 +97,7 @@ class TankPressureRepository {
         }
       }
     });
-    for (final id in insertedIds) {
-      await _syncRepository.markRecordPending(
-        entityType: 'tankPressureProfiles',
-        recordId: id,
-        localUpdatedAt: now,
-      );
-    }
+    // Only mark parent dive as pending - child data syncs with it
     await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
       DivesCompanion(updatedAt: Value(now)),
     );

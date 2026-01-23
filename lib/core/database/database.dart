@@ -811,7 +811,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 14;
+  int get schemaVersion => 15;
 
   @override
   MigrationStrategy get migration {
@@ -1057,6 +1057,19 @@ class AppDatabase extends _$AppDatabase {
           await customStatement('''
             CREATE INDEX IF NOT EXISTS idx_tide_records_dive
             ON tide_records(dive_id)
+          ''');
+        }
+        if (from < 15) {
+          // Add index on dive_profiles.dive_id for faster profile loading
+          // This table has 160K+ rows and is queried frequently by dive_id
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dive_profiles_dive_id
+            ON dive_profiles(dive_id)
+          ''');
+          // Add composite index on sync_records for efficient pending/conflict lookups
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_sync_records_entity_record
+            ON sync_records(entity_type, record_id)
           ''');
         }
       },
