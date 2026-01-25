@@ -200,24 +200,24 @@ class CertificationPickerSheet extends ConsumerWidget {
                     trailing: isSelected
                         ? Icon(Icons.check_circle, color: colorScheme.primary)
                         : cert.isExpired
-                            ? Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: colorScheme.errorContainer,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  'Expired',
-                                  style: Theme.of(context).textTheme.labelSmall
-                                      ?.copyWith(
-                                        color: colorScheme.onErrorContainer,
-                                      ),
-                                ),
-                              )
-                            : null,
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: colorScheme.errorContainer,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              'Expired',
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: colorScheme.onErrorContainer,
+                                  ),
+                            ),
+                          )
+                        : null,
                     onTap: () => onCertificationSelected(cert),
                   );
                 },
