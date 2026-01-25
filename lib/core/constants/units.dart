@@ -76,6 +76,24 @@ enum WeightUnit {
   }
 }
 
+enum AltitudeUnit {
+  meters('m'),
+  feet('ft');
+
+  final String symbol;
+  const AltitudeUnit(this.symbol);
+
+  /// Meters to feet conversion factor
+  static const double _metersToFeet = 3.28084;
+
+  double convert(double value, AltitudeUnit to) {
+    if (this == to) return value;
+    if (this == meters && to == feet) return value * _metersToFeet;
+    if (this == feet && to == meters) return value / _metersToFeet;
+    return value;
+  }
+}
+
 /// SAC (Surface Air Consumption) calculation method
 enum SacUnit {
   /// L/min - requires tank volume, calculates actual gas consumption

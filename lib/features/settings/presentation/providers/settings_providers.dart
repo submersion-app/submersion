@@ -52,6 +52,7 @@ class AppSettings {
   final PressureUnit pressureUnit;
   final VolumeUnit volumeUnit;
   final WeightUnit weightUnit;
+  final AltitudeUnit altitudeUnit;
   final SacUnit sacUnit;
   final TimeFormat timeFormat;
   final DateFormatPreference dateFormat;
@@ -120,6 +121,7 @@ class AppSettings {
     this.pressureUnit = PressureUnit.bar,
     this.volumeUnit = VolumeUnit.liters,
     this.weightUnit = WeightUnit.kilograms,
+    this.altitudeUnit = AltitudeUnit.meters,
     this.sacUnit = SacUnit.pressurePerMin,
     this.timeFormat = TimeFormat.twelveHour,
     this.dateFormat = DateFormatPreference.mmmDYYYY,
@@ -156,14 +158,16 @@ class AppSettings {
         temperatureUnit == TemperatureUnit.celsius &&
         pressureUnit == PressureUnit.bar &&
         volumeUnit == VolumeUnit.liters &&
-        weightUnit == WeightUnit.kilograms;
+        weightUnit == WeightUnit.kilograms &&
+        altitudeUnit == AltitudeUnit.meters;
 
     final isAllImperial =
         depthUnit == DepthUnit.feet &&
         temperatureUnit == TemperatureUnit.fahrenheit &&
         pressureUnit == PressureUnit.psi &&
         volumeUnit == VolumeUnit.cubicFeet &&
-        weightUnit == WeightUnit.pounds;
+        weightUnit == WeightUnit.pounds &&
+        altitudeUnit == AltitudeUnit.feet;
 
     if (isAllMetric) return UnitPreset.metric;
     if (isAllImperial) return UnitPreset.imperial;
@@ -186,6 +190,7 @@ class AppSettings {
     PressureUnit? pressureUnit,
     VolumeUnit? volumeUnit,
     WeightUnit? weightUnit,
+    AltitudeUnit? altitudeUnit,
     SacUnit? sacUnit,
     TimeFormat? timeFormat,
     DateFormatPreference? dateFormat,
@@ -217,6 +222,7 @@ class AppSettings {
       pressureUnit: pressureUnit ?? this.pressureUnit,
       volumeUnit: volumeUnit ?? this.volumeUnit,
       weightUnit: weightUnit ?? this.weightUnit,
+      altitudeUnit: altitudeUnit ?? this.altitudeUnit,
       sacUnit: sacUnit ?? this.sacUnit,
       timeFormat: timeFormat ?? this.timeFormat,
       dateFormat: dateFormat ?? this.dateFormat,
@@ -367,6 +373,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  Future<void> setAltitudeUnit(AltitudeUnit unit) async {
+    state = state.copyWith(altitudeUnit: unit);
+    await _saveSettings();
+  }
+
   Future<void> setTimeFormat(TimeFormat format) async {
     state = state.copyWith(timeFormat: format);
     await _saveSettings();
@@ -511,6 +522,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       pressureUnit: PressureUnit.bar,
       volumeUnit: VolumeUnit.liters,
       weightUnit: WeightUnit.kilograms,
+      altitudeUnit: AltitudeUnit.meters,
     );
     await _saveSettings();
   }
@@ -523,6 +535,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       pressureUnit: PressureUnit.psi,
       volumeUnit: VolumeUnit.cubicFeet,
       weightUnit: WeightUnit.pounds,
+      altitudeUnit: AltitudeUnit.feet,
     );
     await _saveSettings();
   }
@@ -551,6 +564,10 @@ final pressureUnitProvider = Provider<PressureUnit>((ref) {
 
 final sacUnitProvider = Provider<SacUnit>((ref) {
   return ref.watch(settingsProvider.select((s) => s.sacUnit));
+});
+
+final altitudeUnitProvider = Provider<AltitudeUnit>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.altitudeUnit));
 });
 
 final themeModeProvider = Provider<ThemeMode>((ref) {

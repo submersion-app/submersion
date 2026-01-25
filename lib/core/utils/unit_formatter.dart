@@ -1,6 +1,7 @@
 import 'package:intl/intl.dart';
 
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Utility class for formatting values with the correct units based on settings
@@ -164,6 +165,53 @@ class UnitFormatter {
   /// Convert weight from user's preferred unit to kg (for storage)
   double weightToKg(double value) {
     return settings.weightUnit.convert(value, WeightUnit.kilograms);
+  }
+
+  // ============================================================================
+  // Altitude
+  // ============================================================================
+
+  /// Format altitude value with unit symbol
+  String formatAltitude(double? value, {int decimals = 0}) {
+    if (value == null) return '--';
+    final converted = AltitudeUnit.meters.convert(value, settings.altitudeUnit);
+    final formatted = NumberFormat('#,##0').format(converted.round());
+    return '$formatted ${settings.altitudeUnit.symbol}';
+  }
+
+  /// Format altitude with altitude group label
+  String formatAltitudeWithGroup(double? value, {int decimals = 0}) {
+    if (value == null) return '--';
+    final altitudeStr = formatAltitude(value, decimals: decimals);
+    final group = AltitudeGroup.fromAltitude(value);
+    if (group == AltitudeGroup.seaLevel) return altitudeStr;
+    return '$altitudeStr (${group.displayName})';
+  }
+
+  /// Format barometric pressure
+  String formatBarometricPressure(double? bar, {int decimals = 3}) {
+    if (bar == null) return '--';
+    return '${bar.toStringAsFixed(decimals)} bar';
+  }
+
+  /// Format barometric pressure in millibar
+  String formatBarometricPressureMbar(double? bar, {int decimals = 0}) {
+    if (bar == null) return '--';
+    final mbar = bar * 1000;
+    return '${mbar.toStringAsFixed(decimals)} mbar';
+  }
+
+  /// Get altitude unit symbol
+  String get altitudeSymbol => settings.altitudeUnit.symbol;
+
+  /// Convert altitude from meters to user's preferred unit
+  double convertAltitude(double meters) {
+    return AltitudeUnit.meters.convert(meters, settings.altitudeUnit);
+  }
+
+  /// Convert altitude from user's preferred unit to meters (for storage)
+  double altitudeToMeters(double value) {
+    return settings.altitudeUnit.convert(value, AltitudeUnit.meters);
   }
 
   // ============================================================================

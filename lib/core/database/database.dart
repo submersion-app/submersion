@@ -217,6 +217,8 @@ class DiveSites extends Table {
       text().nullable()(); // Mooring buoy number for boats
   TextColumn get parkingInfo =>
       text().nullable()(); // Parking availability and tips
+  RealColumn get altitude => real()
+      .nullable()(); // Altitude above sea level in meters (for altitude diving)
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -811,7 +813,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 15;
+  int get schemaVersion => 16;
 
   @override
   MigrationStrategy get migration {
@@ -1071,6 +1073,12 @@ class AppDatabase extends _$AppDatabase {
             CREATE INDEX IF NOT EXISTS idx_sync_records_entity_record
             ON sync_records(entity_type, record_id)
           ''');
+        }
+        if (from < 16) {
+          // Add altitude column to dive_sites for altitude diving support
+          await customStatement(
+            'ALTER TABLE dive_sites ADD COLUMN altitude REAL',
+          );
         }
       },
       beforeOpen: (details) async {

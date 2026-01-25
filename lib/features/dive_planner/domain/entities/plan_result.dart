@@ -491,6 +491,9 @@ class DivePlanState extends Equatable {
   /// Dive site for the plan.
   final String? siteId;
 
+  /// Altitude above sea level in meters (for altitude diving).
+  final double? altitude;
+
   /// Notes for the plan.
   final String notes;
 
@@ -514,6 +517,7 @@ class DivePlanState extends Equatable {
     this.surfaceInterval,
     this.initialTissueState,
     this.siteId,
+    this.altitude,
     this.notes = '',
     this.isDirty = false,
     required this.createdAt,
@@ -559,6 +563,7 @@ class DivePlanState extends Equatable {
     Duration? surfaceInterval,
     List<TissueCompartment>? initialTissueState,
     String? siteId,
+    double? altitude,
     String? notes,
     bool? isDirty,
     DateTime? createdAt,
@@ -566,6 +571,7 @@ class DivePlanState extends Equatable {
     bool clearSurfaceInterval = false,
     bool clearInitialTissueState = false,
     bool clearSiteId = false,
+    bool clearAltitude = false,
   }) {
     return DivePlanState(
       id: id ?? this.id,
@@ -582,6 +588,7 @@ class DivePlanState extends Equatable {
           ? null
           : (initialTissueState ?? this.initialTissueState),
       siteId: clearSiteId ? null : (siteId ?? this.siteId),
+      altitude: clearAltitude ? null : (altitude ?? this.altitude),
       notes: notes ?? this.notes,
       isDirty: isDirty ?? this.isDirty,
       createdAt: createdAt ?? this.createdAt,
@@ -601,6 +608,7 @@ class DivePlanState extends Equatable {
     surfaceInterval,
     initialTissueState,
     siteId,
+    altitude,
     notes,
     isDirty,
     createdAt,

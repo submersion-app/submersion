@@ -272,6 +272,16 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     );
   }
 
+  /// Update altitude for altitude diving.
+  void updateAltitude(double? altitude) {
+    state = state.copyWith(
+      altitude: altitude,
+      clearAltitude: altitude == null,
+      isDirty: true,
+      updatedAt: DateTime.now(),
+    );
+  }
+
   // --------------------------------------------------------------------------
   // Repetitive Dive Support
   // --------------------------------------------------------------------------
@@ -343,6 +353,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
       tanks: state.tanks,
       profile: profilePoints,
       notes: state.notes,
+      altitude: state.altitude,
       gradientFactorLow: state.gfLow,
       gradientFactorHigh: state.gfHigh,
       isPlanned: true,

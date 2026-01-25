@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
@@ -250,7 +251,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               ? units.convertDepth(dive.swellHeight!).toStringAsFixed(1)
               : '';
           _altitudeController.text = dive.altitude != null
-              ? units.convertDepth(dive.altitude!).toStringAsFixed(0)
+              ? units.convertAltitude(dive.altitude!).toStringAsFixed(0)
               : '';
           _surfacePressureController.text = dive.surfacePressure != null
               ? (dive.surfacePressure! * 1000).toStringAsFixed(
@@ -1783,10 +1784,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                     controller: _altitudeController,
                     decoration: InputDecoration(
                       labelText: 'Altitude',
-                      suffixText: units.depthSymbol,
+                      suffixText: units.altitudeSymbol,
                       helperText: _getAltitudeWarning(units),
                       helperStyle: TextStyle(
-                        color: _isAltitudeDive(units) ? Colors.orange : null,
+                        color: _getAltitudeWarningColor(units),
                       ),
                     ),
                     keyboardType: const TextInputType.numberWithOptions(
@@ -2397,7 +2398,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           ? units.depthToMeters(double.parse(_swellHeightController.text))
           : null;
       final altitude = _altitudeController.text.isNotEmpty
-          ? units.depthToMeters(double.parse(_altitudeController.text))
+          ? units.altitudeToMeters(double.parse(_altitudeController.text))
           : null;
       final surfacePressure = _surfacePressureController.text.isNotEmpty
           ? double.parse(_surfacePressureController.text) /
@@ -2564,23 +2565,42 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     }
   }
 
-  /// Check if this is an altitude dive (>300m above sea level).
-  bool _isAltitudeDive(UnitFormatter units) {
-    final altitudeText = _altitudeController.text.trim();
-    if (altitudeText.isEmpty) return false;
-    final altitudeInUserUnits = double.tryParse(altitudeText);
-    if (altitudeInUserUnits == null) return false;
-    // Convert to meters for comparison (300m is the threshold)
-    final altitudeMeters = units.depthToMeters(altitudeInUserUnits);
-    return altitudeMeters > 300;
-  }
-
   /// Get warning text for altitude dives.
   String? _getAltitudeWarning(UnitFormatter units) {
-    if (_isAltitudeDive(units)) {
-      return 'Altitude dive - affects NDL';
+    final altitudeText = _altitudeController.text.trim();
+    if (altitudeText.isEmpty) return null;
+    final altitudeInUserUnits = double.tryParse(altitudeText);
+    if (altitudeInUserUnits == null) return null;
+
+    final altitudeMeters = units.altitudeToMeters(altitudeInUserUnits);
+    final group = AltitudeGroup.fromAltitude(altitudeMeters);
+
+    if (group == AltitudeGroup.seaLevel) return null;
+    return '${group.displayName} - ${group.rangeDescription}';
+  }
+
+  /// Get warning color for altitude dives based on altitude group.
+  Color? _getAltitudeWarningColor(UnitFormatter units) {
+    final altitudeText = _altitudeController.text.trim();
+    if (altitudeText.isEmpty) return null;
+    final altitudeInUserUnits = double.tryParse(altitudeText);
+    if (altitudeInUserUnits == null) return null;
+
+    final altitudeMeters = units.altitudeToMeters(altitudeInUserUnits);
+    final group = AltitudeGroup.fromAltitude(altitudeMeters);
+
+    switch (group.warningLevel) {
+      case AltitudeWarningLevel.none:
+        return null;
+      case AltitudeWarningLevel.info:
+        return Colors.blue;
+      case AltitudeWarningLevel.caution:
+        return Colors.orange;
+      case AltitudeWarningLevel.warning:
+        return Colors.deepOrange;
+      case AltitudeWarningLevel.severe:
+        return Colors.red;
     }
-    return null;
   }
 }
 

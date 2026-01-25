@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/services/location_service.dart';
+import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -49,6 +50,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
   final _accessNotesController = TextEditingController();
   final _mooringNumberController = TextEditingController();
   final _parkingInfoController = TextEditingController();
+  final _altitudeController = TextEditingController();
 
   double _rating = 0;
   SiteDifficulty? _difficulty;
@@ -73,6 +75,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     _accessNotesController.addListener(_onFieldChanged);
     _mooringNumberController.addListener(_onFieldChanged);
     _parkingInfoController.addListener(_onFieldChanged);
+    _altitudeController.addListener(_onFieldChanged);
   }
 
   void _onFieldChanged() {
@@ -96,6 +99,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     _accessNotesController.dispose();
     _mooringNumberController.dispose();
     _parkingInfoController.dispose();
+    _altitudeController.dispose();
     super.dispose();
   }
 
@@ -123,6 +127,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     _parkingInfoController.text = site.parkingInfo ?? '';
     _rating = site.rating ?? 0;
     _difficulty = site.difficulty;
+    _altitudeController.text = site.altitude != null
+        ? units.convertAltitude(site.altitude!).toStringAsFixed(0)
+        : '';
   }
 
   void _handleCancel() {
@@ -258,6 +265,10 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
 
           // GPS Coordinates
           _buildGpsSection(context),
+          const SizedBox(height: 16),
+
+          // Altitude (for altitude diving)
+          _buildAltitudeSection(context, units),
           const SizedBox(height: 16),
 
           // Access & Logistics Section
@@ -795,6 +806,143 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     );
   }
 
+  Widget _buildAltitudeSection(BuildContext context, UnitFormatter units) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final altitudeSymbol = units.altitudeSymbol;
+
+    // Parse current altitude to show group indicator
+    final altitudeInput = double.tryParse(_altitudeController.text);
+    final altitudeMeters = altitudeInput != null
+        ? units.altitudeToMeters(altitudeInput)
+        : null;
+    final altitudeGroup = AltitudeGroup.fromAltitude(altitudeMeters);
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.terrain),
+                const SizedBox(width: 8),
+                Text(
+                  'Altitude',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Site elevation above sea level (for altitude diving)',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _altitudeController,
+              decoration: InputDecoration(
+                labelText: 'Altitude ($altitudeSymbol)',
+                hintText: 'e.g., 2000',
+                prefixIcon: const Icon(Icons.terrain),
+              ),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              onChanged: (_) => setState(() {}),
+              validator: (value) {
+                if (value != null && value.isNotEmpty) {
+                  final altitude = double.tryParse(value);
+                  if (altitude == null || altitude < 0) {
+                    return 'Invalid altitude';
+                  }
+                }
+                return null;
+              },
+            ),
+            if (altitudeGroup != AltitudeGroup.seaLevel &&
+                altitudeMeters != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: _buildAltitudeGroupIndicator(context, altitudeGroup),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAltitudeGroupIndicator(
+    BuildContext context,
+    AltitudeGroup group,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    Color backgroundColor;
+    Color foregroundColor;
+    IconData icon;
+
+    switch (group.warningLevel) {
+      case AltitudeWarningLevel.none:
+        backgroundColor = colorScheme.surfaceContainerHighest;
+        foregroundColor = colorScheme.onSurface;
+        icon = Icons.check_circle_outline;
+      case AltitudeWarningLevel.info:
+        backgroundColor = colorScheme.primaryContainer;
+        foregroundColor = colorScheme.onPrimaryContainer;
+        icon = Icons.info_outline;
+      case AltitudeWarningLevel.caution:
+        backgroundColor = colorScheme.tertiaryContainer;
+        foregroundColor = colorScheme.onTertiaryContainer;
+        icon = Icons.warning_amber;
+      case AltitudeWarningLevel.warning:
+        backgroundColor = colorScheme.errorContainer;
+        foregroundColor = colorScheme.onErrorContainer;
+        icon = Icons.warning;
+      case AltitudeWarningLevel.severe:
+        backgroundColor = colorScheme.error;
+        foregroundColor = colorScheme.onError;
+        icon = Icons.dangerous;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18, color: foregroundColor),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  group.displayName,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: foregroundColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  group.rangeDescription,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: foregroundColor.withValues(alpha: 0.8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildAccessSection(BuildContext context) {
     return Card(
       child: Padding(
@@ -919,11 +1067,15 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
 
       final minDepthInput = double.tryParse(_minDepthController.text);
       final maxDepthInput = double.tryParse(_maxDepthController.text);
+      final altitudeInput = double.tryParse(_altitudeController.text);
       final minDepthMeters = minDepthInput != null
           ? units.depthToMeters(minDepthInput)
           : null;
       final maxDepthMeters = maxDepthInput != null
           ? units.depthToMeters(maxDepthInput)
+          : null;
+      final altitudeMeters = altitudeInput != null
+          ? units.altitudeToMeters(altitudeInput)
           : null;
 
       String? country = _countryController.text.trim().isEmpty
@@ -979,6 +1131,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
         parkingInfo: _parkingInfoController.text.trim().isEmpty
             ? null
             : _parkingInfoController.text.trim(),
+        altitude: altitudeMeters,
       );
 
       final notifier = ref.read(siteListNotifierProvider.notifier);

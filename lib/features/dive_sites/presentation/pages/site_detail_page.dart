@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -134,6 +135,12 @@ class _SiteDetailContent extends ConsumerWidget {
           // Depth Information Section
           _buildDepthSection(context, ref, site),
           const SizedBox(height: 16),
+
+          // Altitude Section (only if altitude is set)
+          if (site.altitude != null) ...[
+            _buildAltitudeSection(context, ref, site),
+            const SizedBox(height: 16),
+          ],
 
           // Tide Section (only if site has coordinates)
           if (site.hasCoordinates) ...[
@@ -893,6 +900,189 @@ class _SiteDetailContent extends ConsumerWidget {
                     ),
                 ],
               ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAltitudeSection(
+    BuildContext context,
+    WidgetRef ref,
+    DiveSite site,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
+
+    final altitudeGroup = AltitudeGroup.fromAltitude(site.altitude);
+    final pressure = AltitudeCalculator.calculateBarometricPressure(
+      site.altitude!,
+    );
+
+    Color getGroupColor(AltitudeWarningLevel level) {
+      switch (level) {
+        case AltitudeWarningLevel.none:
+          return colorScheme.surfaceContainerHighest;
+        case AltitudeWarningLevel.info:
+          return colorScheme.primaryContainer;
+        case AltitudeWarningLevel.caution:
+          return colorScheme.tertiaryContainer;
+        case AltitudeWarningLevel.warning:
+          return colorScheme.errorContainer;
+        case AltitudeWarningLevel.severe:
+          return colorScheme.error;
+      }
+    }
+
+    Color getGroupForeground(AltitudeWarningLevel level) {
+      switch (level) {
+        case AltitudeWarningLevel.none:
+          return colorScheme.onSurface;
+        case AltitudeWarningLevel.info:
+          return colorScheme.onPrimaryContainer;
+        case AltitudeWarningLevel.caution:
+          return colorScheme.onTertiaryContainer;
+        case AltitudeWarningLevel.warning:
+          return colorScheme.onErrorContainer;
+        case AltitudeWarningLevel.severe:
+          return colorScheme.onError;
+      }
+    }
+
+    IconData getGroupIcon(AltitudeWarningLevel level) {
+      switch (level) {
+        case AltitudeWarningLevel.none:
+          return Icons.check_circle_outline;
+        case AltitudeWarningLevel.info:
+          return Icons.info_outline;
+        case AltitudeWarningLevel.caution:
+          return Icons.warning_amber;
+        case AltitudeWarningLevel.warning:
+          return Icons.warning;
+        case AltitudeWarningLevel.severe:
+          return Icons.dangerous;
+      }
+    }
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.terrain, size: 20, color: colorScheme.primary),
+                const SizedBox(width: 8),
+                Text(
+                  'Altitude',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    children: [
+                      Text(
+                        'Elevation',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        units.formatAltitude(site.altitude),
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.primary,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  height: 50,
+                  width: 1,
+                  color: colorScheme.outlineVariant,
+                ),
+                Expanded(
+                  child: Column(
+                    children: [
+                      Text(
+                        'Pressure',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${(pressure * 1000).toStringAsFixed(0)} mbar',
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.secondary,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            if (altitudeGroup != AltitudeGroup.seaLevel) ...[
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: getGroupColor(altitudeGroup.warningLevel),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      getGroupIcon(altitudeGroup.warningLevel),
+                      size: 24,
+                      color: getGroupForeground(altitudeGroup.warningLevel),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            altitudeGroup.displayName,
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: getGroupForeground(
+                                    altitudeGroup.warningLevel,
+                                  ),
+                                ),
+                          ),
+                          Text(
+                            altitudeGroup.rangeDescription,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: getGroupForeground(
+                                    altitudeGroup.warningLevel,
+                                  ).withValues(alpha: 0.8),
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),

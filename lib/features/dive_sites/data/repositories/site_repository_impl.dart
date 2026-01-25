@@ -74,6 +74,7 @@ class SiteRepository {
               accessNotes: Value(site.accessNotes),
               mooringNumber: Value(site.mooringNumber),
               parkingInfo: Value(site.parkingInfo),
+              altitude: Value(site.altitude),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -119,6 +120,7 @@ class SiteRepository {
           accessNotes: Value(site.accessNotes),
           mooringNumber: Value(site.mooringNumber),
           parkingInfo: Value(site.parkingInfo),
+          altitude: Value(site.altitude),
           updatedAt: Value(now),
         ),
       );
@@ -270,6 +272,7 @@ class SiteRepository {
       accessNotes: row.accessNotes,
       mooringNumber: row.mooringNumber,
       parkingInfo: row.parkingInfo,
+      altitude: row.altitude,
     );
   }
 }

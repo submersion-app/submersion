@@ -48,6 +48,8 @@ class DiveSite extends Equatable {
   final String? accessNotes; // How to access the site, entry/exit points
   final String? mooringNumber; // Mooring buoy number for boat dives
   final String? parkingInfo; // Parking availability and tips
+  final double?
+  altitude; // Altitude above sea level in meters (for altitude diving)
   final SiteConditions? conditions;
 
   const DiveSite({
@@ -68,6 +70,7 @@ class DiveSite extends Equatable {
     this.accessNotes,
     this.mooringNumber,
     this.parkingInfo,
+    this.altitude,
     this.conditions,
   });
 
@@ -109,6 +112,7 @@ class DiveSite extends Equatable {
     String? accessNotes,
     String? mooringNumber,
     String? parkingInfo,
+    double? altitude,
     SiteConditions? conditions,
   }) {
     return DiveSite(
@@ -129,6 +133,7 @@ class DiveSite extends Equatable {
       accessNotes: accessNotes ?? this.accessNotes,
       mooringNumber: mooringNumber ?? this.mooringNumber,
       parkingInfo: parkingInfo ?? this.parkingInfo,
+      altitude: altitude ?? this.altitude,
       conditions: conditions ?? this.conditions,
     );
   }
@@ -152,6 +157,7 @@ class DiveSite extends Equatable {
     accessNotes,
     mooringNumber,
     parkingInfo,
+    altitude,
     conditions,
   ];
 }
