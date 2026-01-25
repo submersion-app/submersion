@@ -398,11 +398,11 @@
 | Difficulty levels | ✅ Implemented | v1.1 | Beginner/Intermediate/Advanced/Technical |
 | Hazards, access notes | ✅ Implemented | v1.1 | Free-text fields |
 | Mooring numbers, parking | ✅ Implemented | v1.1 | For boat/shore diving |
-| Common marine life | 📋 Planned | v1.5 | Link species to sites |
+| Common marine life | ✅ Implemented | v1.5 | Link species to sites |
 
 **v1.5 Tasks:**
-- [ ] Many-to-many relationship between sites and species (common sightings)
-- [ ] Display "Commonly Seen" species list on site detail page
+- [x] Many-to-many relationship between sites and species (common sightings)
+- [x] Display "Commonly Seen" species list on site detail page
 
 ---
 
@@ -1386,5 +1386,5 @@
 
 ---
 
-**Document Version:** 2.9
+**Document Version:** 2.10
 **Last Updated:** 2026-01-25

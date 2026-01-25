@@ -33,11 +33,11 @@ This document contains only the features and tasks that are **not yet completed*
 ### 5.1 Dive Site Database
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Common marine life | 📋 Planned | Link species to sites |
+| Common marine life | ✅ Implemented | Link species to sites |
 
 **Tasks:**
-- [ ] Many-to-many relationship between sites and species (common sightings)
-- [ ] Display "Commonly Seen" species list on site detail page
+- [x] Many-to-many relationship between sites and species (common sightings)
+- [x] Display "Commonly Seen" species list on site detail page
 
 ### 5.2 GPS Integration
 | Feature | Status | Notes |
@@ -730,5 +730,5 @@ The current sample data is placeholder/development data - for production use, yo
 
 ---
 
-**Document Version:** 1.2
-**Updated:** 2026-01-25 (Personal & Medical Data completed)
+**Document Version:** 1.3
+**Updated:** 2026-01-25 (Common marine life completed)
