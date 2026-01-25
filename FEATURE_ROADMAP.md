@@ -851,11 +851,18 @@
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
 | Surface interval planner | 📋 Planned | v1.5 | How long to wait |
-| Altitude conversion | 📋 Planned | v2.0 | Altitude dive tables |
+| Altitude conversion | ✅ Implemented | v1.5 | Altitude dive tables with pressure calculator |
 
 **v1.5 Tasks:**
 - [ ] Surface Interval Tool: Input previous dive (depth, time, gas) + desired next dive → Output min surface interval
 - [ ] Display tissue loading chart showing saturation decreasing over time
+- [x] AltitudeCalculator with ISA barometric formula (pressure from altitude)
+- [x] AltitudeGroup classification (Sea Level, Group 1-3, Extreme) with PADI/SSI compatibility
+- [x] Equivalent Ocean Depth (EOD) calculation for altitude diving adjustments
+- [x] Tiered warning levels (info/caution/warning/severe) based on altitude group
+- [x] Altitude field integration in dive sites, dive log, and dive planner
+- [x] Unit-aware display (meters/feet) respecting user settings
+- [x] 36 unit tests for altitude calculator
 
 ---
 
@@ -1376,5 +1383,5 @@
 
 ---
 
-**Document Version:** 2.8
-**Last Updated:** 2026-01-14
+**Document Version:** 2.9
+**Last Updated:** 2026-01-25

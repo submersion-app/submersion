@@ -1,6 +1,6 @@
 # Submersion - Remaining Tasks
 
-> **Generated:** 2026-01-14
+> **Generated:** 2026-01-25
 > **Source:** FEATURE_ROADMAP.md
 > **Current Version:** 1.1.0 (v1.5 In Progress)
 
@@ -434,15 +434,6 @@ This document contains only the features and tasks that are **not yet completed*
 
 ---
 
-## Category 11: Planning & Calculators
-
-### 11.4 Convenience Tools
-| Feature | Notes |
-|---------|-------|
-| Altitude conversion | Altitude dive tables |
-
----
-
 ## Category 12: Cloud Sync, Backup & Multi-Device
 
 ### 12.1 Cloud Accounts
@@ -752,5 +743,5 @@ The current sample data is placeholder/development data - for production use, yo
 
 ---
 
-**Document Version:** 1.0
-**Generated:** 2026-01-14
+**Document Version:** 1.1
+**Generated:** 2026-01-25
