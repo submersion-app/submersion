@@ -608,15 +608,17 @@
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Medical clearance dates | 📋 Planned | v1.5 | For commercial divers |
-| Emergency contacts | 📋 Planned | v1.5 | Critical for safety |
+| Medical clearance dates | ✅ Implemented | v1.5 | Expiry tracking with 30-day warning |
+| Emergency contacts | ✅ Implemented | v1.5 | Primary and secondary contacts |
+| Medications tracking | ✅ Implemented | v1.5 | Text field in diver profile |
 | Medical documents | 📋 Planned | v2.0 | PDF storage |
 
-**v1.5 Tasks:**
-- [ ] Add Medical/Personal section to Settings
-- [ ] Emergency contact(s) with name, phone, relationship
-- [ ] Medical clearance expiry date with reminder
-- [ ] Blood type, allergies, medications (encrypted storage)
+**v1.5 Tasks (Complete):**
+- [x] Add Medical/Personal section to Diver Edit page
+- [x] Two emergency contacts (primary + secondary) with name, phone, relationship
+- [x] Medical clearance expiry date with visual warnings (expired/expiring soon)
+- [x] Blood type, allergies, medications fields
+- [x] Helper methods: `isMedicalClearanceExpired`, `isMedicalClearanceExpiringSoon`
 
 **v2.0 Tasks:**
 - [ ] Medical document storage (PDF of medical clearance)
@@ -1361,6 +1363,7 @@
 - [x] Step-through playback with animated cursor and real-time stats
 - [x] Heart rate overlay toggle on profile chart
 - [x] 16-compartment tissue saturation bar chart (N2/He visualization)
+- [x] Personal & Medical Data (emergency contacts, medical clearance, medications)
 - [ ] Performance with 5000+ dives
 
 ## v2.0 (Planned)

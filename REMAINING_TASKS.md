@@ -121,18 +121,6 @@ This document contains only the features and tasks that are **not yet completed*
 - [ ] Instructor notes field on dives
 - [ ] Training log export (PDF with instructor signature)
 
-### 8.4 Personal & Medical Data
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Medical clearance dates | 📋 Planned | For commercial divers |
-| Emergency contacts | 📋 Planned | Critical for safety |
-
-**Tasks:**
-- [ ] Add Medical/Personal section to Settings
-- [ ] Emergency contact(s) with name, phone, relationship
-- [ ] Medical clearance expiry date with reminder
-- [ ] Blood type, allergies, medications (encrypted storage)
-
 ---
 
 ## Category 9: Environment, Wildlife & Photography
@@ -728,7 +716,7 @@ The current sample data is placeholder/development data - for production use, yo
 
 | Phase | Remaining Features | Remaining Tasks |
 |-------|-------------------|-----------------|
-| **v1.5** | ~25 features | ~45 tasks |
+| **v1.5** | ~22 features | ~41 tasks |
 | **v2.0** | ~75+ features | ~115+ tasks |
 | **v3.0** | ~5 features | Future scope |
 
@@ -738,10 +726,9 @@ The current sample data is placeholder/development data - for production use, yo
 3. Import from other dive log apps
 4. Accessibility improvements
 5. Digital signatures for training logs
-6. Medical/emergency contact info
-7. Species detail enhancements
+6. Species detail enhancements
 
 ---
 
-**Document Version:** 1.1
-**Generated:** 2026-01-25
+**Document Version:** 1.2
+**Updated:** 2026-01-25 (Personal & Medical Data completed)
