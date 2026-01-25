@@ -32,7 +32,7 @@ class QuickActionsCard extends StatelessWidget {
                   label: const Text('Log Dive'),
                 ),
                 FilledButton.tonalIcon(
-                  onPressed: () => context.go('/planner'),
+                  onPressed: () => context.go('/planning/dive-planner'),
                   icon: const Icon(Icons.edit_calendar),
                   label: const Text('Plan Dive'),
                 ),
