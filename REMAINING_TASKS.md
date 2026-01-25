@@ -110,6 +110,7 @@ This document contains only the features and tasks that are **not yet completed*
 | Associate with courses | ✅ Complete | Dive-course many-to-one, course picker |
 | Instructor comments | ✅ Complete | Using existing notes field |
 | E-signatures | ✅ Complete | Per-dive instructor signatures |
+| Course-Certification linking | ✅ Complete | Bidirectional link with picker UI |
 
 **Completed:**
 - [x] Course entity with name, agency, start_date, completion_date, instructor, cert_id
@@ -119,6 +120,9 @@ This document contains only the features and tasks that are **not yet completed*
 - [x] CoursePicker widget for dive edit page
 - [x] Bidirectional course-certification navigation
 - [x] Signature capture and display on dive detail page
+- [x] Courses navigation in main scaffold (rail + More menu)
+- [x] CertificationPicker widget for course edit page
+- [x] Link courses to earned certifications (bidirectional)
 
 **Remaining:**
 - [ ] Training log export (PDF with instructor signatures)

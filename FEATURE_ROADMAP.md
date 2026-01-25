@@ -1,11 +1,11 @@
 # Submersion Feature Roadmap
 ## Comprehensive Development Plan
 
-> **Last Updated:** 2026-01-14
+> **Last Updated:** 2026-01-25
 > **Current Version:** 1.1.0 (v1.1 Complete)
 > **Status:** v1.0 ✅ COMPLETE | v1.1 ✅ COMPLETE | v1.5 🚧 In Progress
 >
-> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Profile Visualization (Category 2.1) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete | Search & Filtering (Category 10.1) ✅ Complete | Tools & Calculators (Category 11) ✅ Complete
+> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Profile Visualization (Category 2.1) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete | Search & Filtering (Category 10.1) ✅ Complete | Tools & Calculators (Category 11) ✅ Complete | Digital Signatures (Category 7.2) ✅ Complete | Training Dives (Category 8.3) ✅ Complete
 
 ---
 
@@ -531,15 +531,19 @@
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Buddy signatures | 📋 Planned | v1.5 | For training logs |
-| Instructor signatures | 📋 Planned | v1.5 | Professional logs |
-| Signature capture | 📋 Planned | v1.5 | Touch/stylus drawing |
+| Buddy signatures | 📋 Planned | v2.0 | Student/observer sign-off (deferred) |
+| Instructor signatures | ✅ Implemented | v1.5 | Per-dive signatures for training logs |
+| Signature capture | ✅ Implemented | v1.5 | Touch/stylus canvas drawing |
 
-**v1.5 Tasks:**
-- [ ] Signature widget (canvas drawing with save as PNG)
-- [ ] Store signatures in Media table linked to dives
-- [ ] Display signatures on dive detail page and PDF export
-- [ ] Timestamp and signer name with signature
+**v1.5 Tasks (Complete):**
+- [x] SignatureCaptureWidget (canvas drawing with save as PNG)
+- [x] SignatureStorageService (Media table with fileType='instructor_signature')
+- [x] SignatureDisplayWidget (preview, full-view dialog, badge)
+- [x] Integration on dive detail page (conditional for training dives)
+
+**Remaining (v2.0):**
+- [ ] Buddy signatures (student/observer sign-off)
+- [ ] Display signatures in PDF export
 
 ---
 
@@ -592,15 +596,22 @@
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
 | Mark dives as training | ✅ Implemented | MVP | "Training" dive type exists |
-| Associate with courses | 📋 Planned | v1.5 | Course entity |
-| Instructor comments | 📋 Planned | v1.5 | Rich text field |
-| E-signatures | 📋 Planned | v1.5 | Digital signature |
+| Course entity | ✅ Implemented | v1.5 | Full CRUD with instructor, certification link |
+| Associate with courses | ✅ Implemented | v1.5 | Dive-course many-to-one, course picker |
+| Instructor comments | ✅ Implemented | v1.5 | Using existing notes field |
+| E-signatures | ✅ Implemented | v1.5 | Per-dive instructor signatures |
+| Course-Certification linking | ✅ Implemented | v1.5 | Bidirectional link with picker UI |
 
-**v1.5 Tasks:**
-- [ ] Course entity (name, agency, start_date, completion_date, instructor, cert_id)
-- [ ] Link dives to courses (many-to-one)
-- [ ] Instructor notes field on dives
-- [ ] Training log export (PDF with instructor signature)
+**v1.5 Tasks (Complete):**
+- [x] Course entity (name, agency, start_date, completion_date, instructor, cert_id)
+- [x] Course UI pages (list with filtering, detail, edit)
+- [x] CoursePicker widget for dive edit page
+- [x] Bidirectional course-certification navigation
+- [x] Signature capture and display on dive detail page
+- [x] Link courses to earned certifications (bidirectional)
+
+**Remaining (v2.0):**
+- [ ] Training log export (PDF with instructor signatures)
 
 ---
 
@@ -1364,6 +1375,8 @@
 - [x] Heart rate overlay toggle on profile chart
 - [x] 16-compartment tissue saturation bar chart (N2/He visualization)
 - [x] Personal & Medical Data (emergency contacts, medical clearance, medications)
+- [x] Digital Signatures (instructor signature capture, display, storage)
+- [x] Training Dives (Course entity, bidirectional course-certification linking)
 - [ ] Performance with 5000+ dives
 
 ## v2.0 (Planned)
@@ -1386,5 +1399,5 @@
 
 ---
 
-**Document Version:** 2.10
-**Last Updated:** 2026-01-25
+**Document Version:** 2.11
+**Last Updated:** 2026-01-25 (Training Dives + Digital Signatures completed)
