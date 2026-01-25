@@ -21,6 +21,13 @@ class Divers extends Table {
   TextColumn get medicalNotes => text().withDefault(const Constant(''))();
   TextColumn get bloodType => text().nullable()();
   TextColumn get allergies => text().nullable()();
+  TextColumn get medications => text().nullable()();
+  IntColumn get medicalClearanceExpiryDate =>
+      integer().nullable()(); // Unix timestamp
+  // Secondary emergency contact
+  TextColumn get emergencyContact2Name => text().nullable()();
+  TextColumn get emergencyContact2Phone => text().nullable()();
+  TextColumn get emergencyContact2Relation => text().nullable()();
   // Insurance
   TextColumn get insuranceProvider => text().nullable()();
   TextColumn get insurancePolicyNumber => text().nullable()();
@@ -813,7 +820,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 16;
+  int get schemaVersion => 17;
 
   @override
   MigrationStrategy get migration {
@@ -1078,6 +1085,25 @@ class AppDatabase extends _$AppDatabase {
           // Add altitude column to dive_sites for altitude diving support
           await customStatement(
             'ALTER TABLE dive_sites ADD COLUMN altitude REAL',
+          );
+        }
+        if (from < 17) {
+          // Add personal & medical data fields to divers table
+          await customStatement(
+            'ALTER TABLE divers ADD COLUMN medications TEXT',
+          );
+          await customStatement(
+            'ALTER TABLE divers ADD COLUMN medical_clearance_expiry_date INTEGER',
+          );
+          // Secondary emergency contact
+          await customStatement(
+            'ALTER TABLE divers ADD COLUMN emergency_contact2_name TEXT',
+          );
+          await customStatement(
+            'ALTER TABLE divers ADD COLUMN emergency_contact2_phone TEXT',
+          );
+          await customStatement(
+            'ALTER TABLE divers ADD COLUMN emergency_contact2_relation TEXT',
           );
         }
       },

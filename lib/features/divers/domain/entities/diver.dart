@@ -68,9 +68,12 @@ class Diver extends Equatable {
   final String? phone;
   final String? photoPath;
   final EmergencyContact emergencyContact;
+  final EmergencyContact emergencyContact2;
   final String medicalNotes;
   final String? bloodType;
   final String? allergies;
+  final String? medications;
+  final DateTime? medicalClearanceExpiryDate;
   final DiverInsurance insurance;
   final String notes;
   final bool isDefault;
@@ -84,9 +87,12 @@ class Diver extends Equatable {
     this.phone,
     this.photoPath,
     this.emergencyContact = const EmergencyContact(),
+    this.emergencyContact2 = const EmergencyContact(),
     this.medicalNotes = '',
     this.bloodType,
     this.allergies,
+    this.medications,
+    this.medicalClearanceExpiryDate,
     this.insurance = const DiverInsurance(),
     this.notes = '',
     this.isDefault = false,
@@ -103,15 +109,37 @@ class Diver extends Equatable {
     return name.isNotEmpty ? name[0].toUpperCase() : '?';
   }
 
-  /// Check if diver has complete emergency info
-  bool get hasEmergencyInfo => emergencyContact.isComplete;
+  /// Check if diver has complete emergency info (at least one contact)
+  bool get hasEmergencyInfo =>
+      emergencyContact.isComplete || emergencyContact2.isComplete;
 
   /// Check if diver has valid insurance
   bool get hasValidInsurance => insurance.isValid;
 
   /// Check if diver has medical info
   bool get hasMedicalInfo =>
-      medicalNotes.isNotEmpty || bloodType != null || allergies != null;
+      medicalNotes.isNotEmpty ||
+      bloodType != null ||
+      allergies != null ||
+      medications != null;
+
+  /// Check if medical clearance is expired
+  bool get isMedicalClearanceExpired {
+    if (medicalClearanceExpiryDate == null) return false;
+    return DateTime.now().isAfter(medicalClearanceExpiryDate!);
+  }
+
+  /// Check if medical clearance is expiring within 30 days
+  bool get isMedicalClearanceExpiringSoon {
+    if (medicalClearanceExpiryDate == null) return false;
+    final thirtyDaysFromNow = DateTime.now().add(const Duration(days: 30));
+    return medicalClearanceExpiryDate!.isBefore(thirtyDaysFromNow) &&
+        !isMedicalClearanceExpired;
+  }
+
+  /// Check if medical clearance is valid (set and not expired)
+  bool get hasMedicalClearance =>
+      medicalClearanceExpiryDate != null && !isMedicalClearanceExpired;
 
   Diver copyWith({
     String? id,
@@ -120,9 +148,12 @@ class Diver extends Equatable {
     String? phone,
     String? photoPath,
     EmergencyContact? emergencyContact,
+    EmergencyContact? emergencyContact2,
     String? medicalNotes,
     String? bloodType,
     String? allergies,
+    String? medications,
+    DateTime? medicalClearanceExpiryDate,
     DiverInsurance? insurance,
     String? notes,
     bool? isDefault,
@@ -136,9 +167,13 @@ class Diver extends Equatable {
       phone: phone ?? this.phone,
       photoPath: photoPath ?? this.photoPath,
       emergencyContact: emergencyContact ?? this.emergencyContact,
+      emergencyContact2: emergencyContact2 ?? this.emergencyContact2,
       medicalNotes: medicalNotes ?? this.medicalNotes,
       bloodType: bloodType ?? this.bloodType,
       allergies: allergies ?? this.allergies,
+      medications: medications ?? this.medications,
+      medicalClearanceExpiryDate:
+          medicalClearanceExpiryDate ?? this.medicalClearanceExpiryDate,
       insurance: insurance ?? this.insurance,
       notes: notes ?? this.notes,
       isDefault: isDefault ?? this.isDefault,
@@ -155,9 +190,12 @@ class Diver extends Equatable {
     phone,
     photoPath,
     emergencyContact,
+    emergencyContact2,
     medicalNotes,
     bloodType,
     allergies,
+    medications,
+    medicalClearanceExpiryDate,
     insurance,
     notes,
     isDefault,

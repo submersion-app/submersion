@@ -38,15 +38,22 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
 
-  // Emergency contact controllers
+  // Primary emergency contact controllers
   final _emergencyNameController = TextEditingController();
   final _emergencyPhoneController = TextEditingController();
   final _emergencyRelationController = TextEditingController();
 
+  // Secondary emergency contact controllers
+  final _emergency2NameController = TextEditingController();
+  final _emergency2PhoneController = TextEditingController();
+  final _emergency2RelationController = TextEditingController();
+
   // Medical info controllers
   final _bloodTypeController = TextEditingController();
   final _allergiesController = TextEditingController();
+  final _medicationsController = TextEditingController();
   final _medicalNotesController = TextEditingController();
+  DateTime? _medicalClearanceExpiry;
 
   // Insurance controllers
   final _insuranceProviderController = TextEditingController();
@@ -79,8 +86,12 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
     _emergencyNameController.addListener(_onFieldChanged);
     _emergencyPhoneController.addListener(_onFieldChanged);
     _emergencyRelationController.addListener(_onFieldChanged);
+    _emergency2NameController.addListener(_onFieldChanged);
+    _emergency2PhoneController.addListener(_onFieldChanged);
+    _emergency2RelationController.addListener(_onFieldChanged);
     _bloodTypeController.addListener(_onFieldChanged);
     _allergiesController.addListener(_onFieldChanged);
+    _medicationsController.addListener(_onFieldChanged);
     _medicalNotesController.addListener(_onFieldChanged);
     _insuranceProviderController.addListener(_onFieldChanged);
     _insurancePolicyController.addListener(_onFieldChanged);
@@ -104,13 +115,23 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
         _nameController.text = diver.name;
         _emailController.text = diver.email ?? '';
         _phoneController.text = diver.phone ?? '';
+        // Primary emergency contact
         _emergencyNameController.text = diver.emergencyContact.name ?? '';
         _emergencyPhoneController.text = diver.emergencyContact.phone ?? '';
         _emergencyRelationController.text =
             diver.emergencyContact.relation ?? '';
+        // Secondary emergency contact
+        _emergency2NameController.text = diver.emergencyContact2.name ?? '';
+        _emergency2PhoneController.text = diver.emergencyContact2.phone ?? '';
+        _emergency2RelationController.text =
+            diver.emergencyContact2.relation ?? '';
+        // Medical info
         _bloodTypeController.text = diver.bloodType ?? '';
         _allergiesController.text = diver.allergies ?? '';
+        _medicationsController.text = diver.medications ?? '';
         _medicalNotesController.text = diver.medicalNotes;
+        _medicalClearanceExpiry = diver.medicalClearanceExpiryDate;
+        // Insurance
         _insuranceProviderController.text = diver.insurance.provider ?? '';
         _insurancePolicyController.text = diver.insurance.policyNumber ?? '';
         _insuranceExpiry = diver.insurance.expiryDate;
@@ -138,8 +159,12 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
     _emergencyNameController.dispose();
     _emergencyPhoneController.dispose();
     _emergencyRelationController.dispose();
+    _emergency2NameController.dispose();
+    _emergency2PhoneController.dispose();
+    _emergency2RelationController.dispose();
     _bloodTypeController.dispose();
     _allergiesController.dispose();
+    _medicationsController.dispose();
     _medicalNotesController.dispose();
     _insuranceProviderController.dispose();
     _insurancePolicyController.dispose();
@@ -163,9 +188,11 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
                   _buildPersonalInfoSection(),
                   const SizedBox(height: 24),
 
-                  // Emergency Contact Section
-                  _buildSectionHeader(context, 'Emergency Contact'),
-                  _buildEmergencyContactSection(),
+                  // Emergency Contacts Section
+                  _buildSectionHeader(context, 'Emergency Contacts'),
+                  _buildEmergencyContactSection('Primary Contact'),
+                  const SizedBox(height: 12),
+                  _buildSecondaryEmergencyContactSection(),
                   const SizedBox(height: 24),
 
                   // Medical Info Section
@@ -375,12 +402,20 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
     );
   }
 
-  Widget _buildEmergencyContactSection() {
+  Widget _buildEmergencyContactSection(String title) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text(
+              title,
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 12),
             TextFormField(
               controller: _emergencyNameController,
               decoration: const InputDecoration(
@@ -401,6 +436,53 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _emergencyRelationController,
+              decoration: const InputDecoration(
+                labelText: 'Relationship',
+                prefixIcon: Icon(Icons.people),
+                hintText: 'e.g., Spouse, Parent, Friend',
+              ),
+              textCapitalization: TextCapitalization.words,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSecondaryEmergencyContactSection() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Secondary Contact',
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _emergency2NameController,
+              decoration: const InputDecoration(
+                labelText: 'Contact Name',
+                prefixIcon: Icon(Icons.person_outline),
+              ),
+              textCapitalization: TextCapitalization.words,
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _emergency2PhoneController,
+              decoration: const InputDecoration(
+                labelText: 'Contact Phone',
+                prefixIcon: Icon(Icons.phone),
+              ),
+              keyboardType: TextInputType.phone,
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _emergency2RelationController,
               decoration: const InputDecoration(
                 labelText: 'Relationship',
                 prefixIcon: Icon(Icons.people),
@@ -440,6 +522,17 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
             ),
             const SizedBox(height: 16),
             TextFormField(
+              controller: _medicationsController,
+              decoration: const InputDecoration(
+                labelText: 'Medications',
+                prefixIcon: Icon(Icons.medication),
+                hintText: 'e.g., Aspirin daily, EpiPen',
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildMedicalClearanceField(),
+            const SizedBox(height: 16),
+            TextFormField(
               controller: _medicalNotesController,
               decoration: const InputDecoration(
                 labelText: 'Medical Notes',
@@ -452,6 +545,99 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
         ),
       ),
     );
+  }
+
+  Widget _buildMedicalClearanceField() {
+    final isExpired =
+        _medicalClearanceExpiry != null &&
+        DateTime.now().isAfter(_medicalClearanceExpiry!);
+    final isExpiringSoon =
+        _medicalClearanceExpiry != null &&
+        !isExpired &&
+        _medicalClearanceExpiry!.isBefore(
+          DateTime.now().add(const Duration(days: 30)),
+        );
+
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: const Icon(Icons.verified_user),
+      title: const Text('Medical Clearance Expiry'),
+      subtitle: Row(
+        children: [
+          Expanded(
+            child: Text(
+              _medicalClearanceExpiry != null
+                  ? DateFormat.yMMMd().format(_medicalClearanceExpiry!)
+                  : 'Not set',
+            ),
+          ),
+          if (isExpired)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.error,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                'Expired',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onError,
+                ),
+              ),
+            )
+          else if (isExpiringSoon)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.orange,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                'Expiring Soon',
+                style: Theme.of(
+                  context,
+                ).textTheme.labelSmall?.copyWith(color: Colors.white),
+              ),
+            ),
+        ],
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (_medicalClearanceExpiry != null)
+            IconButton(
+              icon: const Icon(Icons.clear),
+              onPressed: () {
+                setState(() {
+                  _medicalClearanceExpiry = null;
+                  _hasChanges = true;
+                });
+              },
+            ),
+          IconButton(
+            icon: const Icon(Icons.edit_calendar),
+            onPressed: _selectMedicalClearanceExpiry,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _selectMedicalClearanceExpiry() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate:
+          _medicalClearanceExpiry ?? now.add(const Duration(days: 365)),
+      firstDate: now.subtract(const Duration(days: 365 * 2)),
+      lastDate: now.add(const Duration(days: 365 * 10)),
+    );
+    if (picked != null) {
+      setState(() {
+        _medicalClearanceExpiry = picked;
+        _hasChanges = true;
+      });
+    }
   }
 
   Widget _buildInsuranceSection() {
@@ -573,13 +759,28 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
               ? null
               : _emergencyRelationController.text.trim(),
         ),
+        emergencyContact2: EmergencyContact(
+          name: _emergency2NameController.text.trim().isEmpty
+              ? null
+              : _emergency2NameController.text.trim(),
+          phone: _emergency2PhoneController.text.trim().isEmpty
+              ? null
+              : _emergency2PhoneController.text.trim(),
+          relation: _emergency2RelationController.text.trim().isEmpty
+              ? null
+              : _emergency2RelationController.text.trim(),
+        ),
         bloodType: _bloodTypeController.text.trim().isEmpty
             ? null
             : _bloodTypeController.text.trim(),
         allergies: _allergiesController.text.trim().isEmpty
             ? null
             : _allergiesController.text.trim(),
+        medications: _medicationsController.text.trim().isEmpty
+            ? null
+            : _medicationsController.text.trim(),
         medicalNotes: _medicalNotesController.text.trim(),
+        medicalClearanceExpiryDate: _medicalClearanceExpiry,
         insurance: DiverInsurance(
           provider: _insuranceProviderController.text.trim().isEmpty
               ? null

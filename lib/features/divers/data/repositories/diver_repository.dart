@@ -85,9 +85,18 @@ class DiverRepository {
               emergencyContactName: Value(diver.emergencyContact.name),
               emergencyContactPhone: Value(diver.emergencyContact.phone),
               emergencyContactRelation: Value(diver.emergencyContact.relation),
+              emergencyContact2Name: Value(diver.emergencyContact2.name),
+              emergencyContact2Phone: Value(diver.emergencyContact2.phone),
+              emergencyContact2Relation: Value(
+                diver.emergencyContact2.relation,
+              ),
               medicalNotes: Value(diver.medicalNotes),
               bloodType: Value(diver.bloodType),
               allergies: Value(diver.allergies),
+              medications: Value(diver.medications),
+              medicalClearanceExpiryDate: Value(
+                diver.medicalClearanceExpiryDate?.millisecondsSinceEpoch,
+              ),
               insuranceProvider: Value(diver.insurance.provider),
               insurancePolicyNumber: Value(diver.insurance.policyNumber),
               insuranceExpiryDate: Value(
@@ -133,9 +142,16 @@ class DiverRepository {
           emergencyContactName: Value(diver.emergencyContact.name),
           emergencyContactPhone: Value(diver.emergencyContact.phone),
           emergencyContactRelation: Value(diver.emergencyContact.relation),
+          emergencyContact2Name: Value(diver.emergencyContact2.name),
+          emergencyContact2Phone: Value(diver.emergencyContact2.phone),
+          emergencyContact2Relation: Value(diver.emergencyContact2.relation),
           medicalNotes: Value(diver.medicalNotes),
           bloodType: Value(diver.bloodType),
           allergies: Value(diver.allergies),
+          medications: Value(diver.medications),
+          medicalClearanceExpiryDate: Value(
+            diver.medicalClearanceExpiryDate?.millisecondsSinceEpoch,
+          ),
           insuranceProvider: Value(diver.insurance.provider),
           insurancePolicyNumber: Value(diver.insurance.policyNumber),
           insuranceExpiryDate: Value(
@@ -313,9 +329,18 @@ class DiverRepository {
         phone: row.emergencyContactPhone,
         relation: row.emergencyContactRelation,
       ),
+      emergencyContact2: domain.EmergencyContact(
+        name: row.emergencyContact2Name,
+        phone: row.emergencyContact2Phone,
+        relation: row.emergencyContact2Relation,
+      ),
       medicalNotes: row.medicalNotes,
       bloodType: row.bloodType,
       allergies: row.allergies,
+      medications: row.medications,
+      medicalClearanceExpiryDate: row.medicalClearanceExpiryDate != null
+          ? DateTime.fromMillisecondsSinceEpoch(row.medicalClearanceExpiryDate!)
+          : null,
       insurance: domain.DiverInsurance(
         provider: row.insuranceProvider,
         policyNumber: row.insurancePolicyNumber,
