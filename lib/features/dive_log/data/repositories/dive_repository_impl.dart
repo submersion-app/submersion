@@ -289,6 +289,8 @@ class DiveRepository {
               scrubberRemainingMinutes: Value(dive.scrubber?.remainingMinutes),
               // Dive planner (v1.5)
               isPlanned: Value(dive.isPlanned),
+              // Training course (v1.5)
+              courseId: Value(dive.courseId),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -454,6 +456,8 @@ class DiveRepository {
           scrubberRemainingMinutes: Value(dive.scrubber?.remainingMinutes),
           // Dive planner (v1.5)
           isPlanned: Value(dive.isPlanned),
+          // Training course (v1.5)
+          courseId: Value(dive.courseId),
           updatedAt: Value(now),
         ),
       );
@@ -650,6 +654,24 @@ class DiveRepository {
       return Future.wait(rows.map(_mapRowToDive));
     } catch (e, stackTrace) {
       _log.error('Failed to get dives for site: $siteId', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Get dives for a specific training course
+  Future<List<domain.Dive>> getDivesForCourse(String courseId) async {
+    try {
+      final query = _db.select(_db.dives)
+        ..where((t) => t.courseId.equals(courseId))
+        ..orderBy([
+          (t) => OrderingTerm.desc(coalesce([t.entryTime, t.diveDateTime])),
+          (t) => OrderingTerm.desc(t.diveNumber),
+        ]);
+
+      final rows = await query.get();
+      return Future.wait(rows.map(_mapRowToDive));
+    } catch (e, stackTrace) {
+      _log.error('Failed to get dives for course: $courseId', e, stackTrace);
       rethrow;
     }
   }
@@ -1253,6 +1275,8 @@ class DiveRepository {
           : null,
       // Dive planner (v1.5)
       isPlanned: row.isPlanned,
+      // Training course (v1.5)
+      courseId: row.courseId,
     );
   }
 
@@ -1539,6 +1563,8 @@ class DiveRepository {
           : null,
       // Dive planner (v1.5)
       isPlanned: row.isPlanned,
+      // Training course (v1.5)
+      courseId: row.courseId,
     );
   }
 

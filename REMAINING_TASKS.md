@@ -76,15 +76,19 @@ This document contains only the features and tasks that are **not yet completed*
 ### 7.2 Digital Signatures
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Buddy signatures | 📋 Planned | For training logs |
-| Instructor signatures | 📋 Planned | Professional logs |
-| Signature capture | 📋 Planned | Touch/stylus drawing |
+| Instructor signatures | ✅ Complete | Per-dive signatures for training logs |
+| Signature capture | ✅ Complete | Touch/stylus canvas drawing |
 
-**Tasks:**
-- [ ] Signature widget (canvas drawing with save as PNG)
-- [ ] Store signatures in Media table linked to dives
-- [ ] Display signatures on dive detail page and PDF export
-- [ ] Timestamp and signer name with signature
+**Completed:**
+- [x] SignatureCaptureWidget (canvas drawing with save as PNG)
+- [x] SignatureStorageService (Media table with fileType='instructor_signature')
+- [x] SignatureDisplayWidget (preview, full-view dialog, badge)
+- [x] Signature providers (FutureProvider.family for reading, StateNotifier for mutations)
+- [x] Integration on dive detail page (conditional for training dives)
+
+**Remaining:**
+- [ ] Buddy signatures (student/observer sign-off)
+- [ ] Display signatures in PDF export
 
 ---
 
@@ -102,15 +106,22 @@ This document contains only the features and tasks that are **not yet completed*
 ### 8.3 Training Dives
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Associate with courses | 📋 Planned | Course entity |
-| Instructor comments | 📋 Planned | Rich text field |
-| E-signatures | 📋 Planned | Digital signature |
+| Course entity | ✅ Complete | Full CRUD with instructor, certification link |
+| Associate with courses | ✅ Complete | Dive-course many-to-one, course picker |
+| Instructor comments | ✅ Complete | Using existing notes field |
+| E-signatures | ✅ Complete | Per-dive instructor signatures |
 
-**Tasks:**
-- [ ] Course entity (name, agency, start_date, completion_date, instructor, cert_id)
-- [ ] Link dives to courses (many-to-one)
-- [ ] Instructor notes field on dives
-- [ ] Training log export (PDF with instructor signature)
+**Completed:**
+- [x] Course entity with name, agency, start_date, completion_date, instructor, cert_id
+- [x] CourseRepository with CRUD and relationship queries
+- [x] Course providers (list, by ID, for dive, for certification)
+- [x] Course UI pages (list with filtering, detail, edit)
+- [x] CoursePicker widget for dive edit page
+- [x] Bidirectional course-certification navigation
+- [x] Signature capture and display on dive detail page
+
+**Remaining:**
+- [ ] Training log export (PDF with instructor signatures)
 
 ---
 
@@ -669,10 +680,10 @@ This document contains only the features and tasks that are **not yet completed*
 2. Remaining export formats (DAN DL7, Excel, KML)
 3. Import from other dive log apps
 4. Accessibility improvements
-5. Digital signatures for training logs
+5. Training log PDF export (with signatures)
 6. Species detail enhancements
 
 ---
 
-**Document Version:** 1.3
-**Updated:** 2026-01-25 (Common marine life completed)
+**Document Version:** 1.4
+**Updated:** 2026-01-25 (Training Dives feature + Digital Signatures completed)

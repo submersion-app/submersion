@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 
 class CertificationDetailPage extends ConsumerStatefulWidget {
   final String certificationId;
@@ -124,6 +125,9 @@ class _CertificationDetailContent extends ConsumerWidget {
             _buildInstructorSection(context),
             const SizedBox(height: 16),
           ],
+
+          // Training course
+          _buildCourseSection(context, ref),
 
           // Card photos (placeholder for future)
           if (certification.photoFrontPath != null ||
@@ -529,6 +533,95 @@ class _CertificationDetailContent extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildCourseSection(BuildContext context, WidgetRef ref) {
+    final courseAsync = ref.watch(
+      courseForCertificationProvider(certification.id),
+    );
+
+    return courseAsync.when(
+      data: (course) {
+        if (course == null) {
+          return const SizedBox.shrink();
+        }
+
+        final colorScheme = Theme.of(context).colorScheme;
+
+        return Column(
+          children: [
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Training Course',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: course.isCompleted
+                              ? Colors.green.withValues(alpha: 0.15)
+                              : colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          course.isCompleted
+                              ? Icons.check_circle_outline
+                              : Icons.school_outlined,
+                          color: course.isCompleted
+                              ? Colors.green
+                              : colorScheme.onPrimaryContainer,
+                          size: 20,
+                        ),
+                      ),
+                      title: Text(
+                        course.name,
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                      subtitle: Text(
+                        '${course.agency.displayName} - ${course.isCompleted ? 'Completed' : 'In Progress'}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () {
+                        if (embedded) {
+                          context.go('/courses?selected=${course.id}');
+                        } else {
+                          context.push('/courses/${course.id}');
+                        }
+                      },
+                    ),
+                    if (course.instructorDisplay.isNotEmpty) ...[
+                      const Divider(),
+                      _InfoRow(
+                        icon: Icons.person,
+                        label: 'Instructor',
+                        value: course.instructorDisplay,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (error, stack) => const SizedBox.shrink(),
     );
   }
 

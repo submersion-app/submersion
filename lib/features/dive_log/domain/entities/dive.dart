@@ -97,6 +97,9 @@ class Dive extends Equatable {
   // Dive planner flag (v1.5)
   final bool isPlanned; // True for planned dives (not yet executed)
 
+  // Training course (v1.5)
+  final String? courseId; // FK to training course
+
   const Dive({
     required this.id,
     this.diverId,
@@ -162,6 +165,8 @@ class Dive extends Equatable {
     this.scrubber,
     // Dive planner (v1.5)
     this.isPlanned = false,
+    // Training course (v1.5)
+    this.courseId,
   });
 
   /// Effective start time of the dive (entryTime if set, otherwise dateTime)
@@ -408,6 +413,8 @@ class Dive extends Equatable {
     ScrubberInfo? scrubber,
     // Dive planner
     bool? isPlanned,
+    // Training course
+    String? courseId,
   }) {
     return Dive(
       id: id ?? this.id,
@@ -474,6 +481,8 @@ class Dive extends Equatable {
       scrubber: scrubber ?? this.scrubber,
       // Dive planner
       isPlanned: isPlanned ?? this.isPlanned,
+      // Training course
+      courseId: courseId ?? this.courseId,
     );
   }
 
@@ -543,6 +552,8 @@ class Dive extends Equatable {
     scrubber,
     // Dive planner
     isPlanned,
+    // Training course
+    courseId,
   ];
 }
 

@@ -47,6 +47,10 @@ import 'package:submersion/core/tide/entities/tide_extremes.dart';
 import 'package:submersion/features/tides/domain/entities/tide_record.dart';
 import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
 import 'package:submersion/features/tides/presentation/widgets/tide_cycle_graph.dart';
+import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
+import 'package:submersion/features/signatures/presentation/providers/signature_providers.dart';
+import 'package:submersion/features/signatures/presentation/widgets/signature_capture_widget.dart';
+import 'package:submersion/features/signatures/presentation/widgets/signature_display_widget.dart';
 
 /// Calculate normalization factor to align profile-based SAC with tank-based SAC.
 /// The segments are calculated from profile pressure data, but dive.sacPressure
@@ -228,6 +232,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             _buildSightingsSection(context, ref),
             const SizedBox(height: 24),
             _buildNotesSection(context, dive),
+            if (dive.courseId != null) ...[
+              const SizedBox(height: 24),
+              _buildSignatureSection(context, ref, dive),
+            ],
             const SizedBox(height: 32),
           ],
         ),
@@ -3248,6 +3256,188 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildSignatureSection(
+    BuildContext context,
+    WidgetRef ref,
+    Dive dive,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final signatureAsync = ref.watch(signatureForDiveProvider(dive.id));
+    final courseAsync = ref.watch(courseForDiveProvider(dive.id));
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  'Training Signature',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const Spacer(),
+                if (courseAsync.hasValue && courseAsync.value != null) ...[
+                  InkWell(
+                    onTap: () =>
+                        context.push('/courses/${courseAsync.value!.id}'),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.school,
+                            size: 14,
+                            color: colorScheme.onPrimaryContainer,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            courseAsync.value!.name,
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(
+                                  color: colorScheme.onPrimaryContainer,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            const Divider(),
+            signatureAsync.when(
+              data: (signature) {
+                if (signature != null) {
+                  return SignatureDisplayWidget(
+                    signature: signature,
+                    showDeleteButton: true,
+                    onDelete: () {
+                      ref
+                          .read(signatureSaveNotifierProvider.notifier)
+                          .deleteSignature(signature.id, dive.id);
+                    },
+                  );
+                }
+
+                // No signature yet - show add signature button
+                return _buildAddSignatureButton(context, ref, dive);
+              },
+              loading: () => const Padding(
+                padding: EdgeInsets.all(16),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              error: (error, _) => Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  'Error loading signature: $error',
+                  style: TextStyle(color: colorScheme.error),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAddSignatureButton(
+    BuildContext context,
+    WidgetRef ref,
+    Dive dive,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final courseAsync = ref.watch(courseForDiveProvider(dive.id));
+
+    // Get instructor name if available from course
+    String? instructorName;
+    if (courseAsync.hasValue && courseAsync.value != null) {
+      instructorName = courseAsync.value!.instructorName;
+    }
+
+    return InkWell(
+      onTap: () => _showSignatureCapture(context, ref, dive, instructorName),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: colorScheme.outline.withValues(alpha: 0.5),
+            style: BorderStyle.solid,
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            Icon(Icons.draw_outlined, size: 48, color: colorScheme.primary),
+            const SizedBox(height: 12),
+            Text(
+              'Capture Instructor Signature',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(color: colorScheme.primary),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Tap to add instructor verification for this training dive',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showSignatureCapture(
+    BuildContext context,
+    WidgetRef ref,
+    Dive dive,
+    String? instructorName,
+  ) {
+    // Get instructor buddy ID if available from course
+    String? instructorId;
+    final courseAsync = ref.read(courseForDiveProvider(dive.id));
+    if (courseAsync.hasValue && courseAsync.value != null) {
+      instructorId = courseAsync.value!.instructorId;
+    }
+
+    showSignatureCaptureSheet(
+      context: context,
+      initialSignerName: instructorName,
+      onSave: (strokes, signerName) async {
+        // Get the canvas dimensions from the capture widget
+        // Using a reasonable default for signature capture
+        const width = 400.0;
+        const height = 200.0;
+
+        await ref
+            .read(signatureSaveNotifierProvider.notifier)
+            .saveFromStrokes(
+              diveId: dive.id,
+              strokes: strokes,
+              width: width,
+              height: height,
+              signerName: signerName,
+              signerId: instructorId,
+              backgroundColor: Colors.white,
+            );
+      },
     );
   }
 

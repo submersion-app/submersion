@@ -93,3 +93,15 @@ enum CertificationSortField {
   final IconData icon;
   const CertificationSortField(this.displayName, this.icon);
 }
+
+/// Sort fields for Courses
+enum CourseSortField {
+  name('Name', Icons.sort_by_alpha),
+  startDate('Start Date', Icons.calendar_today),
+  agency('Agency', Icons.business),
+  status('Status', Icons.check_circle_outline);
+
+  final String displayName;
+  final IconData icon;
+  const CourseSortField(this.displayName, this.icon);
+}

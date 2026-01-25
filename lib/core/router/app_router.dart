@@ -14,6 +14,9 @@ import 'package:submersion/features/divers/presentation/pages/diver_edit_page.da
 import 'package:submersion/features/certifications/presentation/pages/certification_list_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_detail_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_edit_page.dart';
+import 'package:submersion/features/courses/presentation/pages/course_list_page.dart';
+import 'package:submersion/features/courses/presentation/pages/course_detail_page.dart';
+import 'package:submersion/features/courses/presentation/pages/course_edit_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_list_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_detail_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_page.dart';
@@ -407,6 +410,39 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     name: 'editCertification',
                     builder: (context, state) => CertificationEditPage(
                       certificationId: state.pathParameters['certificationId'],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          // Training Courses
+          GoRoute(
+            path: '/courses',
+            name: 'courses',
+            pageBuilder: (context, state) => NoTransitionPage(
+              key: state.pageKey,
+              child: const CourseListPage(),
+            ),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'newCourse',
+                builder: (context, state) => const CourseEditPage(),
+              ),
+              GoRoute(
+                path: ':courseId',
+                name: 'courseDetail',
+                builder: (context, state) => CourseDetailPage(
+                  courseId: state.pathParameters['courseId']!,
+                ),
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    name: 'editCourse',
+                    builder: (context, state) => CourseEditPage(
+                      courseId: state.pathParameters['courseId'],
                     ),
                   ),
                 ],

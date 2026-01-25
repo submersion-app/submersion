@@ -20,6 +20,7 @@ class _MainScaffoldState extends State<MainScaffold> {
     '/buddies',
     '/dive-centers',
     '/certifications',
+    '/courses',
     '/statistics',
     '/planning',
     '/transfer',
@@ -42,10 +43,11 @@ class _MainScaffoldState extends State<MainScaffold> {
       if (location.startsWith('/buddies')) return 5;
       if (location.startsWith('/dive-centers')) return 6;
       if (location.startsWith('/certifications')) return 7;
-      if (location.startsWith('/statistics')) return 8;
-      if (location.startsWith('/planning')) return 9;
-      if (location.startsWith('/transfer')) return 10;
-      if (location.startsWith('/settings')) return 11;
+      if (location.startsWith('/courses')) return 8;
+      if (location.startsWith('/statistics')) return 9;
+      if (location.startsWith('/planning')) return 10;
+      if (location.startsWith('/transfer')) return 11;
+      if (location.startsWith('/settings')) return 12;
       return 0;
     } else {
       // Mobile: Dashboard, Dives, Sites, Trips, More
@@ -93,15 +95,18 @@ class _MainScaffoldState extends State<MainScaffold> {
           context.go('/certifications');
           break;
         case 8:
-          context.go('/statistics');
+          context.go('/courses');
           break;
         case 9:
-          context.go('/planning');
+          context.go('/statistics');
           break;
         case 10:
-          context.go('/transfer');
+          context.go('/planning');
           break;
         case 11:
+          context.go('/transfer');
+          break;
+        case 12:
           context.go('/settings');
           break;
       }
@@ -178,6 +183,15 @@ class _MainScaffoldState extends State<MainScaffold> {
               onTap: () {
                 Navigator.pop(context);
                 context.go('/certifications');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.school),
+              title: const Text('Courses'),
+              subtitle: const Text('Training & Education'),
+              onTap: () {
+                Navigator.pop(context);
+                context.go('/courses');
               },
             ),
             ListTile(
@@ -299,6 +313,11 @@ class _MainScaffoldState extends State<MainScaffold> {
                   icon: Icon(Icons.card_membership_outlined),
                   selectedIcon: Icon(Icons.card_membership),
                   label: Text('Certifications'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.school_outlined),
+                  selectedIcon: Icon(Icons.school),
+                  label: Text('Courses'),
                 ),
                 NavigationRailDestination(
                   icon: Icon(Icons.bar_chart_outlined),

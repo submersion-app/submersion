@@ -164,6 +164,9 @@ class Dives extends Table {
   // Primary computer used for this dive
   TextColumn get computerId =>
       text().nullable().references(DiveComputers, #id)();
+  // Training course this dive belongs to (v1.5)
+  TextColumn get courseId =>
+      text().nullable().references(Courses, #id, onDelete: KeyAction.setNull)();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -365,7 +368,7 @@ class Sightings extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// Photos and media files
+/// Photos and media files (also used for signatures)
 class Media extends Table {
   TextColumn get id => text()();
   TextColumn get diveId =>
@@ -376,11 +379,17 @@ class Media extends Table {
     onDelete: KeyAction.setNull,
   )();
   TextColumn get filePath => text()();
-  TextColumn get fileType => text().withDefault(const Constant('photo'))();
+  TextColumn get fileType => text().withDefault(
+    const Constant('photo'),
+  )(); // photo, video, instructor_signature
   RealColumn get latitude => real().nullable()();
   RealColumn get longitude => real().nullable()();
   IntColumn get takenAt => integer().nullable()();
   TextColumn get caption => text().nullable()();
+  // Signature fields (v1.5) - used when fileType='instructor_signature'
+  TextColumn get signerId =>
+      text().nullable().references(Buddies, #id, onDelete: KeyAction.setNull)();
+  TextColumn get signerName => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -506,6 +515,9 @@ class Certifications extends Table {
   TextColumn get instructorNumber => text().nullable()();
   TextColumn get photoFrontPath => text().nullable()(); // Front of cert card
   TextColumn get photoBackPath => text().nullable()(); // Back of cert card
+  // Link to training course (bidirectional, v1.5)
+  TextColumn get courseId =>
+      text().nullable().references(Courses, #id, onDelete: KeyAction.setNull)();
   TextColumn get notes => text().withDefault(const Constant(''))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
@@ -774,6 +786,36 @@ class DeletionLog extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Training courses (e.g., "Advanced Open Water", "Rescue Diver")
+class Courses extends Table {
+  TextColumn get id => text()();
+  TextColumn get diverId =>
+      text().references(Divers, #id, onDelete: KeyAction.cascade)();
+  TextColumn get name => text()(); // e.g., "Advanced Open Water Diver"
+  TextColumn get agency => text()(); // CertificationAgency enum
+  IntColumn get startDate => integer()(); // Unix timestamp
+  IntColumn get completionDate => integer().nullable()(); // null = in progress
+  // Instructor can be a buddy reference OR just text fields
+  TextColumn get instructorId =>
+      text().nullable().references(Buddies, #id, onDelete: KeyAction.setNull)();
+  TextColumn get instructorName => text().nullable()(); // Text fallback
+  TextColumn get instructorNumber =>
+      text().nullable()(); // Instructor cert number
+  // Link to earned certification (bidirectional)
+  TextColumn get certificationId => text().nullable().references(
+    Certifications,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+  TextColumn get location => text().nullable()(); // Dive center/shop
+  TextColumn get notes => text().withDefault(const Constant(''))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Junction table for expected species at dive sites (manual curation)
 class SiteSpecies extends Table {
   TextColumn get id => text()();
@@ -826,6 +868,8 @@ class SiteSpecies extends Table {
     TideRecords,
     // Site-species junction
     SiteSpecies,
+    // Training courses (v1.5)
+    Courses,
     // Sync tables
     SyncMetadata,
     SyncRecords,
@@ -836,7 +880,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 18;
+  int get schemaVersion => 19;
 
   @override
   MigrationStrategy get migration {
@@ -1138,6 +1182,51 @@ class AppDatabase extends _$AppDatabase {
             CREATE INDEX IF NOT EXISTS idx_site_species_site
             ON site_species(site_id)
           ''');
+        }
+        if (from < 19) {
+          // Training courses feature (v1.5)
+          // Create courses table
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS courses (
+              id TEXT NOT NULL PRIMARY KEY,
+              diver_id TEXT NOT NULL REFERENCES divers(id) ON DELETE CASCADE,
+              name TEXT NOT NULL,
+              agency TEXT NOT NULL,
+              start_date INTEGER NOT NULL,
+              completion_date INTEGER,
+              instructor_id TEXT REFERENCES buddies(id) ON DELETE SET NULL,
+              instructor_name TEXT,
+              instructor_number TEXT,
+              certification_id TEXT REFERENCES certifications(id) ON DELETE SET NULL,
+              location TEXT,
+              notes TEXT NOT NULL DEFAULT '',
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL
+            )
+          ''');
+          // Index for efficient lookup by diver
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_courses_diver
+            ON courses(diver_id)
+          ''');
+
+          // Add courseId FK to dives table
+          await customStatement(
+            'ALTER TABLE dives ADD COLUMN course_id TEXT REFERENCES courses(id) ON DELETE SET NULL',
+          );
+
+          // Add courseId FK to certifications table (bidirectional link)
+          await customStatement(
+            'ALTER TABLE certifications ADD COLUMN course_id TEXT REFERENCES courses(id) ON DELETE SET NULL',
+          );
+
+          // Add signature fields to media table
+          await customStatement(
+            'ALTER TABLE media ADD COLUMN signer_id TEXT REFERENCES buddies(id) ON DELETE SET NULL',
+          );
+          await customStatement(
+            'ALTER TABLE media ADD COLUMN signer_name TEXT',
+          );
         }
       },
       beforeOpen: (details) async {

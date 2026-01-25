@@ -35,6 +35,9 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_sele
 import 'package:submersion/features/dive_log/presentation/widgets/scr_settings_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_editor.dart';
 import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
+import 'package:submersion/features/courses/domain/entities/course.dart';
+import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
+import 'package:submersion/features/courses/presentation/widgets/course_picker.dart';
 
 class DiveEditPage extends ConsumerStatefulWidget {
   final String? diveId;
@@ -86,6 +89,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   DiveSite? _selectedSite;
   Trip? _selectedTrip;
   DiveCenter? _selectedDiveCenter;
+  Course? _selectedCourse;
   List<Sighting> _sightings = [];
   Set<String> _originalSightingIds =
       {}; // Track original IDs to detect deletions
@@ -178,6 +182,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         final settings = ref.read(settingsProvider);
         final units = UnitFormatter(settings);
 
+        // Load training course if linked (must be done before setState)
+        Course? loadedCourse;
+        if (dive.courseId != null) {
+          loadedCourse = await ref.read(
+            courseByIdProvider(dive.courseId!).future,
+          );
+        }
+
         setState(() {
           _existingDive = dive;
           // Use entryTime if available, otherwise fall back to dateTime
@@ -234,6 +246,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _selectedSite = dive.site;
           _selectedTrip = dive.trip;
           _selectedDiveCenter = dive.diveCenter;
+          _selectedCourse = loadedCourse;
 
           // Load all tanks from the dive
           if (dive.tanks.isNotEmpty) {
@@ -418,6 +431,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _buildSightingsSection(),
           const SizedBox(height: 16),
           _buildNotesSection(),
+          const SizedBox(height: 16),
+          _buildCourseSection(),
           const SizedBox(height: 16),
           _buildTagsSection(),
           const SizedBox(height: 32),
@@ -1001,6 +1016,37 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             Navigator.of(sheetContext).pop();
             setState(() => _selectedDiveCenter = center);
           },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCourseSection() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Training Course',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Link this dive to a training course',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            CoursePicker(
+              selectedCourse: _selectedCourse,
+              onCourseSelected: (course) {
+                setState(() => _selectedCourse = course);
+              },
+            ),
+          ],
         ),
       ),
     );
@@ -2433,6 +2479,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         site: _selectedSite,
         trip: _selectedTrip,
         diveCenter: _selectedDiveCenter,
+        courseId: _selectedCourse?.id,
         tanks: _tanks,
         equipment: _selectedEquipment,
         // Conditions fields
@@ -2540,6 +2587,24 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         await buddyRepository.setBuddiesForDive(savedDiveId, _selectedBuddies);
         // Invalidate the buddies provider so the detail page shows updated data
         ref.invalidate(buddiesForDiveProvider(savedDiveId));
+      }
+
+      // Invalidate course providers if course association changed
+      if (savedDiveId != null) {
+        final oldCourseId = _existingDive?.courseId;
+        final newCourseId = _selectedCourse?.id;
+        // Invalidate old course's dive list if it changed
+        if (oldCourseId != null && oldCourseId != newCourseId) {
+          ref.invalidate(courseDivesProvider(oldCourseId));
+          ref.invalidate(courseDiveCountProvider(oldCourseId));
+        }
+        // Invalidate new course's dive list if set
+        if (newCourseId != null) {
+          ref.invalidate(courseDivesProvider(newCourseId));
+          ref.invalidate(courseDiveCountProvider(newCourseId));
+        }
+        // Always invalidate the courseForDive provider for this dive
+        ref.invalidate(courseForDiveProvider(savedDiveId));
       }
 
       // Record tide conditions if site has coordinates
