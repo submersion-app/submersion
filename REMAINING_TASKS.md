@@ -30,15 +30,6 @@ This document contains only the features and tasks that are **not yet completed*
 
 ## Category 5: Locations, Dive Sites & Maps
 
-### 5.1 Dive Site Database
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Common marine life | ✅ Implemented | Link species to sites |
-
-**Tasks:**
-- [x] Many-to-many relationship between sites and species (common sightings)
-- [x] Display "Commonly Seen" species list on site detail page
-
 ### 5.2 GPS Integration
 | Feature | Status | Notes |
 |---------|--------|-------|
@@ -649,11 +640,6 @@ This document contains only the features and tasks that are **not yet completed*
 
 # v3.0 Future Features
 
-## Category 3: Dive Computer Connectivity
-| Feature | Notes |
-|---------|-------|
-| Infrared (legacy) | Limited hardware support |
-
 ## Category 9: Environment, Wildlife & Photography
 | Feature | Notes |
 |---------|-------|
@@ -667,48 +653,6 @@ This document contains only the features and tasks that are **not yet completed*
 | Browse/book fun dives | PADI Adventures-style |
 | Book courses | Integration with dive shops |
 | Pass cert details to bookings | Auto-fill diver info |
-
-## Category 16: Manufacturer-Specific & Advanced Features
-| Feature | Notes |
-|---------|-------|
-| Assistant dive computer | Smartphone in housing |
-
-
-
-
----
-
-## Add real tide data
-
-To Add Real Data
-The Python script at scripts/tide/extract_fes_constituents.py extracts constituents from the FES2014 ocean tide model:
-
-
-# 1. Install PyFES via conda (NOT available on pip!)
-conda create -n tide python=3.11
-conda activate tide
-conda install -c conda-forge pyfes
-pip install numpy
-
-# 2. Get FES2014 data from AVISO (requires registration)
-# https://www.aviso.altimetry.fr/en/data/products/auxiliary-products/global-tide-fes.html
-
-scripts/tide/generate_fes_config.py ~/repos/submersion-app/submersion/assets/data/fes2022b/ocean_tide_extrapolated
-
-# 3. Extract for your dive sites
-python scripts/tide/extract_fes_constituents.py \
-    --sites assets/data/dive_sites.json \
-    --output assets/data/tide/
-
-# 4. Optionally generate global grid for any-location support
-python scripts/tide/extract_fes_constituents.py \
-    --grid --resolution 0.25 \
-    --config /Users/ericgriffin/repos/submersion-app/submersion/assets/data/fes2022b/ocean_tide_extrapolated/ocean_tide.yaml \
-    --output assets/data/tide/constituents_grid.json
-The current sample data is placeholder/development data - for production use, you'd want to extract real FES2014 constituents for your bundled dive sites.
-
-
----
 
 # Summary
 
