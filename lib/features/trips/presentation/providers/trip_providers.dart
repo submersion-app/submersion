@@ -58,28 +58,53 @@ final allTripsWithStatsProvider = FutureProvider<List<TripWithStats>>((
   return repository.getAllTripsWithStats(diverId: validatedDiverId);
 });
 
-/// Filtered trips provider - applies current filter to trip list
-final filteredTripsProvider = FutureProvider<List<TripWithStats>>((ref) async {
+/// Helper provider for async equipment filtering
+final _equipmentFilteredTripsProvider =
+    FutureProvider.family<List<TripWithStats>, String>((
+      ref,
+      equipmentId,
+    ) async {
+      final tripsAsync = ref.watch(tripListNotifierProvider);
+      if (!tripsAsync.hasValue) return [];
+
+      final trips = tripsAsync.value!;
+      final equipmentRepository = EquipmentRepository();
+      final tripIds = await equipmentRepository.getTripIdsForEquipment(
+        equipmentId,
+      );
+      final tripIdSet = tripIds.toSet();
+      return trips.where((t) => tripIdSet.contains(t.trip.id)).toList();
+    });
+
+/// Filtered trips provider - applies current filter to trip list.
+/// Uses synchronous Provider returning AsyncValue instead of FutureProvider
+/// to properly propagate loading/error states from tripListNotifierProvider.
+final filteredTripsProvider = Provider<AsyncValue<List<TripWithStats>>>((ref) {
   final filter = ref.watch(tripFilterProvider);
   final tripsAsync = ref.watch(tripListNotifierProvider);
 
-  final trips = tripsAsync.valueOrNull ?? [];
+  // Propagate loading state
+  if (tripsAsync.isLoading) {
+    return const AsyncValue.loading();
+  }
+
+  // Propagate error state
+  if (tripsAsync.hasError) {
+    return AsyncValue.error(tripsAsync.error!, tripsAsync.stackTrace!);
+  }
+
+  final trips = tripsAsync.value!;
 
   if (!filter.hasActiveFilters) {
-    return trips;
+    return AsyncValue.data(trips);
   }
 
-  // If filtering by equipment, get trip IDs that used this equipment
+  // If filtering by equipment, delegate to async family provider
   if (filter.equipmentId != null) {
-    final equipmentRepository = EquipmentRepository();
-    final tripIds = await equipmentRepository.getTripIdsForEquipment(
-      filter.equipmentId!,
-    );
-    final tripIdSet = tripIds.toSet();
-    return trips.where((t) => tripIdSet.contains(t.trip.id)).toList();
+    return ref.watch(_equipmentFilteredTripsProvider(filter.equipmentId!));
   }
 
-  return trips;
+  return AsyncValue.data(trips);
 });
 
 /// Trip sort state provider
