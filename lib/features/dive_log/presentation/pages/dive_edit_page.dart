@@ -87,6 +87,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   Trip? _selectedTrip;
   DiveCenter? _selectedDiveCenter;
   List<Sighting> _sightings = [];
+  Set<String> _originalSightingIds =
+      {}; // Track original IDs to detect deletions
   List<EquipmentItem> _selectedEquipment = [];
   List<BuddyWithRole> _selectedBuddies = [];
 
@@ -336,7 +338,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final repository = ref.read(speciesRepositoryProvider);
     final sightings = await repository.getSightingsForDive(widget.diveId!);
     if (mounted) {
-      setState(() => _sightings = sightings);
+      setState(() {
+        _sightings = sightings;
+        _originalSightingIds = sightings.map((s) => s.id).toSet();
+      });
     }
   }
 
@@ -2492,11 +2497,27 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       }
 
       // Save sightings
-      if (savedDiveId != null && _sightings.isNotEmpty) {
+      if (savedDiveId != null) {
         final speciesRepository = ref.read(speciesRepositoryProvider);
+
+        // Get current sighting IDs
+        final currentSightingIds = _sightings.map((s) => s.id).toSet();
+
+        // Delete removed sightings (those in original but not in current)
+        for (final originalId in _originalSightingIds) {
+          if (!currentSightingIds.contains(originalId)) {
+            await speciesRepository.deleteSighting(originalId);
+          }
+        }
+
+        // Add or update sightings
         for (final sighting in _sightings) {
-          // Only save new sightings (those without a proper ID or for new dives)
-          if (!widget.isEditing || sighting.diveId.isEmpty) {
+          final isExisting = _originalSightingIds.contains(sighting.id);
+          if (isExisting) {
+            // Update existing sighting
+            await speciesRepository.updateSighting(sighting);
+          } else {
+            // Add new sighting
             await speciesRepository.addSighting(
               diveId: savedDiveId,
               speciesId: sighting.speciesId,
@@ -2504,6 +2525,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               notes: sighting.notes,
             );
           }
+        }
+
+        // Invalidate providers so detail pages update
+        ref.invalidate(diveSightingsProvider(savedDiveId));
+        if (_selectedSite != null) {
+          ref.invalidate(siteSpottedSpeciesProvider(_selectedSite!.id));
         }
       }
 

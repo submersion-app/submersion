@@ -369,6 +369,181 @@ class SpeciesRepository {
     }
   }
 
+  // ===========================================================================
+  // Site Species Methods (for Common Marine Life feature)
+  // ===========================================================================
+
+  /// Get species spotted at a site (derived from actual dive sightings)
+  Future<List<domain.SiteSpeciesSummary>> getSpeciesSpottedAtSite(
+    String siteId,
+  ) async {
+    final results = await _db
+        .customSelect(
+          '''
+      SELECT
+        sp.id as species_id,
+        sp.common_name,
+        sp.category,
+        COUNT(*) as sighting_count,
+        COUNT(DISTINCT d.id) as dive_count
+      FROM sightings s
+      JOIN species sp ON s.species_id = sp.id
+      JOIN dives d ON s.dive_id = d.id
+      WHERE d.site_id = ?
+      GROUP BY sp.id
+      ORDER BY sighting_count DESC, sp.common_name ASC
+    ''',
+          variables: [Variable.withString(siteId)],
+        )
+        .get();
+
+    return results.map((row) {
+      return domain.SiteSpeciesSummary(
+        speciesId: row.data['species_id'] as String,
+        speciesName: row.data['common_name'] as String,
+        category: SpeciesCategory.values.firstWhere(
+          (c) => c.name == row.data['category'],
+          orElse: () => SpeciesCategory.other,
+        ),
+        sightingCount: row.data['sighting_count'] as int,
+        diveCount: row.data['dive_count'] as int,
+      );
+    }).toList();
+  }
+
+  /// Get expected species for a site (manually curated)
+  Future<List<domain.SiteSpeciesEntry>> getExpectedSpeciesForSite(
+    String siteId,
+  ) async {
+    final results = await _db
+        .customSelect(
+          '''
+      SELECT ss.*, sp.common_name, sp.category
+      FROM site_species ss
+      JOIN species sp ON ss.species_id = sp.id
+      WHERE ss.site_id = ?
+      ORDER BY sp.category ASC, sp.common_name ASC
+    ''',
+          variables: [Variable.withString(siteId)],
+        )
+        .get();
+
+    return results.map((row) {
+      return domain.SiteSpeciesEntry(
+        id: row.data['id'] as String,
+        siteId: row.data['site_id'] as String,
+        speciesId: row.data['species_id'] as String,
+        speciesName: row.data['common_name'] as String,
+        category: SpeciesCategory.values.firstWhere(
+          (c) => c.name == row.data['category'],
+          orElse: () => SpeciesCategory.other,
+        ),
+        notes: (row.data['notes'] as String?) ?? '',
+        createdAt: DateTime.fromMillisecondsSinceEpoch(
+          row.data['created_at'] as int,
+        ),
+      );
+    }).toList();
+  }
+
+  /// Add expected species to a site
+  Future<domain.SiteSpeciesEntry> addExpectedSpecies({
+    required String siteId,
+    required String speciesId,
+    String notes = '',
+  }) async {
+    final id = _uuid.v4();
+    final now = DateTime.now().millisecondsSinceEpoch;
+
+    await _db
+        .into(_db.siteSpecies)
+        .insert(
+          SiteSpeciesCompanion(
+            id: Value(id),
+            siteId: Value(siteId),
+            speciesId: Value(speciesId),
+            notes: Value(notes),
+            createdAt: Value(now),
+          ),
+        );
+
+    await _syncRepository.markRecordPending(
+      entityType: 'site_species',
+      recordId: id,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
+
+    final species = await getSpeciesById(speciesId);
+    return domain.SiteSpeciesEntry(
+      id: id,
+      siteId: siteId,
+      speciesId: speciesId,
+      speciesName: species?.commonName ?? 'Unknown',
+      category: species?.category ?? SpeciesCategory.other,
+      notes: notes,
+      createdAt: DateTime.fromMillisecondsSinceEpoch(now),
+    );
+  }
+
+  /// Remove expected species from a site
+  Future<void> removeExpectedSpecies(String siteId, String speciesId) async {
+    final existing = await _db
+        .customSelect(
+          'SELECT id FROM site_species WHERE site_id = ? AND species_id = ?',
+          variables: [
+            Variable.withString(siteId),
+            Variable.withString(speciesId),
+          ],
+        )
+        .getSingleOrNull();
+
+    if (existing != null) {
+      final id = existing.data['id'] as String;
+      await (_db.delete(_db.siteSpecies)..where((t) => t.id.equals(id))).go();
+      await _syncRepository.logDeletion(
+        entityType: 'site_species',
+        recordId: id,
+      );
+      SyncEventBus.notifyLocalChange();
+    }
+  }
+
+  /// Remove all expected species from a site
+  Future<void> removeAllExpectedSpeciesForSite(String siteId) async {
+    final existing = await (_db.select(
+      _db.siteSpecies,
+    )..where((t) => t.siteId.equals(siteId))).get();
+
+    await (_db.delete(
+      _db.siteSpecies,
+    )..where((t) => t.siteId.equals(siteId))).go();
+
+    for (final row in existing) {
+      await _syncRepository.logDeletion(
+        entityType: 'site_species',
+        recordId: row.id,
+      );
+    }
+    if (existing.isNotEmpty) {
+      SyncEventBus.notifyLocalChange();
+    }
+  }
+
+  /// Check if a species is already expected at a site
+  Future<bool> isSpeciesExpectedAtSite(String siteId, String speciesId) async {
+    final result = await _db
+        .customSelect(
+          'SELECT COUNT(*) as count FROM site_species WHERE site_id = ? AND species_id = ?',
+          variables: [
+            Variable.withString(siteId),
+            Variable.withString(speciesId),
+          ],
+        )
+        .getSingle();
+    return (result.data['count'] as int) > 0;
+  }
+
   domain.Species _mapRowToSpecies(Specy row) {
     return domain.Species(
       id: row.id,

@@ -57,6 +57,64 @@ class Species extends Equatable {
   ];
 }
 
+/// Aggregated species sighting data for a dive site
+class SiteSpeciesSummary extends Equatable {
+  final String speciesId;
+  final String speciesName;
+  final SpeciesCategory category;
+  final int sightingCount; // Total times spotted across all dives at site
+  final int diveCount; // Number of dives where spotted
+
+  const SiteSpeciesSummary({
+    required this.speciesId,
+    required this.speciesName,
+    required this.category,
+    required this.sightingCount,
+    required this.diveCount,
+  });
+
+  @override
+  List<Object?> get props => [
+    speciesId,
+    speciesName,
+    category,
+    sightingCount,
+    diveCount,
+  ];
+}
+
+/// Expected species entry for a dive site (manually curated)
+class SiteSpeciesEntry extends Equatable {
+  final String id;
+  final String siteId;
+  final String speciesId;
+  final String speciesName;
+  final SpeciesCategory category;
+  final String notes;
+  final DateTime createdAt;
+
+  const SiteSpeciesEntry({
+    required this.id,
+    required this.siteId,
+    required this.speciesId,
+    required this.speciesName,
+    required this.category,
+    this.notes = '',
+    required this.createdAt,
+  });
+
+  @override
+  List<Object?> get props => [
+    id,
+    siteId,
+    speciesId,
+    speciesName,
+    category,
+    notes,
+    createdAt,
+  ];
+}
+
 /// A sighting of a species during a dive
 class Sighting extends Equatable {
   final String id;

@@ -14,6 +14,9 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/location_picker_map.dart';
+import 'package:submersion/features/marine_life/domain/entities/species.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/species_picker_dialog.dart';
 
 class SiteEditPage extends ConsumerStatefulWidget {
   final String? siteId;
@@ -58,6 +61,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
   bool _isInitialized = false;
   bool _hasChanges = false;
   DiveSite? _originalSite;
+  List<Species> _expectedSpecies = [];
+  Set<String> _originalExpectedSpeciesIds = {};
 
   @override
   void initState() {
@@ -130,6 +135,31 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     _altitudeController.text = site.altitude != null
         ? units.convertAltitude(site.altitude!).toStringAsFixed(0)
         : '';
+
+    // Load expected species
+    _loadExpectedSpecies(site.id);
+  }
+
+  Future<void> _loadExpectedSpecies(String siteId) async {
+    final repository = ref.read(speciesRepositoryProvider);
+    final entries = await repository.getExpectedSpeciesForSite(siteId);
+
+    // Convert entries to full Species objects for display
+    final allSpecies = await repository.getAllSpecies();
+    final speciesById = {for (final s in allSpecies) s.id: s};
+
+    final species = entries
+        .map((e) => speciesById[e.speciesId])
+        .where((s) => s != null)
+        .cast<Species>()
+        .toList();
+
+    if (mounted) {
+      setState(() {
+        _expectedSpecies = species;
+        _originalExpectedSpeciesIds = species.map((s) => s.id).toSet();
+      });
+    }
   }
 
   void _handleCancel() {
@@ -277,6 +307,10 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
 
           // Safety Section
           _buildSafetySection(context),
+          const SizedBox(height: 16),
+
+          // Expected Marine Life Section
+          _buildExpectedMarineLifeSection(context),
           const SizedBox(height: 16),
 
           // Notes
@@ -1044,6 +1078,105 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     );
   }
 
+  Widget _buildExpectedMarineLifeSection(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.water, color: colorScheme.primary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Expected Marine Life',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                FilledButton.tonalIcon(
+                  onPressed: _showSpeciesPicker,
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Add'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Species you expect to see at this site',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            if (_expectedSpecies.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _expectedSpecies.map((species) {
+                  return Chip(
+                    avatar: Icon(
+                      Icons.pets,
+                      size: 16,
+                      color: colorScheme.primary,
+                    ),
+                    label: Text(species.commonName),
+                    deleteIcon: const Icon(Icons.close, size: 16),
+                    onDeleted: () {
+                      setState(() {
+                        _expectedSpecies = _expectedSpecies
+                            .where((s) => s.id != species.id)
+                            .toList();
+                        _hasChanges = true;
+                      });
+                    },
+                  );
+                }).toList(),
+              ),
+            ] else ...[
+              const SizedBox(height: 16),
+              Center(
+                child: Text(
+                  'No expected species added',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showSpeciesPicker() async {
+    final selectedIds = _expectedSpecies.map((s) => s.id).toSet();
+
+    final result = await showDialog<Set<String>>(
+      context: context,
+      builder: (context) => SpeciesPickerDialog(initialSelection: selectedIds),
+    );
+
+    if (result != null) {
+      // Fetch full species data for the selected IDs
+      final repository = ref.read(speciesRepositoryProvider);
+      final allSpecies = await repository.getAllSpecies();
+      final selectedSpecies = allSpecies
+          .where((s) => result.contains(s.id))
+          .toList();
+
+      setState(() {
+        _expectedSpecies = selectedSpecies;
+        _hasChanges = true;
+      });
+    }
+  }
+
   Future<void> _saveSite() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -1143,6 +1276,17 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       } else {
         final newSite = await notifier.addSite(site);
         savedId = newSite.id;
+      }
+
+      // Save expected species
+      final currentIds = _expectedSpecies.map((s) => s.id).toSet();
+      if (currentIds != _originalExpectedSpeciesIds || !widget.isEditing) {
+        final speciesNotifier = ref.read(
+          siteExpectedSpeciesNotifierProvider(savedId).notifier,
+        );
+        await speciesNotifier.setSpecies(currentIds.toList());
+        ref.invalidate(siteExpectedSpeciesProvider(savedId));
+        ref.invalidate(siteSpottedSpeciesProvider(savedId));
       }
 
       ref.invalidate(sitesWithCountsProvider);

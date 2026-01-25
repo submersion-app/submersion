@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/site_marine_life_section.dart';
 import 'package:submersion/features/tides/presentation/widgets/tide_section.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
@@ -147,6 +148,10 @@ class _SiteDetailContent extends ConsumerWidget {
             TideSection(location: site.location!),
             const SizedBox(height: 16),
           ],
+
+          // Marine Life Section
+          SiteMarineLifeSection(siteId: site.id),
+          const SizedBox(height: 16),
 
           // Difficulty Section
           if (site.difficulty != null) ...[

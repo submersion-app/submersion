@@ -150,3 +150,85 @@ final seedSpeciesProvider = FutureProvider<void>((ref) async {
   final repository = ref.watch(speciesRepositoryProvider);
   await repository.seedCommonSpecies();
 });
+
+// ===========================================================================
+// Site Marine Life Providers (for Common Marine Life feature)
+// ===========================================================================
+
+/// Species spotted at a site (derived from dive sightings)
+final siteSpottedSpeciesProvider =
+    FutureProvider.family<List<SiteSpeciesSummary>, String>((
+      ref,
+      siteId,
+    ) async {
+      final repository = ref.watch(speciesRepositoryProvider);
+      return repository.getSpeciesSpottedAtSite(siteId);
+    });
+
+/// Expected species at a site (manually curated)
+final siteExpectedSpeciesProvider =
+    FutureProvider.family<List<SiteSpeciesEntry>, String>((ref, siteId) async {
+      final repository = ref.watch(speciesRepositoryProvider);
+      return repository.getExpectedSpeciesForSite(siteId);
+    });
+
+/// Notifier for managing expected species at a site
+class SiteExpectedSpeciesNotifier
+    extends StateNotifier<List<SiteSpeciesEntry>> {
+  final SpeciesRepository _repository;
+  final String _siteId;
+
+  SiteExpectedSpeciesNotifier(this._repository, this._siteId) : super([]) {
+    _loadExpectedSpecies();
+  }
+
+  Future<void> _loadExpectedSpecies() async {
+    final entries = await _repository.getExpectedSpeciesForSite(_siteId);
+    state = entries;
+  }
+
+  Future<void> addSpecies(String speciesId) async {
+    final entry = await _repository.addExpectedSpecies(
+      siteId: _siteId,
+      speciesId: speciesId,
+    );
+    state = [...state, entry];
+  }
+
+  Future<void> removeSpecies(String speciesId) async {
+    await _repository.removeExpectedSpecies(_siteId, speciesId);
+    state = state.where((e) => e.speciesId != speciesId).toList();
+  }
+
+  Future<void> setSpecies(List<String> speciesIds) async {
+    // Remove all existing
+    await _repository.removeAllExpectedSpeciesForSite(_siteId);
+
+    // Add new ones
+    final entries = <SiteSpeciesEntry>[];
+    for (final speciesId in speciesIds) {
+      final entry = await _repository.addExpectedSpecies(
+        siteId: _siteId,
+        speciesId: speciesId,
+      );
+      entries.add(entry);
+    }
+
+    state = entries;
+  }
+
+  void refresh() {
+    _loadExpectedSpecies();
+  }
+}
+
+/// Provider for managing expected species at a site
+final siteExpectedSpeciesNotifierProvider =
+    StateNotifierProvider.family<
+      SiteExpectedSpeciesNotifier,
+      List<SiteSpeciesEntry>,
+      String
+    >((ref, siteId) {
+      final repository = ref.watch(speciesRepositoryProvider);
+      return SiteExpectedSpeciesNotifier(repository, siteId);
+    });

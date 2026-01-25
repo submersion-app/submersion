@@ -774,6 +774,20 @@ class DeletionLog extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Junction table for expected species at dive sites (manual curation)
+class SiteSpecies extends Table {
+  TextColumn get id => text()();
+  TextColumn get siteId =>
+      text().references(DiveSites, #id, onDelete: KeyAction.cascade)();
+  TextColumn get speciesId =>
+      text().references(Species, #id, onDelete: KeyAction.cascade)();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+  IntColumn get createdAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 // ============================================================================
 // Database Class
 // ============================================================================
@@ -810,6 +824,8 @@ class DeletionLog extends Table {
     GasSwitches,
     TankPressureProfiles,
     TideRecords,
+    // Site-species junction
+    SiteSpecies,
     // Sync tables
     SyncMetadata,
     SyncRecords,
@@ -820,7 +836,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 17;
+  int get schemaVersion => 18;
 
   @override
   MigrationStrategy get migration {
@@ -1105,6 +1121,23 @@ class AppDatabase extends _$AppDatabase {
           await customStatement(
             'ALTER TABLE divers ADD COLUMN emergency_contact2_relation TEXT',
           );
+        }
+        if (from < 18) {
+          // Add site_species junction table for expected marine life at sites
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS site_species (
+              id TEXT NOT NULL PRIMARY KEY,
+              site_id TEXT NOT NULL REFERENCES dive_sites(id) ON DELETE CASCADE,
+              species_id TEXT NOT NULL REFERENCES species(id) ON DELETE CASCADE,
+              notes TEXT NOT NULL DEFAULT '',
+              created_at INTEGER NOT NULL
+            )
+          ''');
+          // Index for efficient lookup by site
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_site_species_site
+            ON site_species(site_id)
+          ''');
         }
       },
       beforeOpen: (details) async {
