@@ -3,8 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/sort_options.dart';
+import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 
 /// Special filter value for computed "service due" items
 const String _serviceDueFilter = '_service_due_';
@@ -121,6 +124,8 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
 
   @override
   Widget build(BuildContext context) {
+    final sort = ref.watch(equipmentSortProvider);
+
     final AsyncValue<List<EquipmentItem>> equipmentAsync;
     if (_selectedFilter == _serviceDueFilter) {
       equipmentAsync = ref.watch(serviceDueEquipmentProvider);
@@ -130,9 +135,12 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     }
 
     final content = equipmentAsync.when(
-      data: (equipment) => equipment.isEmpty
-          ? _buildEmptyState(context, ref)
-          : _buildEquipmentList(context, ref, equipment),
+      data: (equipment) {
+        final sorted = applyEquipmentSorting(equipment, sort);
+        return sorted.isEmpty
+            ? _buildEmptyState(context, ref)
+            : _buildEquipmentList(context, ref, sorted);
+      },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, stack) => _buildErrorState(context, error),
     );
@@ -155,6 +163,11 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
             icon: const Icon(Icons.folder_outlined),
             tooltip: 'Equipment Sets',
             onPressed: () => context.push('/equipment/sets'),
+          ),
+          IconButton(
+            icon: const Icon(Icons.sort),
+            tooltip: 'Sort',
+            onPressed: () => _showSortSheet(context),
           ),
           IconButton(
             icon: const Icon(Icons.search),
@@ -202,6 +215,11 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
             onPressed: () => context.push('/equipment/sets'),
           ),
           IconButton(
+            icon: const Icon(Icons.sort, size: 20),
+            tooltip: 'Sort',
+            onPressed: () => _showSortSheet(context),
+          ),
+          IconButton(
             icon: const Icon(Icons.search, size: 20),
             onPressed: () {
               showSearch(context: context, delegate: EquipmentSearchDelegate());
@@ -209,6 +227,25 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showSortSheet(BuildContext context) {
+    final sort = ref.read(equipmentSortProvider);
+    showSortBottomSheet<EquipmentSortField>(
+      context: context,
+      title: 'Sort Equipment',
+      currentField: sort.field,
+      currentDirection: sort.direction,
+      fields: EquipmentSortField.values,
+      getFieldDisplayName: (field) => field.displayName,
+      getFieldIcon: (field) => field.icon,
+      onSortChanged: (field, direction) {
+        ref.read(equipmentSortProvider.notifier).state = SortState(
+          field: field,
+          direction: direction,
+        );
+      },
     );
   }
 

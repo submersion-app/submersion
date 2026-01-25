@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/sort_options.dart';
+import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 
@@ -100,12 +103,16 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
 
   @override
   Widget build(BuildContext context) {
+    final sort = ref.watch(diveCenterSortProvider);
     final centersAsync = ref.watch(diveCenterListNotifierProvider);
 
     final content = centersAsync.when(
-      data: (centers) => centers.isEmpty
-          ? _buildEmptyState(context)
-          : _buildCenterList(context, ref, centers),
+      data: (centers) {
+        final sorted = applyDiveCenterSorting(centers, sort);
+        return sorted.isEmpty
+            ? _buildEmptyState(context)
+            : _buildCenterList(context, ref, sorted);
+      },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, stack) => _buildErrorState(context, error),
     );
@@ -123,6 +130,11 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
       appBar: AppBar(
         title: const Text('Dive Centers'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.sort),
+            tooltip: 'Sort',
+            onPressed: () => _showSortSheet(context),
+          ),
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
@@ -162,6 +174,11 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
           ),
           const Spacer(),
           IconButton(
+            icon: const Icon(Icons.sort, size: 20),
+            tooltip: 'Sort',
+            onPressed: () => _showSortSheet(context),
+          ),
+          IconButton(
             icon: const Icon(Icons.search, size: 20),
             onPressed: () {
               showSearch(
@@ -172,6 +189,25 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showSortSheet(BuildContext context) {
+    final sort = ref.read(diveCenterSortProvider);
+    showSortBottomSheet<DiveCenterSortField>(
+      context: context,
+      title: 'Sort Dive Centers',
+      currentField: sort.field,
+      currentDirection: sort.direction,
+      fields: DiveCenterSortField.values,
+      getFieldDisplayName: (field) => field.displayName,
+      getFieldIcon: (field) => field.icon,
+      onSortChanged: (field, direction) {
+        ref.read(diveCenterSortProvider.notifier).state = SortState(
+          field: field,
+          direction: direction,
+        );
+      },
     );
   }
 

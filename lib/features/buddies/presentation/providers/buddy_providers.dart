@@ -1,3 +1,5 @@
+import 'package:submersion/core/constants/sort_options.dart';
+import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -21,6 +23,87 @@ final allBuddiesProvider = FutureProvider<List<Buddy>>((ref) async {
   );
   return repository.getAllBuddies(diverId: validatedDiverId);
 });
+
+/// Buddy sort state provider
+final buddySortProvider = StateProvider<SortState<BuddySortField>>(
+  (ref) => const SortState(
+    field: BuddySortField.name,
+    direction: SortDirection.descending,
+  ),
+);
+
+/// All buddies with dive counts provider (for efficient sorting by dive count)
+final allBuddiesWithDiveCountProvider =
+    FutureProvider<List<BuddyWithDiveCount>>((ref) async {
+      final repository = ref.watch(buddyRepositoryProvider);
+      final validatedDiverId = await ref.watch(
+        validatedCurrentDiverIdProvider.future,
+      );
+      return repository.getAllBuddiesWithDiveCount(diverId: validatedDiverId);
+    });
+
+/// Apply sorting to a list of buddies with dive counts
+List<BuddyWithDiveCount> applyBuddyWithDiveCountSorting(
+  List<BuddyWithDiveCount> buddies,
+  SortState<BuddySortField> sort,
+) {
+  final sorted = List<BuddyWithDiveCount>.from(buddies);
+
+  sorted.sort((a, b) {
+    int comparison;
+    // For text fields, invert direction (user expects descending = A→Z)
+    final invertForText = sort.field == BuddySortField.name;
+
+    switch (sort.field) {
+      case BuddySortField.name:
+        comparison = a.buddy.name.toLowerCase().compareTo(
+          b.buddy.name.toLowerCase(),
+        );
+      case BuddySortField.diveCount:
+        comparison = a.diveCount.compareTo(b.diveCount);
+    }
+
+    if (invertForText) {
+      return sort.direction == SortDirection.ascending
+          ? -comparison
+          : comparison;
+    }
+    return sort.direction == SortDirection.ascending ? comparison : -comparison;
+  });
+
+  return sorted;
+}
+
+/// Apply sorting to a list of buddies (for backward compatibility)
+List<Buddy> applyBuddySorting(
+  List<Buddy> buddies,
+  SortState<BuddySortField> sort,
+) {
+  final sorted = List<Buddy>.from(buddies);
+
+  sorted.sort((a, b) {
+    int comparison;
+    // For text fields, invert direction (user expects descending = A→Z)
+    final invertForText = sort.field == BuddySortField.name;
+
+    switch (sort.field) {
+      case BuddySortField.name:
+        comparison = a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      case BuddySortField.diveCount:
+        // Dive count not available in basic Buddy entity, sort by name as fallback
+        comparison = a.name.toLowerCase().compareTo(b.name.toLowerCase());
+    }
+
+    if (invertForText) {
+      return sort.direction == SortDirection.ascending
+          ? -comparison
+          : comparison;
+    }
+    return sort.direction == SortDirection.ascending ? comparison : -comparison;
+  });
+
+  return sorted;
+}
 
 /// Single buddy provider
 final buddyByIdProvider = FutureProvider.family<Buddy?, String>((

@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/core/constants/sort_options.dart';
+import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 
@@ -102,12 +105,16 @@ class _CertificationListContentState
 
   @override
   Widget build(BuildContext context) {
+    final sort = ref.watch(certificationSortProvider);
     final certificationsAsync = ref.watch(certificationListNotifierProvider);
 
     final content = certificationsAsync.when(
-      data: (certifications) => certifications.isEmpty
-          ? _buildEmptyState(context)
-          : _buildCertificationList(context, ref, certifications),
+      data: (certifications) {
+        final sorted = applyCertificationSorting(certifications, sort);
+        return sorted.isEmpty
+            ? _buildEmptyState(context)
+            : _buildCertificationList(context, ref, sorted);
+      },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, stack) => _buildErrorState(context, error),
     );
@@ -125,6 +132,11 @@ class _CertificationListContentState
       appBar: AppBar(
         title: const Text('Certifications'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.sort),
+            tooltip: 'Sort',
+            onPressed: () => _showSortSheet(context),
+          ),
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
@@ -164,6 +176,11 @@ class _CertificationListContentState
           ),
           const Spacer(),
           IconButton(
+            icon: const Icon(Icons.sort, size: 20),
+            tooltip: 'Sort',
+            onPressed: () => _showSortSheet(context),
+          ),
+          IconButton(
             icon: const Icon(Icons.search, size: 20),
             onPressed: () {
               showSearch(
@@ -174,6 +191,25 @@ class _CertificationListContentState
           ),
         ],
       ),
+    );
+  }
+
+  void _showSortSheet(BuildContext context) {
+    final sort = ref.read(certificationSortProvider);
+    showSortBottomSheet<CertificationSortField>(
+      context: context,
+      title: 'Sort Certifications',
+      currentField: sort.field,
+      currentDirection: sort.direction,
+      fields: CertificationSortField.values,
+      getFieldDisplayName: (field) => field.displayName,
+      getFieldIcon: (field) => field.icon,
+      onSortChanged: (field, direction) {
+        ref.read(certificationSortProvider.notifier).state = SortState(
+          field: field,
+          direction: direction,
+        );
+      },
     );
   }
 

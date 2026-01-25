@@ -1,3 +1,5 @@
+import 'package:submersion/core/constants/sort_options.dart';
+import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -22,6 +24,51 @@ final allCertificationsProvider = FutureProvider<List<Certification>>((
   );
   return repository.getAllCertifications(diverId: validatedDiverId);
 });
+
+/// Certification sort state provider
+final certificationSortProvider =
+    StateProvider<SortState<CertificationSortField>>(
+      (ref) => const SortState(
+        field: CertificationSortField.dateIssued,
+        direction: SortDirection.descending,
+      ),
+    );
+
+/// Apply sorting to a list of certifications
+List<Certification> applyCertificationSorting(
+  List<Certification> certifications,
+  SortState<CertificationSortField> sort,
+) {
+  final sorted = List<Certification>.from(certifications);
+
+  sorted.sort((a, b) {
+    int comparison;
+    // For text fields, invert direction (user expects descending = A→Z)
+    final invertForText =
+        sort.field == CertificationSortField.name ||
+        sort.field == CertificationSortField.agency;
+
+    switch (sort.field) {
+      case CertificationSortField.name:
+        comparison = a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      case CertificationSortField.dateIssued:
+        comparison = (a.issueDate ?? DateTime(1900)).compareTo(
+          b.issueDate ?? DateTime(1900),
+        );
+      case CertificationSortField.agency:
+        comparison = a.agency.displayName.compareTo(b.agency.displayName);
+    }
+
+    if (invertForText) {
+      return sort.direction == SortDirection.ascending
+          ? -comparison
+          : comparison;
+    }
+    return sort.direction == SortDirection.ascending ? comparison : -comparison;
+  });
+
+  return sorted;
+}
 
 /// Single certification provider
 final certificationByIdProvider = FutureProvider.family<Certification?, String>(

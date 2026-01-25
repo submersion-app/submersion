@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:submersion/core/constants/sort_options.dart';
+import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -70,7 +73,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
   void _scrollToSelectedItem() {
     if (widget.selectedId == null) return;
 
-    final sitesAsync = ref.read(sitesWithCountsProvider);
+    final sitesAsync = ref.read(sortedSitesWithCountsProvider);
     sitesAsync.whenData((sites) {
       final index = sites.indexWhere((s) => s.site.id == widget.selectedId);
       if (index >= 0 && _scrollController.hasClients) {
@@ -221,9 +224,29 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     }
   }
 
+  void _showSortSheet(BuildContext context) {
+    final sort = ref.read(siteSortProvider);
+
+    showSortBottomSheet<SiteSortField>(
+      context: context,
+      title: 'Sort Sites',
+      currentField: sort.field,
+      currentDirection: sort.direction,
+      fields: SiteSortField.values,
+      getFieldDisplayName: (field) => field.displayName,
+      getFieldIcon: (field) => field.icon,
+      onSortChanged: (field, direction) {
+        ref.read(siteSortProvider.notifier).state = SortState(
+          field: field,
+          direction: direction,
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final sitesAsync = ref.watch(sitesWithCountsProvider);
+    final sitesAsync = ref.watch(sortedSitesWithCountsProvider);
 
     final content = sitesAsync.when(
       data: (sites) => sites.isEmpty
@@ -266,6 +289,11 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                   icon: const Icon(Icons.map),
                   tooltip: 'Map View',
                   onPressed: () => context.push('/sites/map'),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.sort),
+                  tooltip: 'Sort',
+                  onPressed: () => _showSortSheet(context),
                 ),
                 PopupMenuButton<String>(
                   icon: const Icon(Icons.more_vert),
@@ -327,6 +355,11 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
             icon: const Icon(Icons.map, size: 20),
             tooltip: 'Map View',
             onPressed: () => context.push('/sites/map'),
+          ),
+          IconButton(
+            icon: const Icon(Icons.sort, size: 20),
+            tooltip: 'Sort',
+            onPressed: () => _showSortSheet(context),
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, size: 20),
@@ -442,7 +475,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
   ) {
     return RefreshIndicator(
       onRefresh: () async {
-        ref.invalidate(sitesWithCountsProvider);
+        ref.invalidate(sortedSitesWithCountsProvider);
       },
       child: ListView.builder(
         controller: _scrollController,
@@ -528,7 +561,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           Text('Error loading sites: $error'),
           const SizedBox(height: 16),
           FilledButton(
-            onPressed: () => ref.invalidate(sitesWithCountsProvider),
+            onPressed: () => ref.invalidate(sortedSitesWithCountsProvider),
             child: const Text('Retry'),
           ),
         ],

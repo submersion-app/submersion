@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/sort_options.dart';
+import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
@@ -93,7 +96,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     if (widget.selectedId == null) return;
 
     // Get the current dive list from the provider
-    final divesAsync = ref.read(filteredDivesProvider);
+    final divesAsync = ref.read(sortedFilteredDivesProvider);
     divesAsync.whenData((dives) {
       final index = dives.indexWhere((d) => d.id == widget.selectedId);
       if (index >= 0 && _scrollController.hasClients) {
@@ -720,9 +723,29 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     }
   }
 
+  void _showSortSheet(BuildContext context) {
+    final sort = ref.read(diveSortProvider);
+
+    showSortBottomSheet<DiveSortField>(
+      context: context,
+      title: 'Sort Dives',
+      currentField: sort.field,
+      currentDirection: sort.direction,
+      fields: DiveSortField.values,
+      getFieldDisplayName: (field) => field.displayName,
+      getFieldIcon: (field) => field.icon,
+      onSortChanged: (field, direction) {
+        ref.read(diveSortProvider.notifier).state = SortState(
+          field: field,
+          direction: direction,
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final divesAsync = ref.watch(filteredDivesProvider);
+    final divesAsync = ref.watch(sortedFilteredDivesProvider);
     final filter = ref.watch(diveFilterProvider);
 
     final content = divesAsync.when(
@@ -780,6 +803,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               builder: (context) => DiveFilterSheet(ref: ref),
             );
           },
+        ),
+        IconButton(
+          icon: const Icon(Icons.sort),
+          tooltip: 'Sort',
+          onPressed: () => _showSortSheet(context),
         ),
         PopupMenuButton<String>(
           onSelected: (value) {
@@ -859,6 +887,12 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 builder: (context) => DiveFilterSheet(ref: ref),
               );
             },
+          ),
+          IconButton(
+            icon: const Icon(Icons.sort, size: 20),
+            visualDensity: VisualDensity.compact,
+            tooltip: 'Sort',
+            onPressed: () => _showSortSheet(context),
           ),
         ],
       ),

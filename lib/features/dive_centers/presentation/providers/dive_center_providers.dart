@@ -1,3 +1,5 @@
+import 'package:submersion/core/constants/sort_options.dart';
+import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -17,6 +19,46 @@ final allDiveCentersProvider = FutureProvider<List<DiveCenter>>((ref) async {
   );
   return repository.getAllDiveCenters(diverId: validatedDiverId);
 });
+
+/// Dive center sort state provider
+final diveCenterSortProvider = StateProvider<SortState<DiveCenterSortField>>(
+  (ref) => const SortState(
+    field: DiveCenterSortField.name,
+    direction: SortDirection.descending,
+  ),
+);
+
+/// Apply sorting to a list of dive centers
+/// Note: diveCount sorting defaults to name since it's not in the basic entity
+List<DiveCenter> applyDiveCenterSorting(
+  List<DiveCenter> centers,
+  SortState<DiveCenterSortField> sort,
+) {
+  final sorted = List<DiveCenter>.from(centers);
+
+  sorted.sort((a, b) {
+    int comparison;
+    // For text fields, invert direction (user expects descending = A→Z)
+    final invertForText = sort.field == DiveCenterSortField.name;
+
+    switch (sort.field) {
+      case DiveCenterSortField.name:
+        comparison = a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      case DiveCenterSortField.diveCount:
+        // Dive count not available in basic entity, sort by name as fallback
+        comparison = a.name.toLowerCase().compareTo(b.name.toLowerCase());
+    }
+
+    if (invertForText) {
+      return sort.direction == SortDirection.ascending
+          ? -comparison
+          : comparison;
+    }
+    return sort.direction == SortDirection.ascending ? comparison : -comparison;
+  });
+
+  return sorted;
+}
 
 /// Single dive center provider
 final diveCenterByIdProvider = FutureProvider.family<DiveCenter?, String>((

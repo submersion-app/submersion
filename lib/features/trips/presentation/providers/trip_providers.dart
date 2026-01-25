@@ -1,3 +1,5 @@
+import 'package:submersion/core/constants/sort_options.dart';
+import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -79,6 +81,56 @@ final filteredTripsProvider = FutureProvider<List<TripWithStats>>((ref) async {
 
   return trips;
 });
+
+/// Trip sort state provider
+final tripSortProvider = StateProvider<SortState<TripSortField>>(
+  (ref) => const SortState(
+    field: TripSortField.startDate,
+    direction: SortDirection.descending,
+  ),
+);
+
+/// Sorted and filtered trips provider
+final sortedFilteredTripsProvider = Provider<AsyncValue<List<TripWithStats>>>((
+  ref,
+) {
+  final tripsAsync = ref.watch(filteredTripsProvider);
+  final sort = ref.watch(tripSortProvider);
+
+  return tripsAsync.whenData((trips) => _applyTripSorting(trips, sort));
+});
+
+/// Apply sorting to a list of trips
+List<TripWithStats> _applyTripSorting(
+  List<TripWithStats> trips,
+  SortState<TripSortField> sort,
+) {
+  final sorted = List<TripWithStats>.from(trips);
+
+  sorted.sort((a, b) {
+    int comparison;
+    // For text fields, invert direction (user expects descending = A→Z)
+    final invertForText = sort.field == TripSortField.name;
+
+    switch (sort.field) {
+      case TripSortField.startDate:
+        comparison = a.trip.startDate.compareTo(b.trip.startDate);
+      case TripSortField.endDate:
+        comparison = a.trip.endDate.compareTo(b.trip.endDate);
+      case TripSortField.name:
+        comparison = a.trip.name.compareTo(b.trip.name);
+    }
+
+    if (invertForText) {
+      return sort.direction == SortDirection.ascending
+          ? -comparison
+          : comparison;
+    }
+    return sort.direction == SortDirection.ascending ? comparison : -comparison;
+  });
+
+  return sorted;
+}
 
 /// Single trip provider
 final tripByIdProvider = FutureProvider.family<Trip?, String>((ref, id) async {

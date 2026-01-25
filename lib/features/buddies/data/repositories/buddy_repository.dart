@@ -423,6 +423,59 @@ class BuddyRepository {
     SyncEventBus.notifyLocalChange();
   }
 
+  /// Get all buddies with their dive counts in a single efficient query
+  Future<List<BuddyWithDiveCount>> getAllBuddiesWithDiveCount({
+    String? diverId,
+  }) async {
+    try {
+      final diverFilter = diverId != null ? 'WHERE b.diver_id = ?' : '';
+      final variables = [if (diverId != null) Variable.withString(diverId)];
+
+      final results = await _db.customSelect('''
+        SELECT b.*, COALESCE(dc.dive_count, 0) as dive_count
+        FROM buddies b
+        LEFT JOIN (
+          SELECT buddy_id, COUNT(*) as dive_count
+          FROM dive_buddies
+          GROUP BY buddy_id
+        ) dc ON b.id = dc.buddy_id
+        $diverFilter
+        ORDER BY b.name ASC
+      ''', variables: variables).get();
+
+      return results.map((row) {
+        final buddy = domain.Buddy(
+          id: row.data['id'] as String,
+          diverId: row.data['diver_id'] as String?,
+          name: row.data['name'] as String,
+          email: row.data['email'] as String?,
+          phone: row.data['phone'] as String?,
+          certificationLevel: _parseCertificationLevel(
+            row.data['certification_level'] as String?,
+          ),
+          certificationAgency: _parseCertificationAgency(
+            row.data['certification_agency'] as String?,
+          ),
+          photoPath: row.data['photo_path'] as String?,
+          notes: (row.data['notes'] as String?) ?? '',
+          createdAt: DateTime.fromMillisecondsSinceEpoch(
+            row.data['created_at'] as int,
+          ),
+          updatedAt: DateTime.fromMillisecondsSinceEpoch(
+            row.data['updated_at'] as int,
+          ),
+        );
+        return BuddyWithDiveCount(
+          buddy: buddy,
+          diveCount: row.data['dive_count'] as int,
+        );
+      }).toList();
+    } catch (e, stackTrace) {
+      _log.error('Failed to get buddies with dive counts', e, stackTrace);
+      rethrow;
+    }
+  }
+
   /// Get dive count for a buddy
   Future<int> getDiveCountForBuddy(String buddyId) async {
     final result = await _db
@@ -566,4 +619,12 @@ class BuddyStats {
     this.lastDive,
     this.favoriteSite,
   });
+}
+
+/// Buddy with dive count for efficient list sorting
+class BuddyWithDiveCount {
+  final domain.Buddy buddy;
+  final int diveCount;
+
+  const BuddyWithDiveCount({required this.buddy, required this.diveCount});
 }

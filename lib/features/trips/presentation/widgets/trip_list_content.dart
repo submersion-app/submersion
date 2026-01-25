@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/core/constants/sort_options.dart';
+import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -99,12 +102,30 @@ class _TripListContentState extends ConsumerState<TripListContent> {
     }
   }
 
+  void _showSortSheet(BuildContext context) {
+    final sort = ref.read(tripSortProvider);
+
+    showSortBottomSheet<TripSortField>(
+      context: context,
+      title: 'Sort Trips',
+      currentField: sort.field,
+      currentDirection: sort.direction,
+      fields: TripSortField.values,
+      getFieldDisplayName: (field) => field.displayName,
+      getFieldIcon: (field) => field.icon,
+      onSortChanged: (field, direction) {
+        ref.read(tripSortProvider.notifier).state = SortState(
+          field: field,
+          direction: direction,
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final filter = ref.watch(tripFilterProvider);
-    final tripsAsync = filter.hasActiveFilters
-        ? ref.watch(filteredTripsProvider)
-        : ref.watch(tripListNotifierProvider);
+    final tripsAsync = ref.watch(sortedFilteredTripsProvider);
 
     final content = tripsAsync.when(
       data: (trips) => trips.isEmpty
@@ -132,6 +153,11 @@ class _TripListContentState extends ConsumerState<TripListContent> {
             onPressed: () {
               showSearch(context: context, delegate: TripSearchDelegate());
             },
+          ),
+          IconButton(
+            icon: const Icon(Icons.sort),
+            tooltip: 'Sort',
+            onPressed: () => _showSortSheet(context),
           ),
         ],
       ),
@@ -167,6 +193,11 @@ class _TripListContentState extends ConsumerState<TripListContent> {
             onPressed: () {
               showSearch(context: context, delegate: TripSearchDelegate());
             },
+          ),
+          IconButton(
+            icon: const Icon(Icons.sort, size: 20),
+            tooltip: 'Sort',
+            onPressed: () => _showSortSheet(context),
           ),
         ],
       ),

@@ -6,7 +6,11 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/sort_options.dart';
+import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 
@@ -84,9 +88,9 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
   void _scrollToSelectedItem() {
     if (widget.selectedId == null) return;
 
-    final buddiesAsync = ref.read(buddyListNotifierProvider);
+    final buddiesAsync = ref.read(allBuddiesWithDiveCountProvider);
     buddiesAsync.whenData((buddies) {
-      final index = buddies.indexWhere((b) => b.id == widget.selectedId);
+      final index = buddies.indexWhere((b) => b.buddy.id == widget.selectedId);
       if (index >= 0 && _scrollController.hasClients) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!_scrollController.hasClients || buddies.isEmpty) return;
@@ -188,12 +192,16 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
 
   @override
   Widget build(BuildContext context) {
-    final buddiesAsync = ref.watch(buddyListNotifierProvider);
+    final sort = ref.watch(buddySortProvider);
+    final buddiesAsync = ref.watch(allBuddiesWithDiveCountProvider);
 
     final content = buddiesAsync.when(
-      data: (buddies) => buddies.isEmpty
-          ? _buildEmptyState(context)
-          : _buildBuddyList(context, ref, buddies),
+      data: (buddies) {
+        final sorted = applyBuddyWithDiveCountSorting(buddies, sort);
+        return sorted.isEmpty
+            ? _buildEmptyState(context)
+            : _buildBuddyList(context, ref, sorted);
+      },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, stack) => _buildErrorState(context, error),
     );
@@ -211,6 +219,11 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
       appBar: AppBar(
         title: const Text('Buddies'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.sort),
+            tooltip: 'Sort',
+            onPressed: () => _showSortSheet(context),
+          ),
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
@@ -264,6 +277,11 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
           ),
           const Spacer(),
           IconButton(
+            icon: const Icon(Icons.sort, size: 20),
+            tooltip: 'Sort',
+            onPressed: () => _showSortSheet(context),
+          ),
+          IconButton(
             icon: const Icon(Icons.search, size: 20),
             onPressed: () {
               showSearch(context: context, delegate: BuddySearchDelegate(ref));
@@ -292,26 +310,46 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
     );
   }
 
+  void _showSortSheet(BuildContext context) {
+    final sort = ref.read(buddySortProvider);
+    showSortBottomSheet<BuddySortField>(
+      context: context,
+      title: 'Sort Buddies',
+      currentField: sort.field,
+      currentDirection: sort.direction,
+      fields: BuddySortField.values,
+      getFieldDisplayName: (field) => field.displayName,
+      getFieldIcon: (field) => field.icon,
+      onSortChanged: (field, direction) {
+        ref.read(buddySortProvider.notifier).state = SortState(
+          field: field,
+          direction: direction,
+        );
+      },
+    );
+  }
+
   Widget _buildBuddyList(
     BuildContext context,
     WidgetRef ref,
-    List<Buddy> buddies,
+    List<BuddyWithDiveCount> buddies,
   ) {
     return RefreshIndicator(
       onRefresh: () async {
-        await ref.read(buddyListNotifierProvider.notifier).refresh();
+        ref.invalidate(allBuddiesWithDiveCountProvider);
       },
       child: ListView.builder(
         controller: _scrollController,
         padding: const EdgeInsets.only(bottom: 80),
         itemCount: buddies.length,
         itemBuilder: (context, index) {
-          final buddy = buddies[index];
-          final isSelected = widget.selectedId == buddy.id;
+          final buddyWithCount = buddies[index];
+          final isSelected = widget.selectedId == buddyWithCount.buddy.id;
           return BuddyListTile(
-            buddy: buddy,
+            buddy: buddyWithCount.buddy,
+            diveCount: buddyWithCount.diveCount,
             isSelected: isSelected,
-            onTap: () => _handleItemTap(buddy),
+            onTap: () => _handleItemTap(buddyWithCount.buddy),
           );
         },
       ),
@@ -362,8 +400,7 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
           Text('Error loading buddies: $error'),
           const SizedBox(height: 16),
           FilledButton(
-            onPressed: () =>
-                ref.read(buddyListNotifierProvider.notifier).refresh(),
+            onPressed: () => ref.invalidate(allBuddiesWithDiveCountProvider),
             child: const Text('Retry'),
           ),
         ],
@@ -375,12 +412,14 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
 /// List item widget for displaying a buddy
 class BuddyListTile extends StatelessWidget {
   final Buddy buddy;
+  final int? diveCount;
   final bool isSelected;
   final VoidCallback? onTap;
 
   const BuddyListTile({
     super.key,
     required this.buddy,
+    this.diveCount,
     this.isSelected = false,
     this.onTap,
   });
@@ -413,7 +452,20 @@ class BuddyListTile extends StatelessWidget {
         ),
         title: Text(buddy.name),
         subtitle: _buildSubtitle(context),
-        trailing: const Icon(Icons.chevron_right),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (diveCount != null)
+              Text(
+                '$diveCount ${diveCount == 1 ? 'dive' : 'dives'}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            if (diveCount != null) const SizedBox(width: 8),
+            Icon(Icons.chevron_right, color: theme.colorScheme.outline),
+          ],
+        ),
       ),
     );
   }

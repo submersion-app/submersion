@@ -1,3 +1,5 @@
+import 'package:submersion/core/constants/sort_options.dart';
+import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -58,6 +60,54 @@ final allEquipmentProvider = FutureProvider<List<EquipmentItem>>((ref) async {
   );
   return repository.getAllEquipment(diverId: validatedDiverId);
 });
+
+/// Equipment sort state provider
+final equipmentSortProvider = StateProvider<SortState<EquipmentSortField>>(
+  (ref) => const SortState(
+    field: EquipmentSortField.name,
+    direction: SortDirection.descending,
+  ),
+);
+
+/// Apply sorting to a list of equipment items
+List<EquipmentItem> applyEquipmentSorting(
+  List<EquipmentItem> equipment,
+  SortState<EquipmentSortField> sort,
+) {
+  final sorted = List<EquipmentItem>.from(equipment);
+
+  sorted.sort((a, b) {
+    int comparison;
+    // For text fields, invert direction (user expects descending = A→Z)
+    final invertForText =
+        sort.field == EquipmentSortField.name ||
+        sort.field == EquipmentSortField.type;
+
+    switch (sort.field) {
+      case EquipmentSortField.name:
+        comparison = a.name.compareTo(b.name);
+      case EquipmentSortField.type:
+        comparison = a.type.displayName.compareTo(b.type.displayName);
+      case EquipmentSortField.purchaseDate:
+        comparison = (a.purchaseDate ?? DateTime(1900)).compareTo(
+          b.purchaseDate ?? DateTime(1900),
+        );
+      case EquipmentSortField.lastServiceDate:
+        comparison = (a.lastServiceDate ?? DateTime(1900)).compareTo(
+          b.lastServiceDate ?? DateTime(1900),
+        );
+    }
+
+    if (invertForText) {
+      return sort.direction == SortDirection.ascending
+          ? -comparison
+          : comparison;
+    }
+    return sort.direction == SortDirection.ascending ? comparison : -comparison;
+  });
+
+  return sorted;
+}
 
 /// Single equipment item provider
 final equipmentItemProvider = FutureProvider.family<EquipmentItem?, String>((
