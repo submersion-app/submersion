@@ -390,6 +390,80 @@ class Media extends Table {
   TextColumn get signerId =>
       text().nullable().references(Buddies, #id, onDelete: KeyAction.setNull)();
   TextColumn get signerName => text().nullable()();
+  // Gallery photo fields (v2.0) - for underwater photography feature
+  TextColumn get platformAssetId =>
+      text().nullable()(); // Platform-specific asset ID for gallery photos
+  TextColumn get originalFilename => text().nullable()();
+  IntColumn get width => integer().nullable()();
+  IntColumn get height => integer().nullable()();
+  IntColumn get durationSeconds => integer().nullable()(); // For videos
+  BoolColumn get isFavorite => boolean().withDefault(const Constant(false))();
+  IntColumn get thumbnailGeneratedAt => integer().nullable()();
+  IntColumn get lastVerifiedAt => integer().nullable()();
+  BoolColumn get isOrphaned => boolean().withDefault(const Constant(false))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Enrichment data calculated from dive profile at photo timestamp
+class MediaEnrichment extends Table {
+  TextColumn get id => text()();
+  TextColumn get mediaId =>
+      text().references(Media, #id, onDelete: KeyAction.cascade)();
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  // Calculated from dive profile at photo timestamp
+  RealColumn get depthMeters => real().nullable()();
+  RealColumn get temperatureCelsius => real().nullable()();
+  IntColumn get elapsedSeconds => integer().nullable()();
+  // Confidence/quality
+  TextColumn get matchConfidence => text().withDefault(
+    const Constant('exact'),
+  )(); // exact, interpolated, estimated, no_profile
+  IntColumn get timestampOffsetSeconds => integer().nullable()();
+  IntColumn get createdAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Species tags on media (many-to-many with optional spatial annotation)
+class MediaSpecies extends Table {
+  TextColumn get id => text()();
+  TextColumn get mediaId =>
+      text().references(Media, #id, onDelete: KeyAction.cascade)();
+  TextColumn get speciesId =>
+      text().references(Species, #id, onDelete: KeyAction.cascade)();
+  TextColumn get sightingId => text().nullable().references(
+    Sightings,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+  // Reserved for future spatial annotation (nullable for now)
+  RealColumn get bboxX => real().nullable()();
+  RealColumn get bboxY => real().nullable()();
+  RealColumn get bboxWidth => real().nullable()();
+  RealColumn get bboxHeight => real().nullable()();
+  TextColumn get notes => text().nullable()();
+  IntColumn get createdAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Pending photo suggestions for background scan feature
+class PendingPhotoSuggestions extends Table {
+  TextColumn get id => text()();
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  TextColumn get platformAssetId => text()();
+  IntColumn get takenAt => integer()();
+  TextColumn get thumbnailPath => text().nullable()();
+  BoolColumn get dismissed => boolean().withDefault(const Constant(false))();
+  IntColumn get createdAt => integer()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -851,6 +925,9 @@ class SiteSpecies extends Table {
     Species,
     Sightings,
     Media,
+    MediaEnrichment,
+    MediaSpecies,
+    PendingPhotoSuggestions,
     Settings,
     Buddies,
     DiveBuddies,
@@ -880,7 +957,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 19;
+  int get schemaVersion => 20;
 
   @override
   MigrationStrategy get migration {
@@ -1227,6 +1304,115 @@ class AppDatabase extends _$AppDatabase {
           await customStatement(
             'ALTER TABLE media ADD COLUMN signer_name TEXT',
           );
+        }
+        if (from < 20) {
+          // Underwater photography feature (v2.0)
+          final now = DateTime.now().millisecondsSinceEpoch;
+
+          // Add new columns to media table for gallery photos
+          await customStatement(
+            'ALTER TABLE media ADD COLUMN platform_asset_id TEXT',
+          );
+          await customStatement(
+            'ALTER TABLE media ADD COLUMN original_filename TEXT',
+          );
+          await customStatement('ALTER TABLE media ADD COLUMN width INTEGER');
+          await customStatement('ALTER TABLE media ADD COLUMN height INTEGER');
+          await customStatement(
+            'ALTER TABLE media ADD COLUMN duration_seconds INTEGER',
+          );
+          await customStatement(
+            'ALTER TABLE media ADD COLUMN is_favorite INTEGER NOT NULL DEFAULT 0',
+          );
+          await customStatement(
+            'ALTER TABLE media ADD COLUMN thumbnail_generated_at INTEGER',
+          );
+          await customStatement(
+            'ALTER TABLE media ADD COLUMN last_verified_at INTEGER',
+          );
+          await customStatement(
+            'ALTER TABLE media ADD COLUMN is_orphaned INTEGER NOT NULL DEFAULT 0',
+          );
+          // Add timestamps with default for existing rows
+          await customStatement(
+            'ALTER TABLE media ADD COLUMN created_at INTEGER NOT NULL DEFAULT $now',
+          );
+          await customStatement(
+            'ALTER TABLE media ADD COLUMN updated_at INTEGER NOT NULL DEFAULT $now',
+          );
+
+          // Index on platform_asset_id for gallery photo lookups
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_media_platform_asset_id
+            ON media(platform_asset_id)
+          ''');
+
+          // Create media_enrichment table
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS media_enrichment (
+              id TEXT NOT NULL PRIMARY KEY,
+              media_id TEXT NOT NULL REFERENCES media(id) ON DELETE CASCADE,
+              dive_id TEXT NOT NULL REFERENCES dives(id) ON DELETE CASCADE,
+              depth_meters REAL,
+              temperature_celsius REAL,
+              elapsed_seconds INTEGER,
+              match_confidence TEXT NOT NULL DEFAULT 'exact',
+              timestamp_offset_seconds INTEGER,
+              created_at INTEGER NOT NULL
+            )
+          ''');
+          // Indexes for media_enrichment
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_media_enrichment_media
+            ON media_enrichment(media_id)
+          ''');
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_media_enrichment_dive
+            ON media_enrichment(dive_id)
+          ''');
+
+          // Create media_species table
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS media_species (
+              id TEXT NOT NULL PRIMARY KEY,
+              media_id TEXT NOT NULL REFERENCES media(id) ON DELETE CASCADE,
+              species_id TEXT NOT NULL REFERENCES species(id) ON DELETE CASCADE,
+              sighting_id TEXT REFERENCES sightings(id) ON DELETE SET NULL,
+              bbox_x REAL,
+              bbox_y REAL,
+              bbox_width REAL,
+              bbox_height REAL,
+              notes TEXT,
+              created_at INTEGER NOT NULL
+            )
+          ''');
+          // Indexes for media_species
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_media_species_media
+            ON media_species(media_id)
+          ''');
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_media_species_species
+            ON media_species(species_id)
+          ''');
+
+          // Create pending_photo_suggestions table
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS pending_photo_suggestions (
+              id TEXT NOT NULL PRIMARY KEY,
+              dive_id TEXT NOT NULL REFERENCES dives(id) ON DELETE CASCADE,
+              platform_asset_id TEXT NOT NULL,
+              taken_at INTEGER NOT NULL,
+              thumbnail_path TEXT,
+              dismissed INTEGER NOT NULL DEFAULT 0,
+              created_at INTEGER NOT NULL
+            )
+          ''');
+          // Index for pending_photo_suggestions
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_pending_photo_suggestions_dive
+            ON pending_photo_suggestions(dive_id)
+          ''');
         }
       },
       beforeOpen: (details) async {
