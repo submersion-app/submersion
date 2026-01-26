@@ -2361,11 +2361,38 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   }
 
   Future<void> _selectExitDate() async {
+    // Normalize dates to midnight to avoid time-based comparison issues
+    final normalizedEntryDate = DateTime(
+      _entryDate.year,
+      _entryDate.month,
+      _entryDate.day,
+    );
+    final normalizedExitDate = _exitDate != null
+        ? DateTime(_exitDate!.year, _exitDate!.month, _exitDate!.day)
+        : normalizedEntryDate;
+
+    // Use the earlier of entry and exit as firstDate to handle existing dives
+    // that may have data inconsistencies
+    final firstDate = normalizedExitDate.isBefore(normalizedEntryDate)
+        ? normalizedExitDate
+        : normalizedEntryDate;
+
+    // Allow exit up to 1 day after entry (multi-day dives are rare in scuba)
+    final lastDate = normalizedEntryDate.add(const Duration(days: 1));
+
+    // Ensure initialDate is within the valid range
+    DateTime initialDate = normalizedExitDate;
+    if (initialDate.isBefore(firstDate)) {
+      initialDate = firstDate;
+    } else if (initialDate.isAfter(lastDate)) {
+      initialDate = lastDate;
+    }
+
     final date = await showDatePicker(
       context: context,
-      initialDate: _exitDate ?? _entryDate,
-      firstDate: _entryDate,
-      lastDate: _entryDate.add(const Duration(days: 1)),
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
     );
     if (date != null) {
       setState(() => _exitDate = date);

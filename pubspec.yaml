@@ -62,6 +62,8 @@ dependencies:
   flutter_contacts: ^1.1.9+2
   geolocator: ^14.0.2
   geocoding: ^4.0.0
+  photo_manager: ^3.6.0
+  native_exif: ^0.6.0
 
   # Storage
   shared_preferences: ^2.3.2

@@ -1,11 +1,11 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/presentation/pages/photo_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Section widget displaying media (photos/videos) for a dive
@@ -55,7 +55,11 @@ class DiveMediaSection extends ConsumerWidget {
                 if (media.isEmpty) {
                   return const _EmptyMediaState();
                 }
-                return _MediaGrid(media: media, settings: settings);
+                return _MediaGrid(
+                  media: media,
+                  settings: settings,
+                  diveId: diveId,
+                );
               },
               loading: () => const SizedBox(
                 height: 100,
@@ -114,8 +118,13 @@ class _EmptyMediaState extends StatelessWidget {
 class _MediaGrid extends StatelessWidget {
   final List<MediaItem> media;
   final AppSettings settings;
+  final String diveId;
 
-  const _MediaGrid({required this.media, required this.settings});
+  const _MediaGrid({
+    required this.media,
+    required this.settings,
+    required this.diveId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -129,27 +138,44 @@ class _MediaGrid extends StatelessWidget {
       ),
       itemCount: media.length,
       itemBuilder: (context, index) {
-        return _MediaThumbnail(item: media[index], settings: settings);
+        return _MediaThumbnail(
+          item: media[index],
+          settings: settings,
+          diveId: diveId,
+        );
       },
     );
   }
 }
 
 /// Individual media thumbnail with badges
-class _MediaThumbnail extends StatelessWidget {
+class _MediaThumbnail extends ConsumerWidget {
   final MediaItem item;
   final AppSettings settings;
+  final String diveId;
 
-  const _MediaThumbnail({required this.item, required this.settings});
+  const _MediaThumbnail({
+    required this.item,
+    required this.settings,
+    required this.diveId,
+  });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final formatter = UnitFormatter(settings);
 
     return GestureDetector(
-      // TODO: Navigate to media detail/viewer page
-      onTap: () {},
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            fullscreenDialog: true,
+            builder: (_) =>
+                PhotoViewerPage(diveId: diveId, initialMediaId: item.id),
+          ),
+        );
+      },
+      onLongPress: () => _showUnlinkDialog(context, ref),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
         child: Stack(
@@ -158,16 +184,8 @@ class _MediaThumbnail extends StatelessWidget {
             // Thumbnail or placeholder
             if (item.isOrphaned)
               const _OrphanedPlaceholder()
-            else if (item.thumbnailPath != null)
-              Image.file(
-                File(item.thumbnailPath!),
-                fit: BoxFit.cover,
-                // Limit decoded image size for memory efficiency
-                cacheWidth: 200,
-                cacheHeight: 200,
-                errorBuilder: (context, error, stack) =>
-                    _buildPlaceholder(colorScheme),
-              )
+            else if (item.platformAssetId != null)
+              _buildAssetThumbnail(ref, colorScheme)
             else
               _buildPlaceholder(colorScheme),
 
@@ -221,6 +239,85 @@ class _MediaThumbnail extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Fetches and displays thumbnail from platform photo library
+  Widget _buildAssetThumbnail(WidgetRef ref, ColorScheme colorScheme) {
+    final thumbnailAsync = ref.watch(
+      assetThumbnailProvider(item.platformAssetId!),
+    );
+
+    return thumbnailAsync.when(
+      data: (bytes) {
+        if (bytes == null) {
+          return _buildPlaceholder(colorScheme);
+        }
+        return Image.memory(
+          bytes,
+          fit: BoxFit.cover,
+          cacheWidth: 200,
+          cacheHeight: 200,
+          errorBuilder: (context, error, stack) =>
+              _buildPlaceholder(colorScheme),
+        );
+      },
+      loading: () => Container(
+        color: colorScheme.surfaceContainerHighest,
+        child: const Center(
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      ),
+      error: (error, stack) => _buildPlaceholder(colorScheme),
+    );
+  }
+
+  Future<void> _showUnlinkDialog(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Unlink Photo'),
+        content: const Text(
+          'Remove this photo from the dive? The photo will remain in your gallery.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Unlink'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      try {
+        await ref
+            .read(mediaListNotifierProvider(diveId).notifier)
+            .deleteMedia(item.id);
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Photo unlinked')));
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to unlink: $e'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
+      }
+    }
   }
 
   Widget _buildPlaceholder(ColorScheme colorScheme) {

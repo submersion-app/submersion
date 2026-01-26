@@ -48,6 +48,8 @@ import 'package:submersion/features/tides/domain/entities/tide_record.dart';
 import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
 import 'package:submersion/features/tides/presentation/widgets/tide_cycle_graph.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
+import 'package:submersion/features/media/presentation/helpers/photo_import_helper.dart';
+import 'package:submersion/features/media/presentation/widgets/dive_media_section.dart';
 import 'package:submersion/features/signatures/presentation/providers/signature_providers.dart';
 import 'package:submersion/features/signatures/presentation/widgets/signature_capture_widget.dart';
 import 'package:submersion/features/signatures/presentation/widgets/signature_display_widget.dart';
@@ -230,6 +232,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               _buildEquipmentSection(context, ref, dive),
             ],
             _buildSightingsSection(context, ref),
+            const SizedBox(height: 24),
+            _buildMediaSection(context, ref, dive),
             const SizedBox(height: 24),
             _buildNotesSection(context, dive),
             if (dive.courseId != null) ...[
@@ -3233,6 +3237,19 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       case null:
         return Icons.water;
     }
+  }
+
+  Widget _buildMediaSection(BuildContext context, WidgetRef ref, Dive dive) {
+    return DiveMediaSection(
+      diveId: dive.id,
+      onAddPressed: () async {
+        await PhotoImportHelper.importPhotosForDive(
+          context: context,
+          ref: ref,
+          dive: dive,
+        );
+      },
+    );
   }
 
   Widget _buildNotesSection(BuildContext context, Dive dive) {

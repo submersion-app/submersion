@@ -1473,10 +1473,13 @@ class _AboutSectionContent extends StatelessWidget {
           Center(
             child: Column(
               children: [
-                Icon(
-                  Icons.scuba_diving,
-                  size: 64,
-                  color: Theme.of(context).colorScheme.primary,
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Image.asset(
+                    'assets/icon/icon.png',
+                    width: 80,
+                    height: 80,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -1489,12 +1492,6 @@ class _AboutSectionContent extends StatelessWidget {
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'An open-source dive logging application',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  textAlign: TextAlign.center,
                 ),
               ],
             ),
@@ -1509,14 +1506,11 @@ class _AboutSectionContent extends StatelessWidget {
       context: context,
       applicationName: 'Submersion',
       applicationVersion: '0.1.0',
-      applicationIcon: Icon(
-        Icons.scuba_diving,
-        size: 64,
-        color: Theme.of(context).colorScheme.primary,
+      applicationIcon: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.asset('assets/icon/icon.png', width: 64, height: 64),
       ),
       children: const [
-        Text('An open-source dive logging application.'),
-        SizedBox(height: 16),
         Text('Track your dives, manage gear, and explore dive sites.'),
       ],
     );
