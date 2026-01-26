@@ -18,6 +18,7 @@ class DiveMediaSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final mediaAsync = ref.watch(mediaForDiveProvider(diveId));
+    final settings = ref.watch(settingsProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -56,7 +57,7 @@ class DiveMediaSection extends ConsumerWidget {
                 }
                 return _MediaGrid(
                   media: media,
-                  settings: ref.watch(settingsProvider),
+                  settings: settings,
                 );
               },
               loading: () => const SizedBox(
@@ -164,6 +165,9 @@ class _MediaThumbnail extends StatelessWidget {
               Image.file(
                 File(item.thumbnailPath!),
                 fit: BoxFit.cover,
+                // Limit decoded image size for memory efficiency
+                cacheWidth: 200,
+                cacheHeight: 200,
                 errorBuilder: (context, error, stack) =>
                     _buildPlaceholder(colorScheme),
               )
