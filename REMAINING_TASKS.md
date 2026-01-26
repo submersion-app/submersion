@@ -74,17 +74,6 @@ This document contains only the features and tasks that are **not yet completed*
 - [ ] Share dives with buddies (export UDDF, send via email/messaging)
 
 ### 7.2 Digital Signatures
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Instructor signatures | ✅ Complete | Per-dive signatures for training logs |
-| Signature capture | ✅ Complete | Touch/stylus canvas drawing |
-
-**Completed:**
-- [x] SignatureCaptureWidget (canvas drawing with save as PNG)
-- [x] SignatureStorageService (Media table with fileType='instructor_signature')
-- [x] SignatureDisplayWidget (preview, full-view dialog, badge)
-- [x] Signature providers (FutureProvider.family for reading, StateNotifier for mutations)
-- [x] Integration on dive detail page (conditional for training dives)
 
 **Remaining:**
 - [ ] Buddy signatures (student/observer sign-off)
@@ -104,25 +93,6 @@ This document contains only the features and tasks that are **not yet completed*
 - [ ] Export cert card as image (shareable)
 
 ### 8.3 Training Dives
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Course entity | ✅ Complete | Full CRUD with instructor, certification link |
-| Associate with courses | ✅ Complete | Dive-course many-to-one, course picker |
-| Instructor comments | ✅ Complete | Using existing notes field |
-| E-signatures | ✅ Complete | Per-dive instructor signatures |
-| Course-Certification linking | ✅ Complete | Bidirectional link with picker UI |
-
-**Completed:**
-- [x] Course entity with name, agency, start_date, completion_date, instructor, cert_id
-- [x] CourseRepository with CRUD and relationship queries
-- [x] Course providers (list, by ID, for dive, for certification)
-- [x] Course UI pages (list with filtering, detail, edit)
-- [x] CoursePicker widget for dive edit page
-- [x] Bidirectional course-certification navigation
-- [x] Signature capture and display on dive detail page
-- [x] Courses navigation in main scaffold (rail + More menu)
-- [x] CertificationPicker widget for course edit page
-- [x] Link courses to earned certifications (bidirectional)
 
 **Remaining:**
 - [ ] Training log export (PDF with instructor signatures)
@@ -377,16 +347,6 @@ This document contains only the features and tasks that are **not yet completed*
 | Tag species in photos | Image annotation |
 | Color correction | Blue filter removal |
 | Shareable dive cards | Generate visual summary for social media |
-
-**Completed (v1.5):**
-- [x] Photo picker in dive detail page (time range filtering)
-- [x] Link photos to dives via Media table
-- [x] Display photo gallery on dive detail page (DiveMediaSection)
-- [x] Full-screen photo viewer with pinch-zoom and swipe (PhotoViewerPage)
-- [x] Metadata overlay (depth, temp, elapsed time)
-- [x] Write dive metadata to photo EXIF (ExifWriteService)
-- [x] Photo thumbnail loading from device library
-- [x] Long-press to unlink photo from dive
 
 **Tasks:**
 - [ ] Caption and datetime editing per photo
@@ -687,15 +647,6 @@ This document contains only the features and tasks that are **not yet completed*
 4. Accessibility improvements
 5. Training log PDF export (with signatures)
 6. Species detail enhancements
-
-## Recently Completed (v1.5)
-- **Underwater Photography** (2026-01-26)
-  - Photo picker with time range filtering
-  - DiveMediaSection widget for dive detail page
-  - PhotoViewerPage with pinch-zoom and swipe navigation
-  - Metadata overlay (depth, temp, elapsed time)
-  - ExifWriteService for in-place EXIF modification
-  - Write dive data to photo (GPSAltitude, ImageDescription)
 
 ---
 
