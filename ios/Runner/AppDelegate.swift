@@ -5,6 +5,7 @@ import UIKit
 @objc class AppDelegate: FlutterAppDelegate {
   private var bookmarkHandler: SecurityScopedBookmarkHandler?
   private var icloudHandler: ICloudContainerHandler?
+  private var metadataHandler: MetadataWriteHandler?
 
   override func application(
     _ application: UIApplication,
@@ -20,6 +21,9 @@ import UIKit
     }
     if let icloudRegistrar = self.registrar(forPlugin: "ICloudContainerHandler") {
       icloudHandler = ICloudContainerHandler(messenger: icloudRegistrar.messenger())
+    }
+    if let metadataRegistrar = self.registrar(forPlugin: "MetadataWriteHandler") {
+      metadataHandler = MetadataWriteHandler(messenger: metadataRegistrar.messenger())
     }
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)

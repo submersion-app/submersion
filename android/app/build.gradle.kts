@@ -41,3 +41,8 @@ android {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    // ExifInterface for writing EXIF metadata to photos
+    implementation("androidx.exifinterface:exifinterface:1.3.7")
+}

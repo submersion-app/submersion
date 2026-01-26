@@ -11,11 +11,12 @@ import 'package:share_plus/share_plus.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/media/data/services/exif_write_service.dart';
+import 'package:submersion/features/media/data/services/metadata_write_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/write_metadata_dialog.dart';
+import 'package:submersion/features/media/presentation/widgets/mini_dive_profile_overlay.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Full-screen photo viewer with pinch-to-zoom and swipe navigation.
@@ -70,6 +71,7 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
   @override
   Widget build(BuildContext context) {
     final mediaAsync = ref.watch(mediaForDiveProvider(widget.diveId));
+    final diveAsync = ref.watch(diveProvider(widget.diveId));
     final settings = ref.watch(settingsProvider);
 
     return Scaffold(
@@ -94,8 +96,22 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
             _pageController = PageController(initialPage: initialIndex);
           }
 
+          final currentItem = mediaList[_currentIndex];
+          final enrichment = currentItem.enrichment;
+
+          // Get dive profile for the mini chart overlay
+          final diveProfile = diveAsync.whenOrNull(
+            data: (dive) => dive?.profile ?? [],
+          );
+
           return GestureDetector(
-            onTap: () => setState(() => _showOverlay = !_showOverlay),
+            // Swipe down to close (common pattern for fullscreen viewers)
+            onVerticalDragEnd: (details) {
+              if (details.primaryVelocity != null &&
+                  details.primaryVelocity! > 300) {
+                Navigator.of(context).pop();
+              }
+            },
             child: Stack(
               children: [
                 // Photo gallery
@@ -107,6 +123,16 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
                   },
                 ),
 
+                // Transparent tap target to toggle overlays
+                // This sits above the photo but below other overlays
+                Positioned.fill(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    onTap: () => setState(() => _showOverlay = !_showOverlay),
+                    child: const SizedBox.expand(),
+                  ),
+                ),
+
                 // Overlay controls (app bar and metadata)
                 if (_showOverlay) ...[
                   // Top app bar
@@ -114,18 +140,30 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
                     currentIndex: _currentIndex,
                     totalCount: mediaList.length,
                     onClose: () => Navigator.of(context).pop(),
-                    onShare: () => _shareCurrentPhoto(mediaList[_currentIndex]),
-                    onWriteMetadata: () =>
-                        _writeMetadataToPhoto(mediaList[_currentIndex]),
-                    hasEnrichment:
-                        mediaList[_currentIndex].enrichment?.depthMeters !=
-                        null,
+                    onShare: () => _shareCurrentPhoto(currentItem),
+                    onWriteMetadata: () => _writeMetadataToPhoto(currentItem),
+                    hasEnrichment: enrichment?.depthMeters != null,
                   ),
+
+                  // Mini dive profile overlay (lower right)
+                  if (diveProfile != null &&
+                      diveProfile.isNotEmpty &&
+                      enrichment?.elapsedSeconds != null)
+                    PositionedMiniProfileOverlay(
+                      profile: diveProfile,
+                      photoElapsedSeconds: enrichment!.elapsedSeconds!,
+                      photoDepthMeters: enrichment.depthMeters,
+                      settings: settings,
+                      visible: _showOverlay,
+                    ),
 
                   // Bottom metadata
                   _BottomMetadataOverlay(
-                    item: mediaList[_currentIndex],
+                    item: currentItem,
                     settings: settings,
+                    siteName: diveAsync.whenOrNull(
+                      data: (dive) => dive?.site?.name,
+                    ),
                   ),
                 ],
               ],
@@ -173,15 +211,15 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
       final file = File('${tempDir.path}/$filename');
       await file.writeAsBytes(bytes);
 
-      // Dismiss loading
-      if (mounted) Navigator.of(context).pop();
+      // Dismiss loading - use rootNavigator to match where showDialog placed the dialog
+      if (mounted) Navigator.of(context, rootNavigator: true).pop();
 
       // Share
       await SharePlus.instance.share(
         ShareParams(files: [XFile(file.path, mimeType: 'image/jpeg')]),
       );
     } catch (e) {
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) Navigator.of(context, rootNavigator: true).pop();
       _showError('Failed to share: $e');
     }
   }
@@ -197,8 +235,9 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
   }
 
   Future<void> _writeMetadataToPhoto(MediaItem item) async {
+    debugPrint('[PhotoViewerPage] _writeMetadataToPhoto called');
     if (item.platformAssetId == null) {
-      _showError('Cannot write metadata - photo not linked to library');
+      _showError('Cannot write metadata - media not linked to library');
       return;
     }
 
@@ -213,43 +252,81 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
     }
 
     // Show confirmation dialog
-    final confirmed = await showWriteMetadataDialog(
+    debugPrint('[PhotoViewerPage] Showing confirmation dialog...');
+    final dialogResult = await showWriteMetadataDialog(
       context: context,
       item: item,
       settings: settings,
       siteName: siteName,
     );
 
-    if (!confirmed || !mounted) return;
+    debugPrint(
+      '[PhotoViewerPage] Dialog result: confirmed=${dialogResult.confirmed}',
+    );
+    if (!dialogResult.confirmed || !mounted) return;
 
     // Show loading indicator
+    debugPrint('[PhotoViewerPage] Showing loading dialog...');
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (_) =>
           const Center(child: CircularProgressIndicator(color: Colors.white)),
     );
+    debugPrint('[PhotoViewerPage] Loading dialog shown, calling service...');
 
     try {
-      final exifService = ExifWriteService();
-      final metadata = DiveMetadata.fromMediaItem(item, siteName: siteName);
+      final metadataService = MetadataWriteService();
+      final metadata = DiveMediaMetadata.fromMediaItem(
+        item,
+        siteName: siteName,
+      );
+      final isVideo = item.mediaType == MediaType.video;
 
-      final success = await exifService.writeMetadataToPhoto(
+      debugPrint('[PhotoViewerPage] Calling writeMetadata...');
+      final success = await metadataService.writeMetadata(
         platformAssetId: item.platformAssetId!,
         metadata: metadata,
+        isVideo: isVideo,
+        keepOriginal: dialogResult.keepOriginal,
       );
+      debugPrint('[PhotoViewerPage] writeMetadata returned: $success');
 
-      // Dismiss loading
-      if (mounted) Navigator.of(context).pop();
+      // Dismiss loading - use rootNavigator to match where showDialog placed the dialog
+      debugPrint('[PhotoViewerPage] Dismissing loading dialog...');
+      if (mounted) {
+        debugPrint(
+          '[PhotoViewerPage] mounted=true, calling pop with rootNavigator...',
+        );
+        Navigator.of(context, rootNavigator: true).pop();
+        debugPrint('[PhotoViewerPage] pop() completed');
+      }
 
+      debugPrint('[PhotoViewerPage] About to show success/error message...');
       if (success) {
-        _showSuccess('Dive data written to photo');
+        debugPrint('[PhotoViewerPage] Calling _showSuccess...');
+        _showSuccess(
+          isVideo ? 'Dive data written to video' : 'Dive data written to photo',
+        );
+        debugPrint('[PhotoViewerPage] _showSuccess completed');
+
+        // Invalidate the image cache so the photo reloads with updated metadata
+        debugPrint('[PhotoViewerPage] Invalidating asset provider...');
+        ref.invalidate(assetFullResolutionProvider(item.platformAssetId!));
       } else {
         _showError('Failed to write metadata');
       }
+      debugPrint(
+        '[PhotoViewerPage] _writeMetadataToPhoto completed successfully',
+      );
+    } on MetadataWriteException catch (e) {
+      debugPrint('[PhotoViewerPage] MetadataWriteException: ${e.message}');
+      if (mounted) Navigator.of(context, rootNavigator: true).pop();
+      _showError(e.message);
     } catch (e) {
-      if (mounted) Navigator.of(context).pop();
-      _showError('Failed to write: $e');
+      debugPrint('[PhotoViewerPage] Exception: $e');
+      if (mounted) Navigator.of(context, rootNavigator: true).pop();
+      _showError('Failed to write metadata: $e');
     }
   }
 
@@ -430,8 +507,13 @@ class _TopOverlay extends StatelessWidget {
 class _BottomMetadataOverlay extends StatelessWidget {
   final MediaItem item;
   final AppSettings settings;
+  final String? siteName;
 
-  const _BottomMetadataOverlay({required this.item, required this.settings});
+  const _BottomMetadataOverlay({
+    required this.item,
+    required this.settings,
+    this.siteName,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -460,6 +542,33 @@ class _BottomMetadataOverlay extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
+                // Site name
+                if (siteName != null && siteName!.isNotEmpty) ...[
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        color: Colors.white.withValues(alpha: 0.9),
+                        size: 18,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          siteName!,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                ],
+
                 // Metadata row
                 Row(
                   children: [

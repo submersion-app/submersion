@@ -16,14 +16,26 @@ class MediaRepository {
   final _log = LoggerService.forClass(MediaRepository);
 
   /// Get all media for a dive, ordered by takenAt
+  /// Includes enrichment data (depth, temperature) if available
   Future<List<domain.MediaItem>> getMediaForDive(String diveId) async {
     try {
-      final query = _db.select(_db.media)
-        ..where((t) => t.diveId.equals(diveId))
-        ..orderBy([(t) => OrderingTerm.asc(t.takenAt)]);
+      // Use LEFT JOIN to fetch media with optional enrichment data in one query
+      final query =
+          _db.select(_db.media).join([
+              leftOuterJoin(
+                _db.mediaEnrichment,
+                _db.mediaEnrichment.mediaId.equalsExp(_db.media.id),
+              ),
+            ])
+            ..where(_db.media.diveId.equals(diveId))
+            ..orderBy([OrderingTerm.asc(_db.media.takenAt)]);
 
       final rows = await query.get();
-      return rows.map(_mapRowToMediaItem).toList();
+      return rows.map((row) {
+        final mediaRow = row.readTable(_db.media);
+        final enrichmentRow = row.readTableOrNull(_db.mediaEnrichment);
+        return _mapRowToMediaItem(mediaRow, enrichmentRow);
+      }).toList();
     } catch (e, stackTrace) {
       _log.error('Failed to get media for dive: $diveId', e, stackTrace);
       rethrow;
@@ -31,12 +43,22 @@ class MediaRepository {
   }
 
   /// Get single media item by ID
+  /// Includes enrichment data (depth, temperature) if available
   Future<domain.MediaItem?> getMediaById(String id) async {
     try {
-      final query = _db.select(_db.media)..where((t) => t.id.equals(id));
+      final query = _db.select(_db.media).join([
+        leftOuterJoin(
+          _db.mediaEnrichment,
+          _db.mediaEnrichment.mediaId.equalsExp(_db.media.id),
+        ),
+      ])..where(_db.media.id.equals(id));
 
       final row = await query.getSingleOrNull();
-      return row != null ? _mapRowToMediaItem(row) : null;
+      if (row == null) return null;
+
+      final mediaRow = row.readTable(_db.media);
+      final enrichmentRow = row.readTableOrNull(_db.mediaEnrichment);
+      return _mapRowToMediaItem(mediaRow, enrichmentRow);
     } catch (e, stackTrace) {
       _log.error('Failed to get media by id: $id', e, stackTrace);
       rethrow;
@@ -209,13 +231,22 @@ class MediaRepository {
   }
 
   /// Get all orphaned media
+  /// Includes enrichment data (depth, temperature) if available
   Future<List<domain.MediaItem>> getOrphanedMedia() async {
     try {
-      final query = _db.select(_db.media)
-        ..where((t) => t.isOrphaned.equals(true));
+      final query = _db.select(_db.media).join([
+        leftOuterJoin(
+          _db.mediaEnrichment,
+          _db.mediaEnrichment.mediaId.equalsExp(_db.media.id),
+        ),
+      ])..where(_db.media.isOrphaned.equals(true));
 
       final rows = await query.get();
-      return rows.map(_mapRowToMediaItem).toList();
+      return rows.map((row) {
+        final mediaRow = row.readTable(_db.media);
+        final enrichmentRow = row.readTableOrNull(_db.mediaEnrichment);
+        return _mapRowToMediaItem(mediaRow, enrichmentRow);
+      }).toList();
     } catch (e, stackTrace) {
       _log.error('Failed to get orphaned media', e, stackTrace);
       rethrow;
@@ -388,7 +419,10 @@ class MediaRepository {
     }
   }
 
-  domain.MediaItem _mapRowToMediaItem(MediaData row) {
+  domain.MediaItem _mapRowToMediaItem(
+    MediaData row, [
+    MediaEnrichmentData? enrichmentRow,
+  ]) {
     return domain.MediaItem(
       id: row.id,
       diveId: row.diveId,
@@ -419,6 +453,9 @@ class MediaRepository {
       signerName: row.signerName,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
+      enrichment: enrichmentRow != null
+          ? _mapRowToEnrichment(enrichmentRow)
+          : null,
     );
   }
 

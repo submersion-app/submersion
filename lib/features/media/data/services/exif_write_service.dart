@@ -6,6 +6,17 @@ import 'package:photo_manager/photo_manager.dart' as pm;
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 
+/// Exception thrown when EXIF writing fails.
+class ExifWriteException implements Exception {
+  final String message;
+  final Object? cause;
+
+  const ExifWriteException(this.message, {this.cause});
+
+  @override
+  String toString() => message;
+}
+
 /// Metadata to write to photo EXIF.
 class DiveMetadata {
   /// Depth in meters (will be written as negative altitude).
@@ -93,6 +104,10 @@ class ExifWriteService {
   ///
   /// Returns true if successful, false if failed.
   /// Throws if the asset cannot be found or accessed.
+  ///
+  /// Note: On iOS/macOS, this requires full photo library access permission.
+  /// The function tries `originFile` first (actual file) before falling back
+  /// to `file` (which may be a temporary copy on some platforms).
   Future<bool> writeMetadataToPhoto({
     required String platformAssetId,
     required DiveMetadata metadata,
@@ -104,23 +119,70 @@ class ExifWriteService {
       final asset = await pm.AssetEntity.fromId(platformAssetId);
       if (asset == null) {
         _log.error('Asset not found: $platformAssetId');
-        return false;
+        throw const ExifWriteException(
+          'Photo not found in library. It may have been deleted.',
+        );
       }
 
-      // Get the file path
-      final file = await asset.file;
+      // Check file type - EXIF only works reliably on JPEG
+      final mimeType = asset.mimeType;
+      _log.debug('Asset mimeType: $mimeType, type: ${asset.type}');
+
+      if (mimeType != null &&
+          !mimeType.contains('jpeg') &&
+          !mimeType.contains('jpg')) {
+        _log.warning('Non-JPEG file type: $mimeType - EXIF write may fail');
+      }
+
+      // Try to get the original file first (required for actual modification)
+      // On iOS/macOS, `file` returns a copy, `originFile` returns the actual file
+      File? file;
+      String fileSource = 'unknown';
+
+      if (Platform.isIOS || Platform.isMacOS) {
+        // Try originFile first - this is the actual file in the photo library
+        file = await asset.originFile;
+        fileSource = 'originFile';
+
+        if (file == null) {
+          _log.warning('originFile returned null, trying file property');
+          file = await asset.file;
+          fileSource = 'file (copy)';
+        }
+      } else {
+        // On Android, file property typically returns the actual file
+        file = await asset.file;
+        fileSource = 'file';
+      }
+
       if (file == null) {
         _log.error('Could not get file for asset: $platformAssetId');
-        return false;
+        throw const ExifWriteException(
+          'Could not access photo file. Check photo library permissions.',
+        );
       }
 
       final filePath = file.path;
-      _log.debug('Writing EXIF to file: $filePath');
+      _log.debug('Writing EXIF to $fileSource: $filePath');
 
-      // Check if file exists and is writable
+      // Check if file exists
       if (!await File(filePath).exists()) {
         _log.error('File does not exist: $filePath');
-        return false;
+        throw const ExifWriteException(
+          'Photo file not found at expected location.',
+        );
+      }
+
+      // Check if file is writable
+      try {
+        final testFile = File(filePath);
+        final stat = await testFile.stat();
+        _log.debug(
+          'File stat - size: ${stat.size}, mode: ${stat.mode}, '
+          'modified: ${stat.modified}',
+        );
+      } catch (e) {
+        _log.warning('Could not stat file: $e');
       }
 
       // Open EXIF interface
@@ -160,13 +222,36 @@ class ExifWriteService {
 
       _log.info('Successfully wrote EXIF metadata to: $platformAssetId');
       return true;
+    } on ExifWriteException {
+      rethrow;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to write EXIF metadata to: $platformAssetId',
         e,
         stackTrace,
       );
-      return false;
+
+      // Provide helpful error message based on common failure modes
+      String message = 'Failed to write metadata to photo.';
+      final errorStr = e.toString().toLowerCase();
+
+      if (errorStr.contains('permission') || errorStr.contains('access')) {
+        message =
+            'Permission denied. Grant full photo library access in Settings.';
+      } else if (errorStr.contains('read-only') ||
+          errorStr.contains('readonly')) {
+        message =
+            'Photo is read-only. Cannot modify photos from iCloud or shared albums.';
+      } else if (errorStr.contains('heic') || errorStr.contains('heif')) {
+        message =
+            'HEIC photos not supported. Only JPEG photos can have EXIF written.';
+      } else if (Platform.isMacOS) {
+        message =
+            'macOS photo library access may be limited. '
+            'Try granting Full Disk Access in System Settings > Privacy.';
+      }
+
+      throw ExifWriteException(message, cause: e);
     }
   }
 

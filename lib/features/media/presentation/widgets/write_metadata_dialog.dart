@@ -1,15 +1,29 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/media/data/services/exif_write_service.dart';
+import 'package:submersion/features/media/data/services/metadata_write_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
-/// Dialog for confirming write of dive metadata to photo EXIF.
+/// Result from the write metadata dialog.
+class WriteMetadataResult {
+  /// Whether the user confirmed the write.
+  final bool confirmed;
+
+  /// For videos, whether to keep the original after creating a new one.
+  final bool keepOriginal;
+
+  const WriteMetadataResult({
+    required this.confirmed,
+    this.keepOriginal = false,
+  });
+}
+
+/// Dialog for confirming write of dive metadata to photo/video.
 ///
 /// Shows a preview of the metadata that will be written and warns
-/// that the original photo will be modified.
-class WriteMetadataDialog extends StatelessWidget {
+/// about the modification. For videos, offers option to keep or delete original.
+class WriteMetadataDialog extends StatefulWidget {
   final MediaItem item;
   final AppSettings settings;
   final String? siteName;
@@ -22,23 +36,38 @@ class WriteMetadataDialog extends StatelessWidget {
   });
 
   @override
+  State<WriteMetadataDialog> createState() => _WriteMetadataDialogState();
+}
+
+class _WriteMetadataDialogState extends State<WriteMetadataDialog> {
+  bool _keepOriginal = true;
+
+  bool get _isVideo => widget.item.mediaType == MediaType.video;
+
+  @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final enrichment = item.enrichment;
-    final formatter = UnitFormatter(settings);
+    final enrichment = widget.item.enrichment;
+    final formatter = UnitFormatter(widget.settings);
 
-    final metadata = DiveMetadata.fromMediaItem(item, siteName: siteName);
+    final metadata = DiveMediaMetadata.fromMediaItem(
+      widget.item,
+      siteName: widget.siteName,
+    );
+
+    final mediaType = _isVideo ? 'video' : 'photo';
+    final title = 'Write Dive Data to ${_isVideo ? 'Video' : 'Photo'}';
 
     return AlertDialog(
-      title: const Text('Write Dive Data to Photo'),
+      title: Text(title),
       content: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'The following metadata will be written to the photo:',
+              'The following metadata will be written to the $mediaType:',
               style: textTheme.bodyMedium,
             ),
             const SizedBox(height: 16),
@@ -77,14 +106,15 @@ class WriteMetadataDialog extends StatelessWidget {
                   ],
 
                   // GPS
-                  if (item.latitude != null && item.longitude != null) ...[
+                  if (widget.item.latitude != null &&
+                      widget.item.longitude != null) ...[
                     const SizedBox(height: 8),
                     _MetadataRow(
                       icon: Icons.location_on,
                       label: 'GPS',
                       value:
-                          '${item.latitude!.toStringAsFixed(4)}, '
-                          '${item.longitude!.toStringAsFixed(4)}',
+                          '${widget.item.latitude!.toStringAsFixed(4)}, '
+                          '${widget.item.longitude!.toStringAsFixed(4)}',
                     ),
                   ],
 
@@ -99,12 +129,13 @@ class WriteMetadataDialog extends StatelessWidget {
                   ],
 
                   // Site name
-                  if (siteName != null && siteName!.isNotEmpty) ...[
+                  if (widget.siteName != null &&
+                      widget.siteName!.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     _MetadataRow(
                       icon: Icons.place,
                       label: 'Site',
-                      value: siteName!,
+                      value: widget.siteName!,
                     ),
                   ],
 
@@ -126,47 +157,103 @@ class WriteMetadataDialog extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // Warning
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: colorScheme.errorContainer.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.warning_amber_rounded,
-                    color: colorScheme.error,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'This will modify the original photo.',
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.error,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            // Warning - different for video vs photo
+            _buildWarningSection(colorScheme, textTheme),
+
+            // Video-specific: keep original option
+            if (_isVideo) ...[
+              const SizedBox(height: 12),
+              _buildKeepOriginalOption(colorScheme, textTheme),
+            ],
           ],
         ),
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
+          onPressed: () => Navigator.of(
+            context,
+          ).pop(const WriteMetadataResult(confirmed: false)),
           child: const Text('Cancel'),
         ),
         FilledButton(
           onPressed: metadata.hasData
-              ? () => Navigator.of(context).pop(true)
+              ? () => Navigator.of(context).pop(
+                  WriteMetadataResult(
+                    confirmed: true,
+                    keepOriginal: _isVideo ? _keepOriginal : false,
+                  ),
+                )
               : null,
           child: const Text('Write'),
         ),
       ],
+    );
+  }
+
+  Widget _buildWarningSection(ColorScheme colorScheme, TextTheme textTheme) {
+    final String warningText;
+    final IconData warningIcon;
+
+    if (_isVideo) {
+      warningText =
+          'A new video will be created with the metadata. '
+          'Video metadata cannot be modified in-place.';
+      warningIcon = Icons.info_outline;
+    } else {
+      warningText = 'This will modify the original photo.';
+      warningIcon = Icons.warning_amber_rounded;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _isVideo
+            ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+            : colorScheme.errorContainer.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            warningIcon,
+            color: _isVideo ? colorScheme.primary : colorScheme.error,
+            size: 20,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              warningText,
+              style: textTheme.bodySmall?.copyWith(
+                color: _isVideo ? colorScheme.primary : colorScheme.error,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildKeepOriginalOption(
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text('Keep original video', style: textTheme.bodyMedium),
+          ),
+          Switch(
+            value: _keepOriginal,
+            onChanged: (value) => setState(() => _keepOriginal = value),
+          ),
+        ],
+      ),
     );
   }
 
@@ -214,17 +301,21 @@ class _MetadataRow extends StatelessWidget {
   }
 }
 
-/// Shows the write metadata dialog and returns true if user confirmed.
-Future<bool> showWriteMetadataDialog({
+/// Shows the write metadata dialog and returns the result.
+///
+/// Returns a [WriteMetadataResult] with:
+/// - `confirmed`: true if user wants to proceed with the write
+/// - `keepOriginal`: for videos, whether to keep the original video
+Future<WriteMetadataResult> showWriteMetadataDialog({
   required BuildContext context,
   required MediaItem item,
   required AppSettings settings,
   String? siteName,
 }) async {
-  final result = await showDialog<bool>(
+  final result = await showDialog<WriteMetadataResult>(
     context: context,
     builder: (_) =>
         WriteMetadataDialog(item: item, settings: settings, siteName: siteName),
   );
-  return result ?? false;
+  return result ?? const WriteMetadataResult(confirmed: false);
 }
