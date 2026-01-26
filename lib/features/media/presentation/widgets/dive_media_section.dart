@@ -55,10 +55,7 @@ class DiveMediaSection extends ConsumerWidget {
                 if (media.isEmpty) {
                   return const _EmptyMediaState();
                 }
-                return _MediaGrid(
-                  media: media,
-                  settings: settings,
-                );
+                return _MediaGrid(media: media, settings: settings);
               },
               loading: () => const SizedBox(
                 height: 100,
