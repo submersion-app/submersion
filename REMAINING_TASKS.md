@@ -1,6 +1,6 @@
 # Submersion - Remaining Tasks
 
-> **Generated:** 2026-01-25
+> **Generated:** 2026-01-26
 > **Source:** FEATURE_ROADMAP.md
 > **Current Version:** 1.1.0 (v1.5 In Progress)
 
@@ -373,25 +373,26 @@ This document contains only the features and tasks that are **not yet completed*
 ### 9.3 Underwater Photography
 | Feature | Notes |
 |---------|-------|
-| Attach photos/videos to dives | Media table exists, needs UI |
 | Video support in logs | Attach and play videos |
-| Auto-match by timestamp | EXIF datetime matching |
 | Tag species in photos | Image annotation |
 | Color correction | Blue filter removal |
 | Shareable dive cards | Generate visual summary for social media |
 
+**Completed (v1.5):**
+- [x] Photo picker in dive detail page (time range filtering)
+- [x] Link photos to dives via Media table
+- [x] Display photo gallery on dive detail page (DiveMediaSection)
+- [x] Full-screen photo viewer with pinch-zoom and swipe (PhotoViewerPage)
+- [x] Metadata overlay (depth, temp, elapsed time)
+- [x] Write dive metadata to photo EXIF (ExifWriteService)
+- [x] Photo thumbnail loading from device library
+- [x] Long-press to unlink photo from dive
+
 **Tasks:**
-- [ ] Photo/video picker in dive edit form
-- [ ] Attach multiple media files to dive (many-to-many)
-- [ ] Media storage strategy (local file copy vs reference, cloud upload option)
-- [ ] Display photo gallery on dive detail page
-- [ ] Full-screen photo viewer with swipe
-- [ ] Caption and datetime per photo
+- [ ] Caption and datetime editing per photo
 - [ ] Export dive with photos (ZIP archive)
 - [ ] Bulk photo import with auto-match to dives
-- [ ] EXIF datetime parsing and fuzzy matching (within ±2 hours)
 - [ ] GPS extraction from photos (suggest site creation)
-- [ ] Photo thumbnail generation and caching
 - [ ] Species tagging in photos (tap to tag, bounding box)
 - [ ] Species recognition suggestions (ML model)
 - [ ] Blue/green color cast removal filter
@@ -675,8 +676,8 @@ This document contains only the features and tasks that are **not yet completed*
 
 | Phase | Remaining Features | Remaining Tasks |
 |-------|-------------------|-----------------|
-| **v1.5** | ~22 features | ~41 tasks |
-| **v2.0** | ~75+ features | ~115+ tasks |
+| **v1.5** | ~20 features | ~35 tasks |
+| **v2.0** | ~70+ features | ~105+ tasks |
 | **v3.0** | ~5 features | Future scope |
 
 ## v1.5 Priority Areas
@@ -687,7 +688,16 @@ This document contains only the features and tasks that are **not yet completed*
 5. Training log PDF export (with signatures)
 6. Species detail enhancements
 
+## Recently Completed (v1.5)
+- **Underwater Photography** (2026-01-26)
+  - Photo picker with time range filtering
+  - DiveMediaSection widget for dive detail page
+  - PhotoViewerPage with pinch-zoom and swipe navigation
+  - Metadata overlay (depth, temp, elapsed time)
+  - ExifWriteService for in-place EXIF modification
+  - Write dive data to photo (GPSAltitude, ImageDescription)
+
 ---
 
-**Document Version:** 1.4
-**Updated:** 2026-01-25 (Training Dives feature + Digital Signatures completed)
+**Document Version:** 1.5
+**Updated:** 2026-01-26 (Underwater Photography: photo viewer, EXIF write completed)

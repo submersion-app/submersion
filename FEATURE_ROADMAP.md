@@ -1,11 +1,11 @@
 # Submersion Feature Roadmap
 ## Comprehensive Development Plan
 
-> **Last Updated:** 2026-01-25
+> **Last Updated:** 2026-01-26
 > **Current Version:** 1.1.0 (v1.1 Complete)
 > **Status:** v1.0 ✅ COMPLETE | v1.1 ✅ COMPLETE | v1.5 🚧 In Progress
 >
-> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Profile Visualization (Category 2.1) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete | Search & Filtering (Category 10.1) ✅ Complete | Tools & Calculators (Category 11) ✅ Complete | Digital Signatures (Category 7.2) ✅ Complete | Training Dives (Category 8.3) ✅ Complete
+> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Profile Visualization (Category 2.1) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete | Search & Filtering (Category 10.1) ✅ Complete | Tools & Calculators (Category 11) ✅ Complete | Digital Signatures (Category 7.2) ✅ Complete | Training Dives (Category 8.3) ✅ Complete | Underwater Photography (Category 9.3) ✅ Complete
 
 ---
 
@@ -687,26 +687,37 @@
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Attach photos/videos to dives | 📋 Planned | v2.0 | Media table exists, needs UI |
+| Attach photos/videos to dives | ✅ Implemented | v1.5 | Photo picker with time range filtering |
+| Auto-match by timestamp | ✅ Implemented | v1.5 | EXIF datetime matching with tolerance |
+| Display photo gallery | ✅ Implemented | v1.5 | DiveMediaSection widget on dive detail |
+| Full-screen photo viewer | ✅ Implemented | v1.5 | PhotoViewerPage with pinch-zoom, swipe |
+| Metadata overlay | ✅ Implemented | v1.5 | Depth, temp, elapsed time on photos |
+| Write dive data to EXIF | ✅ Implemented | v1.5 | In-place modification via native_exif |
+| Photo thumbnails | ✅ Implemented | v1.5 | Dynamic loading from device library |
 | Video support in logs | 📋 Planned | v2.0 | Attach and play videos |
-| Auto-match by timestamp | 📋 Planned | v2.0 | EXIF datetime matching |
 | Tag species in photos | 📋 Planned | v2.0 | Image annotation |
 | Color correction | 📋 Planned | v2.0 | Blue filter removal |
 | Shareable dive cards | 📋 Planned | v2.0 | Generate visual summary for social media |
 | Depth/time overlay | 🔮 Future | v3.0 | Requires camera integration |
 
+**v1.5 Tasks (Complete):**
+- [x] Photo picker in dive detail page (time range filtering based on dive times)
+- [x] Link photos to dives via Media table (many-to-many)
+- [x] Media storage strategy (reference to device photo library via platformAssetId)
+- [x] Display photo gallery on dive detail page (DiveMediaSection widget)
+- [x] Full-screen photo viewer with pinch-zoom and swipe navigation (PhotoViewerPage)
+- [x] Metadata overlay showing depth, temperature, elapsed time (BottomMetadataOverlay)
+- [x] EXIF datetime parsing for auto-matching photos to dives
+- [x] Photo thumbnail generation and caching (assetThumbnailProvider)
+- [x] Write dive metadata to photo EXIF (ExifWriteService with native_exif)
+- [x] EXIF tags: GPSAltitude (depth), ImageDescription (dive summary)
+- [x] Long-press to unlink photo from dive
+
 **v2.0 Tasks:**
-- [ ] Photo/video picker in dive edit form
-- [ ] Attach multiple media files to dive (many-to-many)
-- [ ] Media storage strategy (local file copy vs reference, cloud upload option)
-- [ ] Display photo gallery on dive detail page
-- [ ] Full-screen photo viewer with swipe
-- [ ] Caption and datetime per photo
+- [ ] Caption and datetime editing per photo
 - [ ] Export dive with photos (ZIP archive)
 - [ ] Bulk photo import with auto-match to dives
-- [ ] EXIF datetime parsing and fuzzy matching (within ±2 hours)
 - [ ] GPS extraction from photos (suggest site creation)
-- [ ] Photo thumbnail generation and caching
 - [ ] Species tagging in photos (tap to tag, bounding box)
 - [ ] Species recognition suggestions (ML model)
 - [ ] Blue/green color cast removal filter
@@ -1377,6 +1388,7 @@
 - [x] Personal & Medical Data (emergency contacts, medical clearance, medications)
 - [x] Digital Signatures (instructor signature capture, display, storage)
 - [x] Training Dives (Course entity, bidirectional course-certification linking)
+- [x] Underwater Photography (photo picker, gallery, full-screen viewer, EXIF write)
 - [ ] Performance with 5000+ dives
 
 ## v2.0 (Planned)
@@ -1399,5 +1411,5 @@
 
 ---
 
-**Document Version:** 2.11
-**Last Updated:** 2026-01-25 (Training Dives + Digital Signatures completed)
+**Document Version:** 2.12
+**Last Updated:** 2026-01-26 (Underwater Photography: photo viewer, EXIF write completed)
