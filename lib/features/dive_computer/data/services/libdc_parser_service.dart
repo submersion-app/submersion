@@ -551,27 +551,30 @@ class LibdcParserService {
     ffi.Pointer<dc_sample_value_t> value,
     ffi.Pointer<ffi.Void> userdata,
   ) {
+    // Access the union directly via .ref to avoid pointer casting issues
+    final unionValue = value.ref;
+
     switch (type) {
       case dc_sample_type_t.DC_SAMPLE_TIME:
-        // Time from libdivecomputer - convert to seconds
-        // Some backends (e.g., Shearwater) return milliseconds, others return seconds
-        // We detect this by checking if the value is unreasonably large for seconds
-        // (> 86400 seconds = 24 hours would indicate milliseconds)
-        final rawTime = value.cast<ffi.UnsignedInt>().value;
-        final time = rawTime > 86400 ? rawTime ~/ 1000 : rawTime;
-        _currentSampleTime = time;
+        // libdivecomputer always returns time in milliseconds (see FFI docs)
+        // Convert to seconds for our profile data
+        final timeMs = unionValue.time;
+        final timeSeconds = timeMs ~/ 1000;
+        _currentSampleTime = timeSeconds;
         _sampleData.add(_SamplePoint(_currentSampleTime));
         break;
 
       case dc_sample_type_t.DC_SAMPLE_DEPTH:
-        final depth = value.cast<ffi.Double>().value;
+        // Depth is in meters
+        final depth = unionValue.depth;
         if (_sampleData.isNotEmpty) {
           _sampleData.last.depth = depth;
         }
         break;
 
       case dc_sample_type_t.DC_SAMPLE_TEMPERATURE:
-        final temp = value.cast<ffi.Double>().value;
+        // Temperature is in Celsius
+        final temp = unionValue.temperature;
         if (_sampleData.isNotEmpty) {
           _sampleData.last.temperature = temp;
         }
@@ -580,8 +583,7 @@ class LibdcParserService {
       case dc_sample_type_t.DC_SAMPLE_PRESSURE:
         // Pressure struct: tank index (uint) and value (double) in bar
         _pressureSampleCount++;
-        final pressurePtr = value.cast<_PressureSample>();
-        final pressure = pressurePtr.ref.value;
+        final pressure = unionValue.pressure.value;
         // Store pressure for any valid tank (first one we see for each sample)
         // libdivecomputer returns pressure in bar
         if (_sampleData.isNotEmpty && pressure > 0) {
@@ -620,15 +622,6 @@ class _SamplePoint {
   double? pressure;
 
   _SamplePoint(this.time);
-}
-
-/// Pressure sample struct layout matching libdivecomputer.
-final class _PressureSample extends ffi.Struct {
-  @ffi.UnsignedInt()
-  external int tank;
-
-  @ffi.Double()
-  external double value;
 }
 
 /// Manifest information to supplement parsed data.

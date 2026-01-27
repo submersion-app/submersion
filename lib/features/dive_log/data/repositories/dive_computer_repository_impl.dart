@@ -691,14 +691,19 @@ class DiveComputerRepository {
         // Create a new dive for this profile
         _log.info('No matching dive found, creating new dive');
 
+        // Calculate exit time from entry time + duration
+        final entryTimeMs = profileStartTime.millisecondsSinceEpoch;
+        final exitTimeMs = entryTimeMs + (durationSeconds * 1000);
+
         await _db
             .into(_db.dives)
             .insert(
               DivesCompanion(
                 id: Value(diveId),
                 diverId: Value(diverId),
-                diveDateTime: Value(profileStartTime.millisecondsSinceEpoch),
-                entryTime: Value(profileStartTime.millisecondsSinceEpoch),
+                diveDateTime: Value(entryTimeMs),
+                entryTime: Value(entryTimeMs),
+                exitTime: Value(exitTimeMs),
                 duration: Value(durationSeconds),
                 maxDepth: Value(maxDepth),
                 createdAt: Value(now),

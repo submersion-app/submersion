@@ -18,7 +18,6 @@ Submersion is a Flutter dive logging application for scuba divers. It provides d
 | File | Purpose |
 |------|---------|
 | [FEATURE_ROADMAP.md](FEATURE_ROADMAP.md) | Comprehensive roadmap with all features by phase (v1.0, v1.5, v2.0, v3.0), database schemas, and dependencies |
-| [.claude/CURRENT_SPRINT.md](.claude/CURRENT_SPRINT.md) | Active sprint tasks with detailed subtasks, estimates, and workflow instructions |
 
 ## Quick Start
 
