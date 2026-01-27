@@ -135,10 +135,15 @@ class _MainScaffoldState extends State<MainScaffold> {
   void _showMoreMenu(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.7,
+      ),
       builder: (context) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Fixed header
             Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -153,81 +158,89 @@ class _MainScaffoldState extends State<MainScaffold> {
               ),
             ),
             const Divider(height: 1),
-            ListTile(
-              leading: const Icon(Icons.backpack),
-              title: const Text('Equipment'),
-              onTap: () {
-                Navigator.pop(context);
-                context.go('/equipment');
-              },
+            // Scrollable menu items
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.backpack),
+                    title: const Text('Equipment'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.go('/equipment');
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.people),
+                    title: const Text('Buddies'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.go('/buddies');
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.store),
+                    title: const Text('Dive Centers'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.go('/dive-centers');
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.card_membership),
+                    title: const Text('Certifications'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.go('/certifications');
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.school),
+                    title: const Text('Courses'),
+                    subtitle: const Text('Training & Education'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.go('/courses');
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.bar_chart),
+                    title: const Text('Statistics'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.go('/statistics');
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.edit_calendar),
+                    title: const Text('Planning'),
+                    subtitle: const Text('Dive Planner, Calculators'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.go('/planning');
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.sync_alt),
+                    title: const Text('Transfer'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.go('/transfer');
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.settings),
+                    title: const Text('Settings'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.go('/settings');
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ),
             ),
-            ListTile(
-              leading: const Icon(Icons.people),
-              title: const Text('Buddies'),
-              onTap: () {
-                Navigator.pop(context);
-                context.go('/buddies');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.store),
-              title: const Text('Dive Centers'),
-              onTap: () {
-                Navigator.pop(context);
-                context.go('/dive-centers');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.card_membership),
-              title: const Text('Certifications'),
-              onTap: () {
-                Navigator.pop(context);
-                context.go('/certifications');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.school),
-              title: const Text('Courses'),
-              subtitle: const Text('Training & Education'),
-              onTap: () {
-                Navigator.pop(context);
-                context.go('/courses');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.bar_chart),
-              title: const Text('Statistics'),
-              onTap: () {
-                Navigator.pop(context);
-                context.go('/statistics');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.edit_calendar),
-              title: const Text('Planning'),
-              subtitle: const Text('Dive Planner, Calculators'),
-              onTap: () {
-                Navigator.pop(context);
-                context.go('/planning');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.sync_alt),
-              title: const Text('Transfer'),
-              onTap: () {
-                Navigator.pop(context);
-                context.go('/transfer');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('Settings'),
-              onTap: () {
-                Navigator.pop(context);
-                context.go('/settings');
-              },
-            ),
-            const SizedBox(height: 8),
           ],
         ),
       ),
