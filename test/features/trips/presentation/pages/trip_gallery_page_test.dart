@@ -103,7 +103,7 @@ void main() {
     });
 
     testWidgets('shows dive sections with photos', (tester) async {
-      final testSite = DiveSite(id: 'site-1', name: 'Blue Corner');
+      const testSite = DiveSite(id: 'site-1', name: 'Blue Corner');
 
       final testDive = Dive(
         id: 'dive-1',
