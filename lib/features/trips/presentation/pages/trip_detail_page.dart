@@ -3,12 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/media/data/services/photo_picker_service.dart';
+import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
+import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/scan_results_dialog.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_media_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_photo_section.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
 class TripDetailPage extends ConsumerStatefulWidget {
   final String tripId;
@@ -614,10 +620,145 @@ class _TripDetailContent extends ConsumerWidget {
     );
   }
 
-  void _showScanDialog(BuildContext context, WidgetRef ref, String tripId) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Photo scanning coming soon')));
+  Future<void> _showScanDialog(
+    BuildContext context,
+    WidgetRef ref,
+    String tripId,
+  ) async {
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      // Get trip and dives
+      final trip = tripWithStats.trip;
+      final dives = await ref.read(divesForTripProvider(tripId).future);
+
+      if (dives.isEmpty) {
+        if (context.mounted) Navigator.of(context).pop();
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Add dives first to link photos')),
+          );
+        }
+        return;
+      }
+
+      // Get existing asset IDs to filter out
+      final mediaByDive = await ref.read(mediaForTripProvider(tripId).future);
+      final existingIds = <String>{};
+      for (final mediaList in mediaByDive.values) {
+        for (final item in mediaList) {
+          if (item.platformAssetId != null) {
+            existingIds.add(item.platformAssetId!);
+          }
+        }
+      }
+
+      // Scan gallery
+      final photoPickerService = ref.read(photoPickerServiceProvider);
+      final result = await TripMediaScanner.scanGalleryForTrip(
+        dives: dives,
+        tripStartDate: trip.startDate,
+        tripEndDate: trip.endDate,
+        existingAssetIds: existingIds,
+        photoPickerService: photoPickerService,
+      );
+
+      if (!context.mounted) return;
+      Navigator.of(context).pop(); // Dismiss loading
+
+      if (result == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Photo library access denied')),
+        );
+        return;
+      }
+
+      // Show results dialog
+      final dialogResult = await showScanResultsDialog(
+        context: context,
+        scanResult: result,
+      );
+
+      if (dialogResult.confirmed != true) return;
+      if (!context.mounted) return;
+
+      // Import selected photos
+      await _importPhotos(context, ref, tripId, dialogResult.selectedPhotos);
+    } catch (e) {
+      if (context.mounted) Navigator.of(context).pop();
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error scanning: $e')));
+      }
+    }
+  }
+
+  Future<void> _importPhotos(
+    BuildContext context,
+    WidgetRef ref,
+    String tripId,
+    Map<Dive, List<AssetInfo>> photosByDive,
+  ) async {
+    // Show progress
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const AlertDialog(
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 16),
+            Text('Linking photos...'),
+          ],
+        ),
+      ),
+    );
+
+    try {
+      final importService = ref.read(mediaImportServiceProvider);
+      int totalImported = 0;
+
+      for (final entry in photosByDive.entries) {
+        final dive = entry.key;
+        final assets = entry.value;
+
+        final result = await importService.importPhotosForDive(
+          selectedAssets: assets,
+          dive: dive,
+        );
+
+        totalImported += result.imported.length;
+
+        // Invalidate media providers for this dive
+        ref.invalidate(mediaForDiveProvider(dive.id));
+        ref.invalidate(mediaCountForDiveProvider(dive.id));
+      }
+
+      // Invalidate trip-level providers
+      ref.invalidate(mediaForTripProvider(tripId));
+      ref.invalidate(mediaCountForTripProvider(tripId));
+      ref.invalidate(flatMediaListForTripProvider(tripId));
+
+      if (!context.mounted) return;
+      Navigator.of(context).pop(); // Dismiss progress
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Linked $totalImported photos')));
+    } catch (e) {
+      if (context.mounted) Navigator.of(context).pop();
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error linking photos: $e')));
+      }
+    }
   }
 }
 
