@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/features/media/presentation/pages/trip_photo_viewer_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_media_providers.dart';
 
 /// Full gallery page showing all photos for a trip, organized by dive.
@@ -242,10 +243,15 @@ class _GridThumbnail extends ConsumerWidget {
   }
 
   void _openViewer(BuildContext context, WidgetRef ref) {
-    // Will navigate to TripPhotoViewerPage in Task 5
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Photo viewer coming soon')));
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => TripPhotoViewerPage(
+          tripId: tripId,
+          initialMediaId: item.id,
+        ),
+      ),
+    );
   }
 
   Widget _buildAssetThumbnail(WidgetRef ref, ColorScheme colorScheme) {
