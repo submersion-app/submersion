@@ -20,14 +20,6 @@ This document contains only the features and tasks that are **not yet completed*
 
 # v1.5 Remaining Tasks
 
-## Category 1: Core Dive Log Entry
-
-### 1.2 Location & Site
-- [ ] Trip templates (liveaboard, resort week, local weekend)
-- [ ] Trip photo galleries (deferred with photos to v2.0)
-
----
-
 ## Category 5: Locations, Dive Sites & Maps
 
 ### 5.2 GPS Integration
