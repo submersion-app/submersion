@@ -5,7 +5,7 @@
 .pub-cache/
 .pub/
 build/
-pubspec.lock
+# pubspec.lock should be committed for apps (not packages) to ensure reproducible builds
 *.g.dart
 *.freezed.dart
 
