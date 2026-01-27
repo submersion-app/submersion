@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_photo_section.dart';
 
 class TripDetailPage extends ConsumerStatefulWidget {
   final String tripId;
@@ -109,6 +110,13 @@ class _TripDetailContent extends ConsumerWidget {
             _buildNotesSection(context, trip),
             const SizedBox(height: 24),
           ],
+
+          // Photos
+          TripPhotoSection(
+            tripId: trip.id,
+            onScanPressed: () => _showScanDialog(context, ref, trip.id),
+          ),
+          const SizedBox(height: 24),
 
           // Dives
           _buildDivesSection(context, ref, divesAsync),
@@ -604,6 +612,12 @@ class _TripDetailContent extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  void _showScanDialog(BuildContext context, WidgetRef ref, String tripId) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Photo scanning coming soon')));
   }
 }
 
