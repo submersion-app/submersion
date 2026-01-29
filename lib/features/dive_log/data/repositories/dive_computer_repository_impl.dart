@@ -875,9 +875,9 @@ class DiveComputerRepository {
         );
       }
 
-      // Update computer stats
-      await incrementDiveCount(computerId);
-      await updateLastDownload(computerId);
+      // Note: Computer stats (incrementDiveCount, updateLastDownload) are
+      // updated by the higher-level import workflow in DiveImportService/
+      // DownloadNotifier, which correctly counts only actually imported dives
 
       SyncEventBus.notifyLocalChange();
       _log.info('Imported ${points.length} profile points for dive $diveId');

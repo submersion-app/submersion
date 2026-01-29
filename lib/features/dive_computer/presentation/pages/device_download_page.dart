@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -63,38 +65,60 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
       final discoveryNotifier = ref.read(discoveryNotifierProvider.notifier);
       await discoveryNotifier.startScan();
 
-      // Wait for the device to be found (with timeout)
-      final startTime = DateTime.now();
-      const timeout = Duration(seconds: 15);
+      // Subscribe to the discovered devices stream directly
+      // This is necessary because ref.read() on a StreamProvider doesn't
+      // create an active subscription, so broadcast stream events are missed
+      final connectionManager = ref.read(bluetoothConnectionManagerProvider);
+      StreamSubscription<List<DiscoveredDevice>>? subscription;
+      final completer = Completer<DiscoveredDevice?>();
 
-      while (DateTime.now().difference(startTime) < timeout) {
-        final devicesAsync = ref.read(discoveredDevicesProvider);
-        final devices = devicesAsync.value ?? [];
+      // Set up timeout
+      final timeoutTimer = Timer(const Duration(seconds: 15), () {
+        if (!completer.isCompleted) {
+          completer.complete(null);
+        }
+      });
+
+      // Listen for discovered devices
+      subscription = connectionManager.discoveredDevices.listen((devices) {
+        if (completer.isCompleted) return;
 
         // Look for a device that matches our saved computer
         for (final device in devices) {
           if (_deviceMatchesComputer(device, computer)) {
-            await discoveryNotifier.stopScan();
-            setState(() {
-              _discoveredDevice = device;
-              _isScanning = false;
-            });
-            _startDownload();
+            if (!completer.isCompleted) {
+              completer.complete(device);
+            }
             return;
           }
         }
-
-        await Future.delayed(const Duration(milliseconds: 500));
-      }
-
-      // Timeout - device not found
-      await discoveryNotifier.stopScan();
-      setState(() {
-        _isScanning = false;
-        _scanError =
-            'Device not found. Make sure your ${computer.name.isNotEmpty ? computer.name : computer.fullName} '
-            'is nearby and in transfer mode.';
       });
+
+      // Wait for device to be found or timeout
+      final foundDevice = await completer.future;
+
+      // Cleanup
+      timeoutTimer.cancel();
+      await subscription.cancel();
+      await discoveryNotifier.stopScan();
+
+      if (!mounted) return;
+
+      if (foundDevice != null) {
+        setState(() {
+          _discoveredDevice = foundDevice;
+          _isScanning = false;
+        });
+        _startDownload();
+      } else {
+        // Timeout - device not found
+        setState(() {
+          _isScanning = false;
+          _scanError =
+              'Device not found. Make sure your ${computer.name.isNotEmpty ? computer.name : computer.fullName} '
+              'is nearby and in transfer mode.';
+        });
+      }
     } catch (e) {
       setState(() {
         _isScanning = false;
@@ -393,6 +417,10 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
           // Downloaded dives count
           if (state.downloadedDives.isNotEmpty) _buildDivesList(context, state),
 
+          // Import results (shown after import completes)
+          if (state.importResult != null)
+            _buildImportResults(context, state.importResult!),
+
           const Spacer(),
 
           // Action buttons based on state
@@ -543,20 +571,32 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    // After import completes, show only imported dives (non-duplicates)
+    // During download, show all downloaded dives
+    final dives = state.importResult?.importedDives ?? state.downloadedDives;
+    final title = state.importResult != null
+        ? 'Imported Dives'
+        : 'Downloaded Dives';
+
+    if (dives.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               children: [
                 Icon(Icons.scuba_diving, color: colorScheme.primary),
                 const SizedBox(width: 8),
-                Text('Downloaded Dives', style: theme.textTheme.titleSmall),
+                Text(title, style: theme.textTheme.titleSmall),
                 const Spacer(),
                 Text(
-                  '${state.downloadedDives.length}',
+                  '${dives.length}',
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: colorScheme.primary,
@@ -565,39 +605,128 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
               ],
             ),
             const SizedBox(height: 12),
-            // Show last few dives
-            ...state.downloadedDives.take(3).map((dive) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  children: [
-                    Text(
-                      _formatDate(dive.startTime),
-                      style: theme.textTheme.bodySmall,
+            // Scrollable list of dives with constrained height
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 200),
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: dives.length,
+                itemBuilder: (context, index) {
+                  final dive = dives[index];
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            _formatDate(dive.startTime),
+                            style: theme.textTheme.bodySmall,
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            '${dive.maxDepth.toStringAsFixed(1)}m',
+                            style: theme.textTheme.bodySmall,
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            '${dive.durationSeconds ~/ 60} min',
+                            style: theme.textTheme.bodySmall,
+                            textAlign: TextAlign.end,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 16),
-                    Text(
-                      '${dive.maxDepth.toStringAsFixed(1)}m',
-                      style: theme.textTheme.bodySmall,
-                    ),
-                    const SizedBox(width: 16),
-                    Text(
-                      '${dive.durationSeconds ~/ 60} min',
-                      style: theme.textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-              );
-            }),
-            if (state.downloadedDives.length > 3)
-              Text(
-                '... and ${state.downloadedDives.length - 3} more',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImportResults(BuildContext context, ImportResult result) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    // Only show if there's something to report
+    if (result.imported == 0 && result.skipped == 0 && result.updated == 0) {
+      return const SizedBox.shrink();
+    }
+
+    return Card(
+      margin: const EdgeInsets.only(top: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.sync, color: colorScheme.primary),
+                const SizedBox(width: 8),
+                Text('Import Results', style: theme.textTheme.titleSmall),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (result.imported > 0)
+              _buildImportStatRow(
+                context,
+                Icons.add_circle_outline,
+                'New dives imported',
+                result.imported,
+                colorScheme.primary,
+              ),
+            if (result.skipped > 0)
+              _buildImportStatRow(
+                context,
+                Icons.skip_next,
+                'Duplicates skipped',
+                result.skipped,
+                colorScheme.onSurfaceVariant,
+              ),
+            if (result.updated > 0)
+              _buildImportStatRow(
+                context,
+                Icons.update,
+                'Dives updated',
+                result.updated,
+                colorScheme.secondary,
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildImportStatRow(
+    BuildContext context,
+    IconData icon,
+    String label,
+    int count,
+    Color iconColor,
+  ) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Icon(icon, color: iconColor, size: 18),
+          const SizedBox(width: 8),
+          Text(label, style: theme.textTheme.bodyMedium),
+          const Spacer(),
+          Text(
+            '$count',
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
       ),
     );
   }

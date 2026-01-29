@@ -122,6 +122,9 @@ class ImportResult {
   /// IDs of the dives that were imported
   final List<String> importedDiveIds;
 
+  /// The actual dive objects that were successfully imported
+  final List<DownloadedDive> importedDives;
+
   /// Error message if import failed
   final String? errorMessage;
 
@@ -131,6 +134,7 @@ class ImportResult {
     required this.updated,
     required this.conflicts,
     required this.importedDiveIds,
+    this.importedDives = const [],
     this.errorMessage,
   });
 
@@ -140,6 +144,7 @@ class ImportResult {
     required int skipped,
     required int updated,
     required List<String> importedDiveIds,
+    required List<DownloadedDive> importedDives,
     List<ImportConflict> conflicts = const [],
   }) => ImportResult(
     imported: imported,
@@ -147,6 +152,7 @@ class ImportResult {
     updated: updated,
     conflicts: conflicts,
     importedDiveIds: importedDiveIds,
+    importedDives: importedDives,
   );
 
   /// Create a failed result
@@ -156,6 +162,7 @@ class ImportResult {
     updated: 0,
     conflicts: [],
     importedDiveIds: [],
+    importedDives: [],
     errorMessage: error,
   );
 
@@ -198,6 +205,7 @@ class DiveImportService {
     int skipped = 0;
     int updated = 0;
     final importedDiveIds = <String>[];
+    final importedDives = <DownloadedDive>[];
     final conflicts = <ImportConflict>[];
 
     for (final dive in dives) {
@@ -232,6 +240,7 @@ class DiveImportService {
               // Import as new
               final diveId = await _importNewDive(dive, computer.id, diverId);
               importedDiveIds.add(diveId);
+              importedDives.add(dive);
               imported++;
             }
           } else if (mode == ImportMode.replace) {
@@ -246,12 +255,14 @@ class DiveImportService {
             // Low confidence match in 'all' mode - import as new
             final diveId = await _importNewDive(dive, computer.id, diverId);
             importedDiveIds.add(diveId);
+            importedDives.add(dive);
             imported++;
           }
         } else {
           // No duplicate - import as new
           final diveId = await _importNewDive(dive, computer.id, diverId);
           importedDiveIds.add(diveId);
+          importedDives.add(dive);
           imported++;
         }
       } catch (e) {
@@ -265,6 +276,7 @@ class DiveImportService {
       skipped: skipped,
       updated: updated,
       importedDiveIds: importedDiveIds,
+      importedDives: importedDives,
       conflicts: conflicts,
     );
   }
