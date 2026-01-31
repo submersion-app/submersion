@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
-import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
-
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/maps/presentation/providers/heat_map_providers.dart';
+import 'package:submersion/features/maps/presentation/widgets/heat_map_controls.dart';
+import 'package:submersion/features/maps/presentation/widgets/heat_map_layer.dart';
+
+/// View mode for the site map page.
+enum SiteMapViewMode { sites, coverage }
 
 class SiteMapPage extends ConsumerStatefulWidget {
   const SiteMapPage({super.key});
@@ -20,6 +25,7 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
     with TickerProviderStateMixin {
   final MapController _mapController = MapController();
   DiveSite? _selectedSite;
+  SiteMapViewMode _viewMode = SiteMapViewMode.sites;
 
   // Default to a nice ocean view (Pacific)
   static const _defaultCenter = LatLng(20.0, -157.0);
@@ -31,7 +37,24 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dive Sites Map'),
+        title: SegmentedButton<SiteMapViewMode>(
+          segments: const [
+            ButtonSegment(
+              value: SiteMapViewMode.sites,
+              label: Text('Sites'),
+              icon: Icon(Icons.location_on),
+            ),
+            ButtonSegment(
+              value: SiteMapViewMode.coverage,
+              label: Text('Coverage'),
+              icon: Icon(Icons.blur_on),
+            ),
+          ],
+          selected: {_viewMode},
+          onSelectionChanged: (selection) {
+            setState(() => _viewMode = selection.first);
+          },
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.list),
@@ -128,47 +151,83 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
               userAgentPackageName: 'com.submersion.app',
               maxZoom: 19,
             ),
-            MarkerClusterLayerWidget(
-              options: MarkerClusterLayerOptions(
-                maxClusterRadius: 80,
-                size: const Size(50, 50),
-                markers: sitesWithLocation.map((siteWithCount) {
-                  final site = siteWithCount.site;
-                  final diveCount = siteWithCount.diveCount;
-                  final isSelected = _selectedSite?.id == site.id;
-                  return Marker(
-                    point: LatLng(
-                      site.location!.latitude,
-                      site.location!.longitude,
+            // Heat map layer for coverage view
+            if (_viewMode == SiteMapViewMode.coverage)
+              Consumer(
+                builder: (context, ref, child) {
+                  final heatMapAsync = ref.watch(siteCoverageHeatMapProvider);
+                  final settings = ref.watch(heatMapSettingsProvider);
+
+                  if (!settings.isVisible) return const SizedBox.shrink();
+
+                  return heatMapAsync.when(
+                    data: (points) => HeatMapLayer(
+                      points: points,
+                      radius: settings.radius,
+                      opacity: settings.opacity,
                     ),
-                    width: isSelected ? 50 : 40,
-                    height: isSelected ? 50 : 40,
-                    child: GestureDetector(
-                      onTap: () => _onMarkerTapped(site),
-                      child: _buildMarker(context, site, diveCount, isSelected),
-                    ),
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, _) => const SizedBox.shrink(),
                   );
-                }).toList(),
-                builder: (context, markers) {
-                  return _buildClusterMarker(context, markers.length);
-                },
-                zoomToBoundsOnClick: false,
-                onClusterTap: (node) {
-                  // Animate to cluster bounds with generous padding
-                  _animateToCluster(node.bounds);
                 },
               ),
-            ),
+            // Markers layer - only show in sites view
+            if (_viewMode == SiteMapViewMode.sites)
+              MarkerClusterLayerWidget(
+                options: MarkerClusterLayerOptions(
+                  maxClusterRadius: 80,
+                  size: const Size(50, 50),
+                  markers: sitesWithLocation.map((siteWithCount) {
+                    final site = siteWithCount.site;
+                    final diveCount = siteWithCount.diveCount;
+                    final isSelected = _selectedSite?.id == site.id;
+                    return Marker(
+                      point: LatLng(
+                        site.location!.latitude,
+                        site.location!.longitude,
+                      ),
+                      width: isSelected ? 50 : 40,
+                      height: isSelected ? 50 : 40,
+                      child: GestureDetector(
+                        onTap: () => _onMarkerTapped(site),
+                        child: _buildMarker(
+                          context,
+                          site,
+                          diveCount,
+                          isSelected,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  builder: (context, markers) {
+                    return _buildClusterMarker(context, markers.length);
+                  },
+                  zoomToBoundsOnClick: false,
+                  onClusterTap: (node) {
+                    // Animate to cluster bounds with generous padding
+                    _animateToCluster(node.bounds);
+                  },
+                ),
+              ),
           ],
         ),
 
-        // Site info card at bottom
-        if (_selectedSite != null)
+        // Site info card at bottom (only in sites view)
+        if (_viewMode == SiteMapViewMode.sites && _selectedSite != null)
           Positioned(
             left: 16,
             right: 16,
             bottom: 80,
             child: _buildSiteInfoCard(context, _selectedSite!),
+          ),
+
+        // Heat map controls (only in coverage view)
+        if (_viewMode == SiteMapViewMode.coverage)
+          const Positioned(
+            bottom: 80,
+            left: 0,
+            right: 0,
+            child: HeatMapControls(),
           ),
 
         // Empty state overlay
