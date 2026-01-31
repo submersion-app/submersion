@@ -4,7 +4,7 @@
 /// App Store submission. Run via the capture script:
 ///
 /// ```bash
-/// ./scripts/capture_screenshots.sh
+/// ./scripts/release/capture_screenshots.sh
 /// # Or via fastlane:
 /// cd ios && bundle exec fastlane screenshots
 /// ```

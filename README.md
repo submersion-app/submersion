@@ -152,7 +152,7 @@ If you don't have an Apple Developer certificate, you can still build and run th
 
 ```bash
 # Run the no-sandbox build script
-./scripts/build_nosandbox_macos.sh
+./scripts/release/build_nosandbox_macos.sh
 ```
 
 This script:

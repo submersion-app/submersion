@@ -8,7 +8,7 @@
 # For macOS: runs Flutter integration tests directly on the desktop.
 #
 # Usage:
-#   ./scripts/capture_screenshots.sh
+#   ./scripts/release/capture_screenshots.sh
 #
 # Requirements:
 #   - Xcode with iOS simulators installed
@@ -18,7 +18,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
 SCREENSHOTS_DIR="$PROJECT_ROOT/screenshots"
 UDDF_FILE="$PROJECT_ROOT/integration_test/fixtures/screenshot_test_data.uddf"
 
@@ -61,7 +61,7 @@ trap cleanup EXIT INT TERM
 # This creates consistent, realistic dive data for screenshots
 echo "Generating UDDF test data..."
 if command -v python3 &> /dev/null; then
-  python3 "$SCRIPT_DIR/generate_uddf_test_data.py" \
+  python3 "$PROJECT_ROOT/scripts/generate_uddf_test_data.py" \
     -o "$UDDF_FILE" || {
       echo "Warning: Failed to generate UDDF test data. Using existing file if available."
     }

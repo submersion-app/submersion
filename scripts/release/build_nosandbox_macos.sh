@@ -12,7 +12,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+PROJECT_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
 APP_PATH="$PROJECT_DIR/build/macos/Build/Products/Release/submersion.app"
 ENTITLEMENTS="$PROJECT_DIR/macos/Runner/ReleaseNoSandbox.entitlements"
 

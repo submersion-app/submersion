@@ -25,7 +25,7 @@ platform :ios do
     UI.message("Starting screenshot capture...")
 
     # Run the capture script from project root
-    sh("cd ../.. && ./scripts/capture_screenshots.sh")
+    sh("cd ../.. && ./scripts/release/capture_screenshots.sh")
 
     UI.success("Screenshots captured successfully!")
     UI.message("Screenshots saved to: ../../screenshots/")

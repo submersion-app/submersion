@@ -6,7 +6,7 @@
 # Navigates through the app's main screens using AppleScript.
 #
 # Usage:
-#   ./scripts/capture_macos_screenshots.sh [--output-dir DIR]
+#   ./scripts/release/capture_macos_screenshots.sh [--output-dir DIR]
 #
 # Required permissions (System Settings > Privacy & Security):
 #   - Screen Recording: Required for screencapture to work
@@ -16,7 +16,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
 
 # Default values
 OUTPUT_DIR="$PROJECT_ROOT/screenshots/macOS"
