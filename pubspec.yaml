@@ -37,6 +37,7 @@ dependencies:
   flutter_map: ^8.2.2
   flutter_map_marker_cluster: ^8.2.2
   flutter_map_marker_popup: ^8.1.0
+  flutter_map_tile_caching: ^10.1.1  # Offline map tile caching
   latlong2: ^0.9.1
   cached_network_image: ^3.4.1
   photo_view: ^0.15.0
