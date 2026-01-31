@@ -1190,14 +1190,26 @@ class _DataSectionContent extends ConsumerWidget {
           _buildSectionHeader(context, 'Storage'),
           const SizedBox(height: 8),
           Card(
-            child: ListTile(
-              leading: const Icon(Icons.folder),
-              title: const Text('Database Storage'),
-              subtitle: Text(
-                isCustomFolder ? 'Custom folder' : 'App default location',
-              ),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.push('/settings/storage'),
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.folder),
+                  title: const Text('Database Storage'),
+                  subtitle: Text(
+                    isCustomFolder ? 'Custom folder' : 'App default location',
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/settings/storage'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.cloud_download),
+                  title: const Text('Offline Maps'),
+                  subtitle: const Text('Download maps for offline use'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/settings/offline-maps'),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 16),

@@ -815,9 +815,21 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               showDiveNumberingDialog(context);
             } else if (value == 'advanced_search') {
               context.go('/dives/search');
+            } else if (value == 'activity_map') {
+              context.push('/dives/activity');
             }
           },
           itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 'activity_map',
+              child: Row(
+                children: [
+                  Icon(Icons.map),
+                  SizedBox(width: 12),
+                  Text('Activity Map'),
+                ],
+              ),
+            ),
             const PopupMenuItem(
               value: 'advanced_search',
               child: Row(
@@ -893,6 +905,50 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             visualDensity: VisualDensity.compact,
             tooltip: 'Sort',
             onPressed: () => _showSortSheet(context),
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, size: 20),
+            onSelected: (value) {
+              if (value == 'numbering') {
+                showDiveNumberingDialog(context);
+              } else if (value == 'advanced_search') {
+                context.go('/dives/search');
+              } else if (value == 'activity_map') {
+                context.push('/dives/activity');
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'activity_map',
+                child: Row(
+                  children: [
+                    Icon(Icons.map, size: 20),
+                    SizedBox(width: 12),
+                    Text('Activity Map'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'advanced_search',
+                child: Row(
+                  children: [
+                    Icon(Icons.manage_search, size: 20),
+                    SizedBox(width: 12),
+                    Text('Advanced Search'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'numbering',
+                child: Row(
+                  children: [
+                    Icon(Icons.format_list_numbered, size: 20),
+                    SizedBox(width: 12),
+                    Text('Dive Numbering'),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
