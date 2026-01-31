@@ -257,13 +257,14 @@ class ExternalCenterSearchState {
 }
 
 /// Notifier for external dive center search
-class ExternalCenterSearchNotifier extends StateNotifier<ExternalCenterSearchState> {
+class ExternalCenterSearchNotifier
+    extends StateNotifier<ExternalCenterSearchState> {
   final DiveCenterApiService _apiService;
   final DiveCenterRepository _repository;
   final Ref _ref;
 
   ExternalCenterSearchNotifier(this._apiService, this._repository, this._ref)
-      : super(const ExternalCenterSearchState());
+    : super(const ExternalCenterSearchState());
 
   Future<void> search(String query) async {
     if (query.trim().isEmpty) {
@@ -323,10 +324,11 @@ class ExternalCenterSearchNotifier extends StateNotifier<ExternalCenterSearchSta
 
 /// Provider for external dive center search
 final externalCenterSearchProvider =
-    StateNotifierProvider<ExternalCenterSearchNotifier, ExternalCenterSearchState>(
-      (ref) {
-        final apiService = ref.watch(diveCenterApiServiceProvider);
-        final repository = ref.watch(diveCenterRepositoryProvider);
-        return ExternalCenterSearchNotifier(apiService, repository, ref);
-      },
-    );
+    StateNotifierProvider<
+      ExternalCenterSearchNotifier,
+      ExternalCenterSearchState
+    >((ref) {
+      final apiService = ref.watch(diveCenterApiServiceProvider);
+      final repository = ref.watch(diveCenterRepositoryProvider);
+      return ExternalCenterSearchNotifier(apiService, repository, ref);
+    });

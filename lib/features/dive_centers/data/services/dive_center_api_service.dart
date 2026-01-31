@@ -169,7 +169,11 @@ class DiveCenterApiService {
     if (value == null) return [];
     if (value is List) return value.cast<String>();
     if (value is String) {
-      return value.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+      return value
+          .split(',')
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
     }
     return [];
   }

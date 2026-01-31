@@ -104,16 +104,16 @@ class _DiveCenterImportPageState extends ConsumerState<DiveCenterImportPage> {
                         ),
                       )
                     : _searchController.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _searchController.clear();
-                              ref
-                                  .read(externalCenterSearchProvider.notifier)
-                                  .clear();
-                            },
-                          )
-                        : null,
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                          ref
+                              .read(externalCenterSearchProvider.notifier)
+                              .clear();
+                        },
+                      )
+                    : null,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -317,7 +317,9 @@ class _DiveCenterImportPageState extends ConsumerState<DiveCenterImportPage> {
               ],
             ),
           ),
-          ...state.localCenters.map((center) => _LocalCenterCard(center: center)),
+          ...state.localCenters.map(
+            (center) => _LocalCenterCard(center: center),
+          ),
           const SizedBox(height: 16),
         ],
 
