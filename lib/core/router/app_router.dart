@@ -25,6 +25,8 @@ import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.d
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_search_page.dart';
+import 'package:submersion/features/maps/presentation/pages/dive_activity_map_page.dart';
+import 'package:submersion/features/maps/presentation/pages/offline_maps_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_list_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
@@ -188,6 +190,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               child: const DiveListPage(),
             ),
             routes: [
+              GoRoute(
+                path: 'activity',
+                name: 'diveActivity',
+                builder: (context, state) => const DiveActivityMapPage(),
+              ),
               GoRoute(
                 path: 'new',
                 name: 'newDive',
@@ -629,6 +636,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'appearance',
                 name: 'appearance',
                 builder: (context, state) => const AppearancePage(),
+              ),
+              GoRoute(
+                path: 'offline-maps',
+                name: 'offlineMaps',
+                builder: (context, state) => const OfflineMapsPage(),
               ),
             ],
           ),
