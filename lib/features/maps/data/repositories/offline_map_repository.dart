@@ -1,15 +1,14 @@
 import 'package:drift/drift.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/maps/domain/entities/cached_region.dart'
     as domain;
 import 'package:uuid/uuid.dart';
 
 /// Repository for managing cached map regions.
 class OfflineMapRepository {
-  final AppDatabase _db;
-  final _uuid = const Uuid();
-
-  OfflineMapRepository(this._db);
+  AppDatabase get _db => DatabaseService.instance.database;
+  static const _uuid = Uuid();
 
   /// Get all cached regions.
   Future<List<domain.CachedRegion>> getAllRegions() async {
