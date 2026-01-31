@@ -860,6 +860,25 @@ class DeletionLog extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Cached map regions for offline use
+class CachedRegions extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  RealColumn get minLat => real()();
+  RealColumn get maxLat => real()();
+  RealColumn get minLng => real()();
+  RealColumn get maxLng => real()();
+  IntColumn get minZoom => integer()();
+  IntColumn get maxZoom => integer()();
+  IntColumn get tileCount => integer()();
+  IntColumn get sizeBytes => integer()();
+  IntColumn get createdAt => integer()();
+  IntColumn get lastAccessedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Training courses (e.g., "Advanced Open Water", "Rescue Diver")
 class Courses extends Table {
   TextColumn get id => text()();
@@ -951,13 +970,15 @@ class SiteSpecies extends Table {
     SyncMetadata,
     SyncRecords,
     DeletionLog,
+    // Maps & Visualization
+    CachedRegions,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 20;
+  int get schemaVersion => 21;
 
   @override
   MigrationStrategy get migration {
@@ -1412,6 +1433,25 @@ class AppDatabase extends _$AppDatabase {
           await customStatement('''
             CREATE INDEX IF NOT EXISTS idx_pending_photo_suggestions_dive
             ON pending_photo_suggestions(dive_id)
+          ''');
+        }
+        if (from < 21) {
+          // Cached map regions for offline maps feature
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS cached_regions (
+              id TEXT NOT NULL PRIMARY KEY,
+              name TEXT NOT NULL,
+              min_lat REAL NOT NULL,
+              max_lat REAL NOT NULL,
+              min_lng REAL NOT NULL,
+              max_lng REAL NOT NULL,
+              min_zoom INTEGER NOT NULL,
+              max_zoom INTEGER NOT NULL,
+              tile_count INTEGER NOT NULL,
+              size_bytes INTEGER NOT NULL,
+              created_at INTEGER NOT NULL,
+              last_accessed_at INTEGER NOT NULL
+            )
           ''');
         }
       },
