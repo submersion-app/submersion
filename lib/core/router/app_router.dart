@@ -17,9 +17,10 @@ import 'package:submersion/features/certifications/presentation/pages/certificat
 import 'package:submersion/features/courses/presentation/pages/course_list_page.dart';
 import 'package:submersion/features/courses/presentation/pages/course_detail_page.dart';
 import 'package:submersion/features/courses/presentation/pages/course_edit_page.dart';
-import 'package:submersion/features/dive_centers/presentation/pages/dive_center_list_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_detail_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_page.dart';
+import 'package:submersion/features/dive_centers/presentation/pages/dive_center_import_page.dart';
+import 'package:submersion/features/dive_centers/presentation/pages/dive_center_list_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
@@ -460,6 +461,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               child: const DiveCenterListPage(),
             ),
             routes: [
+              GoRoute(
+                path: 'import',
+                name: 'importDiveCenter',
+                builder: (context, state) => const DiveCenterImportPage(),
+              ),
               GoRoute(
                 path: 'new',
                 name: 'newDiveCenter',

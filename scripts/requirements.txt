@@ -1,0 +1,10 @@
+# Python dependencies for scripts in this directory
+#
+# Install with: pip install -r scripts/requirements.txt
+# Or create a venv: python -m venv scripts/.venv && source scripts/.venv/bin/activate && pip install -r scripts/requirements.txt
+
+# divesiteharvester.py - OSM dive site scraper
+overpy>=0.6
+requests>=2.31.0
+tenacity>=8.2.0
+tqdm>=4.66.0

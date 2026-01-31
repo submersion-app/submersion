@@ -131,6 +131,11 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
         title: const Text('Dive Centers'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.download),
+            tooltip: 'Import',
+            onPressed: () => context.push('/dive-centers/import'),
+          ),
+          IconButton(
             icon: const Icon(Icons.sort),
             tooltip: 'Sort',
             onPressed: () => _showSortSheet(context),
@@ -173,6 +178,11 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
+          IconButton(
+            icon: const Icon(Icons.download, size: 20),
+            tooltip: 'Import',
+            onPressed: () => context.push('/dive-centers/import'),
+          ),
           IconButton(
             icon: const Icon(Icons.sort, size: 20),
             tooltip: 'Sort',
@@ -261,10 +271,21 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
             ),
           ),
           const SizedBox(height: 24),
-          FilledButton.icon(
-            onPressed: () => context.push('/dive-centers/new'),
-            icon: const Icon(Icons.add),
-            label: const Text('Add Dive Center'),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              FilledButton.icon(
+                onPressed: () => context.push('/dive-centers/new'),
+                icon: const Icon(Icons.add),
+                label: const Text('Add New'),
+              ),
+              const SizedBox(width: 12),
+              OutlinedButton.icon(
+                onPressed: () => context.push('/dive-centers/import'),
+                icon: const Icon(Icons.download),
+                label: const Text('Import'),
+              ),
+            ],
           ),
         ],
       ),
