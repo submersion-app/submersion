@@ -14,6 +14,7 @@ import 'package:submersion/features/divers/presentation/pages/diver_edit_page.da
 import 'package:submersion/features/certifications/presentation/pages/certification_list_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_detail_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_edit_page.dart';
+import 'package:submersion/features/certifications/presentation/pages/certification_wallet_page.dart';
 import 'package:submersion/features/courses/presentation/pages/course_list_page.dart';
 import 'package:submersion/features/courses/presentation/pages/course_detail_page.dart';
 import 'package:submersion/features/courses/presentation/pages/course_edit_page.dart';
@@ -402,6 +403,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               child: const CertificationListPage(),
             ),
             routes: [
+              GoRoute(
+                path: 'wallet',
+                name: 'certificationWallet',
+                builder: (context, state) => const CertificationWalletPage(),
+              ),
               GoRoute(
                 path: 'new',
                 name: 'newCertification',
