@@ -213,6 +213,70 @@ class LocationService {
     }
   }
 
+  /// Forward geocode an address to get coordinates
+  /// Uses OpenStreetMap Nominatim API
+  Future<LocationResult?> forwardGeocode(String address) async {
+    if (address.trim().isEmpty) {
+      return null;
+    }
+
+    try {
+      _log.info('Forward geocoding address: $address');
+
+      final url = Uri.parse(
+        'https://nominatim.openstreetmap.org/search?format=json&q=${Uri.encodeComponent(address)}&limit=1&addressdetails=1',
+      );
+
+      final client = HttpClient();
+      client.userAgent = 'Submersion Dive Log App';
+
+      final request = await client.getUrl(url);
+      final response = await request.close();
+
+      if (response.statusCode == 200) {
+        final body = await response.transform(utf8.decoder).join();
+        final json = jsonDecode(body) as List<dynamic>;
+
+        if (json.isNotEmpty) {
+          final result = json.first as Map<String, dynamic>;
+          final lat = double.tryParse(result['lat'] as String? ?? '');
+          final lon = double.tryParse(result['lon'] as String? ?? '');
+
+          if (lat != null && lon != null) {
+            final addressDetails =
+                result['address'] as Map<String, dynamic>? ?? {};
+            final country = addressDetails['country'] as String?;
+            final region =
+                addressDetails['state'] as String? ??
+                addressDetails['province'] as String? ??
+                addressDetails['region'] as String?;
+            final locality =
+                addressDetails['city'] as String? ??
+                addressDetails['town'] as String? ??
+                addressDetails['village'] as String?;
+
+            _log.info(
+              'Forward geocoded: $lat, $lon ($locality, $region, $country)',
+            );
+            return LocationResult(
+              latitude: lat,
+              longitude: lon,
+              country: country,
+              region: region,
+              locality: locality,
+            );
+          }
+        }
+      }
+
+      _log.warning('Forward geocoding returned no results for: $address');
+      return null;
+    } catch (e, stackTrace) {
+      _log.error('Forward geocoding failed', e, stackTrace);
+      return null;
+    }
+  }
+
   /// Calculate distance between two points in meters
   double distanceBetween(
     double startLat,

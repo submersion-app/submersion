@@ -1,10 +1,16 @@
+import 'dart:io' show Platform;
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/location_picker_map.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
 class DiveCenterEditPage extends ConsumerStatefulWidget {
   final String? centerId;
@@ -44,6 +50,15 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
   bool _isLoading = false;
   bool _isInitialized = false;
   bool _hasChanges = false;
+  bool _isGettingLocation = false;
+  bool _isGeocoding = false;
+
+  // Focus nodes for auto-geocoding on blur
+  final _streetFocusNode = FocusNode();
+  final _cityFocusNode = FocusNode();
+  final _stateProvinceFocusNode = FocusNode();
+  final _postalCodeFocusNode = FocusNode();
+  final _countryFocusNode = FocusNode();
 
   static const List<String> _availableAffiliations = [
     'PADI',
@@ -87,6 +102,28 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
     _notesController.addListener(_onFieldChanged);
     _latitudeController.addListener(_onFieldChanged);
     _longitudeController.addListener(_onFieldChanged);
+
+    // Add focus listeners for auto-geocoding when leaving address fields
+    _streetFocusNode.addListener(_onAddressFieldFocusChange);
+    _cityFocusNode.addListener(_onAddressFieldFocusChange);
+    _stateProvinceFocusNode.addListener(_onAddressFieldFocusChange);
+    _postalCodeFocusNode.addListener(_onAddressFieldFocusChange);
+    _countryFocusNode.addListener(_onAddressFieldFocusChange);
+  }
+
+  void _onAddressFieldFocusChange() {
+    // Check if any address field just lost focus (all have hasFocus == false now)
+    final anyAddressFieldHasFocus =
+        _streetFocusNode.hasFocus ||
+        _cityFocusNode.hasFocus ||
+        _stateProvinceFocusNode.hasFocus ||
+        _postalCodeFocusNode.hasFocus ||
+        _countryFocusNode.hasFocus;
+
+    // Only trigger when all address fields have lost focus
+    if (!anyAddressFieldHasFocus) {
+      _onAddressFieldBlur();
+    }
   }
 
   void _onFieldChanged() {
@@ -109,6 +146,11 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
     _notesController.dispose();
     _latitudeController.dispose();
     _longitudeController.dispose();
+    _streetFocusNode.dispose();
+    _cityFocusNode.dispose();
+    _stateProvinceFocusNode.dispose();
+    _postalCodeFocusNode.dispose();
+    _countryFocusNode.dispose();
     super.dispose();
   }
 
@@ -315,6 +357,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
           const SizedBox(height: 16),
           TextFormField(
             controller: _streetController,
+            focusNode: _streetFocusNode,
             decoration: const InputDecoration(
               labelText: 'Street Address',
               hintText: 'e.g., 123 Beach Road',
@@ -328,6 +371,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
                 flex: 2,
                 child: TextFormField(
                   controller: _cityController,
+                  focusNode: _cityFocusNode,
                   decoration: const InputDecoration(
                     labelText: 'City',
                     hintText: 'e.g., Phuket',
@@ -339,6 +383,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
               Expanded(
                 child: TextFormField(
                   controller: _stateProvinceController,
+                  focusNode: _stateProvinceFocusNode,
                   decoration: const InputDecoration(
                     labelText: 'State/Province',
                     hintText: 'e.g., Phuket',
@@ -354,6 +399,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
               Expanded(
                 child: TextFormField(
                   controller: _postalCodeController,
+                  focusNode: _postalCodeFocusNode,
                   decoration: const InputDecoration(
                     labelText: 'Postal Code',
                     hintText: 'e.g., 83100',
@@ -366,6 +412,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
                 flex: 2,
                 child: TextFormField(
                   controller: _countryController,
+                  focusNode: _countryFocusNode,
                   decoration: const InputDecoration(
                     labelText: 'Country',
                     hintText: 'e.g., Thailand',
@@ -464,67 +511,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
           const SizedBox(height: 24),
 
           // Coordinates Section
-          Text(
-            'GPS Coordinates',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Optional - for map display',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.outline,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: TextFormField(
-                  controller: _latitudeController,
-                  decoration: const InputDecoration(
-                    labelText: 'Latitude',
-                    hintText: '10.4613',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  validator: (value) {
-                    if (value != null && value.isNotEmpty) {
-                      final lat = double.tryParse(value);
-                      if (lat == null || lat < -90 || lat > 90) {
-                        return 'Invalid latitude';
-                      }
-                    }
-                    return null;
-                  },
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: TextFormField(
-                  controller: _longitudeController,
-                  decoration: const InputDecoration(
-                    labelText: 'Longitude',
-                    hintText: '99.8359',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  validator: (value) {
-                    if (value != null && value.isNotEmpty) {
-                      final lng = double.tryParse(value);
-                      if (lng == null || lng < -180 || lng > 180) {
-                        return 'Invalid longitude';
-                      }
-                    }
-                    return null;
-                  },
-                ),
-              ),
-            ],
-          ),
+          _buildGpsSection(context),
 
           const SizedBox(height: 24),
 
@@ -663,6 +650,134 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
     }
   }
 
+  Widget _buildGpsSection(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.gps_fixed),
+                const SizedBox(width: 8),
+                Text(
+                  'GPS Coordinates',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Choose a location method or enter coordinates manually',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                FilledButton.tonalIcon(
+                  onPressed: _isGettingLocation ? null : _useMyLocation,
+                  icon: _isGettingLocation
+                      ? SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: colorScheme.onSecondaryContainer,
+                          ),
+                        )
+                      : const Icon(Icons.my_location, size: 18),
+                  label: Text(
+                    _isGettingLocation ? 'Getting...' : 'Use My Location',
+                  ),
+                ),
+                OutlinedButton.icon(
+                  onPressed: _pickFromMap,
+                  icon: const Icon(Icons.map, size: 18),
+                  label: const Text('Pick from Map'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: _isGeocoding ? null : _geocodeFromAddress,
+                  icon: _isGeocoding
+                      ? SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: colorScheme.primary,
+                          ),
+                        )
+                      : const Icon(Icons.search, size: 18),
+                  label: Text(
+                    _isGeocoding ? 'Looking up...' : 'Lookup from Address',
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _latitudeController,
+                    decoration: const InputDecoration(
+                      labelText: 'Latitude',
+                      hintText: 'e.g., 10.4613',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                      signed: true,
+                    ),
+                    validator: (value) {
+                      if (value != null && value.isNotEmpty) {
+                        final lat = double.tryParse(value);
+                        if (lat == null || lat < -90 || lat > 90) {
+                          return 'Invalid latitude';
+                        }
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: TextFormField(
+                    controller: _longitudeController,
+                    decoration: const InputDecoration(
+                      labelText: 'Longitude',
+                      hintText: 'e.g., 99.8359',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                      signed: true,
+                    ),
+                    validator: (value) {
+                      if (value != null && value.isNotEmpty) {
+                        final lng = double.tryParse(value);
+                        if (lng == null || lng < -180 || lng > 180) {
+                          return 'Invalid longitude';
+                        }
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildRatingSelector() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -712,5 +827,164 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
         ),
       ],
     );
+  }
+
+  Future<void> _useMyLocation() async {
+    setState(() => _isGettingLocation = true);
+
+    try {
+      final locationService = LocationService.instance;
+      final result = await locationService.getCurrentLocation(
+        includeGeocoding: true,
+      );
+
+      if (result == null) {
+        if (mounted) {
+          final isMobile = !kIsWeb && (Platform.isIOS || Platform.isAndroid);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                isMobile
+                    ? 'Unable to get location. Please check permissions.'
+                    : 'Unable to get location. Location services may not be available.',
+              ),
+              action: isMobile
+                  ? SnackBarAction(
+                      label: 'Settings',
+                      onPressed: () => locationService.openAppSettings(),
+                    )
+                  : null,
+            ),
+          );
+        }
+        return;
+      }
+
+      setState(() {
+        _latitudeController.text = result.latitude.toStringAsFixed(6);
+        _longitudeController.text = result.longitude.toStringAsFixed(6);
+        _hasChanges = true;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Location captured${result.accuracy != null ? ' (±${result.accuracy!.toStringAsFixed(0)}m)' : ''}',
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isGettingLocation = false);
+      }
+    }
+  }
+
+  Future<void> _pickFromMap() async {
+    LatLng? initialLocation;
+    final lat = double.tryParse(_latitudeController.text);
+    final lng = double.tryParse(_longitudeController.text);
+    if (lat != null && lng != null) {
+      initialLocation = LatLng(lat, lng);
+    }
+
+    final result = await Navigator.of(context).push<PickedLocation>(
+      MaterialPageRoute(
+        builder: (context) =>
+            LocationPickerMap(initialLocation: initialLocation),
+      ),
+    );
+
+    if (result != null && mounted) {
+      setState(() {
+        _latitudeController.text = result.latitude.toStringAsFixed(6);
+        _longitudeController.text = result.longitude.toStringAsFixed(6);
+        _hasChanges = true;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Location selected from map')),
+      );
+    }
+  }
+
+  /// Build full address string from address fields for geocoding
+  String _buildFullAddress() {
+    final parts = <String>[];
+    if (_streetController.text.trim().isNotEmpty) {
+      parts.add(_streetController.text.trim());
+    }
+    if (_cityController.text.trim().isNotEmpty) {
+      parts.add(_cityController.text.trim());
+    }
+    if (_stateProvinceController.text.trim().isNotEmpty) {
+      parts.add(_stateProvinceController.text.trim());
+    }
+    if (_postalCodeController.text.trim().isNotEmpty) {
+      parts.add(_postalCodeController.text.trim());
+    }
+    if (_countryController.text.trim().isNotEmpty) {
+      parts.add(_countryController.text.trim());
+    }
+    return parts.join(', ');
+  }
+
+  Future<void> _geocodeFromAddress() async {
+    final address = _buildFullAddress();
+    if (address.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter an address to look up coordinates'),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isGeocoding = true);
+
+    try {
+      final result = await LocationService.instance.forwardGeocode(address);
+
+      if (result == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Could not find coordinates for this address'),
+            ),
+          );
+        }
+        return;
+      }
+
+      setState(() {
+        _latitudeController.text = result.latitude.toStringAsFixed(6);
+        _longitudeController.text = result.longitude.toStringAsFixed(6);
+        _hasChanges = true;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Coordinates found from address')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isGeocoding = false);
+      }
+    }
+  }
+
+  Future<void> _onAddressFieldBlur() async {
+    // Only auto-geocode if we have address data but no coordinates
+    final hasAddress = _buildFullAddress().isNotEmpty;
+    final hasCoordinates =
+        _latitudeController.text.trim().isNotEmpty &&
+        _longitudeController.text.trim().isNotEmpty;
+
+    if (hasAddress && !hasCoordinates && !_isGeocoding) {
+      await _geocodeFromAddress();
+    }
   }
 }
