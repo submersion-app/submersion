@@ -86,18 +86,27 @@ class _CertificationShareSheetState extends State<CertificationShareSheet> {
             ),
             const SizedBox(height: 16),
 
-            // Offstage ecard for capture
-            Offstage(
-              offstage: true,
-              child: RepaintBoundary(
-                key: _cardKey,
-                child: SizedBox(
-                  width: 400,
-                  child: CertificationEcard(
-                    certification: widget.certification,
-                    diverName: widget.diverName,
+            // Hidden ecard for capture - uses Stack with Clip.none so it's
+            // painted (required for toImage) but takes no layout space
+            SizedBox(
+              height: 0,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Opacity(
+                    opacity: 0,
+                    child: RepaintBoundary(
+                      key: _cardKey,
+                      child: SizedBox(
+                        width: 400,
+                        child: CertificationEcard(
+                          certification: widget.certification,
+                          diverName: widget.diverName,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
           ],
