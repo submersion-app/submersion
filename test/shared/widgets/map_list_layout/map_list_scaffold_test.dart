@@ -8,22 +8,21 @@ void main() {
     required double width,
     Widget? infoCard,
     Widget? floatingActionButton,
+    VoidCallback? onBackPressed,
   }) {
     return ProviderScope(
       child: MaterialApp(
         home: MediaQuery(
           data: MediaQueryData(size: Size(width, 800)),
-          child: Scaffold(
-            body: MapListScaffold(
-              sectionKey: 'test',
-              title: 'Test Map',
-              listPane: const Text('List Content'),
-              mapPane: Container(color: Colors.blue, child: const Text('Map')),
-              infoCard: infoCard,
-              floatingActionButton: floatingActionButton,
-              actions: const [Icon(Icons.settings)],
-              onBackPressed: () {},
-            ),
+          child: MapListScaffold(
+            sectionKey: 'test',
+            title: 'Test Map',
+            listPane: const Text('List Content'),
+            mapPane: Container(color: Colors.blue, child: const Text('Map')),
+            infoCard: infoCard,
+            floatingActionButton: floatingActionButton,
+            actions: const [Icon(Icons.settings)],
+            onBackPressed: onBackPressed ?? () {},
           ),
         ),
       ),
@@ -87,5 +86,51 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byIcon(Icons.settings), findsOneWidget);
+  });
+
+  testWidgets('back button triggers onBackPressed callback', (tester) async {
+    var wasCalled = false;
+    await tester.pumpWidget(
+      buildTestWidget(width: 1200, onBackPressed: () => wasCalled = true),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.arrow_back));
+    expect(wasCalled, isTrue);
+  });
+
+  testWidgets('collapse button hides list and shows expand in app bar', (
+    tester,
+  ) async {
+    await tester.pumpWidget(buildTestWidget(width: 1200));
+    await tester.pumpAndSettle();
+
+    // List should be visible initially
+    expect(find.text('List Content'), findsOneWidget);
+    expect(find.byIcon(Icons.chevron_right), findsNothing);
+
+    // Find and tap collapse button (chevron_left)
+    await tester.tap(find.byIcon(Icons.chevron_left));
+    await tester.pumpAndSettle();
+
+    // Expand button should now appear in app bar
+    expect(find.byIcon(Icons.chevron_right), findsOneWidget);
+  });
+
+  testWidgets('expand button in app bar restores list', (tester) async {
+    await tester.pumpWidget(buildTestWidget(width: 1200));
+    await tester.pumpAndSettle();
+
+    // Collapse the list first
+    await tester.tap(find.byIcon(Icons.chevron_left));
+    await tester.pumpAndSettle();
+
+    // Tap expand button in app bar
+    await tester.tap(find.byIcon(Icons.chevron_right));
+    await tester.pumpAndSettle();
+
+    // List should be visible again, expand button gone
+    expect(find.text('List Content'), findsOneWidget);
+    expect(find.byIcon(Icons.chevron_right), findsNothing);
   });
 }

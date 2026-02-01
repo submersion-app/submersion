@@ -10,6 +10,10 @@ import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.d
 /// On desktop (>=1100px): Shows collapsible list pane on left, map on right.
 /// On mobile (<1100px): Shows only the map (existing behavior).
 class MapListScaffold extends ConsumerWidget {
+  /// Bottom offset for info card on mobile to clear FAB.
+  /// Calculated as: FAB height (56) + margin (16) + spacing (8) = 80
+  static const double _mobileInfoCardBottomOffset = 80;
+
   final String sectionKey;
   final String title;
   final Widget listPane;
@@ -33,6 +37,16 @@ class MapListScaffold extends ConsumerWidget {
     this.listWidth = 440,
   });
 
+  /// Builds the leading back button for the AppBar if onBackPressed is provided.
+  Widget? _buildLeadingButton() {
+    if (onBackPressed == null) return null;
+    return IconButton(
+      icon: const Icon(Icons.arrow_back),
+      tooltip: 'Back',
+      onPressed: onBackPressed,
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDesktop = ResponsiveBreakpoints.isMasterDetail(context);
@@ -44,19 +58,19 @@ class MapListScaffold extends ConsumerWidget {
       return Scaffold(
         appBar: AppBar(
           title: Text(title),
-          leading: onBackPressed != null
-              ? IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed: onBackPressed,
-                )
-              : null,
+          leading: _buildLeadingButton(),
           actions: actions,
         ),
         body: Stack(
           children: [
             mapPane,
             if (infoCard != null)
-              Positioned(left: 16, right: 16, bottom: 80, child: infoCard!),
+              Positioned(
+                left: 16,
+                right: 16,
+                bottom: _mobileInfoCardBottomOffset,
+                child: infoCard!,
+              ),
           ],
         ),
         floatingActionButton: floatingActionButton,
@@ -67,12 +81,7 @@ class MapListScaffold extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
-        leading: onBackPressed != null
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: onBackPressed,
-              )
-            : null,
+        leading: _buildLeadingButton(),
         actions: [
           // Expand button when collapsed
           if (selectionState.isCollapsed)
