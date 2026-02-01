@@ -133,6 +133,11 @@ class _CertificationListContentState
         title: const Text('Certifications'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.wallet),
+            tooltip: 'Wallet View',
+            onPressed: () => context.push('/certifications/wallet'),
+          ),
+          IconButton(
             icon: const Icon(Icons.sort),
             tooltip: 'Sort',
             onPressed: () => _showSortSheet(context),
@@ -175,6 +180,11 @@ class _CertificationListContentState
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
+          IconButton(
+            icon: const Icon(Icons.wallet, size: 20),
+            tooltip: 'Wallet View',
+            onPressed: () => context.push('/certifications/wallet'),
+          ),
           IconButton(
             icon: const Icon(Icons.sort, size: 20),
             tooltip: 'Sort',
