@@ -51,9 +51,9 @@ This document contains only the features and tasks that are **not yet completed*
 
 ### 7.2 Digital Signatures
 
-**Remaining:**
-- [ ] Buddy signatures (student/observer sign-off)
-- [ ] Display signatures in PDF export
+**Completed:**
+- [x] Buddy signatures (student/observer sign-off)
+- [x] Display signatures in PDF export
 
 ---
 
@@ -621,10 +621,9 @@ This document contains only the features and tasks that are **not yet completed*
 2. Remaining export formats (DAN DL7, Excel, KML)
 3. Import from other dive log apps
 4. Accessibility improvements
-5. Training log PDF export (with signatures)
-6. Species detail enhancements
+5. Species detail enhancements
 
 ---
 
-**Document Version:** 1.7
-**Updated:** 2026-01-31 (Buddy Management: Contact import, share dives with buddies completed)
+**Document Version:** 1.8
+**Updated:** 2026-01-31 (Digital Signatures: Buddy signatures and PDF export completed)
