@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -125,6 +126,10 @@ class CourseDetailPage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
           ],
+
+          // Earned Certification
+          if (course.certificationId != null)
+            _buildCertificationSection(context, ref, course.certificationId!),
 
           // Training dives
           Card(
@@ -369,6 +374,93 @@ class CourseDetailPage extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildCertificationSection(
+    BuildContext context,
+    WidgetRef ref,
+    String certificationId,
+  ) {
+    final certAsync = ref.watch(certificationByIdProvider(certificationId));
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Column(
+      children: [
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSectionHeader(
+                  context,
+                  'Earned Certification',
+                  Icons.card_membership,
+                ),
+                const SizedBox(height: 12),
+                certAsync.when(
+                  data: (cert) {
+                    if (cert == null) {
+                      return Text(
+                        'Certification not found',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      );
+                    }
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Center(
+                          child: Text(
+                            _abbreviateAgency(cert.agency.displayName),
+                            style: TextStyle(
+                              color: colorScheme.onPrimaryContainer,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ),
+                      ),
+                      title: Text(cert.name),
+                      subtitle: Text(cert.agency.displayName),
+                      trailing: Icon(
+                        Icons.chevron_right,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      onTap: () => context.push('/certifications/${cert.id}'),
+                    );
+                  },
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  error: (error, stack) => Text(
+                    'Error loading certification',
+                    style: TextStyle(color: colorScheme.error),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  /// Safely abbreviate agency name to at most 4 characters
+  String _abbreviateAgency(String displayName) {
+    if (displayName.length <= 4) {
+      return displayName;
+    }
+    return displayName.substring(0, 4);
   }
 
   Widget _buildEmbeddedHeader(
