@@ -71,18 +71,18 @@ class _BuddySignatureRequestSheetState
                     const SizedBox(height: 8),
                     Text(
                       buddy.name,
-                      style:
-                          Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.primary,
-                              ),
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.primary,
+                          ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       widget.buddyWithRole.role.displayName,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                     ),
                     const SizedBox(height: 24),
                     FilledButton.icon(
@@ -162,9 +162,9 @@ class _BuddySignatureCaptureState extends State<_BuddySignatureCapture> {
 
   void _handleSave() {
     if (_strokes.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please draw a signature')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please draw a signature')));
       return;
     }
 
@@ -232,8 +232,8 @@ class _BuddySignatureCaptureState extends State<_BuddySignatureCapture> {
           child: Text(
             'Draw your signature above',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
         ),
 
@@ -245,8 +245,9 @@ class _BuddySignatureCaptureState extends State<_BuddySignatureCapture> {
           child: Row(
             children: [
               OutlinedButton.icon(
-                onPressed:
-                    _strokes.isEmpty && _currentStroke.isEmpty ? null : _clear,
+                onPressed: _strokes.isEmpty && _currentStroke.isEmpty
+                    ? null
+                    : _clear,
                 icon: const Icon(Icons.clear),
                 label: const Text('Clear'),
               ),

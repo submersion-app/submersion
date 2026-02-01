@@ -69,16 +69,16 @@ class BuddySignatureCard extends StatelessWidget {
                     Text(
                       buddyWithRole.role.displayName,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                     ),
                     if (hasSigned && signature != null) ...[
                       const SizedBox(height: 4),
                       Text(
                         'Signed ${DateFormat.yMMMd().format(signature!.signedAt)}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: colorScheme.primary,
-                            ),
+                          color: colorScheme.primary,
+                        ),
                       ),
                     ],
                   ],

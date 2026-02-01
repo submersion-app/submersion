@@ -28,12 +28,8 @@ class BuddySignaturesSection extends ConsumerWidget {
         }
 
         return signaturesAsync.when(
-          data: (signatures) => _buildSection(
-            context,
-            ref,
-            buddies,
-            signatures,
-          ),
+          data: (signatures) =>
+              _buildSection(context, ref, buddies, signatures),
           loading: () => _buildLoadingSection(context),
           error: (_, _) => const SizedBox.shrink(),
         );

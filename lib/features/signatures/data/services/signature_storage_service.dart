@@ -232,7 +232,9 @@ class SignatureStorageService {
       final id = _uuid.v4();
       final now = DateTime.now();
 
-      await _db.into(_db.media).insert(
+      await _db
+          .into(_db.media)
+          .insert(
             MediaCompanion(
               id: Value(id),
               diveId: Value(diveId),
