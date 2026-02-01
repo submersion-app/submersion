@@ -27,6 +27,8 @@ import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/signatures/data/services/signature_storage_service.dart';
+import 'package:submersion/features/signatures/domain/entities/signature.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 
 /// Result class for comprehensive UDDF import
@@ -503,10 +505,22 @@ class ExportService {
     String title = 'Dive Logbook',
     List<Sighting>? allSightings,
   }) async {
+    // Load all signatures for these dives
+    final signatureService = SignatureStorageService();
+    final diveSignatures = <String, List<Signature>>{};
+
+    for (final dive in dives) {
+      final sigs = await signatureService.getAllSignaturesForDive(dive.id);
+      if (sigs.isNotEmpty) {
+        diveSignatures[dive.id] = sigs;
+      }
+    }
+
     final pdfBytes = await _buildDivePdf(
       dives,
       title: title,
       allSightings: allSightings,
+      diveSignatures: diveSignatures.isNotEmpty ? diveSignatures : null,
     );
     final fileName = 'dive_logbook_${_dateFormat.format(DateTime.now())}.pdf';
     return (bytes: pdfBytes, fileName: fileName);
@@ -535,6 +549,7 @@ class ExportService {
     List<Dive> dives, {
     String title = 'Dive Logbook',
     List<Sighting>? allSightings,
+    Map<String, List<Signature>>? diveSignatures,
   }) async {
     final pdf = pw.Document();
 
@@ -649,7 +664,10 @@ class ExportService {
             children: [
               ...pageDives.expand(
                 (dive) => [
-                  _buildPdfDiveEntry(dive),
+                  _buildPdfDiveEntry(
+                    dive,
+                    signatures: diveSignatures?[dive.id],
+                  ),
                   pw.SizedBox(height: 16),
                   pw.Divider(),
                   pw.SizedBox(height: 16),
@@ -680,7 +698,7 @@ class ExportService {
     );
   }
 
-  pw.Widget _buildPdfDiveEntry(Dive dive) {
+  pw.Widget _buildPdfDiveEntry(Dive dive, {List<Signature>? signatures}) {
     final tank = dive.tanks.isNotEmpty ? dive.tanks.first : null;
 
     return pw.Container(
@@ -752,6 +770,88 @@ class ExportService {
               style: const pw.TextStyle(fontSize: 12, color: PdfColors.amber),
             ),
           ],
+          // Signatures section
+          if (signatures != null && signatures.isNotEmpty) ...[
+            pw.SizedBox(height: 8),
+            pw.Text(
+              'Verified by:',
+              style: pw.TextStyle(
+                fontSize: 10,
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.grey700,
+              ),
+            ),
+            pw.SizedBox(height: 4),
+            pw.Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: signatures
+                  .map((sig) => _buildPdfSignatureBlock(sig))
+                  .toList(),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildPdfSignatureBlock(Signature signature) {
+    // Try to load the signature image
+    pw.ImageProvider? signatureImage;
+    final file = File(signature.filePath);
+    if (file.existsSync()) {
+      try {
+        final bytes = file.readAsBytesSync();
+        signatureImage = pw.MemoryImage(bytes);
+      } catch (_) {
+        // Ignore image load errors
+      }
+    }
+
+    return pw.Container(
+      width: 80,
+      padding: const pw.EdgeInsets.all(4),
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(color: PdfColors.grey300),
+        borderRadius: pw.BorderRadius.circular(4),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.center,
+        children: [
+          if (signatureImage != null)
+            pw.SizedBox(
+              height: 30,
+              child: pw.Image(signatureImage, fit: pw.BoxFit.contain),
+            )
+          else
+            pw.SizedBox(
+              height: 30,
+              child: pw.Center(
+                child: pw.Text(
+                  '[Signature]',
+                  style: const pw.TextStyle(
+                    fontSize: 8,
+                    color: PdfColors.grey500,
+                  ),
+                ),
+              ),
+            ),
+          pw.SizedBox(height: 2),
+          pw.Text(
+            signature.signerName,
+            style: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold),
+            textAlign: pw.TextAlign.center,
+          ),
+          pw.Text(
+            signature.isBuddySignature ? 'Buddy' : 'Instructor',
+            style: const pw.TextStyle(fontSize: 6, color: PdfColors.grey600),
+            textAlign: pw.TextAlign.center,
+          ),
+          pw.Text(
+            _dateFormat.format(signature.signedAt),
+            style: const pw.TextStyle(fontSize: 6, color: PdfColors.grey600),
+            textAlign: pw.TextAlign.center,
+          ),
         ],
       ),
     );
