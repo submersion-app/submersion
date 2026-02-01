@@ -53,6 +53,7 @@ import 'package:submersion/features/media/presentation/widgets/dive_media_sectio
 import 'package:submersion/features/signatures/presentation/providers/signature_providers.dart';
 import 'package:submersion/features/signatures/presentation/widgets/signature_capture_widget.dart';
 import 'package:submersion/features/signatures/presentation/widgets/signature_display_widget.dart';
+import 'package:submersion/features/signatures/presentation/widgets/buddy_signatures_section.dart';
 
 /// Calculate normalization factor to align profile-based SAC with tank-based SAC.
 /// The segments are calculated from profile pressure data, but dive.sacPressure
@@ -223,6 +224,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             ],
             const SizedBox(height: 24),
             _buildBuddiesSection(context, ref),
+            const SizedBox(height: 24),
+            BuddySignaturesSection(diveId: diveId),
             const SizedBox(height: 24),
             if (dive.tanks.isNotEmpty) ...[
               _buildTanksSection(context, dive, units),
