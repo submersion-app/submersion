@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_ecard_stack.dart';
+import 'package:submersion/features/certifications/presentation/widgets/certification_share_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
 /// Full-screen page displaying the certification card stack with navigation
@@ -67,10 +68,16 @@ class _CertificationWalletPageState
   }
 
   void _showShareSheet(BuildContext context, Certification certification) {
-    // TODO: Replace with CertificationShareSheet when Task 6 is complete
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Share coming soon')));
+    final diverName = ref.read(currentDiverProvider).value?.name ?? 'Diver';
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => CertificationShareSheet(
+        certification: certification,
+        diverName: diverName,
+      ),
+    );
   }
 
   @override
