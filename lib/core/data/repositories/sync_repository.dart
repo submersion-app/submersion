@@ -475,12 +475,15 @@ class SyncRepository {
     required String recordId,
     required int deletedAt,
   }) async {
+    // Use .get() instead of .getSingleOrNull() to handle cases where
+    // duplicate deletion entries exist (the schema allows this since
+    // the primary key is a UUID, not the entityType+recordId combo).
     final existing =
         await (_db.select(_db.deletionLog)
               ..where((t) => t.entityType.equals(entityType))
               ..where((t) => t.recordId.equals(recordId)))
-            .getSingleOrNull();
-    if (existing != null) return;
+            .get();
+    if (existing.isNotEmpty) return;
     await logDeletion(
       entityType: entityType,
       recordId: recordId,
