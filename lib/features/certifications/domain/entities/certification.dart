@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -14,8 +16,8 @@ class Certification extends Equatable {
   final DateTime? expiryDate;
   final String? instructorName;
   final String? instructorNumber;
-  final String? photoFrontPath;
-  final String? photoBackPath;
+  final Uint8List? photoFront;
+  final Uint8List? photoBack;
   final String notes;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -31,12 +33,15 @@ class Certification extends Equatable {
     this.expiryDate,
     this.instructorName,
     this.instructorNumber,
-    this.photoFrontPath,
-    this.photoBackPath,
+    this.photoFront,
+    this.photoBack,
     this.notes = '',
     required this.createdAt,
     required this.updatedAt,
   });
+
+  /// Check if certification has any photos
+  bool get hasPhotos => photoFront != null || photoBack != null;
 
   /// Check if certification is expired
   bool get isExpired {
@@ -80,8 +85,8 @@ class Certification extends Equatable {
     DateTime? expiryDate,
     String? instructorName,
     String? instructorNumber,
-    String? photoFrontPath,
-    String? photoBackPath,
+    Uint8List? photoFront,
+    Uint8List? photoBack,
     String? notes,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -97,11 +102,32 @@ class Certification extends Equatable {
       expiryDate: expiryDate ?? this.expiryDate,
       instructorName: instructorName ?? this.instructorName,
       instructorNumber: instructorNumber ?? this.instructorNumber,
-      photoFrontPath: photoFrontPath ?? this.photoFrontPath,
-      photoBackPath: photoBackPath ?? this.photoBackPath,
+      photoFront: photoFront ?? this.photoFront,
+      photoBack: photoBack ?? this.photoBack,
       notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  /// Create a copy with photos explicitly cleared
+  Certification clearPhotos({bool clearFront = false, bool clearBack = false}) {
+    return Certification(
+      id: id,
+      diverId: diverId,
+      name: name,
+      agency: agency,
+      level: level,
+      cardNumber: cardNumber,
+      issueDate: issueDate,
+      expiryDate: expiryDate,
+      instructorName: instructorName,
+      instructorNumber: instructorNumber,
+      photoFront: clearFront ? null : photoFront,
+      photoBack: clearBack ? null : photoBack,
+      notes: notes,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
     );
   }
 
@@ -129,8 +155,8 @@ class Certification extends Equatable {
     expiryDate,
     instructorName,
     instructorNumber,
-    photoFrontPath,
-    photoBackPath,
+    photoFront,
+    photoBack,
     notes,
     createdAt,
     updatedAt,

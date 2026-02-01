@@ -1,4 +1,8 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -39,6 +43,10 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
   CertificationLevel? _level;
   DateTime? _issueDate;
   DateTime? _expiryDate;
+  Uint8List? _photoFront;
+  Uint8List? _photoBack;
+
+  final _imagePicker = ImagePicker();
 
   bool _isLoading = false;
   bool _isSaving = false;
@@ -84,6 +92,8 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
           _level = cert.level;
           _issueDate = cert.issueDate;
           _expiryDate = cert.expiryDate;
+          _photoFront = cert.photoFront;
+          _photoBack = cert.photoBack;
           _isLoading = false;
           _hasChanges = false;
         });
@@ -96,6 +106,156 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
         );
       }
     }
+  }
+
+  /// Pick a photo from gallery or camera and return as bytes
+  Future<Uint8List?> _pickPhoto() async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Take Photo'),
+              onTap: () => Navigator.pop(context, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Choose from Gallery'),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (source == null) return null;
+
+    try {
+      final picked = await _imagePicker.pickImage(
+        source: source,
+        maxWidth: 2000,
+        maxHeight: 2000,
+        imageQuality: 85,
+      );
+
+      if (picked == null) return null;
+
+      // Read the file bytes directly
+      final file = File(picked.path);
+      return await file.readAsBytes();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error picking photo: $e')));
+      }
+      return null;
+    }
+  }
+
+  /// Build a photo card for front or back of certification card
+  Widget _buildPhotoCard(
+    BuildContext context, {
+    required String label,
+    required Uint8List? imageData,
+    required VoidCallback onPick,
+    required VoidCallback onDelete,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final hasPhoto = imageData != null;
+
+    return AspectRatio(
+      aspectRatio: 1.6, // Standard card aspect ratio
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onPick,
+          child: hasPhoto
+              ? Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.memory(
+                      imageData,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return _buildEmptyPhotoCard(
+                          context,
+                          label,
+                          colorScheme,
+                        );
+                      },
+                    ),
+                    Positioned(
+                      top: 4,
+                      left: 4,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black54,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          label,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: IconButton(
+                        icon: const Icon(Icons.close),
+                        color: Colors.white,
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.black54,
+                        ),
+                        iconSize: 18,
+                        onPressed: onDelete,
+                      ),
+                    ),
+                  ],
+                )
+              : _buildEmptyPhotoCard(context, label, colorScheme),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyPhotoCard(
+    BuildContext context,
+    String label,
+    ColorScheme colorScheme,
+  ) {
+    return Container(
+      decoration: BoxDecoration(color: colorScheme.surfaceContainerHighest),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.add_a_photo_outlined,
+            size: 32,
+            color: colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -279,27 +439,54 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.info_outline, size: 20),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'Photo support coming in v2.0',
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
-                                  ),
-                            ),
-                          ),
-                        ],
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildPhotoCard(
+                          context,
+                          label: 'Front',
+                          imageData: _photoFront,
+                          onPick: () async {
+                            final bytes = await _pickPhoto();
+                            if (bytes != null) {
+                              setState(() {
+                                _photoFront = bytes;
+                                _hasChanges = true;
+                              });
+                            }
+                          },
+                          onDelete: () {
+                            setState(() {
+                              _photoFront = null;
+                              _hasChanges = true;
+                            });
+                          },
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildPhotoCard(
+                          context,
+                          label: 'Back',
+                          imageData: _photoBack,
+                          onPick: () async {
+                            final bytes = await _pickPhoto();
+                            if (bytes != null) {
+                              setState(() {
+                                _photoBack = bytes;
+                                _hasChanges = true;
+                              });
+                            }
+                          },
+                          onDelete: () {
+                            setState(() {
+                              _photoBack = null;
+                              _hasChanges = true;
+                            });
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 24),
 
@@ -529,8 +716,8 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
         instructorNumber: _instructorNumberController.text.trim().isEmpty
             ? null
             : _instructorNumberController.text.trim(),
-        photoFrontPath: _originalCertification?.photoFrontPath,
-        photoBackPath: _originalCertification?.photoBackPath,
+        photoFront: _photoFront,
+        photoBack: _photoBack,
         notes: _notesController.text.trim(),
         createdAt: _originalCertification?.createdAt ?? now,
         updatedAt: now,

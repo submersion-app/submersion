@@ -392,6 +392,8 @@ class Media extends Table {
   TextColumn get signerName => text().nullable()();
   // Signature type (v22) - distinguishes instructor vs buddy signatures
   TextColumn get signatureType => text().nullable()(); // 'instructor' | 'buddy'
+  // Signature image data (v23) - stores signature as BLOB instead of file
+  BlobColumn get imageData => blob().nullable()();
   // Gallery photo fields (v2.0) - for underwater photography feature
   TextColumn get platformAssetId =>
       text().nullable()(); // Platform-specific asset ID for gallery photos
@@ -589,8 +591,12 @@ class Certifications extends Table {
   IntColumn get expiryDate => integer().nullable()(); // For certs that expire
   TextColumn get instructorName => text().nullable()();
   TextColumn get instructorNumber => text().nullable()();
-  TextColumn get photoFrontPath => text().nullable()(); // Front of cert card
-  TextColumn get photoBackPath => text().nullable()(); // Back of cert card
+  TextColumn get photoFrontPath => text()
+      .nullable()(); // Front of cert card (deprecated, kept for migration)
+  TextColumn get photoBackPath =>
+      text().nullable()(); // Back of cert card (deprecated, kept for migration)
+  BlobColumn get photoFront => blob().nullable()(); // Front of cert card (BLOB)
+  BlobColumn get photoBack => blob().nullable()(); // Back of cert card (BLOB)
   // Link to training course (bidirectional, v1.5)
   TextColumn get courseId =>
       text().nullable().references(Courses, #id, onDelete: KeyAction.setNull)();
@@ -980,7 +986,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 22;
+  int get schemaVersion => 23;
 
   @override
   MigrationStrategy get migration {
@@ -1461,6 +1467,18 @@ class AppDatabase extends _$AppDatabase {
           await customStatement(
             'ALTER TABLE media ADD COLUMN signature_type TEXT',
           );
+        }
+        if (from < 23) {
+          // Store photos as BLOBs instead of file paths for backup/export
+          // Add BLOB columns to certifications table
+          await customStatement(
+            'ALTER TABLE certifications ADD COLUMN photo_front BLOB',
+          );
+          await customStatement(
+            'ALTER TABLE certifications ADD COLUMN photo_back BLOB',
+          );
+          // Add BLOB column to media table for signatures
+          await customStatement('ALTER TABLE media ADD COLUMN image_data BLOB');
         }
       },
       beforeOpen: (details) async {

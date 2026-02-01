@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:equatable/equatable.dart';
 
 /// Type of signature (instructor for training courses, buddy for dive verification)
@@ -31,7 +33,7 @@ enum SignatureType {
 class Signature extends Equatable {
   final String id;
   final String diveId;
-  final String filePath;
+  final Uint8List? imageData;
   final String? signerId; // Buddy ID if signer is in system
   final String signerName; // Always populated
   final DateTime signedAt;
@@ -41,13 +43,16 @@ class Signature extends Equatable {
   const Signature({
     required this.id,
     required this.diveId,
-    required this.filePath,
+    this.imageData,
     this.signerId,
     required this.signerName,
     required this.signedAt,
     this.type,
     this.role,
   });
+
+  /// Check if signature has image data
+  bool get hasImage => imageData != null;
 
   /// Check if signature has a linked buddy record
   bool get hasLinkedBuddy => signerId != null;
@@ -62,7 +67,7 @@ class Signature extends Equatable {
   Signature copyWith({
     String? id,
     String? diveId,
-    String? filePath,
+    Uint8List? imageData,
     String? signerId,
     String? signerName,
     DateTime? signedAt,
@@ -72,7 +77,7 @@ class Signature extends Equatable {
     return Signature(
       id: id ?? this.id,
       diveId: diveId ?? this.diveId,
-      filePath: filePath ?? this.filePath,
+      imageData: imageData ?? this.imageData,
       signerId: signerId ?? this.signerId,
       signerName: signerName ?? this.signerName,
       signedAt: signedAt ?? this.signedAt,
@@ -85,7 +90,7 @@ class Signature extends Equatable {
   List<Object?> get props => [
     id,
     diveId,
-    filePath,
+    imageData,
     signerId,
     signerName,
     signedAt,

@@ -1,9 +1,7 @@
-import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:drift/drift.dart';
 import 'package:flutter/rendering.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
@@ -21,7 +19,6 @@ class SignatureStorageService {
   final _log = LoggerService.forClass(SignatureStorageService);
 
   static const String _signatureFileType = 'instructor_signature';
-  static const String _signatureDir = 'signatures';
   static const String _buddySignatureFileType = 'buddy_signature';
 
   /// Save a signature image and create media record
@@ -39,37 +36,23 @@ class SignatureStorageService {
     try {
       _log.info('Saving signature for dive: $diveId');
 
-      // Create signatures directory if needed
-      final directory = await getApplicationDocumentsDirectory();
-      final sigDir = Directory('${directory.path}/$_signatureDir');
-      if (!await sigDir.exists()) {
-        await sigDir.create(recursive: true);
-      }
-
-      // Generate unique filename
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final fileName = '${diveId}_$timestamp.png';
-      final filePath = '${sigDir.path}/$fileName';
-
-      // Save image file
-      final file = File(filePath);
-      await file.writeAsBytes(imageBytes);
-
-      // Create media record
       final id = _uuid.v4();
       final now = DateTime.now();
 
+      // Store signature bytes directly in database
       await _db
           .into(_db.media)
           .insert(
             MediaCompanion(
               id: Value(id),
               diveId: Value(diveId),
-              filePath: Value(filePath),
+              imageData: Value(imageBytes),
               fileType: const Value(_signatureFileType),
               takenAt: Value(now.millisecondsSinceEpoch),
               signerId: Value(signerId),
               signerName: Value(signerName),
+              createdAt: Value(now.millisecondsSinceEpoch),
+              updatedAt: Value(now.millisecondsSinceEpoch),
             ),
           );
 
@@ -85,7 +68,7 @@ class SignatureStorageService {
       return Signature(
         id: id,
         diveId: diveId,
-        filePath: filePath,
+        imageData: imageBytes,
         signerId: signerId,
         signerName: signerName,
         signedAt: now,
@@ -147,34 +130,21 @@ class SignatureStorageService {
     }
   }
 
-  /// Delete a signature and its file
+  /// Delete a signature
   Future<void> deleteSignature(String signatureId) async {
     try {
       _log.info('Deleting signature: $signatureId');
 
-      // Get the file path first
-      final query = _db.select(_db.media)
-        ..where((t) => t.id.equals(signatureId));
-      final row = await query.getSingleOrNull();
+      // Delete the media record (no file cleanup needed - data is in DB)
+      await (_db.delete(
+        _db.media,
+      )..where((t) => t.id.equals(signatureId))).go();
 
-      if (row != null) {
-        // Delete the file
-        final file = File(row.filePath);
-        if (await file.exists()) {
-          await file.delete();
-        }
-
-        // Delete the media record
-        await (_db.delete(
-          _db.media,
-        )..where((t) => t.id.equals(signatureId))).go();
-
-        await _syncRepository.logDeletion(
-          entityType: 'media',
-          recordId: signatureId,
-        );
-        SyncEventBus.notifyLocalChange();
-      }
+      await _syncRepository.logDeletion(
+        entityType: 'media',
+        recordId: signatureId,
+      );
+      SyncEventBus.notifyLocalChange();
 
       _log.info('Deleted signature: $signatureId');
     } catch (e, stackTrace) {
@@ -212,33 +182,17 @@ class SignatureStorageService {
     try {
       _log.info('Saving buddy signature for dive: $diveId, buddy: $buddyId');
 
-      // Create signatures directory if needed
-      final directory = await getApplicationDocumentsDirectory();
-      final sigDir = Directory('${directory.path}/$_signatureDir');
-      if (!await sigDir.exists()) {
-        await sigDir.create(recursive: true);
-      }
-
-      // Generate unique filename
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final fileName = '${diveId}_buddy_${buddyId}_$timestamp.png';
-      final filePath = '${sigDir.path}/$fileName';
-
-      // Save image file
-      final file = File(filePath);
-      await file.writeAsBytes(imageBytes);
-
-      // Create media record
       final id = _uuid.v4();
       final now = DateTime.now();
 
+      // Store signature bytes directly in database
       await _db
           .into(_db.media)
           .insert(
             MediaCompanion(
               id: Value(id),
               diveId: Value(diveId),
-              filePath: Value(filePath),
+              imageData: Value(imageBytes),
               fileType: const Value(_buddySignatureFileType),
               takenAt: Value(now.millisecondsSinceEpoch),
               signerId: Value(buddyId),
@@ -261,7 +215,7 @@ class SignatureStorageService {
       return Signature(
         id: id,
         diveId: diveId,
-        filePath: filePath,
+        imageData: imageBytes,
         signerId: buddyId,
         signerName: buddyName,
         signedAt: now,
@@ -407,7 +361,7 @@ class SignatureStorageService {
     return Signature(
       id: row.id,
       diveId: row.diveId!,
-      filePath: row.filePath,
+      imageData: row.imageData,
       signerId: row.signerId,
       signerName: row.signerName ?? 'Unknown',
       signedAt: DateTime.fromMillisecondsSinceEpoch(row.takenAt ?? 0),
@@ -420,7 +374,7 @@ class SignatureStorageService {
     return Signature(
       id: row.data['id'] as String,
       diveId: row.data['dive_id'] as String,
-      filePath: row.data['file_path'] as String,
+      imageData: row.data['image_data'] as Uint8List?,
       signerId: row.data['signer_id'] as String?,
       signerName: (row.data['signer_name'] as String?) ?? 'Unknown',
       signedAt: DateTime.fromMillisecondsSinceEpoch(

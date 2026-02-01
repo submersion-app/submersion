@@ -1525,6 +1525,8 @@ class SyncDataSerializer {
     'longitude': r.longitude,
     'takenAt': r.takenAt,
     'caption': r.caption,
+    // BLOB field for signatures - base64 encoded for sync
+    if (r.imageData != null) 'imageData': base64Encode(r.imageData!),
   };
 
   Map<String, dynamic> _buddyToJson(Buddy r) => {
@@ -1560,8 +1562,9 @@ class SyncDataSerializer {
     'expiryDate': r.expiryDate,
     'instructorName': r.instructorName,
     'instructorNumber': r.instructorNumber,
-    'photoFrontPath': r.photoFrontPath,
-    'photoBackPath': r.photoBackPath,
+    // BLOB fields - base64 encoded for sync
+    if (r.photoFront != null) 'photoFront': base64Encode(r.photoFront!),
+    if (r.photoBack != null) 'photoBack': base64Encode(r.photoBack!),
     'notes': r.notes,
     'createdAt': r.createdAt,
     'updatedAt': r.updatedAt,

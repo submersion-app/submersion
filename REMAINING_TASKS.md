@@ -1,6 +1,6 @@
 # Submersion - Remaining Tasks
 
-> **Generated:** 2026-01-31
+> **Generated:** 2026-02-01
 > **Source:** FEATURE_ROADMAP.md
 > **Current Version:** 1.1.0 (v1.5 In Progress)
 
@@ -44,16 +44,6 @@ This document contains only the features and tasks that are **not yet completed*
 **Tasks:**
 - [ ] Local notifications for service due dates
 - [ ] Configurable reminder advance (7 days, 14 days, 30 days before due)
-
----
-
-## Category 7: People - Buddies, Instructors, Agencies
-
-### 7.2 Digital Signatures
-
-**Completed:**
-- [x] Buddy signatures (student/observer sign-off)
-- [x] Display signatures in PDF export
 
 ---
 
@@ -273,11 +263,6 @@ This document contains only the features and tasks that are **not yet completed*
 ---
 
 ## Category 8: Training, Certifications & Medical Info
-
-### 8.1 Certifications
-| Feature | Notes |
-|---------|-------|
-| Scanned card images | Deferred with photos |
 
 ### 8.2 Digital Cards (eCards)
 | Feature | Notes |
@@ -612,8 +597,8 @@ This document contains only the features and tasks that are **not yet completed*
 
 | Phase | Remaining Features | Remaining Tasks |
 |-------|-------------------|-----------------|
-| **v1.5** | ~18 features | ~32 tasks |
-| **v2.0** | ~70+ features | ~105+ tasks |
+| **v1.5** | ~17 features | ~31 tasks |
+| **v2.0** | ~69+ features | ~104+ tasks |
 | **v3.0** | ~5 features | Future scope |
 
 ## v1.5 Priority Areas
@@ -625,5 +610,5 @@ This document contains only the features and tasks that are **not yet completed*
 
 ---
 
-**Document Version:** 1.8
-**Updated:** 2026-01-31 (Digital Signatures: Buddy signatures and PDF export completed)
+**Document Version:** 2.0
+**Updated:** 2026-02-01 (Removed completed sections: Digital Signatures, Scanned Card Images)

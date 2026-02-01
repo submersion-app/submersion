@@ -796,13 +796,11 @@ class ExportService {
   }
 
   pw.Widget _buildPdfSignatureBlock(Signature signature) {
-    // Try to load the signature image
+    // Load signature image from database bytes
     pw.ImageProvider? signatureImage;
-    final file = File(signature.filePath);
-    if (file.existsSync()) {
+    if (signature.hasImage) {
       try {
-        final bytes = file.readAsBytesSync();
-        signatureImage = pw.MemoryImage(bytes);
+        signatureImage = pw.MemoryImage(signature.imageData!);
       } catch (_) {
         // Ignore image load errors
       }

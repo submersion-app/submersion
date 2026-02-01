@@ -1,11 +1,11 @@
 # Submersion Feature Roadmap
 ## Comprehensive Development Plan
 
-> **Last Updated:** 2026-01-31
+> **Last Updated:** 2026-02-01
 > **Current Version:** 1.1.0 (v1.1 Complete)
 > **Status:** v1.0 ✅ COMPLETE | v1.1 ✅ COMPLETE | v1.5 🚧 In Progress
 >
-> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Profile Visualization (Category 2.1) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete | Search & Filtering (Category 10.1) ✅ Complete | Tools & Calculators (Category 11) ✅ Complete | Digital Signatures (Category 7.2) ✅ Complete | Training Dives (Category 8.3) ✅ Complete | Underwater Photography (Category 9.3) ✅ Complete | Maps & Visualization (Category 5.3) ✅ Complete
+> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Profile Visualization (Category 2.1) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete | Search & Filtering (Category 10.1) ✅ Complete | Tools & Calculators (Category 11) ✅ Complete | Digital Signatures (Category 7.2) ✅ Complete | Training Dives (Category 8.3) ✅ Complete | Underwater Photography (Category 9.3) ✅ Complete | Maps & Visualization (Category 5.3) ✅ Complete | Certification Cards (Category 8.1) ✅ Complete
 
 ---
 
@@ -549,6 +549,7 @@
 - [x] Integration on dive detail page (conditional for training dives)
 - [x] Buddy signatures (BuddySignaturesSection, request sheet, save with role)
 - [x] Display signatures in PDF export (instructor + buddy signatures)
+- [x] BLOB storage for signatures (image_data column for self-contained backup/sync)
 
 ---
 
@@ -575,7 +576,13 @@
 | Expiry warnings | ✅ Implemented | v1.0 | Red/yellow badges |
 | Common agencies enum | ✅ Implemented | v1.0 | PADI, SSI, NAUI, SDI, TDI, GUE, RAID |
 | Common levels enum | ✅ Implemented | v1.0 | Open Water through Instructor |
-| Scanned card images | 📋 Planned | v2.0 | Deferred with photos |
+| Scanned card images | ✅ Implemented | v1.5 | Front/back photos stored as BLOB in database |
+
+**v1.5 Tasks (Complete):**
+- [x] Add photo_front and photo_back BLOB columns to certifications table
+- [x] ImagePicker integration for capturing/selecting card photos
+- [x] Display card photos on certification detail page with full-screen viewer
+- [x] Photos stored directly in database for easy backup/sync
 
 ---
 
@@ -1304,6 +1311,10 @@
 -- scrubber_type, scrubber_duration_minutes, scrubber_remaining_minutes
 
 -- Tank roles extended: diluent, oxygen_supply (for CCR)
+
+-- BLOB storage columns (v23):
+-- certifications.photo_front, certifications.photo_back (scanned card images)
+-- media.image_data (signature PNG bytes for self-contained backup)
 ```
 
 ## v2.0 Tables (Planned)
@@ -1400,6 +1411,8 @@
 - [x] Training Dives (Course entity, bidirectional course-certification linking)
 - [x] Underwater Photography (photo picker, gallery, full-screen viewer, EXIF write)
 - [x] Maps & Visualization (Activity map with heat map, offline maps with FMTC, site filtering)
+- [x] Certification Card Images (front/back photos with BLOB storage for backup/sync)
+- [x] BLOB Storage (signatures and certification photos stored in database for easy backup/export)
 - [ ] Performance with 5000+ dives
 
 ## v2.0 (Planned)
@@ -1422,5 +1435,5 @@
 
 ---
 
-**Document Version:** 2.13
-**Last Updated:** 2026-01-31 (Maps & Visualization: Activity map, offline maps, site filtering completed)
+**Document Version:** 2.14
+**Last Updated:** 2026-02-01 (BLOB storage for certification photos and signatures; scanned card images feature)

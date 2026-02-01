@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -78,7 +76,7 @@ class SignatureDisplayWidget extends StatelessWidget {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(7),
-                  child: _buildSignatureImage(),
+                  child: _buildSignatureImage(context),
                 ),
               ),
 
@@ -108,32 +106,25 @@ class SignatureDisplayWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildSignatureImage() {
-    final file = File(signature.filePath);
+  Widget _buildSignatureImage(BuildContext context) {
+    if (!signature.hasImage) {
+      return Center(
+        child: Icon(
+          Icons.draw_outlined,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      );
+    }
 
-    return FutureBuilder<bool>(
-      future: file.exists(),
-      builder: (context, snapshot) {
-        if (snapshot.data != true) {
-          return Center(
-            child: Icon(
-              Icons.broken_image_outlined,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          );
-        }
-
-        return Image.file(
-          file,
-          fit: BoxFit.contain,
-          errorBuilder: (context, error, stackTrace) {
-            return Center(
-              child: Icon(
-                Icons.broken_image_outlined,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            );
-          },
+    return Image.memory(
+      signature.imageData!,
+      fit: BoxFit.contain,
+      errorBuilder: (ctx, error, stackTrace) {
+        return Center(
+          child: Icon(
+            Icons.broken_image_outlined,
+            color: Theme.of(ctx).colorScheme.onSurfaceVariant,
+          ),
         );
       },
     );
@@ -185,7 +176,6 @@ class SignatureFullViewDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final dateFormat = DateFormat.yMMMd().add_jm();
-    final file = File(signature.filePath);
 
     return Dialog(
       child: Container(
@@ -240,50 +230,7 @@ class SignatureFullViewDialog extends StatelessWidget {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(11),
-                child: FutureBuilder<bool>(
-                  future: file.exists(),
-                  builder: (context, snapshot) {
-                    if (snapshot.data != true) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.broken_image_outlined,
-                              size: 48,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Signature file not found',
-                              style: TextStyle(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-
-                    return InteractiveViewer(
-                      minScale: 0.5,
-                      maxScale: 3.0,
-                      child: Image.file(
-                        file,
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Center(
-                            child: Icon(
-                              Icons.broken_image_outlined,
-                              size: 48,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          );
-                        },
-                      ),
-                    );
-                  },
-                ),
+                child: _buildSignatureContent(context, colorScheme),
               ),
             ),
 
@@ -309,6 +256,46 @@ class SignatureFullViewDialog extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSignatureContent(BuildContext context, ColorScheme colorScheme) {
+    if (!signature.hasImage) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.draw_outlined,
+              size: 48,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'No signature image',
+              style: TextStyle(color: colorScheme.onSurfaceVariant),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return InteractiveViewer(
+      minScale: 0.5,
+      maxScale: 3.0,
+      child: Image.memory(
+        signature.imageData!,
+        fit: BoxFit.contain,
+        errorBuilder: (ctx, error, stackTrace) {
+          return Center(
+            child: Icon(
+              Icons.broken_image_outlined,
+              size: 48,
+              color: colorScheme.onSurfaceVariant,
+            ),
+          );
+        },
       ),
     );
   }

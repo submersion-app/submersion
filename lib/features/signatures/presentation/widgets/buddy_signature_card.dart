@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -101,8 +99,6 @@ class BuddySignatureCard extends StatelessWidget {
   }
 
   Widget _buildSignaturePreview(BuildContext context, Signature sig) {
-    final file = File(sig.filePath);
-
     return Container(
       width: 60,
       height: 30,
@@ -114,8 +110,8 @@ class BuddySignatureCard extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(3),
-        child: file.existsSync()
-            ? Image.file(file, fit: BoxFit.contain)
+        child: sig.hasImage
+            ? Image.memory(sig.imageData!, fit: BoxFit.contain)
             : const Icon(Icons.image_not_supported, size: 16),
       ),
     );

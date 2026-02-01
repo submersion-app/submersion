@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -129,9 +131,8 @@ class _CertificationDetailContent extends ConsumerWidget {
           // Training course
           _buildCourseSection(context, ref),
 
-          // Card photos (placeholder for future)
-          if (certification.photoFrontPath != null ||
-              certification.photoBackPath != null) ...[
+          // Card photos
+          if (certification.hasPhotos) ...[
             _buildPhotosSection(context),
             const SizedBox(height: 16),
           ],
@@ -641,54 +642,130 @@ class _CertificationDetailContent extends ConsumerWidget {
             const SizedBox(height: 12),
             Row(
               children: [
-                if (certification.photoFrontPath != null)
+                if (certification.photoFront != null)
                   Expanded(
-                    child: Column(
-                      children: [
-                        Container(
-                          height: 100,
-                          decoration: BoxDecoration(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerHighest,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Center(
-                            child: Icon(Icons.image, size: 40),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text('Front', style: TextStyle(fontSize: 12)),
-                      ],
+                    child: _buildPhotoThumbnail(
+                      context,
+                      imageData: certification.photoFront!,
+                      label: 'Front',
                     ),
                   ),
-                if (certification.photoFrontPath != null &&
-                    certification.photoBackPath != null)
+                if (certification.photoFront != null &&
+                    certification.photoBack != null)
                   const SizedBox(width: 16),
-                if (certification.photoBackPath != null)
+                if (certification.photoBack != null)
                   Expanded(
-                    child: Column(
-                      children: [
-                        Container(
-                          height: 100,
-                          decoration: BoxDecoration(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerHighest,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Center(
-                            child: Icon(Icons.image, size: 40),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text('Back', style: TextStyle(fontSize: 12)),
-                      ],
+                    child: _buildPhotoThumbnail(
+                      context,
+                      imageData: certification.photoBack!,
+                      label: 'Back',
                     ),
                   ),
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPhotoThumbnail(
+    BuildContext context, {
+    required Uint8List imageData,
+    required String label,
+  }) {
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: () => _showFullscreenPhoto(context, imageData, label),
+          child: AspectRatio(
+            aspectRatio: 1.6,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Image.memory(
+                imageData,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.broken_image_outlined,
+                          size: 32,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Unable to load image',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(label, style: const TextStyle(fontSize: 12)),
+      ],
+    );
+  }
+
+  void _showFullscreenPhoto(
+    BuildContext context,
+    Uint8List imageData,
+    String label,
+  ) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          backgroundColor: Colors.black,
+          appBar: AppBar(
+            backgroundColor: Colors.black,
+            foregroundColor: Colors.white,
+            title: Text('$label - ${certification.name}'),
+          ),
+          body: InteractiveViewer(
+            minScale: 0.5,
+            maxScale: 4.0,
+            child: Center(
+              child: Image.memory(
+                imageData,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.broken_image_outlined,
+                          size: 64,
+                          color: Colors.white54,
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          'Unable to load image',
+                          style: TextStyle(color: Colors.white54),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
         ),
       ),
     );
