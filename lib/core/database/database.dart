@@ -390,6 +390,8 @@ class Media extends Table {
   TextColumn get signerId =>
       text().nullable().references(Buddies, #id, onDelete: KeyAction.setNull)();
   TextColumn get signerName => text().nullable()();
+  // Signature type (v22) - distinguishes instructor vs buddy signatures
+  TextColumn get signatureType => text().nullable()(); // 'instructor' | 'buddy'
   // Gallery photo fields (v2.0) - for underwater photography feature
   TextColumn get platformAssetId =>
       text().nullable()(); // Platform-specific asset ID for gallery photos
@@ -978,7 +980,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 21;
+  int get schemaVersion => 22;
 
   @override
   MigrationStrategy get migration {
@@ -1453,6 +1455,12 @@ class AppDatabase extends _$AppDatabase {
               last_accessed_at INTEGER NOT NULL
             )
           ''');
+        }
+        if (from < 22) {
+          // Buddy signatures feature - add signature type column
+          await customStatement(
+            'ALTER TABLE media ADD COLUMN signature_type TEXT',
+          );
         }
       },
       beforeOpen: (details) async {
