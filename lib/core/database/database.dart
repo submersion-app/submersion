@@ -1487,24 +1487,42 @@ class AppDatabase extends _$AppDatabase {
         if (from < 24) {
           // Add structured address fields to dive_centers
           // The original table had 'location' but not 'city', so we add all new columns
-          await customStatement(
-            'ALTER TABLE dive_centers ADD COLUMN street TEXT',
-          );
-          await customStatement(
-            'ALTER TABLE dive_centers ADD COLUMN city TEXT',
-          );
-          await customStatement(
-            'ALTER TABLE dive_centers ADD COLUMN state_province TEXT',
-          );
-          await customStatement(
-            'ALTER TABLE dive_centers ADD COLUMN postal_code TEXT',
-          );
-          // Migrate existing location data to the new city column
-          await customStatement('''
-            UPDATE dive_centers
-            SET city = location
-            WHERE location IS NOT NULL
-          ''');
+          // Check which columns exist to handle partial migrations
+          final tableInfo = await customSelect(
+            "PRAGMA table_info('dive_centers')",
+          ).get();
+          final existingColumns = tableInfo
+              .map((row) => row.data['name'] as String)
+              .toSet();
+
+          if (!existingColumns.contains('street')) {
+            await customStatement(
+              'ALTER TABLE dive_centers ADD COLUMN street TEXT',
+            );
+          }
+          if (!existingColumns.contains('city')) {
+            await customStatement(
+              'ALTER TABLE dive_centers ADD COLUMN city TEXT',
+            );
+          }
+          if (!existingColumns.contains('state_province')) {
+            await customStatement(
+              'ALTER TABLE dive_centers ADD COLUMN state_province TEXT',
+            );
+          }
+          if (!existingColumns.contains('postal_code')) {
+            await customStatement(
+              'ALTER TABLE dive_centers ADD COLUMN postal_code TEXT',
+            );
+          }
+          // Migrate existing location data to the new city column (if location exists)
+          if (existingColumns.contains('location')) {
+            await customStatement('''
+              UPDATE dive_centers
+              SET city = location
+              WHERE location IS NOT NULL AND (city IS NULL OR city = '')
+            ''');
+          }
         }
       },
       beforeOpen: (details) async {
