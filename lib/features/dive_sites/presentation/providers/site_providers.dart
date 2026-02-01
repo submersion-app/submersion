@@ -8,6 +8,156 @@ import 'package:submersion/features/dive_sites/data/services/dive_site_api_servi
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
 
+// ============================================================================
+// Site Filter State
+// ============================================================================
+
+/// Immutable filter state for dive sites.
+///
+/// All filters use AND logic - a site must match ALL active filters.
+/// Uses "clear" flags in copyWith to allow granular filter clearing.
+class SiteFilterState {
+  final String? country;
+  final String? region;
+  final domain.SiteDifficulty? difficulty;
+  final double? minDepth;
+  final double? maxDepth;
+  final double? minRating;
+  final bool? hasCoordinates;
+  final bool? hasDives;
+
+  const SiteFilterState({
+    this.country,
+    this.region,
+    this.difficulty,
+    this.minDepth,
+    this.maxDepth,
+    this.minRating,
+    this.hasCoordinates,
+    this.hasDives,
+  });
+
+  /// Whether any filter is currently active.
+  bool get hasActiveFilters =>
+      country != null ||
+      region != null ||
+      difficulty != null ||
+      minDepth != null ||
+      maxDepth != null ||
+      minRating != null ||
+      hasCoordinates != null ||
+      hasDives != null;
+
+  /// Apply all active filters to a list of sites with dive counts.
+  List<SiteWithDiveCount> apply(List<SiteWithDiveCount> sites) {
+    return sites.where((siteWithCount) {
+      final site = siteWithCount.site;
+      final diveCount = siteWithCount.diveCount;
+
+      // Country filter (case-insensitive contains)
+      if (country != null && country!.isNotEmpty) {
+        if (site.country == null ||
+            !site.country!.toLowerCase().contains(country!.toLowerCase())) {
+          return false;
+        }
+      }
+
+      // Region filter (case-insensitive contains)
+      if (region != null && region!.isNotEmpty) {
+        if (site.region == null ||
+            !site.region!.toLowerCase().contains(region!.toLowerCase())) {
+          return false;
+        }
+      }
+
+      // Difficulty filter
+      if (difficulty != null) {
+        if (site.difficulty != difficulty) {
+          return false;
+        }
+      }
+
+      // Depth range filter
+      if (minDepth != null) {
+        if (site.maxDepth == null || site.maxDepth! < minDepth!) {
+          return false;
+        }
+      }
+      if (maxDepth != null) {
+        if (site.maxDepth == null || site.maxDepth! > maxDepth!) {
+          return false;
+        }
+      }
+
+      // Minimum rating filter
+      if (minRating != null) {
+        if (site.rating == null || site.rating! < minRating!) {
+          return false;
+        }
+      }
+
+      // Has coordinates filter
+      if (hasCoordinates != null) {
+        if (site.hasCoordinates != hasCoordinates) {
+          return false;
+        }
+      }
+
+      // Has dives filter
+      if (hasDives != null) {
+        final siteHasDives = diveCount > 0;
+        if (siteHasDives != hasDives) {
+          return false;
+        }
+      }
+
+      return true;
+    }).toList();
+  }
+
+  SiteFilterState copyWith({
+    String? country,
+    String? region,
+    domain.SiteDifficulty? difficulty,
+    double? minDepth,
+    double? maxDepth,
+    double? minRating,
+    bool? hasCoordinates,
+    bool? hasDives,
+    // Clear flags
+    bool clearCountry = false,
+    bool clearRegion = false,
+    bool clearDifficulty = false,
+    bool clearMinDepth = false,
+    bool clearMaxDepth = false,
+    bool clearMinRating = false,
+    bool clearHasCoordinates = false,
+    bool clearHasDives = false,
+  }) {
+    return SiteFilterState(
+      country: clearCountry ? null : (country ?? this.country),
+      region: clearRegion ? null : (region ?? this.region),
+      difficulty: clearDifficulty ? null : (difficulty ?? this.difficulty),
+      minDepth: clearMinDepth ? null : (minDepth ?? this.minDepth),
+      maxDepth: clearMaxDepth ? null : (maxDepth ?? this.maxDepth),
+      minRating: clearMinRating ? null : (minRating ?? this.minRating),
+      hasCoordinates: clearHasCoordinates
+          ? null
+          : (hasCoordinates ?? this.hasCoordinates),
+      hasDives: clearHasDives ? null : (hasDives ?? this.hasDives),
+    );
+  }
+}
+
+/// Site filter provider
+final siteFilterProvider = StateProvider<SiteFilterState>(
+  (ref) => const SiteFilterState(),
+);
+
+// ============================================================================
+// Repository and Data Providers
+// ============================================================================
+
 /// Repository provider
 final siteRepositoryProvider = Provider<SiteRepository>((ref) {
   return SiteRepository();
@@ -41,10 +191,21 @@ final siteSortProvider = StateProvider<SortState<SiteSortField>>(
   ),
 );
 
-/// Sorted sites with counts provider
-final sortedSitesWithCountsProvider =
+/// Filtered sites with counts provider
+/// Applies active filters to the full site list.
+final filteredSitesWithCountsProvider =
     Provider<AsyncValue<List<SiteWithDiveCount>>>((ref) {
       final sitesAsync = ref.watch(sitesWithCountsProvider);
+      final filter = ref.watch(siteFilterProvider);
+
+      return sitesAsync.whenData((sites) => filter.apply(sites));
+    });
+
+/// Sorted and filtered sites with counts provider
+/// First filters, then sorts the results.
+final sortedSitesWithCountsProvider =
+    Provider<AsyncValue<List<SiteWithDiveCount>>>((ref) {
+      final sitesAsync = ref.watch(filteredSitesWithCountsProvider);
       final sort = ref.watch(siteSortProvider);
 
       return sitesAsync.whenData((sites) => _applySiteSorting(sites, sort));

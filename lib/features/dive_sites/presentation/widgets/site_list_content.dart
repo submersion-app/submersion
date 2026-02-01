@@ -11,6 +11,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_filter_sheet.dart';
 
 /// Content widget for the site list, used in master-detail layout.
 class SiteListContent extends ConsumerStatefulWidget {
@@ -247,14 +248,25 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
   @override
   Widget build(BuildContext context) {
     final sitesAsync = ref.watch(sortedSitesWithCountsProvider);
+    final filter = ref.watch(siteFilterProvider);
 
-    final content = sitesAsync.when(
+    final listContent = sitesAsync.when(
       data: (sites) => sites.isEmpty
-          ? _buildEmptyState(context)
+          ? _buildEmptyState(context, filter.hasActiveFilters)
           : _buildSiteList(context, ref, sites),
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, stack) => _buildErrorState(context, error),
     );
+
+    // Wrap list with active filters bar if filters are active
+    final content = filter.hasActiveFilters
+        ? Column(
+            children: [
+              _buildActiveFiltersBar(context, filter),
+              Expanded(child: listContent),
+            ],
+          )
+        : listContent;
 
     if (!widget.showAppBar) {
       return Column(
@@ -286,14 +298,27 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                   },
                 ),
                 IconButton(
-                  icon: const Icon(Icons.map),
-                  tooltip: 'Map View',
-                  onPressed: () => context.push('/sites/map'),
+                  icon: Badge(
+                    isLabelVisible: filter.hasActiveFilters,
+                    child: const Icon(Icons.filter_list),
+                  ),
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      builder: (context) => SiteFilterSheet(ref: ref),
+                    );
+                  },
                 ),
                 IconButton(
                   icon: const Icon(Icons.sort),
                   tooltip: 'Sort',
                   onPressed: () => _showSortSheet(context),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.map),
+                  tooltip: 'Map View',
+                  onPressed: () => context.push('/sites/map'),
                 ),
                 PopupMenuButton<String>(
                   icon: const Icon(Icons.more_vert),
@@ -324,6 +349,8 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
   }
 
   Widget _buildCompactAppBar(BuildContext context) {
+    final filter = ref.watch(siteFilterProvider);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -352,14 +379,28 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.map, size: 20),
-            tooltip: 'Map View',
-            onPressed: () => context.push('/sites/map'),
+            icon: Badge(
+              isLabelVisible: filter.hasActiveFilters,
+              child: const Icon(Icons.filter_list, size: 20),
+            ),
+            visualDensity: VisualDensity.compact,
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (context) => SiteFilterSheet(ref: ref),
+              );
+            },
           ),
           IconButton(
             icon: const Icon(Icons.sort, size: 20),
             tooltip: 'Sort',
             onPressed: () => _showSortSheet(context),
+          ),
+          IconButton(
+            icon: const Icon(Icons.map, size: 20),
+            tooltip: 'Map View',
+            onPressed: () => context.push('/sites/map'),
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, size: 20),
@@ -512,7 +553,45 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
+  Widget _buildEmptyState(BuildContext context, bool hasActiveFilters) {
+    if (hasActiveFilters) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.filter_list_off,
+              size: 80,
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.5),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No sites match your filters',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Try adjusting or clearing your filters',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: () {
+                ref.read(siteFilterProvider.notifier).state =
+                    const SiteFilterState();
+              },
+              icon: const Icon(Icons.clear_all),
+              label: const Text('Clear All Filters'),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -549,6 +628,102 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
         ],
       ),
     );
+  }
+
+  Widget _buildActiveFiltersBar(BuildContext context, SiteFilterState filter) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        border: Border(
+          bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
+        ),
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            // Clear all button
+            ActionChip(
+              avatar: const Icon(Icons.clear_all, size: 18),
+              label: const Text('Clear'),
+              onPressed: () {
+                ref.read(siteFilterProvider.notifier).state =
+                    const SiteFilterState();
+              },
+            ),
+            const SizedBox(width: 8),
+            // Individual filter chips
+            if (filter.country != null)
+              _buildFilterChip(
+                'Country: ${filter.country}',
+                () => ref.read(siteFilterProvider.notifier).state = filter
+                    .copyWith(clearCountry: true),
+              ),
+            if (filter.region != null)
+              _buildFilterChip(
+                'Region: ${filter.region}',
+                () => ref.read(siteFilterProvider.notifier).state = filter
+                    .copyWith(clearRegion: true),
+              ),
+            if (filter.difficulty != null)
+              _buildFilterChip(
+                filter.difficulty!.displayName,
+                () => ref.read(siteFilterProvider.notifier).state = filter
+                    .copyWith(clearDifficulty: true),
+              ),
+            if (filter.minDepth != null || filter.maxDepth != null)
+              _buildFilterChip(
+                _formatDepthRange(filter.minDepth, filter.maxDepth),
+                () => ref.read(siteFilterProvider.notifier).state = filter
+                    .copyWith(clearMinDepth: true, clearMaxDepth: true),
+              ),
+            if (filter.minRating != null)
+              _buildFilterChip(
+                '${filter.minRating!.toInt()}+ stars',
+                () => ref.read(siteFilterProvider.notifier).state = filter
+                    .copyWith(clearMinRating: true),
+              ),
+            if (filter.hasCoordinates == true)
+              _buildFilterChip(
+                'Has coordinates',
+                () => ref.read(siteFilterProvider.notifier).state = filter
+                    .copyWith(clearHasCoordinates: true),
+              ),
+            if (filter.hasDives == true)
+              _buildFilterChip(
+                'Has dives',
+                () => ref.read(siteFilterProvider.notifier).state = filter
+                    .copyWith(clearHasDives: true),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String label, VoidCallback onDeleted) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: InputChip(
+        label: Text(label),
+        onDeleted: onDeleted,
+        deleteIconColor: Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
+    );
+  }
+
+  String _formatDepthRange(double? min, double? max) {
+    if (min != null && max != null) {
+      return '${min.toInt()}-${max.toInt()}m';
+    } else if (min != null) {
+      return '${min.toInt()}m+';
+    } else if (max != null) {
+      return 'Up to ${max.toInt()}m';
+    }
+    return '';
   }
 
   Widget _buildErrorState(BuildContext context, Object error) {

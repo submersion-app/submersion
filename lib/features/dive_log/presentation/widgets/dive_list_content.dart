@@ -809,27 +809,20 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           tooltip: 'Sort',
           onPressed: () => _showSortSheet(context),
         ),
+        IconButton(
+          icon: const Icon(Icons.map),
+          tooltip: 'Map View',
+          onPressed: () => context.push('/dives/activity'),
+        ),
         PopupMenuButton<String>(
           onSelected: (value) {
             if (value == 'numbering') {
               showDiveNumberingDialog(context);
             } else if (value == 'advanced_search') {
               context.go('/dives/search');
-            } else if (value == 'activity_map') {
-              context.push('/dives/activity');
             }
           },
           itemBuilder: (context) => [
-            const PopupMenuItem(
-              value: 'activity_map',
-              child: Row(
-                children: [
-                  Icon(Icons.map),
-                  SizedBox(width: 12),
-                  Text('Activity Map'),
-                ],
-              ),
-            ),
             const PopupMenuItem(
               value: 'advanced_search',
               child: Row(
@@ -906,6 +899,12 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             tooltip: 'Sort',
             onPressed: () => _showSortSheet(context),
           ),
+          IconButton(
+            icon: const Icon(Icons.map, size: 20),
+            visualDensity: VisualDensity.compact,
+            tooltip: 'Map View',
+            onPressed: () => context.push('/dives/activity'),
+          ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, size: 20),
             onSelected: (value) {
@@ -913,21 +912,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 showDiveNumberingDialog(context);
               } else if (value == 'advanced_search') {
                 context.go('/dives/search');
-              } else if (value == 'activity_map') {
-                context.push('/dives/activity');
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'activity_map',
-                child: Row(
-                  children: [
-                    Icon(Icons.map, size: 20),
-                    SizedBox(width: 12),
-                    Text('Activity Map'),
-                  ],
-                ),
-              ),
               const PopupMenuItem(
                 value: 'advanced_search',
                 child: Row(

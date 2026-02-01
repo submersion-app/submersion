@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:path_provider/path_provider.dart';
 
 /// Statistics about the tile cache.
 class CacheStats {
@@ -94,6 +96,10 @@ class TileCacheService {
   /// The name of the tile store.
   String get storeName => _defaultStoreName;
 
+  /// App Group identifier for macOS sandbox compatibility.
+  /// Must match the group in entitlements and be under 20 characters.
+  static const String _macosAppGroup = 'group.submersion';
+
   /// Initialize the tile cache.
   ///
   /// This must be called before using any other methods.
@@ -101,7 +107,22 @@ class TileCacheService {
   Future<void> initialize() async {
     if (_initialized) return;
 
-    await FMTCObjectBoxBackend().initialise();
+    // For macOS: use App Group container for sandbox compatibility.
+    // ObjectBox requires special permissions that the App Group provides.
+    // On other platforms, use the standard cache directory.
+    if (Platform.isMacOS) {
+      await FMTCObjectBoxBackend().initialise(
+        macosApplicationGroup: _macosAppGroup,
+      );
+    } else {
+      final cacheDir = await getApplicationCacheDirectory();
+      final tileCacheDir = Directory('${cacheDir.path}/fmtc_tiles');
+      if (!await tileCacheDir.exists()) {
+        await tileCacheDir.create(recursive: true);
+      }
+      await FMTCObjectBoxBackend().initialise(rootDirectory: tileCacheDir.path);
+    }
+
     _store = const FMTCStore(_defaultStoreName);
     await _store!.manage.create();
     _initialized = true;

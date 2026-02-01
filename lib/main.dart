@@ -78,8 +78,14 @@ Future<void> main() async {
   // Initialize database with location service
   await DatabaseService.instance.initialize(locationService: locationService);
 
-  // Initialize tile cache for offline maps
-  await TileCacheService.instance.initialize();
+  // Initialize tile cache for offline maps (non-blocking - app works without it)
+  try {
+    await TileCacheService.instance.initialize();
+    debugPrint('Tile cache initialized successfully');
+  } catch (e) {
+    debugPrint('Warning: Tile cache initialization failed: $e');
+    // App continues without offline map caching
+  }
 
   // Seed common species data
   final speciesRepository = SpeciesRepository();
