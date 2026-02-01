@@ -208,7 +208,7 @@ class _CertificationDetailContent extends ConsumerWidget {
             ),
             child: Center(
               child: Text(
-                certification.agency.displayName.substring(0, 4),
+                _abbreviateAgency(certification.agency.displayName),
                 style: TextStyle(
                   color: colorScheme.onPrimaryContainer,
                   fontWeight: FontWeight.bold,
@@ -739,6 +739,14 @@ class _CertificationDetailContent extends ConsumerWidget {
           ),
         ) ??
         false;
+  }
+
+  /// Safely abbreviate agency name to at most 4 characters
+  String _abbreviateAgency(String displayName) {
+    if (displayName.length <= 4) {
+      return displayName;
+    }
+    return displayName.substring(0, 4);
   }
 }
 
