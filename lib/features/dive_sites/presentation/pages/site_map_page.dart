@@ -3,14 +3,19 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
+
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_list_content.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/providers/heat_map_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/heat_map_controls.dart';
 import 'package:submersion/features/maps/presentation/widgets/heat_map_layer.dart';
+import 'package:submersion/shared/providers/map_list_selection_provider.dart';
+import 'package:submersion/shared/widgets/map_list_layout/map_info_card.dart';
+import 'package:submersion/shared/widgets/map_list_layout/map_list_scaffold.dart';
 
 class SiteMapPage extends ConsumerStatefulWidget {
   const SiteMapPage({super.key});
@@ -22,7 +27,6 @@ class SiteMapPage extends ConsumerStatefulWidget {
 class _SiteMapPageState extends ConsumerState<SiteMapPage>
     with TickerProviderStateMixin {
   final MapController _mapController = MapController();
-  DiveSite? _selectedSite;
 
   // Default to a nice ocean view (Pacific)
   static const _defaultCenter = LatLng(20.0, -157.0);
@@ -31,27 +35,44 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
   @override
   Widget build(BuildContext context) {
     final sitesAsync = ref.watch(sitesWithCountsProvider);
+    final selectionState = ref.watch(mapListSelectionProvider('sites'));
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dive Sites'),
-        actions: [
-          const HeatMapToggleButton(),
-          IconButton(
-            icon: const Icon(Icons.list),
-            tooltip: 'List View',
-            onPressed: () => context.go('/sites'),
-          ),
-          IconButton(
-            icon: const Icon(Icons.my_location),
-            tooltip: 'Fit All Sites',
-            onPressed: () => _fitAllSites(
-              sitesAsync.value?.map((s) => s.site).toList() ?? [],
-            ),
-          ),
-        ],
+    // Find selected site from sitesAsync using selectionState.selectedId
+    final selectedSite = sitesAsync.whenOrNull(
+      data: (sitesWithCounts) {
+        if (selectionState.selectedId == null) return null;
+        final match = sitesWithCounts.where(
+          (s) => s.site.id == selectionState.selectedId,
+        );
+        return match.isNotEmpty ? match.first.site : null;
+      },
+    );
+
+    return MapListScaffold(
+      sectionKey: 'sites',
+      title: 'Dive Sites',
+      onBackPressed: () => context.go('/sites'),
+      listPane: SiteListContent(
+        showAppBar: false,
+        isMapMode: true,
+        selectedId: selectionState.selectedId,
+        onItemTapForMap: (site) {
+          if (site.hasCoordinates) {
+            _animateToLocation(
+              site.location!.latitude,
+              site.location!.longitude,
+            );
+          }
+        },
+        onItemSelected: (id) {
+          if (id != null) {
+            ref.read(mapListSelectionProvider('sites').notifier).select(id);
+          } else {
+            ref.read(mapListSelectionProvider('sites').notifier).deselect();
+          }
+        },
       ),
-      body: sitesAsync.when(
+      mapPane: sitesAsync.when(
         data: (sitesWithCounts) => _buildMap(context, sitesWithCounts),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(
@@ -70,11 +91,66 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
           ),
         ),
       ),
+      infoCard: selectedSite != null
+          ? _buildMapInfoCard(context, selectedSite)
+          : null,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/sites/new'),
         icon: const Icon(Icons.add_location),
         label: const Text('Add Site'),
       ),
+      actions: [
+        const HeatMapToggleButton(),
+        IconButton(
+          icon: const Icon(Icons.list),
+          tooltip: 'List View',
+          onPressed: () => context.go('/sites'),
+        ),
+        IconButton(
+          icon: const Icon(Icons.my_location),
+          tooltip: 'Fit All Sites',
+          onPressed: () =>
+              _fitAllSites(sitesAsync.value?.map((s) => s.site).toList() ?? []),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMapInfoCard(BuildContext context, DiveSite site) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final sitesWithCounts = ref.read(sitesWithCountsProvider).value ?? [];
+    final diveCount =
+        sitesWithCounts
+            .where((s) => s.site.id == site.id)
+            .firstOrNull
+            ?.diveCount ??
+        0;
+
+    String subtitle = site.locationString;
+    if (diveCount > 0) {
+      subtitle += subtitle.isNotEmpty ? ' \u2022 ' : '';
+      subtitle += '$diveCount ${diveCount == 1 ? 'dive' : 'dives'}';
+    }
+    if (site.rating != null) {
+      subtitle += subtitle.isNotEmpty ? ' \u2022 ' : '';
+      subtitle += '\u2605 ${site.rating!.toStringAsFixed(1)}';
+    }
+
+    return MapInfoCard(
+      title: site.name,
+      subtitle: subtitle.isNotEmpty ? subtitle : null,
+      leading: CircleAvatar(
+        backgroundColor: colorScheme.primaryContainer,
+        child: Icon(Icons.location_on, color: colorScheme.primary),
+      ),
+      onDetailsTap: () => context.push('/sites/${site.id}'),
+    );
+  }
+
+  void _animateToLocation(double lat, double lng) {
+    _mapController.move(
+      LatLng(lat, lng),
+      _mapController.camera.zoom.clamp(10.0, 14.0),
     );
   }
 
@@ -82,6 +158,8 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
     BuildContext context,
     List<SiteWithDiveCount> sitesWithCounts,
   ) {
+    final selectionState = ref.watch(mapListSelectionProvider('sites'));
+
     // Filter sites with valid coordinates (lat: -90 to 90, lng: -180 to 180)
     final sitesWithLocation = sitesWithCounts.where((s) {
       if (!s.site.hasCoordinates) return false;
@@ -119,7 +197,7 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
             minZoom: 2.0,
             maxZoom: 18.0,
             onTap: (_, _) {
-              setState(() => _selectedSite = null);
+              ref.read(mapListSelectionProvider('sites').notifier).deselect();
             },
             cameraConstraint: CameraConstraint.contain(
               bounds: LatLngBounds(
@@ -145,7 +223,7 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
                 markers: sitesWithLocation.map((siteWithCount) {
                   final site = siteWithCount.site;
                   final diveCount = siteWithCount.diveCount;
-                  final isSelected = _selectedSite?.id == site.id;
+                  final isSelected = selectionState.selectedId == site.id;
                   return Marker(
                     point: LatLng(
                       site.location!.latitude,
@@ -188,15 +266,6 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
               ),
           ],
         ),
-
-        // Site info card at bottom
-        if (_selectedSite != null)
-          Positioned(
-            left: 16,
-            right: 16,
-            bottom: 80,
-            child: _buildSiteInfoCard(context, _selectedSite!),
-          ),
 
         // Empty state overlay
         if (sitesWithLocation.isEmpty)
@@ -321,104 +390,12 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
     return Colors.blue.shade300;
   }
 
-  Widget _buildSiteInfoCard(BuildContext context, DiveSite site) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Card(
-      elevation: 8,
-      child: InkWell(
-        onTap: () => context.push('/sites/${site.id}'),
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              CircleAvatar(
-                backgroundColor: colorScheme.primaryContainer,
-                child: Icon(Icons.location_on, color: colorScheme.primary),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      site.name,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    if (site.locationString.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        site.locationString,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                    if (site.maxDepth != null) ...[
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.arrow_downward,
-                            size: 14,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${site.maxDepth!.toStringAsFixed(0)}m max depth',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: colorScheme.onSurfaceVariant),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (site.rating != null) ...[
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.star,
-                          size: 16,
-                          color: Colors.amber.shade600,
-                        ),
-                        const SizedBox(width: 2),
-                        Text(
-                          site.rating!.toStringAsFixed(1),
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                  ],
-                  Icon(
-                    Icons.chevron_right,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   void _onMarkerTapped(DiveSite site) {
-    setState(() {
-      _selectedSite = _selectedSite?.id == site.id ? null : site;
-    });
-
-    if (_selectedSite != null) {
+    final currentId = ref.read(mapListSelectionProvider('sites')).selectedId;
+    if (currentId == site.id) {
+      ref.read(mapListSelectionProvider('sites').notifier).deselect();
+    } else {
+      ref.read(mapListSelectionProvider('sites').notifier).select(site.id);
       _mapController.move(
         LatLng(site.location!.latitude, site.location!.longitude),
         _mapController.camera.zoom,
