@@ -786,6 +786,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       title: const Text('Dive Log'),
       actions: [
         IconButton(
+          icon: const Icon(Icons.map),
+          tooltip: 'Map View',
+          onPressed: () => context.push('/dives/activity'),
+        ),
+        IconButton(
           icon: const Icon(Icons.search),
           onPressed: () {
             showSearch(context: context, delegate: DiveSearchDelegate(ref));
@@ -808,11 +813,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           icon: const Icon(Icons.sort),
           tooltip: 'Sort',
           onPressed: () => _showSortSheet(context),
-        ),
-        IconButton(
-          icon: const Icon(Icons.map),
-          tooltip: 'Map View',
-          onPressed: () => context.push('/dives/activity'),
         ),
         PopupMenuButton<String>(
           onSelected: (value) {
@@ -873,6 +873,12 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           ),
           const Spacer(),
           IconButton(
+            icon: const Icon(Icons.map, size: 20),
+            visualDensity: VisualDensity.compact,
+            tooltip: 'Map View',
+            onPressed: () => context.push('/dives/activity'),
+          ),
+          IconButton(
             icon: const Icon(Icons.search, size: 20),
             visualDensity: VisualDensity.compact,
             onPressed: () {
@@ -898,12 +904,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             visualDensity: VisualDensity.compact,
             tooltip: 'Sort',
             onPressed: () => _showSortSheet(context),
-          ),
-          IconButton(
-            icon: const Icon(Icons.map, size: 20),
-            visualDensity: VisualDensity.compact,
-            tooltip: 'Map View',
-            onPressed: () => context.push('/dives/activity'),
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, size: 20),

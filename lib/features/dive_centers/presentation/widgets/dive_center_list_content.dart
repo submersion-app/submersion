@@ -131,14 +131,9 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
         title: const Text('Dive Centers'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.download),
-            tooltip: 'Import',
-            onPressed: () => context.push('/dive-centers/import'),
-          ),
-          IconButton(
-            icon: const Icon(Icons.sort),
-            tooltip: 'Sort',
-            onPressed: () => _showSortSheet(context),
+            icon: const Icon(Icons.map),
+            tooltip: 'Map View',
+            onPressed: () => context.go('/dive-centers/map'),
           ),
           IconButton(
             icon: const Icon(Icons.search),
@@ -148,6 +143,29 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
                 delegate: DiveCenterSearchDelegate(ref),
               );
             },
+          ),
+          IconButton(
+            icon: const Icon(Icons.sort),
+            tooltip: 'Sort',
+            onPressed: () => _showSortSheet(context),
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (value) {
+              if (value == 'import') {
+                context.push('/dive-centers/import');
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'import',
+                child: ListTile(
+                  leading: Icon(Icons.download),
+                  title: Text('Import'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -179,14 +197,9 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
           ),
           const Spacer(),
           IconButton(
-            icon: const Icon(Icons.download, size: 20),
-            tooltip: 'Import',
-            onPressed: () => context.push('/dive-centers/import'),
-          ),
-          IconButton(
-            icon: const Icon(Icons.sort, size: 20),
-            tooltip: 'Sort',
-            onPressed: () => _showSortSheet(context),
+            icon: const Icon(Icons.map, size: 20),
+            tooltip: 'Map View',
+            onPressed: () => context.go('/dive-centers/map'),
           ),
           IconButton(
             icon: const Icon(Icons.search, size: 20),
@@ -196,6 +209,22 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
                 delegate: DiveCenterSearchDelegate(ref),
               );
             },
+          ),
+          IconButton(
+            icon: const Icon(Icons.sort, size: 20),
+            tooltip: 'Sort',
+            onPressed: () => _showSortSheet(context),
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, size: 20),
+            onSelected: (value) {
+              if (value == 'import') {
+                context.push('/dive-centers/import');
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(value: 'import', child: Text('Import')),
+            ],
           ),
         ],
       ),

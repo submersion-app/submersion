@@ -290,6 +290,11 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
               title: const Text('Dive Sites'),
               actions: [
                 IconButton(
+                  icon: const Icon(Icons.map),
+                  tooltip: 'Map View',
+                  onPressed: () => context.push('/sites/map'),
+                ),
+                IconButton(
                   icon: const Icon(Icons.search),
                   onPressed: () {
                     showSearch(
@@ -316,11 +321,6 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                   tooltip: 'Sort',
                   onPressed: () => _showSortSheet(context),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.map),
-                  tooltip: 'Map View',
-                  onPressed: () => context.push('/sites/map'),
-                ),
                 PopupMenuButton<String>(
                   icon: const Icon(Icons.more_vert),
                   onSelected: (value) {
@@ -333,8 +333,8 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                     const PopupMenuItem(
                       value: 'import',
                       child: ListTile(
-                        leading: Icon(Icons.travel_explore),
-                        title: Text('Import from Online'),
+                        leading: Icon(Icons.download),
+                        title: Text('Import'),
                         contentPadding: EdgeInsets.zero,
                       ),
                     ),
@@ -374,6 +374,11 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           ),
           const Spacer(),
           IconButton(
+            icon: const Icon(Icons.map, size: 20),
+            tooltip: 'Map View',
+            onPressed: () => context.push('/sites/map'),
+          ),
+          IconButton(
             icon: const Icon(Icons.search, size: 20),
             onPressed: () {
               showSearch(context: context, delegate: SiteSearchDelegate(ref));
@@ -398,11 +403,6 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
             tooltip: 'Sort',
             onPressed: () => _showSortSheet(context),
           ),
-          IconButton(
-            icon: const Icon(Icons.map, size: 20),
-            tooltip: 'Map View',
-            onPressed: () => context.push('/sites/map'),
-          ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, size: 20),
             onSelected: (value) {
@@ -411,10 +411,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'import',
-                child: Text('Import from Online'),
-              ),
+              const PopupMenuItem(value: 'import', child: Text('Import')),
             ],
           ),
         ],
@@ -623,8 +620,8 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           const SizedBox(height: 12),
           OutlinedButton.icon(
             onPressed: () => context.push('/sites/import'),
-            icon: const Icon(Icons.travel_explore),
-            label: const Text('Import from Online'),
+            icon: const Icon(Icons.download),
+            label: const Text('Import'),
           ),
         ],
       ),
