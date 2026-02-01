@@ -192,6 +192,9 @@ jobs:
       - name: Run code generation
         run: dart run build_runner build --delete-conflicting-outputs
 
+      - name: Update CocoaPods repo
+        run: pod repo update
+
       - name: Build macOS (no-sandbox for distribution)
         run: |
           # Configure ad-hoc signing for CI (no developer certificate available)
