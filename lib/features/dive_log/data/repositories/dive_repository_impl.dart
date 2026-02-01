@@ -1102,7 +1102,10 @@ class DiveRepository {
       domainCenter = domain.DiveCenter(
         id: center.id,
         name: center.name,
-        location: center.location,
+        street: center.street,
+        city: center.city,
+        stateProvince: center.stateProvince,
+        postalCode: center.postalCode,
         latitude: center.latitude,
         longitude: center.longitude,
         country: center.country,
@@ -1369,7 +1372,10 @@ class DiveRepository {
         diveCenter = domain.DiveCenter(
           id: centerRow.id,
           name: centerRow.name,
-          location: centerRow.location,
+          street: centerRow.street,
+          city: centerRow.city,
+          stateProvince: centerRow.stateProvince,
+          postalCode: centerRow.postalCode,
           latitude: centerRow.latitude,
           longitude: centerRow.longitude,
           country: centerRow.country,

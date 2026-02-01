@@ -632,7 +632,11 @@ class DiveCenters extends Table {
   TextColumn get id => text()();
   TextColumn get diverId => text().nullable().references(Divers, #id)();
   TextColumn get name => text()();
-  TextColumn get location => text().nullable()();
+  TextColumn get street => text().nullable()(); // Street address
+  TextColumn get city => text().nullable()();
+  TextColumn get stateProvince =>
+      text().nullable()(); // State, province, or region
+  TextColumn get postalCode => text().nullable()();
   RealColumn get latitude => real().nullable()();
   RealColumn get longitude => real().nullable()();
   TextColumn get country => text().nullable()();
@@ -986,7 +990,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 23;
+  int get schemaVersion => 24;
 
   @override
   MigrationStrategy get migration {
@@ -1479,6 +1483,28 @@ class AppDatabase extends _$AppDatabase {
           );
           // Add BLOB column to media table for signatures
           await customStatement('ALTER TABLE media ADD COLUMN image_data BLOB');
+        }
+        if (from < 24) {
+          // Add structured address fields to dive_centers
+          // The original table had 'location' but not 'city', so we add all new columns
+          await customStatement(
+            'ALTER TABLE dive_centers ADD COLUMN street TEXT',
+          );
+          await customStatement(
+            'ALTER TABLE dive_centers ADD COLUMN city TEXT',
+          );
+          await customStatement(
+            'ALTER TABLE dive_centers ADD COLUMN state_province TEXT',
+          );
+          await customStatement(
+            'ALTER TABLE dive_centers ADD COLUMN postal_code TEXT',
+          );
+          // Migrate existing location data to the new city column
+          await customStatement('''
+            UPDATE dive_centers
+            SET city = location
+            WHERE location IS NOT NULL
+          ''');
         }
       },
       beforeOpen: (details) async {

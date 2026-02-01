@@ -27,7 +27,10 @@ class DiveCenterEditPage extends ConsumerStatefulWidget {
 class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
-  late TextEditingController _locationController;
+  late TextEditingController _streetController;
+  late TextEditingController _cityController;
+  late TextEditingController _stateProvinceController;
+  late TextEditingController _postalCodeController;
   late TextEditingController _countryController;
   late TextEditingController _phoneController;
   late TextEditingController _emailController;
@@ -59,7 +62,10 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
   void initState() {
     super.initState();
     _nameController = TextEditingController();
-    _locationController = TextEditingController();
+    _streetController = TextEditingController();
+    _cityController = TextEditingController();
+    _stateProvinceController = TextEditingController();
+    _postalCodeController = TextEditingController();
     _countryController = TextEditingController();
     _phoneController = TextEditingController();
     _emailController = TextEditingController();
@@ -70,7 +76,10 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
 
     // Add listeners for change tracking
     _nameController.addListener(_onFieldChanged);
-    _locationController.addListener(_onFieldChanged);
+    _streetController.addListener(_onFieldChanged);
+    _cityController.addListener(_onFieldChanged);
+    _stateProvinceController.addListener(_onFieldChanged);
+    _postalCodeController.addListener(_onFieldChanged);
     _countryController.addListener(_onFieldChanged);
     _phoneController.addListener(_onFieldChanged);
     _emailController.addListener(_onFieldChanged);
@@ -89,7 +98,10 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
   @override
   void dispose() {
     _nameController.dispose();
-    _locationController.dispose();
+    _streetController.dispose();
+    _cityController.dispose();
+    _stateProvinceController.dispose();
+    _postalCodeController.dispose();
     _countryController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
@@ -105,7 +117,10 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
     _isInitialized = true;
 
     _nameController.text = center.name;
-    _locationController.text = center.location ?? '';
+    _streetController.text = center.street ?? '';
+    _cityController.text = center.city ?? '';
+    _stateProvinceController.text = center.stateProvince ?? '';
+    _postalCodeController.text = center.postalCode ?? '';
     _countryController.text = center.country ?? '';
     _phoneController.text = center.phone ?? '';
     _emailController.text = center.email ?? '';
@@ -136,9 +151,18 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
         id: widget.centerId ?? '',
         diverId: diverId,
         name: _nameController.text.trim(),
-        location: _locationController.text.trim().isEmpty
+        street: _streetController.text.trim().isEmpty
             ? null
-            : _locationController.text.trim(),
+            : _streetController.text.trim(),
+        city: _cityController.text.trim().isEmpty
+            ? null
+            : _cityController.text.trim(),
+        stateProvince: _stateProvinceController.text.trim().isEmpty
+            ? null
+            : _stateProvinceController.text.trim(),
+        postalCode: _postalCodeController.text.trim().isEmpty
+            ? null
+            : _postalCodeController.text.trim(),
         latitude: _latitudeController.text.trim().isEmpty
             ? null
             : double.tryParse(_latitudeController.text.trim()),
@@ -273,27 +297,84 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
             },
           ),
           const SizedBox(height: 16),
-          TextFormField(
-            controller: _locationController,
-            decoration: const InputDecoration(
-              labelText: 'Location',
-              hintText: 'e.g., Koh Tao, Thailand',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _countryController,
-            decoration: const InputDecoration(
-              labelText: 'Country',
-              hintText: 'e.g., Thailand',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 16),
 
           // Rating
           _buildRatingSelector(),
+
+          const SizedBox(height: 24),
+
+          // Address Section
+          Text('Address', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 8),
+          Text(
+            'Optional street address for navigation',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.outline,
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _streetController,
+            decoration: const InputDecoration(
+              labelText: 'Street Address',
+              hintText: 'e.g., 123 Beach Road',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: TextFormField(
+                  controller: _cityController,
+                  decoration: const InputDecoration(
+                    labelText: 'City',
+                    hintText: 'e.g., Phuket',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: TextFormField(
+                  controller: _stateProvinceController,
+                  decoration: const InputDecoration(
+                    labelText: 'State/Province',
+                    hintText: 'e.g., Phuket',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: TextFormField(
+                  controller: _postalCodeController,
+                  decoration: const InputDecoration(
+                    labelText: 'Postal Code',
+                    hintText: 'e.g., 83100',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                flex: 2,
+                child: TextFormField(
+                  controller: _countryController,
+                  decoration: const InputDecoration(
+                    labelText: 'Country',
+                    hintText: 'e.g., Thailand',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ),
+            ],
+          ),
 
           const SizedBox(height: 24),
 

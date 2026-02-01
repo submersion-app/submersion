@@ -46,7 +46,7 @@ class ExternalDiveCenter {
       id: '',
       diverId: diverId,
       name: name,
-      location: location,
+      city: location, // External sources store city/area in location field
       latitude: latitude,
       longitude: longitude,
       country: country,

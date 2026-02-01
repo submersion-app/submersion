@@ -2545,8 +2545,8 @@ class ExportService {
                       attributes: {'id': 'center_${center.id}'},
                       nest: () {
                         builder.element('name', nest: center.name);
-                        if (center.location != null) {
-                          builder.element('location', nest: center.location);
+                        if (center.city != null) {
+                          builder.element('city', nest: center.city);
                         }
                         if (center.latitude != null &&
                             center.longitude != null) {

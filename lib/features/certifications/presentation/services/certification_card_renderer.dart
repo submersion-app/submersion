@@ -9,25 +9,149 @@ import 'package:submersion/features/certifications/domain/entities/certification
 
 /// Service for rendering certification cards to PNG images for sharing.
 ///
-/// Uses Flutter's rendering pipeline to capture widgets as images.
+/// Uses programmatic Canvas drawing to generate images without requiring
+/// widgets to be in the widget tree.
 class CertificationCardRenderer {
   CertificationCardRenderer._();
 
-  /// Renders a widget wrapped in a RepaintBoundary to a PNG image.
+  /// Standard credit card aspect ratio (CR80: 85.6mm × 53.98mm).
+  static const double _cardAspectRatio = 1.586;
+
+  /// Generates a certification card image programmatically using Canvas.
   ///
-  /// The [key] must be attached to a RepaintBoundary that is currently
-  /// in the widget tree.
+  /// Creates a credit card-style image with:
+  /// - Agency-branded gradient background
+  /// - Decorative wave pattern
+  /// - Certification name and level
+  /// - Diver name
+  /// - Issue date and card number
   ///
-  /// Returns the PNG bytes, or null if rendering fails.
-  static Future<Uint8List?> renderCardToImage(GlobalKey key) async {
+  /// Returns the PNG bytes, or null if generation fails.
+  static Future<Uint8List?> generateCardImage({
+    required Certification certification,
+    required String diverName,
+  }) async {
     try {
-      final boundary = key.currentContext?.findRenderObject();
-      if (boundary == null || boundary is! RenderRepaintBoundary) {
-        return null;
+      const width = 800.0;
+      const height = width / _cardAspectRatio;
+
+      final recorder = ui.PictureRecorder();
+      final canvas = Canvas(recorder, const Rect.fromLTWH(0, 0, width, height));
+
+      final primaryColor = ui.Color(
+        certification.agency.primaryColor.toARGB32(),
+      );
+      final secondaryColor = ui.Color(
+        certification.agency.secondaryColor.toARGB32(),
+      );
+
+      // Draw gradient background
+      final gradientPaint = Paint()
+        ..shader = ui.Gradient.linear(
+          const Offset(0, 0),
+          const Offset(width, height),
+          [primaryColor, secondaryColor],
+        );
+      final cardRect = RRect.fromRectAndRadius(
+        const Rect.fromLTWH(0, 0, width, height),
+        const Radius.circular(24),
+      );
+      canvas.drawRRect(cardRect, gradientPaint);
+
+      // Draw decorative circles (wave pattern)
+      _drawDecorativeCircles(canvas, width, height, primaryColor);
+
+      // Draw agency name at top
+      _drawText(
+        canvas: canvas,
+        text: certification.agency.displayName,
+        x: 32,
+        y: 32,
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+        color: const ui.Color(0xFFFFFFFF),
+        maxWidth: width - 64,
+      );
+
+      // Draw certification name (large, centered vertically)
+      _drawText(
+        canvas: canvas,
+        text: certification.name,
+        x: 32,
+        y: height * 0.35,
+        fontSize: 32,
+        fontWeight: FontWeight.bold,
+        color: const ui.Color(0xFFFFFFFF),
+        maxWidth: width - 64,
+      );
+
+      // Draw level if available
+      if (certification.level != null) {
+        _drawText(
+          canvas: canvas,
+          text: certification.level!.displayName,
+          x: 32,
+          y: height * 0.35 + 44,
+          fontSize: 20,
+          fontWeight: FontWeight.normal,
+          color: const ui.Color(0xCCFFFFFF),
+          maxWidth: width - 64,
+        );
       }
 
-      // Use 2.0 pixel ratio for retina quality
-      final image = await boundary.toImage(pixelRatio: 2.0);
+      // Draw diver name at bottom left
+      _drawText(
+        canvas: canvas,
+        text: diverName.toUpperCase(),
+        x: 32,
+        y: height - 80,
+        fontSize: 22,
+        fontWeight: FontWeight.w600,
+        color: const ui.Color(0xFFFFFFFF),
+        maxWidth: width * 0.6,
+      );
+
+      // Draw card number if available (bottom left, below name)
+      if (certification.cardNumber != null) {
+        _drawText(
+          canvas: canvas,
+          text: certification.cardNumber!,
+          x: 32,
+          y: height - 48,
+          fontSize: 16,
+          fontWeight: FontWeight.normal,
+          color: const ui.Color(0xAAFFFFFF),
+          maxWidth: width * 0.6,
+        );
+      }
+
+      // Draw issue date at bottom right
+      if (certification.issueDate != null) {
+        final dateFormat = DateFormat('MM/yy');
+        final dateStr = dateFormat.format(certification.issueDate!);
+        _drawTextRightAligned(
+          canvas: canvas,
+          text: dateStr,
+          x: width - 32,
+          y: height - 48,
+          fontSize: 18,
+          fontWeight: FontWeight.w500,
+          color: const ui.Color(0xFFFFFFFF),
+        );
+        _drawTextRightAligned(
+          canvas: canvas,
+          text: 'ISSUED',
+          x: width - 32,
+          y: height - 70,
+          fontSize: 12,
+          fontWeight: FontWeight.normal,
+          color: const ui.Color(0xAAFFFFFF),
+        );
+      }
+
+      // End recording and convert to image
+      final picture = recorder.endRecording();
+      final image = await picture.toImage(width.toInt(), height.toInt());
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
 
       if (byteData == null) {
@@ -38,6 +162,97 @@ class CertificationCardRenderer {
     } catch (e) {
       return null;
     }
+  }
+
+  /// Draws decorative circles for the wave pattern effect.
+  static void _drawDecorativeCircles(
+    Canvas canvas,
+    double width,
+    double height,
+    ui.Color primaryColor,
+  ) {
+    final circlePaint = Paint()
+      ..color = const ui.Color(0x1AFFFFFF)
+      ..style = PaintingStyle.fill;
+
+    // Large circle in top right
+    canvas.drawCircle(
+      Offset(width * 0.85, height * 0.1),
+      height * 0.4,
+      circlePaint,
+    );
+
+    // Medium circle
+    canvas.drawCircle(
+      Offset(width * 0.7, height * 0.3),
+      height * 0.25,
+      circlePaint,
+    );
+
+    // Small accent circle
+    canvas.drawCircle(
+      Offset(width * 0.9, height * 0.45),
+      height * 0.15,
+      circlePaint,
+    );
+  }
+
+  /// Draws left-aligned text on the canvas.
+  static void _drawText({
+    required Canvas canvas,
+    required String text,
+    required double x,
+    required double y,
+    required double fontSize,
+    required FontWeight fontWeight,
+    required ui.Color color,
+    double? maxWidth,
+  }) {
+    final paragraphBuilder =
+        ui.ParagraphBuilder(
+            ui.ParagraphStyle(
+              textAlign: TextAlign.left,
+              fontSize: fontSize,
+              fontWeight: fontWeight,
+              maxLines: 2,
+              ellipsis: '...',
+            ),
+          )
+          ..pushStyle(ui.TextStyle(color: color))
+          ..addText(text);
+
+    final paragraph = paragraphBuilder.build();
+    paragraph.layout(ui.ParagraphConstraints(width: maxWidth ?? 500));
+
+    canvas.drawParagraph(paragraph, Offset(x, y));
+  }
+
+  /// Draws right-aligned text on the canvas.
+  static void _drawTextRightAligned({
+    required Canvas canvas,
+    required String text,
+    required double x,
+    required double y,
+    required double fontSize,
+    required FontWeight fontWeight,
+    required ui.Color color,
+  }) {
+    final paragraphBuilder =
+        ui.ParagraphBuilder(
+            ui.ParagraphStyle(
+              textAlign: TextAlign.right,
+              fontSize: fontSize,
+              fontWeight: fontWeight,
+            ),
+          )
+          ..pushStyle(ui.TextStyle(color: color))
+          ..addText(text);
+
+    final paragraph = paragraphBuilder.build();
+    paragraph.layout(const ui.ParagraphConstraints(width: 200));
+
+    // Position so that the right edge is at x
+    canvas.drawParagraph(paragraph, Offset(x - 200, y));
   }
 
   /// Generates a formal certificate image programmatically using Canvas.

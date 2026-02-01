@@ -904,7 +904,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
             id: newId,
             diverId: currentDiver.id,
             name: centerName,
-            location: centerData['location'] as String?,
+            city:
+                centerData['location']
+                    as String?, // Legacy UDDF uses location for city
             latitude: centerData['latitude'] as double?,
             longitude: centerData['longitude'] as double?,
             country: centerData['country'] as String?,

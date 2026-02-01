@@ -314,6 +314,7 @@ class _HeaderSection extends StatelessWidget {
           if (center.displayLocation != null) ...[
             const SizedBox(height: 16),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(
                   Icons.location_on_outlined,
@@ -330,19 +331,22 @@ class _HeaderSection extends StatelessWidget {
               ],
             ),
           ],
-          if (center.country != null && center.location != null) ...[
+          if (center.hasStreetAddress) ...[
             const SizedBox(height: 8),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(
-                  Icons.flag_outlined,
+                  Icons.home_outlined,
                   size: 20,
                   color: Theme.of(context).colorScheme.outline,
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  center.country!,
-                  style: Theme.of(context).textTheme.bodyMedium,
+                Expanded(
+                  child: Text(
+                    center.formattedAddress ?? '',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                 ),
               ],
             ),

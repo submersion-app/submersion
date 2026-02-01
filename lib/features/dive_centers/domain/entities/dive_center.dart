@@ -5,7 +5,10 @@ class DiveCenter extends Equatable {
   final String id;
   final String? diverId;
   final String name;
-  final String? location;
+  final String? street; // Street address
+  final String? city;
+  final String? stateProvince; // State, province, or region
+  final String? postalCode;
   final double? latitude;
   final double? longitude;
   final String? country;
@@ -22,7 +25,10 @@ class DiveCenter extends Equatable {
     required this.id,
     this.diverId,
     required this.name,
-    this.location,
+    this.street,
+    this.city,
+    this.stateProvince,
+    this.postalCode,
     this.latitude,
     this.longitude,
     this.country,
@@ -39,13 +45,52 @@ class DiveCenter extends Equatable {
   /// Check if dive center has location coordinates
   bool get hasCoordinates => latitude != null && longitude != null;
 
-  /// Get display location (location or country)
-  String? get displayLocation => location ?? country;
+  /// Check if dive center has a street address
+  bool get hasStreetAddress =>
+      street != null ||
+      city != null ||
+      stateProvince != null ||
+      postalCode != null;
 
-  /// Get full location string (location, country) - combines both if available
+  /// Get display location (city or country)
+  String? get displayLocation => city ?? country;
+
+  /// Get formatted street address (multi-line)
+  String? get formattedAddress {
+    final parts = <String>[];
+    if (street != null && street!.isNotEmpty) parts.add(street!);
+
+    // Build city/state/postal line
+    final cityLine = <String>[];
+    if (city != null && city!.isNotEmpty) cityLine.add(city!);
+    if (stateProvince != null && stateProvince!.isNotEmpty) {
+      cityLine.add(stateProvince!);
+    }
+    if (postalCode != null && postalCode!.isNotEmpty) {
+      cityLine.add(postalCode!);
+    }
+    if (cityLine.isNotEmpty) parts.add(cityLine.join(', '));
+
+    if (country != null && country!.isNotEmpty) parts.add(country!);
+
+    return parts.isEmpty ? null : parts.join('\n');
+  }
+
+  /// Get single-line address summary
+  String? get addressSummary {
+    final parts = <String>[];
+    if (city != null && city!.isNotEmpty) parts.add(city!);
+    if (stateProvince != null && stateProvince!.isNotEmpty) {
+      parts.add(stateProvince!);
+    }
+    if (country != null && country!.isNotEmpty) parts.add(country!);
+    return parts.isEmpty ? null : parts.join(', ');
+  }
+
+  /// Get full location string (city, country)
   String? get fullLocationString {
     final parts = <String>[];
-    if (location != null && location!.isNotEmpty) parts.add(location!);
+    if (city != null && city!.isNotEmpty) parts.add(city!);
     if (country != null && country!.isNotEmpty) parts.add(country!);
     return parts.isEmpty ? null : parts.join(', ');
   }
@@ -59,7 +104,10 @@ class DiveCenter extends Equatable {
     String? id,
     String? diverId,
     String? name,
-    String? location,
+    String? street,
+    String? city,
+    String? stateProvince,
+    String? postalCode,
     double? latitude,
     double? longitude,
     String? country,
@@ -76,7 +124,10 @@ class DiveCenter extends Equatable {
       id: id ?? this.id,
       diverId: diverId ?? this.diverId,
       name: name ?? this.name,
-      location: location ?? this.location,
+      street: street ?? this.street,
+      city: city ?? this.city,
+      stateProvince: stateProvince ?? this.stateProvince,
+      postalCode: postalCode ?? this.postalCode,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       country: country ?? this.country,
@@ -102,7 +153,10 @@ class DiveCenter extends Equatable {
     id,
     diverId,
     name,
-    location,
+    street,
+    city,
+    stateProvince,
+    postalCode,
     latitude,
     longitude,
     country,

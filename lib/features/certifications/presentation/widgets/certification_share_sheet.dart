@@ -6,12 +6,11 @@ import 'package:share_plus/share_plus.dart';
 
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/services/certification_card_renderer.dart';
-import 'package:submersion/features/certifications/presentation/widgets/certification_ecard.dart';
 
 /// Bottom sheet for sharing a certification as an image.
 ///
 /// Provides two sharing options:
-/// - Share as Card: Captures the ecard widget as a PNG image
+/// - Share as Card: Generates a credit card-style certification image
 /// - Share as Certificate: Generates a formal certificate document
 class CertificationShareSheet extends StatefulWidget {
   /// The certification to share.
@@ -32,7 +31,6 @@ class CertificationShareSheet extends StatefulWidget {
 }
 
 class _CertificationShareSheetState extends State<CertificationShareSheet> {
-  final GlobalKey _cardKey = GlobalKey();
   bool _isExporting = false;
 
   @override
@@ -85,30 +83,6 @@ class _CertificationShareSheetState extends State<CertificationShareSheet> {
               isLoading: _isExporting,
             ),
             const SizedBox(height: 16),
-
-            // Hidden ecard for capture - uses Stack with Clip.none so it's
-            // painted (required for toImage) but takes no layout space
-            SizedBox(
-              height: 0,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Opacity(
-                    opacity: 0,
-                    child: RepaintBoundary(
-                      key: _cardKey,
-                      child: SizedBox(
-                        width: 400,
-                        child: CertificationEcard(
-                          certification: widget.certification,
-                          diverName: widget.diverName,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ],
         ),
       ),
@@ -119,12 +93,12 @@ class _CertificationShareSheetState extends State<CertificationShareSheet> {
     setState(() => _isExporting = true);
 
     try {
-      // Wait a frame for the widget to be rendered
-      await Future<void>.delayed(const Duration(milliseconds: 100));
-
-      final bytes = await CertificationCardRenderer.renderCardToImage(_cardKey);
+      final bytes = await CertificationCardRenderer.generateCardImage(
+        certification: widget.certification,
+        diverName: widget.diverName,
+      );
       if (bytes == null) {
-        throw Exception('Failed to render card image');
+        throw Exception('Failed to generate card image');
       }
 
       // Save to temp file

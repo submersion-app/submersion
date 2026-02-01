@@ -46,7 +46,7 @@ class DiveCenterRepository {
     }
   }
 
-  /// Search dive centers by name or location
+  /// Search dive centers by name, city, or country
   Future<List<domain.DiveCenter>> searchDiveCenters(
     String query, {
     String? diverId,
@@ -63,7 +63,7 @@ class DiveCenterRepository {
     final results = await _db.customSelect('''
       SELECT * FROM dive_centers
       WHERE (LOWER(name) LIKE ?
-         OR LOWER(location) LIKE ?
+         OR LOWER(city) LIKE ?
          OR LOWER(country) LIKE ?)
       $diverFilter
       ORDER BY name ASC
@@ -119,7 +119,10 @@ class DiveCenterRepository {
               id: Value(id),
               diverId: Value(center.diverId),
               name: Value(center.name),
-              location: Value(center.location),
+              street: Value(center.street),
+              city: Value(center.city),
+              stateProvince: Value(center.stateProvince),
+              postalCode: Value(center.postalCode),
               latitude: Value(center.latitude),
               longitude: Value(center.longitude),
               country: Value(center.country),
@@ -160,7 +163,10 @@ class DiveCenterRepository {
       )..where((t) => t.id.equals(center.id))).write(
         DiveCentersCompanion(
           name: Value(center.name),
-          location: Value(center.location),
+          street: Value(center.street),
+          city: Value(center.city),
+          stateProvince: Value(center.stateProvince),
+          postalCode: Value(center.postalCode),
           latitude: Value(center.latitude),
           longitude: Value(center.longitude),
           country: Value(center.country),
@@ -241,7 +247,10 @@ class DiveCenterRepository {
       id: row.id,
       diverId: row.diverId,
       name: row.name,
-      location: row.location,
+      street: row.street,
+      city: row.city,
+      stateProvince: row.stateProvince,
+      postalCode: row.postalCode,
       latitude: row.latitude,
       longitude: row.longitude,
       country: row.country,
@@ -260,7 +269,10 @@ class DiveCenterRepository {
     return domain.DiveCenter(
       id: row.data['id'] as String,
       name: row.data['name'] as String,
-      location: row.data['location'] as String?,
+      street: row.data['street'] as String?,
+      city: row.data['city'] as String?,
+      stateProvince: row.data['state_province'] as String?,
+      postalCode: row.data['postal_code'] as String?,
       latitude: (row.data['latitude'] as num?)?.toDouble(),
       longitude: (row.data['longitude'] as num?)?.toDouble(),
       country: row.data['country'] as String?,

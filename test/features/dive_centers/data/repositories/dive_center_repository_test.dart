@@ -19,7 +19,7 @@ void main() {
   DiveCenter createTestCenter({
     String id = '',
     String name = 'Test Dive Center',
-    String? location,
+    String? city,
     double? latitude,
     double? longitude,
     String? country,
@@ -34,7 +34,7 @@ void main() {
     return DiveCenter(
       id: id,
       name: name,
-      location: location,
+      city: city,
       latitude: latitude,
       longitude: longitude,
       country: country,
@@ -77,7 +77,7 @@ void main() {
       test('should create a center with all fields', () async {
         final center = createTestCenter(
           name: 'Complete Dive Shop',
-          location: 'Downtown Marina',
+          city: 'Downtown Marina',
           latitude: 25.7617,
           longitude: -80.1918,
           country: 'USA',
@@ -96,7 +96,7 @@ void main() {
 
         expect(fetchedCenter, isNotNull);
         expect(fetchedCenter!.name, equals('Complete Dive Shop'));
-        expect(fetchedCenter.location, equals('Downtown Marina'));
+        expect(fetchedCenter.city, equals('Downtown Marina'));
         expect(fetchedCenter.latitude, closeTo(25.7617, 0.0001));
         expect(fetchedCenter.longitude, closeTo(-80.1918, 0.0001));
         expect(fetchedCenter.country, equals('USA'));
@@ -158,12 +158,12 @@ void main() {
     group('updateDiveCenter', () {
       test('should update center fields', () async {
         final center = await repository.createDiveCenter(
-          createTestCenter(name: 'Original Center', location: 'Old Location'),
+          createTestCenter(name: 'Original Center', city: 'Old Location'),
         );
 
         final updatedCenter = center.copyWith(
           name: 'Updated Center',
-          location: 'New Location',
+          city: 'New Location',
           rating: 5.0,
         );
 
@@ -172,7 +172,7 @@ void main() {
 
         expect(result, isNotNull);
         expect(result!.name, equals('Updated Center'));
-        expect(result.location, equals('New Location'));
+        expect(result.city, equals('New Location'));
         expect(result.rating, equals(5.0));
       });
 
@@ -217,21 +217,21 @@ void main() {
         await repository.createDiveCenter(
           createTestCenter(
             name: 'Ocean Blue Diving',
-            location: 'Miami Beach',
+            city: 'Miami Beach',
             country: 'USA',
           ),
         );
         await repository.createDiveCenter(
           createTestCenter(
             name: 'Coral Reef Adventures',
-            location: 'Key Largo',
+            city: 'Key Largo',
             country: 'USA',
           ),
         );
         await repository.createDiveCenter(
           createTestCenter(
             name: 'Pacific Explorers',
-            location: 'Sydney Harbor',
+            city: 'Sydney Harbor',
             country: 'Australia',
           ),
         );
