@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/services/location_service.dart';
+import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 
 /// Result from the location picker
 class PickedLocation {
@@ -161,6 +162,9 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.submersion.app',
                 maxZoom: 19,
+                tileProvider: TileCacheService.instance.isInitialized
+                    ? TileCacheService.instance.getTileProvider()
+                    : null,
               ),
               if (_selectedLocation != null)
                 MarkerLayer(

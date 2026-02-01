@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -361,6 +362,9 @@ class _SiteDetailContent extends ConsumerWidget {
                   urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                   userAgentPackageName: 'com.submersion.app',
                   maxZoom: 19,
+                  tileProvider: TileCacheService.instance.isInitialized
+                      ? TileCacheService.instance.getTileProvider()
+                      : null,
                 ),
                 MarkerLayer(
                   markers: [
@@ -449,6 +453,9 @@ class _SiteDetailContent extends ConsumerWidget {
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.submersion.app',
                 maxZoom: 19,
+                tileProvider: TileCacheService.instance.isInitialized
+                    ? TileCacheService.instance.getTileProvider()
+                    : null,
               ),
               MarkerLayer(
                 markers: [

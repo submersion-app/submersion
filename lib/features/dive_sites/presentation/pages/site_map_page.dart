@@ -7,6 +7,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/providers/heat_map_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/heat_map_controls.dart';
 import 'package:submersion/features/maps/presentation/widgets/heat_map_layer.dart';
@@ -132,6 +133,9 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
               urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
               userAgentPackageName: 'com.submersion.app',
               maxZoom: 19,
+              tileProvider: TileCacheService.instance.isInitialized
+                  ? TileCacheService.instance.getTileProvider()
+                  : null,
             ),
             // Markers layer - always shown
             MarkerClusterLayerWidget(

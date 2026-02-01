@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:latlong2/latlong.dart';
@@ -154,6 +155,13 @@ class TileCacheService {
     return FMTCTileProvider(
       stores: {_defaultStoreName: BrowseStoreStrategy.readUpdateCreate},
       loadingStrategy: loadingStrategy,
+      errorHandler: (error) {
+        // Silently handle tile loading errors - these are expected when
+        // offline or during network issues. The map will show blank tiles
+        // which is acceptable behavior.
+        debugPrint('Tile loading error (silently handled): ${error.type}');
+        return null; // Return null to show blank tile instead of throwing
+      },
     );
   }
 

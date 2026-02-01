@@ -130,6 +130,7 @@ Tables defined in `lib/core/database/database.dart`:
 - No console.log in production code
 - Proper error handling with try/catch
 - Input validation with Zod or similar
+- "dart format ." should be run after completing any task to ensure correctly formatted code gets committed
 
 ### 3. Testing
 
