@@ -15,12 +15,24 @@ class DiveCenterListContent extends ConsumerStatefulWidget {
   final bool showAppBar;
   final Widget? floatingActionButton;
 
+  /// Callback for when an item is tapped in map mode.
+  /// When provided along with [isMapMode], this will be called instead of
+  /// navigating to the detail page.
+  final void Function(DiveCenter center)? onItemTapForMap;
+
+  /// Whether the list is being displayed alongside a map.
+  /// When true and [onItemTapForMap] is provided, tapping an item will call
+  /// [onItemTapForMap] instead of navigating to the detail page.
+  final bool isMapMode;
+
   const DiveCenterListContent({
     super.key,
     this.onItemSelected,
     this.selectedId,
     this.showAppBar = true,
     this.floatingActionButton,
+    this.onItemTapForMap,
+    this.isMapMode = false,
   });
 
   @override
@@ -93,6 +105,17 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
   }
 
   void _handleItemTap(DiveCenter center) {
+    // In map mode, call onItemTapForMap instead of navigating
+    if (widget.isMapMode && widget.onItemTapForMap != null) {
+      // Also update the visual selection highlight
+      if (widget.onItemSelected != null) {
+        _selectionFromList = true;
+        widget.onItemSelected!(center.id);
+      }
+      widget.onItemTapForMap!(center);
+      return;
+    }
+
     if (widget.onItemSelected != null) {
       _selectionFromList = true;
       widget.onItemSelected!(center.id);
