@@ -524,10 +524,12 @@
 | Mark buddies per dive | ✅ Implemented | v1.0 | Many-to-many with roles |
 | Roles | ✅ Implemented | v1.0 | Buddy, Guide, Instructor, Student, Solo |
 | Buddy detail page | ✅ Implemented | v1.0 | Shared dive history and stats |
+| Import from contacts | ✅ Implemented | v1.5 | Mobile contact picker |
+| Share dives with buddy | ✅ Implemented | v1.5 | UDDF export via share sheet |
 
-**v1.5 Tasks:**
-- [ ] Import buddies from contacts (mobile)
-- [ ] Share dives with buddies (export UDDF, send via email/messaging)
+**v1.5 Tasks (Complete):**
+- [x] Import buddies from contacts (mobile)
+- [x] Share dives with buddies (export UDDF, send via email/messaging)
 
 ---
 

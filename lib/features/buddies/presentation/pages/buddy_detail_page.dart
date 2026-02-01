@@ -8,7 +8,9 @@ import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.d
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 
 class BuddyDetailPage extends ConsumerStatefulWidget {
   final String buddyId;
@@ -159,11 +161,23 @@ class _BuddyDetailContent extends ConsumerWidget {
           ),
           PopupMenuButton<String>(
             onSelected: (value) async {
-              if (value == 'delete') {
+              if (value == 'share') {
+                await _shareDivesWithBuddy(context, ref);
+              } else if (value == 'delete') {
                 await _handleDelete(context, ref);
               }
             },
             itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'share',
+                child: Row(
+                  children: [
+                    Icon(Icons.share),
+                    SizedBox(width: 8),
+                    Text('Share Dives'),
+                  ],
+                ),
+              ),
               const PopupMenuItem(
                 value: 'delete',
                 child: Row(
@@ -241,11 +255,23 @@ class _BuddyDetailContent extends ConsumerWidget {
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, size: 20),
             onSelected: (value) async {
-              if (value == 'delete') {
+              if (value == 'share') {
+                await _shareDivesWithBuddy(context, ref);
+              } else if (value == 'delete') {
                 await _handleDelete(context, ref);
               }
             },
             itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'share',
+                child: Row(
+                  children: [
+                    Icon(Icons.share, size: 20),
+                    SizedBox(width: 8),
+                    Text('Share Dives'),
+                  ],
+                ),
+              ),
               const PopupMenuItem(
                 value: 'delete',
                 child: Row(
@@ -277,6 +303,71 @@ class _BuddyDetailContent extends ConsumerWidget {
           context,
         ).showSnackBar(const SnackBar(content: Text('Buddy deleted')));
       }
+    }
+  }
+
+  Future<void> _shareDivesWithBuddy(BuildContext context, WidgetRef ref) async {
+    // Capture the scaffold messenger before any async gaps
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+    // Show preparing message
+    scaffoldMessenger.showSnackBar(
+      const SnackBar(
+        content: Text('Preparing export...'),
+        duration: Duration(seconds: 1),
+      ),
+    );
+
+    // Get all dive IDs for this buddy
+    final diveIds = await ref.read(diveIdsForBuddyProvider(buddy.id).future);
+
+    if (diveIds.isEmpty) {
+      scaffoldMessenger.hideCurrentSnackBar();
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(content: Text('No dives to share with this buddy')),
+      );
+      return;
+    }
+
+    try {
+      // Fetch all dives
+      final diveRepository = ref.read(diveRepositoryProvider);
+      final dives = <Dive>[];
+      for (final diveId in diveIds) {
+        final dive = await diveRepository.getDiveById(diveId);
+        if (dive != null) {
+          dives.add(dive);
+        }
+      }
+
+      if (dives.isEmpty) {
+        scaffoldMessenger.hideCurrentSnackBar();
+        scaffoldMessenger.showSnackBar(
+          const SnackBar(content: Text('No dives found to export')),
+        );
+        return;
+      }
+
+      // Get unique sites from dives
+      final sites = dives
+          .where((d) => d.site != null)
+          .map((d) => d.site!)
+          .toSet()
+          .toList();
+
+      scaffoldMessenger.hideCurrentSnackBar();
+
+      // Export to UDDF (this opens the share sheet)
+      final exportService = ref.read(exportServiceProvider);
+      await exportService.exportDivesToUddf(dives, sites: sites);
+
+      // Note: Success snackbar may not show if share sheet is still active
+      // That's fine - the share sheet itself provides feedback
+    } catch (e) {
+      scaffoldMessenger.hideCurrentSnackBar();
+      scaffoldMessenger.showSnackBar(
+        SnackBar(content: Text('Export failed: $e')),
+      );
     }
   }
 

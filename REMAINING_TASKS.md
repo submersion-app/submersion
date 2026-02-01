@@ -49,11 +49,6 @@ This document contains only the features and tasks that are **not yet completed*
 
 ## Category 7: People - Buddies, Instructors, Agencies
 
-### 7.1 Buddy Management
-**Tasks:**
-- [ ] Import buddies from contacts (mobile)
-- [ ] Share dives with buddies (export UDDF, send via email/messaging)
-
 ### 7.2 Digital Signatures
 
 **Remaining:**
@@ -631,5 +626,5 @@ This document contains only the features and tasks that are **not yet completed*
 
 ---
 
-**Document Version:** 1.6
-**Updated:** 2026-01-31 (Maps & Visualization: Activity map, offline maps, site filtering completed)
+**Document Version:** 1.7
+**Updated:** 2026-01-31 (Buddy Management: Contact import, share dives with buddies completed)
