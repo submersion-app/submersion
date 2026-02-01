@@ -1,3 +1,5 @@
+import 'dart:ui' show Color;
+
 /// Types of dives
 enum DiveType {
   recreational('Recreational'),
@@ -123,6 +125,38 @@ enum CertificationAgency {
 
   final String displayName;
   const CertificationAgency(this.displayName);
+
+  /// Primary brand color for this agency
+  Color get primaryColor => switch (this) {
+    CertificationAgency.padi => const Color(0xFF004990),
+    CertificationAgency.ssi => const Color(0xFF1a237e),
+    CertificationAgency.naui => const Color(0xFF1b5e20),
+    CertificationAgency.sdi => const Color(0xFF0d47a1),
+    CertificationAgency.tdi => const Color(0xFF4a148c),
+    CertificationAgency.gue => const Color(0xFF424242),
+    CertificationAgency.raid => const Color(0xFFb71c1c),
+    CertificationAgency.bsac => const Color(0xFF1565c0),
+    CertificationAgency.cmas => const Color(0xFF00695c),
+    CertificationAgency.iantd => const Color(0xFF283593),
+    CertificationAgency.psai => const Color(0xFF2e7d32),
+    CertificationAgency.other => const Color(0xFF00838f),
+  };
+
+  /// Secondary brand color for gradient effects
+  Color get secondaryColor => switch (this) {
+    CertificationAgency.padi => const Color(0xFF0066CC),
+    CertificationAgency.ssi => const Color(0xFF42a5f5),
+    CertificationAgency.naui => const Color(0xFF43a047),
+    CertificationAgency.sdi => const Color(0xFF1976d2),
+    CertificationAgency.tdi => const Color(0xFF7b1fa2),
+    CertificationAgency.gue => const Color(0xFF757575),
+    CertificationAgency.raid => const Color(0xFFe53935),
+    CertificationAgency.bsac => const Color(0xFF42a5f5),
+    CertificationAgency.cmas => const Color(0xFF26a69a),
+    CertificationAgency.iantd => const Color(0xFF5c6bc0),
+    CertificationAgency.psai => const Color(0xFF66bb6a),
+    CertificationAgency.other => const Color(0xFF26c6da),
+  };
 }
 
 /// Common certification levels
