@@ -1,6 +1,6 @@
 # Submersion - Remaining Tasks
 
-> **Generated:** 2026-01-26
+> **Generated:** 2026-01-31
 > **Source:** FEATURE_ROADMAP.md
 > **Current Version:** 1.1.0 (v1.5 In Progress)
 
@@ -31,17 +31,6 @@ This document contains only the features and tasks that are **not yet completed*
 - [ ] EXIF parsing from photo attachments
 - [ ] If photo has GPS and dive doesn't, suggest using photo GPS
 - [ ] Bulk site creation from photo library
-
-### 5.3 Maps & Visualization
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Dive Activity Map | 📋 Planned | Heat map of all dives |
-| Offline maps | 📋 Planned | For travel to remote areas |
-
-**Tasks:**
-- [ ] Offline map tile caching using flutter_map tile storage
-- [ ] Download map region for offline use (bounding box selector)
-- [ ] Heat map visualization of dive activity (intensity = dive count)
 
 ---
 
@@ -628,7 +617,7 @@ This document contains only the features and tasks that are **not yet completed*
 
 | Phase | Remaining Features | Remaining Tasks |
 |-------|-------------------|-----------------|
-| **v1.5** | ~20 features | ~35 tasks |
+| **v1.5** | ~18 features | ~32 tasks |
 | **v2.0** | ~70+ features | ~105+ tasks |
 | **v3.0** | ~5 features | Future scope |
 
@@ -642,5 +631,5 @@ This document contains only the features and tasks that are **not yet completed*
 
 ---
 
-**Document Version:** 1.5
-**Updated:** 2026-01-26 (Underwater Photography: photo viewer, EXIF write completed)
+**Document Version:** 1.6
+**Updated:** 2026-01-31 (Maps & Visualization: Activity map, offline maps, site filtering completed)

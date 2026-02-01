@@ -1,11 +1,11 @@
 # Submersion Feature Roadmap
 ## Comprehensive Development Plan
 
-> **Last Updated:** 2026-01-26
+> **Last Updated:** 2026-01-31
 > **Current Version:** 1.1.0 (v1.1 Complete)
 > **Status:** v1.0 ✅ COMPLETE | v1.1 ✅ COMPLETE | v1.5 🚧 In Progress
 >
-> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Profile Visualization (Category 2.1) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete | Search & Filtering (Category 10.1) ✅ Complete | Tools & Calculators (Category 11) ✅ Complete | Digital Signatures (Category 7.2) ✅ Complete | Training Dives (Category 8.3) ✅ Complete | Underwater Photography (Category 9.3) ✅ Complete
+> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Profile Visualization (Category 2.1) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete | Search & Filtering (Category 10.1) ✅ Complete | Tools & Calculators (Category 11) ✅ Complete | Digital Signatures (Category 7.2) ✅ Complete | Training Dives (Category 8.3) ✅ Complete | Underwater Photography (Category 9.3) ✅ Complete | Maps & Visualization (Category 5.3) ✅ Complete
 
 ---
 
@@ -431,13 +431,17 @@
 | Map of all dive sites | ✅ Implemented | MVP | Using flutter_map + OpenStreetMap |
 | Marker clustering | ✅ Implemented | v1.1 | Smooth animated zoom on cluster tap |
 | Color-coded markers | ✅ Implemented | v1.1 | Based on dive count or rating |
-| Dive Activity Map | 📋 Planned | v1.5 | Heat map of all dives |
-| Offline maps | 📋 Planned | v1.5 | For travel to remote areas |
+| Dive Activity Map | ✅ Implemented | v1.5 | Heat map of all dives with clustered site markers |
+| Offline maps | ✅ Implemented | v1.5 | Tile caching via FMTC with region downloads |
+| Site filtering | ✅ Implemented | v1.5 | Filter sites by country, region, difficulty, depth, rating |
 
-**v1.5 Tasks:**
-- [ ] Offline map tile caching using flutter_map tile storage
-- [ ] Download map region for offline use (bounding box selector)
-- [ ] Heat map visualization of dive activity (intensity = dive count)
+**v1.5 Tasks (Complete):**
+- [x] Offline map tile caching using flutter_map_tile_caching (FMTC)
+- [x] Download map region for offline use (bounding box region selector)
+- [x] Heat map visualization of dive activity (intensity = dive count)
+- [x] Activity Map page with heat map toggle and fit-all-sites
+- [x] Site filtering with active filter bar and chips
+- [x] Map View icon in toolbar (Dives and Sites pages)
 
 ---
 
@@ -1322,6 +1326,7 @@
 - **Deco:** Custom Bühlmann implementation
 - **Cloud Sync:** googleapis (Google Drive), icloud_storage
 - **Weather/Tides:** http (OpenWeatherMap, World Tides APIs)
+- **Offline Maps:** flutter_map_tile_caching (FMTC) with ObjectBox backend
 
 ## v2.0 Requirements
 - **Backend:** Firebase/Supabase SDK
@@ -1389,6 +1394,7 @@
 - [x] Digital Signatures (instructor signature capture, display, storage)
 - [x] Training Dives (Course entity, bidirectional course-certification linking)
 - [x] Underwater Photography (photo picker, gallery, full-screen viewer, EXIF write)
+- [x] Maps & Visualization (Activity map with heat map, offline maps with FMTC, site filtering)
 - [ ] Performance with 5000+ dives
 
 ## v2.0 (Planned)
@@ -1411,5 +1417,5 @@
 
 ---
 
-**Document Version:** 2.12
-**Last Updated:** 2026-01-26 (Underwater Photography: photo viewer, EXIF write completed)
+**Document Version:** 2.13
+**Last Updated:** 2026-01-31 (Maps & Visualization: Activity map, offline maps, site filtering completed)
