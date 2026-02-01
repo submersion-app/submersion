@@ -71,10 +71,14 @@ class CourseCard extends StatelessWidget {
                           color: colorScheme.onSurfaceVariant,
                         ),
                         const SizedBox(width: 4),
-                        Text(
-                          course.agency.displayName,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: colorScheme.onSurfaceVariant),
+                        Flexible(
+                          child: Text(
+                            course.agency.displayName,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: colorScheme.onSurfaceVariant),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                         const SizedBox(width: 12),
                         Icon(
@@ -100,10 +104,14 @@ class CourseCard extends StatelessWidget {
                             color: colorScheme.onSurfaceVariant,
                           ),
                           const SizedBox(width: 4),
-                          Text(
-                            course.instructorName!,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: colorScheme.onSurfaceVariant),
+                          Flexible(
+                            child: Text(
+                              course.instructorName!,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: colorScheme.onSurfaceVariant),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         ],
                       ),
