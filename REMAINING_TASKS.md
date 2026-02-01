@@ -31,7 +31,6 @@ This document contains only the features and tasks that are **not yet completed*
 - [ ] EXIF parsing from photo attachments
 - [ ] If photo has GPS and dive doesn't, suggest using photo GPS
 - [ ] Bulk site creation from photo library
-- [x] Dive Centers schema should support street addresses
 ---
 
 ## Category 6: Gear & Equipment Management
