@@ -31,7 +31,7 @@ This document contains only the features and tasks that are **not yet completed*
 - [ ] EXIF parsing from photo attachments
 - [ ] If photo has GPS and dive doesn't, suggest using photo GPS
 - [ ] Bulk site creation from photo library
-
+- [ ] Dive Centers schema should support street addresses
 ---
 
 ## Category 6: Gear & Equipment Management
@@ -52,11 +52,11 @@ This document contains only the features and tasks that are **not yet completed*
 ### 8.2 Digital Cards (eCards)
 | Feature | Status | Notes |
 |---------|--------|-------|
-| eCard wallet | 📋 Planned | Display certs in wallet format |
+| eCard wallet | ✅ Done | Display certs in wallet format |
 
 **Tasks:**
-- [ ] Certification wallet view (card-style UI)
-- [ ] Export cert card as image (shareable)
+- [x] Certification wallet view (card-style UI)
+- [x] Export cert card as image (shareable)
 
 ### 8.3 Training Dives
 
