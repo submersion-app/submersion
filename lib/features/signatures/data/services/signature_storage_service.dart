@@ -22,6 +22,7 @@ class SignatureStorageService {
 
   static const String _signatureFileType = 'instructor_signature';
   static const String _signatureDir = 'signatures';
+  static const String _buddySignatureFileType = 'buddy_signature';
 
   /// Save a signature image and create media record
   ///
@@ -200,6 +201,150 @@ class SignatureStorageService {
     }
   }
 
+  /// Save a buddy signature for a dive
+  Future<Signature> saveBuddySignature({
+    required String diveId,
+    required Uint8List imageBytes,
+    required String buddyId,
+    required String buddyName,
+    required String role,
+  }) async {
+    try {
+      _log.info('Saving buddy signature for dive: $diveId, buddy: $buddyId');
+
+      // Create signatures directory if needed
+      final directory = await getApplicationDocumentsDirectory();
+      final sigDir = Directory('${directory.path}/$_signatureDir');
+      if (!await sigDir.exists()) {
+        await sigDir.create(recursive: true);
+      }
+
+      // Generate unique filename
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final fileName = '${diveId}_buddy_${buddyId}_$timestamp.png';
+      final filePath = '${sigDir.path}/$fileName';
+
+      // Save image file
+      final file = File(filePath);
+      await file.writeAsBytes(imageBytes);
+
+      // Create media record
+      final id = _uuid.v4();
+      final now = DateTime.now();
+
+      await _db.into(_db.media).insert(
+            MediaCompanion(
+              id: Value(id),
+              diveId: Value(diveId),
+              filePath: Value(filePath),
+              fileType: const Value(_buddySignatureFileType),
+              takenAt: Value(now.millisecondsSinceEpoch),
+              signerId: Value(buddyId),
+              signerName: Value(buddyName),
+              signatureType: const Value('buddy'),
+              createdAt: Value(now.millisecondsSinceEpoch),
+              updatedAt: Value(now.millisecondsSinceEpoch),
+            ),
+          );
+
+      await _syncRepository.markRecordPending(
+        entityType: 'media',
+        recordId: id,
+        localUpdatedAt: now.millisecondsSinceEpoch,
+      );
+      SyncEventBus.notifyLocalChange();
+
+      _log.info('Saved buddy signature with id: $id');
+
+      return Signature(
+        id: id,
+        diveId: diveId,
+        filePath: filePath,
+        signerId: buddyId,
+        signerName: buddyName,
+        signedAt: now,
+        type: SignatureType.buddy,
+        role: role,
+      );
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to save buddy signature for dive: $diveId',
+        e,
+        stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Get all buddy signatures for a dive
+  Future<List<Signature>> getBuddySignaturesForDive(String diveId) async {
+    try {
+      final query = _db.select(_db.media)
+        ..where(
+          (t) => t.diveId.equals(diveId) & t.signatureType.equals('buddy'),
+        )
+        ..orderBy([(t) => OrderingTerm.desc(t.takenAt)]);
+
+      final rows = await query.get();
+      return rows.map(_mapRowToSignature).toList();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get buddy signatures for dive: $diveId',
+        e,
+        stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Get all signatures (both instructor and buddy) for a dive
+  Future<List<Signature>> getAllSignaturesForDive(String diveId) async {
+    try {
+      final query = _db.select(_db.media)
+        ..where(
+          (t) =>
+              t.diveId.equals(diveId) &
+              (t.fileType.equals(_signatureFileType) |
+                  t.signatureType.equals('buddy')),
+        )
+        ..orderBy([(t) => OrderingTerm.desc(t.takenAt)]);
+
+      final rows = await query.get();
+      return rows.map(_mapRowToSignature).toList();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get all signatures for dive: $diveId',
+        e,
+        stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Check if a specific buddy has signed this dive
+  Future<bool> hasBuddySigned(String diveId, String buddyId) async {
+    try {
+      final query = _db.select(_db.media)
+        ..where(
+          (t) =>
+              t.diveId.equals(diveId) &
+              t.signerId.equals(buddyId) &
+              t.signatureType.equals('buddy'),
+        )
+        ..limit(1);
+
+      final row = await query.getSingleOrNull();
+      return row != null;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to check if buddy signed dive: $diveId, $buddyId',
+        e,
+        stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Convert stroke data to PNG bytes using a Picture recorder
   ///
   /// [strokes] - List of strokes, each stroke is a list of offsets
@@ -264,6 +409,8 @@ class SignatureStorageService {
       signerId: row.signerId,
       signerName: row.signerName ?? 'Unknown',
       signedAt: DateTime.fromMillisecondsSinceEpoch(row.takenAt ?? 0),
+      type: SignatureType.fromString(row.signatureType),
+      role: null, // Role is inferred from DiveBuddies table when needed
     );
   }
 
