@@ -89,6 +89,7 @@ class _CertificationEcardStackState extends State<CertificationEcardStack> {
   }
 
   void _navigateToPage(int index) {
+    if (!_pageController.hasClients) return;
     _pageController.animateToPage(
       index,
       duration: const Duration(milliseconds: 300),
@@ -145,7 +146,7 @@ class _CertificationEcardStackState extends State<CertificationEcardStack> {
     final isActive = index == _currentIndex;
     final isFlipped = _flippedCards[index] ?? false;
 
-    return AnimatedBuilder(
+    return ListenableBuilder(
       listenable: _pageController,
       builder: (context, child) {
         double scale = 0.9;
@@ -239,26 +240,5 @@ class _CertificationEcardStackState extends State<CertificationEcardStack> {
         ),
       ),
     );
-  }
-}
-
-/// A widget that rebuilds when a listenable changes.
-///
-/// This is a simple wrapper around AnimatedWidget that uses a builder pattern
-/// for listening to non-animation listenables like PageController.
-class AnimatedBuilder extends AnimatedWidget {
-  final Widget Function(BuildContext context, Widget? child) builder;
-  final Widget? child;
-
-  const AnimatedBuilder({
-    super.key,
-    required super.listenable,
-    required this.builder,
-    this.child,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return builder(context, child);
   }
 }
