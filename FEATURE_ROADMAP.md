@@ -537,19 +537,18 @@
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Buddy signatures | 📋 Planned | v2.0 | Student/observer sign-off (deferred) |
+| Buddy signatures | ✅ Implemented | v1.5 | Student/observer sign-off |
 | Instructor signatures | ✅ Implemented | v1.5 | Per-dive signatures for training logs |
 | Signature capture | ✅ Implemented | v1.5 | Touch/stylus canvas drawing |
+| Signatures in PDF export | ✅ Implemented | v1.5 | Display in exported dive logs |
 
 **v1.5 Tasks (Complete):**
 - [x] SignatureCaptureWidget (canvas drawing with save as PNG)
 - [x] SignatureStorageService (Media table with fileType='instructor_signature')
 - [x] SignatureDisplayWidget (preview, full-view dialog, badge)
 - [x] Integration on dive detail page (conditional for training dives)
-
-**Remaining (v2.0):**
-- [ ] Buddy signatures (student/observer sign-off)
-- [ ] Display signatures in PDF export
+- [x] Buddy signatures (BuddySignaturesSection, request sheet, save with role)
+- [x] Display signatures in PDF export (instructor + buddy signatures)
 
 ---
 
@@ -795,11 +794,15 @@
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
 | PDF logbook export | ✅ Implemented | MVP | Basic layout |
+| Signatures in PDF | ✅ Implemented | v1.5 | Instructor + buddy signatures |
 | Custom report designer | 📋 Planned | v2.0 | Drag-drop fields |
 | Pre-made layouts | 📋 Planned | v1.5 | A5, 3-ring, agency style |
 | Professional logs | 📋 Planned | v1.5 | For instructors, DMs |
 
-**v1.5 Tasks:**
+**v1.5 Tasks (Complete):**
+- [x] Display instructor and buddy signatures in PDF export
+
+**v1.5 Tasks (Remaining):**
 - [ ] Multiple PDF templates (Simple, Detailed, Professional, PADI-style, NAUI-style)
 - [ ] Template selection in export dialog
 - [ ] Professional template with space for signatures, stamps
@@ -1393,7 +1396,7 @@
 - [x] Heart rate overlay toggle on profile chart
 - [x] 16-compartment tissue saturation bar chart (N2/He visualization)
 - [x] Personal & Medical Data (emergency contacts, medical clearance, medications)
-- [x] Digital Signatures (instructor signature capture, display, storage)
+- [x] Digital Signatures (instructor + buddy signature capture, display, storage, PDF export)
 - [x] Training Dives (Course entity, bidirectional course-certification linking)
 - [x] Underwater Photography (photo picker, gallery, full-screen viewer, EXIF write)
 - [x] Maps & Visualization (Activity map with heat map, offline maps with FMTC, site filtering)
