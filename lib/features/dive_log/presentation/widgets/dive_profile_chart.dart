@@ -869,10 +869,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                           ),
                         ),
                       );
-                      final labelText =
-                          clampText(label, labelWidth).padRight(labelWidth);
-                      final valueText =
-                          clampText(value, valueWidth).padRight(valueWidth);
+                      final labelText = clampText(
+                        label,
+                        labelWidth,
+                      ).padRight(labelWidth);
+                      final valueText = clampText(
+                        value,
+                        valueWidth,
+                      ).padRight(valueWidth);
                       final rowText = (labelText + valueText).trimRight();
                       lines.add(TextSpan(text: rowText, style: rowStyle));
 
@@ -881,8 +885,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                         lines.add(
                           TextSpan(
                             text: rowFiller.substring(0, fillerCount),
-                            style:
-                                rowStyle.copyWith(color: Colors.transparent),
+                            style: rowStyle.copyWith(color: Colors.transparent),
                           ),
                         );
                       }
