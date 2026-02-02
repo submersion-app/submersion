@@ -3,10 +3,15 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
+
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_list_content.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
+import 'package:submersion/shared/providers/map_list_selection_provider.dart';
+import 'package:submersion/shared/widgets/map_list_layout/map_info_card.dart';
+import 'package:submersion/shared/widgets/map_list_layout/map_list_scaffold.dart';
 
 class DiveCenterMapPage extends ConsumerStatefulWidget {
   const DiveCenterMapPage({super.key});
@@ -18,7 +23,6 @@ class DiveCenterMapPage extends ConsumerStatefulWidget {
 class _DiveCenterMapPageState extends ConsumerState<DiveCenterMapPage>
     with TickerProviderStateMixin {
   final MapController _mapController = MapController();
-  DiveCenter? _selectedCenter;
 
   // Default to a nice ocean view (Pacific)
   static const _defaultCenter = LatLng(20.0, -157.0);
@@ -27,24 +31,43 @@ class _DiveCenterMapPageState extends ConsumerState<DiveCenterMapPage>
   @override
   Widget build(BuildContext context) {
     final centersAsync = ref.watch(diveCenterListNotifierProvider);
+    final selectionState = ref.watch(mapListSelectionProvider('dive-centers'));
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dive Centers'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.list),
-            tooltip: 'List View',
-            onPressed: () => context.go('/dive-centers'),
-          ),
-          IconButton(
-            icon: const Icon(Icons.my_location),
-            tooltip: 'Fit All Centers',
-            onPressed: () => _fitAllCenters(centersAsync.value ?? []),
-          ),
-        ],
+    // Find selected center from centersAsync using selectionState.selectedId
+    final selectedCenter = centersAsync.whenOrNull(
+      data: (centers) {
+        if (selectionState.selectedId == null) return null;
+        final match = centers.where((c) => c.id == selectionState.selectedId);
+        return match.isNotEmpty ? match.first : null;
+      },
+    );
+
+    return MapListScaffold(
+      sectionKey: 'dive-centers',
+      title: 'Dive Centers',
+      onBackPressed: () => context.go('/dive-centers'),
+      listPane: DiveCenterListContent(
+        showAppBar: false,
+        isMapMode: true,
+        selectedId: selectionState.selectedId,
+        onItemTapForMap: (center) {
+          if (center.hasCoordinates) {
+            _animateToLocation(center.latitude!, center.longitude!);
+          }
+        },
+        onItemSelected: (id) {
+          if (id != null) {
+            ref
+                .read(mapListSelectionProvider('dive-centers').notifier)
+                .select(id);
+          } else {
+            ref
+                .read(mapListSelectionProvider('dive-centers').notifier)
+                .deselect();
+          }
+        },
       ),
-      body: centersAsync.when(
+      mapPane: centersAsync.when(
         data: (centers) => _buildMap(context, centers),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(
@@ -64,15 +87,69 @@ class _DiveCenterMapPageState extends ConsumerState<DiveCenterMapPage>
           ),
         ),
       ),
+      infoCard: selectedCenter != null
+          ? _buildMapInfoCard(context, selectedCenter)
+          : null,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/dive-centers/new'),
         icon: const Icon(Icons.add),
         label: const Text('Add Center'),
       ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.list),
+          tooltip: 'List View',
+          onPressed: () => context.go('/dive-centers'),
+        ),
+        IconButton(
+          icon: const Icon(Icons.my_location),
+          tooltip: 'Fit All Centers',
+          onPressed: () => _fitAllCenters(centersAsync.value ?? []),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMapInfoCard(BuildContext context, DiveCenter center) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final diveCountAsync = ref.watch(diveCenterDiveCountProvider(center.id));
+
+    String subtitle = center.fullLocationString ?? '';
+    final diveCount = diveCountAsync.valueOrNull;
+    if (diveCount != null && diveCount > 0) {
+      subtitle += subtitle.isNotEmpty ? ' \u2022 ' : '';
+      subtitle += '$diveCount ${diveCount == 1 ? 'dive' : 'dives'}';
+    }
+    if (center.rating != null) {
+      subtitle += subtitle.isNotEmpty ? ' \u2022 ' : '';
+      subtitle += '\u2605 ${center.rating!.toStringAsFixed(1)}';
+    }
+    if (center.affiliations.isNotEmpty) {
+      subtitle += subtitle.isNotEmpty ? ' \u2022 ' : '';
+      subtitle += center.affiliationsDisplay;
+    }
+
+    return MapInfoCard(
+      title: center.name,
+      subtitle: subtitle.isNotEmpty ? subtitle : null,
+      leading: CircleAvatar(
+        backgroundColor: colorScheme.primaryContainer,
+        child: Icon(Icons.store, color: colorScheme.primary),
+      ),
+      onDetailsTap: () => context.push('/dive-centers/${center.id}'),
+    );
+  }
+
+  void _animateToLocation(double lat, double lng) {
+    _mapController.move(
+      LatLng(lat, lng),
+      _mapController.camera.zoom.clamp(10.0, 14.0),
     );
   }
 
   Widget _buildMap(BuildContext context, List<DiveCenter> centers) {
+    final selectionState = ref.watch(mapListSelectionProvider('dive-centers'));
+
     // Filter centers with valid coordinates
     final centersWithLocation = centers.where((c) {
       if (!c.hasCoordinates) return false;
@@ -106,7 +183,9 @@ class _DiveCenterMapPageState extends ConsumerState<DiveCenterMapPage>
             minZoom: 2.0,
             maxZoom: 18.0,
             onTap: (_, _) {
-              setState(() => _selectedCenter = null);
+              ref
+                  .read(mapListSelectionProvider('dive-centers').notifier)
+                  .deselect();
             },
             cameraConstraint: CameraConstraint.contain(
               bounds: LatLngBounds(
@@ -129,7 +208,7 @@ class _DiveCenterMapPageState extends ConsumerState<DiveCenterMapPage>
                 maxClusterRadius: 80,
                 size: const Size(50, 50),
                 markers: centersWithLocation.map((diveCenter) {
-                  final isSelected = _selectedCenter?.id == diveCenter.id;
+                  final isSelected = selectionState.selectedId == diveCenter.id;
                   return Marker(
                     point: LatLng(diveCenter.latitude!, diveCenter.longitude!),
                     width: isSelected ? 50 : 40,
@@ -151,15 +230,6 @@ class _DiveCenterMapPageState extends ConsumerState<DiveCenterMapPage>
             ),
           ],
         ),
-
-        // Center info card at bottom
-        if (_selectedCenter != null)
-          Positioned(
-            left: 16,
-            right: 16,
-            bottom: 80,
-            child: _buildCenterInfoCard(context, _selectedCenter!),
-          ),
 
         // Empty state overlay
         if (centersWithLocation.isEmpty)
@@ -277,112 +347,16 @@ class _DiveCenterMapPageState extends ConsumerState<DiveCenterMapPage>
     return Colors.blue.shade400;
   }
 
-  Widget _buildCenterInfoCard(BuildContext context, DiveCenter center) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final diveCountAsync = ref.watch(diveCenterDiveCountProvider(center.id));
-
-    return Card(
-      elevation: 8,
-      child: InkWell(
-        onTap: () => context.push('/dive-centers/${center.id}'),
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              CircleAvatar(
-                backgroundColor: colorScheme.primaryContainer,
-                child: Icon(Icons.store, color: colorScheme.primary),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      center.name,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    if (center.fullLocationString != null) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        center.fullLocationString!,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                    if (center.affiliations.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        center.affiliationsDisplay,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colorScheme.primary,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  if (center.rating != null) ...[
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.star,
-                          size: 16,
-                          color: Colors.amber.shade600,
-                        ),
-                        const SizedBox(width: 2),
-                        Text(
-                          center.rating!.toStringAsFixed(1),
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                  ],
-                  diveCountAsync.when(
-                    data: (count) => Text(
-                      '$count ${count == 1 ? 'dive' : 'dives'}',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    loading: () => const SizedBox(
-                      width: 12,
-                      height: 12,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                    error: (_, _) => const SizedBox(),
-                  ),
-                  const SizedBox(height: 4),
-                  Icon(
-                    Icons.chevron_right,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   void _onMarkerTapped(DiveCenter center) {
-    setState(() {
-      _selectedCenter = _selectedCenter?.id == center.id ? null : center;
-    });
-
-    if (_selectedCenter != null) {
+    final currentId = ref
+        .read(mapListSelectionProvider('dive-centers'))
+        .selectedId;
+    if (currentId == center.id) {
+      ref.read(mapListSelectionProvider('dive-centers').notifier).deselect();
+    } else {
+      ref
+          .read(mapListSelectionProvider('dive-centers').notifier)
+          .select(center.id);
       _mapController.move(
         LatLng(center.latitude!, center.longitude!),
         _mapController.camera.zoom,
