@@ -28,6 +28,7 @@ enum DetailPaneMode {
 /// - `?selected=id` - View mode (detail)
 /// - `?selected=id&mode=edit` - Edit mode
 /// - `?mode=new` - Create mode
+/// - `?view=map` - Map view (requires mapBuilder)
 ///
 /// Example usage:
 /// ```dart
@@ -93,6 +94,19 @@ class MasterDetailScaffold extends ConsumerStatefulWidget {
   )?
   createBuilder;
 
+  /// Builder for the map pane when map view is active.
+  /// If provided, enables map view toggle functionality.
+  ///
+  /// Receives:
+  /// - [selectedId]: Currently selected item ID (for highlighting on map)
+  /// - [onItemSelected]: Callback when map marker is tapped
+  final Widget Function(
+    BuildContext context,
+    String? selectedId,
+    void Function(String?) onItemSelected,
+  )?
+  mapBuilder;
+
   /// Floating action button for the master pane.
   final Widget? floatingActionButton;
 
@@ -122,6 +136,7 @@ class MasterDetailScaffold extends ConsumerStatefulWidget {
     this.mobileDetailRoute,
     this.mobileEditRoute,
     this.mobileCreateRoute,
+    this.mapBuilder,
   });
 
   @override
@@ -148,6 +163,12 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
       default:
         return DetailPaneMode.view;
     }
+  }
+
+  /// Check if map view is active from URL query params
+  bool get _isMapView {
+    final state = GoRouterState.of(context);
+    return state.uri.queryParameters['view'] == 'map';
   }
 
   /// Navigate to view mode for an item
@@ -248,19 +269,21 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
           ),
           // Vertical divider
           const VerticalDivider(width: 1, thickness: 1),
-          // Detail pane
+          // Detail pane (or map view)
           Expanded(
-            child: _DetailPane(
-              selectedId: selectedId,
-              mode: mode,
-              detailBuilder: widget.detailBuilder,
-              summaryBuilder: widget.summaryBuilder,
-              editBuilder: widget.editBuilder,
-              createBuilder: widget.createBuilder,
-              onClose: () => _onItemSelected(null),
-              onSaved: _onSaved,
-              onCancel: _onCancel,
-            ),
+            child: widget.mapBuilder != null && _isMapView
+                ? widget.mapBuilder!(context, selectedId, _onItemSelected)
+                : _DetailPane(
+                    selectedId: selectedId,
+                    mode: mode,
+                    detailBuilder: widget.detailBuilder,
+                    summaryBuilder: widget.summaryBuilder,
+                    editBuilder: widget.editBuilder,
+                    createBuilder: widget.createBuilder,
+                    onClose: () => _onItemSelected(null),
+                    onSaved: _onSaved,
+                    onCancel: _onCancel,
+                  ),
           ),
         ],
       ),
@@ -277,9 +300,6 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
         foregroundColor: fab.foregroundColor,
         child: fab.child,
       );
-    }
-    if (fab is FloatingActionButton) {
-      return fab;
     }
     // For FloatingActionButton.extended, wrap in a GestureDetector
     return GestureDetector(

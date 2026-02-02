@@ -16,6 +16,7 @@ import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.d
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_map_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_summary_widget.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
@@ -25,13 +26,60 @@ import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.d
 ///
 /// On desktop (>=800px): Shows a split view with list on left, detail/summary on right.
 /// On narrower screens (<800px): Shows the list with navigation to detail pages.
-class DiveListPage extends ConsumerWidget {
+class DiveListPage extends ConsumerStatefulWidget {
   const DiveListPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DiveListPage> createState() => _DiveListPageState();
+}
+
+class _DiveListPageState extends ConsumerState<DiveListPage> {
+  bool get _isMapView {
+    final state = GoRouterState.of(context);
+    return state.uri.queryParameters['view'] == 'map';
+  }
+
+  void _toggleMapView() {
+    final router = GoRouter.of(context);
+    final state = GoRouterState.of(context);
+    final currentPath = state.uri.path;
+    final selectedId = state.uri.queryParameters['selected'];
+
+    if (_isMapView) {
+      // Switch back to detail view
+      if (selectedId != null) {
+        router.go('$currentPath?selected=$selectedId');
+      } else {
+        router.go(currentPath);
+      }
+    } else {
+      // Switch to map view
+      if (selectedId != null) {
+        router.go('$currentPath?selected=$selectedId&view=map');
+      } else {
+        router.go('$currentPath?view=map');
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     // Use desktop breakpoint (800px) to show master-detail when NavigationRail appears
     final showMasterDetail = ResponsiveBreakpoints.isMasterDetail(context);
+
+    final fab = FloatingActionButton.extended(
+      onPressed: () {
+        if (showMasterDetail) {
+          final state = GoRouterState.of(context);
+          final currentPath = state.uri.path;
+          context.go('$currentPath?mode=new');
+        } else {
+          context.push('/dives/new');
+        }
+      },
+      icon: const Icon(Icons.add),
+      label: const Text('Log Dive'),
+    );
 
     if (showMasterDetail) {
       // Desktop: Use master-detail layout
@@ -41,6 +89,8 @@ class DiveListPage extends ConsumerWidget {
           onItemSelected: onItemSelected,
           selectedId: selectedId,
           showAppBar: false,
+          isMapViewActive: _isMapView,
+          onMapViewToggle: _toggleMapView,
         ),
         detailBuilder: (context, diveId) => DiveDetailPage(
           diveId: diveId,
@@ -53,6 +103,11 @@ class DiveListPage extends ConsumerWidget {
           },
         ),
         summaryBuilder: (context) => const DiveSummaryWidget(),
+        mapBuilder: (context, selectedId, onItemSelected) => DiveMapContent(
+          selectedId: selectedId,
+          onItemSelected: onItemSelected,
+          onDetailsTap: (diveId) => context.push('/dives/$diveId'),
+        ),
         editBuilder: (context, diveId, onSaved, onCancel) => DiveEditPage(
           diveId: diveId,
           embedded: true,
@@ -61,23 +116,12 @@ class DiveListPage extends ConsumerWidget {
         ),
         createBuilder: (context, onSaved, onCancel) =>
             DiveEditPage(embedded: true, onSaved: onSaved, onCancel: onCancel),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () {}, // Will be overridden by MasterDetailScaffold
-          icon: const Icon(Icons.add),
-          label: const Text('Log Dive'),
-        ),
+        floatingActionButton: fab,
       );
     }
 
     // Mobile: Use standalone list content with full scaffold and FAB
-    return DiveListContent(
-      showAppBar: true,
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.go('/dives/new'),
-        icon: const Icon(Icons.add),
-        label: const Text('Log Dive'),
-      ),
-    );
+    return DiveListContent(showAppBar: true, floatingActionButton: fab);
   }
 }
 
