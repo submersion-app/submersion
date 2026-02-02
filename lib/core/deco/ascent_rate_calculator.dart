@@ -85,12 +85,20 @@ class AscentRateCalculator {
   final double criticalThreshold;
 
   /// Number of points to use for smoothing (moving average)
+  /// Only used if smoothingWindowSeconds is not specified.
   final int smoothingWindow;
+
+  /// Time-based smoothing window in seconds (default 15).
+  /// The actual point count is calculated from the profile's sampling interval.
+  /// This provides consistent smoothing regardless of dive computer sample rate.
+  /// 15 seconds provides clean visualization for post-dive analysis.
+  final int smoothingWindowSeconds;
 
   const AscentRateCalculator({
     this.warningThreshold = 9.0,
     this.criticalThreshold = 12.0,
     this.smoothingWindow = 3,
+    this.smoothingWindowSeconds = 15,
   });
 
   /// Calculate ascent rate between two profile points.
@@ -144,34 +152,39 @@ class AscentRateCalculator {
       ];
     }
 
-    final rates = <AscentRatePoint>[];
+    // Calculate effective window size based on time
+    // If smoothingWindow is explicitly set to 1, use point-to-point rates
+    final effectiveWindow = smoothingWindow == 1
+        ? 1
+        : _calculateEffectiveWindow(timestamps);
 
-    // Calculate raw rates
+    // First, calculate raw point-to-point rates
     final rawRates = <double>[0.0]; // First point has no rate
     for (int i = 1; i < depths.length; i++) {
-      final rate = calculateRate(
-        depths[i - 1],
-        depths[i],
-        timestamps[i - 1],
-        timestamps[i],
+      rawRates.add(
+        calculateRate(
+          depths[i - 1],
+          depths[i],
+          timestamps[i - 1],
+          timestamps[i],
+        ),
       );
-      rawRates.add(rate);
     }
 
     // Apply smoothing if window > 1
-    final smoothedRates = smoothingWindow > 1
-        ? _smoothRates(rawRates)
+    final smoothedRates = effectiveWindow > 1 && depths.length >= 3
+        ? _smoothRates(rawRates, effectiveWindow)
         : rawRates;
 
-    // Create rate points
+    // Build the result list
+    final rates = <AscentRatePoint>[];
     for (int i = 0; i < depths.length; i++) {
-      final rate = smoothedRates[i];
       rates.add(
         AscentRatePoint(
           timestamp: timestamps[i],
           depth: depths[i],
-          rateMetersPerMin: rate,
-          category: categorize(rate),
+          rateMetersPerMin: smoothedRates[i],
+          category: categorize(smoothedRates[i]),
         ),
       );
     }
@@ -179,12 +192,38 @@ class AscentRateCalculator {
     return rates;
   }
 
+  /// Calculate effective smoothing window based on profile sampling interval.
+  /// Returns the number of points that covers smoothingWindowSeconds.
+  int _calculateEffectiveWindow(List<int> timestamps) {
+    if (timestamps.length < 2) return smoothingWindow;
+
+    // Calculate average sampling interval from first 10 points (or all if fewer)
+    final sampleCount = math.min(10, timestamps.length - 1);
+    int totalInterval = 0;
+    for (int i = 0; i < sampleCount; i++) {
+      totalInterval += timestamps[i + 1] - timestamps[i];
+    }
+    final avgInterval = totalInterval / sampleCount;
+
+    // Avoid division by zero
+    if (avgInterval <= 0) return smoothingWindow;
+
+    // Calculate points needed for the desired time window
+    final calculatedWindow = (smoothingWindowSeconds / avgInterval).round();
+
+    // Ensure minimum of 3 points and odd number for centered average
+    final window = math.max(3, calculatedWindow);
+    final result = window.isOdd ? window : window + 1;
+
+    return result;
+  }
+
   /// Apply moving average smoothing to rates.
-  List<double> _smoothRates(List<double> rates) {
-    if (rates.length < smoothingWindow) return rates;
+  List<double> _smoothRates(List<double> rates, int window) {
+    if (rates.length < window) return rates;
 
     final smoothed = <double>[];
-    final halfWindow = smoothingWindow ~/ 2;
+    final halfWindow = window ~/ 2;
 
     for (int i = 0; i < rates.length; i++) {
       final start = math.max(0, i - halfWindow);
