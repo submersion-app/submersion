@@ -84,6 +84,11 @@ dependencies:
   crypto: ^3.0.3
   gal: ^2.3.2
 
+  # Notifications
+  flutter_local_notifications: ^18.0.1
+  workmanager: ^0.5.2
+  timezone: ^0.10.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
