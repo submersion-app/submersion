@@ -21,6 +21,10 @@ class EquipmentItem extends Equatable {
   final String notes;
   final bool isActive;
 
+  // Notification overrides
+  final bool? customReminderEnabled; // NULL = use global
+  final List<int>? customReminderDays; // Override reminder days
+
   const EquipmentItem({
     required this.id,
     this.diverId,
@@ -38,6 +42,8 @@ class EquipmentItem extends Equatable {
     this.serviceIntervalDays,
     this.notes = '',
     this.isActive = true,
+    this.customReminderEnabled,
+    this.customReminderDays,
   });
 
   /// Full name including brand and model
@@ -91,6 +97,8 @@ class EquipmentItem extends Equatable {
     int? serviceIntervalDays,
     String? notes,
     bool? isActive,
+    bool? customReminderEnabled,
+    List<int>? customReminderDays,
   }) {
     return EquipmentItem(
       id: id ?? this.id,
@@ -109,6 +117,9 @@ class EquipmentItem extends Equatable {
       serviceIntervalDays: serviceIntervalDays ?? this.serviceIntervalDays,
       notes: notes ?? this.notes,
       isActive: isActive ?? this.isActive,
+      customReminderEnabled:
+          customReminderEnabled ?? this.customReminderEnabled,
+      customReminderDays: customReminderDays ?? this.customReminderDays,
     );
   }
 
@@ -130,5 +141,7 @@ class EquipmentItem extends Equatable {
     serviceIntervalDays,
     notes,
     isActive,
+    customReminderEnabled,
+    customReminderDays,
   ];
 }
