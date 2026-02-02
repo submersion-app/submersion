@@ -2,8 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
+
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -12,6 +18,10 @@ import 'package:submersion/features/maps/domain/entities/heat_map_point.dart';
 import 'package:submersion/features/maps/presentation/providers/heat_map_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/heat_map_controls.dart';
 import 'package:submersion/features/maps/presentation/widgets/heat_map_layer.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/providers/map_list_selection_provider.dart';
+import 'package:submersion/shared/widgets/map_list_layout/map_info_card.dart';
+import 'package:submersion/shared/widgets/map_list_layout/map_list_scaffold.dart';
 
 /// Page showing heat map of dive activity with site markers.
 ///
@@ -29,7 +39,6 @@ class DiveActivityMapPage extends ConsumerStatefulWidget {
 class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
     with TickerProviderStateMixin {
   final MapController _mapController = MapController();
-  DiveSite? _selectedSite;
 
   // Default to a world view
   static const _defaultCenter = LatLng(20.0, 0.0);
@@ -39,28 +48,44 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
   Widget build(BuildContext context) {
     final heatMapAsync = ref.watch(diveActivityHeatMapProvider);
     final sitesAsync = ref.watch(sitesWithCountsProvider);
+    final divesAsync = ref.watch(sortedFilteredDivesProvider);
     final settings = ref.watch(heatMapSettingsProvider);
+    final selectionState = ref.watch(mapListSelectionProvider('dives'));
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dive Activity'),
-        actions: [
-          const HeatMapToggleButton(),
-          IconButton(
-            icon: const Icon(Icons.list),
-            tooltip: 'List View',
-            onPressed: () => context.go('/dives'),
-          ),
-          IconButton(
-            icon: const Icon(Icons.my_location),
-            tooltip: 'Fit All Sites',
-            onPressed: () => _fitAllSites(
-              sitesAsync.value?.map((s) => s.site).toList() ?? [],
-            ),
-          ),
-        ],
+    // Find selected dive from divesAsync using selectionState.selectedId
+    final selectedDive = divesAsync.whenOrNull(
+      data: (dives) {
+        if (selectionState.selectedId == null) return null;
+        final match = dives.where((d) => d.id == selectionState.selectedId);
+        return match.isNotEmpty ? match.first : null;
+      },
+    );
+
+    return MapListScaffold(
+      sectionKey: 'dives',
+      title: 'Dive Activity',
+      onBackPressed: () => context.go('/dives'),
+      listPane: DiveListContent(
+        showAppBar: false,
+        isMapMode: true,
+        selectedId: selectionState.selectedId,
+        onItemTapForMap: (dive) {
+          if (dive.site?.hasCoordinates == true) {
+            _animateToLocation(
+              dive.site!.location!.latitude,
+              dive.site!.location!.longitude,
+            );
+          }
+        },
+        onItemSelected: (id) {
+          if (id != null) {
+            ref.read(mapListSelectionProvider('dives').notifier).select(id);
+          } else {
+            ref.read(mapListSelectionProvider('dives').notifier).deselect();
+          }
+        },
       ),
-      body: sitesAsync.when(
+      mapPane: sitesAsync.when(
         data: (sitesWithCounts) =>
             _buildMap(context, sitesWithCounts, heatMapAsync, settings),
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -83,6 +108,70 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
           ),
         ),
       ),
+      infoCard: selectedDive != null
+          ? _buildMapInfoCard(context, selectedDive)
+          : null,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push('/dives/new'),
+        icon: const Icon(Icons.add),
+        label: const Text('Log Dive'),
+      ),
+      actions: [
+        const HeatMapToggleButton(),
+        IconButton(
+          icon: const Icon(Icons.list),
+          tooltip: 'List View',
+          onPressed: () => context.go('/dives'),
+        ),
+        IconButton(
+          icon: const Icon(Icons.my_location),
+          tooltip: 'Fit All Sites',
+          onPressed: () =>
+              _fitAllSites(sitesAsync.value?.map((s) => s.site).toList() ?? []),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMapInfoCard(BuildContext context, Dive dive) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final appSettings = ref.read(settingsProvider);
+    final units = UnitFormatter(appSettings);
+
+    // Build title: Dive #N or date
+    final diveNumber = dive.diveNumber;
+    final title = diveNumber != null
+        ? 'Dive #$diveNumber'
+        : DateFormat.yMMMd().format(dive.dateTime);
+
+    // Build subtitle with site name, depth, duration
+    final parts = <String>[];
+    if (dive.site != null) {
+      parts.add(dive.site!.name);
+    }
+    if (dive.maxDepth != null) {
+      parts.add(units.formatDepth(dive.maxDepth!));
+    }
+    if (dive.duration != null) {
+      parts.add('${dive.duration!.inMinutes} min');
+    }
+    final subtitle = parts.isNotEmpty ? parts.join(' \u2022 ') : null;
+
+    return MapInfoCard(
+      title: title,
+      subtitle: subtitle,
+      leading: CircleAvatar(
+        backgroundColor: colorScheme.primaryContainer,
+        child: Icon(Icons.scuba_diving, color: colorScheme.primary),
+      ),
+      onDetailsTap: () => context.push('/dives/${dive.id}'),
+    );
+  }
+
+  void _animateToLocation(double lat, double lng) {
+    _mapController.move(
+      LatLng(lat, lng),
+      _mapController.camera.zoom.clamp(10.0, 14.0),
     );
   }
 
@@ -92,6 +181,8 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
     AsyncValue<List<HeatMapPoint>> heatMapAsync,
     HeatMapSettings settings,
   ) {
+    final selectionState = ref.watch(mapListSelectionProvider('dives'));
+
     // Filter sites with valid coordinates and at least one dive
     final sitesWithDives = sitesWithCounts.where((s) {
       if (!s.site.hasCoordinates) return false;
@@ -118,6 +209,9 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
       zoom = 4.0;
     }
 
+    // Get selected dive's site ID for highlighting
+    final selectedSiteId = _getSelectedSiteId(selectionState.selectedId);
+
     return Stack(
       children: [
         FlutterMap(
@@ -128,7 +222,7 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
             minZoom: 2.0,
             maxZoom: 18.0,
             onTap: (_, _) {
-              setState(() => _selectedSite = null);
+              ref.read(mapListSelectionProvider('dives').notifier).deselect();
             },
             cameraConstraint: CameraConstraint.contain(
               bounds: LatLngBounds(
@@ -154,7 +248,7 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
                 markers: sitesWithDives.map((siteWithCount) {
                   final site = siteWithCount.site;
                   final diveCount = siteWithCount.diveCount;
-                  final isSelected = _selectedSite?.id == site.id;
+                  final isSelected = selectedSiteId == site.id;
                   return Marker(
                     point: LatLng(
                       site.location!.latitude,
@@ -191,15 +285,6 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
               ),
           ],
         ),
-
-        // Site info card at bottom
-        if (_selectedSite != null)
-          Positioned(
-            left: 16,
-            right: 16,
-            bottom: 16,
-            child: _buildSiteInfoCard(context, _selectedSite!),
-          ),
 
         // Loading indicator
         if (heatMapAsync.isLoading)
@@ -246,6 +331,19 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
             ),
           ),
       ],
+    );
+  }
+
+  /// Get the site ID for the currently selected dive
+  String? _getSelectedSiteId(String? selectedDiveId) {
+    if (selectedDiveId == null) return null;
+    final divesAsync = ref.read(sortedFilteredDivesProvider);
+    return divesAsync.whenOrNull(
+      data: (dives) {
+        final match = dives.where((d) => d.id == selectedDiveId);
+        if (match.isEmpty) return null;
+        return match.first.site?.id;
+      },
     );
   }
 
@@ -326,85 +424,31 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
     return Colors.blue.shade500;
   }
 
-  Widget _buildSiteInfoCard(BuildContext context, DiveSite site) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final sitesWithCounts = ref.read(sitesWithCountsProvider).value ?? [];
-    final diveCount =
-        sitesWithCounts
-            .where((s) => s.site.id == site.id)
-            .firstOrNull
-            ?.diveCount ??
-        0;
-
-    return Card(
-      elevation: 8,
-      child: InkWell(
-        onTap: () => context.push('/sites/${site.id}'),
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              CircleAvatar(
-                backgroundColor: colorScheme.primaryContainer,
-                child: Text(
-                  diveCount.toString(),
-                  style: TextStyle(
-                    color: colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      site.name,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '$diveCount ${diveCount == 1 ? 'dive' : 'dives'}',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    if (site.locationString.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        site.locationString,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   void _onMarkerTapped(DiveSite site) {
-    setState(() {
-      _selectedSite = _selectedSite?.id == site.id ? null : site;
+    // When a site marker is tapped, find the first dive at that site
+    // and select it in the list
+    final divesAsync = ref.read(sortedFilteredDivesProvider);
+    divesAsync.whenData((dives) {
+      final divesAtSite = dives.where((d) => d.site?.id == site.id);
+      if (divesAtSite.isNotEmpty) {
+        final firstDive = divesAtSite.first;
+        final currentId = ref
+            .read(mapListSelectionProvider('dives'))
+            .selectedId;
+        if (currentId == firstDive.id) {
+          ref.read(mapListSelectionProvider('dives').notifier).deselect();
+        } else {
+          ref
+              .read(mapListSelectionProvider('dives').notifier)
+              .select(firstDive.id);
+        }
+      }
     });
 
-    if (_selectedSite != null) {
-      _mapController.move(
-        LatLng(site.location!.latitude, site.location!.longitude),
-        _mapController.camera.zoom,
-      );
-    }
+    _mapController.move(
+      LatLng(site.location!.latitude, site.location!.longitude),
+      _mapController.camera.zoom,
+    );
   }
 
   Future<void> _animateToCluster(LatLngBounds bounds) async {
