@@ -401,9 +401,19 @@ class BuhlmannAlgorithm {
   /// Calculate Time To Surface (TTS) including all deco stops.
   ///
   /// [currentDepth] is starting depth in meters.
+  /// [fN2] is nitrogen fraction for ascent gas.
+  /// [fHe] is helium fraction for ascent gas.
   /// Returns TTS in seconds.
-  int calculateTts({required double currentDepth}) {
-    final stops = calculateDecoSchedule(currentDepth: currentDepth);
+  int calculateTts({
+    required double currentDepth,
+    double fN2 = airN2Fraction,
+    double fHe = 0.0,
+  }) {
+    final stops = calculateDecoSchedule(
+      currentDepth: currentDepth,
+      fN2: fN2,
+      fHe: fHe,
+    );
 
     int tts = 0;
 
@@ -457,7 +467,7 @@ class BuhlmannAlgorithm {
     final int tts;
     if (ndl < 0) {
       // In deco: calculate full TTS including deco stops
-      tts = calculateTts(currentDepth: currentDepth);
+      tts = calculateTts(currentDepth: currentDepth, fN2: fN2, fHe: fHe);
     } else {
       // Not in deco: calculate ascent time including recommended safety stop
       // Safety stop: 3 minutes at 5m (15ft), minus time already spent there
