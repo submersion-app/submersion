@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -165,6 +167,12 @@ class EquipmentRepository {
               serviceIntervalDays: Value(equipment.serviceIntervalDays),
               notes: Value(equipment.notes),
               isActive: Value(equipment.isActive),
+              customReminderEnabled: Value(equipment.customReminderEnabled),
+              customReminderDays: Value(
+                equipment.customReminderDays != null
+                    ? jsonEncode(equipment.customReminderDays)
+                    : null,
+              ),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -215,6 +223,12 @@ class EquipmentRepository {
           serviceIntervalDays: Value(equipment.serviceIntervalDays),
           notes: Value(equipment.notes),
           isActive: Value(equipment.isActive),
+          customReminderEnabled: Value(equipment.customReminderEnabled),
+          customReminderDays: Value(
+            equipment.customReminderDays != null
+                ? jsonEncode(equipment.customReminderDays)
+                : null,
+          ),
           updatedAt: Value(now),
         ),
       );
@@ -295,6 +309,28 @@ class EquipmentRepository {
     return allEquipment.where((g) => g.isServiceDue).toList();
   }
 
+  /// Get all active equipment with service due dates for notification scheduling
+  Future<List<EquipmentItem>> getEquipmentWithServiceDates({
+    String? diverId,
+  }) async {
+    try {
+      final query = _db.select(_db.equipment)
+        ..where((t) => t.isActive.equals(true))
+        ..where((t) => t.lastServiceDate.isNotNull())
+        ..where((t) => t.serviceIntervalDays.isNotNull());
+
+      if (diverId != null) {
+        query.where((t) => t.diverId.equals(diverId));
+      }
+
+      final rows = await query.get();
+      return rows.map(_mapRowToEquipment).toList();
+    } catch (e, stackTrace) {
+      _log.error('Failed to get equipment with service dates', e, stackTrace);
+      rethrow;
+    }
+  }
+
   /// Search equipment by name, brand, model, or serial number
   Future<List<EquipmentItem>> searchEquipment(
     String query, {
@@ -352,6 +388,16 @@ class EquipmentRepository {
           serviceIntervalDays: row.data['service_interval_days'] as int?,
           notes: (row.data['notes'] as String?) ?? '',
           isActive: row.data['is_active'] == 1,
+          customReminderEnabled: row.data['custom_reminder_enabled'] == 1
+              ? true
+              : row.data['custom_reminder_enabled'] == 0
+              ? false
+              : null,
+          customReminderDays: row.data['custom_reminder_days'] != null
+              ? (jsonDecode(row.data['custom_reminder_days'] as String)
+                        as List<dynamic>)
+                    .cast<int>()
+              : null,
         );
       }).toList();
     } catch (e, stackTrace) {
@@ -466,6 +512,10 @@ class EquipmentRepository {
       serviceIntervalDays: row.serviceIntervalDays,
       notes: row.notes,
       isActive: row.isActive,
+      customReminderEnabled: row.customReminderEnabled,
+      customReminderDays: row.customReminderDays != null
+          ? (jsonDecode(row.customReminderDays!) as List<dynamic>).cast<int>()
+          : null,
     );
   }
 }
