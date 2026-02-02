@@ -806,7 +806,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 }
               },
               touchTooltipData: LineTouchTooltipData(
-                maxContentWidth: 200,
+                maxContentWidth: 220,
                 fitInsideHorizontally: true,
                 fitInsideVertically: false,
                 showOnTopOfTheChartBoxArea: true,
@@ -837,19 +837,55 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       fontFeatures: const [FontFeature.tabularFigures()],
                     );
 
-                    // Helper to add a formatted row with consistent width
-                    // Uses single TextSpan for entire row to ensure alignment
-                    void addRow(String label, String value, Color bulletColor) {
+                    const labelWidth = 8;
+                    const valueWidth = 16;
+                    const rowWidth = labelWidth + valueWidth;
+                    final rowFiller = List.filled(rowWidth, '0').join();
+
+                    String clampText(String text, int maxChars) {
+                      if (text.length <= maxChars) {
+                        return text;
+                      }
+                      return text.substring(0, maxChars);
+                    }
+
+                    // Helper to add a formatted row with constant width
+                    void addRow(
+                      String label,
+                      String value,
+                      Color bulletColor, {
+                      String bullet = '●',
+                      double bulletSize = 12,
+                    }) {
+                      if (lines.isNotEmpty) {
+                        lines.add(const TextSpan(text: '\n'));
+                      }
                       lines.add(
                         TextSpan(
-                          text: '● ',
-                          style: TextStyle(color: bulletColor, fontSize: 12),
+                          text: '$bullet ',
+                          style: TextStyle(
+                            color: bulletColor,
+                            fontSize: bulletSize,
+                          ),
                         ),
                       );
-                      // Format: "Label   Value" - label 8 chars, total row 24 chars
-                      final formattedRow =
-                          '${label.padRight(8)}${value.padRight(16)}\n';
-                      lines.add(TextSpan(text: formattedRow, style: rowStyle));
+                      final labelText =
+                          clampText(label, labelWidth).padRight(labelWidth);
+                      final valueText =
+                          clampText(value, valueWidth).padRight(valueWidth);
+                      final rowText = (labelText + valueText).trimRight();
+                      lines.add(TextSpan(text: rowText, style: rowStyle));
+
+                      final fillerCount = rowWidth - rowText.length;
+                      if (fillerCount > 0) {
+                        lines.add(
+                          TextSpan(
+                            text: rowFiller.substring(0, fillerCount),
+                            style:
+                                rowStyle.copyWith(color: Colors.transparent),
+                          ),
+                        );
+                      }
                     }
 
                     // Time (always shown)
@@ -1011,20 +1047,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                         if ((marker.timestamp - timestamp).abs() <=
                             timestampThreshold) {
                           final markerColor = marker.getColor();
-                          lines.add(
-                            TextSpan(
-                              text: '◆ ',
-                              style: TextStyle(
-                                color: markerColor,
-                                fontSize: 10,
-                              ),
-                            ),
-                          );
-                          lines.add(
-                            TextSpan(
-                              text: '${marker.chartLabel}\n',
-                              style: rowStyle,
-                            ),
+                          addRow(
+                            'Marker',
+                            marker.chartLabel,
+                            markerColor,
+                            bullet: '◆',
+                            bulletSize: 10,
                           );
                         }
                       }
