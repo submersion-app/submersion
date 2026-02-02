@@ -433,14 +433,16 @@ class BuhlmannAlgorithm {
   /// [currentDepth] is current depth in meters.
   /// [fN2] is nitrogen fraction of current gas.
   /// [fHe] is helium fraction of current gas.
+  /// [safetyStopTimeAccumulated] is seconds already spent in safety stop zone.
   DecoStatus getDecoStatus({
     required double currentDepth,
     double fN2 = airN2Fraction,
     double fHe = 0.0,
+    int safetyStopTimeAccumulated = 0,
   }) {
     final ndl = calculateNdl(depthMeters: currentDepth, fN2: fN2, fHe: fHe);
 
-    // Only calculate ceiling/stops/TTS when actually in deco (NDL < 0).
+    // Only calculate ceiling/stops when actually in deco (NDL < 0).
     // The GF-interpolated ceiling is for ascent planning during deco,
     // not for display when the diver can still ascend directly to surface.
     final ceiling = ndl < 0
@@ -449,7 +451,37 @@ class BuhlmannAlgorithm {
     final stops = ndl < 0
         ? calculateDecoSchedule(currentDepth: currentDepth, fN2: fN2, fHe: fHe)
         : <DecoStop>[];
-    final tts = ndl < 0 ? calculateTts(currentDepth: currentDepth) : 0;
+
+    // Calculate TTS - even for no-deco dives, include safety stop time
+    // so divers know realistic ascent time.
+    final int tts;
+    if (ndl < 0) {
+      // In deco: calculate full TTS including deco stops
+      tts = calculateTts(currentDepth: currentDepth);
+    } else {
+      // Not in deco: calculate ascent time including recommended safety stop
+      // Safety stop: 3 minutes at 5m (15ft), minus time already spent there
+      const safetyStopDepth = 5.0; // meters
+      const safetyStopDuration = 180; // 3 minutes in seconds
+
+      // Calculate remaining safety stop time (can't be negative)
+      final remainingSafetyStop =
+          (safetyStopDuration - safetyStopTimeAccumulated).clamp(
+            0,
+            safetyStopDuration,
+          );
+
+      if (currentDepth > safetyStopDepth) {
+        // Below safety stop depth: include time to reach stop + remaining stop time + ascent
+        final ascentToStop =
+            ((currentDepth - safetyStopDepth) / ascentRate * 60).round();
+        final ascentToSurface = (safetyStopDepth / ascentRate * 60).round();
+        tts = ascentToStop + remainingSafetyStop + ascentToSurface;
+      } else {
+        // In or above safety stop zone: remaining stop time + direct ascent
+        tts = remainingSafetyStop + (currentDepth / ascentRate * 60).round();
+      }
+    }
 
     return DecoStatus(
       compartments: List.unmodifiable(_compartments),
@@ -484,6 +516,12 @@ class BuhlmannAlgorithm {
     reset();
     final results = <DecoStatus>[];
 
+    // Track time spent in safety stop zone (3-6m / 10-20ft)
+    // This allows TTS to count down as diver completes their safety stop
+    const safetyStopZoneMin = 3.0; // meters
+    const safetyStopZoneMax = 6.0; // meters
+    int safetyStopTimeAccumulated = 0;
+
     for (int i = 0; i < depths.length; i++) {
       if (i > 0) {
         final duration = timestamps[i] - timestamps[i - 1];
@@ -495,9 +533,21 @@ class BuhlmannAlgorithm {
           fN2: fN2,
           fHe: fHe,
         );
+
+        // Accumulate time if average depth was in safety stop zone
+        if (avgDepth >= safetyStopZoneMin && avgDepth <= safetyStopZoneMax) {
+          safetyStopTimeAccumulated += duration;
+        }
       }
 
-      results.add(getDecoStatus(currentDepth: depths[i], fN2: fN2, fHe: fHe));
+      results.add(
+        getDecoStatus(
+          currentDepth: depths[i],
+          fN2: fN2,
+          fHe: fHe,
+          safetyStopTimeAccumulated: safetyStopTimeAccumulated,
+        ),
+      );
     }
 
     return results;
