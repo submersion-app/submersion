@@ -1,19 +1,53 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_list_content.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_map_content.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_summary_widget.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 
-class SiteListPage extends ConsumerWidget {
+class SiteListPage extends ConsumerStatefulWidget {
   const SiteListPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SiteListPage> createState() => _SiteListPageState();
+}
+
+class _SiteListPageState extends ConsumerState<SiteListPage> {
+  bool get _isMapView {
+    final state = GoRouterState.of(context);
+    return state.uri.queryParameters['view'] == 'map';
+  }
+
+  void _toggleMapView() {
+    final router = GoRouter.of(context);
+    final state = GoRouterState.of(context);
+    final currentPath = state.uri.path;
+    final selectedId = state.uri.queryParameters['selected'];
+
+    if (_isMapView) {
+      // Switch back to detail view
+      if (selectedId != null) {
+        router.go('$currentPath?selected=$selectedId');
+      } else {
+        router.go(currentPath);
+      }
+    } else {
+      // Switch to map view
+      if (selectedId != null) {
+        router.go('$currentPath?selected=$selectedId&view=map');
+      } else {
+        router.go('$currentPath?view=map');
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final fab = FloatingActionButton.extended(
       onPressed: () {
         if (ResponsiveBreakpoints.isMasterDetail(context)) {
@@ -28,6 +62,7 @@ class SiteListPage extends ConsumerWidget {
       label: const Text('Add Site'),
     );
 
+    // Desktop: Use master-detail layout
     if (ResponsiveBreakpoints.isMasterDetail(context)) {
       return MasterDetailScaffold(
         sectionId: 'sites',
@@ -35,6 +70,8 @@ class SiteListPage extends ConsumerWidget {
           onItemSelected: onItemSelected,
           selectedId: selectedId,
           showAppBar: false,
+          isMapViewActive: _isMapView,
+          onMapViewToggle: _toggleMapView,
         ),
         detailBuilder: (context, id) => SiteDetailPage(
           siteId: id,
@@ -46,6 +83,11 @@ class SiteListPage extends ConsumerWidget {
           },
         ),
         summaryBuilder: (context) => const SiteSummaryWidget(),
+        mapBuilder: (context, selectedId, onItemSelected) => SiteMapContent(
+          selectedId: selectedId,
+          onItemSelected: onItemSelected,
+          onDetailsTap: (siteId) => context.push('/sites/$siteId'),
+        ),
         editBuilder: (context, id, onSaved, onCancel) => SiteEditPage(
           siteId: id,
           embedded: true,
@@ -58,6 +100,7 @@ class SiteListPage extends ConsumerWidget {
       );
     }
 
+    // Mobile: Use list content with full scaffold
     return SiteListContent(showAppBar: true, floatingActionButton: fab);
   }
 }
