@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -46,6 +47,13 @@ class DiveListContent extends ConsumerStatefulWidget {
   /// [onItemTapForMap] instead of navigating to the detail page.
   final bool isMapMode;
 
+  /// Whether map view is currently active (for toggle button highlight).
+  final bool isMapViewActive;
+
+  /// Callback when map view toggle is pressed.
+  /// If null, the map icon will navigate to the map page (mobile behavior).
+  final VoidCallback? onMapViewToggle;
+
   const DiveListContent({
     super.key,
     this.onItemSelected,
@@ -54,6 +62,8 @@ class DiveListContent extends ConsumerStatefulWidget {
     this.floatingActionButton,
     this.onItemTapForMap,
     this.isMapMode = false,
+    this.isMapViewActive = false,
+    this.onMapViewToggle,
   });
 
   @override
@@ -898,12 +908,18 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
-          IconButton(
-            icon: const Icon(Icons.map, size: 20),
-            visualDensity: VisualDensity.compact,
-            tooltip: 'Map View',
-            onPressed: () => context.push('/dives/activity'),
-          ),
+          if (widget.onMapViewToggle != null)
+            MapViewToggleButton(
+              isActive: widget.isMapViewActive,
+              onToggle: widget.onMapViewToggle!,
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.map, size: 20),
+              visualDensity: VisualDensity.compact,
+              tooltip: 'Map View',
+              onPressed: () => context.push('/dives/activity'),
+            ),
           IconButton(
             icon: const Icon(Icons.search, size: 20),
             visualDensity: VisualDensity.compact,
