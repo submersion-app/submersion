@@ -115,6 +115,11 @@ class AppSettings {
   /// Show pressure threshold markers (2/3, 1/2, 1/3) on dive profile chart
   final bool showPressureThresholdMarkers;
 
+  // Notification settings
+  final bool notificationsEnabled;
+  final List<int> serviceReminderDays;
+  final TimeOfDay reminderTime;
+
   const AppSettings({
     this.depthUnit = DepthUnit.meters,
     this.temperatureUnit = TemperatureUnit.celsius,
@@ -149,6 +154,10 @@ class AppSettings {
     // Dive profile marker defaults
     this.showMaxDepthMarker = true,
     this.showPressureThresholdMarkers = false,
+    // Notification defaults
+    this.notificationsEnabled = true,
+    this.serviceReminderDays = const [7, 14, 30],
+    this.reminderTime = const TimeOfDay(hour: 9, minute: 0),
   });
 
   /// Compute the current unit preset based on actual unit values
@@ -215,6 +224,9 @@ class AppSettings {
     bool? showMapBackgroundOnSiteCards,
     bool? showMaxDepthMarker,
     bool? showPressureThresholdMarkers,
+    bool? notificationsEnabled,
+    List<int>? serviceReminderDays,
+    TimeOfDay? reminderTime,
   }) {
     return AppSettings(
       depthUnit: depthUnit ?? this.depthUnit,
@@ -251,6 +263,9 @@ class AppSettings {
       showMaxDepthMarker: showMaxDepthMarker ?? this.showMaxDepthMarker,
       showPressureThresholdMarkers:
           showPressureThresholdMarkers ?? this.showPressureThresholdMarkers,
+      notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
+      serviceReminderDays: serviceReminderDays ?? this.serviceReminderDays,
+      reminderTime: reminderTime ?? this.reminderTime,
     );
   }
 }

@@ -82,6 +82,11 @@ class DiverSettingsRepository {
               showPressureThresholdMarkers: Value(
                 s.showPressureThresholdMarkers,
               ),
+              notificationsEnabled: Value(s.notificationsEnabled),
+              serviceReminderDays: Value(
+                _formatReminderDays(s.serviceReminderDays),
+              ),
+              reminderTime: Value(_formatReminderTime(s.reminderTime)),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -154,6 +159,11 @@ class DiverSettingsRepository {
           showPressureThresholdMarkers: Value(
             settings.showPressureThresholdMarkers,
           ),
+          notificationsEnabled: Value(settings.notificationsEnabled),
+          serviceReminderDays: Value(
+            _formatReminderDays(settings.serviceReminderDays),
+          ),
+          reminderTime: Value(_formatReminderTime(settings.reminderTime)),
           updatedAt: Value(now),
         ),
       );
@@ -254,6 +264,9 @@ class DiverSettingsRepository {
       showMapBackgroundOnSiteCards: row.showMapBackgroundOnSiteCards,
       showMaxDepthMarker: row.showMaxDepthMarker,
       showPressureThresholdMarkers: row.showPressureThresholdMarkers,
+      notificationsEnabled: row.notificationsEnabled,
+      serviceReminderDays: _parseReminderDays(row.serviceReminderDays),
+      reminderTime: _parseReminderTime(row.reminderTime),
     );
   }
 
@@ -341,4 +354,32 @@ class DiverSettingsRepository {
         return 'system';
     }
   }
+
+  List<int> _parseReminderDays(String json) {
+    try {
+      final trimmed = json.trim();
+      if (!trimmed.startsWith('[') || !trimmed.endsWith(']')) {
+        return const [7, 14, 30];
+      }
+      final inner = trimmed.substring(1, trimmed.length - 1);
+      if (inner.isEmpty) return const [7, 14, 30];
+      return inner.split(',').map((s) => int.parse(s.trim())).toList();
+    } catch (_) {
+      return const [7, 14, 30];
+    }
+  }
+
+  TimeOfDay _parseReminderTime(String time) {
+    try {
+      final parts = time.split(':');
+      return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+    } catch (_) {
+      return const TimeOfDay(hour: 9, minute: 0);
+    }
+  }
+
+  String _formatReminderDays(List<int> days) => '[${days.join(', ')}]';
+
+  String _formatReminderTime(TimeOfDay time) =>
+      '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
 }
