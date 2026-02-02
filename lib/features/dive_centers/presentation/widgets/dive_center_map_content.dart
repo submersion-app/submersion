@@ -45,9 +45,66 @@ class DiveCenterMapContent extends ConsumerStatefulWidget {
 class _DiveCenterMapContentState extends ConsumerState<DiveCenterMapContent>
     with TickerProviderStateMixin {
   final MapController _mapController = MapController();
+  bool _mapReady = false;
 
   static const _defaultCenter = LatLng(20.0, -157.0);
   static const _defaultZoom = 3.0;
+
+  @override
+  void didUpdateWidget(DiveCenterMapContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // When selectedId changes from an external source (e.g., list selection),
+    // zoom the map to the selected center's location
+    if (widget.selectedId != null &&
+        widget.selectedId != oldWidget.selectedId &&
+        _mapReady) {
+      _zoomToSelectedCenter(widget.selectedId!);
+    }
+  }
+
+  /// Animate the map to center on the selected dive center's location
+  void _zoomToSelectedCenter(String centerId) {
+    final centersAsync = ref.read(diveCenterListNotifierProvider);
+    centersAsync.whenData((centers) {
+      final center = centers.where((c) => c.id == centerId).firstOrNull;
+      if (center?.hasCoordinates == true) {
+        _animateToLocation(LatLng(center!.latitude!, center.longitude!));
+      }
+    });
+  }
+
+  /// Smoothly animate the map to a specific location
+  Future<void> _animateToLocation(LatLng target) async {
+    final startCamera = _mapController.camera;
+    // Use a reasonable zoom level for viewing a single center
+    final targetZoom = startCamera.zoom < 10 ? 12.0 : startCamera.zoom;
+
+    final animationController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+
+    final animation = CurvedAnimation(
+      parent: animationController,
+      curve: Curves.easeInOut,
+    );
+
+    animation.addListener(() {
+      final t = animation.value;
+      final lat =
+          startCamera.center.latitude +
+          (target.latitude - startCamera.center.latitude) * t;
+      final lng =
+          startCamera.center.longitude +
+          (target.longitude - startCamera.center.longitude) * t;
+      final zoom = startCamera.zoom + (targetZoom - startCamera.zoom) * t;
+
+      _mapController.move(LatLng(lat, lng), zoom);
+    });
+
+    await animationController.forward();
+    animationController.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,6 +125,21 @@ class _DiveCenterMapContentState extends ConsumerState<DiveCenterMapContent>
     return Stack(
       children: [
         _buildMap(context, centers),
+        // Fit all centers control
+        Positioned(
+          top: 8,
+          right: 8,
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              child: IconButton(
+                icon: const Icon(Icons.my_location, size: 20),
+                tooltip: 'Fit All Centers',
+                onPressed: () => _fitAllCenters(centers),
+              ),
+            ),
+          ),
+        ),
         if (selectedCenter != null)
           Positioned(
             left: 16,
@@ -94,17 +166,27 @@ class _DiveCenterMapContentState extends ConsumerState<DiveCenterMapContent>
     }).toList();
     final colorScheme = Theme.of(context).colorScheme;
 
-    // Calculate initial bounds if we have centers
+    // Calculate initial center and zoom
+    // If there's a selected center with location, start centered on it
     LatLng center = _defaultCenter;
     double zoom = _defaultZoom;
 
-    if (centersWithLocation.isNotEmpty) {
+    if (widget.selectedId != null) {
+      // Find the selected center's location
+      final selectedCenter = centersWithLocation
+          .where((c) => c.id == widget.selectedId)
+          .firstOrNull;
+      if (selectedCenter?.hasCoordinates == true) {
+        center = LatLng(selectedCenter!.latitude!, selectedCenter.longitude!);
+        zoom = 12.0; // Reasonable zoom for viewing a single center
+      }
+    } else if (centersWithLocation.isNotEmpty) {
+      // No selection - fit all centers
       final bounds = _calculateBounds(centersWithLocation);
       center = LatLng(
         (bounds.north + bounds.south) / 2,
         (bounds.east + bounds.west) / 2,
       );
-      // Start at a reasonable zoom
       zoom = 4.0;
     }
 
@@ -117,6 +199,9 @@ class _DiveCenterMapContentState extends ConsumerState<DiveCenterMapContent>
             initialZoom: zoom,
             minZoom: 2.0,
             maxZoom: 18.0,
+            onMapReady: () {
+              _mapReady = true;
+            },
             onTap: (_, _) {
               widget.onItemSelected(null);
             },
@@ -317,10 +402,8 @@ class _DiveCenterMapContentState extends ConsumerState<DiveCenterMapContent>
       widget.onItemSelected(null);
     } else {
       widget.onItemSelected(center.id);
-      _mapController.move(
-        LatLng(center.latitude!, center.longitude!),
-        _mapController.camera.zoom,
-      );
+      // Smooth scroll to the tapped marker
+      _animateToLocation(LatLng(center.latitude!, center.longitude!));
     }
   }
 
@@ -358,6 +441,29 @@ class _DiveCenterMapContentState extends ConsumerState<DiveCenterMapContent>
 
     await animationController.forward();
     animationController.dispose();
+  }
+
+  void _fitAllCenters(List<DiveCenter> centers) {
+    // Filter centers with valid coordinates
+    final centersWithLocation = centers.where((c) {
+      if (!c.hasCoordinates) return false;
+      final lat = c.latitude!;
+      final lng = c.longitude!;
+      return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+    }).toList();
+
+    if (centersWithLocation.isEmpty) return;
+
+    if (centersWithLocation.length == 1) {
+      final center = centersWithLocation.first;
+      _mapController.move(LatLng(center.latitude!, center.longitude!), 12.0);
+      return;
+    }
+
+    final bounds = _calculateBounds(centersWithLocation);
+    _mapController.fitCamera(
+      CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(50)),
+    );
   }
 
   LatLngBounds _calculateBounds(List<DiveCenter> centers) {
