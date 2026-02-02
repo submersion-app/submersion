@@ -72,9 +72,11 @@ class PhotoImportHelper {
         _dismissDialogSafely(context);
       }
 
-      // Refresh media list
+      // Refresh media list and GPS providers
       ref.invalidate(mediaForDiveProvider(dive.id));
       ref.invalidate(mediaCountForDiveProvider(dive.id));
+      ref.invalidate(divePhotoGpsProvider(dive.id));
+      ref.invalidate(allDivePhotoGpsProvider(dive.id));
 
       // Show result
       if (context.mounted) {

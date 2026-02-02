@@ -20,17 +20,6 @@ This document contains only the features and tasks that are **not yet completed*
 
 # v1.5 Remaining Tasks
 
-## Category 5: Locations, Dive Sites & Maps
-
-### 5.2 GPS Integration
-| Feature | Status | Notes |
-|---------|--------|-------|
-| GPS from photo EXIF | 📋 Planned | Extract and suggest site |
-
-**Tasks:**
-- [ ] EXIF parsing from photo attachments
-- [ ] If photo has GPS and dive doesn't, suggest using photo GPS
-- [ ] Bulk site creation from photo library
 ---
 
 ## Category 6: Gear & Equipment Management

@@ -38,6 +38,9 @@ import 'package:submersion/features/tides/presentation/providers/tide_providers.
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/courses/presentation/widgets/course_picker.dart';
+import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/photo_gps_suggestion_banner.dart';
+import 'package:submersion/features/media/presentation/widgets/quick_site_from_gps_dialog.dart';
 
 class DiveEditPage extends ConsumerStatefulWidget {
   final String? diveId;
@@ -144,6 +147,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   // Current device location (for new dives - to suggest nearby sites)
   LocationResult? _currentLocation;
   bool _isCapturingLocation = false;
+
+  // GPS suggestion from photos
+  bool _gpsSuggestionDismissed = false;
 
   @override
   void initState() {
@@ -793,10 +799,75 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   ),
                 ),
               ),
+            // GPS suggestion from photos - only show when editing existing dive
+            // and site has no coordinates
+            if (widget.diveId != null && !_gpsSuggestionDismissed)
+              PhotoGpsSuggestionBanner(
+                diveId: widget.diveId!,
+                currentSite: _selectedSite,
+                onCreateSite: () => _createSiteFromPhotoGps(),
+                onUpdateSite: (gps) => _updateSiteWithPhotoGps(gps),
+                onDismiss: () => setState(() => _gpsSuggestionDismissed = true),
+              ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _createSiteFromPhotoGps() async {
+    final gps = await ref.read(divePhotoGpsProvider(widget.diveId!).future);
+    if (gps == null || !mounted) return;
+
+    final newSite = await QuickSiteFromGpsDialog.show(
+      context,
+      latitude: gps.latitude,
+      longitude: gps.longitude,
+    );
+
+    if (newSite != null && mounted) {
+      // Create the site via the notifier
+      final siteNotifier = ref.read(siteListNotifierProvider.notifier);
+      final createdSite = await siteNotifier.addSite(newSite);
+
+      setState(() {
+        _selectedSite = createdSite;
+        _gpsSuggestionDismissed = true;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Created site: ${createdSite.name}'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _updateSiteWithPhotoGps(GeoPoint gps) async {
+    if (_selectedSite == null) return;
+
+    final updatedSite = _selectedSite!.copyWith(location: gps);
+
+    // Update the site via the notifier
+    final siteNotifier = ref.read(siteListNotifierProvider.notifier);
+    await siteNotifier.updateSite(updatedSite);
+
+    setState(() {
+      _selectedSite = updatedSite;
+      _gpsSuggestionDismissed = true;
+    });
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Added GPS to ${updatedSite.name}'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   void _showSitePicker() {

@@ -393,6 +393,65 @@ class MediaRepository {
     }
   }
 
+  /// Get GPS coordinates from media attached to a dive.
+  ///
+  /// Returns a list of (latitude, longitude, takenAt) tuples from photos
+  /// that have valid GPS coordinates. Useful for suggesting dive site location
+  /// when photos have GPS but the dive doesn't have a site.
+  Future<List<({double latitude, double longitude, DateTime takenAt})>>
+  getGpsFromDiveMedia(String diveId) async {
+    try {
+      final result = await _db
+          .customSelect(
+            '''
+        SELECT latitude, longitude, taken_at
+        FROM media
+        WHERE dive_id = ?
+        AND latitude IS NOT NULL
+        AND longitude IS NOT NULL
+        AND latitude != 0
+        AND longitude != 0
+        ORDER BY taken_at ASC
+        ''',
+            variables: [Variable.withString(diveId)],
+          )
+          .get();
+
+      return result
+          .map(
+            (row) => (
+              latitude: row.data['latitude'] as double,
+              longitude: row.data['longitude'] as double,
+              takenAt: DateTime.fromMillisecondsSinceEpoch(
+                row.data['taken_at'] as int,
+              ),
+            ),
+          )
+          .toList();
+    } catch (e, stackTrace) {
+      _log.error('Failed to get GPS from dive media: $diveId', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Get the best GPS coordinates from a dive's media.
+  ///
+  /// Returns the GPS from the earliest photo with coordinates, or null if
+  /// no photos have GPS data. The earliest photo is typically taken at the
+  /// dive site before entering the water.
+  Future<({double latitude, double longitude})?> getBestGpsFromDiveMedia(
+    String diveId,
+  ) async {
+    final gpsPoints = await getGpsFromDiveMedia(diveId);
+    if (gpsPoints.isEmpty) return null;
+
+    // Return the first (earliest) GPS point
+    return (
+      latitude: gpsPoints.first.latitude,
+      longitude: gpsPoints.first.longitude,
+    );
+  }
+
   /// Get pending suggestion count for dive
   Future<int> getPendingSuggestionCount(String diveId) async {
     try {

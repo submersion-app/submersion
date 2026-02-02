@@ -49,6 +49,29 @@ final orphanedMediaProvider = FutureProvider<List<MediaItem>>((ref) async {
   return repository.getOrphanedMedia();
 });
 
+/// Get GPS coordinates from photos for a dive.
+///
+/// Returns the best GPS coordinates from the dive's photos, or null if
+/// no photos have GPS data. Useful for suggesting dive site location.
+final divePhotoGpsProvider =
+    FutureProvider.family<({double latitude, double longitude})?, String>((
+      ref,
+      diveId,
+    ) async {
+      final repository = ref.watch(mediaRepositoryProvider);
+      return repository.getBestGpsFromDiveMedia(diveId);
+    });
+
+/// Get all GPS coordinates from photos for a dive (for showing multiple points).
+final allDivePhotoGpsProvider =
+    FutureProvider.family<
+      List<({double latitude, double longitude, DateTime takenAt})>,
+      String
+    >((ref, diveId) async {
+      final repository = ref.watch(mediaRepositoryProvider);
+      return repository.getGpsFromDiveMedia(diveId);
+    });
+
 /// MediaListNotifier for mutations on media for a specific dive
 class MediaListNotifier extends StateNotifier<AsyncValue<List<MediaItem>>> {
   final MediaRepository _repository;
@@ -107,6 +130,8 @@ class MediaListNotifier extends StateNotifier<AsyncValue<List<MediaItem>>> {
   void _invalidateRelatedProviders() {
     _ref.invalidate(mediaForDiveProvider(_diveId));
     _ref.invalidate(mediaCountForDiveProvider(_diveId));
+    _ref.invalidate(divePhotoGpsProvider(_diveId));
+    _ref.invalidate(allDivePhotoGpsProvider(_diveId));
     _ref.invalidate(orphanedMediaProvider);
   }
 }
