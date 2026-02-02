@@ -285,6 +285,11 @@ class Equipment extends Table {
   IntColumn get serviceIntervalDays => integer().nullable()();
   TextColumn get notes => text().withDefault(const Constant(''))();
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+  // Notification overrides (v27)
+  BoolColumn get customReminderEnabled => boolean()
+      .nullable()(); // NULL = use global, true = custom, false = disabled
+  TextColumn get customReminderDays =>
+      text().nullable()(); // JSON array override, e.g. "[7, 30]"
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -998,7 +1003,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 26;
+  int get schemaVersion => 27;
 
   @override
   MigrationStrategy get migration {
@@ -1548,6 +1553,15 @@ class AppDatabase extends _$AppDatabase {
           );
           await customStatement(
             "ALTER TABLE diver_settings ADD COLUMN reminder_time TEXT NOT NULL DEFAULT '09:00'",
+          );
+        }
+        if (from < 27) {
+          // Per-equipment notification overrides
+          await customStatement(
+            'ALTER TABLE equipment ADD COLUMN custom_reminder_enabled INTEGER',
+          );
+          await customStatement(
+            'ALTER TABLE equipment ADD COLUMN custom_reminder_days TEXT',
           );
         }
       },
