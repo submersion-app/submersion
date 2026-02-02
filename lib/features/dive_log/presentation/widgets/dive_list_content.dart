@@ -36,12 +36,24 @@ class DiveListContent extends ConsumerStatefulWidget {
   /// Optional floating action button to display when showAppBar is true.
   final Widget? floatingActionButton;
 
+  /// Callback for when an item is tapped in map mode.
+  /// When provided along with [isMapMode], this will be called instead of
+  /// navigating to the detail page.
+  final void Function(Dive dive)? onItemTapForMap;
+
+  /// Whether the list is being displayed alongside a map.
+  /// When true and [onItemTapForMap] is provided, tapping an item will call
+  /// [onItemTapForMap] instead of navigating to the detail page.
+  final bool isMapMode;
+
   const DiveListContent({
     super.key,
     this.onItemSelected,
     this.selectedId,
     this.showAppBar = true,
     this.floatingActionButton,
+    this.onItemTapForMap,
+    this.isMapMode = false,
   });
 
   @override
@@ -712,7 +724,21 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   void _handleItemTap(Dive dive) {
     if (_isSelectionMode) {
       _toggleSelection(dive.id);
-    } else if (widget.onItemSelected != null) {
+      return;
+    }
+
+    // In map mode, call onItemTapForMap instead of navigating
+    if (widget.isMapMode && widget.onItemTapForMap != null) {
+      // Also update the visual selection highlight
+      if (widget.onItemSelected != null) {
+        _selectionFromList = true;
+        widget.onItemSelected!(dive.id);
+      }
+      widget.onItemTapForMap!(dive);
+      return;
+    }
+
+    if (widget.onItemSelected != null) {
       // Master-detail mode: notify parent
       // Mark that selection came from list tap (don't scroll)
       _selectionFromList = true;
