@@ -224,6 +224,30 @@ class ProfileAnalysis {
   /// SAC calculated over time-based segments (e.g., 5-minute intervals)
   final List<SacSegment>? sacSegments;
 
+  /// ppN2 (partial pressure of nitrogen) at each profile point (bar)
+  final List<double>? ppN2Curve;
+
+  /// ppHe (partial pressure of helium) at each profile point (bar)
+  final List<double>? ppHeCurve;
+
+  /// Maximum Operating Depth for current gas at each point (meters)
+  final List<double>? modCurve;
+
+  /// Gas density at each profile point (g/L)
+  final List<double>? densityCurve;
+
+  /// Gradient Factor % at each profile point (0-100+, percent of M-value used)
+  final List<double>? gfCurve;
+
+  /// Surface GF% (what GF would be if surfaced now) at each point (0-100+)
+  final List<double>? surfaceGfCurve;
+
+  /// Mean depth from start to each profile point (meters)
+  final List<double>? meanDepthCurve;
+
+  /// Time To Surface at each profile point (seconds)
+  final List<int>? ttsCurve;
+
   /// Maximum depth reached (meters)
   final double maxDepth;
 
@@ -249,6 +273,14 @@ class ProfileAnalysis {
     this.sacCurve,
     this.smoothedSacCurve,
     this.sacSegments,
+    this.ppN2Curve,
+    this.ppHeCurve,
+    this.modCurve,
+    this.densityCurve,
+    this.gfCurve,
+    this.surfaceGfCurve,
+    this.meanDepthCurve,
+    this.ttsCurve,
     required this.maxDepth,
     required this.averageDepth,
     required this.maxDepthTimestamp,
@@ -278,6 +310,33 @@ class ProfileAnalysis {
   /// Get all alert events
   List<ProfileEvent> get alertEvents =>
       events.where((e) => e.severity == EventSeverity.alert).toList();
+
+  /// Whether ppN2 curve data is available
+  bool get hasPpN2Data => ppN2Curve != null && ppN2Curve!.isNotEmpty;
+
+  /// Whether ppHe curve data is available (trimix dive)
+  bool get hasPpHeData =>
+      ppHeCurve != null && ppHeCurve!.any((he) => he > 0.001);
+
+  /// Whether MOD curve data is available
+  bool get hasModData => modCurve != null && modCurve!.isNotEmpty;
+
+  /// Whether density curve data is available
+  bool get hasDensityData => densityCurve != null && densityCurve!.isNotEmpty;
+
+  /// Whether GF curve data is available
+  bool get hasGfData => gfCurve != null && gfCurve!.isNotEmpty;
+
+  /// Whether surface GF curve data is available
+  bool get hasSurfaceGfData =>
+      surfaceGfCurve != null && surfaceGfCurve!.isNotEmpty;
+
+  /// Whether mean depth curve data is available
+  bool get hasMeanDepthData =>
+      meanDepthCurve != null && meanDepthCurve!.isNotEmpty;
+
+  /// Whether TTS curve data is available
+  bool get hasTtsData => ttsCurve != null && ttsCurve!.isNotEmpty;
 
   /// Create an empty analysis
   factory ProfileAnalysis.empty() {
@@ -537,6 +596,23 @@ class ProfileAnalysisService {
       }
     }
 
+    // Calculate additional gas/deco curves
+    final ppN2Curve = _calculatePpN2Curve(depths, n2Fraction);
+    final ppHeCurve = heFraction > 0
+        ? _calculatePpHeCurve(depths, heFraction)
+        : null;
+    final modCurve = _calculateModCurve(depths, o2Fraction);
+    final densityCurve = _calculateDensityCurve(
+      depths,
+      o2Fraction,
+      n2Fraction,
+      heFraction,
+    );
+    final gfCurve = _calculateGfCurve(decoStatuses);
+    final surfaceGfCurve = _calculateSurfaceGfCurve(decoStatuses);
+    final meanDepthCurve = _calculateMeanDepthCurve(depths);
+    final ttsCurve = decoStatuses.map((s) => s.ttsSeconds).toList();
+
     return ProfileAnalysis(
       ascentRates: ascentRates,
       ascentRateStats: ascentRateStats,
@@ -550,6 +626,14 @@ class ProfileAnalysisService {
       sacCurve: sacCurve,
       smoothedSacCurve: smoothedSacCurve,
       sacSegments: sacSegments,
+      ppN2Curve: ppN2Curve,
+      ppHeCurve: ppHeCurve,
+      modCurve: modCurve,
+      densityCurve: densityCurve,
+      gfCurve: gfCurve,
+      surfaceGfCurve: surfaceGfCurve,
+      meanDepthCurve: meanDepthCurve,
+      ttsCurve: ttsCurve,
       maxDepth: maxDepth,
       averageDepth: averageDepth,
       maxDepthTimestamp: maxDepthTimestamp,
@@ -1196,6 +1280,125 @@ class ProfileAnalysisService {
       timeAboveWarning: timeAboveWarning,
       timeAboveCritical: timeAboveCritical,
     );
+  }
+
+  /// Calculate ppN2 (partial pressure of nitrogen) curve.
+  ///
+  /// ppN2 = ambient_pressure × N2_fraction
+  List<double> _calculatePpN2Curve(List<double> depths, double n2Fraction) {
+    return depths.map((depth) {
+      final ambientPressure = 1.0 + (depth / 10.0);
+      return ambientPressure * n2Fraction;
+    }).toList();
+  }
+
+  /// Calculate ppHe (partial pressure of helium) curve.
+  ///
+  /// ppHe = ambient_pressure × He_fraction
+  List<double> _calculatePpHeCurve(List<double> depths, double heFraction) {
+    return depths.map((depth) {
+      final ambientPressure = 1.0 + (depth / 10.0);
+      return ambientPressure * heFraction;
+    }).toList();
+  }
+
+  /// Calculate MOD (Maximum Operating Depth) curve.
+  ///
+  /// MOD = ((maxPpO2 / O2_fraction) - 1) × 10
+  /// Using 1.4 bar as the standard recreational MOD limit.
+  List<double> _calculateModCurve(List<double> depths, double o2Fraction) {
+    // MOD is constant for a given gas, but we return it per point for consistency
+    final mod = O2ToxicityCalculator.calculateMod(o2Fraction, maxPpO2: 1.4);
+    return List.filled(depths.length, mod);
+  }
+
+  /// Calculate gas density curve (g/L).
+  ///
+  /// Density at depth is critical for work of breathing.
+  /// High density (>5.7 g/L) increases CO2 retention risk.
+  /// Formula: density = ambient_pressure × sum(fraction × molecular_weight) / 24.04
+  ///
+  /// Molecular weights (g/mol): O2=32, N2=28, He=4
+  /// At STP, 1 mole of gas = 24.04 L
+  List<double> _calculateDensityCurve(
+    List<double> depths,
+    double o2Fraction,
+    double n2Fraction,
+    double heFraction,
+  ) {
+    // Average molecular weight of gas mix
+    const o2MolWeight = 32.0;
+    const n2MolWeight = 28.0;
+    const heMolWeight = 4.0;
+    const molarVolume = 24.04; // L/mol at STP
+
+    final avgMolWeight =
+        (o2Fraction * o2MolWeight) +
+        (n2Fraction * n2MolWeight) +
+        (heFraction * heMolWeight);
+
+    // Density at surface (1 bar)
+    final surfaceDensity = avgMolWeight / molarVolume;
+
+    return depths.map((depth) {
+      final ambientPressure = 1.0 + (depth / 10.0);
+      return surfaceDensity * ambientPressure;
+    }).toList();
+  }
+
+  /// Calculate Gradient Factor % curve at current depth.
+  ///
+  /// GF% = (current_tissue_tension - ambient_pressure) / (M_value - ambient_pressure) × 100
+  /// This shows how close the leading compartment is to the M-value limit at current depth.
+  List<double> _calculateGfCurve(List<DecoStatus> decoStatuses) {
+    return decoStatuses.map((status) {
+      final leading = status.leadingCompartment;
+      final pTissue = leading.totalInertGas;
+      final pAmbient = status.ambientPressureBar;
+      final mValue = leading.blendedA + (pAmbient / leading.blendedB);
+
+      // GF% = how far toward M-value we are
+      if (mValue <= pAmbient) return 0.0;
+      final gfPercent = ((pTissue - pAmbient) / (mValue - pAmbient)) * 100.0;
+      return gfPercent.clamp(0.0, 200.0); // Clamp for safety
+    }).toList();
+  }
+
+  /// Calculate Surface GF% curve (what GF would be if surfaced now).
+  ///
+  /// This shows the theoretical GF% if the diver ascended directly to surface.
+  /// Values >100% indicate deco obligation.
+  List<double> _calculateSurfaceGfCurve(List<DecoStatus> decoStatuses) {
+    return decoStatuses.map((status) {
+      final leading = status.leadingCompartment;
+      final pTissue = leading.totalInertGas;
+      const pSurface = 1.0; // Surface pressure in bar
+      final mValueSurface = leading.blendedA + (pSurface / leading.blendedB);
+
+      // Surface GF% = tissue loading relative to surface M-value
+      if (mValueSurface <= pSurface) return 0.0;
+      final surfaceGf =
+          ((pTissue - pSurface) / (mValueSurface - pSurface)) * 100.0;
+      return surfaceGf.clamp(0.0, 200.0);
+    }).toList();
+  }
+
+  /// Calculate mean depth curve (running average from start).
+  ///
+  /// Shows the average depth from dive start to each point.
+  /// Useful for gas consumption calculations.
+  List<double> _calculateMeanDepthCurve(List<double> depths) {
+    if (depths.isEmpty) return [];
+
+    final meanDepths = <double>[];
+    double depthSum = 0;
+
+    for (int i = 0; i < depths.length; i++) {
+      depthSum += depths[i];
+      meanDepths.add(depthSum / (i + 1));
+    }
+
+    return meanDepths;
   }
 
   /// Get analysis at a specific timestamp.

@@ -844,6 +844,15 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                       events: analysis?.events,
                       ndlCurve: analysis?.ndlCurve,
                       sacCurve: analysis?.smoothedSacCurve,
+                      ppO2Curve: analysis?.ppO2Curve,
+                      ppN2Curve: analysis?.ppN2Curve,
+                      ppHeCurve: analysis?.ppHeCurve,
+                      modCurve: analysis?.modCurve,
+                      densityCurve: analysis?.densityCurve,
+                      gfCurve: analysis?.gfCurve,
+                      surfaceGfCurve: analysis?.surfaceGfCurve,
+                      meanDepthCurve: analysis?.meanDepthCurve,
+                      ttsCurve: analysis?.ttsCurve,
                       tankVolume: dive.tanks
                           .where((t) => t.volume != null && t.volume! > 0)
                           .map((t) => t.volume!)
@@ -3649,6 +3658,7 @@ class _FullscreenProfilePage extends ConsumerStatefulWidget {
 class _FullscreenProfilePageState
     extends ConsumerState<_FullscreenProfilePage> {
   DiveProfilePoint? _selectedPoint;
+  int? _selectedPointIndex;
 
   @override
   void initState() {
@@ -3732,6 +3742,15 @@ class _FullscreenProfilePageState
                       events: widget.analysis?.events,
                       ndlCurve: widget.analysis?.ndlCurve,
                       sacCurve: widget.analysis?.smoothedSacCurve,
+                      ppO2Curve: widget.analysis?.ppO2Curve,
+                      ppN2Curve: widget.analysis?.ppN2Curve,
+                      ppHeCurve: widget.analysis?.ppHeCurve,
+                      modCurve: widget.analysis?.modCurve,
+                      densityCurve: widget.analysis?.densityCurve,
+                      gfCurve: widget.analysis?.gfCurve,
+                      surfaceGfCurve: widget.analysis?.surfaceGfCurve,
+                      meanDepthCurve: widget.analysis?.meanDepthCurve,
+                      ttsCurve: widget.analysis?.ttsCurve,
                       tankVolume: dive.tanks
                           .where((t) => t.volume != null && t.volume! > 0)
                           .map((t) => t.volume!)
@@ -3748,7 +3767,19 @@ class _FullscreenProfilePageState
                       tankPressures: widget.tankPressures,
                       gasSwitches: widget.gasSwitches,
                       onPointSelected: (point) {
-                        setState(() => _selectedPoint = point);
+                        setState(() {
+                          _selectedPoint = point;
+                          if (point != null) {
+                            _selectedPointIndex = dive.profile.indexWhere(
+                              (p) => p.timestamp == point.timestamp,
+                            );
+                            if (_selectedPointIndex! < 0) {
+                              _selectedPointIndex = null;
+                            }
+                          } else {
+                            _selectedPointIndex = null;
+                          }
+                        });
                       },
                     ),
                   ),
@@ -3861,41 +3892,186 @@ class _FullscreenProfilePageState
           else if (compact)
             _buildCompactMetrics(context, point, units)
           else
-            Table(
-              columnWidths: const {
-                0: FlexColumnWidth(1),
-                1: FlexColumnWidth(1),
-              },
-              children: [
-                _buildTableRow(
-                  context,
-                  'Time',
-                  _formatTime(point.timestamp),
-                  'Depth',
-                  units.formatDepth(point.depth),
-                ),
-                if (point.temperature != null || point.pressure != null)
-                  _buildTableRow(
-                    context,
-                    point.temperature != null ? 'Temperature' : '',
-                    point.temperature != null
-                        ? units.formatTemperature(point.temperature)
-                        : '',
-                    point.pressure != null ? 'Pressure' : '',
-                    point.pressure != null
-                        ? units.formatPressure(point.pressure)
-                        : '',
+            _buildFullMetricsTable(context, point, units),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFullMetricsTable(
+    BuildContext context,
+    DiveProfilePoint point,
+    UnitFormatter units,
+  ) {
+    final analysis = widget.analysis;
+    final index = _selectedPointIndex;
+
+    // Helper to get curve value at index
+    String? getCurveValue<T>(List<T>? curve, String Function(T) format) {
+      if (curve == null || index == null || index >= curve.length) return null;
+      return format(curve[index]);
+    }
+
+    // Build metric rows
+    final rows = <Widget>[];
+
+    // Basic metrics row
+    rows.add(
+      _buildMetricRow(context, [
+        ('Time', _formatTime(point.timestamp)),
+        ('Depth', units.formatDepth(point.depth)),
+      ]),
+    );
+
+    // Temperature and pressure row
+    if (point.temperature != null || point.pressure != null) {
+      final items = <(String, String)>[];
+      if (point.temperature != null) {
+        items.add(('Temp', units.formatTemperature(point.temperature)));
+      }
+      if (point.pressure != null) {
+        items.add(('Pressure', units.formatPressure(point.pressure)));
+      }
+      rows.add(_buildMetricRow(context, items));
+    }
+
+    // Heart rate
+    if (point.heartRate != null) {
+      rows.add(
+        _buildMetricRow(context, [('Heart Rate', '${point.heartRate!} bpm')]),
+      );
+    }
+
+    // NDL
+    final ndlValue = getCurveValue(analysis?.ndlCurve, (ndl) {
+      if (ndl < 0) return 'DECO';
+      if (ndl >= 3600) return '>60 min';
+      final min = ndl ~/ 60;
+      final sec = ndl % 60;
+      return '$min:${sec.toString().padLeft(2, '0')}';
+    });
+    if (ndlValue != null) {
+      rows.add(_buildMetricRow(context, [('NDL', ndlValue)]));
+    }
+
+    // Partial pressures row
+    final ppItems = <(String, String)>[];
+    final ppO2Value = getCurveValue(
+      analysis?.ppO2Curve,
+      (v) => '${v.toStringAsFixed(2)} bar',
+    );
+    if (ppO2Value != null) ppItems.add(('ppO2', ppO2Value));
+
+    final ppN2Value = getCurveValue(
+      analysis?.ppN2Curve,
+      (v) => '${v.toStringAsFixed(2)} bar',
+    );
+    if (ppN2Value != null) ppItems.add(('ppN2', ppN2Value));
+
+    final ppHeRaw =
+        (index != null &&
+            analysis?.ppHeCurve != null &&
+            index < analysis!.ppHeCurve!.length)
+        ? analysis.ppHeCurve![index]
+        : null;
+    if (ppHeRaw != null && ppHeRaw > 0.001) {
+      ppItems.add(('ppHe', '${ppHeRaw.toStringAsFixed(2)} bar'));
+    }
+
+    if (ppItems.isNotEmpty) {
+      rows.add(_buildMetricRow(context, ppItems));
+    }
+
+    // MOD and Density row
+    final modDensityItems = <(String, String)>[];
+    final modRaw =
+        (index != null &&
+            analysis?.modCurve != null &&
+            index < analysis!.modCurve!.length)
+        ? analysis.modCurve![index]
+        : null;
+    if (modRaw != null && modRaw > 0 && modRaw < 200) {
+      modDensityItems.add(('MOD', units.formatDepth(modRaw)));
+    }
+
+    final densityValue = getCurveValue(
+      analysis?.densityCurve,
+      (v) => '${v.toStringAsFixed(2)} g/L',
+    );
+    if (densityValue != null) modDensityItems.add(('Density', densityValue));
+
+    if (modDensityItems.isNotEmpty) {
+      rows.add(_buildMetricRow(context, modDensityItems));
+    }
+
+    // GF row
+    final gfItems = <(String, String)>[];
+    final gfValue = getCurveValue(
+      analysis?.gfCurve,
+      (v) => '${v.toStringAsFixed(0)}%',
+    );
+    if (gfValue != null) gfItems.add(('GF%', gfValue));
+
+    final surfaceGfValue = getCurveValue(
+      analysis?.surfaceGfCurve,
+      (v) => '${v.toStringAsFixed(0)}%',
+    );
+    if (surfaceGfValue != null) gfItems.add(('Surface GF', surfaceGfValue));
+
+    if (gfItems.isNotEmpty) {
+      rows.add(_buildMetricRow(context, gfItems));
+    }
+
+    // Mean depth and TTS row
+    final depthTimeItems = <(String, String)>[];
+    final meanDepthValue = getCurveValue(
+      analysis?.meanDepthCurve,
+      (v) => units.formatDepth(v),
+    );
+    if (meanDepthValue != null) {
+      depthTimeItems.add(('Mean Depth', meanDepthValue));
+    }
+
+    final ttsValue = getCurveValue(analysis?.ttsCurve, (v) {
+      if (v <= 0) return '0 min';
+      return '${(v / 60).ceil()} min';
+    });
+    if (ttsValue != null) depthTimeItems.add(('TTS', ttsValue));
+
+    if (depthTimeItems.isNotEmpty) {
+      rows.add(_buildMetricRow(context, depthTimeItems));
+    }
+
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: rows);
+  }
+
+  Widget _buildMetricRow(BuildContext context, List<(String, String)> items) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          for (var i = 0; i < items.length; i++) ...[
+            if (i > 0) const SizedBox(width: 24),
+            Expanded(
+              child: Row(
+                children: [
+                  Text(
+                    items[i].$1,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
-                if (point.heartRate != null)
-                  _buildTableRow(
-                    context,
-                    'Heart Rate',
-                    '${point.heartRate!} bpm',
-                    '',
-                    '',
+                  const SizedBox(width: 8),
+                  Text(
+                    items[i].$2,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-              ],
+                ],
+              ),
             ),
+          ],
         ],
       ),
     );
@@ -3906,30 +4082,153 @@ class _FullscreenProfilePageState
     DiveProfilePoint point,
     UnitFormatter units,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildCompactMetricRow(context, 'Time', _formatTime(point.timestamp)),
+    final analysis = widget.analysis;
+    final index = _selectedPointIndex;
+
+    // Helper to get curve value at index
+    String? getCurveValue<T>(List<T>? curve, String Function(T) format) {
+      if (curve == null || index == null || index >= curve.length) return null;
+      return format(curve[index]);
+    }
+
+    // Build list of metric widgets
+    final metrics = <Widget>[
+      _buildCompactMetricRow(context, 'Time', _formatTime(point.timestamp)),
+      _buildCompactMetricRow(context, 'Depth', units.formatDepth(point.depth)),
+    ];
+
+    if (point.temperature != null) {
+      metrics.add(
         _buildCompactMetricRow(
           context,
-          'Depth',
-          units.formatDepth(point.depth),
+          'Temp',
+          units.formatTemperature(point.temperature),
         ),
-        if (point.temperature != null)
-          _buildCompactMetricRow(
-            context,
-            'Temp',
-            units.formatTemperature(point.temperature),
-          ),
-        if (point.pressure != null)
-          _buildCompactMetricRow(
-            context,
-            'Pressure',
-            units.formatPressure(point.pressure),
-          ),
-        if (point.heartRate != null)
-          _buildCompactMetricRow(context, 'HR', '${point.heartRate!} bpm'),
-      ],
+      );
+    }
+
+    if (point.pressure != null) {
+      metrics.add(
+        _buildCompactMetricRow(
+          context,
+          'Pressure',
+          units.formatPressure(point.pressure),
+        ),
+      );
+    }
+
+    if (point.heartRate != null) {
+      metrics.add(
+        _buildCompactMetricRow(context, 'HR', '${point.heartRate!} bpm'),
+      );
+    }
+
+    // NDL
+    final ndlValue = getCurveValue(analysis?.ndlCurve, (v) {
+      if (v < 0) return 'DECO';
+      if (v >= 3600) return '>60 min';
+      return '${v ~/ 60}:${(v % 60).toString().padLeft(2, '0')}';
+    });
+    if (ndlValue != null) {
+      metrics.add(_buildCompactMetricRow(context, 'NDL', ndlValue));
+    }
+
+    // ppO2
+    final ppO2Value = getCurveValue(
+      analysis?.ppO2Curve,
+      (v) => '${v.toStringAsFixed(2)} bar',
+    );
+    if (ppO2Value != null) {
+      metrics.add(_buildCompactMetricRow(context, 'ppO2', ppO2Value));
+    }
+
+    // ppN2
+    final ppN2Value = getCurveValue(
+      analysis?.ppN2Curve,
+      (v) => '${v.toStringAsFixed(2)} bar',
+    );
+    if (ppN2Value != null) {
+      metrics.add(_buildCompactMetricRow(context, 'ppN2', ppN2Value));
+    }
+
+    // ppHe
+    final ppHeRaw =
+        (index != null &&
+            analysis?.ppHeCurve != null &&
+            index < analysis!.ppHeCurve!.length)
+        ? analysis.ppHeCurve![index]
+        : null;
+    if (ppHeRaw != null && ppHeRaw > 0.001) {
+      metrics.add(
+        _buildCompactMetricRow(
+          context,
+          'ppHe',
+          '${ppHeRaw.toStringAsFixed(2)} bar',
+        ),
+      );
+    }
+
+    // MOD
+    final modRaw =
+        (index != null &&
+            analysis?.modCurve != null &&
+            index < analysis!.modCurve!.length)
+        ? analysis.modCurve![index]
+        : null;
+    if (modRaw != null && modRaw > 0 && modRaw < 200) {
+      metrics.add(
+        _buildCompactMetricRow(context, 'MOD', units.formatDepth(modRaw)),
+      );
+    }
+
+    // Density
+    final densityValue = getCurveValue(
+      analysis?.densityCurve,
+      (v) => '${v.toStringAsFixed(2)} g/L',
+    );
+    if (densityValue != null) {
+      metrics.add(_buildCompactMetricRow(context, 'Density', densityValue));
+    }
+
+    // GF%
+    final gfValue = getCurveValue(
+      analysis?.gfCurve,
+      (v) => '${v.toStringAsFixed(0)}%',
+    );
+    if (gfValue != null) {
+      metrics.add(_buildCompactMetricRow(context, 'GF%', gfValue));
+    }
+
+    // Surface GF
+    final surfaceGfValue = getCurveValue(
+      analysis?.surfaceGfCurve,
+      (v) => '${v.toStringAsFixed(0)}%',
+    );
+    if (surfaceGfValue != null) {
+      metrics.add(_buildCompactMetricRow(context, 'SrfGF', surfaceGfValue));
+    }
+
+    // Mean Depth
+    final meanDepthValue = getCurveValue(
+      analysis?.meanDepthCurve,
+      (v) => units.formatDepth(v),
+    );
+    if (meanDepthValue != null) {
+      metrics.add(_buildCompactMetricRow(context, 'Mean', meanDepthValue));
+    }
+
+    // TTS
+    final ttsValue = getCurveValue(analysis?.ttsCurve, (v) {
+      if (v <= 0) return '0 min';
+      return '${(v / 60).ceil()} min';
+    });
+    if (ttsValue != null) {
+      metrics.add(_buildCompactMetricRow(context, 'TTS', ttsValue));
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: metrics,
     );
   }
 
@@ -3957,61 +4256,6 @@ class _FullscreenProfilePageState
           ),
         ],
       ),
-    );
-  }
-
-  TableRow _buildTableRow(
-    BuildContext context,
-    String label1,
-    String value1,
-    String label2,
-    String value2,
-  ) {
-    return TableRow(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: label1.isNotEmpty
-              ? Row(
-                  children: [
-                    Text(
-                      '$label1: ',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    Text(
-                      value1,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                )
-              : const SizedBox.shrink(),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: label2.isNotEmpty
-              ? Row(
-                  children: [
-                    Text(
-                      '$label2: ',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    Text(
-                      value2,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                )
-              : const SizedBox.shrink(),
-        ),
-      ],
     );
   }
 

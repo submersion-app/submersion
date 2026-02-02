@@ -88,6 +88,34 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// When provided, renders a vertical line at this position for step-through playback.
   final int? playbackTimestamp;
 
+  // Advanced decompression/gas curves
+  /// ppO2 curve in bar
+  final List<double>? ppO2Curve;
+
+  /// ppN2 curve in bar
+  final List<double>? ppN2Curve;
+
+  /// ppHe curve in bar (for trimix)
+  final List<double>? ppHeCurve;
+
+  /// MOD curve in meters
+  final List<double>? modCurve;
+
+  /// Gas density curve in g/L
+  final List<double>? densityCurve;
+
+  /// Gradient Factor % curve (0-100+)
+  final List<double>? gfCurve;
+
+  /// Surface GF% curve (0-100+)
+  final List<double>? surfaceGfCurve;
+
+  /// Mean depth curve in meters
+  final List<double>? meanDepthCurve;
+
+  /// TTS (Time To Surface) curve in seconds
+  final List<int>? ttsCurve;
+
   const DiveProfileChart({
     super.key,
     required this.profile,
@@ -115,6 +143,15 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.tankPressures,
     this.exportKey,
     this.playbackTimestamp,
+    this.ppO2Curve,
+    this.ppN2Curve,
+    this.ppHeCurve,
+    this.modCurve,
+    this.densityCurve,
+    this.gfCurve,
+    this.surfaceGfCurve,
+    this.meanDepthCurve,
+    this.ttsCurve,
   });
 
   @override
@@ -142,6 +179,18 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
   // Gas switch visualization toggle
   bool _showGasSwitchMarkers = true;
+
+  // Advanced decompression/gas toggles
+  bool _showNdl = false;
+  bool _showPpO2 = false;
+  bool _showPpN2 = false;
+  bool _showPpHe = false;
+  bool _showMod = false;
+  bool _showDensity = false;
+  bool _showGf = false;
+  bool _showSurfaceGf = false;
+  bool _showMeanDepth = false;
+  bool _showTts = false;
 
   // Helper getters for marker availability
   bool get _hasMaxDepthMarker =>
@@ -338,10 +387,39 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showMaxDepthMarkerLocal = legendState.showMaxDepthMarker;
     _showPressureMarkersLocal = legendState.showPressureMarkers;
     _showGasSwitchMarkers = legendState.showGasSwitchMarkers;
+    // Sync advanced deco/gas toggles
+    _showNdl = legendState.showNdl;
+    _showPpO2 = legendState.showPpO2;
+    _showPpN2 = legendState.showPpN2;
+    _showPpHe = legendState.showPpHe;
+    _showMod = legendState.showMod;
+    _showDensity = legendState.showDensity;
+    _showGf = legendState.showGf;
+    _showSurfaceGf = legendState.showSurfaceGf;
+    _showMeanDepth = legendState.showMeanDepth;
+    _showTts = legendState.showTts;
     // Sync per-tank pressure visibility
     for (final entry in legendState.showTankPressure.entries) {
       _showTankPressure[entry.key] = entry.value;
     }
+
+    // Check data availability for advanced curves
+    final hasNdlData = widget.ndlCurve != null && widget.ndlCurve!.isNotEmpty;
+    final hasPpO2Data =
+        widget.ppO2Curve != null && widget.ppO2Curve!.isNotEmpty;
+    final hasPpN2Data =
+        widget.ppN2Curve != null && widget.ppN2Curve!.isNotEmpty;
+    final hasPpHeData =
+        widget.ppHeCurve != null && widget.ppHeCurve!.any((v) => v > 0.001);
+    final hasModData = widget.modCurve != null && widget.modCurve!.isNotEmpty;
+    final hasDensityData =
+        widget.densityCurve != null && widget.densityCurve!.isNotEmpty;
+    final hasGfData = widget.gfCurve != null && widget.gfCurve!.isNotEmpty;
+    final hasSurfaceGfData =
+        widget.surfaceGfCurve != null && widget.surfaceGfCurve!.isNotEmpty;
+    final hasMeanDepthData =
+        widget.meanDepthCurve != null && widget.meanDepthCurve!.isNotEmpty;
+    final hasTtsData = widget.ttsCurve != null && widget.ttsCurve!.isNotEmpty;
 
     // Build legend config based on available data
     final legendConfig = ProfileLegendConfig(
@@ -360,6 +438,16 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       hasMultiTankPressure: _hasMultiTankPressure,
       tanks: widget.tanks,
       tankPressures: widget.tankPressures,
+      hasNdlData: hasNdlData,
+      hasPpO2Data: hasPpO2Data,
+      hasPpN2Data: hasPpN2Data,
+      hasPpHeData: hasPpHeData,
+      hasModData: hasModData,
+      hasDensityData: hasDensityData,
+      hasGfData: hasGfData,
+      hasSurfaceGfData: hasSurfaceGfData,
+      hasMeanDepthData: hasMeanDepthData,
+      hasTtsData: hasTtsData,
     );
 
     return Column(
@@ -774,6 +862,47 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               if (_showCeiling && widget.ceilingCurve != null)
                 _buildCeilingLine(units),
 
+              // NDL line (if showing)
+              if (_showNdl && widget.ndlCurve != null)
+                _buildNdlLine(totalMaxDepth),
+
+              // ppO2 line (if showing)
+              if (_showPpO2 && widget.ppO2Curve != null)
+                _buildPpO2Line(totalMaxDepth),
+
+              // ppN2 line (if showing)
+              if (_showPpN2 && widget.ppN2Curve != null)
+                _buildPpN2Line(totalMaxDepth),
+
+              // ppHe line (if showing and has helium data)
+              if (_showPpHe &&
+                  widget.ppHeCurve != null &&
+                  widget.ppHeCurve!.any((v) => v > 0.001))
+                _buildPpHeLine(totalMaxDepth),
+
+              // MOD line (if showing)
+              if (_showMod && widget.modCurve != null) _buildModLine(units),
+
+              // Gas density line (if showing)
+              if (_showDensity && widget.densityCurve != null)
+                _buildDensityLine(totalMaxDepth),
+
+              // GF% line (if showing)
+              if (_showGf && widget.gfCurve != null)
+                _buildGfLine(totalMaxDepth),
+
+              // Surface GF line (if showing)
+              if (_showSurfaceGf && widget.surfaceGfCurve != null)
+                _buildSurfaceGfLine(totalMaxDepth),
+
+              // Mean depth line (if showing)
+              if (_showMeanDepth && widget.meanDepthCurve != null)
+                _buildMeanDepthLine(units),
+
+              // TTS line (if showing)
+              if (_showTts && widget.ttsCurve != null)
+                _buildTtsLine(totalMaxDepth),
+
               // Profile markers (max depth, pressure thresholds)
               ..._buildMarkerLines(
                 units,
@@ -1003,6 +1132,135 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       final rateValue =
                           '$arrow$rateNum ${units.depthSymbol}/min';
                       addRow('Rate', rateValue, rateColor);
+                    }
+
+                    // NDL (if enabled)
+                    if (_showNdl) {
+                      String ndlValue = '—';
+                      if (widget.ndlCurve != null &&
+                          spot.spotIndex < widget.ndlCurve!.length) {
+                        final ndl = widget.ndlCurve![spot.spotIndex];
+                        if (ndl < 0) {
+                          ndlValue = 'DECO';
+                        } else if (ndl < 3600) {
+                          final min = ndl ~/ 60;
+                          final sec = ndl % 60;
+                          ndlValue = '$min:${sec.toString().padLeft(2, '0')}';
+                        } else {
+                          ndlValue = '>60 min';
+                        }
+                      }
+                      addRow('NDL', ndlValue, Colors.green.shade600);
+                    }
+
+                    // ppO2 (if enabled)
+                    if (_showPpO2) {
+                      String ppO2Value = '—';
+                      if (widget.ppO2Curve != null &&
+                          spot.spotIndex < widget.ppO2Curve!.length) {
+                        final ppO2 = widget.ppO2Curve![spot.spotIndex];
+                        ppO2Value = '${ppO2.toStringAsFixed(2)} bar';
+                      }
+                      addRow('ppO2', ppO2Value, Colors.blue.shade600);
+                    }
+
+                    // ppN2 (if enabled)
+                    if (_showPpN2) {
+                      String ppN2Value = '—';
+                      if (widget.ppN2Curve != null &&
+                          spot.spotIndex < widget.ppN2Curve!.length) {
+                        final ppN2 = widget.ppN2Curve![spot.spotIndex];
+                        ppN2Value = '${ppN2.toStringAsFixed(2)} bar';
+                      }
+                      addRow('ppN2', ppN2Value, Colors.indigo);
+                    }
+
+                    // ppHe (if enabled)
+                    if (_showPpHe) {
+                      String ppHeValue = '—';
+                      if (widget.ppHeCurve != null &&
+                          spot.spotIndex < widget.ppHeCurve!.length) {
+                        final ppHe = widget.ppHeCurve![spot.spotIndex];
+                        if (ppHe > 0.001) {
+                          ppHeValue = '${ppHe.toStringAsFixed(2)} bar';
+                        }
+                      }
+                      addRow('ppHe', ppHeValue, Colors.pink.shade300);
+                    }
+
+                    // MOD (if enabled)
+                    if (_showMod) {
+                      String modValue = '—';
+                      if (widget.modCurve != null &&
+                          spot.spotIndex < widget.modCurve!.length) {
+                        final mod = widget.modCurve![spot.spotIndex];
+                        if (mod > 0 && mod < 200) {
+                          modValue = units.formatDepth(mod);
+                        }
+                      }
+                      addRow('MOD', modValue, Colors.deepOrange);
+                    }
+
+                    // Gas density (if enabled)
+                    if (_showDensity) {
+                      String densityValue = '—';
+                      if (widget.densityCurve != null &&
+                          spot.spotIndex < widget.densityCurve!.length) {
+                        final density = widget.densityCurve![spot.spotIndex];
+                        densityValue = '${density.toStringAsFixed(2)} g/L';
+                      }
+                      addRow('Density', densityValue, Colors.brown);
+                    }
+
+                    // GF% (if enabled)
+                    if (_showGf) {
+                      String gfValue = '—';
+                      if (widget.gfCurve != null &&
+                          spot.spotIndex < widget.gfCurve!.length) {
+                        final gf = widget.gfCurve![spot.spotIndex];
+                        gfValue = '${gf.toStringAsFixed(0)}%';
+                      }
+                      addRow('GF%', gfValue, Colors.deepPurple);
+                    }
+
+                    // Surface GF (if enabled)
+                    if (_showSurfaceGf) {
+                      String surfaceGfValue = '—';
+                      if (widget.surfaceGfCurve != null &&
+                          spot.spotIndex < widget.surfaceGfCurve!.length) {
+                        final surfaceGf =
+                            widget.surfaceGfCurve![spot.spotIndex];
+                        surfaceGfValue = '${surfaceGf.toStringAsFixed(0)}%';
+                      }
+                      addRow('SrfGF', surfaceGfValue, Colors.purple.shade300);
+                    }
+
+                    // Mean depth (if enabled)
+                    if (_showMeanDepth) {
+                      String meanDepthValue = '—';
+                      if (widget.meanDepthCurve != null &&
+                          spot.spotIndex < widget.meanDepthCurve!.length) {
+                        final meanDepth =
+                            widget.meanDepthCurve![spot.spotIndex];
+                        meanDepthValue = units.formatDepth(meanDepth);
+                      }
+                      addRow('Mean', meanDepthValue, Colors.blueGrey);
+                    }
+
+                    // TTS (if enabled)
+                    if (_showTts) {
+                      String ttsValue = '—';
+                      if (widget.ttsCurve != null &&
+                          spot.spotIndex < widget.ttsCurve!.length) {
+                        final tts = widget.ttsCurve![spot.spotIndex];
+                        if (tts > 0) {
+                          final min = (tts / 60).ceil();
+                          ttsValue = '$min min';
+                        } else {
+                          ttsValue = '0 min';
+                        }
+                      }
+                      addRow('TTS', ttsValue, Colors.orange.shade800);
                     }
 
                     // Per-tank pressure (if any tanks are enabled)
@@ -1547,6 +1805,318 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         cutOffY: 0, // Fill to surface
         applyCutOffY: true,
       ),
+    );
+  }
+
+  /// Build NDL (No Decompression Limit) line
+  /// NDL values are in seconds; shows time remaining before deco obligation
+  LineChartBarData _buildNdlLine(double chartMaxDepth) {
+    final ndlData = widget.ndlCurve!;
+    const ndlColor = Colors.green;
+
+    // Map NDL to chart: max NDL (~60 min) at top, 0 at bottom
+    const maxNdlSeconds = 3600.0; // 60 minutes as max display
+
+    final spots = <FlSpot>[];
+    for (int i = 0; i < widget.profile.length && i < ndlData.length; i++) {
+      final ndl = ndlData[i];
+      // Skip negative values (in deco) and very large values
+      if (ndl >= 0 && ndl < maxNdlSeconds) {
+        final normalized = ndl / maxNdlSeconds;
+        final yValue = chartMaxDepth * (1 - normalized);
+        spots.add(FlSpot(widget.profile[i].timestamp.toDouble(), -yValue));
+      }
+    }
+
+    return LineChartBarData(
+      spots: spots,
+      isCurved: true,
+      curveSmoothness: 0.2,
+      color: ndlColor,
+      barWidth: 2,
+      isStrokeCapRound: true,
+      dotData: const FlDotData(show: false),
+      dashArray: [6, 3],
+    );
+  }
+
+  /// Build ppO2 (partial pressure of oxygen) line
+  /// Values typically range from 0.21 (surface air) to 1.6+ (critical)
+  LineChartBarData _buildPpO2Line(double chartMaxDepth) {
+    final ppO2Data = widget.ppO2Curve!;
+    final ppO2Color = Colors.blue.shade600;
+
+    // Map ppO2 to chart: 0 at top, 2.0 bar at bottom
+    const minPpO2 = 0.0;
+    const maxPpO2 = 2.0;
+
+    final spots = <FlSpot>[];
+    for (int i = 0; i < widget.profile.length && i < ppO2Data.length; i++) {
+      final ppO2 = ppO2Data[i].clamp(minPpO2, maxPpO2);
+      final yValue = _mapValueToDepth(ppO2, chartMaxDepth, minPpO2, maxPpO2);
+      spots.add(FlSpot(widget.profile[i].timestamp.toDouble(), -yValue));
+    }
+
+    return LineChartBarData(
+      spots: spots,
+      isCurved: true,
+      curveSmoothness: 0.2,
+      color: ppO2Color,
+      barWidth: 2,
+      isStrokeCapRound: true,
+      dotData: const FlDotData(show: false),
+      dashArray: [5, 3],
+    );
+  }
+
+  /// Build ppN2 (partial pressure of nitrogen) line
+  LineChartBarData _buildPpN2Line(double chartMaxDepth) {
+    final ppN2Data = widget.ppN2Curve!;
+    const ppN2Color = Colors.indigo;
+
+    // Map ppN2 to chart: 0 at top, ~5 bar at bottom (deep dive)
+    const minPpN2 = 0.0;
+    const maxPpN2 = 5.0;
+
+    final spots = <FlSpot>[];
+    for (int i = 0; i < widget.profile.length && i < ppN2Data.length; i++) {
+      final ppN2 = ppN2Data[i].clamp(minPpN2, maxPpN2);
+      final yValue = _mapValueToDepth(ppN2, chartMaxDepth, minPpN2, maxPpN2);
+      spots.add(FlSpot(widget.profile[i].timestamp.toDouble(), -yValue));
+    }
+
+    return LineChartBarData(
+      spots: spots,
+      isCurved: true,
+      curveSmoothness: 0.2,
+      color: ppN2Color,
+      barWidth: 2,
+      isStrokeCapRound: true,
+      dotData: const FlDotData(show: false),
+      dashArray: [4, 2],
+    );
+  }
+
+  /// Build ppHe (partial pressure of helium) line for trimix dives
+  LineChartBarData _buildPpHeLine(double chartMaxDepth) {
+    final ppHeData = widget.ppHeCurve!;
+    final ppHeColor = Colors.pink.shade300;
+
+    // Map ppHe to chart: 0 at top, ~3 bar at bottom
+    const minPpHe = 0.0;
+    const maxPpHe = 3.0;
+
+    final spots = <FlSpot>[];
+    for (int i = 0; i < widget.profile.length && i < ppHeData.length; i++) {
+      final ppHe = ppHeData[i];
+      if (ppHe > 0.001) {
+        final clamped = ppHe.clamp(minPpHe, maxPpHe);
+        final yValue = _mapValueToDepth(
+          clamped,
+          chartMaxDepth,
+          minPpHe,
+          maxPpHe,
+        );
+        spots.add(FlSpot(widget.profile[i].timestamp.toDouble(), -yValue));
+      }
+    }
+
+    return LineChartBarData(
+      spots: spots,
+      isCurved: true,
+      curveSmoothness: 0.2,
+      color: ppHeColor,
+      barWidth: 2,
+      isStrokeCapRound: true,
+      dotData: const FlDotData(show: false),
+      dashArray: [3, 3],
+    );
+  }
+
+  /// Build MOD (Maximum Operating Depth) line
+  /// Shows the MOD limit as a horizontal reference line
+  LineChartBarData _buildModLine(UnitFormatter units) {
+    final modData = widget.modCurve!;
+    const modColor = Colors.deepOrange;
+
+    // MOD is typically constant for a given gas
+    final spots = <FlSpot>[];
+    for (int i = 0; i < widget.profile.length && i < modData.length; i++) {
+      final mod = modData[i];
+      if (mod > 0 && mod < 200) {
+        spots.add(
+          FlSpot(
+            widget.profile[i].timestamp.toDouble(),
+            -units.convertDepth(mod),
+          ),
+        );
+      }
+    }
+
+    return LineChartBarData(
+      spots: spots,
+      isCurved: false,
+      color: modColor,
+      barWidth: 2,
+      isStrokeCapRound: true,
+      dotData: const FlDotData(show: false),
+      dashArray: [8, 4],
+    );
+  }
+
+  /// Build gas density line (g/L)
+  /// High density (>5.7 g/L) increases work of breathing
+  LineChartBarData _buildDensityLine(double chartMaxDepth) {
+    final densityData = widget.densityCurve!;
+    const densityColor = Colors.brown;
+
+    // Map density to chart: 0 at top, 8 g/L at bottom
+    const minDensity = 0.0;
+    const maxDensity = 8.0;
+
+    final spots = <FlSpot>[];
+    for (int i = 0; i < widget.profile.length && i < densityData.length; i++) {
+      final density = densityData[i].clamp(minDensity, maxDensity);
+      final yValue = _mapValueToDepth(
+        density,
+        chartMaxDepth,
+        minDensity,
+        maxDensity,
+      );
+      spots.add(FlSpot(widget.profile[i].timestamp.toDouble(), -yValue));
+    }
+
+    return LineChartBarData(
+      spots: spots,
+      isCurved: true,
+      curveSmoothness: 0.2,
+      color: densityColor,
+      barWidth: 2,
+      isStrokeCapRound: true,
+      dotData: const FlDotData(show: false),
+      dashArray: [5, 2],
+    );
+  }
+
+  /// Build GF% (Gradient Factor percentage) line at current depth
+  /// Shows how close tissues are to M-value limit
+  LineChartBarData _buildGfLine(double chartMaxDepth) {
+    final gfData = widget.gfCurve!;
+    const gfColor = Colors.deepPurple;
+
+    // Map GF% to chart: 0% at top, 120% at bottom
+    const minGf = 0.0;
+    const maxGf = 120.0;
+
+    final spots = <FlSpot>[];
+    for (int i = 0; i < widget.profile.length && i < gfData.length; i++) {
+      final gf = gfData[i].clamp(minGf, maxGf);
+      final yValue = _mapValueToDepth(gf, chartMaxDepth, minGf, maxGf);
+      spots.add(FlSpot(widget.profile[i].timestamp.toDouble(), -yValue));
+    }
+
+    return LineChartBarData(
+      spots: spots,
+      isCurved: true,
+      curveSmoothness: 0.2,
+      color: gfColor,
+      barWidth: 2,
+      isStrokeCapRound: true,
+      dotData: const FlDotData(show: false),
+      dashArray: [4, 3],
+    );
+  }
+
+  /// Build Surface GF% line (what GF would be if surfaced now)
+  /// Values >100% indicate deco obligation
+  LineChartBarData _buildSurfaceGfLine(double chartMaxDepth) {
+    final surfaceGfData = widget.surfaceGfCurve!;
+    final surfaceGfColor = Colors.purple.shade300;
+
+    // Map Surface GF% to chart: 0% at top, 150% at bottom
+    const minGf = 0.0;
+    const maxGf = 150.0;
+
+    final spots = <FlSpot>[];
+    for (
+      int i = 0;
+      i < widget.profile.length && i < surfaceGfData.length;
+      i++
+    ) {
+      final gf = surfaceGfData[i].clamp(minGf, maxGf);
+      final yValue = _mapValueToDepth(gf, chartMaxDepth, minGf, maxGf);
+      spots.add(FlSpot(widget.profile[i].timestamp.toDouble(), -yValue));
+    }
+
+    return LineChartBarData(
+      spots: spots,
+      isCurved: true,
+      curveSmoothness: 0.2,
+      color: surfaceGfColor,
+      barWidth: 2,
+      isStrokeCapRound: true,
+      dotData: const FlDotData(show: false),
+      dashArray: [6, 2],
+    );
+  }
+
+  /// Build mean depth line (running average from start)
+  LineChartBarData _buildMeanDepthLine(UnitFormatter units) {
+    final meanDepthData = widget.meanDepthCurve!;
+    const meanDepthColor = Colors.blueGrey;
+
+    final spots = <FlSpot>[];
+    for (
+      int i = 0;
+      i < widget.profile.length && i < meanDepthData.length;
+      i++
+    ) {
+      spots.add(
+        FlSpot(
+          widget.profile[i].timestamp.toDouble(),
+          -units.convertDepth(meanDepthData[i]),
+        ),
+      );
+    }
+
+    return LineChartBarData(
+      spots: spots,
+      isCurved: true,
+      curveSmoothness: 0.2,
+      color: meanDepthColor,
+      barWidth: 2,
+      isStrokeCapRound: true,
+      dotData: const FlDotData(show: false),
+      dashArray: [3, 4],
+    );
+  }
+
+  /// Build TTS (Time To Surface) line
+  /// Shows total time including deco stops to reach surface
+  LineChartBarData _buildTtsLine(double chartMaxDepth) {
+    final ttsData = widget.ttsCurve!;
+    final ttsColor = Colors.orange.shade800;
+
+    // Map TTS to chart: 0 at top, 60 min at bottom
+    const maxTtsSeconds = 3600.0;
+
+    final spots = <FlSpot>[];
+    for (int i = 0; i < widget.profile.length && i < ttsData.length; i++) {
+      final tts = ttsData[i].toDouble().clamp(0, maxTtsSeconds);
+      final normalized = tts / maxTtsSeconds;
+      final yValue = chartMaxDepth * (1 - normalized);
+      spots.add(FlSpot(widget.profile[i].timestamp.toDouble(), -yValue));
+    }
+
+    return LineChartBarData(
+      spots: spots,
+      isCurved: true,
+      curveSmoothness: 0.2,
+      color: ttsColor,
+      barWidth: 2,
+      isStrokeCapRound: true,
+      dotData: const FlDotData(show: false),
+      dashArray: [5, 4],
     );
   }
 

@@ -48,15 +48,6 @@ This document contains only the features and tasks that are **not yet completed*
 
 ## Category 8: Training, Certifications & Medical Info
 
-### 8.2 Digital Cards (eCards)
-| Feature | Status | Notes |
-|---------|--------|-------|
-| eCard wallet | ✅ Done | Display certs in wallet format |
-
-**Tasks:**
-- [x] Certification wallet view (card-style UI)
-- [x] Export cert card as image (shareable)
-
 ### 8.3 Training Dives
 
 **Remaining:**

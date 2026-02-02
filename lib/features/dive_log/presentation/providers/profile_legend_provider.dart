@@ -23,6 +23,18 @@ class ProfileLegendState {
   final bool showPressureMarkers;
   final bool showGasSwitchMarkers;
 
+  // Advanced decompression/gas toggles
+  final bool showNdl;
+  final bool showPpO2;
+  final bool showPpN2;
+  final bool showPpHe;
+  final bool showMod;
+  final bool showDensity;
+  final bool showGf;
+  final bool showSurfaceGf;
+  final bool showMeanDepth;
+  final bool showTts;
+
   // Per-tank pressure visibility (keyed by tank ID)
   final Map<String, bool> showTankPressure;
 
@@ -37,6 +49,16 @@ class ProfileLegendState {
     this.showMaxDepthMarker = true,
     this.showPressureMarkers = true,
     this.showGasSwitchMarkers = true,
+    this.showNdl = false,
+    this.showPpO2 = false,
+    this.showPpN2 = false,
+    this.showPpHe = false,
+    this.showMod = false,
+    this.showDensity = false,
+    this.showGf = false,
+    this.showSurfaceGf = false,
+    this.showMeanDepth = false,
+    this.showTts = false,
     this.showTankPressure = const {},
   });
 
@@ -50,6 +72,16 @@ class ProfileLegendState {
     if (showMaxDepthMarker) count++;
     if (showPressureMarkers) count++;
     if (showGasSwitchMarkers) count++;
+    if (showNdl) count++;
+    if (showPpO2) count++;
+    if (showPpN2) count++;
+    if (showPpHe) count++;
+    if (showMod) count++;
+    if (showDensity) count++;
+    if (showGf) count++;
+    if (showSurfaceGf) count++;
+    if (showMeanDepth) count++;
+    if (showTts) count++;
     count += showTankPressure.values.where((v) => v).length;
     return count;
   }
@@ -68,6 +100,16 @@ class ProfileLegendState {
     bool? showMaxDepthMarker,
     bool? showPressureMarkers,
     bool? showGasSwitchMarkers,
+    bool? showNdl,
+    bool? showPpO2,
+    bool? showPpN2,
+    bool? showPpHe,
+    bool? showMod,
+    bool? showDensity,
+    bool? showGf,
+    bool? showSurfaceGf,
+    bool? showMeanDepth,
+    bool? showTts,
     Map<String, bool>? showTankPressure,
   }) {
     return ProfileLegendState(
@@ -81,6 +123,16 @@ class ProfileLegendState {
       showMaxDepthMarker: showMaxDepthMarker ?? this.showMaxDepthMarker,
       showPressureMarkers: showPressureMarkers ?? this.showPressureMarkers,
       showGasSwitchMarkers: showGasSwitchMarkers ?? this.showGasSwitchMarkers,
+      showNdl: showNdl ?? this.showNdl,
+      showPpO2: showPpO2 ?? this.showPpO2,
+      showPpN2: showPpN2 ?? this.showPpN2,
+      showPpHe: showPpHe ?? this.showPpHe,
+      showMod: showMod ?? this.showMod,
+      showDensity: showDensity ?? this.showDensity,
+      showGf: showGf ?? this.showGf,
+      showSurfaceGf: showSurfaceGf ?? this.showSurfaceGf,
+      showMeanDepth: showMeanDepth ?? this.showMeanDepth,
+      showTts: showTts ?? this.showTts,
       showTankPressure: showTankPressure ?? this.showTankPressure,
     );
   }
@@ -100,10 +152,20 @@ class ProfileLegendState {
           showMaxDepthMarker == other.showMaxDepthMarker &&
           showPressureMarkers == other.showPressureMarkers &&
           showGasSwitchMarkers == other.showGasSwitchMarkers &&
+          showNdl == other.showNdl &&
+          showPpO2 == other.showPpO2 &&
+          showPpN2 == other.showPpN2 &&
+          showPpHe == other.showPpHe &&
+          showMod == other.showMod &&
+          showDensity == other.showDensity &&
+          showGf == other.showGf &&
+          showSurfaceGf == other.showSurfaceGf &&
+          showMeanDepth == other.showMeanDepth &&
+          showTts == other.showTts &&
           mapEquals(showTankPressure, other.showTankPressure);
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     showTemperature,
     showPressure,
     showCeiling,
@@ -114,8 +176,18 @@ class ProfileLegendState {
     showMaxDepthMarker,
     showPressureMarkers,
     showGasSwitchMarkers,
-    Object.hashAll(showTankPressure.entries),
-  );
+    showNdl,
+    showPpO2,
+    showPpN2,
+    showPpHe,
+    showMod,
+    showDensity,
+    showGf,
+    showSurfaceGf,
+    showMeanDepth,
+    showTts,
+    ...showTankPressure.entries,
+  ]);
 }
 
 /// Provider for managing dive profile legend toggle state.
@@ -174,6 +246,47 @@ class ProfileLegend extends _$ProfileLegend {
 
   void toggleGasSwitchMarkers() {
     state = state.copyWith(showGasSwitchMarkers: !state.showGasSwitchMarkers);
+  }
+
+  // Advanced decompression/gas toggle methods
+  void toggleNdl() {
+    state = state.copyWith(showNdl: !state.showNdl);
+  }
+
+  void togglePpO2() {
+    state = state.copyWith(showPpO2: !state.showPpO2);
+  }
+
+  void togglePpN2() {
+    state = state.copyWith(showPpN2: !state.showPpN2);
+  }
+
+  void togglePpHe() {
+    state = state.copyWith(showPpHe: !state.showPpHe);
+  }
+
+  void toggleMod() {
+    state = state.copyWith(showMod: !state.showMod);
+  }
+
+  void toggleDensity() {
+    state = state.copyWith(showDensity: !state.showDensity);
+  }
+
+  void toggleGf() {
+    state = state.copyWith(showGf: !state.showGf);
+  }
+
+  void toggleSurfaceGf() {
+    state = state.copyWith(showSurfaceGf: !state.showSurfaceGf);
+  }
+
+  void toggleMeanDepth() {
+    state = state.copyWith(showMeanDepth: !state.showMeanDepth);
+  }
+
+  void toggleTts() {
+    state = state.copyWith(showTts: !state.showTts);
   }
 
   /// Toggle visibility for a specific tank's pressure line

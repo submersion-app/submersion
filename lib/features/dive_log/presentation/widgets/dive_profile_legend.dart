@@ -22,6 +22,18 @@ class ProfileLegendConfig {
   final List<DiveTank>? tanks;
   final Map<String, List<TankPressurePoint>>? tankPressures;
 
+  // Advanced decompression/gas data availability
+  final bool hasNdlData;
+  final bool hasPpO2Data;
+  final bool hasPpN2Data;
+  final bool hasPpHeData;
+  final bool hasModData;
+  final bool hasDensityData;
+  final bool hasGfData;
+  final bool hasSurfaceGfData;
+  final bool hasMeanDepthData;
+  final bool hasTtsData;
+
   const ProfileLegendConfig({
     this.hasTemperatureData = false,
     this.hasPressureData = false,
@@ -36,6 +48,16 @@ class ProfileLegendConfig {
     this.hasMultiTankPressure = false,
     this.tanks,
     this.tankPressures,
+    this.hasNdlData = false,
+    this.hasPpO2Data = false,
+    this.hasPpN2Data = false,
+    this.hasPpHeData = false,
+    this.hasModData = false,
+    this.hasDensityData = false,
+    this.hasGfData = false,
+    this.hasSurfaceGfData = false,
+    this.hasMeanDepthData = false,
+    this.hasTtsData = false,
   });
 
   /// Whether any secondary toggles should be shown
@@ -47,7 +69,17 @@ class ProfileLegendConfig {
       hasMaxDepthMarker ||
       hasPressureMarkers ||
       hasGasSwitches ||
-      hasMultiTankPressure;
+      hasMultiTankPressure ||
+      hasNdlData ||
+      hasPpO2Data ||
+      hasPpN2Data ||
+      hasPpHeData ||
+      hasModData ||
+      hasDensityData ||
+      hasGfData ||
+      hasSurfaceGfData ||
+      hasMeanDepthData ||
+      hasTtsData;
 }
 
 /// Legend widget for the dive profile chart.
@@ -256,6 +288,18 @@ class _MoreOptionsButton extends StatelessWidget {
     if (config.hasPressureMarkers && legendState.showPressureMarkers) count++;
     if (config.hasGasSwitches && legendState.showGasSwitchMarkers) count++;
 
+    // Advanced deco/gas toggles
+    if (config.hasNdlData && legendState.showNdl) count++;
+    if (config.hasPpO2Data && legendState.showPpO2) count++;
+    if (config.hasPpN2Data && legendState.showPpN2) count++;
+    if (config.hasPpHeData && legendState.showPpHe) count++;
+    if (config.hasModData && legendState.showMod) count++;
+    if (config.hasDensityData && legendState.showDensity) count++;
+    if (config.hasGfData && legendState.showGf) count++;
+    if (config.hasSurfaceGfData && legendState.showSurfaceGf) count++;
+    if (config.hasMeanDepthData && legendState.showMeanDepth) count++;
+    if (config.hasTtsData && legendState.showTts) count++;
+
     // Count active tank pressure toggles
     if (config.hasMultiTankPressure && config.tankPressures != null) {
       for (final tankId in config.tankPressures!.keys) {
@@ -439,6 +483,153 @@ class _MoreOptionsButton extends StatelessWidget {
           ),
         );
       }
+    }
+
+    // Advanced decompression/gas section
+    final hasAdvancedOptions =
+        config.hasNdlData ||
+        config.hasPpO2Data ||
+        config.hasPpN2Data ||
+        config.hasPpHeData ||
+        config.hasModData ||
+        config.hasDensityData ||
+        config.hasGfData ||
+        config.hasSurfaceGfData ||
+        config.hasMeanDepthData ||
+        config.hasTtsData;
+
+    if (hasAdvancedOptions && items.isNotEmpty) {
+      items.add(const PopupMenuDivider());
+    }
+
+    // NDL
+    if (config.hasNdlData) {
+      items.add(
+        _buildToggleMenuItem(
+          context,
+          label: 'NDL',
+          color: Colors.green.shade600,
+          isEnabled: legendState.showNdl,
+          onTap: legendNotifier.toggleNdl,
+        ),
+      );
+    }
+
+    // ppO2
+    if (config.hasPpO2Data) {
+      items.add(
+        _buildToggleMenuItem(
+          context,
+          label: 'ppO2',
+          color: Colors.blue.shade600,
+          isEnabled: legendState.showPpO2,
+          onTap: legendNotifier.togglePpO2,
+        ),
+      );
+    }
+
+    // ppN2
+    if (config.hasPpN2Data) {
+      items.add(
+        _buildToggleMenuItem(
+          context,
+          label: 'ppN2',
+          color: Colors.indigo,
+          isEnabled: legendState.showPpN2,
+          onTap: legendNotifier.togglePpN2,
+        ),
+      );
+    }
+
+    // ppHe
+    if (config.hasPpHeData) {
+      items.add(
+        _buildToggleMenuItem(
+          context,
+          label: 'ppHe',
+          color: Colors.pink.shade300,
+          isEnabled: legendState.showPpHe,
+          onTap: legendNotifier.togglePpHe,
+        ),
+      );
+    }
+
+    // MOD
+    if (config.hasModData) {
+      items.add(
+        _buildToggleMenuItem(
+          context,
+          label: 'MOD',
+          color: Colors.deepOrange,
+          isEnabled: legendState.showMod,
+          onTap: legendNotifier.toggleMod,
+        ),
+      );
+    }
+
+    // Density
+    if (config.hasDensityData) {
+      items.add(
+        _buildToggleMenuItem(
+          context,
+          label: 'Gas Density',
+          color: Colors.brown,
+          isEnabled: legendState.showDensity,
+          onTap: legendNotifier.toggleDensity,
+        ),
+      );
+    }
+
+    // GF%
+    if (config.hasGfData) {
+      items.add(
+        _buildToggleMenuItem(
+          context,
+          label: 'GF%',
+          color: Colors.deepPurple,
+          isEnabled: legendState.showGf,
+          onTap: legendNotifier.toggleGf,
+        ),
+      );
+    }
+
+    // Surface GF
+    if (config.hasSurfaceGfData) {
+      items.add(
+        _buildToggleMenuItem(
+          context,
+          label: 'Surface GF',
+          color: Colors.purple.shade300,
+          isEnabled: legendState.showSurfaceGf,
+          onTap: legendNotifier.toggleSurfaceGf,
+        ),
+      );
+    }
+
+    // Mean Depth
+    if (config.hasMeanDepthData) {
+      items.add(
+        _buildToggleMenuItem(
+          context,
+          label: 'Mean Depth',
+          color: Colors.blueGrey,
+          isEnabled: legendState.showMeanDepth,
+          onTap: legendNotifier.toggleMeanDepth,
+        ),
+      );
+    }
+
+    // TTS
+    if (config.hasTtsData) {
+      items.add(
+        _buildToggleMenuItem(
+          context,
+          label: 'TTS',
+          color: Colors.orange.shade800,
+          isEnabled: legendState.showTts,
+          onTap: legendNotifier.toggleTts,
+        ),
+      );
     }
 
     return items;
