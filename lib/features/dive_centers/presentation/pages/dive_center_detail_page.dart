@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
@@ -72,6 +75,7 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (center.hasCoordinates) _MapSection(center: center),
               _HeaderSection(center: center),
               const Divider(height: 32),
               _ContactSection(center: center),
@@ -528,6 +532,172 @@ class _NotesSection extends StatelessWidget {
           const SizedBox(height: 8),
           Text(notes, style: Theme.of(context).textTheme.bodyMedium),
         ],
+      ),
+    );
+  }
+}
+
+class _MapSection extends StatelessWidget {
+  final DiveCenter center;
+
+  const _MapSection({required this.center});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final centerLocation = LatLng(center.latitude!, center.longitude!);
+
+    return Card(
+      margin: const EdgeInsets.all(16),
+      clipBehavior: Clip.antiAlias,
+      child: SizedBox(
+        height: 200,
+        child: Stack(
+          children: [
+            FlutterMap(
+              key: ValueKey('${center.latitude}_${center.longitude}'),
+              options: MapOptions(
+                initialCenter: centerLocation,
+                initialZoom: 14.0,
+                minZoom: 2.0,
+                maxZoom: 18.0,
+                interactionOptions: const InteractionOptions(
+                  flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+                ),
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.submersion.app',
+                  maxZoom: 19,
+                  tileProvider: TileCacheService.instance.isInitialized
+                      ? TileCacheService.instance.getTileProvider()
+                      : null,
+                ),
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: centerLocation,
+                      width: 50,
+                      height: 50,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: colorScheme.onPrimary,
+                            width: 2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Icon(
+                            Icons.store,
+                            size: 24,
+                            color: colorScheme.onPrimary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            Positioned(
+              right: 8,
+              top: 8,
+              child: Material(
+                color: colorScheme.surface.withValues(alpha: 0.9),
+                borderRadius: BorderRadius.circular(4),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(4),
+                  onTap: () => _showFullscreenMap(context),
+                  child: Padding(
+                    padding: const EdgeInsets.all(6),
+                    child: Icon(
+                      Icons.fullscreen,
+                      size: 20,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showFullscreenMap(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final centerLocation = LatLng(center.latitude!, center.longitude!);
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          appBar: AppBar(title: Text(center.name)),
+          body: FlutterMap(
+            options: MapOptions(
+              initialCenter: centerLocation,
+              initialZoom: 14.0,
+              minZoom: 2.0,
+              maxZoom: 18.0,
+              interactionOptions: const InteractionOptions(
+                flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+              ),
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'com.submersion.app',
+                maxZoom: 19,
+                tileProvider: TileCacheService.instance.isInitialized
+                    ? TileCacheService.instance.getTileProvider()
+                    : null,
+              ),
+              MarkerLayer(
+                markers: [
+                  Marker(
+                    point: centerLocation,
+                    width: 50,
+                    height: 50,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: colorScheme.onPrimary,
+                          width: 2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Icon(
+                          Icons.store,
+                          size: 24,
+                          color: colorScheme.onPrimary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
