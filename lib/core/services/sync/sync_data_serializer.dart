@@ -1273,6 +1273,7 @@ class SyncDataSerializer {
       'pressureUnit': 'bar',
       'volumeUnit': 'liters',
       'weightUnit': 'kilograms',
+      'altitudeUnit': 'meters',
       'sacUnit': 'litersPerMin',
       // Time/Date format settings
       'timeFormat': 'twelveHour',
@@ -1341,6 +1342,7 @@ class SyncDataSerializer {
     'pressureUnit': r.pressureUnit,
     'volumeUnit': r.volumeUnit,
     'weightUnit': r.weightUnit,
+    'altitudeUnit': r.altitudeUnit,
     'sacUnit': r.sacUnit,
     'timeFormat': r.timeFormat,
     'dateFormat': r.dateFormat,

@@ -51,6 +51,7 @@ class DiverSettingsRepository {
               pressureUnit: Value(s.pressureUnit.name),
               volumeUnit: Value(s.volumeUnit.name),
               weightUnit: Value(s.weightUnit.name),
+              altitudeUnit: Value(s.altitudeUnit.name),
               sacUnit: Value(s.sacUnit.name),
               timeFormat: Value(s.timeFormat.name),
               dateFormat: Value(s.dateFormat.name),
@@ -122,6 +123,7 @@ class DiverSettingsRepository {
           pressureUnit: Value(settings.pressureUnit.name),
           volumeUnit: Value(settings.volumeUnit.name),
           weightUnit: Value(settings.weightUnit.name),
+          altitudeUnit: Value(settings.altitudeUnit.name),
           sacUnit: Value(settings.sacUnit.name),
           timeFormat: Value(settings.timeFormat.name),
           dateFormat: Value(settings.dateFormat.name),
@@ -227,6 +229,7 @@ class DiverSettingsRepository {
       pressureUnit: _parsePressureUnit(row.pressureUnit),
       volumeUnit: _parseVolumeUnit(row.volumeUnit),
       weightUnit: _parseWeightUnit(row.weightUnit),
+      altitudeUnit: _parseAltitudeUnit(row.altitudeUnit),
       sacUnit: _parseSacUnit(row.sacUnit),
       timeFormat: _parseTimeFormat(row.timeFormat),
       dateFormat: _parseDateFormat(row.dateFormat),
@@ -286,6 +289,13 @@ class DiverSettingsRepository {
     return WeightUnit.values.firstWhere(
       (e) => e.name == value,
       orElse: () => WeightUnit.kilograms,
+    );
+  }
+
+  AltitudeUnit _parseAltitudeUnit(String value) {
+    return AltitudeUnit.values.firstWhere(
+      (e) => e.name == value,
+      orElse: () => AltitudeUnit.meters,
     );
   }
 

@@ -495,6 +495,7 @@ class DiverSettings extends Table {
   TextColumn get volumeUnit => text().withDefault(const Constant('liters'))();
   TextColumn get weightUnit =>
       text().withDefault(const Constant('kilograms'))();
+  TextColumn get altitudeUnit => text().withDefault(const Constant('meters'))();
   TextColumn get sacUnit =>
       text().withDefault(const Constant('litersPerMin'))();
   // Time/Date format settings
@@ -990,7 +991,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 24;
+  int get schemaVersion => 25;
 
   @override
   MigrationStrategy get migration {
@@ -1523,6 +1524,12 @@ class AppDatabase extends _$AppDatabase {
               WHERE location IS NOT NULL AND (city IS NULL OR city = '')
             ''');
           }
+        }
+        if (from < 25) {
+          // Add altitudeUnit column to diver_settings
+          await customStatement(
+            "ALTER TABLE diver_settings ADD COLUMN altitude_unit TEXT NOT NULL DEFAULT 'meters'",
+          );
         }
       },
       beforeOpen: (details) async {
