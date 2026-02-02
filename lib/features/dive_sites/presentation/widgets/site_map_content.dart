@@ -45,9 +45,71 @@ class SiteMapContent extends ConsumerStatefulWidget {
 class _SiteMapContentState extends ConsumerState<SiteMapContent>
     with TickerProviderStateMixin {
   final MapController _mapController = MapController();
+  bool _mapReady = false;
 
   static const _defaultCenter = LatLng(20.0, -157.0);
   static const _defaultZoom = 3.0;
+
+  @override
+  void didUpdateWidget(SiteMapContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // When selectedId changes from an external source (e.g., list selection),
+    // zoom the map to the selected site's location
+    if (widget.selectedId != null &&
+        widget.selectedId != oldWidget.selectedId &&
+        _mapReady) {
+      _zoomToSelectedSite(widget.selectedId!);
+    }
+  }
+
+  /// Animate the map to center on the selected site's location
+  void _zoomToSelectedSite(String siteId) {
+    final sitesAsync = ref.read(sitesWithCountsProvider);
+    sitesAsync.whenData((sitesWithCounts) {
+      final siteWithCount = sitesWithCounts
+          .where((s) => s.site.id == siteId)
+          .firstOrNull;
+      if (siteWithCount?.site.hasCoordinates == true) {
+        final site = siteWithCount!.site;
+        _animateToLocation(
+          LatLng(site.location!.latitude, site.location!.longitude),
+        );
+      }
+    });
+  }
+
+  /// Smoothly animate the map to a specific location
+  Future<void> _animateToLocation(LatLng target) async {
+    final startCamera = _mapController.camera;
+    // Use a reasonable zoom level for viewing a single site
+    final targetZoom = startCamera.zoom < 10 ? 12.0 : startCamera.zoom;
+
+    final animationController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+
+    final animation = CurvedAnimation(
+      parent: animationController,
+      curve: Curves.easeInOut,
+    );
+
+    animation.addListener(() {
+      final t = animation.value;
+      final lat =
+          startCamera.center.latitude +
+          (target.latitude - startCamera.center.latitude) * t;
+      final lng =
+          startCamera.center.longitude +
+          (target.longitude - startCamera.center.longitude) * t;
+      final zoom = startCamera.zoom + (targetZoom - startCamera.zoom) * t;
+
+      _mapController.move(LatLng(lat, lng), zoom);
+    });
+
+    await animationController.forward();
+    animationController.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -108,11 +170,26 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
     }).toList();
     final colorScheme = Theme.of(context).colorScheme;
 
-    // Calculate initial bounds if we have sites
+    // Calculate initial center and zoom
+    // If there's a selected site with location, start centered on it
     LatLng center = _defaultCenter;
     double zoom = _defaultZoom;
 
-    if (sitesWithLocation.isNotEmpty) {
+    if (widget.selectedId != null) {
+      // Find the selected site's location
+      final selectedSite = sitesWithLocation
+          .where((s) => s.site.id == widget.selectedId)
+          .firstOrNull
+          ?.site;
+      if (selectedSite?.hasCoordinates == true) {
+        center = LatLng(
+          selectedSite!.location!.latitude,
+          selectedSite.location!.longitude,
+        );
+        zoom = 12.0; // Reasonable zoom for viewing a single site
+      }
+    } else if (sitesWithLocation.isNotEmpty) {
+      // No selection - fit all sites
       final bounds = _calculateBounds(
         sitesWithLocation.map((s) => s.site).toList(),
       );
@@ -120,7 +197,6 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
         (bounds.north + bounds.south) / 2,
         (bounds.east + bounds.west) / 2,
       );
-      // Start at a reasonable zoom
       zoom = 4.0;
     }
 
@@ -133,6 +209,9 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
             initialZoom: zoom,
             minZoom: 2.0,
             maxZoom: 18.0,
+            onMapReady: () {
+              _mapReady = true;
+            },
             onTap: (_, _) {
               widget.onItemSelected(null);
             },

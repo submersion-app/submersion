@@ -178,12 +178,21 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
     final currentPath = state.uri.path;
 
     if (ResponsiveBreakpoints.isMasterDetail(context)) {
-      // Desktop: Update URL with query param
+      // Desktop: Update URL with query param, preserving map view state
       if (itemId != null) {
-        router.go('$currentPath?selected=$itemId');
+        if (_isMapView) {
+          // Preserve map view when selecting from map
+          router.go('$currentPath?selected=$itemId&view=map');
+        } else {
+          router.go('$currentPath?selected=$itemId');
+        }
       } else {
-        // Clear selection
-        router.go(currentPath);
+        // Clear selection, but preserve map view state
+        if (_isMapView) {
+          router.go('$currentPath?view=map');
+        } else {
+          router.go(currentPath);
+        }
       }
     } else {
       // Mobile: Navigate to detail page

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/providers/provider.dart';
@@ -55,10 +54,70 @@ class DiveMapContent extends ConsumerStatefulWidget {
 class _DiveMapContentState extends ConsumerState<DiveMapContent>
     with TickerProviderStateMixin {
   final MapController _mapController = MapController();
+  bool _mapReady = false;
 
   // Default to a world view
   static const _defaultCenter = LatLng(20.0, 0.0);
   static const _defaultZoom = 2.0;
+
+  @override
+  void didUpdateWidget(DiveMapContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // When selectedId changes from an external source (e.g., list selection),
+    // zoom the map to the selected dive's location
+    if (widget.selectedId != null &&
+        widget.selectedId != oldWidget.selectedId &&
+        _mapReady) {
+      _zoomToSelectedDive(widget.selectedId!);
+    }
+  }
+
+  /// Animate the map to center on the selected dive's site location
+  void _zoomToSelectedDive(String diveId) {
+    final divesAsync = ref.read(sortedFilteredDivesProvider);
+    divesAsync.whenData((dives) {
+      final dive = dives.where((d) => d.id == diveId).firstOrNull;
+      if (dive?.site?.hasCoordinates == true) {
+        final site = dive!.site!;
+        _animateToLocation(
+          LatLng(site.location!.latitude, site.location!.longitude),
+        );
+      }
+    });
+  }
+
+  /// Smoothly animate the map to a specific location
+  Future<void> _animateToLocation(LatLng target) async {
+    final startCamera = _mapController.camera;
+    // Use a reasonable zoom level for viewing a single site
+    final targetZoom = startCamera.zoom < 10 ? 12.0 : startCamera.zoom;
+
+    final animationController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+
+    final animation = CurvedAnimation(
+      parent: animationController,
+      curve: Curves.easeInOut,
+    );
+
+    animation.addListener(() {
+      final t = animation.value;
+      final lat =
+          startCamera.center.latitude +
+          (target.latitude - startCamera.center.latitude) * t;
+      final lng =
+          startCamera.center.longitude +
+          (target.longitude - startCamera.center.longitude) * t;
+      final zoom = startCamera.zoom + (targetZoom - startCamera.zoom) * t;
+
+      _mapController.move(LatLng(lat, lng), zoom);
+    });
+
+    await animationController.forward();
+    animationController.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -154,11 +213,29 @@ class _DiveMapContentState extends ConsumerState<DiveMapContent>
     }).toList();
     final colorScheme = Theme.of(context).colorScheme;
 
-    // Calculate initial bounds if we have sites
+    // Get selected dive's site ID for highlighting
+    final selectedSiteId = _getSelectedSiteId(widget.selectedId);
+
+    // Calculate initial center and zoom
+    // If there's a selected dive with location, start centered on it
     LatLng center = _defaultCenter;
     double zoom = _defaultZoom;
 
-    if (sitesWithDives.isNotEmpty) {
+    if (widget.selectedId != null && selectedSiteId != null) {
+      // Find the selected site's location
+      final selectedSite = sitesWithDives
+          .where((s) => s.site.id == selectedSiteId)
+          .firstOrNull
+          ?.site;
+      if (selectedSite?.hasCoordinates == true) {
+        center = LatLng(
+          selectedSite!.location!.latitude,
+          selectedSite.location!.longitude,
+        );
+        zoom = 12.0; // Reasonable zoom for viewing a single site
+      }
+    } else if (sitesWithDives.isNotEmpty) {
+      // No selection - fit all sites
       final bounds = _calculateBounds(
         sitesWithDives.map((s) => s.site).toList(),
       );
@@ -166,12 +243,8 @@ class _DiveMapContentState extends ConsumerState<DiveMapContent>
         (bounds.north + bounds.south) / 2,
         (bounds.east + bounds.west) / 2,
       );
-      // Start at a reasonable zoom
       zoom = 4.0;
     }
-
-    // Get selected dive's site ID for highlighting
-    final selectedSiteId = _getSelectedSiteId(widget.selectedId);
 
     return Stack(
       children: [
@@ -182,6 +255,9 @@ class _DiveMapContentState extends ConsumerState<DiveMapContent>
             initialZoom: zoom,
             minZoom: 2.0,
             maxZoom: 18.0,
+            onMapReady: () {
+              _mapReady = true;
+            },
             onTap: (_, _) {
               widget.onItemSelected(null);
             },
@@ -300,31 +376,39 @@ class _DiveMapContentState extends ConsumerState<DiveMapContent>
     final appSettings = ref.read(settingsProvider);
     final units = UnitFormatter(appSettings);
 
-    // Build title: Dive #N or date
-    final diveNumber = dive.diveNumber;
-    final title = diveNumber != null
-        ? 'Dive #$diveNumber'
-        : DateFormat.yMMMd().format(dive.dateTime);
+    // Title: Site name (matching DiveListTile)
+    final title = dive.site?.name ?? 'Unknown Site';
 
-    // Build subtitle with site name, depth, duration
+    // Build subtitle with date, depth, duration, water temp (matching DiveListTile)
     final parts = <String>[];
-    if (dive.site != null) {
-      parts.add(dive.site!.name);
-    }
+    parts.add(units.formatDateTime(dive.dateTime));
     if (dive.maxDepth != null) {
       parts.add(units.formatDepth(dive.maxDepth!));
     }
     if (dive.duration != null) {
       parts.add('${dive.duration!.inMinutes} min');
     }
-    final subtitle = parts.isNotEmpty ? parts.join(' \u2022 ') : null;
+    if (dive.waterTemp != null) {
+      parts.add(units.formatTemperature(dive.waterTemp));
+    }
+    final subtitle = parts.join(' \u2022 ');
+
+    // Dive number for the leading badge (matching DiveListTile)
+    final diveNumber = dive.diveNumber ?? 0;
 
     return MapInfoCard(
       title: title,
       subtitle: subtitle,
       leading: CircleAvatar(
         backgroundColor: colorScheme.primaryContainer,
-        child: Icon(Icons.scuba_diving, color: colorScheme.primary),
+        child: Text(
+          '#$diveNumber',
+          style: TextStyle(
+            color: colorScheme.onPrimaryContainer,
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
+          ),
+        ),
       ),
       onDetailsTap: widget.onDetailsTap != null
           ? () => widget.onDetailsTap!(dive.id)

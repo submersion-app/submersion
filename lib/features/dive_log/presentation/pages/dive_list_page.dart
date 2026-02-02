@@ -106,7 +106,12 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
         mapBuilder: (context, selectedId, onItemSelected) => DiveMapContent(
           selectedId: selectedId,
           onItemSelected: onItemSelected,
-          onDetailsTap: (diveId) => context.push('/dives/$diveId'),
+          onDetailsTap: (diveId) {
+            // Exit map view and show detail pane for the selected dive
+            final state = GoRouterState.of(context);
+            final currentPath = state.uri.path;
+            context.go('$currentPath?selected=$diveId');
+          },
         ),
         editBuilder: (context, diveId, onSaved, onCancel) => DiveEditPage(
           diveId: diveId,

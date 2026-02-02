@@ -86,7 +86,12 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
         mapBuilder: (context, selectedId, onItemSelected) => SiteMapContent(
           selectedId: selectedId,
           onItemSelected: onItemSelected,
-          onDetailsTap: (siteId) => context.push('/sites/$siteId'),
+          onDetailsTap: (siteId) {
+            // Exit map view and show detail pane for the selected site
+            final state = GoRouterState.of(context);
+            final currentPath = state.uri.path;
+            context.go('$currentPath?selected=$siteId');
+          },
         ),
         editBuilder: (context, id, onSaved, onCancel) => SiteEditPage(
           siteId: id,
