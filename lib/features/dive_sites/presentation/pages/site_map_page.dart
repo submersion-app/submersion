@@ -147,11 +147,35 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
     );
   }
 
-  void _animateToLocation(double lat, double lng) {
-    _mapController.move(
-      LatLng(lat, lng),
-      _mapController.camera.zoom.clamp(10.0, 14.0),
+  Future<void> _animateToLocation(double lat, double lng) async {
+    final target = LatLng(lat, lng);
+    final startCamera = _mapController.camera;
+    final targetZoom = startCamera.zoom < 10 ? 12.0 : startCamera.zoom;
+
+    final animationController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
     );
+
+    final animation = CurvedAnimation(
+      parent: animationController,
+      curve: Curves.easeInOut,
+    );
+
+    animation.addListener(() {
+      final t = animation.value;
+      final animLat =
+          startCamera.center.latitude +
+          (target.latitude - startCamera.center.latitude) * t;
+      final animLng =
+          startCamera.center.longitude +
+          (target.longitude - startCamera.center.longitude) * t;
+      final zoom = startCamera.zoom + (targetZoom - startCamera.zoom) * t;
+      _mapController.move(LatLng(animLat, animLng), zoom);
+    });
+
+    await animationController.forward();
+    animationController.dispose();
   }
 
   Widget _buildMap(
@@ -396,10 +420,8 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
       ref.read(mapListSelectionProvider('sites').notifier).deselect();
     } else {
       ref.read(mapListSelectionProvider('sites').notifier).select(site.id);
-      _mapController.move(
-        LatLng(site.location!.latitude, site.location!.longitude),
-        _mapController.camera.zoom,
-      );
+      // Smooth animate to the tapped marker location
+      _animateToLocation(site.location!.latitude, site.location!.longitude);
     }
   }
 

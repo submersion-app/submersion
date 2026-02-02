@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_sites/data/repositories/site_repository
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
+import 'package:submersion/features/maps/presentation/widgets/heat_map_controls.dart';
 import 'package:submersion/shared/widgets/map_list_layout/map_info_card.dart';
 
 /// Map content widget for displaying dive sites on a map.
@@ -137,6 +138,29 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
     return Stack(
       children: [
         _buildMap(context, sitesWithCounts),
+        // Heat map toggle and fit all sites controls
+        Positioned(
+          top: 8,
+          right: 8,
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const HeatMapToggleButton(),
+                  IconButton(
+                    icon: const Icon(Icons.my_location, size: 20),
+                    tooltip: 'Fit All Sites',
+                    onPressed: () => _fitAllSites(
+                      sitesWithCounts.map((s) => s.site).toList(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
         if (selectedSite != null)
           Positioned(
             left: 16,
@@ -428,9 +452,9 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
       widget.onItemSelected(null);
     } else {
       widget.onItemSelected(site.id);
-      _mapController.move(
+      // Smooth scroll to the tapped marker
+      _animateToLocation(
         LatLng(site.location!.latitude, site.location!.longitude),
-        _mapController.camera.zoom,
       );
     }
   }
@@ -469,6 +493,32 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
 
     await animationController.forward();
     animationController.dispose();
+  }
+
+  void _fitAllSites(List<DiveSite> sites) {
+    // Filter sites with valid coordinates
+    final sitesWithLocation = sites.where((s) {
+      if (!s.hasCoordinates) return false;
+      final lat = s.location!.latitude;
+      final lng = s.location!.longitude;
+      return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+    }).toList();
+
+    if (sitesWithLocation.isEmpty) return;
+
+    if (sitesWithLocation.length == 1) {
+      final site = sitesWithLocation.first;
+      _mapController.move(
+        LatLng(site.location!.latitude, site.location!.longitude),
+        12.0,
+      );
+      return;
+    }
+
+    final bounds = _calculateBounds(sitesWithLocation);
+    _mapController.fitCamera(
+      CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(50)),
+    );
   }
 
   LatLngBounds _calculateBounds(List<DiveSite> sites) {

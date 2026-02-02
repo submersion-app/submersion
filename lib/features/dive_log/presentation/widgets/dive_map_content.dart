@@ -246,6 +246,14 @@ class _DiveMapContentState extends ConsumerState<DiveMapContent>
       zoom = 4.0;
     }
 
+    // Build a lookup map from marker location to dive count for cluster summing
+    final diveCountByLocation = <LatLng, int>{};
+    for (final siteWithCount in sitesWithDives) {
+      final site = siteWithCount.site;
+      final point = LatLng(site.location!.latitude, site.location!.longitude);
+      diveCountByLocation[point] = siteWithCount.diveCount;
+    }
+
     return Stack(
       children: [
         FlutterMap(
@@ -300,7 +308,13 @@ class _DiveMapContentState extends ConsumerState<DiveMapContent>
                   );
                 }).toList(),
                 builder: (context, markers) {
-                  return _buildClusterMarker(context, markers.length);
+                  // Sum up dive counts for all markers in this cluster
+                  final totalDives = markers.fold<int>(
+                    0,
+                    (sum, marker) =>
+                        sum + (diveCountByLocation[marker.point] ?? 0),
+                  );
+                  return _buildClusterMarker(context, totalDives);
                 },
                 zoomToBoundsOnClick: false,
                 onClusterTap: (node) {
@@ -522,9 +536,9 @@ class _DiveMapContentState extends ConsumerState<DiveMapContent>
       }
     });
 
-    _mapController.move(
+    // Smooth scroll to the tapped marker
+    _animateToLocation(
       LatLng(site.location!.latitude, site.location!.longitude),
-      _mapController.camera.zoom,
     );
   }
 

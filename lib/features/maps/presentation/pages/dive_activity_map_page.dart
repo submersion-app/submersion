@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/providers/provider.dart';
@@ -138,41 +137,73 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
     final appSettings = ref.read(settingsProvider);
     final units = UnitFormatter(appSettings);
 
-    // Build title: Dive #N or date
-    final diveNumber = dive.diveNumber;
-    final title = diveNumber != null
-        ? 'Dive #$diveNumber'
-        : DateFormat.yMMMd().format(dive.dateTime);
+    // Title: Site name (matching DiveListTile)
+    final title = dive.site?.name ?? 'Unknown Site';
 
-    // Build subtitle with site name, depth, duration
+    // Build subtitle with date, depth, duration, water temp (matching DiveListTile)
     final parts = <String>[];
-    if (dive.site != null) {
-      parts.add(dive.site!.name);
-    }
+    parts.add(units.formatDateTime(dive.dateTime));
     if (dive.maxDepth != null) {
       parts.add(units.formatDepth(dive.maxDepth!));
     }
     if (dive.duration != null) {
       parts.add('${dive.duration!.inMinutes} min');
     }
-    final subtitle = parts.isNotEmpty ? parts.join(' \u2022 ') : null;
+    if (dive.waterTemp != null) {
+      parts.add(units.formatTemperature(dive.waterTemp));
+    }
+    final subtitle = parts.join(' \u2022 ');
+
+    // Dive number for the leading badge (matching DiveListTile)
+    final diveNumber = dive.diveNumber ?? 0;
 
     return MapInfoCard(
       title: title,
       subtitle: subtitle,
       leading: CircleAvatar(
         backgroundColor: colorScheme.primaryContainer,
-        child: Icon(Icons.scuba_diving, color: colorScheme.primary),
+        child: Text(
+          '#$diveNumber',
+          style: TextStyle(
+            color: colorScheme.onPrimaryContainer,
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
+          ),
+        ),
       ),
       onDetailsTap: () => context.push('/dives/${dive.id}'),
     );
   }
 
-  void _animateToLocation(double lat, double lng) {
-    _mapController.move(
-      LatLng(lat, lng),
-      _mapController.camera.zoom.clamp(10.0, 14.0),
+  Future<void> _animateToLocation(double lat, double lng) async {
+    final target = LatLng(lat, lng);
+    final startCamera = _mapController.camera;
+    final targetZoom = startCamera.zoom < 10 ? 12.0 : startCamera.zoom;
+
+    final animationController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
     );
+
+    final animation = CurvedAnimation(
+      parent: animationController,
+      curve: Curves.easeInOut,
+    );
+
+    animation.addListener(() {
+      final t = animation.value;
+      final animLat =
+          startCamera.center.latitude +
+          (target.latitude - startCamera.center.latitude) * t;
+      final animLng =
+          startCamera.center.longitude +
+          (target.longitude - startCamera.center.longitude) * t;
+      final zoom = startCamera.zoom + (targetZoom - startCamera.zoom) * t;
+      _mapController.move(LatLng(animLat, animLng), zoom);
+    });
+
+    await animationController.forward();
+    animationController.dispose();
   }
 
   Widget _buildMap(
@@ -211,6 +242,14 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
 
     // Get selected dive's site ID for highlighting
     final selectedSiteId = _getSelectedSiteId(selectionState.selectedId);
+
+    // Build a lookup map from marker location to dive count for cluster summing
+    final diveCountByLocation = <LatLng, int>{};
+    for (final siteWithCount in sitesWithDives) {
+      final site = siteWithCount.site;
+      final point = LatLng(site.location!.latitude, site.location!.longitude);
+      diveCountByLocation[point] = siteWithCount.diveCount;
+    }
 
     return Stack(
       children: [
@@ -263,7 +302,13 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
                   );
                 }).toList(),
                 builder: (context, markers) {
-                  return _buildClusterMarker(context, markers.length);
+                  // Sum up dive counts for all markers in this cluster
+                  final totalDives = markers.fold<int>(
+                    0,
+                    (sum, marker) =>
+                        sum + (diveCountByLocation[marker.point] ?? 0),
+                  );
+                  return _buildClusterMarker(context, totalDives);
                 },
                 zoomToBoundsOnClick: false,
                 onClusterTap: (node) {
@@ -445,10 +490,8 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
       }
     });
 
-    _mapController.move(
-      LatLng(site.location!.latitude, site.location!.longitude),
-      _mapController.camera.zoom,
-    );
+    // Smooth animate to the tapped marker location
+    _animateToLocation(site.location!.latitude, site.location!.longitude);
   }
 
   Future<void> _animateToCluster(LatLngBounds bounds) async {
