@@ -541,6 +541,13 @@ class DiverSettings extends Table {
       boolean().withDefault(const Constant(true))();
   BoolColumn get showPressureThresholdMarkers =>
       boolean().withDefault(const Constant(false))();
+  // Notification settings (v26)
+  BoolColumn get notificationsEnabled =>
+      boolean().withDefault(const Constant(true))();
+  TextColumn get serviceReminderDays =>
+      text().withDefault(const Constant('[7, 14, 30]'))(); // JSON array
+  TextColumn get reminderTime =>
+      text().withDefault(const Constant('09:00'))(); // HH:mm format
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -991,7 +998,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 25;
+  int get schemaVersion => 26;
 
   @override
   MigrationStrategy get migration {
@@ -1529,6 +1536,18 @@ class AppDatabase extends _$AppDatabase {
           // Add altitudeUnit column to diver_settings
           await customStatement(
             "ALTER TABLE diver_settings ADD COLUMN altitude_unit TEXT NOT NULL DEFAULT 'meters'",
+          );
+        }
+        if (from < 26) {
+          // Notification settings for service reminders
+          await customStatement(
+            'ALTER TABLE diver_settings ADD COLUMN notifications_enabled INTEGER NOT NULL DEFAULT 1',
+          );
+          await customStatement(
+            "ALTER TABLE diver_settings ADD COLUMN service_reminder_days TEXT NOT NULL DEFAULT '[7, 14, 30]'",
+          );
+          await customStatement(
+            "ALTER TABLE diver_settings ADD COLUMN reminder_time TEXT NOT NULL DEFAULT '09:00'",
           );
         }
       },
