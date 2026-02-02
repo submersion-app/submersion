@@ -896,12 +896,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                         '$minutes:${seconds.toString().padLeft(2, '0')}';
                     addRow('Time', timeValue, onSurface.withValues(alpha: 0.5));
 
-                    // Depth (always shown)
-                    addRow(
-                      'Depth',
-                      units.formatDepth(point.depth),
-                      colorScheme.primary,
-                    );
+                    // Depth (always shown) - use same color as depth line
+                    final depthColor =
+                        (widget.tanks != null && widget.tanks!.isNotEmpty)
+                        ? GasColors.forGasMix(widget.tanks!.first.gasMix)
+                        : colorScheme.primary;
+                    addRow('Depth', units.formatDepth(point.depth), depthColor);
 
                     // Temperature (if enabled - always show row)
                     if (_showTemperature) {
@@ -970,6 +970,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     }
 
                     // Ascent rate (if enabled - always show row with fixed format)
+                    // Uses distinct colors that don't conflict with gas colors:
+                    // - Descent: cyan (distinct from air blue)
+                    // - Safe ascent: lime green (distinct from nitrox green)
+                    // - Warning/danger: orange/red (already distinct)
                     if (_showAscentRateColors) {
                       Color rateColor = Colors.grey;
                       String arrow = '—';
@@ -982,10 +986,15 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                         convertedRate = units.convertDepth(rate.abs());
                         if (rate > 0.5) {
                           arrow = '↑';
-                          rateColor = _getAscentRateColor(ascentRate.category);
+                          // Use lime for safe ascent (distinct from nitrox green)
+                          rateColor =
+                              ascentRate.category == AscentRateCategory.safe
+                              ? Colors.lime
+                              : _getAscentRateColor(ascentRate.category);
                         } else if (rate < -0.5) {
                           arrow = '↓';
-                          rateColor = Colors.blue;
+                          // Use cyan for descent (distinct from air blue)
+                          rateColor = Colors.cyan;
                         }
                       }
                       final rateNum = convertedRate

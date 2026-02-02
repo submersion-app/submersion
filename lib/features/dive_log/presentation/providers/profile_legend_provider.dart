@@ -128,6 +128,9 @@ class ProfileLegendState {
 /// ```
 @riverpod
 class ProfileLegend extends _$ProfileLegend {
+  // Track if pressure default has been initialized for this session
+  bool _pressureInitialized = false;
+
   @override
   ProfileLegendState build() => const ProfileLegendState();
 
@@ -206,5 +209,13 @@ class ProfileLegend extends _$ProfileLegend {
   /// Reset all toggles to their default values
   void reset() {
     state = const ProfileLegendState();
+  }
+
+  /// Enable pressure display by default when pressure data is available.
+  /// Only runs once per session to avoid overriding user's explicit toggle.
+  void enablePressureIfAvailable() {
+    if (_pressureInitialized) return;
+    _pressureInitialized = true;
+    state = state.copyWith(showPressure: true);
   }
 }

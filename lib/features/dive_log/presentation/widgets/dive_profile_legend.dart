@@ -80,6 +80,13 @@ class DiveProfileLegend extends ConsumerWidget {
     final legendNotifier = ref.read(profileLegendProvider.notifier);
     final colorScheme = Theme.of(context).colorScheme;
 
+    // Initialize pressure visibility if pressure data is available
+    if (config.hasPressureData) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        legendNotifier.enablePressureIfAvailable();
+      });
+    }
+
     // Initialize tank pressures if needed
     if (config.hasMultiTankPressure && config.tankPressures != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
