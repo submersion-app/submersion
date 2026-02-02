@@ -828,274 +828,133 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     // Build tooltip with all enabled metrics
                     final lines = <TextSpan>[];
 
+                    // Text style constants for consistent column layout
+                    final onSurface = colorScheme.onInverseSurface;
+                    final rowStyle = TextStyle(
+                      fontFamily: 'RobotoMono',
+                      fontSize: 14,
+                      color: onSurface,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    );
+
+                    // Helper to add a formatted row with consistent width
+                    // Uses single TextSpan for entire row to ensure alignment
+                    void addRow(String label, String value, Color bulletColor) {
+                      lines.add(
+                        TextSpan(
+                          text: '● ',
+                          style: TextStyle(color: bulletColor, fontSize: 12),
+                        ),
+                      );
+                      // Format: "Label   Value" - label 8 chars, total row 24 chars
+                      final formattedRow =
+                          '${label.padRight(8)}${value.padRight(16)}\n';
+                      lines.add(TextSpan(text: formattedRow, style: rowStyle));
+                    }
+
                     // Time (always shown)
-                    lines.add(
-                      TextSpan(
-                        text:
-                            '$minutes:${seconds.toString().padLeft(2, '0')}\n',
-                        style: TextStyle(
-                          color: colorScheme.onInverseSurface.withValues(
-                            alpha: 0.7,
-                          ),
-                          fontSize: 11,
-                        ),
-                      ),
+                    final timeValue =
+                        '$minutes:${seconds.toString().padLeft(2, '0')}';
+                    addRow('Time', timeValue, onSurface.withValues(alpha: 0.5));
+
+                    // Depth (always shown)
+                    addRow(
+                      'Depth',
+                      units.formatDepth(point.depth),
+                      colorScheme.primary,
                     );
 
-                    // Depth (always shown) with color marker
-                    final depthDisplay = units.formatDepth(point.depth);
-                    lines.add(
-                      TextSpan(
-                        text: '● ',
-                        style: TextStyle(
-                          color: colorScheme.primary,
-                          fontSize: 10,
-                        ),
-                      ),
-                    );
-                    lines.add(
-                      TextSpan(
-                        text: 'Depth: ',
-                        style: TextStyle(
-                          color: colorScheme.onInverseSurface.withValues(
-                            alpha: 0.8,
-                          ),
-                        ),
-                      ),
-                    );
-                    lines.add(
-                      TextSpan(
-                        text: '$depthDisplay\n',
-                        style: TextStyle(
-                          color: colorScheme.onInverseSurface,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    );
-
-                    // Temperature (if enabled and available)
-                    if (_showTemperature && point.temperature != null) {
-                      final tempDisplay = units.formatTemperature(
-                        point.temperature,
-                      );
-                      lines.add(
-                        TextSpan(
-                          text: '● ',
-                          style: TextStyle(
-                            color: colorScheme.tertiary,
-                            fontSize: 10,
-                          ),
-                        ),
-                      );
-                      lines.add(
-                        TextSpan(
-                          text: 'Temp: ',
-                          style: TextStyle(
-                            color: colorScheme.onInverseSurface.withValues(
-                              alpha: 0.8,
-                            ),
-                          ),
-                        ),
-                      );
-                      lines.add(
-                        TextSpan(
-                          text: '$tempDisplay\n',
-                          style: TextStyle(
-                            color: colorScheme.onInverseSurface,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      );
+                    // Temperature (if enabled - always show row)
+                    if (_showTemperature) {
+                      final tempValue = point.temperature != null
+                          ? units.formatTemperature(point.temperature)
+                          : '—';
+                      addRow('Temp', tempValue, colorScheme.tertiary);
                     }
 
-                    // Pressure (if enabled and available)
-                    if (_showPressure && point.pressure != null) {
-                      lines.add(
-                        const TextSpan(
-                          text: '● ',
-                          style: TextStyle(color: Colors.orange, fontSize: 10),
-                        ),
-                      );
-                      lines.add(
-                        TextSpan(
-                          text: 'Press: ',
-                          style: TextStyle(
-                            color: colorScheme.onInverseSurface.withValues(
-                              alpha: 0.8,
-                            ),
-                          ),
-                        ),
-                      );
-                      lines.add(
-                        TextSpan(
-                          text: '${units.formatPressure(point.pressure)}\n',
-                          style: TextStyle(
-                            color: colorScheme.onInverseSurface,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      );
+                    // Pressure (if enabled - always show row)
+                    if (_showPressure) {
+                      final pressValue = point.pressure != null
+                          ? units.formatPressure(point.pressure)
+                          : '—';
+                      addRow('Press', pressValue, Colors.orange);
                     }
 
-                    // Heart rate (if enabled and available)
-                    if (_showHeartRate && point.heartRate != null) {
-                      lines.add(
-                        const TextSpan(
-                          text: '● ',
-                          style: TextStyle(color: Colors.red, fontSize: 10),
-                        ),
-                      );
-                      lines.add(
-                        TextSpan(
-                          text: 'HR: ',
-                          style: TextStyle(
-                            color: colorScheme.onInverseSurface.withValues(
-                              alpha: 0.8,
-                            ),
-                          ),
-                        ),
-                      );
-                      lines.add(
-                        TextSpan(
-                          text: '${point.heartRate!} bpm\n',
-                          style: TextStyle(
-                            color: colorScheme.onInverseSurface,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      );
+                    // Heart rate (if enabled - always show row)
+                    if (_showHeartRate) {
+                      final hrValue = point.heartRate != null
+                          ? '${point.heartRate} bpm'
+                          : '—';
+                      addRow('HR', hrValue, Colors.red);
                     }
 
-                    // SAC (if enabled and available)
-                    if (_showSac &&
-                        widget.sacCurve != null &&
-                        spot.spotIndex < widget.sacCurve!.length) {
-                      final sacBarPerMin = widget.sacCurve![spot.spotIndex];
-                      if (sacBarPerMin > 0) {
-                        // Apply normalization to align with tank-based SAC
-                        final normalizedSac =
-                            sacBarPerMin * widget.sacNormalizationFactor;
-                        final sacUnit = ref.read(sacUnitProvider);
-                        String sacValue;
-                        if (sacUnit == SacUnit.litersPerMin &&
-                            widget.tankVolume != null) {
-                          // Convert to L/min
-                          final sacLPerMin = normalizedSac * widget.tankVolume!;
-                          sacValue =
-                              '${units.convertVolume(sacLPerMin).toStringAsFixed(1)} ${units.volumeSymbol}/min\n';
-                        } else {
-                          // Use pressure units
-                          sacValue =
-                              '${units.convertPressure(normalizedSac).toStringAsFixed(1)} ${units.pressureSymbol}/min\n';
+                    // SAC (if enabled - always show row)
+                    if (_showSac) {
+                      String sacValue = '—';
+                      if (widget.sacCurve != null &&
+                          spot.spotIndex < widget.sacCurve!.length) {
+                        final sacBarPerMin = widget.sacCurve![spot.spotIndex];
+                        if (sacBarPerMin > 0) {
+                          final normalizedSac =
+                              sacBarPerMin * widget.sacNormalizationFactor;
+                          final sacUnit = ref.read(sacUnitProvider);
+                          if (sacUnit == SacUnit.litersPerMin &&
+                              widget.tankVolume != null) {
+                            final sacLPerMin =
+                                normalizedSac * widget.tankVolume!;
+                            sacValue =
+                                '${units.convertVolume(sacLPerMin).toStringAsFixed(1)} ${units.volumeSymbol}/min';
+                          } else {
+                            sacValue =
+                                '${units.convertPressure(normalizedSac).toStringAsFixed(1)} ${units.pressureSymbol}/min';
+                          }
                         }
-                        lines.add(
-                          const TextSpan(
-                            text: '● ',
-                            style: TextStyle(color: Colors.teal, fontSize: 10),
-                          ),
-                        );
-                        lines.add(
-                          TextSpan(
-                            text: 'SAC: ',
-                            style: TextStyle(
-                              color: colorScheme.onInverseSurface.withValues(
-                                alpha: 0.8,
-                              ),
-                            ),
-                          ),
-                        );
-                        lines.add(
-                          TextSpan(
-                            text: sacValue,
-                            style: TextStyle(
-                              color: colorScheme.onInverseSurface,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        );
                       }
+                      addRow('SAC', sacValue, Colors.teal);
                     }
 
-                    // Ceiling (if enabled and available)
-                    if (_showCeiling &&
-                        widget.ceilingCurve != null &&
-                        spot.spotIndex < widget.ceilingCurve!.length) {
-                      final ceiling = widget.ceilingCurve![spot.spotIndex];
-                      if (ceiling > 0) {
-                        final ceilingDisplay = units.formatDepth(ceiling);
-                        lines.add(
-                          TextSpan(
-                            text: '● ',
-                            style: TextStyle(
-                              color: Colors.red.withValues(alpha: 0.7),
-                              fontSize: 10,
-                            ),
-                          ),
-                        );
-                        lines.add(
-                          TextSpan(
-                            text: 'Ceiling: ',
-                            style: TextStyle(
-                              color: colorScheme.onInverseSurface.withValues(
-                                alpha: 0.8,
-                              ),
-                            ),
-                          ),
-                        );
-                        lines.add(
-                          TextSpan(
-                            text: '$ceilingDisplay\n',
-                            style: TextStyle(
-                              color: colorScheme.onInverseSurface,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        );
+                    // Ceiling (if enabled - always show row)
+                    if (_showCeiling) {
+                      String ceilingValue = '—';
+                      if (widget.ceilingCurve != null &&
+                          spot.spotIndex < widget.ceilingCurve!.length) {
+                        final ceiling = widget.ceilingCurve![spot.spotIndex];
+                        if (ceiling > 0) {
+                          ceilingValue = units.formatDepth(ceiling);
+                        }
                       }
+                      addRow(
+                        'Ceiling',
+                        ceilingValue,
+                        Colors.red.withValues(alpha: 0.7),
+                      );
                     }
 
-                    // Ascent rate (if enabled and available)
-                    if (_showAscentRateColors &&
-                        widget.ascentRates != null &&
-                        spot.spotIndex < widget.ascentRates!.length) {
-                      final ascentRate = widget.ascentRates![spot.spotIndex];
-                      final rate = ascentRate.rateMetersPerMin;
-                      // Only show if there's meaningful vertical movement
-                      if (rate.abs() > 0.5) {
-                        // Format rate in user's preferred depth unit per minute
-                        final convertedRate = units.convertDepth(rate.abs());
-                        final rateValue =
-                            '${convertedRate.toStringAsFixed(1)} ${units.depthSymbol}/min';
-                        final isAscending = rate > 0;
-                        final rateColor = isAscending
-                            ? _getAscentRateColor(ascentRate.category)
-                            : Colors.blue;
-                        lines.add(
-                          TextSpan(
-                            text: '● ',
-                            style: TextStyle(color: rateColor, fontSize: 10),
-                          ),
-                        );
-                        lines.add(
-                          TextSpan(
-                            text: 'Rate: ',
-                            style: TextStyle(
-                              color: colorScheme.onInverseSurface.withValues(
-                                alpha: 0.8,
-                              ),
-                            ),
-                          ),
-                        );
-                        lines.add(
-                          TextSpan(
-                            text: '${isAscending ? '↑' : '↓'} $rateValue\n',
-                            style: TextStyle(
-                              color: colorScheme.onInverseSurface,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        );
+                    // Ascent rate (if enabled - always show row with fixed format)
+                    if (_showAscentRateColors) {
+                      Color rateColor = Colors.grey;
+                      String arrow = '—';
+                      double convertedRate = 0.0;
+
+                      if (widget.ascentRates != null &&
+                          spot.spotIndex < widget.ascentRates!.length) {
+                        final ascentRate = widget.ascentRates![spot.spotIndex];
+                        final rate = ascentRate.rateMetersPerMin;
+                        convertedRate = units.convertDepth(rate.abs());
+                        if (rate > 0.5) {
+                          arrow = '↑';
+                          rateColor = _getAscentRateColor(ascentRate.category);
+                        } else if (rate < -0.5) {
+                          arrow = '↓';
+                          rateColor = Colors.blue;
+                        }
                       }
+                      final rateNum = convertedRate
+                          .toStringAsFixed(1)
+                          .padLeft(5);
+                      final rateValue =
+                          '$arrow$rateNum ${units.depthSymbol}/min';
+                      addRow('Rate', rateValue, rateColor);
                     }
 
                     // Per-tank pressure (if any tanks are enabled)
@@ -1114,44 +973,19 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                           continue;
                         }
 
-                        // Find pressure at current timestamp (interpolate if needed)
                         final pressure = _interpolateTankPressure(
                           pressurePoints,
                           timestamp,
                         );
-                        if (pressure != null) {
-                          final tank = _getTankById(tankId);
-                          final color = tank != null
-                              ? GasColors.forGasMix(tank.gasMix)
-                              : _getTankColor(i);
-                          // Use tank name, or fall back to "Tank 1", "Tank 2", etc.
-                          final tankLabel = tank?.name ?? 'Tank ${i + 1}';
-                          lines.add(
-                            TextSpan(
-                              text: '● ',
-                              style: TextStyle(color: color, fontSize: 10),
-                            ),
-                          );
-                          lines.add(
-                            TextSpan(
-                              text: '$tankLabel: ',
-                              style: TextStyle(
-                                color: colorScheme.onInverseSurface.withValues(
-                                  alpha: 0.8,
-                                ),
-                              ),
-                            ),
-                          );
-                          lines.add(
-                            TextSpan(
-                              text: '${units.formatPressure(pressure)}\n',
-                              style: TextStyle(
-                                color: colorScheme.onInverseSurface,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          );
-                        }
+                        final tank = _getTankById(tankId);
+                        final color = tank != null
+                            ? GasColors.forGasMix(tank.gasMix)
+                            : _getTankColor(i);
+                        final tankLabel = tank?.name ?? 'Tank ${i + 1}';
+                        final pressValue = pressure != null
+                            ? units.formatPressure(pressure)
+                            : '—';
+                        addRow(tankLabel, pressValue, color);
                       }
                     }
 
@@ -1159,11 +993,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     final markers = widget.markers;
                     if (markers != null && markers.isNotEmpty) {
                       final timestamp = point.timestamp;
-                      // Find markers within 3 seconds of current point
                       const timestampThreshold = 3;
 
                       for (final marker in markers) {
-                        // Skip markers based on toggle state
                         if (marker.type == ProfileMarkerType.maxDepth) {
                           if (!widget.showMaxDepthMarker ||
                               !_showMaxDepthMarkerLocal) {
@@ -1176,7 +1008,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                           }
                         }
 
-                        // Check if marker is near current timestamp
                         if ((marker.timestamp - timestamp).abs() <=
                             timestampThreshold) {
                           final markerColor = marker.getColor();
@@ -1192,10 +1023,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                           lines.add(
                             TextSpan(
                               text: '${marker.chartLabel}\n',
-                              style: TextStyle(
-                                color: colorScheme.onInverseSurface,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: rowStyle,
                             ),
                           );
                         }
@@ -1204,8 +1032,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
                     return LineTooltipItem(
                       '', // Empty base text, using children instead
-                      TextStyle(color: colorScheme.onInverseSurface),
+                      TextStyle(color: onSurface),
                       children: lines,
+                      textAlign: TextAlign.left,
                     );
                   }).toList();
                 },
