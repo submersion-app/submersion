@@ -948,6 +948,20 @@ class SiteSpecies extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Tracks scheduled notifications to enable smart rescheduling
+class ScheduledNotifications extends Table {
+  TextColumn get id => text()();
+  TextColumn get equipmentId =>
+      text().references(Equipment, #id, onDelete: KeyAction.cascade)();
+  IntColumn get scheduledDate => integer()(); // Unix timestamp
+  IntColumn get reminderDaysBefore => integer()(); // 7, 14, or 30
+  IntColumn get notificationId => integer()(); // Platform notification ID
+  IntColumn get createdAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 // ============================================================================
 // Database Class
 // ============================================================================
@@ -997,13 +1011,15 @@ class SiteSpecies extends Table {
     DeletionLog,
     // Maps & Visualization
     CachedRegions,
+    // Notifications
+    ScheduledNotifications,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 27;
+  int get schemaVersion => 28;
 
   @override
   MigrationStrategy get migration {
@@ -1563,6 +1579,24 @@ class AppDatabase extends _$AppDatabase {
           await customStatement(
             'ALTER TABLE equipment ADD COLUMN custom_reminder_days TEXT',
           );
+        }
+        if (from < 28) {
+          // Scheduled notifications tracking table
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS scheduled_notifications (
+              id TEXT NOT NULL PRIMARY KEY,
+              equipment_id TEXT NOT NULL REFERENCES equipment(id) ON DELETE CASCADE,
+              scheduled_date INTEGER NOT NULL,
+              reminder_days_before INTEGER NOT NULL,
+              notification_id INTEGER NOT NULL,
+              created_at INTEGER NOT NULL
+            )
+          ''');
+          // Index for efficient lookup by equipment
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_scheduled_notifications_equipment
+            ON scheduled_notifications(equipment_id)
+          ''');
         }
       },
       beforeOpen: (details) async {
