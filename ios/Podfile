@@ -41,23 +41,11 @@ post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
 
-    # Suppress warnings for .xcprivacy files that CocoaPods doesn't know how to process
-    target.build_configurations.each do |config|
-      config.build_settings['COPY_PHASE_STRIP'] ||= 'NO'
-    end
-
-    # Remove .xcprivacy files from resources to avoid "no rule to process" warnings
-    if target.respond_to?(:resources_build_phase) && target.resources_build_phase
-      target.resources_build_phase.files.each do |file|
-        if file.display_name.end_with?('.xcprivacy')
-          target.resources_build_phase.remove_file_reference(file)
-        end
-      end
-    end
-
     # Enable permission_handler permissions for iOS
     # See: https://pub.dev/packages/permission_handler#setup
     target.build_configurations.each do |config|
+      # Exclude .xcprivacy files from source processing to avoid "no rule to process" warnings
+      config.build_settings['EXCLUDED_SOURCE_FILE_NAMES'] = '$(inherited) *.xcprivacy'
       config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
         '$(inherited)',
         # Bluetooth permissions (required for dive computer connectivity)
