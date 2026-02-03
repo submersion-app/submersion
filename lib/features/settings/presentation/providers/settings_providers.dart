@@ -529,6 +529,38 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  // Notification settings setters
+
+  Future<void> setNotificationsEnabled(bool value) async {
+    state = state.copyWith(notificationsEnabled: value);
+    await _saveSettings();
+  }
+
+  Future<void> setServiceReminderDays(List<int> days) async {
+    // Sort and deduplicate
+    final sortedDays = days.toSet().toList()..sort((a, b) => b.compareTo(a));
+    state = state.copyWith(serviceReminderDays: sortedDays);
+    await _saveSettings();
+  }
+
+  Future<void> setReminderTime(TimeOfDay time) async {
+    state = state.copyWith(reminderTime: time);
+    await _saveSettings();
+  }
+
+  Future<void> toggleReminderDay(int days) async {
+    final current = List<int>.from(state.serviceReminderDays);
+    if (current.contains(days)) {
+      // Don't allow removing the last day
+      if (current.length > 1) {
+        current.remove(days);
+      }
+    } else {
+      current.add(days);
+    }
+    await setServiceReminderDays(current);
+  }
+
   /// Set all units to metric
   Future<void> setMetric() async {
     state = state.copyWith(
@@ -680,4 +712,17 @@ final timeFormatProvider = Provider<TimeFormat>((ref) {
 
 final dateFormatProvider = Provider<DateFormatPreference>((ref) {
   return ref.watch(settingsProvider.select((s) => s.dateFormat));
+});
+
+/// Notification settings convenience providers
+final notificationsEnabledProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.notificationsEnabled));
+});
+
+final serviceReminderDaysProvider = Provider<List<int>>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.serviceReminderDays));
+});
+
+final reminderTimeProvider = Provider<TimeOfDay>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.reminderTime));
 });
