@@ -34,6 +34,13 @@ class NotificationService {
   Future<void> initialize() async {
     if (_initialized) return;
 
+    // Notifications are mobile-only (iOS/Android)
+    if (!Platform.isIOS && !Platform.isAndroid) {
+      _log.info('Notification service skipped on desktop platform');
+      _initialized = true;
+      return;
+    }
+
     _log.info('Initializing notification service');
 
     // Initialize timezone
@@ -73,8 +80,12 @@ class NotificationService {
     }
   }
 
+  /// Check if we're on a mobile platform that supports notifications
+  bool get _isMobilePlatform => Platform.isIOS || Platform.isAndroid;
+
   /// Request notification permissions
   Future<bool> requestPermission() async {
+    if (!_isMobilePlatform) return true; // Desktop doesn't need permission
     if (Platform.isIOS) {
       final result = await _plugin
           .resolvePlatformSpecificImplementation<
@@ -95,6 +106,7 @@ class NotificationService {
 
   /// Check if notifications are permitted
   Future<bool> isPermissionGranted() async {
+    if (!_isMobilePlatform) return true; // Desktop doesn't need permission
     if (Platform.isIOS) {
       final impl = _plugin
           .resolvePlatformSpecificImplementation<
@@ -120,6 +132,9 @@ class NotificationService {
     required DateTime scheduledDate,
     required int daysBefore,
   }) async {
+    // Skip on desktop platforms
+    if (!_isMobilePlatform) return 0;
+
     final notificationId = equipmentId.hashCode + daysBefore;
 
     final title = 'Service Due: $equipmentName';
@@ -171,6 +186,7 @@ class NotificationService {
 
   /// Cancel a specific notification
   Future<void> cancelNotification(int notificationId) async {
+    if (!_isMobilePlatform) return;
     await _plugin.cancel(notificationId);
     _log.info('Cancelled notification $notificationId');
   }
@@ -180,6 +196,7 @@ class NotificationService {
     String equipmentId,
     List<int> daysBefore,
   ) async {
+    if (!_isMobilePlatform) return;
     for (final days in daysBefore) {
       final notificationId = equipmentId.hashCode + days;
       await cancelNotification(notificationId);
@@ -188,12 +205,14 @@ class NotificationService {
 
   /// Cancel all scheduled notifications
   Future<void> cancelAllNotifications() async {
+    if (!_isMobilePlatform) return;
     await _plugin.cancelAll();
     _log.info('Cancelled all notifications');
   }
 
   /// Get list of pending notifications
   Future<List<PendingNotificationRequest>> getPendingNotifications() async {
+    if (!_isMobilePlatform) return [];
     return _plugin.pendingNotificationRequests();
   }
 }

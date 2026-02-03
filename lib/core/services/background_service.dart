@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:workmanager/workmanager.dart';
 
 import 'package:submersion/core/services/database_service.dart';
@@ -63,6 +65,11 @@ Future<void> _refreshNotifications(LoggerService log) async {
 
 /// Initialize background task registration
 Future<void> initializeBackgroundService() async {
+  // Background service is mobile-only (iOS/Android)
+  if (!Platform.isIOS && !Platform.isAndroid) {
+    return;
+  }
+
   await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
 
   // Register periodic task for notification refresh
