@@ -6,6 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 
 /// Summary widget displayed when no statistics category is selected.
@@ -92,6 +93,8 @@ class StatisticsSummaryWidget extends ConsumerWidget {
           _buildOverviewCards(context, stats, units),
           const SizedBox(height: 24),
           _buildDivesByMonthChart(context, stats),
+          const SizedBox(height: 24),
+          _buildDiveTypeDistribution(context, ref),
           const SizedBox(height: 24),
           _buildDepthDistribution(context, stats, units),
           const SizedBox(height: 24),
@@ -336,6 +339,158 @@ class StatisticsSummaryWidget extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildDiveTypeDistribution(BuildContext context, WidgetRef ref) {
+    final diveTypesAsync = ref.watch(diveTypeDistributionProvider);
+
+    return diveTypesAsync.when(
+      data: (data) {
+        final hasData = data.isNotEmpty;
+        final colors = [
+          Colors.blue.shade400,
+          Colors.teal.shade400,
+          Colors.orange.shade400,
+          Colors.purple.shade400,
+          Colors.green.shade400,
+          Colors.red.shade400,
+          Colors.indigo.shade400,
+          Colors.amber.shade400,
+        ];
+
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Dive Types',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  height: 200,
+                  child: hasData
+                      ? Row(
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: PieChart(
+                                PieChartData(
+                                  sectionsSpace: 2,
+                                  centerSpaceRadius: 30,
+                                  sections: List.generate(data.length, (index) {
+                                    final segment = data[index];
+                                    return PieChartSectionData(
+                                      value: segment.count.toDouble(),
+                                      title:
+                                          '${segment.percentage.toStringAsFixed(0)}%',
+                                      color: colors[index % colors.length],
+                                      radius: 60,
+                                      titleStyle: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    );
+                                  }),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: List.generate(
+                                  data.length > 6 ? 6 : data.length,
+                                  (index) {
+                                    final segment = data[index];
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 2,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                            width: 12,
+                                            height: 12,
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  colors[index % colors.length],
+                                              borderRadius:
+                                                  BorderRadius.circular(2),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              segment.label,
+                                              style: Theme.of(
+                                                context,
+                                              ).textTheme.bodySmall,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      : Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.pie_chart,
+                                size: 48,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withValues(alpha: 0.5),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Chart will appear when you log dives',
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                ),
+                if (hasData && data.length > 6) ...[
+                  const SizedBox(height: 8),
+                  Center(
+                    child: Text(
+                      'and ${data.length - 6} more types',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
+      loading: () => const Card(
+        child: Padding(
+          padding: EdgeInsets.all(32),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      ),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 

@@ -57,6 +57,18 @@ final sacByTankRoleProvider = FutureProvider<Map<String, double>>((ref) async {
 });
 
 // ============================================================================
+// Dive Type Distribution Provider
+// ============================================================================
+
+final diveTypeDistributionProvider = FutureProvider<List<DistributionSegment>>((
+  ref,
+) async {
+  final repository = ref.watch(statisticsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  return repository.getDiveTypeDistribution(diverId: currentDiverId);
+});
+
+// ============================================================================
 // Dive Progression Providers
 // ============================================================================
 

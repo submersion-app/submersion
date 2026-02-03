@@ -44,7 +44,7 @@ This document contains only the features and tasks that are **not yet completed*
 
 ### 10.2 Statistics
 **Tasks:**
-- [ ] Dive type breakdown (pie chart)
+- [x] Dive type breakdown (pie chart)
 
 ### 10.3 Reports & Printing
 | Feature | Status | Notes |

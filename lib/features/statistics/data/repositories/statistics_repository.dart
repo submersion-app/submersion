@@ -332,6 +332,49 @@ class StatisticsRepository {
     }
   }
 
+  /// Get dive type distribution (recreational, night, deep, wreck, etc.)
+  Future<List<DistributionSegment>> getDiveTypeDistribution({
+    String? diverId,
+  }) async {
+    try {
+      final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+      final params = diverId != null ? [diverId] : <dynamic>[];
+
+      final results = await _db.customSelect('''
+        SELECT
+          COALESCE(dive_type, 'recreational') AS dive_type,
+          COUNT(*) AS count
+        FROM dives
+        WHERE 1=1 $diverFilter
+        GROUP BY dive_type
+        ORDER BY count DESC
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
+
+      final total = results.fold<int>(
+        0,
+        (sum, row) => sum + row.read<int>('count'),
+      );
+      if (total == 0) return [];
+
+      return results.map((row) {
+        final count = row.read<int>('count');
+        final rawType = row.read<String>('dive_type');
+        // Capitalize first letter for display
+        final label = rawType.isNotEmpty
+            ? '${rawType[0].toUpperCase()}${rawType.substring(1)}'
+            : 'Unknown';
+        return DistributionSegment(
+          label: label,
+          count: count,
+          percentage: count / total * 100,
+        );
+      }).toList();
+    } catch (e, stackTrace) {
+      _log.error('Failed to get dive type distribution', e, stackTrace);
+      return [];
+    }
+  }
+
   // ============================================================================
   // Dive Progression Statistics
   // ============================================================================
