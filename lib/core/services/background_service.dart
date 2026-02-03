@@ -70,7 +70,7 @@ Future<void> initializeBackgroundService() async {
     return;
   }
 
-  await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
+  await Workmanager().initialize(callbackDispatcher);
 
   // Register periodic task for notification refresh
   await Workmanager().registerPeriodicTask(
@@ -78,7 +78,7 @@ Future<void> initializeBackgroundService() async {
     kNotificationRefreshTask,
     frequency: const Duration(hours: 6), // Refresh every 6 hours
     constraints: Constraints(
-      networkType: NetworkType.not_required,
+      networkType: NetworkType.notRequired,
       requiresBatteryNotLow: false,
       requiresCharging: false,
       requiresDeviceIdle: false,
