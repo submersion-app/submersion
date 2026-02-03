@@ -44,8 +44,6 @@ post_install do |installer|
     # Enable permission_handler permissions for iOS
     # See: https://pub.dev/packages/permission_handler#setup
     target.build_configurations.each do |config|
-      # Exclude .xcprivacy files from source processing to avoid "no rule to process" warnings
-      config.build_settings['EXCLUDED_SOURCE_FILE_NAMES'] = '$(inherited) *.xcprivacy'
       config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
         '$(inherited)',
         # Bluetooth permissions (required for dive computer connectivity)
