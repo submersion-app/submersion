@@ -1,11 +1,11 @@
 # Submersion Feature Roadmap
 ## Comprehensive Development Plan
 
-> **Last Updated:** 2026-02-01
+> **Last Updated:** 2026-02-02
 > **Current Version:** 1.1.0 (v1.1 Complete)
 > **Status:** v1.0 ✅ COMPLETE | v1.1 ✅ COMPLETE | v1.5 🚧 In Progress
 >
-> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Profile Visualization (Category 2.1) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete | Search & Filtering (Category 10.1) ✅ Complete | Tools & Calculators (Category 11) ✅ Complete | Digital Signatures (Category 7.2) ✅ Complete | Training Dives (Category 8.3) ✅ Complete | Underwater Photography (Category 9.3) ✅ Complete | Maps & Visualization (Category 5.3) ✅ Complete | Certification Cards (Category 8.1) ✅ Complete
+> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Profile Visualization (Category 2.1) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete | Search & Filtering (Category 10.1) ✅ Complete | Tools & Calculators (Category 11) ✅ Complete | Digital Signatures (Category 7.2) ✅ Complete | Training Dives (Category 8.3) ✅ Complete | Underwater Photography (Category 9.3) ✅ Complete | Maps & Visualization (Category 5.3) ✅ Complete | Certification Cards (Category 8.1) ✅ Complete | Push Notifications (Category 6.3) ✅ Complete
 
 ---
 
@@ -490,11 +490,17 @@
 | Service history | ✅ Implemented | MVP | Last service date, interval |
 | Service reminders | ✅ Implemented | MVP | Visual warnings |
 | Service records detail | ✅ Implemented | v1.0 | Full CRUD with UI |
-| Push notifications | 📋 Planned | v1.5 | For overdue service |
+| Push notifications | ✅ Implemented | v1.5 | For overdue service |
 
-**v1.5 Tasks:**
-- [ ] Local notifications for service due dates
-- [ ] Configurable reminder advance (7 days, 14 days, 30 days before due)
+**v1.5 Tasks (Complete):**
+- [x] Local notifications for service due dates (NotificationScheduler service)
+- [x] Configurable reminder advance in settings (7 days, 14 days, 30 days before due)
+- [x] Per-equipment notification override on equipment edit page
+- [x] Background service for notification refresh
+- [x] Deep linking from notification taps to equipment detail
+- [x] iOS/macOS notification configuration
+- [x] Android notification and boot receiver configuration
+- [x] Desktop platforms gracefully skip notification services
 
 **v2.0 Tasks:**
 - [ ] Service log export to PDF (professional format with full history)
@@ -613,6 +619,7 @@
 | Instructor comments | ✅ Implemented | v1.5 | Using existing notes field |
 | E-signatures | ✅ Implemented | v1.5 | Per-dive instructor signatures |
 | Course-Certification linking | ✅ Implemented | v1.5 | Bidirectional link with picker UI |
+| Training log export | ✅ Implemented | v1.5 | PDF with instructor signatures |
 
 **v1.5 Tasks (Complete):**
 - [x] Course entity (name, agency, start_date, completion_date, instructor, cert_id)
@@ -621,9 +628,8 @@
 - [x] Bidirectional course-certification navigation
 - [x] Signature capture and display on dive detail page
 - [x] Link courses to earned certifications (bidirectional)
-
-**Remaining (v2.0):**
-- [ ] Training log export (PDF with instructor signatures)
+- [x] Training log export to PDF (ExportService.exportCourseTrainingLogToPdf)
+- [x] Export action in Course detail page popup menu
 
 ---
 
@@ -1413,6 +1419,8 @@
 - [x] Maps & Visualization (Activity map with heat map, offline maps with FMTC, site filtering)
 - [x] Certification Card Images (front/back photos with BLOB storage for backup/sync)
 - [x] BLOB Storage (signatures and certification photos stored in database for easy backup/export)
+- [x] Push Notifications (gear service reminders with configurable advance, per-item overrides, deep linking)
+- [x] Training Log Export (PDF with instructor signatures, course info, dive list)
 - [ ] Performance with 5000+ dives
 
 ## v2.0 (Planned)
@@ -1435,5 +1443,5 @@
 
 ---
 
-**Document Version:** 2.14
-**Last Updated:** 2026-02-01 (BLOB storage for certification photos and signatures; scanned card images feature)
+**Document Version:** 2.16
+**Last Updated:** 2026-02-02 (Training log export to PDF with instructor signatures)

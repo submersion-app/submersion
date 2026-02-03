@@ -1,6 +1,6 @@
 # Submersion - Remaining Tasks
 
-> **Generated:** 2026-02-01
+> **Generated:** 2026-02-02
 > **Source:** FEATURE_ROADMAP.md
 > **Current Version:** 1.1.0 (v1.5 In Progress)
 
@@ -21,26 +21,6 @@ This document contains only the features and tasks that are **not yet completed*
 # v1.5 Remaining Tasks
 
 ---
-
-## Category 6: Gear & Equipment Management
-
-### 6.3 Maintenance
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Push notifications | 📋 Planned | For overdue service |
-
-**Tasks:**
-- [ ] Local notifications for service due dates
-- [ ] Configurable reminder advance (7 days, 14 days, 30 days before due)
-
----
-
-## Category 8: Training, Certifications & Medical Info
-
-### 8.3 Training Dives
-
-**Remaining:**
-- [ ] Training log export (PDF with instructor signatures)
 
 ---
 
@@ -576,7 +556,7 @@ This document contains only the features and tasks that are **not yet completed*
 
 | Phase | Remaining Features | Remaining Tasks |
 |-------|-------------------|-----------------|
-| **v1.5** | ~17 features | ~31 tasks |
+| **v1.5** | ~15 features | ~27 tasks |
 | **v2.0** | ~69+ features | ~104+ tasks |
 | **v3.0** | ~5 features | Future scope |
 
@@ -589,5 +569,5 @@ This document contains only the features and tasks that are **not yet completed*
 
 ---
 
-**Document Version:** 2.0
-**Updated:** 2026-02-01 (Removed completed sections: Digital Signatures, Scanned Card Images)
+**Document Version:** 2.2
+**Updated:** 2026-02-02 (Removed completed: Training log export with instructor signatures)

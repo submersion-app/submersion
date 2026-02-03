@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/core/services/export_service.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
@@ -252,9 +253,21 @@ class CourseDetailPage extends ConsumerWidget {
             onSelected: (value) {
               if (value == 'delete') {
                 _confirmDelete(context, ref, course);
+              } else if (value == 'export') {
+                _exportTrainingLog(context, ref, course);
               }
             },
             itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'export',
+                child: Row(
+                  children: [
+                    Icon(Icons.picture_as_pdf_outlined),
+                    SizedBox(width: 8),
+                    Text('Export Training Log'),
+                  ],
+                ),
+              ),
               const PopupMenuItem(
                 value: 'delete',
                 child: Row(
@@ -501,9 +514,21 @@ class CourseDetailPage extends ConsumerWidget {
             onSelected: (value) {
               if (value == 'delete') {
                 _confirmDelete(context, ref, course);
+              } else if (value == 'export') {
+                _exportTrainingLog(context, ref, course);
               }
             },
             itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'export',
+                child: Row(
+                  children: [
+                    Icon(Icons.picture_as_pdf_outlined),
+                    SizedBox(width: 8),
+                    Text('Export Training Log'),
+                  ],
+                ),
+              ),
               const PopupMenuItem(
                 value: 'delete',
                 child: Row(
@@ -628,6 +653,46 @@ class CourseDetailPage extends ConsumerWidget {
         onDeleted!();
       } else if (context.mounted) {
         context.pop();
+      }
+    }
+  }
+
+  Future<void> _exportTrainingLog(
+    BuildContext context,
+    WidgetRef ref,
+    Course course,
+  ) async {
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      // Load training dives for this course
+      final dives = await ref.read(courseDivesProvider(course.id).future);
+
+      // Export to PDF
+      final exportService = ExportService();
+      await exportService.exportCourseTrainingLogToPdf(course, dives);
+
+      // Dismiss loading
+      if (context.mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+    } catch (e) {
+      // Dismiss loading
+      if (context.mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+
+        // Show error
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to export training log: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
       }
     }
   }
