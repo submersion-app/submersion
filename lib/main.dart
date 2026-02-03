@@ -12,6 +12,7 @@ import 'package:submersion/core/services/security_scoped_bookmark_service.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/core/services/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -77,6 +78,9 @@ Future<void> main() async {
 
   // Initialize database with location service
   await DatabaseService.instance.initialize(locationService: locationService);
+
+  // Initialize notification service
+  await NotificationService.instance.initialize();
 
   // Initialize tile cache for offline maps (non-blocking - app works without it)
   try {
