@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_list_page.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/onboarding/presentation/pages/welcome_page.dart';
@@ -92,7 +93,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       // If no divers and not already on welcome, redirect to welcome
       if (!hasDivers && !isOnWelcome) {
+        // Clear any pending notification to prevent confusion after onboarding
+        NotificationService.instance.selectedEquipmentId; // consume and discard
         return '/welcome';
+      }
+
+      // Check for notification deep link (reading clears the value)
+      final equipmentId = NotificationService.instance.selectedEquipmentId;
+      if (equipmentId != null) {
+        return '/equipment/$equipmentId';
       }
 
       // If has divers and on welcome, redirect to dashboard
