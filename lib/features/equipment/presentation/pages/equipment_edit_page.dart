@@ -46,6 +46,8 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
   bool _isLoading = false;
   bool _isInitialized = false;
   bool _hasChanges = false;
+  bool? _customReminderEnabled;
+  List<int> _customReminderDays = [7, 14, 30];
 
   @override
   void initState() {
@@ -99,6 +101,8 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     _selectedStatus = equipment.status;
     _purchaseDate = equipment.purchaseDate;
     _lastServiceDate = equipment.lastServiceDate;
+    _customReminderEnabled = equipment.customReminderEnabled;
+    _customReminderDays = equipment.customReminderDays ?? const [7, 14, 30];
   }
 
   void _handleCancel() {
@@ -304,6 +308,10 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             ),
             maxLines: 3,
           ),
+          const SizedBox(height: 24),
+
+          // Notification Overrides
+          _buildNotificationSection(context),
 
           if (!widget.embedded) ...[
             const SizedBox(height: 32),
@@ -603,6 +611,96 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     );
   }
 
+  Widget _buildNotificationSection(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.notifications, color: colorScheme.primary),
+                const SizedBox(width: 8),
+                Text(
+                  'Notifications (Optional)',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Override global notification settings for this item',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            SwitchListTile(
+              title: const Text('Use Custom Reminders'),
+              subtitle: const Text('Set different reminder days for this item'),
+              value: _customReminderEnabled == true,
+              onChanged: (value) {
+                setState(() {
+                  _customReminderEnabled = value ? true : null;
+                  _hasChanges = true;
+                });
+              },
+              contentPadding: EdgeInsets.zero,
+            ),
+            if (_customReminderEnabled == true) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Remind me before service is due:',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                children: [7, 14, 30].map((days) {
+                  final isSelected = _customReminderDays.contains(days);
+                  return FilterChip(
+                    label: Text('$days days'),
+                    selected: isSelected,
+                    onSelected: (_) {
+                      setState(() {
+                        if (isSelected) {
+                          if (_customReminderDays.length > 1) {
+                            _customReminderDays = _customReminderDays
+                                .where((d) => d != days)
+                                .toList();
+                          }
+                        } else {
+                          _customReminderDays = [..._customReminderDays, days];
+                        }
+                        _hasChanges = true;
+                      });
+                    },
+                  );
+                }).toList(),
+              ),
+            ],
+            const Divider(height: 24),
+            SwitchListTile(
+              title: const Text('Disable Reminders'),
+              subtitle: const Text('Turn off all notifications for this item'),
+              value: _customReminderEnabled == false,
+              onChanged: (value) {
+                setState(() {
+                  _customReminderEnabled = value ? false : null;
+                  _hasChanges = true;
+                });
+              },
+              contentPadding: EdgeInsets.zero,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _selectPurchaseDate() async {
     final date = await showDatePicker(
       context: context,
@@ -675,6 +773,10 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             : null,
         notes: _notesController.text.trim(),
         isActive: existingEquipment?.isActive ?? true,
+        customReminderEnabled: _customReminderEnabled,
+        customReminderDays: _customReminderEnabled == true
+            ? _customReminderDays
+            : null,
       );
 
       final notifier = ref.read(equipmentListNotifierProvider.notifier);
