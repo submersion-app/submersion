@@ -62,7 +62,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>8</string>
+	<string>9</string>
 	<key>GIDClientID</key>
 	<string>433819313354-8sn10bh15pij7hsqbld4tunccrsgi4bf.apps.googleusercontent.com</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
@@ -111,6 +111,11 @@
 		<string>bluetooth-central</string>
 		<string>fetch</string>
 		<string>processing</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+		<string>com.submersion.notificationRefresh</string>
 	</array>
 	<key>UTImportedTypeDeclarations</key>
 	<array>
