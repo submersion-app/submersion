@@ -11,6 +11,8 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
+        // Enable core library desugaring for Java 8+ APIs on older Android versions
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
@@ -43,6 +45,8 @@ flutter {
 }
 
 dependencies {
+    // Core library desugaring for Java 8+ API support on older Android versions
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
     // ExifInterface for writing EXIF metadata to photos
     implementation("androidx.exifinterface:exifinterface:1.3.7")
 }
