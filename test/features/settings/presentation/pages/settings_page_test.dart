@@ -126,6 +126,27 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
     volumeUnit: VolumeUnit.cubicFeet,
     weightUnit: WeightUnit.pounds,
   );
+  @override
+  Future<void> setNotificationsEnabled(bool value) async =>
+      state = state.copyWith(notificationsEnabled: value);
+  @override
+  Future<void> setServiceReminderDays(List<int> days) async =>
+      state = state.copyWith(serviceReminderDays: days);
+  @override
+  Future<void> setReminderTime(TimeOfDay time) async =>
+      state = state.copyWith(reminderTime: time);
+  @override
+  Future<void> toggleReminderDay(int days) async {
+    final current = List<int>.from(state.serviceReminderDays);
+    if (current.contains(days)) {
+      if (current.length > 1) {
+        current.remove(days);
+      }
+    } else {
+      current.add(days);
+    }
+    state = state.copyWith(serviceReminderDays: current);
+  }
 }
 
 /// Mock CurrentDiverIdNotifier that doesn't access the database

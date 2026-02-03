@@ -3,7 +3,9 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/notifications/data/services/notification_scheduler.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 
 /// Unit system preset
@@ -347,9 +349,31 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       // Load settings from database
       final settings = await _repository.getOrCreateSettingsForDiver(diverId);
       state = settings;
+
+      // Schedule notifications with the loaded settings
+      _scheduleNotificationsIfNeeded();
     } finally {
       _isLoading = false;
     }
+  }
+
+  void _scheduleNotificationsIfNeeded() {
+    // Use Future.microtask to avoid calling during build
+    Future.microtask(() async {
+      if (!state.notificationsEnabled) return;
+
+      final diverId = _validatedDiverId;
+      final scheduler = NotificationScheduler();
+
+      try {
+        await scheduler.scheduleAll(settings: state, diverId: diverId);
+      } catch (e) {
+        // Log but don't rethrow - notification scheduling shouldn't block settings
+        LoggerService.forClass(
+          SettingsNotifier,
+        ).error('Failed to schedule notifications', e, StackTrace.current);
+      }
+    });
   }
 
   Future<void> _saveSettings() async {
