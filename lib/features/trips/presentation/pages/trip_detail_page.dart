@@ -148,6 +148,16 @@ class _TripDetailContent extends ConsumerWidget {
         title: Text(trip.name),
         actions: [
           IconButton(
+            icon: const Icon(Icons.map_outlined),
+            tooltip: 'View on Map',
+            onPressed: () {
+              ref.read(diveFilterProvider.notifier).state = DiveFilterState(
+                tripId: trip.id,
+              );
+              context.go('/dives?view=map');
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () => context.push('/trips/${trip.id}/edit'),
           ),
@@ -204,7 +214,19 @@ class _TripDetailContent extends ConsumerWidget {
             ),
           ),
           IconButton(
+            icon: const Icon(Icons.map_outlined, size: 20),
+            visualDensity: VisualDensity.compact,
+            tooltip: 'View on Map',
+            onPressed: () {
+              ref.read(diveFilterProvider.notifier).state = DiveFilterState(
+                tripId: trip.id,
+              );
+              context.go('/dives?view=map');
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.edit_outlined, size: 20),
+            visualDensity: VisualDensity.compact,
             onPressed: () {
               final state = GoRouterState.of(context);
               final currentPath = state.uri.path;
