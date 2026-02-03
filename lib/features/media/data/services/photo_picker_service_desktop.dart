@@ -105,4 +105,15 @@ class PhotoPickerServiceDesktop implements PhotoPickerService {
 
     return file.readAsBytes();
   }
+
+  @override
+  Future<String?> getFilePath(String assetId) async {
+    final path = _filePathCache[assetId];
+    if (path == null) return null;
+
+    final file = File(path);
+    if (!await file.exists()) return null;
+
+    return path;
+  }
 }

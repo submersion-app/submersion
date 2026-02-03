@@ -79,6 +79,18 @@ final assetFullResolutionProvider = FutureProvider.family<Uint8List?, String>((
   return service.getFileBytes(assetId);
 });
 
+/// Provider for getting a video file path for playback.
+///
+/// Use this for video playback, which requires a file path rather than raw bytes.
+/// Results are cached by Riverpod to avoid repeated fetches during swipe navigation.
+final assetFilePathProvider = FutureProvider.family<String?, String>((
+  ref,
+  assetId,
+) async {
+  final service = ref.watch(photoPickerServiceProvider);
+  return service.getFilePath(assetId);
+});
+
 /// State for the photo picker selection.
 class PhotoPickerState {
   /// Currently selected asset IDs.

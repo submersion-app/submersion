@@ -169,6 +169,15 @@ class PhotoPickerServiceMobile implements PhotoPickerService {
     return file.readAsBytes();
   }
 
+  @override
+  Future<String?> getFilePath(String assetId) async {
+    final asset = _assetCache[assetId] ?? await pm.AssetEntity.fromId(assetId);
+    if (asset == null) return null;
+
+    final file = await asset.file;
+    return file?.path;
+  }
+
   PhotoPermissionStatus _mapPermissionStatus(pm.PermissionState status) {
     switch (status) {
       case pm.PermissionState.authorized:

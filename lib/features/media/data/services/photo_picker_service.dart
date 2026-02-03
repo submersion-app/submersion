@@ -109,4 +109,12 @@ abstract class PhotoPickerService {
   /// Returns true for iOS, Android, macOS (via photo_manager).
   /// Returns false for Windows, Linux (file picker only).
   bool get supportsGalleryBrowsing;
+
+  /// Get the file path for an asset.
+  ///
+  /// [assetId] - Platform-specific asset identifier from [AssetInfo.id].
+  ///
+  /// This is needed for video playback, which requires a file path rather
+  /// than raw bytes. Returns null if the asset no longer exists.
+  Future<String?> getFilePath(String assetId);
 }

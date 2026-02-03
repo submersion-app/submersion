@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:video_player/video_player.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -114,24 +115,30 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
             },
             child: Stack(
               children: [
-                // Photo gallery
+                // Photo/video gallery
                 _PhotoGallery(
                   mediaList: mediaList,
                   pageController: _pageController,
                   onPageChanged: (index) {
                     setState(() => _currentIndex = index);
                   },
+                  showOverlay: _showOverlay,
+                  onToggleOverlay: () =>
+                      setState(() => _showOverlay = !_showOverlay),
+                  onSetOverlay: (value) => setState(() => _showOverlay = value),
+                  currentIndex: _currentIndex,
                 ),
 
-                // Transparent tap target to toggle overlays
-                // This sits above the photo but below other overlays
-                Positioned.fill(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.translucent,
-                    onTap: () => setState(() => _showOverlay = !_showOverlay),
-                    child: const SizedBox.expand(),
+                // Transparent tap target to toggle overlays (photos only)
+                // Videos handle their own tap gestures for play/pause
+                if (!currentItem.isVideo)
+                  Positioned.fill(
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.translucent,
+                      onTap: () => setState(() => _showOverlay = !_showOverlay),
+                      child: const SizedBox.expand(),
+                    ),
                   ),
-                ),
 
                 // Overlay controls (app bar and metadata)
                 if (_showOverlay) ...[
@@ -338,16 +345,24 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
   }
 }
 
-/// The photo gallery using PhotoView for zoom support.
+/// The photo/video gallery using PhotoView for zoom support on photos.
 class _PhotoGallery extends ConsumerWidget {
   final List<MediaItem> mediaList;
   final PageController pageController;
   final ValueChanged<int> onPageChanged;
+  final bool showOverlay;
+  final VoidCallback onToggleOverlay;
+  final ValueChanged<bool> onSetOverlay;
+  final int currentIndex;
 
   const _PhotoGallery({
     required this.mediaList,
     required this.pageController,
     required this.onPageChanged,
+    required this.showOverlay,
+    required this.onToggleOverlay,
+    required this.onSetOverlay,
+    required this.currentIndex,
   });
 
   @override
@@ -360,6 +375,20 @@ class _PhotoGallery extends ConsumerWidget {
       backgroundDecoration: const BoxDecoration(color: Colors.black),
       builder: (context, index) {
         final item = mediaList[index];
+
+        // Videos use custom player, photos use PhotoView
+        if (item.isVideo) {
+          return PhotoViewGalleryPageOptions.customChild(
+            minScale: PhotoViewComputedScale.contained,
+            maxScale: PhotoViewComputedScale.contained, // No zoom for videos
+            child: _VideoItem(
+              item: item,
+              showOverlay: showOverlay,
+              onSetOverlay: onSetOverlay,
+            ),
+          );
+        }
+
         return PhotoViewGalleryPageOptions.customChild(
           minScale: PhotoViewComputedScale.contained,
           maxScale: PhotoViewComputedScale.covered * 3.0,
@@ -424,6 +453,350 @@ class _PhotoItem extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Video player item that loads and plays video files.
+class _VideoItem extends ConsumerStatefulWidget {
+  final MediaItem item;
+  final bool showOverlay;
+  final ValueChanged<bool> onSetOverlay;
+
+  const _VideoItem({
+    required this.item,
+    required this.showOverlay,
+    required this.onSetOverlay,
+  });
+
+  @override
+  ConsumerState<_VideoItem> createState() => _VideoItemState();
+}
+
+class _VideoItemState extends ConsumerState<_VideoItem> {
+  VideoPlayerController? _controller;
+  bool _isInitialized = false;
+  bool _isLoading = true;
+  String? _error;
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeVideo();
+  }
+
+  /// Handle keyboard events for video playback
+  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.space) {
+      _togglePlayPause();
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
+  }
+
+  Future<void> _initializeVideo() async {
+    if (widget.item.platformAssetId == null) {
+      setState(() {
+        _error = 'Video not linked to library';
+        _isLoading = false;
+      });
+      return;
+    }
+
+    try {
+      final path = await ref.read(
+        assetFilePathProvider(widget.item.platformAssetId!).future,
+      );
+
+      if (path == null) {
+        setState(() {
+          _error = 'Video file not found';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      final controller = VideoPlayerController.file(File(path));
+      await controller.initialize();
+
+      if (!mounted) {
+        controller.dispose();
+        return;
+      }
+
+      setState(() {
+        _controller = controller;
+        _isInitialized = true;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = 'Failed to load video';
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _togglePlayPause() {
+    final controller = _controller;
+    if (controller == null) return;
+
+    final wasPlaying = controller.value.isPlaying;
+
+    setState(() {
+      if (wasPlaying) {
+        controller.pause();
+      } else {
+        controller.play();
+      }
+    });
+
+    // Sync overlay state with play state:
+    // - Paused (wasPlaying=true, now paused) → show overlay (true)
+    // - Playing (wasPlaying=false, now playing) → hide overlay (false)
+    widget.onSetOverlay(wasPlaying);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: Colors.white54),
+      );
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.videocam_off, color: Colors.white54, size: 64),
+            const SizedBox(height: 16),
+            Text(
+              _error!,
+              style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final controller = _controller;
+    if (controller == null || !_isInitialized) {
+      return const Center(
+        child: CircularProgressIndicator(color: Colors.white54),
+      );
+    }
+
+    // Request focus when video is ready to enable keyboard controls
+    _focusNode.requestFocus();
+
+    return Focus(
+      focusNode: _focusNode,
+      onKeyEvent: _handleKeyEvent,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Video player - tap anywhere on video to play/pause
+          GestureDetector(
+            onTap: _togglePlayPause,
+            behavior: HitTestBehavior.opaque,
+            child: Center(
+              child: AspectRatio(
+                aspectRatio: controller.value.aspectRatio,
+                child: VideoPlayer(controller),
+              ),
+            ),
+          ),
+
+          // Play/pause button overlay (center) - visual indicator only when paused
+          if (!controller.value.isPlaying)
+            IgnorePointer(
+              child: Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.play_arrow,
+                  color: Colors.white,
+                  size: 48,
+                ),
+              ),
+            ),
+
+          // Video controls overlay (bottom)
+          if (widget.showOverlay)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 160, // Above the metadata overlay and mini profile
+              child: _VideoControlsOverlay(controller: controller),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Video playback controls with tap-to-seek progress bar and time display.
+///
+/// Uses tap-to-seek instead of drag-to-seek to avoid gesture conflicts
+/// with the PageView's horizontal swipe navigation.
+class _VideoControlsOverlay extends StatefulWidget {
+  final VideoPlayerController controller;
+
+  const _VideoControlsOverlay({required this.controller});
+
+  @override
+  State<_VideoControlsOverlay> createState() => _VideoControlsOverlayState();
+}
+
+class _VideoControlsOverlayState extends State<_VideoControlsOverlay> {
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(_onVideoUpdate);
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_onVideoUpdate);
+    super.dispose();
+  }
+
+  void _onVideoUpdate() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  String _formatDuration(Duration duration) {
+    final minutes = duration.inMinutes;
+    final seconds = duration.inSeconds % 60;
+    return '$minutes:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  void _seekToPosition(double tapX, double totalWidth) {
+    if (totalWidth <= 0) return;
+
+    final progress = (tapX / totalWidth).clamp(0.0, 1.0);
+    final duration = widget.controller.value.duration;
+    final newPosition = Duration(
+      milliseconds: (progress * duration.inMilliseconds).toInt(),
+    );
+    widget.controller.seekTo(newPosition);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final position = widget.controller.value.position;
+    final duration = widget.controller.value.duration;
+    final progress = duration.inMilliseconds > 0
+        ? (position.inMilliseconds / duration.inMilliseconds).clamp(0.0, 1.0)
+        : 0.0;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          // Current time
+          SizedBox(
+            width: 48,
+            child: Text(
+              _formatDuration(position),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontFeatures: [FontFeature.tabularFigures()],
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          // Tap-to-seek progress bar
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTapDown: (details) {
+                    _seekToPosition(
+                      details.localPosition.dx,
+                      constraints.maxWidth,
+                    );
+                  },
+                  child: SizedBox(
+                    height: 40, // Larger touch target
+                    child: Center(
+                      child: Stack(
+                        children: [
+                          // Background track
+                          Container(
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.3),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                          // Progress track
+                          FractionallySizedBox(
+                            widthFactor: progress,
+                            child: Container(
+                              height: 4,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                          ),
+                          // Thumb indicator
+                          Positioned(
+                            left: (constraints.maxWidth * progress) - 8,
+                            top: -6,
+                            child: Container(
+                              width: 16,
+                              height: 16,
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          // Total time
+          SizedBox(
+            width: 48,
+            child: Text(
+              _formatDuration(duration),
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.7),
+                fontSize: 12,
+                fontFeatures: [const FontFeature.tabularFigures()],
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
       ),
     );
   }
