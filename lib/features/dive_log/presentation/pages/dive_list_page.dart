@@ -125,6 +125,31 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
       );
     }
 
+    // Mobile: Check if map view is requested
+    if (_isMapView) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Dive Map'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => context.go('/dives'),
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.list),
+              tooltip: 'List View',
+              onPressed: _toggleMapView,
+            ),
+          ],
+        ),
+        body: DiveMapContent(
+          onItemSelected: (_) {}, // No selection tracking needed on mobile
+          onDetailsTap: (diveId) => context.push('/dives/$diveId'),
+        ),
+        floatingActionButton: fab,
+      );
+    }
+
     // Mobile: Use standalone list content with full scaffold and FAB
     return DiveListContent(showAppBar: true, floatingActionButton: fab);
   }
