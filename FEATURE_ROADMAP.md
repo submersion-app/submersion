@@ -1,11 +1,11 @@
 # Submersion Feature Roadmap
 ## Comprehensive Development Plan
 
-> **Last Updated:** 2026-02-02
+> **Last Updated:** 2026-02-03
 > **Current Version:** 1.1.0 (v1.1 Complete)
 > **Status:** v1.0 ✅ COMPLETE | v1.1 ✅ COMPLETE | v1.5 🚧 In Progress
 >
-> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Profile Visualization (Category 2.1) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete | Search & Filtering (Category 10.1) ✅ Complete | Tools & Calculators (Category 11) ✅ Complete | Digital Signatures (Category 7.2) ✅ Complete | Training Dives (Category 8.3) ✅ Complete | Underwater Photography (Category 9.3) ✅ Complete | Maps & Visualization (Category 5.3) ✅ Complete | Certification Cards (Category 8.1) ✅ Complete | Push Notifications (Category 6.3) ✅ Complete
+> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Profile Visualization (Category 2.1) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete | Search & Filtering (Category 10.1) ✅ Complete | Tools & Calculators (Category 11) ✅ Complete | Digital Signatures (Category 7.2) ✅ Complete | Training Dives (Category 8.3) ✅ Complete | Underwater Photography (Category 9.3) ✅ Complete | Maps & Visualization (Category 5.3) ✅ Complete | Certification Cards (Category 8.1) ✅ Complete | Push Notifications (Category 6.3) ✅ Complete | PDF Templates (Category 10.3) ✅ Complete
 
 ---
 
@@ -783,12 +783,13 @@
 | Records page | ✅ Implemented | v1.0 | Deepest, longest, coldest, warmest, first, last |
 | SAC trends | ✅ Implemented | v1.5 | Monthly average over 5 years |
 | Temperature graphs | ✅ Implemented | v1.5 | Water temp by month (min/avg/max) |
+| Dive type breakdown | ✅ Implemented | v1.5 | Pie chart by dive type |
 
 **v1.5 Tasks:**
 - [x] SAC trend line chart (average SAC per month over last 5 years)
 - [x] Temperature preference chart (water temp by month with min/avg/max)
 - [x] Dive frequency chart (dives per year bar chart)
-- [ ] Dive type breakdown (pie chart)
+- [x] Dive type breakdown (pie chart)
 - [x] Gas mix usage (pie chart showing Air/Nitrox/Trimix distribution)
 - [x] Time pattern charts (day of week, time of day, seasonal)
 - [x] Surface interval statistics (avg/min/max)
@@ -808,18 +809,17 @@
 |---------|--------|-------|-------|
 | PDF logbook export | ✅ Implemented | MVP | Basic layout |
 | Signatures in PDF | ✅ Implemented | v1.5 | Instructor + buddy signatures |
+| Multiple PDF templates | ✅ Implemented | v1.5 | Simple, Detailed, Professional, PADI-style, NAUI-style |
+| Page size options | ✅ Implemented | v1.5 | A4 and Letter sizes |
+| Certification cards in PDF | ✅ Implemented | v1.5 | Optional inclusion with front/back images |
 | Custom report designer | 📋 Planned | v2.0 | Drag-drop fields |
-| Pre-made layouts | 📋 Planned | v1.5 | A5, 3-ring, agency style |
-| Professional logs | 📋 Planned | v1.5 | For instructors, DMs |
 
 **v1.5 Tasks (Complete):**
 - [x] Display instructor and buddy signatures in PDF export
-
-**v1.5 Tasks (Remaining):**
-- [ ] Multiple PDF templates (Simple, Detailed, Professional, PADI-style, NAUI-style)
-- [ ] Template selection in export dialog
-- [ ] Professional template with space for signatures, stamps
-- [ ] Include certification cards in PDF export
+- [x] Multiple PDF templates (Simple, Detailed, Professional, PADI-style, NAUI-style)
+- [x] Template selection in export dialog
+- [x] Professional template with space for signatures, stamps
+- [x] Include certification cards in PDF export
 
 **v2.0 Tasks:**
 - [ ] Custom report builder (select fields, layout, sorting)
@@ -1421,6 +1421,7 @@
 - [x] BLOB Storage (signatures and certification photos stored in database for easy backup/export)
 - [x] Push Notifications (gear service reminders with configurable advance, per-item overrides, deep linking)
 - [x] Training Log Export (PDF with instructor signatures, course info, dive list)
+- [x] PDF Templates (Simple, Detailed, Professional, PADI-style, NAUI-style with page size and cert cards)
 - [ ] Performance with 5000+ dives
 
 ## v2.0 (Planned)
@@ -1443,5 +1444,5 @@
 
 ---
 
-**Document Version:** 2.16
-**Last Updated:** 2026-02-02 (Training log export to PDF with instructor signatures)
+**Document Version:** 2.17
+**Last Updated:** 2026-02-03 (PDF templates: Simple, Detailed, Professional, PADI-style, NAUI-style with certification cards)

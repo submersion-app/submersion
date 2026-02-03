@@ -1,6 +1,6 @@
 # Submersion - Remaining Tasks
 
-> **Generated:** 2026-02-02
+> **Generated:** 2026-02-03
 > **Source:** FEATURE_ROADMAP.md
 > **Current Version:** 1.1.0 (v1.5 In Progress)
 
@@ -549,5 +549,5 @@ This document contains only the features and tasks that are **not yet completed*
 
 ---
 
-**Document Version:** 2.3
-**Updated:** 2026-02-02 (Removed completed: PDF templates - Simple, Detailed, Professional, PADI-style, NAUI-style)
+**Document Version:** 2.4
+**Updated:** 2026-02-03 (Confirmed PDF templates complete, updated task counts)
