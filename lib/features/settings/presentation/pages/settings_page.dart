@@ -5,6 +5,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/services/notification_service.dart';
+import 'package:submersion/features/notifications/presentation/providers/notification_providers.dart';
 import 'package:submersion/core/domain/entities/storage_config.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -77,6 +79,8 @@ class SettingsPage extends ConsumerWidget {
         return _DecompressionSectionContent(ref: ref);
       case 'appearance':
         return _AppearanceSectionContent(ref: ref);
+      case 'notifications':
+        return _NotificationsSectionContent(ref: ref);
       case 'manage':
         return const _ManageSectionContent();
       case 'data':
@@ -150,6 +154,8 @@ class _SettingsSectionDetailPage extends ConsumerWidget {
         return _DecompressionSectionContent(ref: ref);
       case 'appearance':
         return _AppearanceSectionContent(ref: ref);
+      case 'notifications':
+        return _NotificationsSectionContent(ref: ref);
       case 'manage':
         return const _ManageSectionContent();
       case 'data':
@@ -1094,6 +1100,164 @@ class _AppearanceSectionContent extends ConsumerWidget {
         ],
       ),
     );
+  }
+}
+
+/// Notifications section content
+class _NotificationsSectionContent extends ConsumerWidget {
+  final WidgetRef ref;
+
+  const _NotificationsSectionContent({required this.ref});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider);
+    final permissionAsync = ref.watch(notificationPermissionProvider);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(context, 'Service Reminders'),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                SwitchListTile(
+                  title: const Text('Enable Service Reminders'),
+                  subtitle: const Text(
+                    'Get notified when equipment service is due',
+                  ),
+                  secondary: const Icon(Icons.notifications_active),
+                  value: settings.notificationsEnabled,
+                  onChanged: (value) async {
+                    if (value) {
+                      // Request permission when enabling
+                      final granted = await NotificationService.instance
+                          .requestPermission();
+                      if (!granted && context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Please enable notifications in system settings',
+                            ),
+                          ),
+                        );
+                        return;
+                      }
+                    }
+                    ref
+                        .read(settingsProvider.notifier)
+                        .setNotificationsEnabled(value);
+                  },
+                ),
+                if (settings.notificationsEnabled) ...[
+                  const Divider(height: 1),
+                  permissionAsync.when(
+                    data: (granted) {
+                      if (!granted) {
+                        return ListTile(
+                          leading: const Icon(
+                            Icons.warning,
+                            color: Colors.orange,
+                          ),
+                          title: const Text('Notifications Disabled'),
+                          subtitle: const Text(
+                            'Enable in system settings to receive reminders',
+                          ),
+                          trailing: TextButton(
+                            onPressed: () async {
+                              await NotificationService.instance
+                                  .requestPermission();
+                              ref.invalidate(notificationPermissionProvider);
+                            },
+                            child: const Text('Enable'),
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, __) => const SizedBox.shrink(),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (settings.notificationsEnabled) ...[
+            const SizedBox(height: 24),
+            _buildSectionHeader(context, 'Reminder Schedule'),
+            const SizedBox(height: 8),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Remind me before service is due:',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      children: [7, 14, 30].map((days) {
+                        final isSelected = settings.serviceReminderDays
+                            .contains(days);
+                        return FilterChip(
+                          label: Text('$days days'),
+                          selected: isSelected,
+                          onSelected: (_) {
+                            ref
+                                .read(settingsProvider.notifier)
+                                .toggleReminderDay(days);
+                          },
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.access_time),
+                title: const Text('Reminder Time'),
+                subtitle: Text(
+                  '${settings.reminderTime.hour.toString().padLeft(2, '0')}:${settings.reminderTime.minute.toString().padLeft(2, '0')}',
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _showTimePicker(context, ref, settings),
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildInfoCard(
+              context,
+              'How it works',
+              'Notifications are scheduled when the app launches and refresh '
+                  'periodically in the background. You can customize reminders '
+                  'for individual equipment items in their edit screen.',
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showTimePicker(
+    BuildContext context,
+    WidgetRef ref,
+    AppSettings settings,
+  ) async {
+    final time = await showTimePicker(
+      context: context,
+      initialTime: settings.reminderTime,
+    );
+    if (time != null) {
+      ref.read(settingsProvider.notifier).setReminderTime(time);
+    }
   }
 }
 

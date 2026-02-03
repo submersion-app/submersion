@@ -44,6 +44,13 @@ const settingsSections = [
     subtitle: 'Theme & display',
   ),
   SettingsSection(
+    id: 'notifications',
+    title: 'Notifications',
+    subtitle: 'Service reminders',
+    icon: Icons.notifications_outlined,
+    color: Colors.orange,
+  ),
+  SettingsSection(
     id: 'manage',
     icon: Icons.folder_shared,
     title: 'Manage',
