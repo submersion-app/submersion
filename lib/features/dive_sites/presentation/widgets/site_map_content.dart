@@ -9,7 +9,10 @@ import 'package:submersion/features/dive_sites/data/repositories/site_repository
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
+import 'package:submersion/features/maps/domain/entities/heat_map_point.dart';
+import 'package:submersion/features/maps/presentation/providers/heat_map_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/heat_map_controls.dart';
+import 'package:submersion/features/maps/presentation/widgets/heat_map_layer.dart';
 import 'package:submersion/shared/widgets/map_list_layout/map_info_card.dart';
 
 /// Map content widget for displaying dive sites on a map.
@@ -115,10 +118,16 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
   @override
   Widget build(BuildContext context) {
     final sitesAsync = ref.watch(sitesWithCountsProvider);
+    final heatMapAsync = ref.watch(siteCoverageHeatMapProvider);
+    final heatMapSettings = ref.watch(heatMapSettingsProvider);
 
     return sitesAsync.when(
-      data: (sitesWithCounts) =>
-          _buildMapWithInfoCard(context, sitesWithCounts),
+      data: (sitesWithCounts) => _buildMapWithInfoCard(
+        context,
+        sitesWithCounts,
+        heatMapAsync,
+        heatMapSettings,
+      ),
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => _buildErrorState(context, error),
     );
@@ -127,6 +136,8 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
   Widget _buildMapWithInfoCard(
     BuildContext context,
     List<SiteWithDiveCount> sitesWithCounts,
+    AsyncValue<List<HeatMapPoint>> heatMapAsync,
+    HeatMapSettings heatMapSettings,
   ) {
     final selectedSite = widget.selectedId != null
         ? sitesWithCounts
@@ -137,7 +148,7 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
 
     return Stack(
       children: [
-        _buildMap(context, sitesWithCounts),
+        _buildMap(context, sitesWithCounts, heatMapAsync, heatMapSettings),
         // Heat map toggle and fit all sites controls
         Positioned(
           top: 8,
@@ -184,6 +195,8 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
   Widget _buildMap(
     BuildContext context,
     List<SiteWithDiveCount> sitesWithCounts,
+    AsyncValue<List<HeatMapPoint>> heatMapAsync,
+    HeatMapSettings heatMapSettings,
   ) {
     // Filter sites with valid coordinates
     final sitesWithLocation = sitesWithCounts.where((s) {
@@ -285,6 +298,17 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
                 },
               ),
             ),
+            // Heat map layer - rendered on top of markers when visible
+            if (heatMapSettings.isVisible)
+              heatMapAsync.when(
+                data: (points) => HeatMapLayer(
+                  points: points,
+                  radius: heatMapSettings.radius,
+                  opacity: heatMapSettings.opacity,
+                ),
+                loading: () => const SizedBox.shrink(),
+                error: (_, _) => const SizedBox.shrink(),
+              ),
           ],
         ),
 
