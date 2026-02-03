@@ -109,6 +109,8 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>bluetooth-central</string>
+		<string>fetch</string>
+		<string>processing</string>
 	</array>
 	<key>UTImportedTypeDeclarations</key>
 	<array>
