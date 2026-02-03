@@ -38,6 +38,16 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_macos_build_settings(target)
+
+    # Remove .xcprivacy files from resources to avoid "no rule to process" warnings
+    if target.respond_to?(:resources_build_phase) && target.resources_build_phase
+      target.resources_build_phase.files.each do |file|
+        if file.display_name.end_with?('.xcprivacy')
+          target.resources_build_phase.remove_file_reference(file)
+        end
+      end
+    end
+
     target.build_configurations.each do |config|
       config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '11.0'
       # Suppress warnings from sqlite3 C source code (third-party dependency)

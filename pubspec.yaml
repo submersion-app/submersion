@@ -74,6 +74,9 @@ dependencies:
   # FFI
   ffi: ^2.1.0
 
+  # PDF/Printing
+  printing: ^5.14.2
+
   # Utilities
   intl: ^0.20.2
   uuid: ^4.5.0

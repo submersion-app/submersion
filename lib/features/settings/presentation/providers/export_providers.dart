@@ -7,8 +7,13 @@ import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/export_service.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_template_factory.dart';
+import 'package:submersion/features/signatures/data/services/signature_storage_service.dart';
+import 'package:submersion/features/signatures/domain/entities/signature.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -210,7 +215,13 @@ class ExportNotifier extends StateNotifier<ExportState> {
     }
   }
 
-  Future<void> exportDivesToPdf() async {
+  /// Export dives to PDF with the specified options.
+  ///
+  /// Uses the template system to generate PDFs in different styles.
+  /// If [options] is null, uses the default Detailed template.
+  Future<void> exportDivesToPdf([PdfExportOptions? options]) async {
+    final exportOptions = options ?? const PdfExportOptions();
+
     state = state.copyWith(
       status: ExportStatus.exporting,
       message: 'Generating PDF logbook...',
@@ -224,7 +235,55 @@ class ExportNotifier extends StateNotifier<ExportState> {
         );
         return;
       }
-      final path = await _exportService.exportDivesToPdf(dives);
+
+      // Load signatures for all dives
+      state = state.copyWith(message: 'Loading signatures...');
+      final signatureService = SignatureStorageService();
+      final diveSignatures = <String, List<Signature>>{};
+      for (final dive in dives) {
+        final sigs = await signatureService.getAllSignaturesForDive(dive.id);
+        if (sigs.isNotEmpty) {
+          diveSignatures[dive.id] = sigs;
+        }
+      }
+
+      // Load certifications if requested
+      List<Certification>? certifications;
+      if (exportOptions.includeCertificationCards) {
+        state = state.copyWith(message: 'Loading certifications...');
+        certifications = await _ref.read(allCertificationsProvider.future);
+      }
+
+      // Get current diver for personalization
+      final diver = await _ref.read(currentDiverProvider.future);
+
+      // Initialize fonts for proper Unicode support
+      state = state.copyWith(message: 'Loading fonts...');
+      await PdfFonts.instance.initialize();
+
+      // Get the appropriate template builder
+      state = state.copyWith(
+        message: 'Generating ${exportOptions.template.displayName} PDF...',
+      );
+      final factory = PdfTemplateFactory();
+      final builder = factory.getBuilder(exportOptions.template);
+
+      // Build the PDF
+      final pdfBytes = await builder.buildPdf(
+        dives: dives,
+        pageSize: exportOptions.pageSize,
+        title: 'Dive Logbook',
+        diveSignatures: diveSignatures.isNotEmpty ? diveSignatures : null,
+        certifications: certifications,
+        diver: diver,
+      );
+
+      // Save and share the PDF
+      final path = await _exportService.sharePdfBytes(
+        pdfBytes,
+        'dive_logbook_${exportOptions.template.name}_${DateFormat('yyyy-MM-dd').format(DateTime.now())}.pdf',
+      );
+
       state = state.copyWith(
         status: ExportStatus.success,
         message: 'PDF logbook generated successfully',

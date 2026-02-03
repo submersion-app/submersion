@@ -22,8 +22,6 @@ This document contains only the features and tasks that are **not yet completed*
 
 ---
 
----
-
 ## Category 9: Environment, Wildlife & Photography
 
 ### 9.2 Marine Life Tracking
@@ -39,24 +37,6 @@ This document contains only the features and tasks that are **not yet completed*
 - [ ] Species statistics (total sightings, depth range, sites seen, first/last sighting)
 
 ---
-
-## Category 10: Search, Filters, Statistics & Reports
-
-### 10.2 Statistics
-**Tasks:**
-- [x] Dive type breakdown (pie chart)
-
-### 10.3 Reports & Printing
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Pre-made layouts | 📋 Planned | A5, 3-ring, agency style |
-| Professional logs | 📋 Planned | For instructors, DMs |
-
-**Tasks:**
-- [ ] Multiple PDF templates (Simple, Detailed, Professional, PADI-style, NAUI-style)
-- [ ] Template selection in export dialog
-- [ ] Professional template with space for signatures, stamps
-- [ ] Include certification cards in PDF export
 
 ---
 
@@ -556,7 +536,7 @@ This document contains only the features and tasks that are **not yet completed*
 
 | Phase | Remaining Features | Remaining Tasks |
 |-------|-------------------|-----------------|
-| **v1.5** | ~15 features | ~27 tasks |
+| **v1.5** | ~13 features | ~23 tasks |
 | **v2.0** | ~69+ features | ~104+ tasks |
 | **v3.0** | ~5 features | Future scope |
 
@@ -569,5 +549,5 @@ This document contains only the features and tasks that are **not yet completed*
 
 ---
 
-**Document Version:** 2.2
-**Updated:** 2026-02-02 (Removed completed: Training log export with instructor signatures)
+**Document Version:** 2.3
+**Updated:** 2026-02-02 (Removed completed: PDF templates - Simple, Detailed, Professional, PADI-style, NAUI-style)

@@ -9,6 +9,7 @@ import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.d
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/import_progress_dialog.dart';
+import 'package:submersion/features/transfer/presentation/widgets/pdf_export_dialog.dart';
 import 'package:submersion/features/transfer/presentation/widgets/transfer_list_content.dart';
 
 /// Main transfer page with master-detail layout on desktop.
@@ -337,13 +338,7 @@ class _ExportSectionContent extends ConsumerWidget {
                   title: const Text('PDF Logbook'),
                   subtitle: const Text('Printable dive logbook'),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _handleExport(
-                    context,
-                    ref,
-                    () => ref
-                        .read(exportNotifierProvider.notifier)
-                        .exportDivesToPdf(),
-                  ),
+                  onTap: () => _handlePdfExport(context, ref),
                 ),
                 const Divider(height: 1),
                 ListTile(
@@ -423,6 +418,22 @@ class _ExportSectionContent extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  /// Handle PDF export with options dialog.
+  Future<void> _handlePdfExport(BuildContext context, WidgetRef ref) async {
+    // Show the PDF export options dialog
+    final options = await PdfExportDialog.show(context);
+
+    // User cancelled or context no longer valid
+    if (options == null || !context.mounted) return;
+
+    // Proceed with export using selected options
+    await _handleExport(
+      context,
+      ref,
+      () => ref.read(exportNotifierProvider.notifier).exportDivesToPdf(options),
     );
   }
 
