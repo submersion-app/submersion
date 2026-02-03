@@ -89,7 +89,7 @@ dependencies:
   gal: ^2.3.2
 
   # Notifications
-  flutter_local_notifications: ^18.0.2
+  flutter_local_notifications: ^18.0.1
   workmanager: ^0.9.0+3
   timezone: ^0.10.0
 
