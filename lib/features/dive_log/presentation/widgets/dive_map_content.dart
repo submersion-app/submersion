@@ -10,7 +10,6 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
-import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/domain/entities/heat_map_point.dart';
 import 'package:submersion/features/maps/presentation/providers/heat_map_providers.dart';
@@ -122,7 +121,6 @@ class _DiveMapContentState extends ConsumerState<DiveMapContent>
   @override
   Widget build(BuildContext context) {
     final heatMapAsync = ref.watch(diveActivityHeatMapProvider);
-    final sitesAsync = ref.watch(sitesWithCountsProvider);
     final divesAsync = ref.watch(sortedFilteredDivesProvider);
     final settings = ref.watch(heatMapSettingsProvider);
 
@@ -135,17 +133,46 @@ class _DiveMapContentState extends ConsumerState<DiveMapContent>
       },
     );
 
-    return sitesAsync.when(
-      data: (sitesWithCounts) => _buildMapWithInfoCard(
-        context,
-        sitesWithCounts,
-        heatMapAsync,
-        settings,
-        selectedDive,
-      ),
+    // Derive sites with counts from the filtered dives
+    // This ensures the map respects the current dive filter
+    return divesAsync.when(
+      data: (dives) {
+        final sitesWithCounts = _extractSitesFromDives(dives);
+        return _buildMapWithInfoCard(
+          context,
+          sitesWithCounts,
+          heatMapAsync,
+          settings,
+          selectedDive,
+        );
+      },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => _buildErrorState(context, error),
     );
+  }
+
+  /// Extract unique sites with dive counts from the filtered dive list.
+  /// This ensures the map only shows sites that have dives matching the current filter.
+  List<SiteWithDiveCount> _extractSitesFromDives(List<Dive> dives) {
+    final siteCountMap = <String, _SiteCounter>{};
+
+    for (final dive in dives) {
+      final site = dive.site;
+      if (site != null) {
+        if (siteCountMap.containsKey(site.id)) {
+          siteCountMap[site.id]!.count++;
+        } else {
+          siteCountMap[site.id] = _SiteCounter(site: site, count: 1);
+        }
+      }
+    }
+
+    return siteCountMap.values
+        .map(
+          (counter) =>
+              SiteWithDiveCount(site: counter.site, diveCount: counter.count),
+        )
+        .toList();
   }
 
   Widget _buildMapWithInfoCard(
@@ -650,7 +677,7 @@ class _DiveMapContentState extends ConsumerState<DiveMapContent>
           const SizedBox(height: 16),
           FilledButton(
             onPressed: () {
-              ref.invalidate(sitesWithCountsProvider);
+              ref.invalidate(sortedFilteredDivesProvider);
               ref.invalidate(diveActivityHeatMapProvider);
             },
             child: const Text('Retry'),
@@ -659,4 +686,12 @@ class _DiveMapContentState extends ConsumerState<DiveMapContent>
       ),
     );
   }
+}
+
+/// Helper class for counting dives per site
+class _SiteCounter {
+  final DiveSite site;
+  int count;
+
+  _SiteCounter({required this.site, required this.count});
 }

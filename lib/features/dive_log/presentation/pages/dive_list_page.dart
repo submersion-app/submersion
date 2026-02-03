@@ -34,6 +34,9 @@ class DiveListPage extends ConsumerStatefulWidget {
 }
 
 class _DiveListPageState extends ConsumerState<DiveListPage> {
+  /// Tracks the selected dive ID for mobile map view info card
+  String? _mobileMapSelectedDiveId;
+
   bool get _isMapView {
     final state = GoRouterState.of(context);
     return state.uri.queryParameters['view'] == 'map';
@@ -143,7 +146,10 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
           ],
         ),
         body: DiveMapContent(
-          onItemSelected: (_) {}, // No selection tracking needed on mobile
+          selectedId: _mobileMapSelectedDiveId,
+          onItemSelected: (diveId) {
+            setState(() => _mobileMapSelectedDiveId = diveId);
+          },
           onDetailsTap: (diveId) => context.push('/dives/$diveId'),
         ),
         floatingActionButton: fab,
