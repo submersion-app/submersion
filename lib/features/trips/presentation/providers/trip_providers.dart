@@ -5,6 +5,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
+    as domain;
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
@@ -327,4 +329,22 @@ final tripListNotifierProvider =
     ) {
       final repository = ref.watch(tripRepositoryProvider);
       return TripListNotifier(repository, ref);
+    });
+
+/// Provider that extracts unique dive sites with valid locations from a trip.
+/// Used for displaying map backgrounds on trip detail headers.
+final tripSitesWithLocationsProvider =
+    FutureProvider.family<List<domain.DiveSite>, String>((ref, tripId) async {
+      final dives = await ref.watch(divesForTripProvider(tripId).future);
+      final sitesWithLocation = <String, domain.DiveSite>{};
+
+      for (final dive in dives) {
+        final site = dive.site;
+        if (site != null && site.location != null) {
+          // Use site ID as key to deduplicate
+          sitesWithLocation[site.id] = site;
+        }
+      }
+
+      return sitesWithLocation.values.toList();
     });

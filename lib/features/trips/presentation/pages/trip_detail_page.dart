@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:latlong2/latlong.dart';
 
+import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
@@ -95,8 +99,8 @@ class _TripDetailContent extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Trip header
-          _buildTripHeader(context, trip, dateFormat),
+          // Trip header with map background
+          _buildTripHeader(context, ref, trip, dateFormat),
           const SizedBox(height: 24),
 
           // Trip info
@@ -268,40 +272,174 @@ class _TripDetailContent extends ConsumerWidget {
 
   Widget _buildTripHeader(
     BuildContext context,
+    WidgetRef ref,
     Trip trip,
     DateFormat dateFormat,
   ) {
-    return Center(
-      child: Column(
+    final sitesAsync = ref.watch(tripSitesWithLocationsProvider(trip.id));
+    final colorScheme = Theme.of(context).colorScheme;
+    final cardColor = Theme.of(context).cardColor;
+
+    final content = Center(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            CircleAvatar(
+              radius: 50,
+              backgroundColor: colorScheme.primaryContainer,
+              child: Icon(
+                trip.isLiveaboard ? Icons.sailing : Icons.flight_takeoff,
+                size: 50,
+                color: colorScheme.onPrimaryContainer,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              trip.name,
+              style: Theme.of(context).textTheme.headlineMedium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '${dateFormat.format(trip.startDate)} - ${dateFormat.format(trip.endDate)}',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            Text(
+              '${trip.durationDays} days',
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: colorScheme.primary),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    // Get sites with valid locations
+    final sites = sitesAsync.valueOrNull ?? [];
+    final sitesWithLocation = sites.where((s) => s.location != null).toList();
+
+    // If no sites with locations, return simple card
+    if (sitesWithLocation.isEmpty) {
+      return Card(clipBehavior: Clip.antiAlias, child: content);
+    }
+
+    // Convert sites to LatLng points
+    final points = sitesWithLocation
+        .map((s) => LatLng(s.location!.latitude, s.location!.longitude))
+        .toList();
+
+    // Calculate bounds to fit all points with padding
+    final bounds = LatLngBounds.fromPoints(points);
+    final center = bounds.center;
+
+    // Calculate zoom level based on bounds
+    // For a single point, use a fixed zoom; otherwise calculate based on span
+    final double zoom;
+    if (points.length == 1) {
+      zoom = 12.0;
+    } else {
+      // Approximate zoom calculation based on latitude span
+      final latSpan = bounds.north - bounds.south;
+      final lngSpan = bounds.east - bounds.west;
+      final maxSpan = latSpan > lngSpan ? latSpan : lngSpan;
+      // Rough approximation: each zoom level doubles the detail
+      // Start at zoom 10 for ~5 degree span, adjust from there
+      if (maxSpan > 5) {
+        zoom = 4.0;
+      } else if (maxSpan > 2) {
+        zoom = 6.0;
+      } else if (maxSpan > 1) {
+        zoom = 7.0;
+      } else if (maxSpan > 0.5) {
+        zoom = 8.0;
+      } else if (maxSpan > 0.2) {
+        zoom = 9.0;
+      } else if (maxSpan > 0.1) {
+        zoom = 10.0;
+      } else {
+        zoom = 11.0;
+      }
+    }
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
         children: [
-          CircleAvatar(
-            radius: 50,
-            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-            child: Icon(
-              trip.isLiveaboard ? Icons.sailing : Icons.flight_takeoff,
-              size: 50,
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
+          // Map background
+          Positioned.fill(
+            child: FlutterMap(
+              options: MapOptions(
+                initialCenter: center,
+                initialZoom: zoom,
+                interactionOptions: const InteractionOptions(
+                  flags: InteractiveFlag.none,
+                ),
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.submersion.app',
+                  maxZoom: 19,
+                  tileProvider: TileCacheService.instance.isInitialized
+                      ? TileCacheService.instance.getTileProvider()
+                      : null,
+                ),
+                MarkerLayer(
+                  markers: sitesWithLocation.map((site) {
+                    return Marker(
+                      point: LatLng(
+                        site.location!.latitude,
+                        site.location!.longitude,
+                      ),
+                      width: 32,
+                      height: 32,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: colorScheme.onPrimary,
+                            width: 2,
+                          ),
+                        ),
+                        child: Center(
+                          child: Icon(
+                            Icons.scuba_diving,
+                            size: 16,
+                            color: colorScheme.onPrimary,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 16),
-          Text(
-            trip.name,
-            style: Theme.of(context).textTheme.headlineMedium,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '${dateFormat.format(trip.startDate)} - ${dateFormat.format(trip.endDate)}',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+          // Gradient overlay from top to bottom
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  stops: const [0.0, 0.3, 0.7, 1.0],
+                  colors: [
+                    cardColor.withValues(alpha: 0.3),
+                    cardColor.withValues(alpha: 0.6),
+                    cardColor.withValues(alpha: 0.85),
+                    cardColor,
+                  ],
+                ),
+              ),
             ),
           ),
-          Text(
-            '${trip.durationDays} days',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
+          // Content
+          content,
         ],
       ),
     );
