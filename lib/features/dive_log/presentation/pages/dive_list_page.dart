@@ -67,6 +67,13 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Clear mobile map selection when filters change to avoid stale state
+    ref.listen<DiveFilterState>(diveFilterProvider, (previous, next) {
+      if (_mobileMapSelectedDiveId != null) {
+        setState(() => _mobileMapSelectedDiveId = null);
+      }
+    });
+
     // Use desktop breakpoint (800px) to show master-detail when NavigationRail appears
     final showMasterDetail = ResponsiveBreakpoints.isMasterDetail(context);
 

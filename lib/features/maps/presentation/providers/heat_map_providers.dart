@@ -6,43 +6,46 @@ import 'package:submersion/features/maps/domain/entities/heat_map_point.dart';
 
 /// Provider for dive activity heat map data.
 /// Groups dives by site location and weights by dive count.
-final diveActivityHeatMapProvider = FutureProvider<List<HeatMapPoint>>((
+/// Respects the current dive filter settings.
+final diveActivityHeatMapProvider = Provider<AsyncValue<List<HeatMapPoint>>>((
   ref,
-) async {
-  final dives = await ref.watch(divesProvider.future);
+) {
+  final divesAsync = ref.watch(sortedFilteredDivesProvider);
 
-  // Group dives by site ID and count
-  final siteCountMap = <String, int>{};
-  final siteLocationMap = <String, LatLng>{};
-  final siteNameMap = <String, String>{};
+  return divesAsync.whenData((dives) {
+    // Group dives by site ID and count
+    final siteCountMap = <String, int>{};
+    final siteLocationMap = <String, LatLng>{};
+    final siteNameMap = <String, String>{};
 
-  for (final dive in dives) {
-    // Skip dives without a site or coordinates
-    if (dive.site == null || !dive.site!.hasCoordinates) continue;
+    for (final dive in dives) {
+      // Skip dives without a site or coordinates
+      if (dive.site == null || !dive.site!.hasCoordinates) continue;
 
-    final site = dive.site!;
-    final siteId = site.id;
-    siteCountMap[siteId] = (siteCountMap[siteId] ?? 0) + 1;
+      final site = dive.site!;
+      final siteId = site.id;
+      siteCountMap[siteId] = (siteCountMap[siteId] ?? 0) + 1;
 
-    // Store location and name if not already stored
-    if (!siteLocationMap.containsKey(siteId)) {
-      siteLocationMap[siteId] = LatLng(
-        site.location!.latitude,
-        site.location!.longitude,
-      );
-      siteNameMap[siteId] = site.name;
+      // Store location and name if not already stored
+      if (!siteLocationMap.containsKey(siteId)) {
+        siteLocationMap[siteId] = LatLng(
+          site.location!.latitude,
+          site.location!.longitude,
+        );
+        siteNameMap[siteId] = site.name;
+      }
     }
-  }
 
-  // Convert to heat map points
-  return siteCountMap.entries.map((entry) {
-    final location = siteLocationMap[entry.key]!;
-    return HeatMapPoint(
-      location: location,
-      weight: entry.value.toDouble(),
-      label: siteNameMap[entry.key],
-    );
-  }).toList();
+    // Convert to heat map points
+    return siteCountMap.entries.map((entry) {
+      final location = siteLocationMap[entry.key]!;
+      return HeatMapPoint(
+        location: location,
+        weight: entry.value.toDouble(),
+        label: siteNameMap[entry.key],
+      );
+    }).toList();
+  });
 });
 
 /// Provider for site coverage heat map data.
@@ -99,15 +102,16 @@ final activeHeatMapTypeProvider = StateProvider<HeatMapType>((ref) {
 });
 
 /// Provider for the currently active heat map data.
-final activeHeatMapDataProvider = FutureProvider<List<HeatMapPoint>>((
+final activeHeatMapDataProvider = Provider<AsyncValue<List<HeatMapPoint>>>((
   ref,
-) async {
+) {
   final heatMapType = ref.watch(activeHeatMapTypeProvider);
 
   switch (heatMapType) {
     case HeatMapType.diveActivity:
-      return ref.watch(diveActivityHeatMapProvider.future);
+      return ref.watch(diveActivityHeatMapProvider);
     case HeatMapType.siteCoverage:
-      return ref.watch(siteCoverageHeatMapProvider.future);
+      final siteCoverageAsync = ref.watch(siteCoverageHeatMapProvider);
+      return siteCoverageAsync;
   }
 });
