@@ -8,5 +8,10 @@
     "pr-review-toolkit@claude-plugins-official": true,
     "swift-lsp@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": true
+  },
+  "permissions": {
+    "allow": [
+      "Bash(git -C /Users/ericgriffin/repos/submersion-app/submersion diff --stat)"
+    ]
   }
 }
