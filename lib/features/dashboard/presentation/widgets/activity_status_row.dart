@@ -147,35 +147,35 @@ class _StatusCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(height: 6),
+          Icon(icon, color: color, size: 16),
+          const SizedBox(height: 4),
           if (isLoading)
             SizedBox(
-              width: 16,
-              height: 16,
+              width: 14,
+              height: 14,
               child: CircularProgressIndicator(strokeWidth: 2, color: color),
             )
           else
             Text(
               value,
-              style: theme.textTheme.titleLarge?.copyWith(
+              style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: color,
               ),
             ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 1),
           Text(
             label,
-            style: theme.textTheme.bodySmall?.copyWith(
+            style: theme.textTheme.labelSmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
             textAlign: TextAlign.center,

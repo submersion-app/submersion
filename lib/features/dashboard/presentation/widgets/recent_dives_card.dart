@@ -1,78 +1,102 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
-import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
+import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 
-/// A card showing recent dives with compact list items
+/// A section showing recent dives with the same tile format as the dive list
 class RecentDivesCard extends ConsumerWidget {
   const RecentDivesCard({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final recentDivesAsync = ref.watch(recentDivesProvider);
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
     final theme = Theme.of(context);
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Recent Dives',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => context.go('/dives'),
-                  child: const Text('View All'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            recentDivesAsync.when(
-              data: (dives) {
-                if (dives.isEmpty) {
-                  return _buildEmptyState(context);
-                }
-                return Column(
-                  children: dives
-                      .map((dive) => _DiveListTile(dive: dive, units: units))
-                      .toList(),
-                );
-              },
-              loading: () => const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(24),
-                  child: CircularProgressIndicator(),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header row with padding to match the card margins
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Recent Dives',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              error: (error, _) => Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Text(
-                    'Failed to load dives',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.error,
-                    ),
-                  ),
-                ),
+              TextButton(
+                onPressed: () => context.go('/dives'),
+                child: const Text('View All'),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
+        recentDivesAsync.when(
+          data: (dives) {
+            if (dives.isEmpty) {
+              return _buildEmptyState(context);
+            }
+
+            // Calculate depth range for relative depth coloring
+            final depthsWithValues = dives
+                .where((d) => d.maxDepth != null)
+                .map((d) => d.maxDepth!);
+            final minDepth = depthsWithValues.isNotEmpty
+                ? depthsWithValues.reduce((a, b) => a < b ? a : b)
+                : null;
+            final maxDepth = depthsWithValues.isNotEmpty
+                ? depthsWithValues.reduce((a, b) => a > b ? a : b)
+                : null;
+
+            return Column(
+              children: dives.asMap().entries.map((entry) {
+                final index = entry.key;
+                final dive = entry.value;
+                return DiveListTile(
+                  diveId: dive.id,
+                  diveNumber: dive.diveNumber ?? index + 1,
+                  dateTime: dive.dateTime,
+                  siteName: dive.site?.name,
+                  siteLocation: dive.site?.locationString,
+                  maxDepth: dive.maxDepth,
+                  duration: dive.duration,
+                  waterTemp: dive.waterTemp,
+                  rating: dive.rating,
+                  isFavorite: dive.isFavorite,
+                  tags: dive.tags,
+                  minDepthInList: minDepth,
+                  maxDepthInList: maxDepth,
+                  siteLatitude: dive.site?.location?.latitude,
+                  siteLongitude: dive.site?.location?.longitude,
+                  onTap: () => context.push('/dives/${dive.id}'),
+                );
+              }).toList(),
+            );
+          },
+          loading: () => const Center(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: CircularProgressIndicator(),
+            ),
+          ),
+          error: (error, _) => Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                'Failed to load dives',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.error,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -105,108 +129,5 @@ class RecentDivesCard extends ConsumerWidget {
         ),
       ),
     );
-  }
-}
-
-class _DiveListTile extends StatelessWidget {
-  final Dive dive;
-  final UnitFormatter units;
-
-  const _DiveListTile({required this.dive, required this.units});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final dateFormat = DateFormat.MMMd();
-
-    return InkWell(
-      onTap: () => context.go('/dives/${dive.id}'),
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-        child: Row(
-          children: [
-            // Dive number badge
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                '#${dive.diveNumber ?? '-'}',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: theme.colorScheme.onPrimaryContainer,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            // Dive details
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    dive.site?.name ?? 'Unknown Site',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    dateFormat.format(dive.dateTime),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Stats
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                if (dive.maxDepth != null)
-                  Text(
-                    '${units.convertDepth(dive.maxDepth!).toStringAsFixed(1)}${units.depthSymbol}',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                if (dive.duration != null)
-                  Text(
-                    _formatDuration(dive.duration!),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(width: 4),
-            Icon(
-              Icons.chevron_right,
-              color: theme.colorScheme.onSurfaceVariant,
-              size: 20,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Formats a duration as "Xh Ym" or "Xm" for display.
-  String _formatDuration(Duration duration) {
-    final hours = duration.inHours;
-    final minutes = duration.inMinutes.remainder(60);
-
-    if (hours > 0) {
-      return '${hours}h ${minutes}m';
-    }
-    return '${duration.inMinutes}m';
   }
 }

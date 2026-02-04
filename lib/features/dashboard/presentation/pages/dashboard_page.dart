@@ -53,17 +53,17 @@ class DashboardPage extends ConsumerWidget {
                 const SizedBox(height: 16),
                 // Key Stats Section
                 _buildStatsSection(context, statsAsync, units),
+                // Alerts Section (only shows if there are alerts)
+                const AlertsCard(),
+                const SizedBox(height: 16),
+                // Recent Dives Section
+                const RecentDivesCard(),
                 const SizedBox(height: 16),
                 // Personal Records Section
                 const PersonalRecordsCard(),
                 const SizedBox(height: 16),
                 // Certification Wallet
                 const CertificationWalletCard(),
-                // Alerts Section (only shows if there are alerts)
-                const AlertsCard(),
-                // Recent Dives Section
-                const RecentDivesCard(),
-                const SizedBox(height: 16),
                 // Quick Actions Section
                 const QuickActionsCard(),
                 const SizedBox(height: 24),
@@ -134,9 +134,9 @@ class DashboardPage extends ConsumerWidget {
       crossAxisCount: 2,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 8,
-      crossAxisSpacing: 8,
-      childAspectRatio: 1.1,
+      mainAxisSpacing: 4,
+      crossAxisSpacing: 4,
+      childAspectRatio: 2.4,
       children: cards,
     );
   }
@@ -157,9 +157,9 @@ class DashboardPage extends ConsumerWidget {
       crossAxisCount: 2,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 8,
-      crossAxisSpacing: 8,
-      childAspectRatio: 1.1,
+      mainAxisSpacing: 4,
+      crossAxisSpacing: 4,
+      childAspectRatio: 2.4,
       children: placeholders,
     );
   }
