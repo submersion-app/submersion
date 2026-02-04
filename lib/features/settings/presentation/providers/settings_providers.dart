@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -117,6 +118,52 @@ class AppSettings {
   /// Show pressure threshold markers (2/3, 1/2, 1/3) on dive profile chart
   final bool showPressureThresholdMarkers;
 
+  // Dive profile chart default visibility settings
+  /// Default metric for the right Y-axis on dive profile charts
+  final ProfileRightAxisMetric defaultRightAxisMetric;
+
+  /// Default visibility for temperature on dive profile
+  final bool defaultShowTemperature;
+
+  /// Default visibility for pressure on dive profile
+  final bool defaultShowPressure;
+
+  /// Default visibility for heart rate on dive profile
+  final bool defaultShowHeartRate;
+
+  /// Default visibility for SAC rate on dive profile
+  final bool defaultShowSac;
+
+  /// Default visibility for events on dive profile
+  final bool defaultShowEvents;
+
+  /// Default visibility for ppO2 on dive profile
+  final bool defaultShowPpO2;
+
+  /// Default visibility for ppN2 on dive profile
+  final bool defaultShowPpN2;
+
+  /// Default visibility for ppHe on dive profile
+  final bool defaultShowPpHe;
+
+  /// Default visibility for gas density on dive profile
+  final bool defaultShowGasDensity;
+
+  /// Default visibility for GF% on dive profile
+  final bool defaultShowGf;
+
+  /// Default visibility for Surface GF on dive profile
+  final bool defaultShowSurfaceGf;
+
+  /// Default visibility for mean depth on dive profile
+  final bool defaultShowMeanDepth;
+
+  /// Default visibility for TTS on dive profile
+  final bool defaultShowTts;
+
+  /// Default visibility for gas switch markers on dive profile
+  final bool defaultShowGasSwitchMarkers;
+
   // Notification settings
   final bool notificationsEnabled;
   final List<int> serviceReminderDays;
@@ -156,6 +203,22 @@ class AppSettings {
     // Dive profile marker defaults
     this.showMaxDepthMarker = true,
     this.showPressureThresholdMarkers = false,
+    // Dive profile chart defaults
+    this.defaultRightAxisMetric = ProfileRightAxisMetric.temperature,
+    this.defaultShowTemperature = true,
+    this.defaultShowPressure = false,
+    this.defaultShowHeartRate = false,
+    this.defaultShowSac = false,
+    this.defaultShowEvents = true,
+    this.defaultShowPpO2 = false,
+    this.defaultShowPpN2 = false,
+    this.defaultShowPpHe = false,
+    this.defaultShowGasDensity = false,
+    this.defaultShowGf = false,
+    this.defaultShowSurfaceGf = false,
+    this.defaultShowMeanDepth = false,
+    this.defaultShowTts = false,
+    this.defaultShowGasSwitchMarkers = true,
     // Notification defaults
     this.notificationsEnabled = true,
     this.serviceReminderDays = const [7, 14, 30],
@@ -226,6 +289,21 @@ class AppSettings {
     bool? showMapBackgroundOnSiteCards,
     bool? showMaxDepthMarker,
     bool? showPressureThresholdMarkers,
+    ProfileRightAxisMetric? defaultRightAxisMetric,
+    bool? defaultShowTemperature,
+    bool? defaultShowPressure,
+    bool? defaultShowHeartRate,
+    bool? defaultShowSac,
+    bool? defaultShowEvents,
+    bool? defaultShowPpO2,
+    bool? defaultShowPpN2,
+    bool? defaultShowPpHe,
+    bool? defaultShowGasDensity,
+    bool? defaultShowGf,
+    bool? defaultShowSurfaceGf,
+    bool? defaultShowMeanDepth,
+    bool? defaultShowTts,
+    bool? defaultShowGasSwitchMarkers,
     bool? notificationsEnabled,
     List<int>? serviceReminderDays,
     TimeOfDay? reminderTime,
@@ -265,6 +343,25 @@ class AppSettings {
       showMaxDepthMarker: showMaxDepthMarker ?? this.showMaxDepthMarker,
       showPressureThresholdMarkers:
           showPressureThresholdMarkers ?? this.showPressureThresholdMarkers,
+      defaultRightAxisMetric:
+          defaultRightAxisMetric ?? this.defaultRightAxisMetric,
+      defaultShowTemperature:
+          defaultShowTemperature ?? this.defaultShowTemperature,
+      defaultShowPressure: defaultShowPressure ?? this.defaultShowPressure,
+      defaultShowHeartRate: defaultShowHeartRate ?? this.defaultShowHeartRate,
+      defaultShowSac: defaultShowSac ?? this.defaultShowSac,
+      defaultShowEvents: defaultShowEvents ?? this.defaultShowEvents,
+      defaultShowPpO2: defaultShowPpO2 ?? this.defaultShowPpO2,
+      defaultShowPpN2: defaultShowPpN2 ?? this.defaultShowPpN2,
+      defaultShowPpHe: defaultShowPpHe ?? this.defaultShowPpHe,
+      defaultShowGasDensity:
+          defaultShowGasDensity ?? this.defaultShowGasDensity,
+      defaultShowGf: defaultShowGf ?? this.defaultShowGf,
+      defaultShowSurfaceGf: defaultShowSurfaceGf ?? this.defaultShowSurfaceGf,
+      defaultShowMeanDepth: defaultShowMeanDepth ?? this.defaultShowMeanDepth,
+      defaultShowTts: defaultShowTts ?? this.defaultShowTts,
+      defaultShowGasSwitchMarkers:
+          defaultShowGasSwitchMarkers ?? this.defaultShowGasSwitchMarkers,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
       serviceReminderDays: serviceReminderDays ?? this.serviceReminderDays,
       reminderTime: reminderTime ?? this.reminderTime,
@@ -553,6 +650,83 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  // Dive profile chart defaults setters
+
+  Future<void> setDefaultRightAxisMetric(ProfileRightAxisMetric metric) async {
+    state = state.copyWith(defaultRightAxisMetric: metric);
+    await _saveSettings();
+  }
+
+  Future<void> setDefaultShowTemperature(bool value) async {
+    state = state.copyWith(defaultShowTemperature: value);
+    await _saveSettings();
+  }
+
+  Future<void> setDefaultShowPressure(bool value) async {
+    state = state.copyWith(defaultShowPressure: value);
+    await _saveSettings();
+  }
+
+  Future<void> setDefaultShowHeartRate(bool value) async {
+    state = state.copyWith(defaultShowHeartRate: value);
+    await _saveSettings();
+  }
+
+  Future<void> setDefaultShowSac(bool value) async {
+    state = state.copyWith(defaultShowSac: value);
+    await _saveSettings();
+  }
+
+  Future<void> setDefaultShowEvents(bool value) async {
+    state = state.copyWith(defaultShowEvents: value);
+    await _saveSettings();
+  }
+
+  Future<void> setDefaultShowPpO2(bool value) async {
+    state = state.copyWith(defaultShowPpO2: value);
+    await _saveSettings();
+  }
+
+  Future<void> setDefaultShowPpN2(bool value) async {
+    state = state.copyWith(defaultShowPpN2: value);
+    await _saveSettings();
+  }
+
+  Future<void> setDefaultShowPpHe(bool value) async {
+    state = state.copyWith(defaultShowPpHe: value);
+    await _saveSettings();
+  }
+
+  Future<void> setDefaultShowGasDensity(bool value) async {
+    state = state.copyWith(defaultShowGasDensity: value);
+    await _saveSettings();
+  }
+
+  Future<void> setDefaultShowGf(bool value) async {
+    state = state.copyWith(defaultShowGf: value);
+    await _saveSettings();
+  }
+
+  Future<void> setDefaultShowSurfaceGf(bool value) async {
+    state = state.copyWith(defaultShowSurfaceGf: value);
+    await _saveSettings();
+  }
+
+  Future<void> setDefaultShowMeanDepth(bool value) async {
+    state = state.copyWith(defaultShowMeanDepth: value);
+    await _saveSettings();
+  }
+
+  Future<void> setDefaultShowTts(bool value) async {
+    state = state.copyWith(defaultShowTts: value);
+    await _saveSettings();
+  }
+
+  Future<void> setDefaultShowGasSwitchMarkers(bool value) async {
+    state = state.copyWith(defaultShowGasSwitchMarkers: value);
+    await _saveSettings();
+  }
+
   // Notification settings setters
 
   Future<void> setNotificationsEnabled(bool value) async {
@@ -749,4 +923,67 @@ final serviceReminderDaysProvider = Provider<List<int>>((ref) {
 
 final reminderTimeProvider = Provider<TimeOfDay>((ref) {
   return ref.watch(settingsProvider.select((s) => s.reminderTime));
+});
+
+/// Dive profile chart defaults convenience providers
+final defaultRightAxisMetricProvider = Provider<ProfileRightAxisMetric>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.defaultRightAxisMetric));
+});
+
+final defaultShowTemperatureProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.defaultShowTemperature));
+});
+
+final defaultShowPressureProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.defaultShowPressure));
+});
+
+final defaultShowHeartRateProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.defaultShowHeartRate));
+});
+
+final defaultShowSacProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.defaultShowSac));
+});
+
+final defaultShowEventsProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.defaultShowEvents));
+});
+
+final defaultShowPpO2Provider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.defaultShowPpO2));
+});
+
+final defaultShowPpN2Provider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.defaultShowPpN2));
+});
+
+final defaultShowPpHeProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.defaultShowPpHe));
+});
+
+final defaultShowGasDensityProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.defaultShowGasDensity));
+});
+
+final defaultShowGfProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.defaultShowGf));
+});
+
+final defaultShowSurfaceGfProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.defaultShowSurfaceGf));
+});
+
+final defaultShowMeanDepthProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.defaultShowMeanDepth));
+});
+
+final defaultShowTtsProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.defaultShowTts));
+});
+
+final defaultShowGasSwitchMarkersProvider = Provider<bool>((ref) {
+  return ref.watch(
+    settingsProvider.select((s) => s.defaultShowGasSwitchMarkers),
+  );
 });

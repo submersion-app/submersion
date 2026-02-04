@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 class AppearancePage extends ConsumerWidget {
@@ -61,6 +62,29 @@ class AppearancePage extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           _buildSectionHeader(context, 'Dive Profile'),
+          // Right Y-Axis Metric Selector
+          ListTile(
+            leading: const Icon(Icons.show_chart),
+            title: const Text('Right Y-axis metric'),
+            subtitle: const Text('Default metric shown on right axis'),
+            trailing: DropdownButton<ProfileRightAxisMetric>(
+              value: settings.defaultRightAxisMetric,
+              underline: const SizedBox(),
+              onChanged: (value) {
+                if (value != null) {
+                  ref
+                      .read(settingsProvider.notifier)
+                      .setDefaultRightAxisMetric(value);
+                }
+              },
+              items: ProfileRightAxisMetric.values.map((metric) {
+                return DropdownMenuItem(
+                  value: metric,
+                  child: Text(metric.displayName),
+                );
+              }).toList(),
+            ),
+          ),
           SwitchListTile(
             title: const Text('Max depth marker'),
             subtitle: const Text(
@@ -85,6 +109,167 @@ class AppearancePage extends ConsumerWidget {
                   .setShowPressureThresholdMarkers(value);
             },
           ),
+          SwitchListTile(
+            title: const Text('Gas switch markers'),
+            subtitle: const Text('Show markers for gas switches'),
+            secondary: const Icon(Icons.swap_horiz),
+            value: settings.defaultShowGasSwitchMarkers,
+            onChanged: (value) {
+              ref
+                  .read(settingsProvider.notifier)
+                  .setDefaultShowGasSwitchMarkers(value);
+            },
+          ),
+          const SizedBox(height: 8),
+          _buildSubsectionHeader(context, 'Default Visible Metrics'),
+          SwitchListTile(
+            title: const Text('Temperature'),
+            dense: true,
+            value: settings.defaultShowTemperature,
+            onChanged: (value) {
+              ref
+                  .read(settingsProvider.notifier)
+                  .setDefaultShowTemperature(value);
+            },
+          ),
+          SwitchListTile(
+            title: const Text('Pressure'),
+            dense: true,
+            value: settings.defaultShowPressure,
+            onChanged: (value) {
+              ref.read(settingsProvider.notifier).setDefaultShowPressure(value);
+            },
+          ),
+          SwitchListTile(
+            title: const Text('Heart Rate'),
+            dense: true,
+            value: settings.defaultShowHeartRate,
+            onChanged: (value) {
+              ref
+                  .read(settingsProvider.notifier)
+                  .setDefaultShowHeartRate(value);
+            },
+          ),
+          SwitchListTile(
+            title: const Text('SAC Rate'),
+            dense: true,
+            value: settings.defaultShowSac,
+            onChanged: (value) {
+              ref.read(settingsProvider.notifier).setDefaultShowSac(value);
+            },
+          ),
+          SwitchListTile(
+            title: const Text('Events'),
+            dense: true,
+            value: settings.defaultShowEvents,
+            onChanged: (value) {
+              ref.read(settingsProvider.notifier).setDefaultShowEvents(value);
+            },
+          ),
+          const SizedBox(height: 8),
+          _buildSubsectionHeader(context, 'Decompression Metrics'),
+          SwitchListTile(
+            title: const Text('Ceiling'),
+            dense: true,
+            value: settings.showCeilingOnProfile,
+            onChanged: (value) {
+              ref
+                  .read(settingsProvider.notifier)
+                  .setShowCeilingOnProfile(value);
+            },
+          ),
+          SwitchListTile(
+            title: const Text('Ascent Rate Colors'),
+            dense: true,
+            value: settings.showAscentRateColors,
+            onChanged: (value) {
+              ref
+                  .read(settingsProvider.notifier)
+                  .setShowAscentRateColors(value);
+            },
+          ),
+          SwitchListTile(
+            title: const Text('NDL'),
+            dense: true,
+            value: settings.showNdlOnProfile,
+            onChanged: (value) {
+              ref.read(settingsProvider.notifier).setShowNdlOnProfile(value);
+            },
+          ),
+          SwitchListTile(
+            title: const Text('TTS (Time to Surface)'),
+            dense: true,
+            value: settings.defaultShowTts,
+            onChanged: (value) {
+              ref.read(settingsProvider.notifier).setDefaultShowTts(value);
+            },
+          ),
+          const SizedBox(height: 8),
+          _buildSubsectionHeader(context, 'Gas Analysis Metrics'),
+          SwitchListTile(
+            title: const Text('ppO2'),
+            dense: true,
+            value: settings.defaultShowPpO2,
+            onChanged: (value) {
+              ref.read(settingsProvider.notifier).setDefaultShowPpO2(value);
+            },
+          ),
+          SwitchListTile(
+            title: const Text('ppN2'),
+            dense: true,
+            value: settings.defaultShowPpN2,
+            onChanged: (value) {
+              ref.read(settingsProvider.notifier).setDefaultShowPpN2(value);
+            },
+          ),
+          SwitchListTile(
+            title: const Text('ppHe'),
+            dense: true,
+            value: settings.defaultShowPpHe,
+            onChanged: (value) {
+              ref.read(settingsProvider.notifier).setDefaultShowPpHe(value);
+            },
+          ),
+          SwitchListTile(
+            title: const Text('Gas Density'),
+            dense: true,
+            value: settings.defaultShowGasDensity,
+            onChanged: (value) {
+              ref
+                  .read(settingsProvider.notifier)
+                  .setDefaultShowGasDensity(value);
+            },
+          ),
+          const SizedBox(height: 8),
+          _buildSubsectionHeader(context, 'Gradient Factor Metrics'),
+          SwitchListTile(
+            title: const Text('GF%'),
+            dense: true,
+            value: settings.defaultShowGf,
+            onChanged: (value) {
+              ref.read(settingsProvider.notifier).setDefaultShowGf(value);
+            },
+          ),
+          SwitchListTile(
+            title: const Text('Surface GF'),
+            dense: true,
+            value: settings.defaultShowSurfaceGf,
+            onChanged: (value) {
+              ref
+                  .read(settingsProvider.notifier)
+                  .setDefaultShowSurfaceGf(value);
+            },
+          ),
+          SwitchListTile(
+            title: const Text('Mean Depth'),
+            dense: true,
+            value: settings.defaultShowMeanDepth,
+            onChanged: (value) {
+              ref
+                  .read(settingsProvider.notifier)
+                  .setDefaultShowMeanDepth(value);
+            },
+          ),
           const SizedBox(height: 32),
         ],
       ),
@@ -99,6 +284,19 @@ class AppearancePage extends ConsumerWidget {
         style: Theme.of(context).textTheme.titleSmall?.copyWith(
           color: Theme.of(context).colorScheme.primary,
           fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubsectionHeader(BuildContext context, String title) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.w500,
         ),
       ),
     );

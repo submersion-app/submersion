@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
@@ -82,6 +83,21 @@ class DiverSettingsRepository {
               showPressureThresholdMarkers: Value(
                 s.showPressureThresholdMarkers,
               ),
+              defaultRightAxisMetric: Value(s.defaultRightAxisMetric.name),
+              defaultShowTemperature: Value(s.defaultShowTemperature),
+              defaultShowPressure: Value(s.defaultShowPressure),
+              defaultShowHeartRate: Value(s.defaultShowHeartRate),
+              defaultShowSac: Value(s.defaultShowSac),
+              defaultShowEvents: Value(s.defaultShowEvents),
+              defaultShowPpO2: Value(s.defaultShowPpO2),
+              defaultShowPpN2: Value(s.defaultShowPpN2),
+              defaultShowPpHe: Value(s.defaultShowPpHe),
+              defaultShowGasDensity: Value(s.defaultShowGasDensity),
+              defaultShowGf: Value(s.defaultShowGf),
+              defaultShowSurfaceGf: Value(s.defaultShowSurfaceGf),
+              defaultShowMeanDepth: Value(s.defaultShowMeanDepth),
+              defaultShowTts: Value(s.defaultShowTts),
+              defaultShowGasSwitchMarkers: Value(s.defaultShowGasSwitchMarkers),
               notificationsEnabled: Value(s.notificationsEnabled),
               serviceReminderDays: Value(
                 _formatReminderDays(s.serviceReminderDays),
@@ -158,6 +174,23 @@ class DiverSettingsRepository {
           showMaxDepthMarker: Value(settings.showMaxDepthMarker),
           showPressureThresholdMarkers: Value(
             settings.showPressureThresholdMarkers,
+          ),
+          defaultRightAxisMetric: Value(settings.defaultRightAxisMetric.name),
+          defaultShowTemperature: Value(settings.defaultShowTemperature),
+          defaultShowPressure: Value(settings.defaultShowPressure),
+          defaultShowHeartRate: Value(settings.defaultShowHeartRate),
+          defaultShowSac: Value(settings.defaultShowSac),
+          defaultShowEvents: Value(settings.defaultShowEvents),
+          defaultShowPpO2: Value(settings.defaultShowPpO2),
+          defaultShowPpN2: Value(settings.defaultShowPpN2),
+          defaultShowPpHe: Value(settings.defaultShowPpHe),
+          defaultShowGasDensity: Value(settings.defaultShowGasDensity),
+          defaultShowGf: Value(settings.defaultShowGf),
+          defaultShowSurfaceGf: Value(settings.defaultShowSurfaceGf),
+          defaultShowMeanDepth: Value(settings.defaultShowMeanDepth),
+          defaultShowTts: Value(settings.defaultShowTts),
+          defaultShowGasSwitchMarkers: Value(
+            settings.defaultShowGasSwitchMarkers,
           ),
           notificationsEnabled: Value(settings.notificationsEnabled),
           serviceReminderDays: Value(
@@ -264,6 +297,21 @@ class DiverSettingsRepository {
       showMapBackgroundOnSiteCards: row.showMapBackgroundOnSiteCards,
       showMaxDepthMarker: row.showMaxDepthMarker,
       showPressureThresholdMarkers: row.showPressureThresholdMarkers,
+      defaultRightAxisMetric: _parseRightAxisMetric(row.defaultRightAxisMetric),
+      defaultShowTemperature: row.defaultShowTemperature,
+      defaultShowPressure: row.defaultShowPressure,
+      defaultShowHeartRate: row.defaultShowHeartRate,
+      defaultShowSac: row.defaultShowSac,
+      defaultShowEvents: row.defaultShowEvents,
+      defaultShowPpO2: row.defaultShowPpO2,
+      defaultShowPpN2: row.defaultShowPpN2,
+      defaultShowPpHe: row.defaultShowPpHe,
+      defaultShowGasDensity: row.defaultShowGasDensity,
+      defaultShowGf: row.defaultShowGf,
+      defaultShowSurfaceGf: row.defaultShowSurfaceGf,
+      defaultShowMeanDepth: row.defaultShowMeanDepth,
+      defaultShowTts: row.defaultShowTts,
+      defaultShowGasSwitchMarkers: row.defaultShowGasSwitchMarkers,
       notificationsEnabled: row.notificationsEnabled,
       serviceReminderDays: _parseReminderDays(row.serviceReminderDays),
       reminderTime: _parseReminderTime(row.reminderTime),
@@ -274,6 +322,13 @@ class DiverSettingsRepository {
     return DepthUnit.values.firstWhere(
       (e) => e.name == value,
       orElse: () => DepthUnit.meters,
+    );
+  }
+
+  ProfileRightAxisMetric _parseRightAxisMetric(String value) {
+    return ProfileRightAxisMetric.values.firstWhere(
+      (e) => e.name == value,
+      orElse: () => ProfileRightAxisMetric.temperature,
     );
   }
 

@@ -546,6 +546,37 @@ class DiverSettings extends Table {
       boolean().withDefault(const Constant(true))();
   BoolColumn get showPressureThresholdMarkers =>
       boolean().withDefault(const Constant(false))();
+  // Dive profile chart defaults
+  TextColumn get defaultRightAxisMetric =>
+      text().withDefault(const Constant('temperature'))();
+  BoolColumn get defaultShowTemperature =>
+      boolean().withDefault(const Constant(true))();
+  BoolColumn get defaultShowPressure =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get defaultShowHeartRate =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get defaultShowSac =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get defaultShowEvents =>
+      boolean().withDefault(const Constant(true))();
+  BoolColumn get defaultShowPpO2 =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get defaultShowPpN2 =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get defaultShowPpHe =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get defaultShowGasDensity =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get defaultShowGf =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get defaultShowSurfaceGf =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get defaultShowMeanDepth =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get defaultShowTts =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get defaultShowGasSwitchMarkers =>
+      boolean().withDefault(const Constant(true))();
   // Notification settings (v26)
   BoolColumn get notificationsEnabled =>
       boolean().withDefault(const Constant(true))();
@@ -1019,7 +1050,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 28;
+  int get schemaVersion => 29;
 
   @override
   MigrationStrategy get migration {
@@ -1597,6 +1628,54 @@ class AppDatabase extends _$AppDatabase {
             CREATE INDEX IF NOT EXISTS idx_scheduled_notifications_equipment
             ON scheduled_notifications(equipment_id)
           ''');
+        }
+        if (from < 29) {
+          // Add dive profile chart default visibility settings to diver_settings
+          await customStatement(
+            "ALTER TABLE diver_settings ADD COLUMN default_right_axis_metric TEXT NOT NULL DEFAULT 'temperature'",
+          );
+          await customStatement(
+            'ALTER TABLE diver_settings ADD COLUMN default_show_temperature INTEGER NOT NULL DEFAULT 1',
+          );
+          await customStatement(
+            'ALTER TABLE diver_settings ADD COLUMN default_show_pressure INTEGER NOT NULL DEFAULT 0',
+          );
+          await customStatement(
+            'ALTER TABLE diver_settings ADD COLUMN default_show_heart_rate INTEGER NOT NULL DEFAULT 0',
+          );
+          await customStatement(
+            'ALTER TABLE diver_settings ADD COLUMN default_show_sac INTEGER NOT NULL DEFAULT 0',
+          );
+          await customStatement(
+            'ALTER TABLE diver_settings ADD COLUMN default_show_events INTEGER NOT NULL DEFAULT 1',
+          );
+          await customStatement(
+            'ALTER TABLE diver_settings ADD COLUMN default_show_pp_o2 INTEGER NOT NULL DEFAULT 0',
+          );
+          await customStatement(
+            'ALTER TABLE diver_settings ADD COLUMN default_show_pp_n2 INTEGER NOT NULL DEFAULT 0',
+          );
+          await customStatement(
+            'ALTER TABLE diver_settings ADD COLUMN default_show_pp_he INTEGER NOT NULL DEFAULT 0',
+          );
+          await customStatement(
+            'ALTER TABLE diver_settings ADD COLUMN default_show_gas_density INTEGER NOT NULL DEFAULT 0',
+          );
+          await customStatement(
+            'ALTER TABLE diver_settings ADD COLUMN default_show_gf INTEGER NOT NULL DEFAULT 0',
+          );
+          await customStatement(
+            'ALTER TABLE diver_settings ADD COLUMN default_show_surface_gf INTEGER NOT NULL DEFAULT 0',
+          );
+          await customStatement(
+            'ALTER TABLE diver_settings ADD COLUMN default_show_mean_depth INTEGER NOT NULL DEFAULT 0',
+          );
+          await customStatement(
+            'ALTER TABLE diver_settings ADD COLUMN default_show_tts INTEGER NOT NULL DEFAULT 0',
+          );
+          await customStatement(
+            'ALTER TABLE diver_settings ADD COLUMN default_show_gas_switch_markers INTEGER NOT NULL DEFAULT 1',
+          );
         }
       },
       beforeOpen: (details) async {

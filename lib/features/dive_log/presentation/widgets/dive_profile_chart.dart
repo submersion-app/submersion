@@ -6,6 +6,7 @@ import 'package:flutter/gestures.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/ascent_rate_calculator.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -663,6 +664,16 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       }
     }
 
+    // Determine effective right axis metric using settings default and fallback chain
+    final legendNotifier = ref.read(profileLegendProvider.notifier);
+    final preferredMetric = legendNotifier.getEffectiveRightAxisMetric();
+    final effectiveRightAxisMetric = _getEffectiveRightAxisMetric(
+      preferredMetric,
+    );
+    final rightAxisRange = effectiveRightAxisMetric != null
+        ? _getMetricRange(effectiveRightAxisMetric, units)
+        : null;
+
     // Pressure bounds (if showing) - includes both legacy single pressure and multi-tank
     double? minPressure, maxPressure;
     if (_showPressure && hasPressureData) {
@@ -775,27 +786,37 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               rightTitles: AxisTitles(
                 sideTitles: SideTitles(
                   showTitles:
-                      _showTemperature && hasTemperatureData && minTemp != null,
-                  reservedSize: 40,
+                      effectiveRightAxisMetric != null &&
+                      rightAxisRange != null,
+                  reservedSize: 50,
                   getTitlesWidget: (value, meta) {
-                    if (minTemp == null || maxTemp == null) {
+                    if (effectiveRightAxisMetric == null ||
+                        rightAxisRange == null) {
                       return const SizedBox();
                     }
-                    // Map from inverted depth axis to temperature (already in user's preferred unit)
-                    final temp = _mapDepthToTemp(
+                    // Map from inverted depth axis to the metric value
+                    final metricValue = _mapDepthToMetricValue(
                       -value,
                       totalMaxDepth,
-                      minTemp,
-                      maxTemp,
+                      rightAxisRange.min,
+                      rightAxisRange.max,
                     );
-                    if (temp < minTemp || temp > maxTemp) {
+                    if (metricValue < rightAxisRange.min ||
+                        metricValue > rightAxisRange.max) {
                       return const SizedBox();
                     }
+                    final metricColor = effectiveRightAxisMetric.getColor(
+                      colorScheme,
+                    );
                     return Text(
-                      '${temp.toStringAsFixed(0)}${units.temperatureSymbol}',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: colorScheme.tertiary,
+                      _formatRightAxisValue(
+                        effectiveRightAxisMetric,
+                        metricValue,
+                        units,
                       ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.labelSmall?.copyWith(color: metricColor),
                     );
                   },
                 ),
@@ -1340,9 +1361,152 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             ),
           ),
         ),
-        // Marker labels removed - marker info now shown in tooltip when tapping near markers
+        // Right axis tap overlay for metric selection
+        if (effectiveRightAxisMetric != null)
+          Positioned(
+            right: 0,
+            top: 0,
+            bottom: 30, // Leave space for bottom axis
+            width: 50, // Match reservedSize of right axis
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () => _showRightAxisMetricSelector(
+                context,
+                colorScheme,
+                effectiveRightAxisMetric,
+              ),
+              child: MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: Container(color: Colors.transparent),
+              ),
+            ),
+          ),
       ],
     );
+  }
+
+  /// Show popup menu for selecting right axis metric
+  void _showRightAxisMetricSelector(
+    BuildContext context,
+    ColorScheme colorScheme,
+    ProfileRightAxisMetric currentMetric,
+  ) {
+    final legendNotifier = ref.read(profileLegendProvider.notifier);
+
+    // Build list of metrics grouped by category
+    final menuItems = <PopupMenuEntry<ProfileRightAxisMetric?>>[];
+
+    // Add "None" option to hide the axis
+    menuItems.add(
+      PopupMenuItem<ProfileRightAxisMetric?>(
+        value: null,
+        child: Row(
+          children: [
+            Icon(
+              Icons.visibility_off,
+              size: 16,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 8),
+            const Text('None'),
+          ],
+        ),
+      ),
+    );
+    menuItems.add(const PopupMenuDivider());
+
+    // Group metrics by category
+    for (final category in ProfileMetricCategory.values) {
+      final metricsInCategory = category.metrics;
+      final availableMetrics = metricsInCategory
+          .where((m) => _hasDataForMetric(m))
+          .toList();
+
+      if (availableMetrics.isEmpty) continue;
+
+      // Add divider before category (except first)
+      if (menuItems.length > 2) {
+        menuItems.add(const PopupMenuDivider());
+      }
+
+      // Add category header
+      menuItems.add(
+        PopupMenuItem<ProfileRightAxisMetric?>(
+          enabled: false,
+          height: 32,
+          child: Text(
+            category.displayName,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      );
+
+      // Add metrics in this category
+      for (final metric in availableMetrics) {
+        final isSelected = metric == currentMetric;
+        final metricColor = metric.getColor(colorScheme);
+
+        menuItems.add(
+          PopupMenuItem<ProfileRightAxisMetric?>(
+            value: metric,
+            child: Row(
+              children: [
+                Icon(
+                  isSelected ? Icons.check : Icons.show_chart,
+                  size: 16,
+                  color: isSelected
+                      ? metricColor
+                      : colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  width: 12,
+                  height: 3,
+                  decoration: BoxDecoration(
+                    color: metricColor,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  metric.displayName,
+                  style: TextStyle(
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+    }
+
+    // Show the popup menu
+    final RenderBox renderBox = context.findRenderObject() as RenderBox;
+    final offset = renderBox.localToGlobal(Offset.zero);
+
+    showMenu<ProfileRightAxisMetric?>(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        offset.dx + renderBox.size.width - 200,
+        offset.dy,
+        offset.dx + renderBox.size.width,
+        offset.dy + renderBox.size.height,
+      ),
+      items: menuItems,
+    ).then((selectedMetric) {
+      // Handle "None" selection (null value means user wants to hide)
+      // For now, we don't have a "hide axis" option in state, so selecting
+      // an actual metric or canceling
+      if (selectedMetric != null) {
+        legendNotifier.setRightAxisMetric(selectedMetric);
+      }
+    });
   }
 
   /// Build depth line segments colored by active gas
@@ -1741,17 +1905,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   ) {
     final normalized = (value - minValue) / (maxValue - minValue);
     return maxDepth * (1 - normalized);
-  }
-
-  // Map depth axis value back to temperature for right axis labels
-  double _mapDepthToTemp(
-    double depthAxisValue,
-    double maxDepth,
-    double minTemp,
-    double maxTemp,
-  ) {
-    final normalized = 1 - (depthAxisValue / maxDepth);
-    return minTemp + (normalized * (maxTemp - minTemp));
   }
 
   double _calculateDepthInterval(double maxDepth) {
@@ -2266,6 +2419,178 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         },
       ),
     );
+  }
+
+  /// Check if a specific metric has data available in this dive profile
+  bool _hasDataForMetric(ProfileRightAxisMetric metric) {
+    switch (metric) {
+      case ProfileRightAxisMetric.temperature:
+        return widget.profile.any((p) => p.temperature != null);
+      case ProfileRightAxisMetric.pressure:
+        return widget.profile.any((p) => p.pressure != null);
+      case ProfileRightAxisMetric.heartRate:
+        return widget.profile.any((p) => p.heartRate != null);
+      case ProfileRightAxisMetric.sac:
+        return widget.sacCurve != null && widget.sacCurve!.any((s) => s > 0);
+      case ProfileRightAxisMetric.ndl:
+        return widget.ndlCurve != null && widget.ndlCurve!.isNotEmpty;
+      case ProfileRightAxisMetric.ppO2:
+        return widget.ppO2Curve != null && widget.ppO2Curve!.isNotEmpty;
+      case ProfileRightAxisMetric.ppN2:
+        return widget.ppN2Curve != null && widget.ppN2Curve!.isNotEmpty;
+      case ProfileRightAxisMetric.ppHe:
+        return widget.ppHeCurve != null &&
+            widget.ppHeCurve!.any((v) => v > 0.001);
+      case ProfileRightAxisMetric.gasDensity:
+        return widget.densityCurve != null && widget.densityCurve!.isNotEmpty;
+      case ProfileRightAxisMetric.gf:
+        return widget.gfCurve != null && widget.gfCurve!.isNotEmpty;
+      case ProfileRightAxisMetric.surfaceGf:
+        return widget.surfaceGfCurve != null &&
+            widget.surfaceGfCurve!.isNotEmpty;
+      case ProfileRightAxisMetric.meanDepth:
+        return widget.meanDepthCurve != null &&
+            widget.meanDepthCurve!.isNotEmpty;
+      case ProfileRightAxisMetric.tts:
+        return widget.ttsCurve != null && widget.ttsCurve!.isNotEmpty;
+    }
+  }
+
+  /// Get the effective right axis metric using the fallback chain
+  ProfileRightAxisMetric? _getEffectiveRightAxisMetric(
+    ProfileRightAxisMetric preferred,
+  ) {
+    // First, check if the preferred metric has data
+    if (_hasDataForMetric(preferred)) {
+      return preferred;
+    }
+
+    // Fall back through the priority chain
+    for (final fallback in ProfileRightAxisMetric.fallbackPriority) {
+      if (_hasDataForMetric(fallback)) {
+        return fallback;
+      }
+    }
+
+    // No metric has data
+    return null;
+  }
+
+  /// Get the min/max value range for a metric
+  ({double min, double max})? _getMetricRange(
+    ProfileRightAxisMetric metric,
+    UnitFormatter units,
+  ) {
+    switch (metric) {
+      case ProfileRightAxisMetric.temperature:
+        final temps = widget.profile
+            .where((p) => p.temperature != null)
+            .map((p) => units.convertTemperature(p.temperature!));
+        if (temps.isEmpty) return null;
+        return (
+          min: temps.reduce(math.min) - 1,
+          max: temps.reduce(math.max) + 1,
+        );
+
+      case ProfileRightAxisMetric.pressure:
+        final pressures = widget.profile
+            .where((p) => p.pressure != null)
+            .map((p) => p.pressure!);
+        if (pressures.isEmpty) return null;
+        return (
+          min: pressures.reduce(math.min) - 10,
+          max: pressures.reduce(math.max) + 10,
+        );
+
+      case ProfileRightAxisMetric.heartRate:
+        final hrs = widget.profile
+            .where((p) => p.heartRate != null)
+            .map((p) => p.heartRate!.toDouble());
+        if (hrs.isEmpty) return null;
+        return (min: hrs.reduce(math.min) - 5, max: hrs.reduce(math.max) + 5);
+
+      case ProfileRightAxisMetric.sac:
+        if (widget.sacCurve == null) return null;
+        final sacs = widget.sacCurve!.where((s) => s > 0);
+        if (sacs.isEmpty) return null;
+        return (min: 0.0, max: sacs.reduce(math.max) * 1.2);
+
+      case ProfileRightAxisMetric.ndl:
+        return (min: 0.0, max: 3600.0); // 0-60 minutes
+
+      case ProfileRightAxisMetric.ppO2:
+        return (min: 0.0, max: 2.0); // 0-2.0 bar
+
+      case ProfileRightAxisMetric.ppN2:
+        return (min: 0.0, max: 5.0); // 0-5.0 bar
+
+      case ProfileRightAxisMetric.ppHe:
+        return (min: 0.0, max: 3.0); // 0-3.0 bar
+
+      case ProfileRightAxisMetric.gasDensity:
+        return (min: 0.0, max: 8.0); // 0-8 g/L
+
+      case ProfileRightAxisMetric.gf:
+        return (min: 0.0, max: 120.0); // 0-120%
+
+      case ProfileRightAxisMetric.surfaceGf:
+        return (min: 0.0, max: 150.0); // 0-150%
+
+      case ProfileRightAxisMetric.meanDepth:
+        if (widget.meanDepthCurve == null) return null;
+        final depths = widget.meanDepthCurve!;
+        if (depths.isEmpty) return null;
+        return (min: 0.0, max: depths.reduce(math.max) * 1.1);
+
+      case ProfileRightAxisMetric.tts:
+        return (min: 0.0, max: 3600.0); // 0-60 minutes
+    }
+  }
+
+  /// Format a value for the right axis label
+  String _formatRightAxisValue(
+    ProfileRightAxisMetric metric,
+    double value,
+    UnitFormatter units,
+  ) {
+    switch (metric) {
+      case ProfileRightAxisMetric.temperature:
+        return '${value.toStringAsFixed(0)}${units.temperatureSymbol}';
+      case ProfileRightAxisMetric.pressure:
+        return '${value.toStringAsFixed(0)}${units.pressureSymbol}';
+      case ProfileRightAxisMetric.heartRate:
+        return value.toStringAsFixed(0);
+      case ProfileRightAxisMetric.sac:
+        return value.toStringAsFixed(1);
+      case ProfileRightAxisMetric.ndl:
+        final min = (value / 60).round();
+        return '${min}m';
+      case ProfileRightAxisMetric.ppO2:
+      case ProfileRightAxisMetric.ppN2:
+      case ProfileRightAxisMetric.ppHe:
+        return value.toStringAsFixed(1);
+      case ProfileRightAxisMetric.gasDensity:
+        return value.toStringAsFixed(1);
+      case ProfileRightAxisMetric.gf:
+      case ProfileRightAxisMetric.surfaceGf:
+        return '${value.toStringAsFixed(0)}%';
+      case ProfileRightAxisMetric.meanDepth:
+        return units.formatDepth(value);
+      case ProfileRightAxisMetric.tts:
+        final min = (value / 60).round();
+        return '${min}m';
+    }
+  }
+
+  /// Map a depth axis value back to the metric value for axis labels
+  double _mapDepthToMetricValue(
+    double depthAxisValue,
+    double maxDepth,
+    double minValue,
+    double maxValue,
+  ) {
+    final normalized = 1 - (depthAxisValue / maxDepth);
+    return minValue + (normalized * (maxValue - minValue));
   }
 }
 

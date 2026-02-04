@@ -1,6 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:submersion/core/constants/profile_metrics.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+
 part 'profile_legend_provider.g.dart';
 
 /// Immutable state for dive profile chart legend toggles.
@@ -9,6 +12,9 @@ part 'profile_legend_provider.g.dart';
 /// "secondary" toggles (less common, shown in popover menu).
 @immutable
 class ProfileLegendState {
+  // Right Y-axis metric selection
+  final ProfileRightAxisMetric? rightAxisMetric;
+
   // Primary toggles (always visible in legend)
   final bool showTemperature;
   final bool showPressure;
@@ -39,6 +45,7 @@ class ProfileLegendState {
   final Map<String, bool> showTankPressure;
 
   const ProfileLegendState({
+    this.rightAxisMetric,
     this.showTemperature = true,
     this.showPressure = false,
     this.showCeiling = true,
@@ -90,6 +97,8 @@ class ProfileLegendState {
   bool get hasActiveSecondary => activeSecondaryCount > 0;
 
   ProfileLegendState copyWith({
+    ProfileRightAxisMetric? rightAxisMetric,
+    bool clearRightAxisMetric = false,
     bool? showTemperature,
     bool? showPressure,
     bool? showCeiling,
@@ -113,6 +122,9 @@ class ProfileLegendState {
     Map<String, bool>? showTankPressure,
   }) {
     return ProfileLegendState(
+      rightAxisMetric: clearRightAxisMetric
+          ? null
+          : (rightAxisMetric ?? this.rightAxisMetric),
       showTemperature: showTemperature ?? this.showTemperature,
       showPressure: showPressure ?? this.showPressure,
       showCeiling: showCeiling ?? this.showCeiling,
@@ -142,6 +154,7 @@ class ProfileLegendState {
       identical(this, other) ||
       other is ProfileLegendState &&
           runtimeType == other.runtimeType &&
+          rightAxisMetric == other.rightAxisMetric &&
           showTemperature == other.showTemperature &&
           showPressure == other.showPressure &&
           showCeiling == other.showCeiling &&
@@ -166,6 +179,7 @@ class ProfileLegendState {
 
   @override
   int get hashCode => Object.hashAll([
+    rightAxisMetric,
     showTemperature,
     showPressure,
     showCeiling,
@@ -204,7 +218,48 @@ class ProfileLegend extends _$ProfileLegend {
   bool _pressureInitialized = false;
 
   @override
-  ProfileLegendState build() => const ProfileLegendState();
+  ProfileLegendState build() {
+    // Initialize from user settings
+    final settings = ref.watch(settingsProvider);
+    return ProfileLegendState(
+      // rightAxisMetric is null initially - uses setting default via fallback
+      showTemperature: settings.defaultShowTemperature,
+      showPressure: settings.defaultShowPressure,
+      showCeiling: settings.showCeilingOnProfile,
+      showHeartRate: settings.defaultShowHeartRate,
+      showSac: settings.defaultShowSac,
+      showAscentRateColors: settings.showAscentRateColors,
+      showEvents: settings.defaultShowEvents,
+      showMaxDepthMarker: settings.showMaxDepthMarker,
+      showPressureMarkers: settings.showPressureThresholdMarkers,
+      showGasSwitchMarkers: settings.defaultShowGasSwitchMarkers,
+      showNdl: settings.showNdlOnProfile,
+      showPpO2: settings.defaultShowPpO2,
+      showPpN2: settings.defaultShowPpN2,
+      showPpHe: settings.defaultShowPpHe,
+      showMod: false, // MOD not in settings yet
+      showDensity: settings.defaultShowGasDensity,
+      showGf: settings.defaultShowGf,
+      showSurfaceGf: settings.defaultShowSurfaceGf,
+      showMeanDepth: settings.defaultShowMeanDepth,
+      showTts: settings.defaultShowTts,
+    );
+  }
+
+  /// Set the right axis metric for this session
+  void setRightAxisMetric(ProfileRightAxisMetric? metric) {
+    if (metric == null) {
+      state = state.copyWith(clearRightAxisMetric: true);
+    } else {
+      state = state.copyWith(rightAxisMetric: metric);
+    }
+  }
+
+  /// Get the effective right axis metric (session override or settings default)
+  ProfileRightAxisMetric getEffectiveRightAxisMetric() {
+    return state.rightAxisMetric ??
+        ref.read(settingsProvider).defaultRightAxisMetric;
+  }
 
   // Primary toggle methods
   void toggleTemperature() {

@@ -148,6 +148,53 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
     }
     state = state.copyWith(serviceReminderDays: current);
   }
+
+  // Profile chart default metric setters
+  @override
+  Future<void> setDefaultRightAxisMetric(dynamic metric) async =>
+      state = state.copyWith(defaultRightAxisMetric: metric);
+  @override
+  Future<void> setDefaultShowTemperature(bool value) async =>
+      state = state.copyWith(defaultShowTemperature: value);
+  @override
+  Future<void> setDefaultShowPressure(bool value) async =>
+      state = state.copyWith(defaultShowPressure: value);
+  @override
+  Future<void> setDefaultShowHeartRate(bool value) async =>
+      state = state.copyWith(defaultShowHeartRate: value);
+  @override
+  Future<void> setDefaultShowSac(bool value) async =>
+      state = state.copyWith(defaultShowSac: value);
+  @override
+  Future<void> setDefaultShowEvents(bool value) async =>
+      state = state.copyWith(defaultShowEvents: value);
+  @override
+  Future<void> setDefaultShowGasSwitchMarkers(bool value) async =>
+      state = state.copyWith(defaultShowGasSwitchMarkers: value);
+  @override
+  Future<void> setDefaultShowPpO2(bool value) async =>
+      state = state.copyWith(defaultShowPpO2: value);
+  @override
+  Future<void> setDefaultShowPpN2(bool value) async =>
+      state = state.copyWith(defaultShowPpN2: value);
+  @override
+  Future<void> setDefaultShowPpHe(bool value) async =>
+      state = state.copyWith(defaultShowPpHe: value);
+  @override
+  Future<void> setDefaultShowGasDensity(bool value) async =>
+      state = state.copyWith(defaultShowGasDensity: value);
+  @override
+  Future<void> setDefaultShowGf(bool value) async =>
+      state = state.copyWith(defaultShowGf: value);
+  @override
+  Future<void> setDefaultShowSurfaceGf(bool value) async =>
+      state = state.copyWith(defaultShowSurfaceGf: value);
+  @override
+  Future<void> setDefaultShowMeanDepth(bool value) async =>
+      state = state.copyWith(defaultShowMeanDepth: value);
+  @override
+  Future<void> setDefaultShowTts(bool value) async =>
+      state = state.copyWith(defaultShowTts: value);
 }
 
 /// Mock CurrentDiverIdNotifier that doesn't access the database
