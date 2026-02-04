@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/export_service.dart';
@@ -366,6 +367,104 @@ class ExportNotifier extends StateNotifier<ExportState> {
       state = state.copyWith(
         status: ExportStatus.success,
         message: 'UDDF file generated successfully',
+        filePath: path,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        status: ExportStatus.error,
+        message: 'Export failed: $e',
+      );
+    }
+  }
+
+  /// Export all data to Excel format with multiple sheets.
+  ///
+  /// Creates an Excel workbook with sheets for dives, sites, equipment,
+  /// and statistics. All measurements are converted to user's unit preferences.
+  Future<void> exportToExcel() async {
+    state = state.copyWith(
+      status: ExportStatus.exporting,
+      message: 'Generating Excel file...',
+    );
+    try {
+      final dives = _ref.read(diveListNotifierProvider).value ?? [];
+      final sites = await _ref.read(sitesProvider.future);
+      final equipment = await _ref.read(allEquipmentProvider.future);
+
+      if (dives.isEmpty && sites.isEmpty && equipment.isEmpty) {
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: 'No data to export',
+        );
+        return;
+      }
+
+      // Get user's unit preferences
+      final settings = _ref.read(settingsProvider);
+
+      state = state.copyWith(message: 'Building Excel workbook...');
+      final path = await _exportService.exportToExcel(
+        dives: dives,
+        sites: sites,
+        equipment: equipment,
+        depthUnit: settings.depthUnit,
+        temperatureUnit: settings.temperatureUnit,
+        pressureUnit: settings.pressureUnit,
+        volumeUnit: settings.volumeUnit,
+        dateFormat: settings.dateFormat,
+      );
+
+      state = state.copyWith(
+        status: ExportStatus.success,
+        message: 'Excel file exported successfully',
+        filePath: path,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        status: ExportStatus.error,
+        message: 'Export failed: $e',
+      );
+    }
+  }
+
+  /// Export dive sites to KML format for Google Earth.
+  ///
+  /// Creates a KML file with placemarks for each dive site with GPS
+  /// coordinates. Each placemark includes site details and dive history.
+  Future<void> exportToKml() async {
+    state = state.copyWith(
+      status: ExportStatus.exporting,
+      message: 'Generating KML file...',
+    );
+    try {
+      final sites = await _ref.read(sitesProvider.future);
+      final dives = _ref.read(diveListNotifierProvider).value ?? [];
+
+      if (sites.isEmpty) {
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: 'No dive sites to export',
+        );
+        return;
+      }
+
+      // Get user's unit preferences
+      final settings = _ref.read(settingsProvider);
+
+      state = state.copyWith(message: 'Building KML file...');
+      final (path, skippedCount) = await _exportService.exportToKml(
+        sites: sites,
+        dives: dives,
+        depthUnit: settings.depthUnit,
+        dateFormat: settings.dateFormat,
+      );
+
+      final skippedMsg = skippedCount > 0
+          ? ' ($skippedCount sites without coordinates skipped)'
+          : '';
+      state = state.copyWith(
+        status: ExportStatus.success,
+        message: 'KML file exported successfully$skippedMsg',
         filePath: path,
       );
     } catch (e) {

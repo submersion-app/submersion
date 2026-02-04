@@ -994,16 +994,15 @@
 | UDDF import/export | ✅ Implemented | MVP | v3.2.0 compliant |
 | UDDF buddy/guide export | ✅ Implemented | v1.1 | Export to both legacy and app-specific fields |
 | PDF export | ✅ Implemented | MVP | Printable logbook |
-| DAN DL7 export | 📋 Planned | v1.5 | Research data format |
-| Excel export | 📋 Planned | v1.5 | .xlsx format |
-| Google Earth KML export | 📋 Planned | v1.5 | Map all dive sites |
+| Excel export | ✅ Implemented | v1.5 | Multi-sheet .xlsx with stats |
+| Google Earth KML export | ✅ Implemented | v1.5 | Site placemarks with dive history |
+| DAN DL7 export | ⏸️ Deferred | v2.0 | No public spec available |
 | ePub export | 📋 Planned | v2.0 | Electronic book format for travel |
 | HTML export | 📋 Planned | v2.0 | Web-viewable logbook |
 
 **v1.5 Tasks:**
-- [ ] DAN DL7 export (research format specification)
-- [ ] Excel export with multiple sheets (dives, sites, equipment, statistics)
-- [ ] KML export (placemark per dive site with description bubble)
+- [x] Excel export with multiple sheets (dives, sites, equipment, statistics)
+- [x] KML export (placemark per dive site with description bubble)
 
 **v2.0 Tasks:**
 - [ ] ePub export (electronic book for showing experience digitally)

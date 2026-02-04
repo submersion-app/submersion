@@ -1,7 +1,11 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:csv/csv.dart';
+import 'package:excel/excel.dart' as xl;
+
+import 'package:submersion/core/constants/units.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:gal/gal.dart';
 import 'package:intl/intl.dart';
@@ -5606,5 +5610,862 @@ class ExportService {
     }
 
     return result;
+  }
+
+  // ==================== EXCEL EXPORT ====================
+
+  /// Export all dive data to Excel format with multiple sheets.
+  ///
+  /// Creates an Excel workbook with four sheets:
+  /// - Dives: All dive logs with details
+  /// - Sites: All dive sites
+  /// - Equipment: All equipment items
+  /// - Statistics: Summary statistics and breakdowns
+  ///
+  /// All measurements are converted to the user's preferred units.
+  Future<String> exportToExcel({
+    required List<Dive> dives,
+    required List<DiveSite> sites,
+    required List<EquipmentItem> equipment,
+    required DepthUnit depthUnit,
+    required TemperatureUnit temperatureUnit,
+    required PressureUnit pressureUnit,
+    required VolumeUnit volumeUnit,
+    required DateFormatPreference dateFormat,
+  }) async {
+    final excel = xl.Excel.createExcel();
+
+    // Remove default sheet
+    excel.delete('Sheet1');
+
+    // Create sheets
+    _buildDivesSheet(
+      excel,
+      dives,
+      depthUnit,
+      temperatureUnit,
+      pressureUnit,
+      volumeUnit,
+      dateFormat,
+    );
+    _buildSitesSheet(excel, sites, depthUnit);
+    _buildEquipmentSheet(excel, equipment, dateFormat);
+    _buildStatisticsSheet(
+      excel,
+      dives,
+      sites,
+      equipment,
+      depthUnit,
+      temperatureUnit,
+    );
+
+    // Encode to bytes
+    final bytes = excel.encode();
+    if (bytes == null) {
+      throw Exception('Failed to encode Excel file');
+    }
+
+    // Generate filename with date
+    final dateStr = _dateFormat.format(DateTime.now());
+    final fileName = 'submersion_export_$dateStr.xlsx';
+
+    return _saveAndShareFileBytes(
+      bytes,
+      fileName,
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+  }
+
+  void _buildDivesSheet(
+    xl.Excel excel,
+    List<Dive> dives,
+    DepthUnit depthUnit,
+    TemperatureUnit temperatureUnit,
+    PressureUnit pressureUnit,
+    VolumeUnit volumeUnit,
+    DateFormatPreference dateFormat,
+  ) {
+    final sheet = excel['Dives'];
+
+    // Headers
+    final headers = [
+      'Dive Number',
+      'Date',
+      'Time',
+      'Site',
+      'Location',
+      'Max Depth (${depthUnit.symbol})',
+      'Avg Depth (${depthUnit.symbol})',
+      'Bottom Time (min)',
+      'Runtime (min)',
+      'Water Temp (${temperatureUnit.symbol})',
+      'Air Temp (${temperatureUnit.symbol})',
+      'Visibility',
+      'Dive Type',
+      'Dive Mode',
+      'Buddy',
+      'Dive Master',
+      'Rating',
+      'Start Pressure (${pressureUnit.symbol})',
+      'End Pressure (${pressureUnit.symbol})',
+      'Tank Volume (${volumeUnit.symbol})',
+      'O2 %',
+      'He %',
+      'Notes',
+    ];
+
+    for (var col = 0; col < headers.length; col++) {
+      sheet
+          .cell(xl.CellIndex.indexByColumnRow(columnIndex: col, rowIndex: 0))
+          .value = xl.TextCellValue(
+        headers[col],
+      );
+    }
+
+    // Data rows
+    for (var row = 0; row < dives.length; row++) {
+      final dive = dives[row];
+      final tank = dive.tanks.isNotEmpty ? dive.tanks.first : null;
+
+      final rowData = <dynamic>[
+        dive.diveNumber ?? '',
+        _formatDateForExport(dive.dateTime, dateFormat),
+        _timeFormat.format(dive.dateTime),
+        dive.site?.name ?? '',
+        dive.site?.locationString ?? '',
+        _convertDepth(dive.maxDepth, depthUnit),
+        _convertDepth(dive.avgDepth, depthUnit),
+        dive.duration?.inMinutes ?? '',
+        dive.runtime?.inMinutes ?? '',
+        _convertTemperature(dive.waterTemp, temperatureUnit),
+        _convertTemperature(dive.airTemp, temperatureUnit),
+        dive.visibility?.displayName ?? '',
+        dive.diveTypeName,
+        dive.diveMode.displayName,
+        dive.buddy,
+        dive.diveMaster,
+        dive.rating ?? '',
+        _convertPressure(tank?.startPressure?.toDouble(), pressureUnit),
+        _convertPressure(tank?.endPressure?.toDouble(), pressureUnit),
+        _convertVolume(tank?.volume, volumeUnit),
+        tank?.gasMix.o2.toStringAsFixed(0) ?? '',
+        tank?.gasMix.he.toStringAsFixed(0) ?? '',
+        dive.notes.replaceAll('\n', ' '),
+      ];
+
+      for (var col = 0; col < rowData.length; col++) {
+        final value = rowData[col];
+        sheet
+            .cell(
+              xl.CellIndex.indexByColumnRow(
+                columnIndex: col,
+                rowIndex: row + 1,
+              ),
+            )
+            .value = _toCellValue(
+          value,
+        );
+      }
+    }
+  }
+
+  void _buildSitesSheet(
+    xl.Excel excel,
+    List<DiveSite> sites,
+    DepthUnit depthUnit,
+  ) {
+    final sheet = excel['Sites'];
+
+    // Headers
+    final headers = [
+      'Name',
+      'Country',
+      'Region',
+      'Latitude',
+      'Longitude',
+      'Min Depth (${depthUnit.symbol})',
+      'Max Depth (${depthUnit.symbol})',
+      'Water Type',
+      'Typical Current',
+      'Entry Type',
+      'Difficulty',
+      'Rating',
+      'Description',
+      'Hazards',
+      'Access Notes',
+      'Notes',
+    ];
+
+    for (var col = 0; col < headers.length; col++) {
+      sheet
+          .cell(xl.CellIndex.indexByColumnRow(columnIndex: col, rowIndex: 0))
+          .value = xl.TextCellValue(
+        headers[col],
+      );
+    }
+
+    // Data rows
+    for (var row = 0; row < sites.length; row++) {
+      final site = sites[row];
+
+      final rowData = <dynamic>[
+        site.name,
+        site.country ?? '',
+        site.region ?? '',
+        site.location?.latitude.toStringAsFixed(6) ?? '',
+        site.location?.longitude.toStringAsFixed(6) ?? '',
+        _convertDepth(site.minDepth, depthUnit),
+        _convertDepth(site.maxDepth, depthUnit),
+        site.conditions?.waterType ?? '',
+        site.conditions?.typicalCurrent ?? '',
+        site.conditions?.entryType ?? '',
+        site.difficulty?.displayName ?? '',
+        site.rating?.toStringAsFixed(1) ?? '',
+        site.description.replaceAll('\n', ' '),
+        site.hazards ?? '',
+        site.accessNotes ?? '',
+        site.notes.replaceAll('\n', ' '),
+      ];
+
+      for (var col = 0; col < rowData.length; col++) {
+        final value = rowData[col];
+        sheet
+            .cell(
+              xl.CellIndex.indexByColumnRow(
+                columnIndex: col,
+                rowIndex: row + 1,
+              ),
+            )
+            .value = _toCellValue(
+          value,
+        );
+      }
+    }
+  }
+
+  void _buildEquipmentSheet(
+    xl.Excel excel,
+    List<EquipmentItem> equipment,
+    DateFormatPreference dateFormat,
+  ) {
+    final sheet = excel['Equipment'];
+
+    // Headers
+    final headers = [
+      'Name',
+      'Type',
+      'Brand',
+      'Model',
+      'Serial Number',
+      'Size',
+      'Status',
+      'Purchase Date',
+      'Last Service',
+      'Next Service Due',
+      'Active',
+      'Notes',
+    ];
+
+    for (var col = 0; col < headers.length; col++) {
+      sheet
+          .cell(xl.CellIndex.indexByColumnRow(columnIndex: col, rowIndex: 0))
+          .value = xl.TextCellValue(
+        headers[col],
+      );
+    }
+
+    // Data rows
+    for (var row = 0; row < equipment.length; row++) {
+      final item = equipment[row];
+
+      final rowData = <dynamic>[
+        item.name,
+        item.type.displayName,
+        item.brand ?? '',
+        item.model ?? '',
+        item.serialNumber ?? '',
+        item.size ?? '',
+        item.status.displayName,
+        item.purchaseDate != null
+            ? _formatDateForExport(item.purchaseDate!, dateFormat)
+            : '',
+        item.lastServiceDate != null
+            ? _formatDateForExport(item.lastServiceDate!, dateFormat)
+            : '',
+        item.nextServiceDue != null
+            ? _formatDateForExport(item.nextServiceDue!, dateFormat)
+            : '',
+        item.isActive ? 'Yes' : 'No',
+        item.notes.replaceAll('\n', ' '),
+      ];
+
+      for (var col = 0; col < rowData.length; col++) {
+        final value = rowData[col];
+        sheet
+            .cell(
+              xl.CellIndex.indexByColumnRow(
+                columnIndex: col,
+                rowIndex: row + 1,
+              ),
+            )
+            .value = _toCellValue(
+          value,
+        );
+      }
+    }
+  }
+
+  void _buildStatisticsSheet(
+    xl.Excel excel,
+    List<Dive> dives,
+    List<DiveSite> sites,
+    List<EquipmentItem> equipment,
+    DepthUnit depthUnit,
+    TemperatureUnit temperatureUnit,
+  ) {
+    final sheet = excel['Statistics'];
+    var currentRow = 0;
+
+    // Helper to add a section header
+    void addHeader(String text) {
+      sheet
+          .cell(
+            xl.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: currentRow),
+          )
+          .value = xl.TextCellValue(
+        text,
+      );
+      currentRow++;
+    }
+
+    // Helper to add a stat row
+    void addStat(String label, dynamic value) {
+      sheet
+          .cell(
+            xl.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: currentRow),
+          )
+          .value = xl.TextCellValue(
+        label,
+      );
+      sheet
+          .cell(
+            xl.CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: currentRow),
+          )
+          .value = _toCellValue(
+        value,
+      );
+      currentRow++;
+    }
+
+    // ===== Summary Stats =====
+    addHeader('SUMMARY STATISTICS');
+    currentRow++;
+
+    addStat('Total Dives', dives.length);
+    addStat('Total Dive Sites', sites.length);
+    addStat('Total Equipment Items', equipment.length);
+
+    if (dives.isNotEmpty) {
+      // Total bottom time
+      final totalMinutes = dives.fold<int>(
+        0,
+        (sum, d) => sum + (d.duration?.inMinutes ?? 0),
+      );
+      final hours = totalMinutes ~/ 60;
+      final mins = totalMinutes % 60;
+      addStat('Total Bottom Time', '${hours}h ${mins}m');
+
+      // Date range
+      final sortedDives = [...dives]
+        ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
+      addStat('First Dive', _dateFormat.format(sortedDives.first.dateTime));
+      addStat('Last Dive', _dateFormat.format(sortedDives.last.dateTime));
+
+      // Deepest dive
+      final deepestDive = dives.reduce(
+        (a, b) => (a.maxDepth ?? 0) > (b.maxDepth ?? 0) ? a : b,
+      );
+      if (deepestDive.maxDepth != null) {
+        final depthValue = _convertDepth(deepestDive.maxDepth, depthUnit);
+        addStat('Deepest Dive', '$depthValue ${depthUnit.symbol}');
+      }
+
+      // Longest dive
+      final longestDive = dives.reduce(
+        (a, b) =>
+            (a.duration?.inMinutes ?? 0) > (b.duration?.inMinutes ?? 0) ? a : b,
+      );
+      if (longestDive.duration != null) {
+        addStat('Longest Dive', '${longestDive.duration!.inMinutes} min');
+      }
+
+      // Coldest dive
+      final divesWithTemp = dives.where((d) => d.waterTemp != null).toList();
+      if (divesWithTemp.isNotEmpty) {
+        final coldestDive = divesWithTemp.reduce(
+          (a, b) => a.waterTemp! < b.waterTemp! ? a : b,
+        );
+        final tempValue = _convertTemperature(
+          coldestDive.waterTemp,
+          temperatureUnit,
+        );
+        addStat('Coldest Dive', '$tempValue ${temperatureUnit.symbol}');
+      }
+    }
+
+    currentRow += 2;
+
+    // ===== Dives by Year =====
+    if (dives.isNotEmpty) {
+      addHeader('DIVES BY YEAR');
+      currentRow++;
+
+      final divesByYear = <int, List<Dive>>{};
+      for (final dive in dives) {
+        final year = dive.dateTime.year;
+        divesByYear.putIfAbsent(year, () => []).add(dive);
+      }
+
+      final sortedYears = divesByYear.keys.toList()
+        ..sort((a, b) => b.compareTo(a));
+      for (final year in sortedYears) {
+        final yearDives = divesByYear[year]!;
+        final yearMinutes = yearDives.fold<int>(
+          0,
+          (sum, d) => sum + (d.duration?.inMinutes ?? 0),
+        );
+        final yearHours = yearMinutes ~/ 60;
+        final yearMins = yearMinutes % 60;
+        addStat(
+          '$year',
+          '${yearDives.length} dives (${yearHours}h ${yearMins}m)',
+        );
+      }
+
+      currentRow += 2;
+    }
+
+    // ===== Dives by Month (current year) =====
+    if (dives.isNotEmpty) {
+      final currentYear = DateTime.now().year;
+      final currentYearDives = dives
+          .where((d) => d.dateTime.year == currentYear)
+          .toList();
+
+      if (currentYearDives.isNotEmpty) {
+        addHeader('DIVES BY MONTH ($currentYear)');
+        currentRow++;
+
+        final months = [
+          'January',
+          'February',
+          'March',
+          'April',
+          'May',
+          'June',
+          'July',
+          'August',
+          'September',
+          'October',
+          'November',
+          'December',
+        ];
+
+        for (var month = 1; month <= 12; month++) {
+          final monthDives = currentYearDives
+              .where((d) => d.dateTime.month == month)
+              .length;
+          if (monthDives > 0) {
+            addStat(months[month - 1], monthDives);
+          }
+        }
+
+        currentRow += 2;
+      }
+    }
+
+    // ===== Gas Usage =====
+    if (dives.isNotEmpty) {
+      addHeader('GAS USAGE');
+      currentRow++;
+
+      var airCount = 0;
+      var eanCount = 0;
+      var trimixCount = 0;
+      var ccrCount = 0;
+      var scrCount = 0;
+
+      for (final dive in dives) {
+        if (dive.diveMode == DiveMode.ccr) {
+          ccrCount++;
+        } else if (dive.diveMode == DiveMode.scr) {
+          scrCount++;
+        } else if (dive.tanks.isNotEmpty) {
+          final primaryTank = dive.tanks.first;
+          if (primaryTank.gasMix.he > 0) {
+            trimixCount++;
+          } else if (primaryTank.gasMix.o2 > 22) {
+            eanCount++;
+          } else {
+            airCount++;
+          }
+        } else {
+          airCount++;
+        }
+      }
+
+      addStat('Air Dives', airCount);
+      addStat('Nitrox (EANx) Dives', eanCount);
+      addStat('Trimix Dives', trimixCount);
+      addStat('CCR Dives', ccrCount);
+      addStat('SCR Dives', scrCount);
+
+      currentRow += 2;
+    }
+
+    // ===== Special Dive Types =====
+    if (dives.isNotEmpty) {
+      addHeader('SPECIAL DIVES');
+      currentRow++;
+
+      final nightDives = dives
+          .where((d) => d.diveTypeName.toLowerCase().contains('night'))
+          .length;
+      final deepDives = dives.where((d) => (d.maxDepth ?? 0) > 30).length;
+      final coldDives = dives.where((d) => (d.waterTemp ?? 100) < 10).length;
+      final driftDives = dives
+          .where((d) => d.diveTypeName.toLowerCase().contains('drift'))
+          .length;
+      final wrecks = dives
+          .where((d) => d.diveTypeName.toLowerCase().contains('wreck'))
+          .length;
+
+      addStat('Night Dives', nightDives);
+      addStat('Deep Dives (>30m)', deepDives);
+      addStat('Cold Water Dives (<10°C)', coldDives);
+      addStat('Drift Dives', driftDives);
+      addStat('Wreck Dives', wrecks);
+
+      currentRow += 2;
+    }
+
+    // ===== Top 5 Sites =====
+    if (dives.isNotEmpty) {
+      addHeader('TOP 5 MOST-VISITED SITES');
+      currentRow++;
+
+      final siteCounts = <String, int>{};
+      for (final dive in dives) {
+        final siteName = dive.site?.name ?? 'Unknown';
+        siteCounts[siteName] = (siteCounts[siteName] ?? 0) + 1;
+      }
+
+      final sortedSites = siteCounts.entries.toList()
+        ..sort((a, b) => b.value.compareTo(a.value));
+
+      for (var i = 0; i < sortedSites.length && i < 5; i++) {
+        addStat(sortedSites[i].key, '${sortedSites[i].value} dives');
+      }
+
+      currentRow += 2;
+    }
+
+    // ===== Equipment Usage =====
+    if (dives.isNotEmpty && equipment.isNotEmpty) {
+      addHeader('EQUIPMENT USAGE');
+      currentRow++;
+
+      final equipmentCounts = <String, int>{};
+      for (final dive in dives) {
+        for (final item in dive.equipment) {
+          equipmentCounts[item.name] = (equipmentCounts[item.name] ?? 0) + 1;
+        }
+      }
+
+      if (equipmentCounts.isNotEmpty) {
+        final sortedEquipment = equipmentCounts.entries.toList()
+          ..sort((a, b) => b.value.compareTo(a.value));
+
+        for (var i = 0; i < sortedEquipment.length && i < 10; i++) {
+          addStat(sortedEquipment[i].key, '${sortedEquipment[i].value} dives');
+        }
+      } else {
+        addStat('No equipment logged on dives', '');
+      }
+    }
+  }
+
+  // ===== Excel Helper Methods =====
+
+  xl.CellValue _toCellValue(dynamic value) {
+    if (value == null || value == '') {
+      return xl.TextCellValue('');
+    } else if (value is int) {
+      return xl.IntCellValue(value);
+    } else if (value is double) {
+      return xl.DoubleCellValue(value);
+    } else {
+      return xl.TextCellValue(value.toString());
+    }
+  }
+
+  String _formatDateForExport(DateTime date, DateFormatPreference format) {
+    switch (format) {
+      case DateFormatPreference.mmddyyyy:
+        return DateFormat('MM/dd/yyyy').format(date);
+      case DateFormatPreference.ddmmyyyy:
+        return DateFormat('dd/MM/yyyy').format(date);
+      case DateFormatPreference.yyyymmdd:
+        return DateFormat('yyyy-MM-dd').format(date);
+      case DateFormatPreference.mmmDYYYY:
+        return DateFormat('MMM d, yyyy').format(date);
+      case DateFormatPreference.dMMMYYYY:
+        return DateFormat('d MMM yyyy').format(date);
+    }
+  }
+
+  String _convertDepth(double? depthMeters, DepthUnit targetUnit) {
+    if (depthMeters == null) return '';
+    final converted = DepthUnit.meters.convert(depthMeters, targetUnit);
+    return converted.toStringAsFixed(1);
+  }
+
+  String _convertTemperature(double? tempCelsius, TemperatureUnit targetUnit) {
+    if (tempCelsius == null) return '';
+    final converted = TemperatureUnit.celsius.convert(tempCelsius, targetUnit);
+    return converted.toStringAsFixed(0);
+  }
+
+  String _convertPressure(double? pressureBar, PressureUnit targetUnit) {
+    if (pressureBar == null) return '';
+    final converted = PressureUnit.bar.convert(pressureBar, targetUnit);
+    return converted.toStringAsFixed(0);
+  }
+
+  String _convertVolume(double? volumeLiters, VolumeUnit targetUnit) {
+    if (volumeLiters == null) return '';
+    final converted = VolumeUnit.liters.convert(volumeLiters, targetUnit);
+    return converted.toStringAsFixed(1);
+  }
+
+  // ==================== KML EXPORT ====================
+
+  /// Export dive sites to KML format for Google Earth.
+  ///
+  /// Creates a KML file with placemarks for each dive site that has
+  /// GPS coordinates. Each placemark includes site details and a list
+  /// of dives at that location.
+  ///
+  /// Returns a tuple of (file path, skipped count) where skipped count
+  /// is the number of sites without coordinates.
+  Future<(String, int)> exportToKml({
+    required List<DiveSite> sites,
+    required List<Dive> dives,
+    required DepthUnit depthUnit,
+    required DateFormatPreference dateFormat,
+  }) async {
+    // Filter sites with coordinates
+    final sitesWithCoords = sites.where((s) => s.location != null).toList();
+    final skippedCount = sites.length - sitesWithCoords.length;
+
+    if (sitesWithCoords.isEmpty) {
+      throw Exception(
+        'No dive sites with GPS coordinates to export. '
+        'Add coordinates to your dive sites first.',
+      );
+    }
+
+    // Build dive lookup by site ID
+    final divesBySite = <String, List<Dive>>{};
+    for (final dive in dives) {
+      if (dive.site != null) {
+        divesBySite.putIfAbsent(dive.site!.id, () => []).add(dive);
+      }
+    }
+
+    // Build KML document
+    final builder = XmlBuilder();
+    builder.processing('xml', 'version="1.0" encoding="UTF-8"');
+
+    builder.element(
+      'kml',
+      attributes: {'xmlns': 'http://www.opengis.net/kml/2.2'},
+      nest: () {
+        builder.element(
+          'Document',
+          nest: () {
+            builder.element('name', nest: 'Submersion Dive Sites');
+            builder.element(
+              'description',
+              nest:
+                  'Exported from Submersion on ${_dateFormat.format(DateTime.now())}',
+            );
+
+            // Add placemarks for each site
+            for (final site in sitesWithCoords) {
+              final siteDives = divesBySite[site.id] ?? [];
+              // Sort dives by date descending
+              siteDives.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+
+              builder.element(
+                'Placemark',
+                nest: () {
+                  builder.element('name', nest: site.name);
+                  builder.element(
+                    'description',
+                    nest: () {
+                      builder.cdata(
+                        _buildKmlDescription(
+                          site,
+                          siteDives,
+                          depthUnit,
+                          dateFormat,
+                        ),
+                      );
+                    },
+                  );
+                  builder.element(
+                    'Point',
+                    nest: () {
+                      builder.element(
+                        'coordinates',
+                        nest:
+                            '${site.location!.longitude},${site.location!.latitude},0',
+                      );
+                    },
+                  );
+                },
+              );
+            }
+          },
+        );
+      },
+    );
+
+    final kmlContent = builder.buildDocument().toXmlString(pretty: true);
+
+    // Generate filename with date
+    final dateStr = _dateFormat.format(DateTime.now());
+    final fileName = 'submersion_sites_$dateStr.kml';
+
+    final filePath = await _saveAndShareFile(
+      kmlContent,
+      fileName,
+      'application/vnd.google-earth.kml+xml',
+    );
+
+    return (filePath, skippedCount);
+  }
+
+  String _buildKmlDescription(
+    DiveSite site,
+    List<Dive> siteDives,
+    DepthUnit depthUnit,
+    DateFormatPreference dateFormat,
+  ) {
+    final buffer = StringBuffer();
+
+    // Site name header
+    buffer.writeln('<h3>${_escapeHtml(site.name)}</h3>');
+
+    // Location
+    if (site.country != null || site.region != null) {
+      final locationParts = <String>[];
+      if (site.region != null) locationParts.add(site.region!);
+      if (site.country != null) locationParts.add(site.country!);
+      buffer.writeln(
+        '<p><b>Location:</b> ${_escapeHtml(locationParts.join(', '))}</p>',
+      );
+    }
+
+    // Depth range
+    if (site.minDepth != null || site.maxDepth != null) {
+      final minDepth = site.minDepth != null
+          ? _convertDepth(site.minDepth, depthUnit)
+          : '?';
+      final maxDepth = site.maxDepth != null
+          ? _convertDepth(site.maxDepth, depthUnit)
+          : '?';
+      buffer.writeln(
+        '<p><b>Depth:</b> $minDepth - $maxDepth ${depthUnit.symbol}</p>',
+      );
+    }
+
+    // Difficulty
+    if (site.difficulty != null) {
+      buffer.writeln(
+        '<p><b>Difficulty:</b> ${site.difficulty!.displayName}</p>',
+      );
+    }
+
+    // Description
+    if (site.description.isNotEmpty) {
+      buffer.writeln(
+        '<p><b>Description:</b> ${_escapeHtml(site.description)}</p>',
+      );
+    }
+
+    // Conditions
+    if (site.conditions != null) {
+      final conditions = site.conditions!;
+      if (conditions.waterType != null) {
+        buffer.writeln(
+          '<p><b>Water Type:</b> ${_escapeHtml(conditions.waterType!)}</p>',
+        );
+      }
+      if (conditions.typicalCurrent != null) {
+        buffer.writeln(
+          '<p><b>Typical Current:</b> ${_escapeHtml(conditions.typicalCurrent!)}</p>',
+        );
+      }
+      if (conditions.entryType != null) {
+        buffer.writeln(
+          '<p><b>Entry:</b> ${_escapeHtml(conditions.entryType!)}</p>',
+        );
+      }
+    }
+
+    // Hazards
+    if (site.hazards != null && site.hazards!.isNotEmpty) {
+      buffer.writeln('<p><b>Hazards:</b> ${_escapeHtml(site.hazards!)}</p>');
+    }
+
+    // Access notes
+    if (site.accessNotes != null && site.accessNotes!.isNotEmpty) {
+      buffer.writeln('<p><b>Access:</b> ${_escapeHtml(site.accessNotes!)}</p>');
+    }
+
+    // Rating
+    if (site.rating != null) {
+      final stars =
+          '★' * site.rating!.round() + '☆' * (5 - site.rating!.round());
+      buffer.writeln('<p><b>Rating:</b> $stars</p>');
+    }
+
+    // Dives at this site
+    if (siteDives.isNotEmpty) {
+      buffer.writeln('<hr/>');
+      buffer.writeln('<h4>Dives at this site (${siteDives.length})</h4>');
+      buffer.writeln('<ul>');
+
+      for (final dive in siteDives) {
+        final dateStr = _formatDateForExport(dive.dateTime, dateFormat);
+        final depth = dive.maxDepth != null
+            ? '${_convertDepth(dive.maxDepth, depthUnit)}${depthUnit.symbol}'
+            : '?';
+        final duration = dive.duration != null
+            ? '${dive.duration!.inMinutes}min'
+            : '?';
+        buffer.writeln('<li><b>$dateStr</b> - $depth, $duration</li>');
+      }
+
+      buffer.writeln('</ul>');
+    }
+
+    return buffer.toString();
+  }
+
+  String _escapeHtml(String text) {
+    return const HtmlEscape().convert(text);
   }
 }

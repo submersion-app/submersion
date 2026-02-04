@@ -38,21 +38,17 @@ This document contains only the features and tasks that are **not yet completed*
 
 ---
 
----
-
 ## Category 13: Import, Export & Interoperability
 
 ### 13.1 File Formats
 | Feature | Status | Notes |
 |---------|--------|-------|
-| DAN DL7 export | 📋 Planned | Research data format |
-| Excel export | 📋 Planned | .xlsx format |
-| Google Earth KML export | 📋 Planned | Map all dive sites |
+| Excel export | ✅ Complete | Multi-sheet .xlsx with stats |
+| Google Earth KML export | ✅ Complete | Site placemarks with dive history |
 
 **Tasks:**
-- [ ] DAN DL7 export (research format specification)
-- [ ] Excel export with multiple sheets (dives, sites, equipment, statistics)
-- [ ] KML export (placemark per dive site with description bubble)
+- [x] Excel export with multiple sheets (dives, sites, equipment, statistics)
+- [x] KML export (placemark per dive site with description bubble)
 
 ### 13.2 Interoperability
 | Feature | Status | Notes |

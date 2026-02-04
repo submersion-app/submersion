@@ -408,6 +408,43 @@ class _ExportSectionContent extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
+          _buildSectionHeader(context, 'Multi-Format Export'),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.grid_on),
+                  title: const Text('Excel Workbook'),
+                  subtitle: const Text(
+                    'All data in one file (dives, sites, equipment, stats)',
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _handleExport(
+                    context,
+                    ref,
+                    () => ref
+                        .read(exportNotifierProvider.notifier)
+                        .exportToExcel(),
+                  ),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.map),
+                  title: const Text('Google Earth KML'),
+                  subtitle: const Text('View dive sites on a 3D globe'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _handleExport(
+                    context,
+                    ref,
+                    () =>
+                        ref.read(exportNotifierProvider.notifier).exportToKml(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
           _buildInfoCard(
             context,
             'About Export',
