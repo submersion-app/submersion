@@ -6701,4 +6701,423 @@ class ExportService {
 
     return (result, skippedCount);
   }
+
+  // ==================== CSV SAVE TO FILE ====================
+
+  /// Generate CSV content for dives (without sharing).
+  String generateDivesCsvContent(List<Dive> dives) {
+    final headers = [
+      'Dive Number',
+      'Date',
+      'Time',
+      'Site',
+      'Location',
+      'Max Depth (m)',
+      'Avg Depth (m)',
+      'Bottom Time (min)',
+      'Runtime (min)',
+      'Water Temp (°C)',
+      'Air Temp (°C)',
+      'Visibility',
+      'Dive Type',
+      'Buddy',
+      'Dive Master',
+      'Rating',
+      'Start Pressure (bar)',
+      'End Pressure (bar)',
+      'Tank Volume (L)',
+      'O2 %',
+      'Notes',
+    ];
+
+    final rows = <List<dynamic>>[headers];
+
+    for (final dive in dives) {
+      final tank = dive.tanks.isNotEmpty ? dive.tanks.first : null;
+      rows.add([
+        dive.diveNumber ?? '',
+        _dateFormat.format(dive.dateTime),
+        _timeFormat.format(dive.dateTime),
+        dive.site?.name ?? '',
+        dive.site?.locationString ?? '',
+        dive.maxDepth?.toStringAsFixed(1) ?? '',
+        dive.avgDepth?.toStringAsFixed(1) ?? '',
+        dive.duration?.inMinutes ?? '',
+        dive.runtime?.inMinutes ?? '',
+        dive.waterTemp?.toStringAsFixed(0) ?? '',
+        dive.airTemp?.toStringAsFixed(0) ?? '',
+        dive.visibility?.displayName ?? '',
+        dive.diveTypeName,
+        dive.buddy ?? '',
+        dive.diveMaster ?? '',
+        dive.rating ?? '',
+        tank?.startPressure ?? '',
+        tank?.endPressure ?? '',
+        tank?.volume?.toStringAsFixed(0) ?? '',
+        tank?.gasMix.o2.toStringAsFixed(0) ?? '',
+        dive.notes.replaceAll('\n', ' '),
+      ]);
+    }
+
+    return const ListToCsvConverter().convert(rows);
+  }
+
+  /// Save dives CSV to a user-selected location.
+  Future<String?> saveDivesCsvToFile(List<Dive> dives) async {
+    final csvContent = generateDivesCsvContent(dives);
+    final dateStr = _dateFormat.format(DateTime.now());
+    final fileName = 'dives_export_$dateStr.csv';
+
+    final result = await FilePicker.platform.saveFile(
+      dialogTitle: 'Save Dives CSV',
+      fileName: fileName,
+      type: FileType.custom,
+      allowedExtensions: ['csv'],
+      bytes: Uint8List.fromList(utf8.encode(csvContent)),
+    );
+
+    if (result == null) return null;
+
+    // On some platforms, saveFile returns a path but doesn't write the file
+    if (!Platform.isAndroid) {
+      final file = File(result);
+      await file.writeAsString(csvContent);
+    }
+
+    return result;
+  }
+
+  /// Generate CSV content for sites (without sharing).
+  String generateSitesCsvContent(List<DiveSite> sites) {
+    final headers = [
+      'Name',
+      'Country',
+      'Region',
+      'Latitude',
+      'Longitude',
+      'Max Depth (m)',
+      'Water Type',
+      'Current',
+      'Entry Type',
+      'Rating',
+      'Description',
+      'Notes',
+    ];
+
+    final rows = <List<dynamic>>[headers];
+
+    for (final site in sites) {
+      rows.add([
+        site.name,
+        site.country ?? '',
+        site.region ?? '',
+        site.location?.latitude.toStringAsFixed(6) ?? '',
+        site.location?.longitude.toStringAsFixed(6) ?? '',
+        site.maxDepth?.toStringAsFixed(1) ?? '',
+        site.conditions?.waterType ?? '',
+        site.conditions?.typicalCurrent ?? '',
+        site.conditions?.entryType ?? '',
+        site.rating?.toStringAsFixed(1) ?? '',
+        site.description.replaceAll('\n', ' '),
+        site.notes.replaceAll('\n', ' '),
+      ]);
+    }
+
+    return const ListToCsvConverter().convert(rows);
+  }
+
+  /// Save sites CSV to a user-selected location.
+  Future<String?> saveSitesCsvToFile(List<DiveSite> sites) async {
+    final csvContent = generateSitesCsvContent(sites);
+    final dateStr = _dateFormat.format(DateTime.now());
+    final fileName = 'sites_export_$dateStr.csv';
+
+    final result = await FilePicker.platform.saveFile(
+      dialogTitle: 'Save Sites CSV',
+      fileName: fileName,
+      type: FileType.custom,
+      allowedExtensions: ['csv'],
+      bytes: Uint8List.fromList(utf8.encode(csvContent)),
+    );
+
+    if (result == null) return null;
+
+    if (!Platform.isAndroid) {
+      final file = File(result);
+      await file.writeAsString(csvContent);
+    }
+
+    return result;
+  }
+
+  /// Generate CSV content for equipment (without sharing).
+  String generateEquipmentCsvContent(List<EquipmentItem> equipment) {
+    final headers = [
+      'Name',
+      'Type',
+      'Brand',
+      'Model',
+      'Serial Number',
+      'Purchase Date',
+      'Last Service',
+      'Next Service Due',
+      'Active',
+      'Notes',
+    ];
+
+    final rows = <List<dynamic>>[headers];
+
+    for (final item in equipment) {
+      rows.add([
+        item.name,
+        item.type.displayName,
+        item.brand ?? '',
+        item.model ?? '',
+        item.serialNumber ?? '',
+        item.purchaseDate != null ? _dateFormat.format(item.purchaseDate!) : '',
+        item.lastServiceDate != null
+            ? _dateFormat.format(item.lastServiceDate!)
+            : '',
+        item.nextServiceDue != null
+            ? _dateFormat.format(item.nextServiceDue!)
+            : '',
+        item.isActive ? 'Yes' : 'No',
+        item.notes.replaceAll('\n', ' '),
+      ]);
+    }
+
+    return const ListToCsvConverter().convert(rows);
+  }
+
+  /// Save equipment CSV to a user-selected location.
+  Future<String?> saveEquipmentCsvToFile(List<EquipmentItem> equipment) async {
+    final csvContent = generateEquipmentCsvContent(equipment);
+    final dateStr = _dateFormat.format(DateTime.now());
+    final fileName = 'equipment_export_$dateStr.csv';
+
+    final result = await FilePicker.platform.saveFile(
+      dialogTitle: 'Save Equipment CSV',
+      fileName: fileName,
+      type: FileType.custom,
+      allowedExtensions: ['csv'],
+      bytes: Uint8List.fromList(utf8.encode(csvContent)),
+    );
+
+    if (result == null) return null;
+
+    if (!Platform.isAndroid) {
+      final file = File(result);
+      await file.writeAsString(csvContent);
+    }
+
+    return result;
+  }
+
+  // ==================== UDDF SAVE TO FILE ====================
+
+  /// Save UDDF to a user-selected location.
+  Future<String?> saveUddfToFile(
+    List<Dive> dives, {
+    List<DiveSite>? sites,
+  }) async {
+    // Generate UDDF content using the existing logic
+    final builder = XmlBuilder();
+    builder.processing('xml', 'version="1.0" encoding="UTF-8"');
+    builder.element(
+      'uddf',
+      attributes: {
+        'version': '3.2.0',
+        'xmlns': 'http://www.streit.cc/uddf/3.2/',
+      },
+      nest: () {
+        // Generator info
+        builder.element(
+          'generator',
+          nest: () {
+            builder.element('name', nest: 'Submersion');
+            builder.element('version', nest: '0.1.0');
+            builder.element('datetime', nest: DateTime.now().toIso8601String());
+          },
+        );
+
+        // Dive sites if provided
+        if (sites != null && sites.isNotEmpty) {
+          builder.element(
+            'divesite',
+            nest: () {
+              for (final site in sites) {
+                builder.element(
+                  'site',
+                  attributes: {'id': 'site_${site.id}'},
+                  nest: () {
+                    builder.element('name', nest: site.name);
+                    if (site.location != null) {
+                      builder.element(
+                        'geography',
+                        nest: () {
+                          builder.element(
+                            'latitude',
+                            nest: site.location!.latitude.toString(),
+                          );
+                          builder.element(
+                            'longitude',
+                            nest: site.location!.longitude.toString(),
+                          );
+                        },
+                      );
+                    }
+                    if (site.maxDepth != null) {
+                      builder.element(
+                        'maximumdepth',
+                        nest: site.maxDepth.toString(),
+                      );
+                    }
+                  },
+                );
+              }
+            },
+          );
+        }
+
+        // Profile data (dives)
+        builder.element(
+          'profiledata',
+          nest: () {
+            builder.element(
+              'repetitiongroup',
+              nest: () {
+                for (final dive in dives) {
+                  builder.element(
+                    'dive',
+                    nest: () {
+                      builder.element(
+                        'informationbeforedive',
+                        nest: () {
+                          builder.element(
+                            'datetime',
+                            nest: dive.dateTime.toIso8601String(),
+                          );
+                          if (dive.site != null) {
+                            builder.element(
+                              'link',
+                              attributes: {'ref': 'site_${dive.site!.id}'},
+                            );
+                          }
+                        },
+                      );
+
+                      // Samples (dive profile)
+                      if (dive.profile.isNotEmpty) {
+                        builder.element(
+                          'samples',
+                          nest: () {
+                            for (final point in dive.profile) {
+                              builder.element(
+                                'waypoint',
+                                nest: () {
+                                  builder.element(
+                                    'divetime',
+                                    nest: point.timestamp.toString(),
+                                  );
+                                  builder.element(
+                                    'depth',
+                                    nest: point.depth.toString(),
+                                  );
+                                  if (point.temperature != null) {
+                                    builder.element(
+                                      'temperature',
+                                      nest: (point.temperature! + 273.15)
+                                          .toString(),
+                                    );
+                                  }
+                                },
+                              );
+                            }
+                          },
+                        );
+                      }
+
+                      builder.element(
+                        'informationafterdive',
+                        nest: () {
+                          if (dive.maxDepth != null) {
+                            builder.element(
+                              'greatestdepth',
+                              nest: dive.maxDepth.toString(),
+                            );
+                          }
+                          if (dive.duration != null) {
+                            builder.element(
+                              'diveduration',
+                              nest: dive.duration!.inSeconds.toString(),
+                            );
+                          }
+                          if (dive.notes.isNotEmpty) {
+                            builder.element('notes', nest: dive.notes);
+                          }
+                        },
+                      );
+                    },
+                  );
+                }
+              },
+            );
+          },
+        );
+      },
+    );
+
+    final xmlString = builder.buildDocument().toXmlString(pretty: true);
+    final dateStr = _dateFormat.format(DateTime.now());
+    final fileName = 'submersion_export_$dateStr.uddf';
+
+    final result = await FilePicker.platform.saveFile(
+      dialogTitle: 'Save UDDF File',
+      fileName: fileName,
+      type: FileType.custom,
+      allowedExtensions: ['uddf', 'xml'],
+      bytes: Uint8List.fromList(utf8.encode(xmlString)),
+    );
+
+    if (result == null) return null;
+
+    if (!Platform.isAndroid) {
+      final file = File(result);
+      await file.writeAsString(xmlString);
+    }
+
+    return result;
+  }
+
+  // ==================== PDF LOGBOOK SAVE TO FILE ====================
+
+  /// Generate PDF logbook from dives and save to a user-selected location.
+  Future<String?> saveDivesToPdfFile(
+    List<Dive> dives, {
+    String title = 'Dive Logbook',
+    List<Sighting>? allSightings,
+  }) async {
+    final result = await generateDivePdfBytes(
+      dives,
+      title: title,
+      allSightings: allSightings,
+    );
+
+    final saveResult = await FilePicker.platform.saveFile(
+      dialogTitle: 'Save PDF File',
+      fileName: result.fileName,
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+      bytes: Uint8List.fromList(result.bytes),
+    );
+
+    if (saveResult == null) return null;
+
+    if (!Platform.isAndroid) {
+      final file = File(saveResult);
+      await file.writeAsBytes(result.bytes);
+    }
+
+    return saveResult;
+  }
 }

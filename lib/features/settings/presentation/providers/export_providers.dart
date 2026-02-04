@@ -587,6 +587,217 @@ class ExportNotifier extends StateNotifier<ExportState> {
     }
   }
 
+  // ==================== CSV SAVE TO FILE ====================
+
+  /// Save dives CSV to a user-selected location.
+  Future<void> saveDivesCsvToFile() async {
+    state = state.copyWith(
+      status: ExportStatus.exporting,
+      message: 'Preparing dives CSV...',
+    );
+    try {
+      final dives = _ref.read(diveListNotifierProvider).value ?? [];
+      if (dives.isEmpty) {
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: 'No dives to export',
+        );
+        return;
+      }
+
+      state = state.copyWith(message: 'Choose save location...');
+      final path = await _exportService.saveDivesCsvToFile(dives);
+
+      if (path == null) {
+        state = state.copyWith(
+          status: ExportStatus.idle,
+          message: 'Save cancelled',
+        );
+        return;
+      }
+
+      state = state.copyWith(
+        status: ExportStatus.success,
+        message: 'Dives CSV saved successfully',
+        filePath: path,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        status: ExportStatus.error,
+        message: 'Save failed: $e',
+      );
+    }
+  }
+
+  /// Save sites CSV to a user-selected location.
+  Future<void> saveSitesCsvToFile() async {
+    state = state.copyWith(
+      status: ExportStatus.exporting,
+      message: 'Preparing sites CSV...',
+    );
+    try {
+      final sites = _ref.read(sitesProvider).value ?? [];
+      if (sites.isEmpty) {
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: 'No sites to export',
+        );
+        return;
+      }
+
+      state = state.copyWith(message: 'Choose save location...');
+      final path = await _exportService.saveSitesCsvToFile(sites);
+
+      if (path == null) {
+        state = state.copyWith(
+          status: ExportStatus.idle,
+          message: 'Save cancelled',
+        );
+        return;
+      }
+
+      state = state.copyWith(
+        status: ExportStatus.success,
+        message: 'Sites CSV saved successfully',
+        filePath: path,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        status: ExportStatus.error,
+        message: 'Save failed: $e',
+      );
+    }
+  }
+
+  /// Save equipment CSV to a user-selected location.
+  Future<void> saveEquipmentCsvToFile() async {
+    state = state.copyWith(
+      status: ExportStatus.exporting,
+      message: 'Preparing equipment CSV...',
+    );
+    try {
+      final equipment = _ref.read(allEquipmentProvider).value ?? [];
+      if (equipment.isEmpty) {
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: 'No equipment to export',
+        );
+        return;
+      }
+
+      state = state.copyWith(message: 'Choose save location...');
+      final path = await _exportService.saveEquipmentCsvToFile(equipment);
+
+      if (path == null) {
+        state = state.copyWith(
+          status: ExportStatus.idle,
+          message: 'Save cancelled',
+        );
+        return;
+      }
+
+      state = state.copyWith(
+        status: ExportStatus.success,
+        message: 'Equipment CSV saved successfully',
+        filePath: path,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        status: ExportStatus.error,
+        message: 'Save failed: $e',
+      );
+    }
+  }
+
+  // ==================== UDDF SAVE TO FILE ====================
+
+  /// Save UDDF to a user-selected location.
+  Future<void> saveUddfToFile() async {
+    state = state.copyWith(
+      status: ExportStatus.exporting,
+      message: 'Preparing UDDF file...',
+    );
+    try {
+      final dives = _ref.read(diveListNotifierProvider).value ?? [];
+      if (dives.isEmpty) {
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: 'No dives to export',
+        );
+        return;
+      }
+
+      final sites = await _ref.read(sitesProvider.future);
+
+      state = state.copyWith(message: 'Choose save location...');
+      final path = await _exportService.saveUddfToFile(dives, sites: sites);
+
+      if (path == null) {
+        state = state.copyWith(
+          status: ExportStatus.idle,
+          message: 'Save cancelled',
+        );
+        return;
+      }
+
+      state = state.copyWith(
+        status: ExportStatus.success,
+        message: 'UDDF file saved successfully',
+        filePath: path,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        status: ExportStatus.error,
+        message: 'Save failed: $e',
+      );
+    }
+  }
+
+  // ==================== PDF SAVE TO FILE ====================
+
+  /// Save PDF logbook to a user-selected location.
+  Future<void> savePdfToFile(PdfExportOptions options) async {
+    state = state.copyWith(
+      status: ExportStatus.exporting,
+      message: 'Preparing PDF...',
+    );
+    try {
+      final dives = _ref.read(diveListNotifierProvider).value ?? [];
+      if (dives.isEmpty) {
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: 'No dives to export',
+        );
+        return;
+      }
+
+      state = state.copyWith(message: 'Choose save location...');
+      final path = await _exportService.saveDivesToPdfFile(
+        dives,
+        title: 'Dive Logbook',
+      );
+
+      if (path == null) {
+        state = state.copyWith(
+          status: ExportStatus.idle,
+          message: 'Save cancelled',
+        );
+        return;
+      }
+
+      state = state.copyWith(
+        status: ExportStatus.success,
+        message: 'PDF saved successfully',
+        filePath: path,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        status: ExportStatus.error,
+        message: 'Save failed: $e',
+      );
+    }
+  }
+
   void reset() {
     state = const ExportState();
   }

@@ -346,12 +346,16 @@ class _ExportSectionContent extends ConsumerWidget {
                   title: const Text('UDDF Export'),
                   subtitle: const Text('Universal Dive Data Format'),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _handleExport(
+                  onTap: () => _showExportOptions(
                     context,
                     ref,
-                    () => ref
+                    title: 'UDDF Export',
+                    shareAction: () => ref
                         .read(exportNotifierProvider.notifier)
                         .exportDivesToUddf(),
+                    saveAction: () => ref
+                        .read(exportNotifierProvider.notifier)
+                        .saveUddfToFile(),
                   ),
                 ),
               ],
@@ -368,12 +372,16 @@ class _ExportSectionContent extends ConsumerWidget {
                   title: const Text('Dives as CSV'),
                   subtitle: const Text('Spreadsheet format'),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _handleExport(
+                  onTap: () => _showExportOptions(
                     context,
                     ref,
-                    () => ref
+                    title: 'Dives as CSV',
+                    shareAction: () => ref
                         .read(exportNotifierProvider.notifier)
                         .exportDivesToCsv(),
+                    saveAction: () => ref
+                        .read(exportNotifierProvider.notifier)
+                        .saveDivesCsvToFile(),
                   ),
                 ),
                 const Divider(height: 1),
@@ -382,12 +390,16 @@ class _ExportSectionContent extends ConsumerWidget {
                   title: const Text('Sites as CSV'),
                   subtitle: const Text('Export dive sites'),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _handleExport(
+                  onTap: () => _showExportOptions(
                     context,
                     ref,
-                    () => ref
+                    title: 'Sites as CSV',
+                    shareAction: () => ref
                         .read(exportNotifierProvider.notifier)
                         .exportSitesToCsv(),
+                    saveAction: () => ref
+                        .read(exportNotifierProvider.notifier)
+                        .saveSitesCsvToFile(),
                   ),
                 ),
                 const Divider(height: 1),
@@ -396,12 +408,16 @@ class _ExportSectionContent extends ConsumerWidget {
                   title: const Text('Equipment as CSV'),
                   subtitle: const Text('Export equipment inventory'),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _handleExport(
+                  onTap: () => _showExportOptions(
                     context,
                     ref,
-                    () => ref
+                    title: 'Equipment as CSV',
+                    shareAction: () => ref
                         .read(exportNotifierProvider.notifier)
                         .exportEquipmentToCsv(),
+                    saveAction: () => ref
+                        .read(exportNotifierProvider.notifier)
+                        .saveEquipmentCsvToFile(),
                   ),
                 ),
               ],
@@ -466,19 +482,23 @@ class _ExportSectionContent extends ConsumerWidget {
     );
   }
 
-  /// Handle PDF export with options dialog.
+  /// Handle PDF export with options dialog, then share/save options.
   Future<void> _handlePdfExport(BuildContext context, WidgetRef ref) async {
-    // Show the PDF export options dialog
+    // Show the PDF export options dialog first
     final options = await PdfExportDialog.show(context);
 
     // User cancelled or context no longer valid
     if (options == null || !context.mounted) return;
 
-    // Proceed with export using selected options
-    await _handleExport(
+    // Now show share/save options
+    _showExportOptions(
       context,
       ref,
-      () => ref.read(exportNotifierProvider.notifier).exportDivesToPdf(options),
+      title: 'PDF Logbook',
+      shareAction: () =>
+          ref.read(exportNotifierProvider.notifier).exportDivesToPdf(options),
+      saveAction: () =>
+          ref.read(exportNotifierProvider.notifier).savePdfToFile(options),
     );
   }
 
