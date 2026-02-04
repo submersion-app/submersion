@@ -423,201 +423,216 @@ class DiveListTile extends ConsumerWidget {
 
     // Build the content widget (used in both map and non-map variants)
     Widget buildContent() {
-      return Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            // Selection checkbox or dive number badge
-            if (isSelectionMode)
-              Checkbox(
-                value: isSelected,
-                onChanged: (_) => onTap?.call(),
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                visualDensity: VisualDensity.compact,
-              )
-            else
-              CircleAvatar(
-                backgroundColor: colorScheme.primaryContainer,
-                child: Text(
-                  '#$diveNumber',
-                  style: TextStyle(
-                    color: colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          // Calculate chart width based on available space
+          // On narrow screens (< 400), use ~25% of width
+          // On wider screens, cap at 120px
+          final availableWidth = constraints.maxWidth;
+          final chartWidth = availableWidth < 400
+              ? (availableWidth * 0.25).clamp(60.0, 120.0)
+              : (availableWidth * 0.20).clamp(80.0, 120.0);
+
+          return Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                // Selection checkbox or dive number badge
+                if (isSelectionMode)
+                  Checkbox(
+                    value: isSelected,
+                    onChanged: (_) => onTap?.call(),
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    visualDensity: VisualDensity.compact,
+                  )
+                else
+                  CircleAvatar(
+                    backgroundColor: colorScheme.primaryContainer,
+                    child: Text(
+                      '#$diveNumber',
+                      style: TextStyle(
+                        color: colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            const SizedBox(width: 12),
-            // Main content
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Site name with favorite and rating
-                  Row(
+                const SizedBox(width: 12),
+                // Main content
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          siteName ?? 'Unknown Site',
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: primaryTextColor,
-                              ),
+                      // Site name with favorite and rating
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              siteName ?? 'Unknown Site',
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: primaryTextColor,
+                                  ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (isFavorite) ...[
+                            const SizedBox(width: 4),
+                            Icon(
+                              Icons.favorite,
+                              size: 18,
+                              color: Colors.red.shade400,
+                            ),
+                          ],
+                          if (rating != null) ...[
+                            const SizedBox(width: 8),
+                            Icon(
+                              Icons.star,
+                              size: 16,
+                              color: Colors.amber.shade600,
+                            ),
+                            const SizedBox(width: 2),
+                            Text(
+                              '$rating',
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w500,
+                                    color: primaryTextColor,
+                                  ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      // Site location (country/region)
+                      if (siteLocation != null && siteLocation!.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          siteLocation!,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: secondaryTextColor),
                           overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                      if (isFavorite) ...[
-                        const SizedBox(width: 4),
-                        Icon(
-                          Icons.favorite,
-                          size: 18,
-                          color: Colors.red.shade400,
-                        ),
                       ],
-                      if (rating != null) ...[
-                        const SizedBox(width: 8),
-                        Icon(
-                          Icons.star,
-                          size: 16,
-                          color: Colors.amber.shade600,
+                      const SizedBox(height: 4),
+                      // Date and time
+                      Text(
+                        units.formatDateTime(dateTime),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: secondaryTextColor,
                         ),
-                        const SizedBox(width: 2),
-                        Text(
-                          '$rating',
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.w500,
-                                color: primaryTextColor,
-                              ),
-                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      // Depth and duration stats (always shown)
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.arrow_downward,
+                            size: 14,
+                            color: maxDepth != null
+                                ? accentColor
+                                : secondaryTextColor,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            units.formatDepth(maxDepth),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: maxDepth != null
+                                      ? accentColor
+                                      : secondaryTextColor,
+                                ),
+                          ),
+                          const SizedBox(width: 16),
+                          Icon(
+                            Icons.timer_outlined,
+                            size: 14,
+                            color: duration != null
+                                ? accentColor
+                                : secondaryTextColor,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            duration != null
+                                ? _formatDuration(duration!)
+                                : '--',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: duration != null
+                                      ? accentColor
+                                      : secondaryTextColor,
+                                ),
+                          ),
+                          if (waterTemp != null) ...[
+                            const SizedBox(width: 16),
+                            Icon(
+                              Icons.thermostat_outlined,
+                              size: 14,
+                              color: accentColor,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              units.formatTemperature(waterTemp),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: accentColor,
+                                  ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      // Tags
+                      if (tags.isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        TagChips(tags: tags, maxTags: 3),
                       ],
                     ],
-                  ),
-                  // Site location (country/region)
-                  if (siteLocation != null && siteLocation!.isNotEmpty) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      siteLocation!,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: secondaryTextColor,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                  const SizedBox(height: 4),
-                  // Date and time
-                  Text(
-                    units.formatDateTime(dateTime),
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: secondaryTextColor),
-                  ),
-                  const SizedBox(height: 6),
-                  // Depth and duration stats (always shown)
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.arrow_downward,
-                        size: 14,
-                        color: maxDepth != null
-                            ? accentColor
-                            : secondaryTextColor,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        units.formatDepth(maxDepth),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: maxDepth != null
-                              ? accentColor
-                              : secondaryTextColor,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Icon(
-                        Icons.timer_outlined,
-                        size: 14,
-                        color: duration != null
-                            ? accentColor
-                            : secondaryTextColor,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        duration != null ? _formatDuration(duration!) : '--',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: duration != null
-                              ? accentColor
-                              : secondaryTextColor,
-                        ),
-                      ),
-                      if (waterTemp != null) ...[
-                        const SizedBox(width: 16),
-                        Icon(
-                          Icons.thermostat_outlined,
-                          size: 14,
-                          color: accentColor,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          units.formatTemperature(waterTemp),
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: accentColor,
-                              ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  // Tags
-                  if (tags.isNotEmpty) ...[
-                    const SizedBox(height: 6),
-                    TagChips(tags: tags, maxTags: 3),
-                  ],
-                ],
-              ),
-            ),
-            // Dive profile mini chart (right side)
-            profileAsync.when(
-              data: (profile) => profile.isNotEmpty
-                  ? Padding(
-                      padding: const EdgeInsets.only(left: 8),
-                      child: SizedBox(
-                        width: 80,
-                        height: 50,
-                        child: DiveProfileMiniChart(
-                          profile: profile,
-                          height: 50,
-                          color: accentColor,
-                        ),
-                      ),
-                    )
-                  : const SizedBox.shrink(),
-              loading: () => Padding(
-                padding: const EdgeInsets.only(left: 8),
-                child: SizedBox(
-                  width: 80,
-                  height: 50,
-                  child: Center(
-                    child: SizedBox(
-                      height: 16,
-                      width: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: accentColor.withValues(alpha: 0.5),
-                      ),
-                    ),
                   ),
                 ),
-              ),
-              error: (_, _) => const SizedBox.shrink(),
+                // Dive profile mini chart (right side)
+                profileAsync.when(
+                  data: (profile) => profile.isNotEmpty
+                      ? Padding(
+                          padding: const EdgeInsets.only(left: 8),
+                          child: SizedBox(
+                            width: chartWidth,
+                            height: 50,
+                            child: DiveProfileMiniChart(
+                              profile: profile,
+                              height: 50,
+                              color: accentColor,
+                            ),
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                  loading: () => Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: SizedBox(
+                      width: chartWidth,
+                      height: 50,
+                      child: Center(
+                        child: SizedBox(
+                          height: 16,
+                          width: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: accentColor.withValues(alpha: 0.5),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  error: (_, _) => const SizedBox.shrink(),
+                ),
+                // Chevron
+                Icon(Icons.chevron_right, color: secondaryTextColor),
+              ],
             ),
-            // Chevron
-            Icon(Icons.chevron_right, color: secondaryTextColor),
-          ],
-        ),
+          );
+        },
       );
     }
 
