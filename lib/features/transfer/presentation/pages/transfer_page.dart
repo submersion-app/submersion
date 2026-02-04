@@ -420,12 +420,16 @@ class _ExportSectionContent extends ConsumerWidget {
                     'All data in one file (dives, sites, equipment, stats)',
                   ),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _handleExport(
+                  onTap: () => _showExportOptions(
                     context,
                     ref,
-                    () => ref
+                    title: 'Excel Workbook',
+                    shareAction: () => ref
                         .read(exportNotifierProvider.notifier)
                         .exportToExcel(),
+                    saveAction: () => ref
+                        .read(exportNotifierProvider.notifier)
+                        .saveExcelToFile(),
                   ),
                 ),
                 const Divider(height: 1),
@@ -434,11 +438,15 @@ class _ExportSectionContent extends ConsumerWidget {
                   title: const Text('Google Earth KML'),
                   subtitle: const Text('View dive sites on a 3D globe'),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _handleExport(
+                  onTap: () => _showExportOptions(
                     context,
                     ref,
-                    () =>
+                    title: 'Google Earth KML',
+                    shareAction: () =>
                         ref.read(exportNotifierProvider.notifier).exportToKml(),
+                    saveAction: () => ref
+                        .read(exportNotifierProvider.notifier)
+                        .saveKmlToFile(),
                   ),
                 ),
               ],
@@ -528,6 +536,56 @@ class _ExportSectionContent extends ConsumerWidget {
         });
       }
     }
+  }
+
+  /// Show export options dialog (Share vs Save to File).
+  void _showExportOptions(
+    BuildContext context,
+    WidgetRef ref, {
+    required String title,
+    required Future<void> Function() shareAction,
+    required Future<void> Function() saveAction,
+  }) {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (bottomSheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: const Icon(Icons.share),
+                title: const Text('Share'),
+                subtitle: const Text('Send via email, messages, or other apps'),
+                onTap: () {
+                  Navigator.of(bottomSheetContext).pop();
+                  _handleExport(context, ref, shareAction);
+                },
+              ),
+              const Divider(height: 1),
+              ListTile(
+                leading: const Icon(Icons.save_alt),
+                title: const Text('Save to File'),
+                subtitle: const Text('Choose where to save on your device'),
+                onTap: () {
+                  Navigator.of(bottomSheetContext).pop();
+                  _handleExport(context, ref, saveAction);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

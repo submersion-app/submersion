@@ -475,6 +475,118 @@ class ExportNotifier extends StateNotifier<ExportState> {
     }
   }
 
+  /// Save Excel file to a user-selected location.
+  ///
+  /// Opens a file picker dialog allowing the user to choose where to save.
+  Future<void> saveExcelToFile() async {
+    state = state.copyWith(
+      status: ExportStatus.exporting,
+      message: 'Preparing Excel file...',
+    );
+    try {
+      final dives = _ref.read(diveListNotifierProvider).value ?? [];
+      final sites = await _ref.read(sitesProvider.future);
+      final equipment = await _ref.read(allEquipmentProvider.future);
+
+      if (dives.isEmpty && sites.isEmpty && equipment.isEmpty) {
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: 'No data to export',
+        );
+        return;
+      }
+
+      // Get user's unit preferences
+      final settings = _ref.read(settingsProvider);
+
+      state = state.copyWith(message: 'Choose save location...');
+      final path = await _exportService.saveExcelToFile(
+        dives: dives,
+        sites: sites,
+        equipment: equipment,
+        depthUnit: settings.depthUnit,
+        temperatureUnit: settings.temperatureUnit,
+        pressureUnit: settings.pressureUnit,
+        volumeUnit: settings.volumeUnit,
+        dateFormat: settings.dateFormat,
+      );
+
+      if (path == null) {
+        state = state.copyWith(
+          status: ExportStatus.idle,
+          message: 'Save cancelled',
+        );
+        return;
+      }
+
+      state = state.copyWith(
+        status: ExportStatus.success,
+        message: 'Excel file saved successfully',
+        filePath: path,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        status: ExportStatus.error,
+        message: 'Save failed: $e',
+      );
+    }
+  }
+
+  /// Save KML file to a user-selected location.
+  ///
+  /// Opens a file picker dialog allowing the user to choose where to save.
+  Future<void> saveKmlToFile() async {
+    state = state.copyWith(
+      status: ExportStatus.exporting,
+      message: 'Preparing KML file...',
+    );
+    try {
+      final sites = await _ref.read(sitesProvider.future);
+      final dives = _ref.read(diveListNotifierProvider).value ?? [];
+
+      if (sites.isEmpty) {
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: 'No dive sites to export',
+        );
+        return;
+      }
+
+      // Get user's unit preferences
+      final settings = _ref.read(settingsProvider);
+
+      state = state.copyWith(message: 'Choose save location...');
+      final (path, skippedCount) = await _exportService.saveKmlToFile(
+        sites: sites,
+        dives: dives,
+        depthUnit: settings.depthUnit,
+        dateFormat: settings.dateFormat,
+      );
+
+      if (path == null) {
+        state = state.copyWith(
+          status: ExportStatus.idle,
+          message: 'Save cancelled',
+        );
+        return;
+      }
+
+      final skippedMsg = skippedCount > 0
+          ? ' ($skippedCount sites without coordinates skipped)'
+          : '';
+      state = state.copyWith(
+        status: ExportStatus.success,
+        message: 'KML file saved successfully$skippedMsg',
+        filePath: path,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        status: ExportStatus.error,
+        message: 'Save failed: $e',
+      );
+    }
+  }
+
   void reset() {
     state = const ExportState();
   }

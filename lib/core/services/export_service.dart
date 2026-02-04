@@ -6468,4 +6468,237 @@ class ExportService {
   String _escapeHtml(String text) {
     return const HtmlEscape().convert(text);
   }
+
+  // ==================== EXCEL SAVE TO FILE ====================
+
+  /// Generate Excel bytes without sharing.
+  ///
+  /// Use this when you want to save to a user-selected location
+  /// instead of sharing via the system share sheet.
+  Future<List<int>> generateExcelBytes({
+    required List<Dive> dives,
+    required List<DiveSite> sites,
+    required List<EquipmentItem> equipment,
+    required DepthUnit depthUnit,
+    required TemperatureUnit temperatureUnit,
+    required PressureUnit pressureUnit,
+    required VolumeUnit volumeUnit,
+    required DateFormatPreference dateFormat,
+  }) async {
+    final excel = xl.Excel.createExcel();
+
+    // Remove default sheet
+    excel.delete('Sheet1');
+
+    // Create sheets
+    _buildDivesSheet(
+      excel,
+      dives,
+      depthUnit,
+      temperatureUnit,
+      pressureUnit,
+      volumeUnit,
+      dateFormat,
+    );
+    _buildSitesSheet(excel, sites, depthUnit);
+    _buildEquipmentSheet(excel, equipment, dateFormat);
+    _buildStatisticsSheet(
+      excel,
+      dives,
+      sites,
+      equipment,
+      depthUnit,
+      temperatureUnit,
+    );
+
+    // Encode to bytes
+    final bytes = excel.encode();
+    if (bytes == null) {
+      throw Exception('Failed to encode Excel file');
+    }
+
+    return bytes;
+  }
+
+  /// Save Excel file to a user-selected location.
+  ///
+  /// Opens a file picker dialog allowing the user to choose where to save.
+  /// Returns the saved file path, or null if the user cancelled.
+  Future<String?> saveExcelToFile({
+    required List<Dive> dives,
+    required List<DiveSite> sites,
+    required List<EquipmentItem> equipment,
+    required DepthUnit depthUnit,
+    required TemperatureUnit temperatureUnit,
+    required PressureUnit pressureUnit,
+    required VolumeUnit volumeUnit,
+    required DateFormatPreference dateFormat,
+  }) async {
+    final bytes = await generateExcelBytes(
+      dives: dives,
+      sites: sites,
+      equipment: equipment,
+      depthUnit: depthUnit,
+      temperatureUnit: temperatureUnit,
+      pressureUnit: pressureUnit,
+      volumeUnit: volumeUnit,
+      dateFormat: dateFormat,
+    );
+
+    // Generate filename with date
+    final dateStr = _dateFormat.format(DateTime.now());
+    final fileName = 'submersion_export_$dateStr.xlsx';
+
+    final result = await FilePicker.platform.saveFile(
+      dialogTitle: 'Save Excel File',
+      fileName: fileName,
+      type: FileType.custom,
+      allowedExtensions: ['xlsx'],
+      bytes: Uint8List.fromList(bytes),
+    );
+
+    if (result == null) return null;
+
+    // On some platforms, saveFile returns a path but doesn't write the file
+    if (!Platform.isAndroid) {
+      final file = File(result);
+      await file.writeAsBytes(Uint8List.fromList(bytes));
+    }
+
+    return result;
+  }
+
+  // ==================== KML SAVE TO FILE ====================
+
+  /// Generate KML content without sharing.
+  ///
+  /// Use this when you want to save to a user-selected location
+  /// instead of sharing via the system share sheet.
+  Future<(String, int)> generateKmlContent({
+    required List<DiveSite> sites,
+    required List<Dive> dives,
+    required DepthUnit depthUnit,
+    required DateFormatPreference dateFormat,
+  }) async {
+    // Filter sites with coordinates
+    final sitesWithCoords = sites.where((s) => s.location != null).toList();
+    final skippedCount = sites.length - sitesWithCoords.length;
+
+    if (sitesWithCoords.isEmpty) {
+      throw Exception(
+        'No dive sites with GPS coordinates to export. '
+        'Add coordinates to your dive sites first.',
+      );
+    }
+
+    // Build dive lookup by site ID
+    final divesBySite = <String, List<Dive>>{};
+    for (final dive in dives) {
+      if (dive.site != null) {
+        divesBySite.putIfAbsent(dive.site!.id, () => []).add(dive);
+      }
+    }
+
+    // Build KML document
+    final builder = XmlBuilder();
+    builder.processing('xml', 'version="1.0" encoding="UTF-8"');
+
+    builder.element(
+      'kml',
+      attributes: {'xmlns': 'http://www.opengis.net/kml/2.2'},
+      nest: () {
+        builder.element(
+          'Document',
+          nest: () {
+            builder.element('name', nest: 'Submersion Dive Sites');
+            builder.element(
+              'description',
+              nest:
+                  'Exported from Submersion on ${_dateFormat.format(DateTime.now())}',
+            );
+
+            // Add placemarks for each site
+            for (final site in sitesWithCoords) {
+              final siteDives = divesBySite[site.id] ?? [];
+              // Sort dives by date descending
+              siteDives.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+
+              builder.element(
+                'Placemark',
+                nest: () {
+                  builder.element('name', nest: site.name);
+                  builder.element(
+                    'description',
+                    nest: () {
+                      builder.cdata(
+                        _buildKmlDescription(
+                          site,
+                          siteDives,
+                          depthUnit,
+                          dateFormat,
+                        ),
+                      );
+                    },
+                  );
+                  builder.element(
+                    'Point',
+                    nest: () {
+                      builder.element(
+                        'coordinates',
+                        nest:
+                            '${site.location!.longitude},${site.location!.latitude},0',
+                      );
+                    },
+                  );
+                },
+              );
+            }
+          },
+        );
+      },
+    );
+
+    final kmlContent = builder.buildDocument().toXmlString(pretty: true);
+    return (kmlContent, skippedCount);
+  }
+
+  /// Save KML file to a user-selected location.
+  ///
+  /// Opens a file picker dialog allowing the user to choose where to save.
+  /// Returns a tuple of (saved file path or null, skipped count).
+  Future<(String?, int)> saveKmlToFile({
+    required List<DiveSite> sites,
+    required List<Dive> dives,
+    required DepthUnit depthUnit,
+    required DateFormatPreference dateFormat,
+  }) async {
+    final (kmlContent, skippedCount) = await generateKmlContent(
+      sites: sites,
+      dives: dives,
+      depthUnit: depthUnit,
+      dateFormat: dateFormat,
+    );
+
+    // Generate filename with date
+    final dateStr = _dateFormat.format(DateTime.now());
+    final fileName = 'submersion_sites_$dateStr.kml';
+
+    final result = await FilePicker.platform.saveFile(
+      dialogTitle: 'Save KML File',
+      fileName: fileName,
+      type: FileType.custom,
+      allowedExtensions: ['kml'],
+      bytes: Uint8List.fromList(utf8.encode(kmlContent)),
+    );
+
+    if (result == null) return (null, skippedCount);
+
+    // On some platforms, saveFile returns a path but doesn't write the file
+    if (!Platform.isAndroid) {
+      final file = File(result);
+      await file.writeAsString(kmlContent);
+    }
+
+    return (result, skippedCount);
+  }
 }
