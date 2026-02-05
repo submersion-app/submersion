@@ -66,6 +66,7 @@ dependencies:
   geocoding: ^4.0.0
   photo_manager: ^3.6.0
   native_exif: ^0.6.0
+  health: ^13.3.0  # Cross-platform health data (HealthKit, Health Connect)
 
   # Storage
   shared_preferences: ^2.3.2
