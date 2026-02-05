@@ -26,7 +26,9 @@ void main() {
 
     group('isAvailable', () {
       test('returns false when hasPermissions throws', () async {
-        when(mockHealth.hasPermissions(any)).thenThrow(Exception('Not available'));
+        when(
+          mockHealth.hasPermissions(any),
+        ).thenThrow(Exception('Not available'));
 
         final result = await service.isAvailable();
 
@@ -52,8 +54,9 @@ void main() {
 
     group('hasPermissions', () {
       test('returns false when hasPermissions throws', () async {
-        when(mockHealth.hasPermissions(any, permissions: anyNamed('permissions')))
-            .thenThrow(Exception('Error'));
+        when(
+          mockHealth.hasPermissions(any, permissions: anyNamed('permissions')),
+        ).thenThrow(Exception('Error'));
 
         final result = await service.hasPermissions();
 
@@ -61,8 +64,9 @@ void main() {
       });
 
       test('returns false when hasPermissions returns null', () async {
-        when(mockHealth.hasPermissions(any, permissions: anyNamed('permissions')))
-            .thenAnswer((_) async => null);
+        when(
+          mockHealth.hasPermissions(any, permissions: anyNamed('permissions')),
+        ).thenAnswer((_) async => null);
 
         final result = await service.hasPermissions();
 
@@ -70,8 +74,9 @@ void main() {
       });
 
       test('returns true when hasPermissions returns true', () async {
-        when(mockHealth.hasPermissions(any, permissions: anyNamed('permissions')))
-            .thenAnswer((_) async => true);
+        when(
+          mockHealth.hasPermissions(any, permissions: anyNamed('permissions')),
+        ).thenAnswer((_) async => true);
 
         final result = await service.hasPermissions();
 
@@ -82,15 +87,23 @@ void main() {
     group('requestPermissions', () {
       test('configures health and requests authorization', () async {
         when(mockHealth.configure()).thenAnswer((_) async {});
-        when(mockHealth.requestAuthorization(any, permissions: anyNamed('permissions')))
-            .thenAnswer((_) async => true);
+        when(
+          mockHealth.requestAuthorization(
+            any,
+            permissions: anyNamed('permissions'),
+          ),
+        ).thenAnswer((_) async => true);
 
         final result = await service.requestPermissions();
 
         expect(result, isTrue);
         verify(mockHealth.configure()).called(1);
-        verify(mockHealth.requestAuthorization(any, permissions: anyNamed('permissions')))
-            .called(1);
+        verify(
+          mockHealth.requestAuthorization(
+            any,
+            permissions: anyNamed('permissions'),
+          ),
+        ).called(1);
       });
 
       test('returns false when configure throws', () async {
@@ -103,8 +116,12 @@ void main() {
 
       test('returns false when requestAuthorization returns false', () async {
         when(mockHealth.configure()).thenAnswer((_) async {});
-        when(mockHealth.requestAuthorization(any, permissions: anyNamed('permissions')))
-            .thenAnswer((_) async => false);
+        when(
+          mockHealth.requestAuthorization(
+            any,
+            permissions: anyNamed('permissions'),
+          ),
+        ).thenAnswer((_) async => false);
 
         final result = await service.requestPermissions();
 
@@ -114,8 +131,9 @@ void main() {
 
     group('fetchDives', () {
       test('returns empty list when no permissions', () async {
-        when(mockHealth.hasPermissions(any, permissions: anyNamed('permissions')))
-            .thenAnswer((_) async => false);
+        when(
+          mockHealth.hasPermissions(any, permissions: anyNamed('permissions')),
+        ).thenAnswer((_) async => false);
 
         final result = await service.fetchDives(
           startDate: DateTime(2024, 1, 1),
@@ -126,13 +144,16 @@ void main() {
       });
 
       test('returns empty list when getHealthDataFromTypes throws', () async {
-        when(mockHealth.hasPermissions(any, permissions: anyNamed('permissions')))
-            .thenAnswer((_) async => true);
-        when(mockHealth.getHealthDataFromTypes(
-          types: anyNamed('types'),
-          startTime: anyNamed('startTime'),
-          endTime: anyNamed('endTime'),
-        )).thenThrow(Exception('Error'));
+        when(
+          mockHealth.hasPermissions(any, permissions: anyNamed('permissions')),
+        ).thenAnswer((_) async => true);
+        when(
+          mockHealth.getHealthDataFromTypes(
+            types: anyNamed('types'),
+            startTime: anyNamed('startTime'),
+            endTime: anyNamed('endTime'),
+          ),
+        ).thenThrow(Exception('Error'));
 
         final result = await service.fetchDives(
           startDate: DateTime(2024, 1, 1),
@@ -143,13 +164,16 @@ void main() {
       });
 
       test('returns empty list when no diving workouts found', () async {
-        when(mockHealth.hasPermissions(any, permissions: anyNamed('permissions')))
-            .thenAnswer((_) async => true);
-        when(mockHealth.getHealthDataFromTypes(
-          types: anyNamed('types'),
-          startTime: anyNamed('startTime'),
-          endTime: anyNamed('endTime'),
-        )).thenAnswer((_) async => []);
+        when(
+          mockHealth.hasPermissions(any, permissions: anyNamed('permissions')),
+        ).thenAnswer((_) async => true);
+        when(
+          mockHealth.getHealthDataFromTypes(
+            types: anyNamed('types'),
+            startTime: anyNamed('startTime'),
+            endTime: anyNamed('endTime'),
+          ),
+        ).thenAnswer((_) async => []);
 
         final result = await service.fetchDives(
           startDate: DateTime(2024, 1, 1),
@@ -167,13 +191,16 @@ void main() {
           activityType: HealthWorkoutActivityType.RUNNING,
         );
 
-        when(mockHealth.hasPermissions(any, permissions: anyNamed('permissions')))
-            .thenAnswer((_) async => true);
-        when(mockHealth.getHealthDataFromTypes(
-          types: anyNamed('types'),
-          startTime: anyNamed('startTime'),
-          endTime: anyNamed('endTime'),
-        )).thenAnswer((_) async => [runningWorkout]);
+        when(
+          mockHealth.hasPermissions(any, permissions: anyNamed('permissions')),
+        ).thenAnswer((_) async => true);
+        when(
+          mockHealth.getHealthDataFromTypes(
+            types: anyNamed('types'),
+            startTime: anyNamed('startTime'),
+            endTime: anyNamed('endTime'),
+          ),
+        ).thenAnswer((_) async => [runningWorkout]);
 
         final result = await service.fetchDives(
           startDate: DateTime(2024, 1, 1),
@@ -191,22 +218,27 @@ void main() {
           activityType: HealthWorkoutActivityType.UNDERWATER_DIVING,
         );
 
-        when(mockHealth.hasPermissions(any, permissions: anyNamed('permissions')))
-            .thenAnswer((_) async => true);
+        when(
+          mockHealth.hasPermissions(any, permissions: anyNamed('permissions')),
+        ).thenAnswer((_) async => true);
 
         // First call for workouts
-        when(mockHealth.getHealthDataFromTypes(
-          types: [HealthDataType.WORKOUT],
-          startTime: anyNamed('startTime'),
-          endTime: anyNamed('endTime'),
-        )).thenAnswer((_) async => [divingWorkout]);
+        when(
+          mockHealth.getHealthDataFromTypes(
+            types: [HealthDataType.WORKOUT],
+            startTime: anyNamed('startTime'),
+            endTime: anyNamed('endTime'),
+          ),
+        ).thenAnswer((_) async => [divingWorkout]);
 
         // Second call for heart rate samples
-        when(mockHealth.getHealthDataFromTypes(
-          types: [HealthDataType.HEART_RATE],
-          startTime: anyNamed('startTime'),
-          endTime: anyNamed('endTime'),
-        )).thenAnswer((_) async => []);
+        when(
+          mockHealth.getHealthDataFromTypes(
+            types: [HealthDataType.HEART_RATE],
+            startTime: anyNamed('startTime'),
+            endTime: anyNamed('endTime'),
+          ),
+        ).thenAnswer((_) async => []);
 
         final result = await service.fetchDives(
           startDate: DateTime(2024, 1, 1),
@@ -235,21 +267,26 @@ void main() {
           activityType: HealthWorkoutActivityType.UNDERWATER_DIVING,
         );
 
-        when(mockHealth.hasPermissions(any, permissions: anyNamed('permissions')))
-            .thenAnswer((_) async => true);
+        when(
+          mockHealth.hasPermissions(any, permissions: anyNamed('permissions')),
+        ).thenAnswer((_) async => true);
 
         // Return older dive first
-        when(mockHealth.getHealthDataFromTypes(
-          types: [HealthDataType.WORKOUT],
-          startTime: anyNamed('startTime'),
-          endTime: anyNamed('endTime'),
-        )).thenAnswer((_) async => [olderDive, newerDive]);
+        when(
+          mockHealth.getHealthDataFromTypes(
+            types: [HealthDataType.WORKOUT],
+            startTime: anyNamed('startTime'),
+            endTime: anyNamed('endTime'),
+          ),
+        ).thenAnswer((_) async => [olderDive, newerDive]);
 
-        when(mockHealth.getHealthDataFromTypes(
-          types: [HealthDataType.HEART_RATE],
-          startTime: anyNamed('startTime'),
-          endTime: anyNamed('endTime'),
-        )).thenAnswer((_) async => []);
+        when(
+          mockHealth.getHealthDataFromTypes(
+            types: [HealthDataType.HEART_RATE],
+            startTime: anyNamed('startTime'),
+            endTime: anyNamed('endTime'),
+          ),
+        ).thenAnswer((_) async => []);
 
         final result = await service.fetchDives(
           startDate: DateTime(2024, 1, 1),

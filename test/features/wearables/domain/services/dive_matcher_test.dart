@@ -6,7 +6,7 @@ void main() {
     late DiveMatcher matcher;
 
     setUp(() {
-      matcher = DiveMatcher();
+      matcher = const DiveMatcher();
     });
 
     group('calculateMatchScore', () {

@@ -19,9 +19,6 @@ class HealthKitService implements WearableImportService {
     HealthDataType.HEART_RATE,
   ];
 
-  /// HealthKit data types we might write (future: recording dives).
-  static const List<HealthDataType> _writeTypes = [];
-
   @override
   WearableSource get source => WearableSource.appleWatch;
 
@@ -100,7 +97,8 @@ class HealthKitService implements WearableImportService {
       final diveWorkouts = workouts.where((data) {
         if (data.value is! WorkoutHealthValue) return false;
         final workout = data.value as WorkoutHealthValue;
-        return workout.workoutActivityType == HealthWorkoutActivityType.UNDERWATER_DIVING;
+        return workout.workoutActivityType ==
+            HealthWorkoutActivityType.UNDERWATER_DIVING;
       }).toList();
 
       // Convert each workout to a WearableDive
@@ -187,8 +185,7 @@ class HealthKitService implements WearableImportService {
         if (dataPoint.value is! NumericHealthValue) continue;
 
         final hrValue = dataPoint.value as NumericHealthValue;
-        final timeSeconds =
-            dataPoint.dateFrom.difference(startTime).inSeconds;
+        final timeSeconds = dataPoint.dateFrom.difference(startTime).inSeconds;
 
         samples.add(
           WearableProfileSample(
@@ -223,7 +220,10 @@ class HealthKitService implements WearableImportService {
   ({double? min, double? max}) _calculateTemperatureRange(
     List<WearableProfileSample> samples,
   ) {
-    final temps = samples.map((s) => s.temperature).whereType<double>().toList();
+    final temps = samples
+        .map((s) => s.temperature)
+        .whereType<double>()
+        .toList();
     if (temps.isEmpty) return (min: null, max: null);
 
     return (

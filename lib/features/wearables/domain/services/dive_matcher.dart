@@ -3,6 +3,9 @@
 /// Uses fuzzy matching based on time, depth, and duration to detect
 /// potential duplicates when importing from wearable devices.
 class DiveMatcher {
+  /// Creates a [DiveMatcher] instance.
+  const DiveMatcher();
+
   /// Calculate a match score between a wearable dive and an existing dive.
   ///
   /// Returns a score from 0.0 (no match) to 1.0 (perfect match).

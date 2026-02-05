@@ -72,11 +72,7 @@ class WearableDiveCard extends StatelessWidget {
         color: isSelected ? colorScheme.primary : Colors.transparent,
       ),
       child: isSelected
-          ? Icon(
-              Icons.check,
-              size: 16,
-              color: colorScheme.onPrimary,
-            )
+          ? Icon(Icons.check, size: 16, color: colorScheme.onPrimary)
           : null,
     );
   }
@@ -155,25 +151,25 @@ class WearableDiveCard extends StatelessWidget {
 
     final (color, icon, text) = switch (matchStatus!) {
       WearableDiveMatchStatus.probable => (
-          colorScheme.error,
-          Icons.warning_amber_rounded,
-          'Likely duplicate',
-        ),
+        colorScheme.error,
+        Icons.warning_amber_rounded,
+        'Likely duplicate',
+      ),
       WearableDiveMatchStatus.possible => (
-          colorScheme.tertiary,
-          Icons.info_outline,
-          'Possible duplicate',
-        ),
+        colorScheme.tertiary,
+        Icons.info_outline,
+        'Possible duplicate',
+      ),
       WearableDiveMatchStatus.alreadyImported => (
-          colorScheme.outline,
-          Icons.check_circle_outline,
-          'Already imported',
-        ),
+        colorScheme.outline,
+        Icons.check_circle_outline,
+        'Already imported',
+      ),
       WearableDiveMatchStatus.none => (
-          colorScheme.primary,
-          Icons.add_circle_outline,
-          'New dive',
-        ),
+        colorScheme.primary,
+        Icons.add_circle_outline,
+        'New dive',
+      ),
     };
 
     return Container(
@@ -221,10 +217,7 @@ class WearableDiveCard extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             label,
-            style: TextStyle(
-              fontSize: 12,
-              color: colorScheme.onSurfaceVariant,
-            ),
+            style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
           ),
         ],
       ),
@@ -278,11 +271,7 @@ class _MetricChip extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          icon,
-          size: 14,
-          color: labelStyle?.color,
-        ),
+        Icon(icon, size: 14, color: labelStyle?.color),
         const SizedBox(width: 4),
         Text(value, style: textStyle),
       ],

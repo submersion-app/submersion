@@ -32,7 +32,7 @@ void main() {
     });
 
     test('WearableProfileSample creates with all fields', () {
-      final sample = WearableProfileSample(
+      const sample = WearableProfileSample(
         timeSeconds: 120,
         depth: 15.5,
         temperature: 22.0,

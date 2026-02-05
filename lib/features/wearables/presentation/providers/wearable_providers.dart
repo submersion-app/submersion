@@ -202,9 +202,9 @@ class WearableImportNotifier extends StateNotifier<WearableImportState> {
 /// Provider for the wearable import state notifier.
 final wearableImportProvider =
     StateNotifierProvider<WearableImportNotifier, WearableImportState>((ref) {
-  final service = ref.watch(wearableImportServiceProvider);
-  return WearableImportNotifier(service);
-});
+      final service = ref.watch(wearableImportServiceProvider);
+      return WearableImportNotifier(service);
+    });
 
 // ============================================================================
 // Date Range Provider
@@ -212,10 +212,7 @@ final wearableImportProvider =
 
 /// State for the date range filter.
 class DateRangeState {
-  const DateRangeState({
-    required this.startDate,
-    required this.endDate,
-  });
+  const DateRangeState({required this.startDate, required this.endDate});
 
   final DateTime startDate;
   final DateTime endDate;
@@ -229,10 +226,7 @@ class DateRangeState {
     );
   }
 
-  DateRangeState copyWith({
-    DateTime? startDate,
-    DateTime? endDate,
-  }) {
+  DateRangeState copyWith({DateTime? startDate, DateTime? endDate}) {
     return DateRangeState(
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
@@ -264,5 +258,5 @@ class DateRangeNotifier extends StateNotifier<DateRangeState> {
 /// Provider for the import date range filter.
 final importDateRangeProvider =
     StateNotifierProvider<DateRangeNotifier, DateRangeState>((ref) {
-  return DateRangeNotifier();
-});
+      return DateRangeNotifier();
+    });

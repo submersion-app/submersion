@@ -54,7 +54,8 @@ class _WearableImportPageState extends ConsumerState<WearableImportPage> {
         return _buildWizard(context);
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => _buildError(context, 'Failed to check permissions'),
+      error: (error, stack) =>
+          _buildError(context, 'Failed to check permissions'),
     );
   }
 
@@ -80,10 +81,7 @@ class _WearableImportPageState extends ConsumerState<WearableImportPage> {
                 color: theme.colorScheme.onSurfaceVariant,
               ),
               const SizedBox(height: 16),
-              Text(
-                'Not Available',
-                style: theme.textTheme.headlineSmall,
-              ),
+              Text('Not Available', style: theme.textTheme.headlineSmall),
               const SizedBox(height: 8),
               Text(
                 'Apple Watch import is only available on iOS and macOS devices.',
@@ -244,10 +242,10 @@ class _WearableImportPageState extends ConsumerState<WearableImportPage> {
           child: importState.isLoading
               ? const Center(child: CircularProgressIndicator())
               : importState.error != null
-                  ? _buildError(context, importState.error!)
-                  : importState.availableDives.isEmpty
-                      ? _buildEmptyState(context)
-                      : _buildDiveList(context, importState),
+              ? _buildError(context, importState.error!)
+              : importState.availableDives.isEmpty
+              ? _buildEmptyState(context)
+              : _buildDiveList(context, importState),
         ),
 
         // Action buttons
@@ -260,11 +258,11 @@ class _WearableImportPageState extends ConsumerState<WearableImportPage> {
                   TextButton(
                     onPressed: importState.hasSelection
                         ? () => ref
-                            .read(wearableImportProvider.notifier)
-                            .deselectAll()
+                              .read(wearableImportProvider.notifier)
+                              .deselectAll()
                         : () => ref
-                            .read(wearableImportProvider.notifier)
-                            .selectAll(),
+                              .read(wearableImportProvider.notifier)
+                              .selectAll(),
                     child: Text(
                       importState.hasSelection ? 'Deselect All' : 'Select All',
                     ),
@@ -295,16 +293,16 @@ class _WearableImportPageState extends ConsumerState<WearableImportPage> {
     return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       itemCount: state.availableDives.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      separatorBuilder: (context, index) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
         final dive = state.availableDives[index];
         return WearableDiveCard(
           dive: dive,
           isSelected: state.isSelected(dive.sourceId),
           onToggleSelection: () {
-            ref.read(wearableImportProvider.notifier).toggleSelection(
-                  dive.sourceId,
-                );
+            ref
+                .read(wearableImportProvider.notifier)
+                .toggleSelection(dive.sourceId);
           },
           matchStatus: WearableDiveMatchStatus.none, // TODO: Implement matching
         );
@@ -334,17 +332,19 @@ class _WearableImportPageState extends ConsumerState<WearableImportPage> {
                   '${importState.selectedCount} dives will be imported. '
                   'Duplicate checking with existing dives will be implemented in a future update.',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Expanded(
                   child: ListView.separated(
                     itemCount: importState.selectedCount,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 8),
                     itemBuilder: (context, index) {
-                      final sourceId =
-                          importState.selectedDiveIds.elementAt(index);
+                      final sourceId = importState.selectedDiveIds.elementAt(
+                        index,
+                      );
                       final dive = importState.getDiveById(sourceId);
                       if (dive == null) return const SizedBox.shrink();
 
@@ -392,16 +392,9 @@ class _WearableImportPageState extends ConsumerState<WearableImportPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.check_circle,
-            size: 80,
-            color: theme.colorScheme.primary,
-          ),
+          Icon(Icons.check_circle, size: 80, color: theme.colorScheme.primary),
           const SizedBox(height: 24),
-          Text(
-            'Import Complete',
-            style: theme.textTheme.headlineMedium,
-          ),
+          Text('Import Complete', style: theme.textTheme.headlineMedium),
           const SizedBox(height: 16),
           _SummaryRow(
             label: 'Dives imported',
@@ -445,10 +438,7 @@ class _WearableImportPageState extends ConsumerState<WearableImportPage> {
             color: theme.colorScheme.onSurfaceVariant,
           ),
           const SizedBox(height: 16),
-          Text(
-            'No Dives Found',
-            style: theme.textTheme.titleLarge,
-          ),
+          Text('No Dives Found', style: theme.textTheme.titleLarge),
           const SizedBox(height: 8),
           Text(
             'No underwater diving activities found in the selected date range.',
@@ -468,16 +458,9 @@ class _WearableImportPageState extends ConsumerState<WearableImportPage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.error_outline,
-            size: 64,
-            color: theme.colorScheme.error,
-          ),
+          Icon(Icons.error_outline, size: 64, color: theme.colorScheme.error),
           const SizedBox(height: 16),
-          Text(
-            'Error',
-            style: theme.textTheme.titleLarge,
-          ),
+          Text('Error', style: theme.textTheme.titleLarge),
           const SizedBox(height: 8),
           Text(
             message,
@@ -493,10 +476,9 @@ class _WearableImportPageState extends ConsumerState<WearableImportPage> {
 
   void _fetchDives() {
     final dateRange = ref.read(importDateRangeProvider);
-    ref.read(wearableImportProvider.notifier).fetchDives(
-          startDate: dateRange.startDate,
-          endDate: dateRange.endDate,
-        );
+    ref
+        .read(wearableImportProvider.notifier)
+        .fetchDives(startDate: dateRange.startDate, endDate: dateRange.endDate);
   }
 
   void _performImport() {
@@ -504,7 +486,9 @@ class _WearableImportPageState extends ConsumerState<WearableImportPage> {
 
     // TODO: Actually import dives to database
     // For now, just simulate success
-    ref.read(wearableImportProvider.notifier).updateCounts(
+    ref
+        .read(wearableImportProvider.notifier)
+        .updateCounts(
           imported: importState.selectedCount,
           merged: 0,
           skipped: 0,
@@ -552,11 +536,7 @@ class _StepDot extends StatelessWidget {
           ),
           child: Center(
             child: isCompleted
-                ? Icon(
-                    Icons.check,
-                    size: 18,
-                    color: colorScheme.onPrimary,
-                  )
+                ? Icon(Icons.check, size: 18, color: colorScheme.onPrimary)
                 : Text(
                     step.toString(),
                     style: TextStyle(
@@ -598,8 +578,6 @@ class _DateRangeSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateFormat = DateFormat.yMMMd();
-
     return Row(
       children: [
         Expanded(
@@ -624,7 +602,9 @@ class _DateRangeSelector extends StatelessWidget {
   Future<void> _selectDate(BuildContext context, bool isStart) async {
     final now = DateTime.now();
     final initialDate = isStart ? startDate : endDate;
-    final firstDate = isStart ? now.subtract(const Duration(days: 365)) : startDate;
+    final firstDate = isStart
+        ? now.subtract(const Duration(days: 365))
+        : startDate;
     final lastDate = isStart ? endDate : now;
 
     final selected = await showDatePicker(
