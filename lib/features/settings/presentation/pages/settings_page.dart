@@ -1684,22 +1684,6 @@ class _DataSectionContent extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: 16),
-          _buildSectionHeader(context, 'Import'),
-          const SizedBox(height: 8),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.watch),
-                  title: const Text('Apple Watch Import'),
-                  subtitle: const Text('Import dives from Apple Watch'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/settings/wearable-import'),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );

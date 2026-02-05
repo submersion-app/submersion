@@ -656,12 +656,26 @@ class _ComputersSectionContent extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
+          _buildSectionHeader(context, 'Apple Watch'),
+          const SizedBox(height: 8),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.watch),
+              title: const Text('Import from Apple Watch'),
+              subtitle: const Text('Import dives recorded on Apple Watch Ultra'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push('/settings/wearable-import'),
+            ),
+          ),
+          const SizedBox(height: 16),
           _buildInfoCard(
             context,
             'About Dive Computers',
             'Connect your dive computer via Bluetooth to download dive logs '
                 'directly to the app. Supported computers include Suunto, '
-                'Shearwater, Garmin, Mares, and many other popular brands.',
+                'Shearwater, Garmin, Mares, and many other popular brands.\n\n'
+                'Apple Watch Ultra users can import dive data directly from '
+                'the Health app, including depth, duration, and heart rate.',
           ),
         ],
       ),
