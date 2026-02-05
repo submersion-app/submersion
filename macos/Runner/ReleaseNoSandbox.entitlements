@@ -23,5 +23,13 @@
 	<!-- Network access (client only - for cloud sync, no server functionality) -->
 	<key>com.apple.security.network.client</key>
 	<true/>
+
+	<!-- HealthKit for Apple Watch dive data import -->
+	<key>com.apple.developer.healthkit</key>
+	<true/>
+	<key>com.apple.developer.healthkit.access</key>
+	<array>
+		<string>health-records</string>
+	</array>
 </dict>
 </plist>
