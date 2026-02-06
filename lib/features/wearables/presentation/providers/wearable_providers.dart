@@ -1,10 +1,13 @@
 import 'dart:io';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/wearables/data/services/healthkit_service.dart';
 import 'package:submersion/features/wearables/domain/entities/wearable_dive.dart';
 import 'package:submersion/features/wearables/domain/services/dive_matcher.dart';
+import 'package:submersion/features/wearables/domain/services/wearable_dive_converter.dart';
 import 'package:submersion/features/wearables/domain/services/wearable_import_service.dart';
+import 'package:submersion/features/wearables/presentation/widgets/wearable_dive_card.dart';
 
 // ============================================================================
 // Service Providers
@@ -29,6 +32,11 @@ final wearableImportServiceProvider = Provider<WearableImportService?>((ref) {
 /// Provider for the dive matcher service.
 final diveMatcherProvider = Provider<DiveMatcher>((ref) {
   return const DiveMatcher();
+});
+
+/// Provider for the wearable dive converter.
+final wearableDiveConverterProvider = Provider<WearableDiveConverter>((ref) {
+  return const WearableDiveConverter();
 });
 
 // ============================================================================
@@ -57,36 +65,44 @@ final wearableHasPermissionsProvider = FutureProvider<bool>((ref) async {
 class WearableImportState {
   const WearableImportState({
     this.isLoading = false,
+    this.isImporting = false,
     this.error,
     this.availableDives = const [],
     this.selectedDiveIds = const {},
+    this.matchResults = const {},
     this.importedCount = 0,
     this.mergedCount = 0,
     this.skippedCount = 0,
   });
 
   final bool isLoading;
+  final bool isImporting;
   final String? error;
   final List<WearableDive> availableDives;
   final Set<String> selectedDiveIds;
+  final Map<String, WearableDiveMatchStatus> matchResults;
   final int importedCount;
   final int mergedCount;
   final int skippedCount;
 
   WearableImportState copyWith({
     bool? isLoading,
+    bool? isImporting,
     String? error,
     List<WearableDive>? availableDives,
     Set<String>? selectedDiveIds,
+    Map<String, WearableDiveMatchStatus>? matchResults,
     int? importedCount,
     int? mergedCount,
     int? skippedCount,
   }) {
     return WearableImportState(
       isLoading: isLoading ?? this.isLoading,
+      isImporting: isImporting ?? this.isImporting,
       error: error,
       availableDives: availableDives ?? this.availableDives,
       selectedDiveIds: selectedDiveIds ?? this.selectedDiveIds,
+      matchResults: matchResults ?? this.matchResults,
       importedCount: importedCount ?? this.importedCount,
       mergedCount: mergedCount ?? this.mergedCount,
       skippedCount: skippedCount ?? this.skippedCount,
@@ -196,6 +212,148 @@ class WearableImportNotifier extends StateNotifier<WearableImportState> {
       mergedCount: merged,
       skippedCount: skipped,
     );
+  }
+
+  /// Check selected dives for duplicates against existing dive log.
+  ///
+  /// For each selected dive:
+  /// 1. Exact match on wearableId -> alreadyImported
+  /// 2. Fuzzy match score >= 0.7 -> probable
+  /// 3. Fuzzy match score >= 0.5 -> possible
+  /// 4. No match -> none
+  Future<void> checkForDuplicates({
+    required DiveRepository repository,
+    required DiveMatcher matcher,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      // Get all previously imported wearable IDs for exact matching
+      final importedIds = await repository.getWearableIds();
+
+      // Get existing dives in a wide range around selected dives
+      final selectedDives = state.availableDives
+          .where((d) => state.selectedDiveIds.contains(d.sourceId))
+          .toList();
+
+      if (selectedDives.isEmpty) {
+        state = state.copyWith(isLoading: false, matchResults: {});
+        return;
+      }
+
+      // Build a date range that covers all selected dives with padding
+      final earliest = selectedDives
+          .map((d) => d.startTime)
+          .reduce((a, b) => a.isBefore(b) ? a : b);
+      final latest = selectedDives
+          .map((d) => d.endTime)
+          .reduce((a, b) => a.isAfter(b) ? a : b);
+      final rangeStart = earliest.subtract(const Duration(hours: 1));
+      final rangeEnd = latest.add(const Duration(hours: 1));
+
+      final existingDives = await repository.getDivesInRange(
+        rangeStart,
+        rangeEnd,
+      );
+
+      // Match each selected dive
+      final results = <String, WearableDiveMatchStatus>{};
+
+      for (final wDive in selectedDives) {
+        // 1. Exact wearableId match
+        if (importedIds.contains(wDive.sourceId)) {
+          results[wDive.sourceId] = WearableDiveMatchStatus.alreadyImported;
+          continue;
+        }
+
+        // 2. Fuzzy match against existing dives
+        var bestScore = 0.0;
+        for (final existing in existingDives) {
+          final score = matcher.calculateMatchScore(
+            wearableStartTime: wDive.startTime,
+            wearableMaxDepth: wDive.maxDepth,
+            wearableDurationSeconds: wDive.durationSeconds,
+            existingStartTime: existing.effectiveEntryTime,
+            existingMaxDepth: existing.maxDepth ?? 0,
+            existingDurationSeconds: existing.duration?.inSeconds ?? 0,
+          );
+          if (score > bestScore) bestScore = score;
+        }
+
+        if (bestScore >= 0.7) {
+          results[wDive.sourceId] = WearableDiveMatchStatus.probable;
+        } else if (bestScore >= 0.5) {
+          results[wDive.sourceId] = WearableDiveMatchStatus.possible;
+        } else {
+          results[wDive.sourceId] = WearableDiveMatchStatus.none;
+        }
+      }
+
+      state = state.copyWith(isLoading: false, matchResults: results);
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Failed to check for duplicates: $e',
+      );
+    }
+  }
+
+  /// Import selected dives into the dive log.
+  ///
+  /// Skips dives marked as alreadyImported or probable duplicates.
+  /// Imports all others (including possible duplicates — user chose them).
+  Future<void> performImport({
+    required DiveRepository repository,
+    required WearableDiveConverter converter,
+    String? diverId,
+  }) async {
+    state = state.copyWith(isImporting: true, error: null);
+
+    var imported = 0;
+    var skipped = 0;
+
+    try {
+      for (final sourceId in state.selectedDiveIds) {
+        final wDive = state.getDiveById(sourceId);
+        if (wDive == null) continue;
+
+        final matchStatus = state.matchResults[sourceId];
+
+        // Skip already imported and probable duplicates
+        if (matchStatus == WearableDiveMatchStatus.alreadyImported ||
+            matchStatus == WearableDiveMatchStatus.probable) {
+          skipped++;
+          continue;
+        }
+
+        // Get the next dive number for proper ordering
+        final diveNumber = await repository.getDiveNumberForDate(
+          wDive.startTime,
+          diverId: diverId,
+        );
+
+        final dive = converter.convert(
+          wDive,
+          diverId: diverId,
+          diveNumber: diveNumber,
+        );
+
+        await repository.createDive(dive);
+        imported++;
+      }
+
+      state = state.copyWith(
+        isImporting: false,
+        importedCount: imported,
+        mergedCount: 0,
+        skippedCount: skipped,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isImporting: false,
+        error: 'Failed to import dives: $e',
+      );
+    }
   }
 }
 

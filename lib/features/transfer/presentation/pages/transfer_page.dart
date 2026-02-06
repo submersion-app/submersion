@@ -662,7 +662,9 @@ class _ComputersSectionContent extends ConsumerWidget {
             child: ListTile(
               leading: const Icon(Icons.watch),
               title: const Text('Import from Apple Watch'),
-              subtitle: const Text('Import dives recorded on Apple Watch Ultra'),
+              subtitle: const Text(
+                'Import dives recorded on Apple Watch Ultra',
+              ),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => context.push('/settings/wearable-import'),
             ),

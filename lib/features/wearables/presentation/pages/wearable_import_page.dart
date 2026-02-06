@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/wearables/presentation/providers/wearable_providers.dart';
 import 'package:submersion/features/wearables/presentation/widgets/wearable_dive_card.dart';
 
@@ -277,7 +279,7 @@ class _WearableImportPageState extends ConsumerState<WearableImportPage> {
                   const SizedBox(width: 16),
                   FilledButton(
                     onPressed: importState.hasSelection
-                        ? () => setState(() => _currentStep = 1)
+                        ? _checkDuplicatesAndAdvance
                         : null,
                     child: const Text('Next'),
                   ),
@@ -304,7 +306,7 @@ class _WearableImportPageState extends ConsumerState<WearableImportPage> {
                 .read(wearableImportProvider.notifier)
                 .toggleSelection(dive.sourceId);
           },
-          matchStatus: WearableDiveMatchStatus.none, // TODO: Implement matching
+          matchStatus: state.matchResults[dive.sourceId],
         );
       },
     );
@@ -312,9 +314,27 @@ class _WearableImportPageState extends ConsumerState<WearableImportPage> {
 
   Widget _buildStepHandleDuplicates(BuildContext context) {
     final importState = ref.watch(wearableImportProvider);
+    final theme = Theme.of(context);
 
-    // For now, just show selected dives with option to proceed
-    // TODO: Implement actual duplicate checking against existing dives
+    if (importState.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    // Count match statuses
+    final newCount = importState.matchResults.values
+        .where((s) => s == WearableDiveMatchStatus.none)
+        .length;
+    final possibleCount = importState.matchResults.values
+        .where((s) => s == WearableDiveMatchStatus.possible)
+        .length;
+    final skipCount = importState.matchResults.values
+        .where(
+          (s) =>
+              s == WearableDiveMatchStatus.alreadyImported ||
+              s == WearableDiveMatchStatus.probable,
+        )
+        .length;
+
     return Column(
       children: [
         Expanded(
@@ -325,14 +345,15 @@ class _WearableImportPageState extends ConsumerState<WearableImportPage> {
               children: [
                 Text(
                   'Review Selected Dives',
-                  style: Theme.of(context).textTheme.titleLarge,
+                  style: theme.textTheme.titleLarge,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '${importState.selectedCount} dives will be imported. '
-                  'Duplicate checking with existing dives will be implemented in a future update.',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  '$newCount new'
+                  '${possibleCount > 0 ? ', $possibleCount possible duplicates' : ''}'
+                  '${skipCount > 0 ? ', $skipCount will be skipped' : ''}',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -352,7 +373,7 @@ class _WearableImportPageState extends ConsumerState<WearableImportPage> {
                         dive: dive,
                         isSelected: true,
                         onToggleSelection: () {},
-                        matchStatus: WearableDiveMatchStatus.none,
+                        matchStatus: importState.matchResults[sourceId],
                       );
                     },
                   ),
@@ -372,8 +393,14 @@ class _WearableImportPageState extends ConsumerState<WearableImportPage> {
                 ),
                 const Spacer(),
                 FilledButton(
-                  onPressed: _performImport,
-                  child: const Text('Import'),
+                  onPressed: importState.isImporting ? null : _performImport,
+                  child: importState.isImporting
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Import'),
                 ),
               ],
             ),
@@ -481,20 +508,36 @@ class _WearableImportPageState extends ConsumerState<WearableImportPage> {
         .fetchDives(startDate: dateRange.startDate, endDate: dateRange.endDate);
   }
 
-  void _performImport() {
-    final importState = ref.read(wearableImportProvider);
+  Future<void> _checkDuplicatesAndAdvance() async {
+    final notifier = ref.read(wearableImportProvider.notifier);
+    final repository = ref.read(diveRepositoryProvider);
+    final matcher = ref.read(diveMatcherProvider);
 
-    // TODO: Actually import dives to database
-    // For now, just simulate success
-    ref
-        .read(wearableImportProvider.notifier)
-        .updateCounts(
-          imported: importState.selectedCount,
-          merged: 0,
-          skipped: 0,
-        );
+    await notifier.checkForDuplicates(repository: repository, matcher: matcher);
 
-    setState(() => _currentStep = 2);
+    if (mounted) {
+      setState(() => _currentStep = 1);
+    }
+  }
+
+  Future<void> _performImport() async {
+    final notifier = ref.read(wearableImportProvider.notifier);
+    final repository = ref.read(diveRepositoryProvider);
+    final converter = ref.read(wearableDiveConverterProvider);
+    final diverId = ref.read(currentDiverIdProvider);
+
+    await notifier.performImport(
+      repository: repository,
+      converter: converter,
+      diverId: diverId,
+    );
+
+    // Refresh the dive list so new imports appear immediately
+    ref.invalidate(divesProvider);
+
+    if (mounted) {
+      setState(() => _currentStep = 2);
+    }
   }
 }
 
