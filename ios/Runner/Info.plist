@@ -85,6 +85,10 @@
 	<string>Submersion uses your location to record dive site coordinates and find nearby dive sites.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Submersion saves dive photos to your photo library.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Submersion imports your Apple Watch dive data including depth, temperature, and heart rate to create detailed dive logs.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Submersion can record dive activities to your Health app.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Submersion accesses your photo library to attach images to dive logs.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>

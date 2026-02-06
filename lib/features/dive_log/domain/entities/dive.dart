@@ -100,6 +100,10 @@ class Dive extends Equatable {
   // Training course (v1.5)
   final String? courseId; // FK to training course
 
+  // Wearable integration (v2.0)
+  final String? wearableSource; // 'appleWatch', 'garmin', 'suunto'
+  final String? wearableId; // Source-specific ID (e.g., HealthKit UUID)
+
   const Dive({
     required this.id,
     this.diverId,
@@ -167,6 +171,9 @@ class Dive extends Equatable {
     this.isPlanned = false,
     // Training course (v1.5)
     this.courseId,
+    // Wearable integration (v2.0)
+    this.wearableSource,
+    this.wearableId,
   });
 
   /// Effective start time of the dive (entryTime if set, otherwise dateTime)
@@ -415,6 +422,9 @@ class Dive extends Equatable {
     bool? isPlanned,
     // Training course
     String? courseId,
+    // Wearable integration
+    String? wearableSource,
+    String? wearableId,
   }) {
     return Dive(
       id: id ?? this.id,
@@ -483,6 +493,9 @@ class Dive extends Equatable {
       isPlanned: isPlanned ?? this.isPlanned,
       // Training course
       courseId: courseId ?? this.courseId,
+      // Wearable integration
+      wearableSource: wearableSource ?? this.wearableSource,
+      wearableId: wearableId ?? this.wearableId,
     );
   }
 
@@ -554,6 +567,9 @@ class Dive extends Equatable {
     isPlanned,
     // Training course
     courseId,
+    // Wearable integration
+    wearableSource,
+    wearableId,
   ];
 }
 
@@ -567,6 +583,8 @@ class DiveProfilePoint extends Equatable {
   // CCR/SCR rebreather data (v1.5)
   final double? setpoint; // Current setpoint at this sample (bar)
   final double? ppO2; // Measured/calculated ppO2 (bar)
+  // Wearable integration (v2.0)
+  final String? heartRateSource; // 'diveComputer', 'appleWatch', 'garmin'
 
   const DiveProfilePoint({
     required this.timestamp,
@@ -576,7 +594,30 @@ class DiveProfilePoint extends Equatable {
     this.heartRate,
     this.setpoint,
     this.ppO2,
+    this.heartRateSource,
   });
+
+  DiveProfilePoint copyWith({
+    int? timestamp,
+    double? depth,
+    double? pressure,
+    double? temperature,
+    int? heartRate,
+    double? setpoint,
+    double? ppO2,
+    String? heartRateSource,
+  }) {
+    return DiveProfilePoint(
+      timestamp: timestamp ?? this.timestamp,
+      depth: depth ?? this.depth,
+      pressure: pressure ?? this.pressure,
+      temperature: temperature ?? this.temperature,
+      heartRate: heartRate ?? this.heartRate,
+      setpoint: setpoint ?? this.setpoint,
+      ppO2: ppO2 ?? this.ppO2,
+      heartRateSource: heartRateSource ?? this.heartRateSource,
+    );
+  }
 
   @override
   List<Object?> get props => [
@@ -587,6 +628,7 @@ class DiveProfilePoint extends Equatable {
     heartRate,
     setpoint,
     ppO2,
+    heartRateSource,
   ];
 }
 

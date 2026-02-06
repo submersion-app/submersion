@@ -167,6 +167,13 @@ class Dives extends Table {
   // Training course this dive belongs to (v1.5)
   TextColumn get courseId =>
       text().nullable().references(Courses, #id, onDelete: KeyAction.setNull)();
+
+  // Wearable integration (v2.0) - tracks import source for Apple Watch, Garmin, etc.
+  TextColumn get wearableSource =>
+      text().nullable()(); // 'appleWatch', 'garmin', 'suunto'
+  TextColumn get wearableId =>
+      text().nullable()(); // Source-specific ID (e.g., HealthKit UUID)
+
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -198,6 +205,10 @@ class DiveProfiles extends Table {
   RealColumn get setpoint =>
       real().nullable()(); // Current setpoint at sample (bar)
   RealColumn get ppO2 => real().nullable()(); // Measured/calculated ppO2 (bar)
+
+  // Wearable integration (v2.0) - tracks source of heart rate data
+  TextColumn get heartRateSource =>
+      text().nullable()(); // 'diveComputer', 'appleWatch', 'garmin', 'manual'
 
   @override
   Set<Column> get primaryKey => {id};
@@ -1050,7 +1061,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 29;
+  int get schemaVersion => 30;
 
   @override
   MigrationStrategy get migration {
@@ -1675,6 +1686,20 @@ class AppDatabase extends _$AppDatabase {
           );
           await customStatement(
             'ALTER TABLE diver_settings ADD COLUMN default_show_gas_switch_markers INTEGER NOT NULL DEFAULT 1',
+          );
+        }
+        if (from < 30) {
+          // Wearable integration (v2.0) - Apple Watch, Garmin, Suunto import
+          // Add wearable source tracking to dives table
+          await customStatement(
+            'ALTER TABLE dives ADD COLUMN wearable_source TEXT',
+          );
+          await customStatement(
+            'ALTER TABLE dives ADD COLUMN wearable_id TEXT',
+          );
+          // Add heart rate source tracking to dive_profiles table
+          await customStatement(
+            'ALTER TABLE dive_profiles ADD COLUMN heart_rate_source TEXT',
           );
         }
       },

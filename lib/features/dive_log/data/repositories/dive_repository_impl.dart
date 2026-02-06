@@ -207,6 +207,7 @@ class DiveRepository {
               pressure: p.pressure,
               temperature: p.temperature,
               heartRate: p.heartRate,
+              heartRateSource: p.heartRateSource,
             ),
           )
           .toList();
@@ -291,6 +292,9 @@ class DiveRepository {
               isPlanned: Value(dive.isPlanned),
               // Training course (v1.5)
               courseId: Value(dive.courseId),
+              // Wearable integration (v2.0)
+              wearableSource: Value(dive.wearableSource),
+              wearableId: Value(dive.wearableId),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -357,6 +361,7 @@ class DiveRepository {
               pressure: Value(point.pressure),
               temperature: Value(point.temperature),
               heartRate: Value(point.heartRate),
+              heartRateSource: Value(point.heartRateSource),
             ),
           );
         }
@@ -458,6 +463,9 @@ class DiveRepository {
           isPlanned: Value(dive.isPlanned),
           // Training course (v1.5)
           courseId: Value(dive.courseId),
+          // Wearable integration (v2.0)
+          wearableSource: Value(dive.wearableSource),
+          wearableId: Value(dive.wearableId),
           updatedAt: Value(now),
         ),
       );
@@ -676,11 +684,14 @@ class DiveRepository {
     }
   }
 
-  /// Get dives within a date range
+  /// Get dives within a date range.
+  ///
+  /// Optionally filter by [diverId] for per-diver queries.
   Future<List<domain.Dive>> getDivesInRange(
     DateTime start,
-    DateTime end,
-  ) async {
+    DateTime end, {
+    String? diverId,
+  }) async {
     try {
       final query = _db.select(_db.dives)
         ..where(
@@ -695,6 +706,10 @@ class DiveRepository {
           (t) => OrderingTerm.desc(coalesce([t.entryTime, t.diveDateTime])),
           (t) => OrderingTerm.desc(t.diveNumber),
         ]);
+
+      if (diverId != null) {
+        query.where((t) => t.diverId.equals(diverId));
+      }
 
       final rows = await query.get();
       return Future.wait(rows.map(_mapRowToDive));
@@ -1280,6 +1295,9 @@ class DiveRepository {
       isPlanned: row.isPlanned,
       // Training course (v1.5)
       courseId: row.courseId,
+      // Wearable integration (v2.0)
+      wearableSource: row.wearableSource,
+      wearableId: row.wearableId,
     );
   }
 
@@ -1536,6 +1554,7 @@ class DiveRepository {
               pressure: p.pressure,
               temperature: p.temperature,
               heartRate: p.heartRate,
+              heartRateSource: p.heartRateSource,
             ),
           )
           .toList(),
@@ -1571,7 +1590,31 @@ class DiveRepository {
       isPlanned: row.isPlanned,
       // Training course (v1.5)
       courseId: row.courseId,
+      // Wearable integration (v2.0)
+      wearableSource: row.wearableSource,
+      wearableId: row.wearableId,
     );
+  }
+
+  // ============================================================================
+  // Wearable Import Operations
+  // ============================================================================
+
+  /// Get all wearable IDs that have already been imported.
+  ///
+  /// Used for fast duplicate detection during wearable imports.
+  Future<Set<String>> getWearableIds({String? diverId}) async {
+    final query = _db.selectOnly(_db.dives)
+      ..addColumns([_db.dives.wearableId])
+      ..where(_db.dives.wearableId.isNotNull());
+    if (diverId != null) {
+      query.where(_db.dives.diverId.equals(diverId));
+    }
+    final rows = await query.get();
+    return rows
+        .map((row) => row.read(_db.dives.wearableId))
+        .whereType<String>()
+        .toSet();
   }
 
   // ============================================================================

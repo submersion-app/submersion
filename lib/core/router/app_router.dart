@@ -77,6 +77,7 @@ import 'package:submersion/features/dive_computer/presentation/pages/device_disc
 import 'package:submersion/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:submersion/features/dive_planner/presentation/pages/dive_planner_page.dart';
 import 'package:submersion/features/surface_interval_tool/presentation/pages/surface_interval_tool_page.dart';
+import 'package:submersion/features/wearables/presentation/pages/wearable_import_page.dart';
 import 'package:submersion/shared/widgets/main_scaffold.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -662,6 +663,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'offline-maps',
                 name: 'offlineMaps',
                 builder: (context, state) => const OfflineMapsPage(),
+              ),
+              GoRoute(
+                path: 'wearable-import',
+                name: 'wearableImport',
+                builder: (context, state) => const WearableImportPage(),
               ),
             ],
           ),

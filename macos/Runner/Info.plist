@@ -64,6 +64,10 @@
 	<false/>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Submersion uses Bluetooth to connect to dive computers and import dive data.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Submersion imports your Apple Watch dive data including depth, temperature, and heart rate to create detailed dive logs.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Submersion can record dive activities to your Health app.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Submersion accesses your photo library to attach images to dive logs.</string>
 	<key>UTImportedTypeDeclarations</key>
