@@ -40,16 +40,6 @@ This document contains only the features and tasks that are **not yet completed*
 
 ## Category 13: Import, Export & Interoperability
 
-### 13.1 File Formats
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Excel export | ✅ Complete | Multi-sheet .xlsx with stats |
-| Google Earth KML export | ✅ Complete | Site placemarks with dive history |
-
-**Tasks:**
-- [x] Excel export with multiple sheets (dives, sites, equipment, statistics)
-- [x] KML export (placemark per dive site with description bubble)
-
 ### 13.2 Interoperability
 | Feature | Status | Notes |
 |---------|--------|-------|
