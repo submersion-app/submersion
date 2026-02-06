@@ -441,16 +441,20 @@ This document contains only the features and tasks that are **not yet completed*
 - [ ] Life list tracker (species collection progress)
 
 ### 15.5 Wearable Integration
-| Feature | Notes |
-|---------|-------|
-| Apple Watch Ultra import | Import dives via HealthKit |
-| Apple HealthKit integration | Read depth/temperature data |
-| Garmin Connect import | Import Descent dive activities |
-| Suunto app integration | Import via UDDF/Movescount |
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Apple Watch Ultra import | Done | Import dives via HealthKit |
+| Apple HealthKit integration | Done | Read depth/temperature/heart rate data |
+| Garmin Connect import | Planned | Import Descent dive activities |
+| Suunto app integration | Planned | Import via UDDF/Movescount |
 
-**Tasks:**
-- [ ] HealthKit permission and data reading
-- [ ] Import Apple Watch Ultra dives (depth, temperature, time)
+**Completed:**
+- [x] HealthKit permission and data reading
+- [x] Import Apple Watch Ultra dives (depth, temperature, time, heart rate)
+- [x] Duplicate detection (exact wearableId match + fuzzy DiveMatcher scoring)
+- [x] 3-step import wizard UI (Select > Review > Summary)
+
+**Remaining:**
 - [ ] Garmin Connect API integration
 - [ ] Automatic sync from connected wearables
 - [ ] Merge wearable data with dive computer data
@@ -522,7 +526,7 @@ This document contains only the features and tasks that are **not yet completed*
 
 | Phase | Remaining Features | Remaining Tasks |
 |-------|-------------------|-----------------|
-| **v1.5** | ~13 features | ~23 tasks |
+| **v1.5** | ~12 features | ~21 tasks |
 | **v2.0** | ~69+ features | ~104+ tasks |
 | **v3.0** | ~5 features | Future scope |
 
@@ -535,5 +539,5 @@ This document contains only the features and tasks that are **not yet completed*
 
 ---
 
-**Document Version:** 2.4
-**Updated:** 2026-02-03 (Confirmed PDF templates complete, updated task counts)
+**Document Version:** 2.5
+**Updated:** 2026-02-05 (Wearable integration v1 complete: HealthKit import, duplicate detection, import wizard)

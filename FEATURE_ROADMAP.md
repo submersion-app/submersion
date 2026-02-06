@@ -1,11 +1,11 @@
 # Submersion Feature Roadmap
 ## Comprehensive Development Plan
 
-> **Last Updated:** 2026-02-03
+> **Last Updated:** 2026-02-05
 > **Current Version:** 1.1.0 (v1.1 Complete)
 > **Status:** v1.0 ✅ COMPLETE | v1.1 ✅ COMPLETE | v1.5 🚧 In Progress
 >
-> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Profile Visualization (Category 2.1) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete | Search & Filtering (Category 10.1) ✅ Complete | Tools & Calculators (Category 11) ✅ Complete | Digital Signatures (Category 7.2) ✅ Complete | Training Dives (Category 8.3) ✅ Complete | Underwater Photography (Category 9.3) ✅ Complete | Maps & Visualization (Category 5.3) ✅ Complete | Certification Cards (Category 8.1) ✅ Complete | Push Notifications (Category 6.3) ✅ Complete | PDF Templates (Category 10.3) ✅ Complete
+> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Profile Visualization (Category 2.1) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete | Search & Filtering (Category 10.1) ✅ Complete | Tools & Calculators (Category 11) ✅ Complete | Digital Signatures (Category 7.2) ✅ Complete | Training Dives (Category 8.3) ✅ Complete | Underwater Photography (Category 9.3) ✅ Complete | Maps & Visualization (Category 5.3) ✅ Complete | Certification Cards (Category 8.1) ✅ Complete | Push Notifications (Category 6.3) ✅ Complete | PDF Templates (Category 10.3) ✅ Complete | Wearable Integration v1 (Category 15.5) ✅ Complete
 
 ---
 
@@ -1210,14 +1210,23 @@
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Apple Watch Ultra import | 📋 Planned | v2.0 | Import dives via HealthKit |
-| Apple HealthKit integration | 📋 Planned | v2.0 | Read depth/temperature data |
+| Apple Watch Ultra import | ✅ Implemented | v1.5 | Import dives via HealthKit with 3-step wizard |
+| Apple HealthKit integration | ✅ Implemented | v1.5 | Read depth/temperature/heart rate data |
+| Duplicate detection | ✅ Implemented | v1.5 | Exact wearableId + fuzzy DiveMatcher scoring |
 | Garmin Connect import | 📋 Planned | v2.0 | Import Descent dive activities |
 | Suunto app integration | 📋 Planned | v2.0 | Import via UDDF/Movescount |
 
+**v1.5 Tasks (Complete):**
+- [x] HealthKit permission and data reading (health package, UNDERWATER_DIVING activity)
+- [x] WearableDive / WearableProfileSample domain entities
+- [x] DiveMatcher fuzzy scoring (time 50%, depth 30%, duration 20%)
+- [x] WearableDiveConverter (WearableDive -> Dive with profile points)
+- [x] Import wizard UI: Select dives > Review duplicates > Summary
+- [x] Exact dedup via wearableId + fuzzy match via DiveMatcher
+- [x] Database: wearableSource/wearableId on dives, heartRateSource on dive_profiles
+- [x] Route: /settings/wearable-import (Transfer > Dive Computers > Apple Watch)
+
 **v2.0 Tasks:**
-- [ ] HealthKit permission and data reading
-- [ ] Import Apple Watch Ultra dives (depth, temperature, time)
 - [ ] Garmin Connect API integration
 - [ ] Automatic sync from connected wearables
 - [ ] Merge wearable data with dive computer data
@@ -1320,6 +1329,11 @@
 -- BLOB storage columns (v23):
 -- certifications.photo_front, certifications.photo_back (scanned card images)
 -- media.image_data (signature PNG bytes for self-contained backup)
+
+-- Wearable integration columns (v30):
+-- dives.wearable_source (e.g., 'apple_health')
+-- dives.wearable_id (unique identifier from wearable platform)
+-- dive_profiles.heart_rate_source (e.g., 'apple_watch')
 ```
 
 ## v2.0 Tables (Planned)
@@ -1348,6 +1362,7 @@
 - **Cloud Sync:** googleapis (Google Drive), icloud_storage
 - **Weather/Tides:** http (OpenWeatherMap, World Tides APIs)
 - **Offline Maps:** flutter_map_tile_caching (FMTC) with ObjectBox backend
+- **Wearables:** health (HealthKit/Google Health Connect)
 
 ## v2.0 Requirements
 - **Backend:** Firebase/Supabase SDK
@@ -1421,6 +1436,7 @@
 - [x] Push Notifications (gear service reminders with configurable advance, per-item overrides, deep linking)
 - [x] Training Log Export (PDF with instructor signatures, course info, dive list)
 - [x] PDF Templates (Simple, Detailed, Professional, PADI-style, NAUI-style with page size and cert cards)
+- [x] Wearable Integration v1 (Apple Watch Ultra import via HealthKit, duplicate detection, 3-step wizard)
 - [ ] Performance with 5000+ dives
 
 ## v2.0 (Planned)
@@ -1443,5 +1459,5 @@
 
 ---
 
-**Document Version:** 2.17
-**Last Updated:** 2026-02-03 (PDF templates: Simple, Detailed, Professional, PADI-style, NAUI-style with certification cards)
+**Document Version:** 2.18
+**Last Updated:** 2026-02-05 (Wearable Integration v1: Apple Watch Ultra import via HealthKit, duplicate detection, import wizard)
