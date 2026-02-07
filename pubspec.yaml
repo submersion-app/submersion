@@ -85,6 +85,8 @@ dependencies:
   pdf: ^3.11.1
   csv: ^6.0.0
   excel: ^4.0.6
+  fit_tool: ^1.0.5  # Garmin FIT file parsing for dive imports
+  logger: ^2.0.0  # Used to suppress fit_tool's verbose warnings
   collection: ^1.18.0
   equatable: ^2.0.7
   crypto: ^3.0.3
@@ -116,6 +118,11 @@ dependency_overrides:
   # Pin to 9.4.5 to avoid CNAuthorizationStatusLimited compile error
   # See: https://github.com/Baseflow/flutter-permission-handler/issues/1450
   permission_handler_apple: 9.4.5
+  # fit_tool (3 years unmaintained) has stale deps; overrides are safe because:
+  # - csv: fit_tool uses csv for optional CSV export, not core FIT binary parsing
+  # - logger: fit_tool uses basic logging; logger 2.x is backward-compatible
+  csv: ^6.0.0
+  logger: ^2.0.0
 
 flutter:
   uses-material-design: true

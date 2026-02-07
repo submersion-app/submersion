@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/wearables/data/services/fit_parser_service.dart';
 import 'package:submersion/features/wearables/data/services/healthkit_service.dart';
 import 'package:submersion/features/wearables/domain/entities/wearable_dive.dart';
 import 'package:submersion/features/wearables/domain/services/dive_matcher.dart';
@@ -196,6 +197,20 @@ class WearableImportNotifier extends StateNotifier<WearableImportState> {
     state = state.copyWith(selectedDiveIds: {});
   }
 
+  /// Load pre-parsed dives directly into state.
+  ///
+  /// Used by FIT file import which parses files independently
+  /// rather than fetching from a platform health API.
+  void loadDives(List<WearableDive> dives) {
+    state = state.copyWith(
+      isLoading: false,
+      error: null,
+      availableDives: dives,
+      selectedDiveIds: {},
+      matchResults: {},
+    );
+  }
+
   /// Clear the import state.
   void reset() {
     state = const WearableImportState();
@@ -362,6 +377,24 @@ final wearableImportProvider =
     StateNotifierProvider<WearableImportNotifier, WearableImportState>((ref) {
       final service = ref.watch(wearableImportServiceProvider);
       return WearableImportNotifier(service);
+    });
+
+// ============================================================================
+// FIT File Import Providers
+// ============================================================================
+
+/// Provider for the FIT parser service.
+final fitParserServiceProvider = Provider<FitParserService>((ref) {
+  return const FitParserService();
+});
+
+/// Provider for FIT file import state (separate from HealthKit import).
+///
+/// Uses null service since FIT import parses files directly via [loadDives]
+/// rather than fetching from a platform health API.
+final fitImportProvider =
+    StateNotifierProvider<WearableImportNotifier, WearableImportState>((ref) {
+      return WearableImportNotifier(null);
     });
 
 // ============================================================================

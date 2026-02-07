@@ -242,6 +242,16 @@ class _ImportSectionContent extends ConsumerWidget {
                         .importDivesFromUddf(),
                   ),
                 ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.file_open),
+                  title: const Text('Import from FIT File'),
+                  subtitle: const Text(
+                    'Import dives from Garmin Descent export files',
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/transfer/fit-import'),
+                ),
               ],
             ),
           ),
