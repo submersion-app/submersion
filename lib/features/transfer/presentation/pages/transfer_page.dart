@@ -234,13 +234,7 @@ class _ImportSectionContent extends ConsumerWidget {
                   title: const Text('Import from UDDF'),
                   subtitle: const Text('Universal Dive Data Format'),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _handleImport(
-                    context,
-                    ref,
-                    () => ref
-                        .read(exportNotifierProvider.notifier)
-                        .importDivesFromUddf(),
-                  ),
+                  onTap: () => context.push('/transfer/uddf-import'),
                 ),
                 const Divider(height: 1),
                 ListTile(
