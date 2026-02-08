@@ -179,17 +179,9 @@ class _MobileTransferTile extends StatelessWidget {
   }
 
   void _navigateToSection(BuildContext context, String sectionId) {
-    switch (sectionId) {
-      case 'computers':
-        context.push('/dive-computers');
-        break;
-      default:
-        // For sections that don't have dedicated pages,
-        // show them in a detail page using query params
-        final state = GoRouterState.of(context);
-        final currentPath = state.uri.path;
-        context.go('$currentPath?selected=$sectionId');
-    }
+    final state = GoRouterState.of(context);
+    final currentPath = state.uri.path;
+    context.go('$currentPath?selected=$sectionId');
   }
 }
 
