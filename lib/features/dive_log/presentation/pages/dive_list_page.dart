@@ -534,15 +534,18 @@ class DiveListTile extends ConsumerWidget {
                                 : secondaryTextColor,
                           ),
                           const SizedBox(width: 4),
-                          Text(
-                            units.formatDepth(maxDepth),
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: maxDepth != null
-                                      ? accentColor
-                                      : secondaryTextColor,
-                                ),
+                          Flexible(
+                            child: Text(
+                              units.formatDepth(maxDepth),
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: maxDepth != null
+                                        ? accentColor
+                                        : secondaryTextColor,
+                                  ),
+                            ),
                           ),
                           const SizedBox(width: 16),
                           Icon(
@@ -553,17 +556,20 @@ class DiveListTile extends ConsumerWidget {
                                 : secondaryTextColor,
                           ),
                           const SizedBox(width: 4),
-                          Text(
-                            duration != null
-                                ? _formatDuration(duration!)
-                                : '--',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: duration != null
-                                      ? accentColor
-                                      : secondaryTextColor,
-                                ),
+                          Flexible(
+                            child: Text(
+                              duration != null
+                                  ? _formatDuration(duration!)
+                                  : '--',
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: duration != null
+                                        ? accentColor
+                                        : secondaryTextColor,
+                                  ),
+                            ),
                           ),
                           if (waterTemp != null) ...[
                             const SizedBox(width: 16),
@@ -573,13 +579,16 @@ class DiveListTile extends ConsumerWidget {
                               color: accentColor,
                             ),
                             const SizedBox(width: 4),
-                            Text(
-                              units.formatTemperature(waterTemp),
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: accentColor,
-                                  ),
+                            Flexible(
+                              child: Text(
+                                units.formatTemperature(waterTemp),
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      color: accentColor,
+                                    ),
+                              ),
                             ),
                           ],
                         ],

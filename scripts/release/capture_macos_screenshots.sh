@@ -41,6 +41,10 @@ while [[ $# -gt 0 ]]; do
       OUTPUT_DIR="$2"
       shift 2
       ;;
+    --uddf-file)
+      # Accepted for compatibility with capture_screenshots.sh but not yet used
+      shift 2
+      ;;
     *)
       echo "Unknown option: $1"
       exit 1

@@ -40,6 +40,7 @@ import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:drift/native.dart';
+import 'package:flutter_map/flutter_map.dart';
 
 import 'helpers/screenshot_helper.dart';
 import 'helpers/screenshot_test_data.dart';
@@ -275,12 +276,12 @@ void main() {
         );
 
         // Verify we're on the map page by looking for map-specific elements
-        final mapPageTitle = find.text('Dive Sites Map');
         final listViewButton = find.byTooltip('List View');
+        final flutterMap = find.byType(FlutterMap);
 
         navigatedToMap =
-            mapPageTitle.evaluate().isNotEmpty ||
-            listViewButton.evaluate().isNotEmpty;
+            listViewButton.evaluate().isNotEmpty ||
+            flutterMap.evaluate().isNotEmpty;
 
         // ignore: avoid_print
         print('Navigation to map successful: $navigatedToMap');
