@@ -3,40 +3,45 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i3;
+import 'dart:async' as _i4;
 
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i5;
-import 'package:submersion/core/constants/units.dart' as _i22;
-import 'package:submersion/core/services/export/export_service.dart' as _i2;
-import 'package:submersion/features/buddies/domain/entities/buddy.dart' as _i11;
-import 'package:submersion/features/certifications/domain/entities/certification.dart'
-    as _i12;
-import 'package:submersion/features/courses/domain/entities/course.dart' as _i9;
-import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart'
-    as _i13;
-import 'package:submersion/features/dive_log/domain/entities/dive.dart' as _i4;
-import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
-    as _i17;
-import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart'
-    as _i19;
-import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart'
-    as _i21;
-import 'package:submersion/features/dive_log/domain/entities/profile_event.dart'
-    as _i18;
-import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
-    as _i6;
-import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart'
+import 'package:mockito/src/dummies.dart' as _i6;
+import 'package:submersion/core/constants/units.dart' as _i12;
+import 'package:submersion/core/services/export/export_service.dart' as _i3;
+import 'package:submersion/core/services/export/models/export_service_record.dart'
     as _i16;
-import 'package:submersion/features/divers/domain/entities/diver.dart' as _i14;
-import 'package:submersion/features/equipment/domain/entities/equipment_item.dart'
-    as _i7;
-import 'package:submersion/features/equipment/domain/entities/equipment_set.dart'
+import 'package:submersion/core/services/export/models/uddf_import_result.dart'
+    as _i2;
+import 'package:submersion/features/buddies/domain/entities/buddy.dart' as _i13;
+import 'package:submersion/features/certifications/domain/entities/certification.dart'
+    as _i14;
+import 'package:submersion/features/courses/domain/entities/course.dart'
+    as _i11;
+import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart'
+    as _i15;
+import 'package:submersion/features/dive_log/domain/entities/dive.dart' as _i5;
+import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
     as _i20;
+import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart'
+    as _i22;
+import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart'
+    as _i24;
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart'
+    as _i21;
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
+    as _i7;
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart'
+    as _i19;
+import 'package:submersion/features/divers/domain/entities/diver.dart' as _i17;
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart'
+    as _i8;
+import 'package:submersion/features/equipment/domain/entities/equipment_set.dart'
+    as _i23;
 import 'package:submersion/features/marine_life/domain/entities/species.dart'
     as _i10;
-import 'package:submersion/features/tags/domain/entities/tag.dart' as _i15;
-import 'package:submersion/features/trips/domain/entities/trip.dart' as _i8;
+import 'package:submersion/features/tags/domain/entities/tag.dart' as _i18;
+import 'package:submersion/features/trips/domain/entities/trip.dart' as _i9;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -62,73 +67,144 @@ class _FakeUddfImportResult_0 extends _i1.SmartFake
 /// A class which mocks [ExportService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockExportService extends _i1.Mock implements _i2.ExportService {
+class MockExportService extends _i1.Mock implements _i3.ExportService {
   MockExportService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i3.Future<String> exportDivesToCsv(List<_i4.Dive>? dives) =>
+  _i4.Future<String> exportDivesToCsv(List<_i5.Dive>? dives) =>
       (super.noSuchMethod(
             Invocation.method(#exportDivesToCsv, [dives]),
-            returnValue: _i3.Future<String>.value(
-              _i5.dummyValue<String>(
+            returnValue: _i4.Future<String>.value(
+              _i6.dummyValue<String>(
                 this,
                 Invocation.method(#exportDivesToCsv, [dives]),
               ),
             ),
           )
-          as _i3.Future<String>);
+          as _i4.Future<String>);
 
   @override
-  _i3.Future<String> exportSitesToCsv(List<_i6.DiveSite>? sites) =>
+  _i4.Future<String> exportSitesToCsv(List<_i7.DiveSite>? sites) =>
       (super.noSuchMethod(
             Invocation.method(#exportSitesToCsv, [sites]),
-            returnValue: _i3.Future<String>.value(
-              _i5.dummyValue<String>(
+            returnValue: _i4.Future<String>.value(
+              _i6.dummyValue<String>(
                 this,
                 Invocation.method(#exportSitesToCsv, [sites]),
               ),
             ),
           )
-          as _i3.Future<String>);
+          as _i4.Future<String>);
 
   @override
-  _i3.Future<String> exportEquipmentToCsv(List<_i7.EquipmentItem>? equipment) =>
+  _i4.Future<String> exportEquipmentToCsv(List<_i8.EquipmentItem>? equipment) =>
       (super.noSuchMethod(
             Invocation.method(#exportEquipmentToCsv, [equipment]),
-            returnValue: _i3.Future<String>.value(
-              _i5.dummyValue<String>(
+            returnValue: _i4.Future<String>.value(
+              _i6.dummyValue<String>(
                 this,
                 Invocation.method(#exportEquipmentToCsv, [equipment]),
               ),
             ),
           )
-          as _i3.Future<String>);
+          as _i4.Future<String>);
 
   @override
-  _i3.Future<String> exportTripsToCsv(List<_i8.Trip>? trips) =>
+  _i4.Future<String> exportTripsToCsv(List<_i9.Trip>? trips) =>
       (super.noSuchMethod(
             Invocation.method(#exportTripsToCsv, [trips]),
-            returnValue: _i3.Future<String>.value(
-              _i5.dummyValue<String>(
+            returnValue: _i4.Future<String>.value(
+              _i6.dummyValue<String>(
                 this,
                 Invocation.method(#exportTripsToCsv, [trips]),
               ),
             ),
           )
-          as _i3.Future<String>);
+          as _i4.Future<String>);
 
   @override
-  _i3.Future<String> exportTripToPdf(
-    _i8.Trip? trip,
-    List<_i4.Dive>? dives, {
-    _i8.TripWithStats? stats,
+  String generateDivesCsvContent(List<_i5.Dive>? dives) =>
+      (super.noSuchMethod(
+            Invocation.method(#generateDivesCsvContent, [dives]),
+            returnValue: _i6.dummyValue<String>(
+              this,
+              Invocation.method(#generateDivesCsvContent, [dives]),
+            ),
+          )
+          as String);
+
+  @override
+  String generateSitesCsvContent(List<_i7.DiveSite>? sites) =>
+      (super.noSuchMethod(
+            Invocation.method(#generateSitesCsvContent, [sites]),
+            returnValue: _i6.dummyValue<String>(
+              this,
+              Invocation.method(#generateSitesCsvContent, [sites]),
+            ),
+          )
+          as String);
+
+  @override
+  String generateEquipmentCsvContent(List<_i8.EquipmentItem>? equipment) =>
+      (super.noSuchMethod(
+            Invocation.method(#generateEquipmentCsvContent, [equipment]),
+            returnValue: _i6.dummyValue<String>(
+              this,
+              Invocation.method(#generateEquipmentCsvContent, [equipment]),
+            ),
+          )
+          as String);
+
+  @override
+  _i4.Future<String?> saveDivesCsvToFile(List<_i5.Dive>? dives) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveDivesCsvToFile, [dives]),
+            returnValue: _i4.Future<String?>.value(),
+          )
+          as _i4.Future<String?>);
+
+  @override
+  _i4.Future<String?> saveSitesCsvToFile(List<_i7.DiveSite>? sites) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveSitesCsvToFile, [sites]),
+            returnValue: _i4.Future<String?>.value(),
+          )
+          as _i4.Future<String?>);
+
+  @override
+  _i4.Future<String?> saveEquipmentCsvToFile(
+    List<_i8.EquipmentItem>? equipment,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveEquipmentCsvToFile, [equipment]),
+            returnValue: _i4.Future<String?>.value(),
+          )
+          as _i4.Future<String?>);
+
+  @override
+  _i4.Future<List<Map<String, dynamic>>> importDivesFromCsv(
+    String? csvContent,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#importDivesFromCsv, [csvContent]),
+            returnValue: _i4.Future<List<Map<String, dynamic>>>.value(
+              <Map<String, dynamic>>[],
+            ),
+          )
+          as _i4.Future<List<Map<String, dynamic>>>);
+
+  @override
+  _i4.Future<String> exportTripToPdf(
+    _i9.Trip? trip,
+    List<_i5.Dive>? dives, {
+    _i9.TripWithStats? stats,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#exportTripToPdf, [trip, dives], {#stats: stats}),
-            returnValue: _i3.Future<String>.value(
-              _i5.dummyValue<String>(
+            returnValue: _i4.Future<String>.value(
+              _i6.dummyValue<String>(
                 this,
                 Invocation.method(
                   #exportTripToPdf,
@@ -138,33 +214,11 @@ class MockExportService extends _i1.Mock implements _i2.ExportService {
               ),
             ),
           )
-          as _i3.Future<String>);
+          as _i4.Future<String>);
 
   @override
-  _i3.Future<String> exportCourseTrainingLogToPdf(
-    _i9.Course? course,
-    List<_i4.Dive>? trainingDives,
-  ) =>
-      (super.noSuchMethod(
-            Invocation.method(#exportCourseTrainingLogToPdf, [
-              course,
-              trainingDives,
-            ]),
-            returnValue: _i3.Future<String>.value(
-              _i5.dummyValue<String>(
-                this,
-                Invocation.method(#exportCourseTrainingLogToPdf, [
-                  course,
-                  trainingDives,
-                ]),
-              ),
-            ),
-          )
-          as _i3.Future<String>);
-
-  @override
-  _i3.Future<({List<int> bytes, String fileName})> generateDivePdfBytes(
-    List<_i4.Dive>? dives, {
+  _i4.Future<({List<int> bytes, String fileName})> generateDivePdfBytes(
+    List<_i5.Dive>? dives, {
     String? title = 'Dive Logbook',
     List<_i10.Sighting>? allSightings,
   }) =>
@@ -175,9 +229,9 @@ class MockExportService extends _i1.Mock implements _i2.ExportService {
               {#title: title, #allSightings: allSightings},
             ),
             returnValue:
-                _i3.Future<({List<int> bytes, String fileName})>.value((
+                _i4.Future<({List<int> bytes, String fileName})>.value((
                   bytes: <int>[],
-                  fileName: _i5.dummyValue<String>(
+                  fileName: _i6.dummyValue<String>(
                     this,
                     Invocation.method(
                       #generateDivePdfBytes,
@@ -187,11 +241,11 @@ class MockExportService extends _i1.Mock implements _i2.ExportService {
                   ),
                 )),
           )
-          as _i3.Future<({List<int> bytes, String fileName})>);
+          as _i4.Future<({List<int> bytes, String fileName})>);
 
   @override
-  _i3.Future<String> exportDivesToPdf(
-    List<_i4.Dive>? dives, {
+  _i4.Future<String> exportDivesToPdf(
+    List<_i5.Dive>? dives, {
     String? title = 'Dive Logbook',
     List<_i10.Sighting>? allSightings,
   }) =>
@@ -201,8 +255,8 @@ class MockExportService extends _i1.Mock implements _i2.ExportService {
               [dives],
               {#title: title, #allSightings: allSightings},
             ),
-            returnValue: _i3.Future<String>.value(
-              _i5.dummyValue<String>(
+            returnValue: _i4.Future<String>.value(
+              _i6.dummyValue<String>(
                 this,
                 Invocation.method(
                   #exportDivesToPdf,
@@ -212,47 +266,253 @@ class MockExportService extends _i1.Mock implements _i2.ExportService {
               ),
             ),
           )
-          as _i3.Future<String>);
+          as _i4.Future<String>);
 
   @override
-  _i3.Future<String> exportDivesToUddf(
-    List<_i4.Dive>? dives, {
-    List<_i6.DiveSite>? sites,
+  _i4.Future<String?> saveDivesToPdfFile(
+    List<_i5.Dive>? dives, {
+    String? title = 'Dive Logbook',
+    List<_i10.Sighting>? allSightings,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #saveDivesToPdfFile,
+              [dives],
+              {#title: title, #allSightings: allSightings},
+            ),
+            returnValue: _i4.Future<String?>.value(),
+          )
+          as _i4.Future<String?>);
+
+  @override
+  _i4.Future<String> exportCourseTrainingLogToPdf(
+    _i11.Course? course,
+    List<_i5.Dive>? trainingDives,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#exportCourseTrainingLogToPdf, [
+              course,
+              trainingDives,
+            ]),
+            returnValue: _i4.Future<String>.value(
+              _i6.dummyValue<String>(
+                this,
+                Invocation.method(#exportCourseTrainingLogToPdf, [
+                  course,
+                  trainingDives,
+                ]),
+              ),
+            ),
+          )
+          as _i4.Future<String>);
+
+  @override
+  _i4.Future<String> exportToExcel({
+    required List<_i5.Dive>? dives,
+    required List<_i7.DiveSite>? sites,
+    required List<_i8.EquipmentItem>? equipment,
+    required _i12.DepthUnit? depthUnit,
+    required _i12.TemperatureUnit? temperatureUnit,
+    required _i12.PressureUnit? pressureUnit,
+    required _i12.VolumeUnit? volumeUnit,
+    required _i12.DateFormatPreference? dateFormat,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#exportToExcel, [], {
+              #dives: dives,
+              #sites: sites,
+              #equipment: equipment,
+              #depthUnit: depthUnit,
+              #temperatureUnit: temperatureUnit,
+              #pressureUnit: pressureUnit,
+              #volumeUnit: volumeUnit,
+              #dateFormat: dateFormat,
+            }),
+            returnValue: _i4.Future<String>.value(
+              _i6.dummyValue<String>(
+                this,
+                Invocation.method(#exportToExcel, [], {
+                  #dives: dives,
+                  #sites: sites,
+                  #equipment: equipment,
+                  #depthUnit: depthUnit,
+                  #temperatureUnit: temperatureUnit,
+                  #pressureUnit: pressureUnit,
+                  #volumeUnit: volumeUnit,
+                  #dateFormat: dateFormat,
+                }),
+              ),
+            ),
+          )
+          as _i4.Future<String>);
+
+  @override
+  _i4.Future<List<int>> generateExcelBytes({
+    required List<_i5.Dive>? dives,
+    required List<_i7.DiveSite>? sites,
+    required List<_i8.EquipmentItem>? equipment,
+    required _i12.DepthUnit? depthUnit,
+    required _i12.TemperatureUnit? temperatureUnit,
+    required _i12.PressureUnit? pressureUnit,
+    required _i12.VolumeUnit? volumeUnit,
+    required _i12.DateFormatPreference? dateFormat,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#generateExcelBytes, [], {
+              #dives: dives,
+              #sites: sites,
+              #equipment: equipment,
+              #depthUnit: depthUnit,
+              #temperatureUnit: temperatureUnit,
+              #pressureUnit: pressureUnit,
+              #volumeUnit: volumeUnit,
+              #dateFormat: dateFormat,
+            }),
+            returnValue: _i4.Future<List<int>>.value(<int>[]),
+          )
+          as _i4.Future<List<int>>);
+
+  @override
+  _i4.Future<String?> saveExcelToFile({
+    required List<_i5.Dive>? dives,
+    required List<_i7.DiveSite>? sites,
+    required List<_i8.EquipmentItem>? equipment,
+    required _i12.DepthUnit? depthUnit,
+    required _i12.TemperatureUnit? temperatureUnit,
+    required _i12.PressureUnit? pressureUnit,
+    required _i12.VolumeUnit? volumeUnit,
+    required _i12.DateFormatPreference? dateFormat,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveExcelToFile, [], {
+              #dives: dives,
+              #sites: sites,
+              #equipment: equipment,
+              #depthUnit: depthUnit,
+              #temperatureUnit: temperatureUnit,
+              #pressureUnit: pressureUnit,
+              #volumeUnit: volumeUnit,
+              #dateFormat: dateFormat,
+            }),
+            returnValue: _i4.Future<String?>.value(),
+          )
+          as _i4.Future<String?>);
+
+  @override
+  _i4.Future<(String, int)> exportToKml({
+    required List<_i7.DiveSite>? sites,
+    required List<_i5.Dive>? dives,
+    required _i12.DepthUnit? depthUnit,
+    required _i12.DateFormatPreference? dateFormat,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#exportToKml, [], {
+              #sites: sites,
+              #dives: dives,
+              #depthUnit: depthUnit,
+              #dateFormat: dateFormat,
+            }),
+            returnValue: _i4.Future<(String, int)>.value((
+              _i6.dummyValue<String>(
+                this,
+                Invocation.method(#exportToKml, [], {
+                  #sites: sites,
+                  #dives: dives,
+                  #depthUnit: depthUnit,
+                  #dateFormat: dateFormat,
+                }),
+              ),
+              0,
+            )),
+          )
+          as _i4.Future<(String, int)>);
+
+  @override
+  _i4.Future<(String, int)> generateKmlContent({
+    required List<_i7.DiveSite>? sites,
+    required List<_i5.Dive>? dives,
+    required _i12.DepthUnit? depthUnit,
+    required _i12.DateFormatPreference? dateFormat,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#generateKmlContent, [], {
+              #sites: sites,
+              #dives: dives,
+              #depthUnit: depthUnit,
+              #dateFormat: dateFormat,
+            }),
+            returnValue: _i4.Future<(String, int)>.value((
+              _i6.dummyValue<String>(
+                this,
+                Invocation.method(#generateKmlContent, [], {
+                  #sites: sites,
+                  #dives: dives,
+                  #depthUnit: depthUnit,
+                  #dateFormat: dateFormat,
+                }),
+              ),
+              0,
+            )),
+          )
+          as _i4.Future<(String, int)>);
+
+  @override
+  _i4.Future<(String?, int)> saveKmlToFile({
+    required List<_i7.DiveSite>? sites,
+    required List<_i5.Dive>? dives,
+    required _i12.DepthUnit? depthUnit,
+    required _i12.DateFormatPreference? dateFormat,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveKmlToFile, [], {
+              #sites: sites,
+              #dives: dives,
+              #depthUnit: depthUnit,
+              #dateFormat: dateFormat,
+            }),
+            returnValue: _i4.Future<(String?, int)>.value((null, 0)),
+          )
+          as _i4.Future<(String?, int)>);
+
+  @override
+  _i4.Future<String> exportDivesToUddf(
+    List<_i5.Dive>? dives, {
+    List<_i7.DiveSite>? sites,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#exportDivesToUddf, [dives], {#sites: sites}),
-            returnValue: _i3.Future<String>.value(
-              _i5.dummyValue<String>(
+            returnValue: _i4.Future<String>.value(
+              _i6.dummyValue<String>(
                 this,
                 Invocation.method(#exportDivesToUddf, [dives], {#sites: sites}),
               ),
             ),
           )
-          as _i3.Future<String>);
+          as _i4.Future<String>);
 
   @override
-  _i3.Future<String> exportAllDataToUddf({
-    required List<_i4.Dive>? dives,
-    List<_i6.DiveSite>? sites,
-    List<_i7.EquipmentItem>? equipment,
-    List<_i11.Buddy>? buddies,
-    List<_i12.Certification>? certifications,
-    List<_i13.DiveCenter>? diveCenters,
+  _i4.Future<String> exportAllDataToUddf({
+    required List<_i5.Dive>? dives,
+    List<_i7.DiveSite>? sites,
+    List<_i8.EquipmentItem>? equipment,
+    List<_i13.Buddy>? buddies,
+    List<_i14.Certification>? certifications,
+    List<_i15.DiveCenter>? diveCenters,
     List<_i10.Species>? species,
-    List<_i2.ServiceRecord>? serviceRecords,
+    List<_i16.ServiceRecord>? serviceRecords,
     Map<String, String>? settings,
-    Map<String, List<_i11.BuddyWithRole>>? diveBuddies,
-    _i14.Diver? owner,
-    List<_i8.Trip>? trips,
-    List<_i15.Tag>? tags,
-    Map<String, List<_i15.Tag>>? diveTags,
-    List<_i16.DiveTypeEntity>? customDiveTypes,
-    List<_i17.DiveComputer>? diveComputers,
-    Map<String, List<_i18.ProfileEvent>>? diveProfileEvents,
-    Map<String, List<_i19.DiveWeight>>? diveWeights,
-    List<_i20.EquipmentSet>? equipmentSets,
-    List<_i9.Course>? courses,
-    Map<String, List<_i21.GasSwitchWithTank>>? diveGasSwitches,
+    Map<String, List<_i13.BuddyWithRole>>? diveBuddies,
+    _i17.Diver? owner,
+    List<_i9.Trip>? trips,
+    List<_i18.Tag>? tags,
+    Map<String, List<_i18.Tag>>? diveTags,
+    List<_i19.DiveTypeEntity>? customDiveTypes,
+    List<_i20.DiveComputer>? diveComputers,
+    Map<String, List<_i21.ProfileEvent>>? diveProfileEvents,
+    Map<String, List<_i22.DiveWeight>>? diveWeights,
+    List<_i23.EquipmentSet>? equipmentSets,
+    List<_i11.Course>? courses,
+    Map<String, List<_i24.GasSwitchWithTank>>? diveGasSwitches,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#exportAllDataToUddf, [], {
@@ -278,8 +538,8 @@ class MockExportService extends _i1.Mock implements _i2.ExportService {
               #courses: courses,
               #diveGasSwitches: diveGasSwitches,
             }),
-            returnValue: _i3.Future<String>.value(
-              _i5.dummyValue<String>(
+            returnValue: _i4.Future<String>.value(
+              _i6.dummyValue<String>(
                 this,
                 Invocation.method(#exportAllDataToUddf, [], {
                   #dives: dives,
@@ -307,365 +567,151 @@ class MockExportService extends _i1.Mock implements _i2.ExportService {
               ),
             ),
           )
-          as _i3.Future<String>);
+          as _i4.Future<String>);
 
   @override
-  _i3.Future<Map<String, List<Map<String, dynamic>>>> importDivesFromUddf(
+  _i4.Future<String?> saveAllDataToUddfFile({
+    required List<_i5.Dive>? dives,
+    List<_i7.DiveSite>? sites,
+    List<_i8.EquipmentItem>? equipment,
+    List<_i13.Buddy>? buddies,
+    List<_i14.Certification>? certifications,
+    List<_i15.DiveCenter>? diveCenters,
+    List<_i10.Species>? species,
+    List<_i16.ServiceRecord>? serviceRecords,
+    Map<String, String>? settings,
+    Map<String, List<_i13.BuddyWithRole>>? diveBuddies,
+    _i17.Diver? owner,
+    List<_i9.Trip>? trips,
+    List<_i18.Tag>? tags,
+    Map<String, List<_i18.Tag>>? diveTags,
+    List<_i19.DiveTypeEntity>? customDiveTypes,
+    List<_i20.DiveComputer>? diveComputers,
+    Map<String, List<_i21.ProfileEvent>>? diveProfileEvents,
+    Map<String, List<_i22.DiveWeight>>? diveWeights,
+    List<_i23.EquipmentSet>? equipmentSets,
+    List<_i11.Course>? courses,
+    Map<String, List<_i24.GasSwitchWithTank>>? diveGasSwitches,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveAllDataToUddfFile, [], {
+              #dives: dives,
+              #sites: sites,
+              #equipment: equipment,
+              #buddies: buddies,
+              #certifications: certifications,
+              #diveCenters: diveCenters,
+              #species: species,
+              #serviceRecords: serviceRecords,
+              #settings: settings,
+              #diveBuddies: diveBuddies,
+              #owner: owner,
+              #trips: trips,
+              #tags: tags,
+              #diveTags: diveTags,
+              #customDiveTypes: customDiveTypes,
+              #diveComputers: diveComputers,
+              #diveProfileEvents: diveProfileEvents,
+              #diveWeights: diveWeights,
+              #equipmentSets: equipmentSets,
+              #courses: courses,
+              #diveGasSwitches: diveGasSwitches,
+            }),
+            returnValue: _i4.Future<String?>.value(),
+          )
+          as _i4.Future<String?>);
+
+  @override
+  _i4.Future<Map<String, List<Map<String, dynamic>>>> importDivesFromUddf(
     String? uddfContent,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#importDivesFromUddf, [uddfContent]),
             returnValue:
-                _i3.Future<Map<String, List<Map<String, dynamic>>>>.value(
+                _i4.Future<Map<String, List<Map<String, dynamic>>>>.value(
                   <String, List<Map<String, dynamic>>>{},
                 ),
           )
-          as _i3.Future<Map<String, List<Map<String, dynamic>>>>);
+          as _i4.Future<Map<String, List<Map<String, dynamic>>>>);
 
   @override
-  _i3.Future<_i2.UddfImportResult> importAllDataFromUddf(String? uddfContent) =>
+  _i4.Future<_i2.UddfImportResult> importAllDataFromUddf(String? uddfContent) =>
       (super.noSuchMethod(
             Invocation.method(#importAllDataFromUddf, [uddfContent]),
-            returnValue: _i3.Future<_i2.UddfImportResult>.value(
+            returnValue: _i4.Future<_i2.UddfImportResult>.value(
               _FakeUddfImportResult_0(
                 this,
                 Invocation.method(#importAllDataFromUddf, [uddfContent]),
               ),
             ),
           )
-          as _i3.Future<_i2.UddfImportResult>);
+          as _i4.Future<_i2.UddfImportResult>);
 
   @override
-  _i3.Future<List<Map<String, dynamic>>> importDivesFromCsv(
-    String? csvContent,
-  ) =>
-      (super.noSuchMethod(
-            Invocation.method(#importDivesFromCsv, [csvContent]),
-            returnValue: _i3.Future<List<Map<String, dynamic>>>.value(
-              <Map<String, dynamic>>[],
-            ),
-          )
-          as _i3.Future<List<Map<String, dynamic>>>);
-
-  @override
-  _i3.Future<String> getExportFilePath(String? fileName) =>
+  _i4.Future<String> getExportFilePath(String? fileName) =>
       (super.noSuchMethod(
             Invocation.method(#getExportFilePath, [fileName]),
-            returnValue: _i3.Future<String>.value(
-              _i5.dummyValue<String>(
+            returnValue: _i4.Future<String>.value(
+              _i6.dummyValue<String>(
                 this,
                 Invocation.method(#getExportFilePath, [fileName]),
               ),
             ),
           )
-          as _i3.Future<String>);
+          as _i4.Future<String>);
 
   @override
-  _i3.Future<String> exportImageAsPng(List<int>? pngBytes, String? fileName) =>
+  _i4.Future<String> exportImageAsPng(List<int>? pngBytes, String? fileName) =>
       (super.noSuchMethod(
             Invocation.method(#exportImageAsPng, [pngBytes, fileName]),
-            returnValue: _i3.Future<String>.value(
-              _i5.dummyValue<String>(
+            returnValue: _i4.Future<String>.value(
+              _i6.dummyValue<String>(
                 this,
                 Invocation.method(#exportImageAsPng, [pngBytes, fileName]),
               ),
             ),
           )
-          as _i3.Future<String>);
+          as _i4.Future<String>);
 
   @override
-  _i3.Future<String> saveImageToPhotos(List<int>? pngBytes, String? fileName) =>
+  _i4.Future<String> saveImageToPhotos(List<int>? pngBytes, String? fileName) =>
       (super.noSuchMethod(
             Invocation.method(#saveImageToPhotos, [pngBytes, fileName]),
-            returnValue: _i3.Future<String>.value(
-              _i5.dummyValue<String>(
+            returnValue: _i4.Future<String>.value(
+              _i6.dummyValue<String>(
                 this,
                 Invocation.method(#saveImageToPhotos, [pngBytes, fileName]),
               ),
             ),
           )
-          as _i3.Future<String>);
+          as _i4.Future<String>);
 
   @override
-  _i3.Future<String?> saveImageToFile(List<int>? pngBytes, String? fileName) =>
+  _i4.Future<String?> saveImageToFile(List<int>? pngBytes, String? fileName) =>
       (super.noSuchMethod(
             Invocation.method(#saveImageToFile, [pngBytes, fileName]),
-            returnValue: _i3.Future<String?>.value(),
+            returnValue: _i4.Future<String?>.value(),
           )
-          as _i3.Future<String?>);
+          as _i4.Future<String?>);
 
   @override
-  _i3.Future<String> sharePdfBytes(List<int>? pdfBytes, String? fileName) =>
+  _i4.Future<String> sharePdfBytes(List<int>? pdfBytes, String? fileName) =>
       (super.noSuchMethod(
             Invocation.method(#sharePdfBytes, [pdfBytes, fileName]),
-            returnValue: _i3.Future<String>.value(
-              _i5.dummyValue<String>(
+            returnValue: _i4.Future<String>.value(
+              _i6.dummyValue<String>(
                 this,
                 Invocation.method(#sharePdfBytes, [pdfBytes, fileName]),
               ),
             ),
           )
-          as _i3.Future<String>);
+          as _i4.Future<String>);
 
   @override
-  _i3.Future<String?> savePdfToFile(List<int>? pdfBytes, String? fileName) =>
+  _i4.Future<String?> savePdfToFile(List<int>? pdfBytes, String? fileName) =>
       (super.noSuchMethod(
             Invocation.method(#savePdfToFile, [pdfBytes, fileName]),
-            returnValue: _i3.Future<String?>.value(),
+            returnValue: _i4.Future<String?>.value(),
           )
-          as _i3.Future<String?>);
-
-  @override
-  _i3.Future<String> exportToExcel({
-    required List<_i4.Dive>? dives,
-    required List<_i6.DiveSite>? sites,
-    required List<_i7.EquipmentItem>? equipment,
-    required _i22.DepthUnit? depthUnit,
-    required _i22.TemperatureUnit? temperatureUnit,
-    required _i22.PressureUnit? pressureUnit,
-    required _i22.VolumeUnit? volumeUnit,
-    required _i22.DateFormatPreference? dateFormat,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#exportToExcel, [], {
-              #dives: dives,
-              #sites: sites,
-              #equipment: equipment,
-              #depthUnit: depthUnit,
-              #temperatureUnit: temperatureUnit,
-              #pressureUnit: pressureUnit,
-              #volumeUnit: volumeUnit,
-              #dateFormat: dateFormat,
-            }),
-            returnValue: _i3.Future<String>.value(
-              _i5.dummyValue<String>(
-                this,
-                Invocation.method(#exportToExcel, [], {
-                  #dives: dives,
-                  #sites: sites,
-                  #equipment: equipment,
-                  #depthUnit: depthUnit,
-                  #temperatureUnit: temperatureUnit,
-                  #pressureUnit: pressureUnit,
-                  #volumeUnit: volumeUnit,
-                  #dateFormat: dateFormat,
-                }),
-              ),
-            ),
-          )
-          as _i3.Future<String>);
-
-  @override
-  _i3.Future<(String, int)> exportToKml({
-    required List<_i6.DiveSite>? sites,
-    required List<_i4.Dive>? dives,
-    required _i22.DepthUnit? depthUnit,
-    required _i22.DateFormatPreference? dateFormat,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#exportToKml, [], {
-              #sites: sites,
-              #dives: dives,
-              #depthUnit: depthUnit,
-              #dateFormat: dateFormat,
-            }),
-            returnValue: _i3.Future<(String, int)>.value((
-              _i5.dummyValue<String>(
-                this,
-                Invocation.method(#exportToKml, [], {
-                  #sites: sites,
-                  #dives: dives,
-                  #depthUnit: depthUnit,
-                  #dateFormat: dateFormat,
-                }),
-              ),
-              0,
-            )),
-          )
-          as _i3.Future<(String, int)>);
-
-  @override
-  _i3.Future<List<int>> generateExcelBytes({
-    required List<_i4.Dive>? dives,
-    required List<_i6.DiveSite>? sites,
-    required List<_i7.EquipmentItem>? equipment,
-    required _i22.DepthUnit? depthUnit,
-    required _i22.TemperatureUnit? temperatureUnit,
-    required _i22.PressureUnit? pressureUnit,
-    required _i22.VolumeUnit? volumeUnit,
-    required _i22.DateFormatPreference? dateFormat,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#generateExcelBytes, [], {
-              #dives: dives,
-              #sites: sites,
-              #equipment: equipment,
-              #depthUnit: depthUnit,
-              #temperatureUnit: temperatureUnit,
-              #pressureUnit: pressureUnit,
-              #volumeUnit: volumeUnit,
-              #dateFormat: dateFormat,
-            }),
-            returnValue: _i3.Future<List<int>>.value(<int>[]),
-          )
-          as _i3.Future<List<int>>);
-
-  @override
-  _i3.Future<String?> saveExcelToFile({
-    required List<_i4.Dive>? dives,
-    required List<_i6.DiveSite>? sites,
-    required List<_i7.EquipmentItem>? equipment,
-    required _i22.DepthUnit? depthUnit,
-    required _i22.TemperatureUnit? temperatureUnit,
-    required _i22.PressureUnit? pressureUnit,
-    required _i22.VolumeUnit? volumeUnit,
-    required _i22.DateFormatPreference? dateFormat,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#saveExcelToFile, [], {
-              #dives: dives,
-              #sites: sites,
-              #equipment: equipment,
-              #depthUnit: depthUnit,
-              #temperatureUnit: temperatureUnit,
-              #pressureUnit: pressureUnit,
-              #volumeUnit: volumeUnit,
-              #dateFormat: dateFormat,
-            }),
-            returnValue: _i3.Future<String?>.value(),
-          )
-          as _i3.Future<String?>);
-
-  @override
-  _i3.Future<(String, int)> generateKmlContent({
-    required List<_i6.DiveSite>? sites,
-    required List<_i4.Dive>? dives,
-    required _i22.DepthUnit? depthUnit,
-    required _i22.DateFormatPreference? dateFormat,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#generateKmlContent, [], {
-              #sites: sites,
-              #dives: dives,
-              #depthUnit: depthUnit,
-              #dateFormat: dateFormat,
-            }),
-            returnValue: _i3.Future<(String, int)>.value((
-              _i5.dummyValue<String>(
-                this,
-                Invocation.method(#generateKmlContent, [], {
-                  #sites: sites,
-                  #dives: dives,
-                  #depthUnit: depthUnit,
-                  #dateFormat: dateFormat,
-                }),
-              ),
-              0,
-            )),
-          )
-          as _i3.Future<(String, int)>);
-
-  @override
-  _i3.Future<(String?, int)> saveKmlToFile({
-    required List<_i6.DiveSite>? sites,
-    required List<_i4.Dive>? dives,
-    required _i22.DepthUnit? depthUnit,
-    required _i22.DateFormatPreference? dateFormat,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#saveKmlToFile, [], {
-              #sites: sites,
-              #dives: dives,
-              #depthUnit: depthUnit,
-              #dateFormat: dateFormat,
-            }),
-            returnValue: _i3.Future<(String?, int)>.value((null, 0)),
-          )
-          as _i3.Future<(String?, int)>);
-
-  @override
-  String generateDivesCsvContent(List<_i4.Dive>? dives) =>
-      (super.noSuchMethod(
-            Invocation.method(#generateDivesCsvContent, [dives]),
-            returnValue: _i5.dummyValue<String>(
-              this,
-              Invocation.method(#generateDivesCsvContent, [dives]),
-            ),
-          )
-          as String);
-
-  @override
-  _i3.Future<String?> saveDivesCsvToFile(List<_i4.Dive>? dives) =>
-      (super.noSuchMethod(
-            Invocation.method(#saveDivesCsvToFile, [dives]),
-            returnValue: _i3.Future<String?>.value(),
-          )
-          as _i3.Future<String?>);
-
-  @override
-  String generateSitesCsvContent(List<_i6.DiveSite>? sites) =>
-      (super.noSuchMethod(
-            Invocation.method(#generateSitesCsvContent, [sites]),
-            returnValue: _i5.dummyValue<String>(
-              this,
-              Invocation.method(#generateSitesCsvContent, [sites]),
-            ),
-          )
-          as String);
-
-  @override
-  _i3.Future<String?> saveSitesCsvToFile(List<_i6.DiveSite>? sites) =>
-      (super.noSuchMethod(
-            Invocation.method(#saveSitesCsvToFile, [sites]),
-            returnValue: _i3.Future<String?>.value(),
-          )
-          as _i3.Future<String?>);
-
-  @override
-  String generateEquipmentCsvContent(List<_i7.EquipmentItem>? equipment) =>
-      (super.noSuchMethod(
-            Invocation.method(#generateEquipmentCsvContent, [equipment]),
-            returnValue: _i5.dummyValue<String>(
-              this,
-              Invocation.method(#generateEquipmentCsvContent, [equipment]),
-            ),
-          )
-          as String);
-
-  @override
-  _i3.Future<String?> saveEquipmentCsvToFile(
-    List<_i7.EquipmentItem>? equipment,
-  ) =>
-      (super.noSuchMethod(
-            Invocation.method(#saveEquipmentCsvToFile, [equipment]),
-            returnValue: _i3.Future<String?>.value(),
-          )
-          as _i3.Future<String?>);
-
-  @override
-  _i3.Future<String?> saveUddfToFile(
-    List<_i4.Dive>? dives, {
-    List<_i6.DiveSite>? sites,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#saveUddfToFile, [dives], {#sites: sites}),
-            returnValue: _i3.Future<String?>.value(),
-          )
-          as _i3.Future<String?>);
-
-  @override
-  _i3.Future<String?> saveDivesToPdfFile(
-    List<_i4.Dive>? dives, {
-    String? title = 'Dive Logbook',
-    List<_i10.Sighting>? allSightings,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(
-              #saveDivesToPdfFile,
-              [dives],
-              {#title: title, #allSightings: allSightings},
-            ),
-            returnValue: _i3.Future<String?>.value(),
-          )
-          as _i3.Future<String?>);
+          as _i4.Future<String?>);
 }
