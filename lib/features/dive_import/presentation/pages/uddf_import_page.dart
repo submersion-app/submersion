@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:submersion/core/constants/enums.dart' as enums;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/features/dive_import/presentation/providers/uddf_import_providers.dart';
@@ -611,8 +612,10 @@ class _EntityList extends ConsumerWidget {
         item['latitude'] as double?,
         item['longitude'] as double?,
       ),
-      UddfEntityType.equipment => item['type'] as String?,
-      UddfEntityType.certifications => item['agency'] as String?,
+      UddfEntityType.equipment =>
+        (item['type'] as enums.EquipmentType?)?.displayName,
+      UddfEntityType.certifications =>
+        (item['agency'] as enums.CertificationAgency?)?.displayName,
       UddfEntityType.courses => item['agency'] as String?,
       UddfEntityType.diveCenters =>
         item['country'] as String? ?? item['city'] as String?,
