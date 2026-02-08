@@ -9,9 +9,13 @@ import 'package:submersion/features/dive_import/domain/services/health_import_se
 /// Fetches underwater diving workouts and associated data (depth, temperature,
 /// heart rate, GPS) from Apple HealthKit. Only available on iOS and macOS.
 class HealthKitService implements HealthImportService {
-  HealthKitService({Health? health}) : _health = health ?? Health();
+  HealthKitService({Health? health, bool? isPlatformSupported})
+    : _health = health ?? Health(),
+      _isPlatformSupported =
+          isPlatformSupported ?? (Platform.isIOS || Platform.isMacOS);
 
   final Health _health;
+  final bool _isPlatformSupported;
 
   /// HealthKit data types we need to read for dive imports.
   static const List<HealthDataType> _readTypes = [
@@ -25,7 +29,7 @@ class HealthKitService implements HealthImportService {
   @override
   Future<bool> isAvailable() async {
     // HealthKit is only available on iOS and macOS
-    if (!Platform.isIOS && !Platform.isMacOS) {
+    if (!_isPlatformSupported) {
       return false;
     }
 
@@ -39,7 +43,7 @@ class HealthKitService implements HealthImportService {
 
   @override
   Future<bool> hasPermissions() async {
-    if (!Platform.isIOS && !Platform.isMacOS) {
+    if (!_isPlatformSupported) {
       return false;
     }
 
@@ -56,7 +60,7 @@ class HealthKitService implements HealthImportService {
 
   @override
   Future<bool> requestPermissions() async {
-    if (!Platform.isIOS && !Platform.isMacOS) {
+    if (!_isPlatformSupported) {
       return false;
     }
 

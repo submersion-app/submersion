@@ -15,7 +15,7 @@ void main() {
 
     setUp(() {
       mockHealth = MockHealth();
-      service = HealthKitService(health: mockHealth);
+      service = HealthKitService(health: mockHealth, isPlatformSupported: true);
     });
 
     group('source', () {
