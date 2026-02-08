@@ -168,8 +168,9 @@ platform :ios do
 
     # Get the latest build number from TestFlight and increment
     api_key = load_api_key
-    latest_build = latest_testflight_build_number(api_key: api_key)
-    new_build_number = latest_build + 1
+    latest_build = latest_testflight_build_number(api_key: api_key).to_i
+    current_build = get_build_number(xcodeproj: "Runner.xcodeproj").to_i
+    new_build_number = [latest_build, current_build].max + 1
 
     UI.message("Incrementing build number to #{new_build_number}...")
     increment_build_number(

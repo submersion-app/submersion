@@ -21,7 +21,5 @@
 	<string>$(TeamIdentifierPrefix)$(CFBundleIdentifier)</string>
 	<key>com.apple.security.application-groups</key>
 	<array/>
-	<key>com.apple.developer.healthkit</key>
-	<true/>
 </dict>
 </plist>
