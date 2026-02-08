@@ -162,21 +162,27 @@ platform :ios do
       try_repo_update_on_error: true
     )
 
-    # Build the Flutter app first (release mode, no codesign - Xcode handles signing)
-    UI.message("Building Flutter app...")
-    sh("cd ../.. && flutter build ios --release --no-codesign")
-
     # Get the latest build number from TestFlight and increment
     api_key = load_api_key
     latest_build = latest_testflight_build_number(api_key: api_key).to_i
-    current_build = get_build_number(xcodeproj: "Runner.xcodeproj").to_i
-    new_build_number = [latest_build, current_build].max + 1
 
-    UI.message("Incrementing build number to #{new_build_number}...")
-    increment_build_number(
-      build_number: new_build_number,
-      xcodeproj: "Runner.xcodeproj"
-    )
+    # Read current version from pubspec.yaml (single source of truth)
+    pubspec_path = File.absolute_path("../../pubspec.yaml")
+    pubspec_content = File.read(pubspec_path)
+    current_version = pubspec_content.match(/^version:\s*(.+)$/)[1].strip
+    version_name = current_version.split("+")[0]
+    current_build = (current_version.split("+")[1] || "0").to_i
+
+    new_build_number = [latest_build, current_build].max + 1
+    new_version = "#{version_name}+#{new_build_number}"
+
+    UI.message("Updating pubspec.yaml version to #{new_version}...")
+    updated_content = pubspec_content.gsub(/^version:\s*.+$/, "version: #{new_version}")
+    File.write(pubspec_path, updated_content)
+
+    # Build the Flutter app (reads version from pubspec.yaml -> Generated.xcconfig -> Info.plist)
+    UI.message("Building Flutter app...")
+    sh("cd ../.. && flutter build ios --release --no-codesign")
 
     # Build and sign the IPA
     UI.message("Building and signing IPA...")
