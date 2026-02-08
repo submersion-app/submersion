@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 """
 Generate the final Submersion app icon.
+
+Renders at 4x resolution and downscales with LANCZOS for anti-aliased edges.
 """
 
 from PIL import Image, ImageDraw, ImageFilter
 import math
 import os
+
+SUPERSAMPLE = 4
+
 
 def create_gradient(width, height, color_start, color_end):
     """Create a vertical gradient."""
@@ -20,14 +25,18 @@ def create_gradient(width, height, color_start, color_end):
             gradient.putpixel((x, y), (r, g, b, a))
     return gradient
 
+
 def add_rounded_corners(img, radius):
     """Add rounded corners to an image."""
     mask = Image.new('L', img.size, 0)
     mask_draw = ImageDraw.Draw(mask)
-    mask_draw.rounded_rectangle([0, 0, img.size[0]-1, img.size[1]-1], radius, fill=255)
+    mask_draw.rounded_rectangle(
+        [0, 0, img.size[0] - 1, img.size[1] - 1], radius, fill=255
+    )
     result = Image.new('RGBA', img.size, (0, 0, 0, 0))
     result.paste(img, mask=mask)
     return result
+
 
 def build_flag(size):
     """Build the dive flag pattern layer."""
@@ -39,17 +48,19 @@ def build_flag(size):
 
     flag_draw.rectangle([0, 0, size, size], fill=dive_red)
 
-    stripe_width = size * 0.10
+    upper_half = size * 0.075
+    lower_half = size * 0.125
     flag_draw.polygon([
         (0, 0),
-        (stripe_width, 0),
-        (size, size - stripe_width),
+        (upper_half, 0),
+        (size, size - upper_half),
         (size, size),
-        (size - stripe_width, size),
-        (0, stripe_width),
+        (size - lower_half, size),
+        (0, lower_half),
     ], fill=white)
 
     return flag
+
 
 def build_wave_arrow_mask(size):
     """Build the wave + arrow mask."""
@@ -74,14 +85,14 @@ def build_wave_arrow_mask(size):
 
         points_top = []
         points_bottom = []
-        start_x = cx - wave_width/2
+        start_x = cx - wave_width / 2
 
         for i in range(int(wave_width) + 1):
             x = start_x + i
             progress = i / wave_width
             wave_y = amplitude * math.sin(progress * math.pi * 2 * num_waves)
-            points_top.append((x, base_y + wave_y - thick/2))
-            points_bottom.append((x, base_y + wave_y + thick/2))
+            points_top.append((x, base_y + wave_y - thick / 2))
+            points_bottom.append((x, base_y + wave_y + thick / 2))
 
         polygon_points = points_top + points_bottom[::-1]
         mask_draw.polygon(polygon_points, fill=255)
@@ -95,18 +106,19 @@ def build_wave_arrow_mask(size):
     center_progress = 0.5
     center_wave_y = amplitude * math.sin(center_progress * math.pi * 2 * 2.5)
 
-    arrow_top = lowest_wave_base_y + center_wave_y - lowest_wave_thick/2
+    arrow_top = lowest_wave_base_y + center_wave_y - lowest_wave_thick / 2
     arrow_bottom = size * 0.88
     arrow_width = size * 0.22
     shaft_width = size * 0.10
     head_height = size * 0.18
 
     mask_draw.rectangle(
-        [cx - shaft_width/2, arrow_top, cx + shaft_width/2, arrow_bottom - head_height],
+        [cx - shaft_width / 2, arrow_top,
+         cx + shaft_width / 2, arrow_bottom - head_height],
         fill=255
     )
 
-    head_top = arrow_bottom - head_height - shaft_width/4
+    head_top = arrow_bottom - head_height - shaft_width / 4
     mask_draw.polygon([
         (cx, arrow_bottom),
         (cx - arrow_width, head_top),
@@ -115,9 +127,10 @@ def build_wave_arrow_mask(size):
 
     return mask
 
+
 def apply_depth_effects(img, mask, flag, size, clip_mask):
-    """Apply drop shadow and edge lighting, then composite the flag."""
-    # Drop shadow: black silhouette offset down-right and blurred
+    """Apply drop shadow, white outline, flag composite, and edge lighting."""
+    # Drop shadow
     shadow_offset = int(size * 0.012)
     shadow_blur = int(size * 0.025)
     shadow = Image.new('RGBA', (size, size), (0, 0, 0, 0))
@@ -130,6 +143,17 @@ def apply_depth_effects(img, mask, flag, size, clip_mask):
     shadow_clipped = Image.new('RGBA', (size, size), (0, 0, 0, 0))
     shadow_clipped.paste(shadow, mask=clip_mask)
     img = Image.alpha_composite(img, shadow_clipped)
+
+    # White outline via mask dilation
+    expanded = mask.copy()
+    for _ in range(4):
+        expanded = expanded.filter(ImageFilter.MaxFilter(5))
+    outline_layer = Image.new('RGBA', (size, size), (0, 0, 0, 0))
+    outline_fill = Image.new('RGBA', (size, size), (255, 255, 255, 255))
+    outline_layer.paste(outline_fill, (0, 0), expanded)
+    outline_clipped = Image.new('RGBA', (size, size), (0, 0, 0, 0))
+    outline_clipped.paste(outline_layer, mask=clip_mask)
+    img = Image.alpha_composite(img, outline_clipped)
 
     # Composite dive flag pattern using waves/arrow as mask
     img.paste(flag, (0, 0), mask)
@@ -175,39 +199,41 @@ def apply_depth_effects(img, mask, flag, size, clip_mask):
 
     return img
 
+
 def create_icon(size):
-    """Create the final Submersion app icon."""
+    """Create the final Submersion app icon with anti-aliasing."""
+    hi = size * SUPERSAMPLE
     color_top = (73, 232, 255, 255)    # Tropical cyan
     color_bottom = (51, 191, 180, 255) # Tropical teal
-    img = create_gradient(size, size, color_top, color_bottom)
-    img = add_rounded_corners(img, size // 8)
+    img = create_gradient(hi, hi, color_top, color_bottom)
+    img = add_rounded_corners(img, hi // 8)
 
-    flag = build_flag(size)
-    mask = build_wave_arrow_mask(size)
+    flag = build_flag(hi)
+    mask = build_wave_arrow_mask(hi)
 
-    # Clip mask matches rounded corners
-    clip_mask = Image.new('L', (size, size), 0)
+    clip_mask = Image.new('L', (hi, hi), 0)
     clip_draw = ImageDraw.Draw(clip_mask)
-    clip_draw.rounded_rectangle([0, 0, size-1, size-1], size // 8, fill=255)
+    clip_draw.rounded_rectangle([0, 0, hi - 1, hi - 1], hi // 8, fill=255)
 
-    img = apply_depth_effects(img, mask, flag, size, clip_mask)
-    return img
+    img = apply_depth_effects(img, mask, flag, hi, clip_mask)
+    return img.resize((size, size), Image.LANCZOS)
+
 
 def create_icon_no_rounded_corners(size):
     """Create icon without rounded corners (for macOS which applies its own mask)."""
+    hi = size * SUPERSAMPLE
     color_top = (73, 232, 255, 255)    # Tropical cyan
     color_bottom = (51, 191, 180, 255) # Tropical teal
-    img = create_gradient(size, size, color_top, color_bottom)
-    # NO rounded corners for macOS
+    img = create_gradient(hi, hi, color_top, color_bottom)
 
-    flag = build_flag(size)
-    mask = build_wave_arrow_mask(size)
+    flag = build_flag(hi)
+    mask = build_wave_arrow_mask(hi)
 
-    # Full-size clip mask (no rounded corners)
-    clip_mask = Image.new('L', (size, size), 255)
+    clip_mask = Image.new('L', (hi, hi), 255)
 
-    img = apply_depth_effects(img, mask, flag, size, clip_mask)
-    return img
+    img = apply_depth_effects(img, mask, flag, hi, clip_mask)
+    return img.resize((size, size), Image.LANCZOS)
+
 
 def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -215,7 +241,7 @@ def main():
     assets_dir = os.path.join(project_root, 'assets', 'icon')
     os.makedirs(assets_dir, exist_ok=True)
 
-    print("Generating Submersion app icon...")
+    print("Generating Submersion app icon (4x supersample for anti-aliasing)...")
 
     # Main icon at 1024x1024 (with rounded corners for iOS, Android, etc.)
     icon_1024 = create_icon(1024)
@@ -243,12 +269,15 @@ def main():
     print(f"  Created: {adaptive_fg_path}")
 
     # Adaptive icon background
-    adaptive_bg = create_gradient(1024, 1024, (73, 232, 255, 255), (51, 191, 180, 255))
+    adaptive_bg = create_gradient(
+        1024, 1024, (73, 232, 255, 255), (51, 191, 180, 255)
+    )
     adaptive_bg_path = os.path.join(assets_dir, 'icon_adaptive_background.png')
     adaptive_bg.save(adaptive_bg_path, 'PNG')
     print(f"  Created: {adaptive_bg_path}")
 
     print("\nIcon generation complete!")
+
 
 if __name__ == '__main__':
     main()
