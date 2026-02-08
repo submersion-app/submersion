@@ -35,7 +35,10 @@ class UddfFullExportService {
   /// This includes: dives, sites, equipment, buddies, certifications,
   /// dive centers, species, service records, settings, trips, tags,
   /// dive types, dive computers, equipment sets, and courses.
-  Future<String> exportAllDataToUddf({
+  /// Generate comprehensive UDDF XML content as a string.
+  ///
+  /// Shared by both the share and save-to-file export paths.
+  String _generateAllDataXml({
     required List<Dive> dives,
     List<DiveSite>? sites,
     List<EquipmentItem>? equipment,
@@ -45,10 +48,7 @@ class UddfFullExportService {
     List<Species>? species,
     List<ServiceRecord>? serviceRecords,
     Map<String, String>? settings,
-
-    /// Map of dive ID to list of buddies with roles for that dive
     Map<String, List<BuddyWithRole>>? diveBuddies,
-    // New parameters for comprehensive export
     Diver? owner,
     List<Trip>? trips,
     List<Tag>? tags,
@@ -60,7 +60,7 @@ class UddfFullExportService {
     List<EquipmentSet>? equipmentSets,
     List<Course>? courses,
     Map<String, List<GasSwitchWithTank>>? diveGasSwitches,
-  }) async {
+  }) {
     final builder = XmlBuilder();
 
     builder.processing('xml', 'version="1.0" encoding="UTF-8"');
@@ -419,168 +419,112 @@ class UddfFullExportService {
     );
 
     final xmlDoc = builder.buildDocument();
-    final xmlString = xmlDoc.toXmlString(pretty: true, indent: '  ');
+    return xmlDoc.toXmlString(pretty: true, indent: '  ');
+  }
+
+  /// Export ALL application data to UDDF and share via the system share sheet.
+  /// Returns the share result path.
+  Future<String> exportAllDataToUddf({
+    required List<Dive> dives,
+    List<DiveSite>? sites,
+    List<EquipmentItem>? equipment,
+    List<Buddy>? buddies,
+    List<Certification>? certifications,
+    List<DiveCenter>? diveCenters,
+    List<Species>? species,
+    List<ServiceRecord>? serviceRecords,
+    Map<String, String>? settings,
+    Map<String, List<BuddyWithRole>>? diveBuddies,
+    Diver? owner,
+    List<Trip>? trips,
+    List<Tag>? tags,
+    Map<String, List<Tag>>? diveTags,
+    List<DiveTypeEntity>? customDiveTypes,
+    List<DiveComputer>? diveComputers,
+    Map<String, List<ProfileEvent>>? diveProfileEvents,
+    Map<String, List<DiveWeight>>? diveWeights,
+    List<EquipmentSet>? equipmentSets,
+    List<Course>? courses,
+    Map<String, List<GasSwitchWithTank>>? diveGasSwitches,
+  }) {
+    final xmlString = _generateAllDataXml(
+      dives: dives,
+      sites: sites,
+      equipment: equipment,
+      buddies: buddies,
+      certifications: certifications,
+      diveCenters: diveCenters,
+      species: species,
+      serviceRecords: serviceRecords,
+      settings: settings,
+      diveBuddies: diveBuddies,
+      owner: owner,
+      trips: trips,
+      tags: tags,
+      diveTags: diveTags,
+      customDiveTypes: customDiveTypes,
+      diveComputers: diveComputers,
+      diveProfileEvents: diveProfileEvents,
+      diveWeights: diveWeights,
+      equipmentSets: equipmentSets,
+      courses: courses,
+      diveGasSwitches: diveGasSwitches,
+    );
     final fileName =
         'submersion_backup_${_dateFormat.format(DateTime.now())}.uddf';
     return saveAndShareFile(xmlString, fileName, 'application/xml');
   }
 
-  /// Generate UDDF content and save to a user-selected file location.
+  /// Export ALL application data to UDDF and save to a user-selected file.
   /// Returns the file path, or null if cancelled.
-  Future<String?> saveUddfToFile(
-    List<Dive> dives, {
+  Future<String?> saveAllDataToUddfFile({
+    required List<Dive> dives,
     List<DiveSite>? sites,
+    List<EquipmentItem>? equipment,
+    List<Buddy>? buddies,
+    List<Certification>? certifications,
+    List<DiveCenter>? diveCenters,
+    List<Species>? species,
+    List<ServiceRecord>? serviceRecords,
+    Map<String, String>? settings,
+    Map<String, List<BuddyWithRole>>? diveBuddies,
+    Diver? owner,
+    List<Trip>? trips,
+    List<Tag>? tags,
+    Map<String, List<Tag>>? diveTags,
+    List<DiveTypeEntity>? customDiveTypes,
+    List<DiveComputer>? diveComputers,
+    Map<String, List<ProfileEvent>>? diveProfileEvents,
+    Map<String, List<DiveWeight>>? diveWeights,
+    List<EquipmentSet>? equipmentSets,
+    List<Course>? courses,
+    Map<String, List<GasSwitchWithTank>>? diveGasSwitches,
   }) async {
-    // Generate UDDF content using the existing logic
-    final builder = XmlBuilder();
-    builder.processing('xml', 'version="1.0" encoding="UTF-8"');
-    builder.element(
-      'uddf',
-      attributes: {
-        'version': '3.2.0',
-        'xmlns': 'http://www.streit.cc/uddf/3.2/',
-      },
-      nest: () {
-        // Generator info
-        builder.element(
-          'generator',
-          nest: () {
-            builder.element('name', nest: 'Submersion');
-            builder.element('version', nest: '0.1.0');
-            builder.element('datetime', nest: DateTime.now().toIso8601String());
-          },
-        );
-
-        // Dive sites if provided
-        if (sites != null && sites.isNotEmpty) {
-          builder.element(
-            'divesite',
-            nest: () {
-              for (final site in sites) {
-                builder.element(
-                  'site',
-                  attributes: {'id': 'site_${site.id}'},
-                  nest: () {
-                    builder.element('name', nest: site.name);
-                    if (site.location != null) {
-                      builder.element(
-                        'geography',
-                        nest: () {
-                          builder.element(
-                            'latitude',
-                            nest: site.location!.latitude.toString(),
-                          );
-                          builder.element(
-                            'longitude',
-                            nest: site.location!.longitude.toString(),
-                          );
-                        },
-                      );
-                    }
-                    if (site.maxDepth != null) {
-                      builder.element(
-                        'maximumdepth',
-                        nest: site.maxDepth.toString(),
-                      );
-                    }
-                  },
-                );
-              }
-            },
-          );
-        }
-
-        // Profile data (dives)
-        builder.element(
-          'profiledata',
-          nest: () {
-            builder.element(
-              'repetitiongroup',
-              nest: () {
-                for (final dive in dives) {
-                  builder.element(
-                    'dive',
-                    nest: () {
-                      builder.element(
-                        'informationbeforedive',
-                        nest: () {
-                          builder.element(
-                            'datetime',
-                            nest: dive.dateTime.toIso8601String(),
-                          );
-                          if (dive.site != null) {
-                            builder.element(
-                              'link',
-                              attributes: {'ref': 'site_${dive.site!.id}'},
-                            );
-                          }
-                        },
-                      );
-
-                      // Samples (dive profile)
-                      if (dive.profile.isNotEmpty) {
-                        builder.element(
-                          'samples',
-                          nest: () {
-                            for (final point in dive.profile) {
-                              builder.element(
-                                'waypoint',
-                                nest: () {
-                                  builder.element(
-                                    'divetime',
-                                    nest: point.timestamp.toString(),
-                                  );
-                                  builder.element(
-                                    'depth',
-                                    nest: point.depth.toString(),
-                                  );
-                                  if (point.temperature != null) {
-                                    builder.element(
-                                      'temperature',
-                                      nest: (point.temperature! + 273.15)
-                                          .toString(),
-                                    );
-                                  }
-                                },
-                              );
-                            }
-                          },
-                        );
-                      }
-
-                      builder.element(
-                        'informationafterdive',
-                        nest: () {
-                          if (dive.maxDepth != null) {
-                            builder.element(
-                              'greatestdepth',
-                              nest: dive.maxDepth.toString(),
-                            );
-                          }
-                          if (dive.duration != null) {
-                            builder.element(
-                              'diveduration',
-                              nest: dive.duration!.inSeconds.toString(),
-                            );
-                          }
-                          if (dive.notes.isNotEmpty) {
-                            builder.element('notes', nest: dive.notes);
-                          }
-                        },
-                      );
-                    },
-                  );
-                }
-              },
-            );
-          },
-        );
-      },
+    final xmlString = _generateAllDataXml(
+      dives: dives,
+      sites: sites,
+      equipment: equipment,
+      buddies: buddies,
+      certifications: certifications,
+      diveCenters: diveCenters,
+      species: species,
+      serviceRecords: serviceRecords,
+      settings: settings,
+      diveBuddies: diveBuddies,
+      owner: owner,
+      trips: trips,
+      tags: tags,
+      diveTags: diveTags,
+      customDiveTypes: customDiveTypes,
+      diveComputers: diveComputers,
+      diveProfileEvents: diveProfileEvents,
+      diveWeights: diveWeights,
+      equipmentSets: equipmentSets,
+      courses: courses,
+      diveGasSwitches: diveGasSwitches,
     );
-
-    final xmlString = builder.buildDocument().toXmlString(pretty: true);
-    final dateStr = _dateFormat.format(DateTime.now());
-    final fileName = 'submersion_export_$dateStr.uddf';
+    final fileName =
+        'submersion_backup_${_dateFormat.format(DateTime.now())}.uddf';
 
     final result = await FilePicker.platform.saveFile(
       dialogTitle: 'Save UDDF File',

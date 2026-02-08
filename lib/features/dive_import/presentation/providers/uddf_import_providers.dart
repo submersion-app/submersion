@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/export_service.dart';
@@ -234,6 +236,8 @@ class UddfImportNotifier extends StateNotifier<UddfImportState> {
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
+      // Use FileType.any on iOS/macOS since custom extensions don't work
+      // reliably in sandboxed apps.
       final result = await FilePicker.platform.pickFiles(
         type: FileType.any,
         allowMultiple: false,
@@ -244,7 +248,21 @@ class UddfImportNotifier extends StateNotifier<UddfImportState> {
         return;
       }
 
-      final filePath = result.files.first.path;
+      final pickedFile = result.files.first;
+
+      // Validate extension using PlatformFile.extension (derived from the
+      // original filename) rather than the full path, which may lose the
+      // extension on macOS/iOS sandboxed apps.
+      final ext = pickedFile.extension?.toLowerCase();
+      if (ext != 'uddf' && ext != 'xml') {
+        state = state.copyWith(
+          isLoading: false,
+          error: 'Please select a UDDF or XML file',
+        );
+        return;
+      }
+
+      final filePath = pickedFile.path;
       if (filePath == null) {
         state = state.copyWith(
           isLoading: false,
@@ -264,13 +282,24 @@ class UddfImportNotifier extends StateNotifier<UddfImportState> {
 
   /// Parse a UDDF file at [filePath], run duplicate check, and set up
   /// default selections (all selected except duplicates).
+  ///
+  /// Reads the file content directly and uses [UddfParserService.parseContent]
+  /// to avoid the path-based extension check, which can fail on macOS/iOS
+  /// sandboxed apps where the file picker returns temporary paths.
   Future<void> parseFile(String filePath) async {
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
+      final file = File(filePath);
+      if (!await file.exists()) {
+        state = state.copyWith(isLoading: false, error: 'File not found');
+        return;
+      }
+      final content = await file.readAsString();
+
       final exportService = _ref.read(exportServiceProvider);
       final parser = UddfParserService(exportService);
-      final data = await parser.parseFile(filePath);
+      final data = await parser.parseContent(content);
 
       // Run duplicate check against existing entities
       final dupResult = await _checkDuplicates(data);

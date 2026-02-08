@@ -782,7 +782,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
 
   // ==================== UDDF SAVE TO FILE ====================
 
-  /// Save UDDF to a user-selected location.
+  /// Save comprehensive UDDF to a user-selected location.
+  /// Collects all data (same as share) so the export round-trips correctly.
   Future<void> saveUddfToFile() async {
     state = state.copyWith(
       status: ExportStatus.exporting,
@@ -798,10 +799,124 @@ class ExportNotifier extends StateNotifier<ExportState> {
         return;
       }
 
+      // Collect all data for comprehensive export
+      state = state.copyWith(message: 'Collecting all data...');
       final sites = await _ref.read(sitesProvider.future);
+      final equipment = await _ref.read(allEquipmentProvider.future);
+      final buddies = await _ref.read(allBuddiesProvider.future);
+      final certifications = await _ref.read(allCertificationsProvider.future);
+      final diveCenters = await _ref.read(allDiveCentersProvider.future);
+      final species = await _ref.read(allSpeciesProvider.future);
+      final currentDiver = await _ref.read(currentDiverProvider.future);
+      final trips = await _ref.read(allTripsProvider.future);
+      final tags = await _ref.read(tagsProvider.future);
+      final customDiveTypes = await _ref.read(diveTypesProvider.future);
+      final diveComputers = await _ref.read(allDiveComputersProvider.future);
+      final equipmentSets = await _ref.read(equipmentSetsProvider.future);
+      final courses = await _ref.read(allCoursesProvider.future);
+
+      // Fetch service records for all equipment
+      final serviceRecordRepo = _ref.read(serviceRecordRepositoryProvider);
+      final List<ServiceRecord> allServiceRecords = [];
+      for (final item in equipment) {
+        final records = await serviceRecordRepo.getRecordsForEquipment(item.id);
+        allServiceRecords.addAll(
+          records.map(
+            (r) => ServiceRecord(
+              id: r.id,
+              equipmentId: r.equipmentId,
+              serviceType: r.serviceType,
+              serviceDate: r.serviceDate,
+              provider: r.provider,
+              cost: r.cost,
+              currency: r.currency,
+              nextServiceDue: r.nextServiceDue,
+              notes: r.notes,
+            ),
+          ),
+        );
+      }
+
+      // Fetch per-dive relationships
+      final buddyRepository = _ref.read(buddyRepositoryProvider);
+      final tagRepository = _ref.read(tagRepositoryProvider);
+      final diveRepository = _ref.read(diveRepositoryProvider);
+      final diveComputerRepository = _ref.read(diveComputerRepositoryProvider);
+      final Map<String, List<BuddyWithRole>> diveBuddies = {};
+      final Map<String, List<Tag>> diveTags = {};
+      final Map<String, List<DiveWeight>> diveWeights = {};
+      final Map<String, List<GasSwitchWithTank>> diveGasSwitches = {};
+      final Map<String, List<ProfileEvent>> diveProfileEvents = {};
+      for (final dive in dives) {
+        final buddiesForDive = await buddyRepository.getBuddiesForDive(dive.id);
+        if (buddiesForDive.isNotEmpty) {
+          diveBuddies[dive.id] = buddiesForDive;
+        }
+        final tagsForDive = await tagRepository.getTagsForDive(dive.id);
+        if (tagsForDive.isNotEmpty) {
+          diveTags[dive.id] = tagsForDive;
+        }
+        if (dive.weights.isNotEmpty) {
+          diveWeights[dive.id] = dive.weights;
+        }
+        final switches = await diveRepository.getGasSwitchesForDive(dive.id);
+        if (switches.isNotEmpty) {
+          diveGasSwitches[dive.id] = switches;
+        }
+        final eventRows = await diveComputerRepository.getEventsForDive(
+          dive.id,
+        );
+        if (eventRows.isNotEmpty) {
+          diveProfileEvents[dive.id] = eventRows
+              .map(
+                (row) => ProfileEvent(
+                  id: row.id,
+                  diveId: row.diveId,
+                  timestamp: row.timestamp,
+                  eventType: ProfileEventType.values.firstWhere(
+                    (e) => e.name == row.eventType,
+                    orElse: () => ProfileEventType.note,
+                  ),
+                  severity: EventSeverity.values.firstWhere(
+                    (e) => e.name == row.severity,
+                    orElse: () => EventSeverity.info,
+                  ),
+                  description: row.description,
+                  depth: row.depth,
+                  value: row.value,
+                  tankId: row.tankId,
+                  createdAt: DateTime.fromMillisecondsSinceEpoch(
+                    row.createdAt * 1000,
+                  ),
+                ),
+              )
+              .toList();
+        }
+      }
 
       state = state.copyWith(message: 'Choose save location...');
-      final path = await _exportService.saveUddfToFile(dives, sites: sites);
+      final path = await _exportService.saveAllDataToUddfFile(
+        dives: dives,
+        sites: sites,
+        equipment: equipment,
+        buddies: buddies,
+        certifications: certifications,
+        diveCenters: diveCenters,
+        species: species,
+        diveBuddies: diveBuddies,
+        owner: currentDiver,
+        trips: trips,
+        tags: tags,
+        diveTags: diveTags,
+        customDiveTypes: customDiveTypes,
+        diveComputers: diveComputers,
+        equipmentSets: equipmentSets,
+        serviceRecords: allServiceRecords,
+        courses: courses,
+        diveWeights: diveWeights,
+        diveGasSwitches: diveGasSwitches,
+        diveProfileEvents: diveProfileEvents,
+      );
 
       if (path == null) {
         state = state.copyWith(

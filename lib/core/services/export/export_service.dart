@@ -280,8 +280,51 @@ class ExportService {
     diveGasSwitches: diveGasSwitches,
   );
 
-  Future<String?> saveUddfToFile(List<Dive> dives, {List<DiveSite>? sites}) =>
-      _uddfFull.saveUddfToFile(dives, sites: sites);
+  Future<String?> saveAllDataToUddfFile({
+    required List<Dive> dives,
+    List<DiveSite>? sites,
+    List<EquipmentItem>? equipment,
+    List<Buddy>? buddies,
+    List<Certification>? certifications,
+    List<DiveCenter>? diveCenters,
+    List<Species>? species,
+    List<ServiceRecord>? serviceRecords,
+    Map<String, String>? settings,
+    Map<String, List<BuddyWithRole>>? diveBuddies,
+    Diver? owner,
+    List<Trip>? trips,
+    List<Tag>? tags,
+    Map<String, List<Tag>>? diveTags,
+    List<DiveTypeEntity>? customDiveTypes,
+    List<DiveComputer>? diveComputers,
+    Map<String, List<ProfileEvent>>? diveProfileEvents,
+    Map<String, List<DiveWeight>>? diveWeights,
+    List<EquipmentSet>? equipmentSets,
+    List<Course>? courses,
+    Map<String, List<GasSwitchWithTank>>? diveGasSwitches,
+  }) => _uddfFull.saveAllDataToUddfFile(
+    dives: dives,
+    sites: sites,
+    equipment: equipment,
+    buddies: buddies,
+    certifications: certifications,
+    diveCenters: diveCenters,
+    species: species,
+    serviceRecords: serviceRecords,
+    settings: settings,
+    diveBuddies: diveBuddies,
+    owner: owner,
+    trips: trips,
+    tags: tags,
+    diveTags: diveTags,
+    customDiveTypes: customDiveTypes,
+    diveComputers: diveComputers,
+    diveProfileEvents: diveProfileEvents,
+    diveWeights: diveWeights,
+    equipmentSets: equipmentSets,
+    courses: courses,
+    diveGasSwitches: diveGasSwitches,
+  );
 
   // ==================== UDDF Import ====================
 
