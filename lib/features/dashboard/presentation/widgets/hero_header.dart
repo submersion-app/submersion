@@ -15,21 +15,21 @@ class HeroHeader extends ConsumerWidget {
     final statsAsync = ref.watch(diveStatisticsProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final colors = theme.colorScheme;
 
-    // Use container colors in dark mode for better contrast with dark surfaces
+    // Gradient uses icon-harmonious cyan-teal hues instead of theme colors,
+    // ensuring the app icon in the corner blends naturally with the banner.
     final gradientColors = isDark
         ? [
-            colors.primaryContainer,
-            colors.primaryContainer.withValues(alpha: 0.9),
-            colors.tertiaryContainer.withValues(alpha: 0.8),
+            const Color(0xFF00838F),
+            const Color(0xFF00838F).withValues(alpha: 0.9),
+            const Color(0xFF00796B).withValues(alpha: 0.85),
           ]
         : [
-            colors.primary,
-            colors.primary.withValues(alpha: 0.8),
-            colors.tertiary.withValues(alpha: 0.6),
+            const Color(0xFF00ACC1),
+            const Color(0xFF00ACC1).withValues(alpha: 0.9),
+            const Color(0xFF009688).withValues(alpha: 0.85),
           ];
-    final textColor = isDark ? colors.onPrimaryContainer : colors.onPrimary;
+    final textColor = isDark ? Colors.white : const Color(0xFF00363D);
 
     return Container(
       width: double.infinity,
