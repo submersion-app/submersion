@@ -38,15 +38,25 @@ def add_rounded_corners(img, radius):
 
 
 def build_flag(size):
-    """Build the Alfa flag pattern layer (white left, blue right)."""
+    """Build the dive flag pattern layer."""
     flag = Image.new('RGBA', (size, size), (0, 0, 0, 0))
     flag_draw = ImageDraw.Draw(flag)
 
-    alfa_blue = (0, 91, 172, 255)
+    dive_red = (204, 0, 0, 255)
     white = (255, 255, 255, 255)
 
-    flag_draw.rectangle([0, 0, size // 2, size], fill=white)
-    flag_draw.rectangle([size // 2, 0, size, size], fill=alfa_blue)
+    flag_draw.rectangle([0, 0, size, size], fill=dive_red)
+
+    upper_half = size * 0.075
+    lower_half = size * 0.125
+    flag_draw.polygon([
+        (0, 0),
+        (upper_half, 0),
+        (size, size - upper_half),
+        (size, size),
+        (size - lower_half, size),
+        (0, lower_half),
+    ], fill=white)
 
     return flag
 
@@ -118,7 +128,7 @@ def build_wave_arrow_mask(size):
 
 
 def apply_depth_effects(img, mask, flag, size, clip_mask):
-    """Apply drop shadow, flag composite, and edge lighting."""
+    """Apply drop shadow, white outline, flag composite, and edge lighting."""
     # Drop shadow
     shadow_offset = int(size * 0.012)
     shadow_blur = int(size * 0.025)
@@ -133,7 +143,18 @@ def apply_depth_effects(img, mask, flag, size, clip_mask):
     shadow_clipped.paste(shadow, mask=clip_mask)
     img = Image.alpha_composite(img, shadow_clipped)
 
-    # Composite Alfa flag pattern using waves/arrow as mask
+    # White outline via mask dilation
+    expanded = mask.copy()
+    for _ in range(4):
+        expanded = expanded.filter(ImageFilter.MaxFilter(5))
+    outline_layer = Image.new('RGBA', (size, size), (0, 0, 0, 0))
+    outline_fill = Image.new('RGBA', (size, size), (255, 255, 255, 255))
+    outline_layer.paste(outline_fill, (0, 0), expanded)
+    outline_clipped = Image.new('RGBA', (size, size), (0, 0, 0, 0))
+    outline_clipped.paste(outline_layer, mask=clip_mask)
+    img = Image.alpha_composite(img, outline_clipped)
+
+    # Composite dive flag pattern using waves/arrow as mask
     img.paste(flag, (0, 0), mask)
 
     # Edge lighting: highlight on top edges, shadow on bottom edges
