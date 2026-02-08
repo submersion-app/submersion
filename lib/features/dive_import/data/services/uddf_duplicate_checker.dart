@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/services/export_service.dart';
+import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';

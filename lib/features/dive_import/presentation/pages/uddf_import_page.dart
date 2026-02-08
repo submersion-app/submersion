@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/services/export_service.dart';
+import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/features/dive_import/presentation/providers/uddf_import_providers.dart';
 import 'package:submersion/features/dive_import/presentation/widgets/uddf_entity_card.dart';
 
@@ -574,6 +574,7 @@ class _EntityList extends ConsumerWidget {
       UddfEntityType.buddies => data.buddies,
       UddfEntityType.diveCenters => data.diveCenters,
       UddfEntityType.certifications => data.certifications,
+      UddfEntityType.courses => data.courses,
       UddfEntityType.tags => data.tags,
       UddfEntityType.diveTypes => data.customDiveTypes,
       UddfEntityType.sites => data.sites,
@@ -592,6 +593,7 @@ class _EntityList extends ConsumerWidget {
       UddfEntityType.buddies => dup.duplicateBuddies,
       UddfEntityType.diveCenters => dup.duplicateDiveCenters,
       UddfEntityType.certifications => dup.duplicateCertifications,
+      UddfEntityType.courses => const {},
       UddfEntityType.tags => dup.duplicateTags,
       UddfEntityType.diveTypes => dup.duplicateDiveTypes,
       UddfEntityType.equipmentSets => const {},
@@ -611,6 +613,7 @@ class _EntityList extends ConsumerWidget {
       ),
       UddfEntityType.equipment => item['type'] as String?,
       UddfEntityType.certifications => item['agency'] as String?,
+      UddfEntityType.courses => item['agency'] as String?,
       UddfEntityType.diveCenters =>
         item['country'] as String? ?? item['city'] as String?,
       _ => null,
@@ -629,6 +632,7 @@ class _EntityList extends ConsumerWidget {
       UddfEntityType.buddies => Icons.person_outline,
       UddfEntityType.diveCenters => Icons.store_outlined,
       UddfEntityType.certifications => Icons.workspace_premium_outlined,
+      UddfEntityType.courses => Icons.school_outlined,
       UddfEntityType.tags => Icons.label_outline,
       UddfEntityType.diveTypes => Icons.category_outlined,
       UddfEntityType.sites => Icons.location_on_outlined,
@@ -898,6 +902,7 @@ class _EntityTab {
     UddfEntityType.buddies => 'Buddies',
     UddfEntityType.diveCenters => 'Centers',
     UddfEntityType.certifications => 'Certs',
+    UddfEntityType.courses => 'Courses',
     UddfEntityType.tags => 'Tags',
     UddfEntityType.diveTypes => 'Types',
     UddfEntityType.sites => 'Sites',

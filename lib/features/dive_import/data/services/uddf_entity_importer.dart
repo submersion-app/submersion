@@ -1,15 +1,19 @@
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/services/export_service.dart';
+import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/courses/data/repositories/course_repository.dart';
+import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
+import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
@@ -37,6 +41,7 @@ class ImportRepositories {
   final SiteRepository siteRepository;
   final DiveRepository diveRepository;
   final TankPressureRepository tankPressureRepository;
+  final CourseRepository courseRepository;
 
   const ImportRepositories({
     required this.tripRepository,
@@ -50,6 +55,7 @@ class ImportRepositories {
     required this.siteRepository,
     required this.diveRepository,
     required this.tankPressureRepository,
+    required this.courseRepository,
   });
 }
 
@@ -65,6 +71,7 @@ class UddfImportSelections {
   final Set<int> sites;
   final Set<int> equipmentSets;
   final Set<int> dives;
+  final Set<int> courses;
 
   const UddfImportSelections({
     this.trips = const {},
@@ -77,6 +84,7 @@ class UddfImportSelections {
     this.sites = const {},
     this.equipmentSets = const {},
     this.dives = const {},
+    this.courses = const {},
   });
 
   /// Create selections with all items selected.
@@ -92,6 +100,7 @@ class UddfImportSelections {
       sites: _allIndices(data.sites.length),
       equipmentSets: _allIndices(data.equipmentSets.length),
       dives: _allIndices(data.dives.length),
+      courses: _allIndices(data.courses.length),
     );
   }
 
@@ -111,6 +120,7 @@ class UddfEntityImportResult {
   final int diveTypes;
   final int sites;
   final int dives;
+  final int courses;
 
   const UddfEntityImportResult({
     this.trips = 0,
@@ -123,6 +133,7 @@ class UddfEntityImportResult {
     this.diveTypes = 0,
     this.sites = 0,
     this.dives = 0,
+    this.courses = 0,
   });
 
   int get total =>
@@ -135,7 +146,8 @@ class UddfEntityImportResult {
       tags +
       diveTypes +
       sites +
-      dives;
+      dives +
+      courses;
 
   String get summary {
     final parts = <String>[];
@@ -147,6 +159,7 @@ class UddfEntityImportResult {
     if (buddies > 0) parts.add('$buddies buddies');
     if (diveCenters > 0) parts.add('$diveCenters dive centers');
     if (certifications > 0) parts.add('$certifications certifications');
+    if (courses > 0) parts.add('$courses courses');
     if (diveTypes > 0) parts.add('$diveTypes custom dive types');
     if (tags > 0) parts.add('$tags tags');
     return parts.isEmpty ? 'No data imported' : 'Imported ${parts.join(', ')}';
@@ -187,6 +200,7 @@ class UddfEntityImporter {
     final diveCenterIdMapping = <String, String>{};
     final tagIdMapping = <String, String>{};
     final siteIdMapping = <String, DiveSite>{};
+    final courseIdMapping = <String, String>{};
 
     // Import in dependency order
     final tripsCount = await _importTrips(
@@ -276,6 +290,17 @@ class UddfEntityImporter {
       onProgress,
     );
 
+    final coursesCount = await _importCourses(
+      data.courses,
+      selections.courses,
+      repositories.courseRepository,
+      diverId,
+      courseIdMapping,
+      buddyIdMapping,
+      now,
+      onProgress,
+    );
+
     final divesResult = await _importDives(
       data.dives,
       selections.dives,
@@ -287,6 +312,7 @@ class UddfEntityImporter {
       diveCenterIdMapping: diveCenterIdMapping,
       tagIdMapping: tagIdMapping,
       siteIdMapping: siteIdMapping,
+      courseIdMapping: courseIdMapping,
       now: now,
       onProgress: onProgress,
     );
@@ -302,6 +328,7 @@ class UddfEntityImporter {
       diveTypes: diveTypesCount,
       sites: sitesCount,
       dives: divesResult.count,
+      courses: coursesCount,
     );
   }
 
@@ -485,7 +512,10 @@ class UddfEntityImporter {
         id: newId,
         diverId: diverId,
         name: name,
-        city: centerData['location'] as String?,
+        street: centerData['street'] as String?,
+        city: centerData['city'] as String?,
+        stateProvince: centerData['stateProvince'] as String?,
+        postalCode: centerData['postalCode'] as String?,
         latitude: centerData['latitude'] as double?,
         longitude: centerData['longitude'] as double?,
         country: centerData['country'] as String?,
@@ -685,17 +715,30 @@ class UddfEntityImporter {
         }
       }
 
+      // Parse difficulty enum
+      final difficultyStr = siteData['difficulty'] as String?;
+      final difficulty = difficultyStr != null
+          ? SiteDifficulty.fromString(difficultyStr)
+          : null;
+
       final newSite = DiveSite(
         id: _uuid.v4(),
         diverId: diverId,
         name: name,
         description: siteData['description'] as String? ?? '',
         location: (lat != null && lon != null) ? GeoPoint(lat, lon) : null,
+        minDepth: siteData['minDepth'] as double?,
         maxDepth: siteData['maxDepth'] as double?,
+        difficulty: difficulty,
         country: country,
         region: region,
         rating: siteData['rating'] as double?,
         notes: siteData['notes'] as String? ?? '',
+        hazards: siteData['hazards'] as String?,
+        accessNotes: siteData['accessNotes'] as String?,
+        mooringNumber: siteData['mooringNumber'] as String?,
+        parkingInfo: siteData['parkingInfo'] as String?,
+        altitude: siteData['altitude'] as double?,
       );
 
       final createdSite = await repository.createSite(newSite);
@@ -759,6 +802,65 @@ class UddfEntityImporter {
     return count;
   }
 
+  // -- Course import --
+
+  Future<int> _importCourses(
+    List<Map<String, dynamic>> items,
+    Set<int> selected,
+    CourseRepository repository,
+    String diverId,
+    Map<String, String> idMapping,
+    Map<String, String> buddyIdMapping,
+    DateTime now,
+    ImportProgressCallback? onProgress,
+  ) async {
+    if (selected.isEmpty) return 0;
+    onProgress?.call('Importing courses', 0, selected.length);
+    var count = 0;
+
+    for (var i = 0; i < items.length; i++) {
+      if (!selected.contains(i)) continue;
+      final courseData = items[i];
+      final name = courseData['name'] as String?;
+      if (name == null || name.isEmpty) continue;
+
+      final uddfId = courseData['uddfId'] as String?;
+      final newId = _uuid.v4();
+
+      final agency = _parseCertificationAgency(courseData['agency']);
+
+      // Map instructor buddy reference to new ID
+      String? instructorId;
+      final instructorRef = courseData['instructorRef'] as String?;
+      if (instructorRef != null) {
+        instructorId = buddyIdMapping[instructorRef];
+      }
+
+      final course = Course(
+        id: newId,
+        diverId: diverId,
+        name: name,
+        agency: agency,
+        startDate: courseData['startDate'] as DateTime? ?? now,
+        completionDate: courseData['completionDate'] as DateTime?,
+        instructorId: instructorId,
+        instructorName: courseData['instructorName'] as String?,
+        instructorNumber: courseData['instructorNumber'] as String?,
+        location: courseData['location'] as String?,
+        notes: courseData['notes'] as String? ?? '',
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      await repository.createCourse(course);
+      if (uddfId != null) idMapping[uddfId] = newId;
+      count++;
+      onProgress?.call('Importing courses', count, selected.length);
+    }
+
+    return count;
+  }
+
   // -- Dive import --
 
   Future<_DiveImportResult> _importDives(
@@ -772,6 +874,7 @@ class UddfEntityImporter {
     required Map<String, String> diveCenterIdMapping,
     required Map<String, String> tagIdMapping,
     required Map<String, DiveSite> siteIdMapping,
+    required Map<String, String> courseIdMapping,
     required DateTime now,
     ImportProgressCallback? onProgress,
   }) async {
@@ -784,7 +887,7 @@ class UddfEntityImporter {
       if (!selected.contains(i)) continue;
       final diveData = items[i];
 
-      // Build profile
+      // Build profile (include setpoint/ppO2 sensor readings)
       final profileData = diveData['profile'] as List<Map<String, dynamic>>?;
       final profile =
           profileData
@@ -794,6 +897,8 @@ class UddfEntityImporter {
                   depth: p['depth'] as double? ?? 0.0,
                   temperature: p['temperature'] as double?,
                   pressure: p['pressure'] as double?,
+                  setpoint: p['setpoint'] as double?,
+                  ppO2: p['ppO2'] as double?,
                 ),
               )
               .toList() ??
@@ -827,6 +932,11 @@ class UddfEntityImporter {
         }
       }
 
+      // Link to imported course
+      String? linkedCourseId;
+      final courseRef = diveData['courseRef'] as String?;
+      if (courseRef != null) linkedCourseId = courseIdMapping[courseRef];
+
       // Link to imported equipment
       final linkedEquipment = await _resolveEquipmentRefs(
         diveData['equipmentRefs'],
@@ -845,12 +955,53 @@ class UddfEntityImporter {
       // Parse sightings
       final sightings = _buildSightings(diveData);
 
+      // Build DiveWeight objects from parsed weight data
       final diveId = _uuid.v4();
+      final weightsData = diveData['weights'] as List<Map<String, dynamic>>?;
+      final weights =
+          weightsData
+              ?.map(
+                (w) => DiveWeight(
+                  id: _uuid.v4(),
+                  diveId: diveId,
+                  weightType: w['type'] as WeightType? ?? WeightType.integrated,
+                  amountKg: w['amount'] as double? ?? 0.0,
+                  notes: w['notes'] as String? ?? '',
+                ),
+              )
+              .toList() ??
+          [];
+
       final dateTime = diveData['dateTime'] as DateTime? ?? now;
       final runtime = diveData['runtime'] as Duration?;
-      final entryTime = dateTime;
+      final parsedEntryTime = diveData['entryTime'] as DateTime?;
+      final entryTime = parsedEntryTime ?? dateTime;
       final exitTime = runtime != null ? dateTime.add(runtime) : null;
       final diveTypeId = diveData['diveType'] as String? ?? 'recreational';
+
+      // Parse dive mode, planner flag, and favorite
+      final diveMode = diveData['diveMode'] as DiveMode? ?? DiveMode.oc;
+      final isPlanned = diveData['isPlanned'] as bool? ?? false;
+      final isFavorite = diveData['isFavorite'] as bool? ?? false;
+
+      // Build diluent gas mix (if present)
+      final diluentO2 = diveData['diluentO2'] as double?;
+      final diluentHe = diveData['diluentHe'] as double?;
+      final diluentGas = (diluentO2 != null || diluentHe != null)
+          ? GasMix(o2: diluentO2 ?? 21.0, he: diluentHe ?? 0.0)
+          : null;
+
+      // Build scrubber info (if present)
+      final scrubberType = diveData['scrubberType'] as String?;
+      final scrubberDur = diveData['scrubberDurationMinutes'] as int?;
+      final scrubberRem = diveData['scrubberRemainingMinutes'] as int?;
+      final scrubber = scrubberType != null
+          ? ScrubberInfo(
+              type: scrubberType,
+              ratedMinutes: scrubberDur,
+              remainingMinutes: scrubberRem,
+            )
+          : null;
 
       var dive = Dive(
         id: diveId,
@@ -879,6 +1030,7 @@ class UddfEntityImporter {
         diveTypeId: diveTypeId,
         profile: profile,
         tanks: tanks,
+        weights: weights,
         site: linkedSite,
         tripId: linkedTripId,
         diveCenter: linkedDiveCenter,
@@ -891,6 +1043,25 @@ class UddfEntityImporter {
         exitMethod: diveData['exitMethod'] as EntryMethod?,
         waterType: diveData['waterType'] as WaterType?,
         altitude: diveData['altitude'] as double?,
+        // Dive mode and rebreather fields
+        diveMode: diveMode,
+        isPlanned: isPlanned,
+        isFavorite: isFavorite,
+        courseId: linkedCourseId,
+        setpointLow: diveData['setpointLow'] as double?,
+        setpointHigh: diveData['setpointHigh'] as double?,
+        setpointDeco: diveData['setpointDeco'] as double?,
+        scrType: diveData['scrType'] as ScrType?,
+        scrInjectionRate: diveData['scrInjectionRate'] as double?,
+        scrAdditionRatio: diveData['scrAdditionRatio'] as double?,
+        scrOrificeSize: diveData['scrOrificeSize'] as String?,
+        assumedVo2: diveData['assumedVo2'] as double?,
+        diluentGas: diluentGas,
+        loopO2Min: diveData['loopO2Min'] as double?,
+        loopO2Max: diveData['loopO2Max'] as double?,
+        loopO2Avg: diveData['loopO2Avg'] as double?,
+        loopVolume: diveData['loopVolume'] as double?,
+        scrubber: scrubber,
       );
 
       // Auto-calculate bottom time from profile if not set
@@ -911,6 +1082,28 @@ class UddfEntityImporter {
           diveId,
           repos.tankPressureRepository,
         );
+      }
+
+      // Insert gas switches
+      final gasSwitchesData =
+          diveData['gasSwitches'] as List<Map<String, dynamic>>?;
+      if (gasSwitchesData != null && gasSwitchesData.isNotEmpty) {
+        final switches = gasSwitchesData
+            .where((gs) => gs['timestamp'] != null)
+            .map(
+              (gs) => GasSwitch(
+                id: _uuid.v4(),
+                diveId: diveId,
+                timestamp: gs['timestamp'] as int,
+                tankId: gs['tankRef'] as String? ?? '',
+                depth: gs['depth'] as double?,
+                createdAt: now,
+              ),
+            )
+            .toList();
+        if (switches.isNotEmpty) {
+          await repos.diveRepository.insertGasSwitches(switches);
+        }
       }
 
       // Link buddies to dive

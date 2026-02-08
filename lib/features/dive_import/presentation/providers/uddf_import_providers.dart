@@ -1,9 +1,10 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/services/export_service.dart';
+import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_import/data/services/uddf_duplicate_checker.dart';
 import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
@@ -28,6 +29,7 @@ enum UddfEntityType {
   buddies,
   diveCenters,
   certifications,
+  courses,
   tags,
   diveTypes,
   sites,
@@ -58,6 +60,7 @@ class UddfImportState {
     this.selectedSites = const {},
     this.selectedEquipmentSets = const {},
     this.selectedDives = const {},
+    this.selectedCourses = const {},
     this.importResult,
     this.importPhase = '',
     this.importCurrent = 0,
@@ -87,6 +90,7 @@ class UddfImportState {
   final Set<int> selectedSites;
   final Set<int> selectedEquipmentSets;
   final Set<int> selectedDives;
+  final Set<int> selectedCourses;
 
   /// Import result (set after step 2).
   final UddfEntityImportResult? importResult;
@@ -114,6 +118,7 @@ class UddfImportState {
     Set<int>? selectedSites,
     Set<int>? selectedEquipmentSets,
     Set<int>? selectedDives,
+    Set<int>? selectedCourses,
     UddfEntityImportResult? importResult,
     String? importPhase,
     int? importCurrent,
@@ -138,6 +143,7 @@ class UddfImportState {
       selectedEquipmentSets:
           selectedEquipmentSets ?? this.selectedEquipmentSets,
       selectedDives: selectedDives ?? this.selectedDives,
+      selectedCourses: selectedCourses ?? this.selectedCourses,
       importResult: importResult ?? this.importResult,
       importPhase: importPhase ?? this.importPhase,
       importCurrent: importCurrent ?? this.importCurrent,
@@ -153,6 +159,7 @@ class UddfImportState {
       UddfEntityType.buddies => selectedBuddies,
       UddfEntityType.diveCenters => selectedDiveCenters,
       UddfEntityType.certifications => selectedCertifications,
+      UddfEntityType.courses => selectedCourses,
       UddfEntityType.tags => selectedTags,
       UddfEntityType.diveTypes => selectedDiveTypes,
       UddfEntityType.sites => selectedSites,
@@ -171,6 +178,7 @@ class UddfImportState {
       UddfEntityType.buddies => data.buddies.length,
       UddfEntityType.diveCenters => data.diveCenters.length,
       UddfEntityType.certifications => data.certifications.length,
+      UddfEntityType.courses => data.courses.length,
       UddfEntityType.tags => data.tags.length,
       UddfEntityType.diveTypes => data.customDiveTypes.length,
       UddfEntityType.sites => data.sites.length,
@@ -190,7 +198,8 @@ class UddfImportState {
       selectedDiveTypes.length +
       selectedSites.length +
       selectedEquipmentSets.length +
-      selectedDives.length;
+      selectedDives.length +
+      selectedCourses.length;
 
   /// Build [UddfImportSelections] from current selection state.
   UddfImportSelections toSelections() {
@@ -205,6 +214,7 @@ class UddfImportState {
       sites: selectedSites,
       equipmentSets: selectedEquipmentSets,
       dives: selectedDives,
+      courses: selectedCourses,
     );
   }
 }
@@ -291,6 +301,7 @@ class UddfImportNotifier extends StateNotifier<UddfImportState> {
         ),
         selectedSites: selections.sites.difference(dupResult.duplicateSites),
         selectedEquipmentSets: selections.equipmentSets,
+        selectedCourses: selections.courses,
         selectedDives: selections.dives.difference(
           Set<int>.from(dupResult.diveMatches.keys),
         ),
@@ -373,6 +384,7 @@ class UddfImportNotifier extends StateNotifier<UddfImportState> {
       UddfEntityType.certifications => state.copyWith(
         selectedCertifications: selection,
       ),
+      UddfEntityType.courses => state.copyWith(selectedCourses: selection),
       UddfEntityType.tags => state.copyWith(selectedTags: selection),
       UddfEntityType.diveTypes => state.copyWith(selectedDiveTypes: selection),
       UddfEntityType.sites => state.copyWith(selectedSites: selection),
@@ -412,6 +424,7 @@ class UddfImportNotifier extends StateNotifier<UddfImportState> {
         siteRepository: _ref.read(siteRepositoryProvider),
         diveRepository: _ref.read(diveRepositoryProvider),
         tankPressureRepository: _ref.read(tankPressureRepositoryProvider),
+        courseRepository: _ref.read(courseRepositoryProvider),
       );
 
       const importer = UddfEntityImporter();

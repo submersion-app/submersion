@@ -1,4 +1,4 @@
-import 'package:submersion/core/services/export_service.dart';
+import 'package:submersion/core/services/export/export_service.dart';
 
 /// Utilities for semantic comparison of UDDF data.
 ///

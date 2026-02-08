@@ -362,6 +362,8 @@ class DiveRepository {
               temperature: Value(point.temperature),
               heartRate: Value(point.heartRate),
               heartRateSource: Value(point.heartRateSource),
+              setpoint: Value(point.setpoint),
+              ppO2: Value(point.ppO2),
             ),
           );
         }

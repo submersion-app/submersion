@@ -7,8 +7,8 @@ import 'dart:async' as _i3;
 
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i5;
-import 'package:submersion/core/constants/units.dart' as _i21;
-import 'package:submersion/core/services/export_service.dart' as _i2;
+import 'package:submersion/core/constants/units.dart' as _i22;
+import 'package:submersion/core/services/export/export_service.dart' as _i2;
 import 'package:submersion/features/buddies/domain/entities/buddy.dart' as _i11;
 import 'package:submersion/features/certifications/domain/entities/certification.dart'
     as _i12;
@@ -20,6 +20,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
     as _i17;
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart'
     as _i19;
+import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart'
+    as _i21;
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart'
     as _i18;
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
@@ -249,6 +251,8 @@ class MockExportService extends _i1.Mock implements _i2.ExportService {
     Map<String, List<_i18.ProfileEvent>>? diveProfileEvents,
     Map<String, List<_i19.DiveWeight>>? diveWeights,
     List<_i20.EquipmentSet>? equipmentSets,
+    List<_i9.Course>? courses,
+    Map<String, List<_i21.GasSwitchWithTank>>? diveGasSwitches,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#exportAllDataToUddf, [], {
@@ -271,6 +275,8 @@ class MockExportService extends _i1.Mock implements _i2.ExportService {
               #diveProfileEvents: diveProfileEvents,
               #diveWeights: diveWeights,
               #equipmentSets: equipmentSets,
+              #courses: courses,
+              #diveGasSwitches: diveGasSwitches,
             }),
             returnValue: _i3.Future<String>.value(
               _i5.dummyValue<String>(
@@ -295,6 +301,8 @@ class MockExportService extends _i1.Mock implements _i2.ExportService {
                   #diveProfileEvents: diveProfileEvents,
                   #diveWeights: diveWeights,
                   #equipmentSets: equipmentSets,
+                  #courses: courses,
+                  #diveGasSwitches: diveGasSwitches,
                 }),
               ),
             ),
@@ -412,11 +420,11 @@ class MockExportService extends _i1.Mock implements _i2.ExportService {
     required List<_i4.Dive>? dives,
     required List<_i6.DiveSite>? sites,
     required List<_i7.EquipmentItem>? equipment,
-    required _i21.DepthUnit? depthUnit,
-    required _i21.TemperatureUnit? temperatureUnit,
-    required _i21.PressureUnit? pressureUnit,
-    required _i21.VolumeUnit? volumeUnit,
-    required _i21.DateFormatPreference? dateFormat,
+    required _i22.DepthUnit? depthUnit,
+    required _i22.TemperatureUnit? temperatureUnit,
+    required _i22.PressureUnit? pressureUnit,
+    required _i22.VolumeUnit? volumeUnit,
+    required _i22.DateFormatPreference? dateFormat,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#exportToExcel, [], {
@@ -451,8 +459,8 @@ class MockExportService extends _i1.Mock implements _i2.ExportService {
   _i3.Future<(String, int)> exportToKml({
     required List<_i6.DiveSite>? sites,
     required List<_i4.Dive>? dives,
-    required _i21.DepthUnit? depthUnit,
-    required _i21.DateFormatPreference? dateFormat,
+    required _i22.DepthUnit? depthUnit,
+    required _i22.DateFormatPreference? dateFormat,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#exportToKml, [], {
@@ -481,11 +489,11 @@ class MockExportService extends _i1.Mock implements _i2.ExportService {
     required List<_i4.Dive>? dives,
     required List<_i6.DiveSite>? sites,
     required List<_i7.EquipmentItem>? equipment,
-    required _i21.DepthUnit? depthUnit,
-    required _i21.TemperatureUnit? temperatureUnit,
-    required _i21.PressureUnit? pressureUnit,
-    required _i21.VolumeUnit? volumeUnit,
-    required _i21.DateFormatPreference? dateFormat,
+    required _i22.DepthUnit? depthUnit,
+    required _i22.TemperatureUnit? temperatureUnit,
+    required _i22.PressureUnit? pressureUnit,
+    required _i22.VolumeUnit? volumeUnit,
+    required _i22.DateFormatPreference? dateFormat,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#generateExcelBytes, [], {
@@ -507,11 +515,11 @@ class MockExportService extends _i1.Mock implements _i2.ExportService {
     required List<_i4.Dive>? dives,
     required List<_i6.DiveSite>? sites,
     required List<_i7.EquipmentItem>? equipment,
-    required _i21.DepthUnit? depthUnit,
-    required _i21.TemperatureUnit? temperatureUnit,
-    required _i21.PressureUnit? pressureUnit,
-    required _i21.VolumeUnit? volumeUnit,
-    required _i21.DateFormatPreference? dateFormat,
+    required _i22.DepthUnit? depthUnit,
+    required _i22.TemperatureUnit? temperatureUnit,
+    required _i22.PressureUnit? pressureUnit,
+    required _i22.VolumeUnit? volumeUnit,
+    required _i22.DateFormatPreference? dateFormat,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#saveExcelToFile, [], {
@@ -532,8 +540,8 @@ class MockExportService extends _i1.Mock implements _i2.ExportService {
   _i3.Future<(String, int)> generateKmlContent({
     required List<_i6.DiveSite>? sites,
     required List<_i4.Dive>? dives,
-    required _i21.DepthUnit? depthUnit,
-    required _i21.DateFormatPreference? dateFormat,
+    required _i22.DepthUnit? depthUnit,
+    required _i22.DateFormatPreference? dateFormat,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#generateKmlContent, [], {
@@ -561,8 +569,8 @@ class MockExportService extends _i1.Mock implements _i2.ExportService {
   _i3.Future<(String?, int)> saveKmlToFile({
     required List<_i6.DiveSite>? sites,
     required List<_i4.Dive>? dives,
-    required _i21.DepthUnit? depthUnit,
-    required _i21.DateFormatPreference? dateFormat,
+    required _i22.DepthUnit? depthUnit,
+    required _i22.DateFormatPreference? dateFormat,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#saveKmlToFile, [], {

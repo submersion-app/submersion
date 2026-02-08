@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:submersion/core/services/export_service.dart';
+import 'package:submersion/core/services/export/export_service.dart';
 
 /// Thin wrapper around [ExportService.importAllDataFromUddf] that handles
 /// file I/O and extension validation.

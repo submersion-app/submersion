@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/services/export_service.dart';
+import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/features/dive_import/data/services/uddf_duplicate_checker.dart';
 import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
@@ -112,7 +112,7 @@ void main() {
 
   group('UddfEntityType', () {
     test('has all expected values', () {
-      expect(UddfEntityType.values, hasLength(10));
+      expect(UddfEntityType.values, hasLength(11));
       expect(UddfEntityType.values, contains(UddfEntityType.trips));
       expect(UddfEntityType.values, contains(UddfEntityType.dives));
       expect(UddfEntityType.values, contains(UddfEntityType.sites));
@@ -123,6 +123,7 @@ void main() {
       expect(UddfEntityType.values, contains(UddfEntityType.tags));
       expect(UddfEntityType.values, contains(UddfEntityType.diveTypes));
       expect(UddfEntityType.values, contains(UddfEntityType.equipmentSets));
+      expect(UddfEntityType.values, contains(UddfEntityType.courses));
     });
   });
 

@@ -2,11 +2,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/services/export_service.dart';
+import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/courses/data/repositories/course_repository.dart';
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
@@ -38,6 +39,7 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
   SiteRepository,
   DiveRepository,
   TankPressureRepository,
+  CourseRepository,
 ])
 import 'uddf_entity_importer_test.mocks.dart';
 
@@ -57,6 +59,7 @@ void main() {
   late MockSiteRepository mockSiteRepo;
   late MockDiveRepository mockDiveRepo;
   late MockTankPressureRepository mockTankPressureRepo;
+  late MockCourseRepository mockCourseRepo;
   late ImportRepositories repos;
 
   setUp(() {
@@ -71,6 +74,7 @@ void main() {
     mockSiteRepo = MockSiteRepository();
     mockDiveRepo = MockDiveRepository();
     mockTankPressureRepo = MockTankPressureRepository();
+    mockCourseRepo = MockCourseRepository();
 
     repos = ImportRepositories(
       tripRepository: mockTripRepo,
@@ -84,6 +88,7 @@ void main() {
       siteRepository: mockSiteRepo,
       diveRepository: mockDiveRepo,
       tankPressureRepository: mockTankPressureRepo,
+      courseRepository: mockCourseRepo,
     );
   });
 

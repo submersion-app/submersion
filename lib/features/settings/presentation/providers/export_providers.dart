@@ -10,7 +10,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/database_service.dart';
-import 'package:submersion/core/services/export_service.dart';
+import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_factory.dart';
 import 'package:submersion/features/signatures/data/services/signature_storage_service.dart';
@@ -32,6 +32,10 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
+import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 
 /// Export service provider
 final exportServiceProvider = Provider<ExportService>((ref) {
@@ -323,11 +327,41 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final diveComputers = await _ref.read(allDiveComputersProvider.future);
       final equipmentSets = await _ref.read(equipmentSetsProvider.future);
 
-      // Fetch dive buddies and tags for each dive
+      // Fetch courses
+      final courses = await _ref.read(allCoursesProvider.future);
+
+      // Fetch service records for all equipment, mapping domain to export DTO
+      final serviceRecordRepo = _ref.read(serviceRecordRepositoryProvider);
+      final List<ServiceRecord> allServiceRecords = [];
+      for (final item in equipment) {
+        final records = await serviceRecordRepo.getRecordsForEquipment(item.id);
+        allServiceRecords.addAll(
+          records.map(
+            (r) => ServiceRecord(
+              id: r.id,
+              equipmentId: r.equipmentId,
+              serviceType: r.serviceType,
+              serviceDate: r.serviceDate,
+              provider: r.provider,
+              cost: r.cost,
+              currency: r.currency,
+              nextServiceDue: r.nextServiceDue,
+              notes: r.notes,
+            ),
+          ),
+        );
+      }
+
+      // Fetch dive buddies, tags, gas switches, and profile events per dive
       final buddyRepository = _ref.read(buddyRepositoryProvider);
       final tagRepository = _ref.read(tagRepositoryProvider);
+      final diveRepository = _ref.read(diveRepositoryProvider);
+      final diveComputerRepository = _ref.read(diveComputerRepositoryProvider);
       final Map<String, List<BuddyWithRole>> diveBuddies = {};
       final Map<String, List<Tag>> diveTags = {};
+      final Map<String, List<DiveWeight>> diveWeights = {};
+      final Map<String, List<GasSwitchWithTank>> diveGasSwitches = {};
+      final Map<String, List<ProfileEvent>> diveProfileEvents = {};
       for (final dive in dives) {
         final buddiesForDive = await buddyRepository.getBuddiesForDive(dive.id);
         if (buddiesForDive.isNotEmpty) {
@@ -336,6 +370,45 @@ class ExportNotifier extends StateNotifier<ExportState> {
         final tagsForDive = await tagRepository.getTagsForDive(dive.id);
         if (tagsForDive.isNotEmpty) {
           diveTags[dive.id] = tagsForDive;
+        }
+        // Weights are already loaded on Dive entities
+        if (dive.weights.isNotEmpty) {
+          diveWeights[dive.id] = dive.weights;
+        }
+        // Gas switches per dive
+        final switches = await diveRepository.getGasSwitchesForDive(dive.id);
+        if (switches.isNotEmpty) {
+          diveGasSwitches[dive.id] = switches;
+        }
+        // Profile events per dive (map Drift row to domain entity)
+        final eventRows = await diveComputerRepository.getEventsForDive(
+          dive.id,
+        );
+        if (eventRows.isNotEmpty) {
+          diveProfileEvents[dive.id] = eventRows
+              .map(
+                (row) => ProfileEvent(
+                  id: row.id,
+                  diveId: row.diveId,
+                  timestamp: row.timestamp,
+                  eventType: ProfileEventType.values.firstWhere(
+                    (e) => e.name == row.eventType,
+                    orElse: () => ProfileEventType.note,
+                  ),
+                  severity: EventSeverity.values.firstWhere(
+                    (e) => e.name == row.severity,
+                    orElse: () => EventSeverity.info,
+                  ),
+                  description: row.description,
+                  depth: row.depth,
+                  value: row.value,
+                  tankId: row.tankId,
+                  createdAt: DateTime.fromMillisecondsSinceEpoch(
+                    row.createdAt * 1000,
+                  ),
+                ),
+              )
+              .toList();
         }
       }
 
@@ -356,6 +429,11 @@ class ExportNotifier extends StateNotifier<ExportState> {
         customDiveTypes: customDiveTypes,
         diveComputers: diveComputers,
         equipmentSets: equipmentSets,
+        serviceRecords: allServiceRecords,
+        courses: courses,
+        diveWeights: diveWeights,
+        diveGasSwitches: diveGasSwitches,
+        diveProfileEvents: diveProfileEvents,
       );
       state = state.copyWith(
         status: ExportStatus.success,
