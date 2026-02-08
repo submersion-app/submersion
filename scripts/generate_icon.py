@@ -8,7 +8,6 @@ Renders at 4x resolution and downscales with LANCZOS for anti-aliased edges.
 from PIL import Image, ImageDraw, ImageFilter
 import math
 import os
-
 SUPERSAMPLE = 4
 
 
