@@ -1,0 +1,4093 @@
+{
+  "version": 1,
+  "species": [
+    {
+      "id": "sp_whale_shark",
+      "commonName": "Whale Shark",
+      "scientificName": "Rhincodon typus",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Largest fish in the ocean, gentle filter feeder with distinctive spotted pattern."
+    },
+    {
+      "id": "sp_great_white_shark",
+      "commonName": "Great White Shark",
+      "scientificName": "Carcharodon carcharias",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Iconic apex predator occasionally seen by cage divers in temperate waters."
+    },
+    {
+      "id": "sp_great_hammerhead_shark",
+      "commonName": "Great Hammerhead Shark",
+      "scientificName": "Sphyrna mokarran",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Largest hammerhead species with a broad, flat head and tall dorsal fin."
+    },
+    {
+      "id": "sp_scalloped_hammerhead_shark",
+      "commonName": "Scalloped Hammerhead Shark",
+      "scientificName": "Sphyrna lewini",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Often seen in large schools at seamounts and cleaning stations."
+    },
+    {
+      "id": "sp_smooth_hammerhead_shark",
+      "commonName": "Smooth Hammerhead Shark",
+      "scientificName": "Sphyrna zygaena",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Hammerhead with a smooth, rounded head margin found in temperate seas."
+    },
+    {
+      "id": "sp_whitetip_reef_shark",
+      "commonName": "Whitetip Reef Shark",
+      "scientificName": "Triaenodon obesus",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Docile reef dweller often found resting in caves and under ledges during the day."
+    },
+    {
+      "id": "sp_blacktip_reef_shark",
+      "commonName": "Blacktip Reef Shark",
+      "scientificName": "Carcharhinus melanopterus",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Common shallow-water reef shark with distinctive black-tipped fins."
+    },
+    {
+      "id": "sp_grey_reef_shark",
+      "commonName": "Grey Reef Shark",
+      "scientificName": "Carcharhinus amblyrhynchos",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Active reef predator often encountered in groups along drop-offs and channels."
+    },
+    {
+      "id": "sp_caribbean_reef_shark",
+      "commonName": "Caribbean Reef Shark",
+      "scientificName": "Carcharhinus perezi",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Most commonly encountered reef shark in the Caribbean, robust and curious."
+    },
+    {
+      "id": "sp_nurse_shark",
+      "commonName": "Nurse Shark",
+      "scientificName": "Ginglymostoma cirratum",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Slow-moving bottom dweller often found resting under coral ledges."
+    },
+    {
+      "id": "sp_tawny_nurse_shark",
+      "commonName": "Tawny Nurse Shark",
+      "scientificName": "Nebrius ferrugineus",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Indo-Pacific bottom dweller found resting in reef caves and sandy areas."
+    },
+    {
+      "id": "sp_bull_shark",
+      "commonName": "Bull Shark",
+      "scientificName": "Carcharhinus leucas",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Stocky, powerful shark found in coastal and freshwater environments worldwide."
+    },
+    {
+      "id": "sp_tiger_shark",
+      "commonName": "Tiger Shark",
+      "scientificName": "Galeocerdo cuvier",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Large predator with distinctive striped pattern, encountered on deep reef dives."
+    },
+    {
+      "id": "sp_oceanic_whitetip_shark",
+      "commonName": "Oceanic Whitetip Shark",
+      "scientificName": "Carcharhinus longimanus",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Pelagic shark with rounded white-tipped fins, seen on open ocean dives."
+    },
+    {
+      "id": "sp_thresher_shark",
+      "commonName": "Thresher Shark",
+      "scientificName": "Alopias vulpinus",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Recognizable by its extremely long tail fin, sometimes seen at cleaning stations."
+    },
+    {
+      "id": "sp_pelagic_thresher_shark",
+      "commonName": "Pelagic Thresher Shark",
+      "scientificName": "Alopias pelagicus",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Smallest thresher species, famously seen at Monad Shoal in the Philippines."
+    },
+    {
+      "id": "sp_shortfin_mako_shark",
+      "commonName": "Shortfin Mako Shark",
+      "scientificName": "Isurus oxyrinchus",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Fastest shark in the ocean, a sleek open-water predator with metallic blue coloring."
+    },
+    {
+      "id": "sp_blue_shark",
+      "commonName": "Blue Shark",
+      "scientificName": "Prionace glauca",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Slender, deep blue pelagic shark often encountered on blue-water dives."
+    },
+    {
+      "id": "sp_spotted_wobbegong",
+      "commonName": "Spotted Wobbegong",
+      "scientificName": "Orectolobus maculatus",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Flat, camouflaged carpet shark that lies motionless on rocky reefs in Australia."
+    },
+    {
+      "id": "sp_tasselled_wobbegong",
+      "commonName": "Tasselled Wobbegong",
+      "scientificName": "Eucrossorhinus dasypogon",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Ornate carpet shark with fringed lobes around its head, found in coral reefs."
+    },
+    {
+      "id": "sp_epaulette_shark",
+      "commonName": "Epaulette Shark",
+      "scientificName": "Hemiscyllium ocellatum",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Small shark that walks along the reef floor using its pectoral fins."
+    },
+    {
+      "id": "sp_horn_shark",
+      "commonName": "Horn Shark",
+      "scientificName": "Heterodontus francisci",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Nocturnal bottom dweller with ridges above its eyes, found off California."
+    },
+    {
+      "id": "sp_leopard_shark",
+      "commonName": "Leopard Shark",
+      "scientificName": "Triakis semifasciata",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Beautifully patterned shark found in shallow bays along the US Pacific coast."
+    },
+    {
+      "id": "sp_pacific_angel_shark",
+      "commonName": "Pacific Angel Shark",
+      "scientificName": "Squatina californica",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Flat-bodied ambush predator that lies buried in sand on the seafloor."
+    },
+    {
+      "id": "sp_sand_tiger_shark",
+      "commonName": "Sand Tiger Shark",
+      "scientificName": "Carcharias taurus",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Fierce-looking but docile shark often seen hovering in caves and shipwrecks."
+    },
+    {
+      "id": "sp_zebra_shark",
+      "commonName": "Zebra Shark",
+      "scientificName": "Stegostoma tigrinum",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Spotted reef shark that rests on sandy bottoms, common in the Indo-Pacific."
+    },
+    {
+      "id": "sp_blacktip_shark",
+      "commonName": "Blacktip Shark",
+      "scientificName": "Carcharhinus limbatus",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Fast coastal shark known for spinning leaps, found in warm waters worldwide."
+    },
+    {
+      "id": "sp_silvertip_shark",
+      "commonName": "Silvertip Shark",
+      "scientificName": "Carcharhinus albimarginatus",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Bold reef shark with white-edged fins, found near deep drop-offs and atolls."
+    },
+    {
+      "id": "sp_silky_shark",
+      "commonName": "Silky Shark",
+      "scientificName": "Carcharhinus falciformis",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Sleek pelagic shark with smooth skin, often found near offshore reefs."
+    },
+    {
+      "id": "sp_lemon_shark",
+      "commonName": "Lemon Shark",
+      "scientificName": "Negaprion brevirostris",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Yellowish-brown shark commonly seen in shallow mangroves and sandy flats."
+    },
+    {
+      "id": "sp_galapagos_shark",
+      "commonName": "Galapagos Shark",
+      "scientificName": "Carcharhinus galapagensis",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Large reef shark found around oceanic islands, inquisitive toward divers."
+    },
+    {
+      "id": "sp_port_jackson_shark",
+      "commonName": "Port Jackson Shark",
+      "scientificName": "Heterodontus portusjacksoni",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Nocturnal bottom dweller with harness-like markings, endemic to Australia."
+    },
+    {
+      "id": "sp_bamboo_shark",
+      "commonName": "Brownbanded Bamboo Shark",
+      "scientificName": "Chiloscyllium punctatum",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Small, docile bottom-dwelling shark common on Indo-Pacific coral reefs."
+    },
+    {
+      "id": "sp_basking_shark",
+      "commonName": "Basking Shark",
+      "scientificName": "Cetorhinus maximus",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Second-largest fish, a filter feeder seen in temperate surface waters."
+    },
+    {
+      "id": "sp_greenland_shark",
+      "commonName": "Greenland Shark",
+      "scientificName": "Somniosus microcephalus",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Slow-moving deep-water shark, one of the longest-lived vertebrates on Earth."
+    },
+    {
+      "id": "sp_cookiecutter_shark",
+      "commonName": "Cookiecutter Shark",
+      "scientificName": "Isistius brasiliensis",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Small deep-water shark that takes circular bites from larger marine animals."
+    },
+    {
+      "id": "sp_sevengill_shark",
+      "commonName": "Broadnose Sevengill Shark",
+      "scientificName": "Notorynchus cepedianus",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Primitive shark with seven gill slits, encountered on temperate kelp dives."
+    },
+    {
+      "id": "sp_pyjama_shark",
+      "commonName": "Pyjama Shark",
+      "scientificName": "Poroderma africanum",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Striped catshark endemic to South Africa, found in rocky reefs and kelp forests."
+    },
+    {
+      "id": "sp_spiny_dogfish",
+      "commonName": "Spiny Dogfish",
+      "scientificName": "Squalus acanthias",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Small, abundant shark with venomous dorsal spines, found in temperate waters."
+    },
+    {
+      "id": "sp_swell_shark",
+      "commonName": "Swell Shark",
+      "scientificName": "Cephaloscyllium ventriosum",
+      "category": "shark",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Nocturnal catshark that inflates its body when threatened, found off California."
+    },
+    {
+      "id": "sp_giant_oceanic_manta_ray",
+      "commonName": "Giant Oceanic Manta Ray",
+      "scientificName": "Mobula birostris",
+      "category": "ray",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Largest ray species, majestic filter feeder with wingspans up to 7 meters."
+    },
+    {
+      "id": "sp_reef_manta_ray",
+      "commonName": "Reef Manta Ray",
+      "scientificName": "Mobula alfredi",
+      "category": "ray",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Smaller manta species commonly seen at cleaning stations on tropical reefs."
+    },
+    {
+      "id": "sp_spotted_eagle_ray",
+      "commonName": "Spotted Eagle Ray",
+      "scientificName": "Aetobatus narinari",
+      "category": "ray",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Elegant ray with white spots and a long whip-like tail, often seen mid-water."
+    },
+    {
+      "id": "sp_common_eagle_ray",
+      "commonName": "Common Eagle Ray",
+      "scientificName": "Myliobatis aquila",
+      "category": "ray",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Diamond-shaped ray found in temperate eastern Atlantic and Mediterranean waters."
+    },
+    {
+      "id": "sp_blue_spotted_ribbontail_ray",
+      "commonName": "Blue-spotted Ribbontail Ray",
+      "scientificName": "Taeniura lymma",
+      "category": "ray",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Brightly colored ray with vivid blue spots, common on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_blue_spotted_stingray",
+      "commonName": "Bluespotted Stingray",
+      "scientificName": "Neotrygon kuhlii",
+      "category": "ray",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Small reef stingray with scattered blue spots, often buried in sandy patches."
+    },
+    {
+      "id": "sp_southern_stingray",
+      "commonName": "Southern Stingray",
+      "scientificName": "Hypanus americanus",
+      "category": "ray",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Large stingray found on Caribbean sand flats, famous at Stingray City."
+    },
+    {
+      "id": "sp_round_stingray",
+      "commonName": "Round Stingray",
+      "scientificName": "Urobatis halleri",
+      "category": "ray",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Small circular stingray common in shallow sandy areas of the eastern Pacific."
+    },
+    {
+      "id": "sp_short_tail_stingray",
+      "commonName": "Short-tail Stingray",
+      "scientificName": "Bathytoshia brevicaudata",
+      "category": "ray",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "One of the largest stingrays, found in temperate waters of the southern hemisphere."
+    },
+    {
+      "id": "sp_cowtail_stingray",
+      "commonName": "Cowtail Stingray",
+      "scientificName": "Pastinachus ater",
+      "category": "ray",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Large dark stingray with a distinctive flag-like tail fold, found on sandy reefs."
+    },
+    {
+      "id": "sp_atlantic_torpedo_ray",
+      "commonName": "Atlantic Torpedo Ray",
+      "scientificName": "Torpedo nobiliana",
+      "category": "ray",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Electric ray capable of producing strong shocks, found on Atlantic sandy bottoms."
+    },
+    {
+      "id": "sp_marbled_electric_ray",
+      "commonName": "Marbled Electric Ray",
+      "scientificName": "Torpedo marmorata",
+      "category": "ray",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Mediterranean electric ray with marbled pattern, delivers a notable electric shock."
+    },
+    {
+      "id": "sp_giant_guitarfish",
+      "commonName": "Giant Guitarfish",
+      "scientificName": "Rhynchobatus djiddensis",
+      "category": "ray",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Shark-shaped ray found on Indo-Pacific sandy bottoms near coral reefs."
+    },
+    {
+      "id": "sp_shovelnose_guitarfish",
+      "commonName": "Shovelnose Guitarfish",
+      "scientificName": "Pseudobatos productus",
+      "category": "ray",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Flattened ray-shark hybrid shape, common in sandy shallows of the eastern Pacific."
+    },
+    {
+      "id": "sp_smalltooth_sawfish",
+      "commonName": "Smalltooth Sawfish",
+      "scientificName": "Pristis pectinata",
+      "category": "ray",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Critically endangered ray with a toothed rostrum, found in tropical coastal waters."
+    },
+    {
+      "id": "sp_green_sawfish",
+      "commonName": "Green Sawfish",
+      "scientificName": "Pristis zijsron",
+      "category": "ray",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Large sawfish with an olive-green body, inhabiting Indo-West Pacific estuaries."
+    },
+    {
+      "id": "sp_devil_ray",
+      "commonName": "Giant Devil Ray",
+      "scientificName": "Mobula mobular",
+      "category": "ray",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Large mobula ray with cephalic fins, seen leaping from the water in groups."
+    },
+    {
+      "id": "sp_spinetail_devil_ray",
+      "commonName": "Spinetail Devil Ray",
+      "scientificName": "Mobula japanica",
+      "category": "ray",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Pelagic devil ray often seen in large aggregations near the surface."
+    },
+    {
+      "id": "sp_lesser_devil_ray",
+      "commonName": "Pygmy Devil Ray",
+      "scientificName": "Mobula munkiana",
+      "category": "ray",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Smallest mobula species, forms large schools in the Gulf of California."
+    },
+    {
+      "id": "sp_bat_ray",
+      "commonName": "Bat Ray",
+      "scientificName": "Myliobatis californica",
+      "category": "ray",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Diamond-shaped ray common in kelp forests and sandy bays of California."
+    },
+    {
+      "id": "sp_undulate_ray",
+      "commonName": "Undulate Ray",
+      "scientificName": "Raja undulata",
+      "category": "ray",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Beautifully patterned skate with wavy lines, found in the eastern Atlantic."
+    },
+    {
+      "id": "sp_thornback_ray",
+      "commonName": "Thornback Ray",
+      "scientificName": "Raja clavata",
+      "category": "ray",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Common European skate with thorny spines along its back and tail."
+    },
+    {
+      "id": "sp_cownose_ray",
+      "commonName": "Cownose Ray",
+      "scientificName": "Rhinoptera bonasus",
+      "category": "ray",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Distinctive notched head, often seen in large schools during seasonal migrations."
+    },
+    {
+      "id": "sp_marble_ray",
+      "commonName": "Marble Ray",
+      "scientificName": "Taeniurops meyeni",
+      "category": "ray",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Large dark stingray with white spots, frequently seen at Indo-Pacific cleaning stations."
+    },
+    {
+      "id": "sp_ocellate_river_stingray",
+      "commonName": "Ocellate River Stingray",
+      "scientificName": "Potamotrygon motoro",
+      "category": "ray",
+      "taxonomyClass": "Chondrichthyes",
+      "description": "Freshwater stingray with striking orange-ringed spots, native to South American rivers."
+    },
+    {
+      "id": "sp_ocellaris_clownfish",
+      "commonName": "Ocellaris Clownfish",
+      "scientificName": "Amphiprion ocellaris",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Small orange and white striped fish commonly found living symbiotically in sea anemones on coral reefs."
+    },
+    {
+      "id": "sp_clarkii_clownfish",
+      "commonName": "Clark's Clownfish",
+      "scientificName": "Amphiprion clarkii",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Hardy anemonefish with dark body and two white bars, found across the Indo-Pacific in various anemone species."
+    },
+    {
+      "id": "sp_tomato_clownfish",
+      "commonName": "Tomato Clownfish",
+      "scientificName": "Amphiprion frenatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Bright red-orange anemonefish with a single white head bar, common on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_regal_blue_tang",
+      "commonName": "Regal Blue Tang",
+      "scientificName": "Paracanthurus hepatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Vivid blue surgeonfish with a black palette marking and yellow tail, found on Indo-Pacific coral reefs."
+    },
+    {
+      "id": "sp_yellow_tang",
+      "commonName": "Yellow Tang",
+      "scientificName": "Zebrasoma flavescens",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Bright yellow surgeonfish common on Hawaiian and Pacific reefs, often seen grazing algae in groups."
+    },
+    {
+      "id": "sp_powder_blue_surgeonfish",
+      "commonName": "Powder Blue Surgeonfish",
+      "scientificName": "Acanthurus leucosternon",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Striking pale blue surgeonfish with black face and yellow dorsal fin, found in the Indian Ocean."
+    },
+    {
+      "id": "sp_sohal_surgeonfish",
+      "commonName": "Sohal Surgeonfish",
+      "scientificName": "Acanthurus sohal",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Bold striped surgeonfish with orange scalpel spine, endemic to the Red Sea and Arabian Gulf reefs."
+    },
+    {
+      "id": "sp_blue_tang",
+      "commonName": "Blue Tang",
+      "scientificName": "Acanthurus coeruleus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Deep blue surgeonfish common on Caribbean reefs, juveniles are bright yellow."
+    },
+    {
+      "id": "sp_emperor_angelfish",
+      "commonName": "Emperor Angelfish",
+      "scientificName": "Pomacanthus imperator",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large angelfish with striking blue and yellow horizontal stripes. Juveniles display concentric blue and white circles."
+    },
+    {
+      "id": "sp_french_angelfish",
+      "commonName": "French Angelfish",
+      "scientificName": "Pomacanthus paru",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large dark angelfish with golden-edged scales, commonly seen in pairs on Caribbean and western Atlantic reefs."
+    },
+    {
+      "id": "sp_queen_angelfish",
+      "commonName": "Queen Angelfish",
+      "scientificName": "Holacanthus ciliaris",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Spectacular blue and yellow angelfish with a distinctive crown spot, found on Caribbean coral reefs."
+    },
+    {
+      "id": "sp_regal_angelfish",
+      "commonName": "Regal Angelfish",
+      "scientificName": "Pygoplites diacanthus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Elegant angelfish with alternating orange-white and blue vertical bands, found on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_rock_beauty",
+      "commonName": "Rock Beauty",
+      "scientificName": "Holacanthus tricolor",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Striking Caribbean angelfish with a yellow front half and black rear half, found near rocky reefs and ledges."
+    },
+    {
+      "id": "sp_gray_angelfish",
+      "commonName": "Gray Angelfish",
+      "scientificName": "Pomacanthus arcuatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large gray angelfish with pale face and yellow inner pectoral fin, common on Caribbean reefs."
+    },
+    {
+      "id": "sp_copperband_butterflyfish",
+      "commonName": "Copperband Butterflyfish",
+      "scientificName": "Chelmon rostratus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Distinctive butterflyfish with orange vertical bands and elongated snout, found on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_raccoon_butterflyfish",
+      "commonName": "Raccoon Butterflyfish",
+      "scientificName": "Chaetodon lunula",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Yellow butterflyfish with a dark raccoon-like eye mask, common on Indo-Pacific and Hawaiian reefs."
+    },
+    {
+      "id": "sp_longnose_butterflyfish",
+      "commonName": "Longnose Butterflyfish",
+      "scientificName": "Forcipiger flavissimus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Bright yellow butterflyfish with an extremely long snout used to pick food from crevices on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_threadfin_butterflyfish",
+      "commonName": "Threadfin Butterflyfish",
+      "scientificName": "Chaetodon auriga",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "White butterflyfish with chevron pattern and trailing dorsal filament, widespread across the Indo-Pacific."
+    },
+    {
+      "id": "sp_foureye_butterflyfish",
+      "commonName": "Foureye Butterflyfish",
+      "scientificName": "Chaetodon capistratus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Pale butterflyfish with a prominent false eyespot near the tail, common on Caribbean reefs."
+    },
+    {
+      "id": "sp_spotfin_butterflyfish",
+      "commonName": "Spotfin Butterflyfish",
+      "scientificName": "Chaetodon ocellatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "White and yellow butterflyfish with a small dark spot on the dorsal fin, found in the western Atlantic."
+    },
+    {
+      "id": "sp_banner_butterflyfish",
+      "commonName": "Red Sea Bannerfish",
+      "scientificName": "Heniochus intermedius",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Black and white bannerfish with an elongated dorsal fin and yellow belly, endemic to the Red Sea."
+    },
+    {
+      "id": "sp_moorish_idol",
+      "commonName": "Moorish Idol",
+      "scientificName": "Zanclus cornutus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Iconic reef fish with bold black, white, and yellow bands and a long trailing dorsal filament."
+    },
+    {
+      "id": "sp_green_moray_eel",
+      "commonName": "Green Moray Eel",
+      "scientificName": "Gymnothorax funebris",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large green moray reaching 2.5m, often seen with mouth agape in reef crevices across the western Atlantic."
+    },
+    {
+      "id": "sp_giant_moray_eel",
+      "commonName": "Giant Moray Eel",
+      "scientificName": "Gymnothorax javanicus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "The largest moray species, reaching over 3m, with leopard-like spots. Found on Indo-Pacific coral reefs."
+    },
+    {
+      "id": "sp_spotted_moray_eel",
+      "commonName": "Spotted Moray Eel",
+      "scientificName": "Gymnothorax moringa",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "White moray with dark brown spots, commonly encountered peering from reef holes in the Caribbean."
+    },
+    {
+      "id": "sp_ribbon_eel",
+      "commonName": "Ribbon Eel",
+      "scientificName": "Rhinomuraena quaesita",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Slender eel with flared nostrils; males are vivid blue, females are yellow. Found in Indo-Pacific sandy lagoons."
+    },
+    {
+      "id": "sp_spotted_garden_eel",
+      "commonName": "Spotted Garden Eel",
+      "scientificName": "Heteroconger hassi",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Thin white eel with black spots that lives in sandy colonies, swaying in the current to catch plankton."
+    },
+    {
+      "id": "sp_splendid_garden_eel",
+      "commonName": "Splendid Garden Eel",
+      "scientificName": "Gorgasia preclara",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Orange and white banded garden eel found in large sandy colonies in the western Pacific."
+    },
+    {
+      "id": "sp_snowflake_moray",
+      "commonName": "Snowflake Moray Eel",
+      "scientificName": "Echidna nebulosa",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Small moray with white body and black snowflake-like markings, common in Indo-Pacific reef rubble."
+    },
+    {
+      "id": "sp_mandarin_dragonet",
+      "commonName": "Mandarin Dragonet",
+      "scientificName": "Synchiropus splendidus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Tiny, brilliantly colored fish with psychedelic blue and orange patterns, found in western Pacific rubble zones."
+    },
+    {
+      "id": "sp_common_lionfish",
+      "commonName": "Common Lionfish",
+      "scientificName": "Pterois volitans",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Venomous scorpionfish with dramatic fan-like pectoral fins and red-white stripes. Invasive in the Caribbean."
+    },
+    {
+      "id": "sp_leaf_scorpionfish",
+      "commonName": "Leaf Scorpionfish",
+      "scientificName": "Taenianotus triacanthus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Highly compressed, leaf-shaped scorpionfish that sways with the current to mimic debris on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_stonefish",
+      "commonName": "Reef Stonefish",
+      "scientificName": "Synanceia verrucosa",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "World's most venomous fish, perfectly camouflaged as a rock on Indo-Pacific reef floors. Extremely dangerous."
+    },
+    {
+      "id": "sp_painted_frogfish",
+      "commonName": "Painted Frogfish",
+      "scientificName": "Antennarius pictus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Chunky ambush predator with a lure on its head, highly variable in color. Found on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_giant_frogfish",
+      "commonName": "Giant Frogfish",
+      "scientificName": "Antennarius commerson",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "The largest frogfish species, reaching 40cm, with excellent camouflage in sponges and coral rubble."
+    },
+    {
+      "id": "sp_hairy_frogfish",
+      "commonName": "Hairy Frogfish",
+      "scientificName": "Antennarius striatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Frogfish covered in worm-like fleshy appendages that mimic algae, a prized find for underwater photographers."
+    },
+    {
+      "id": "sp_clown_triggerfish",
+      "commonName": "Clown Triggerfish",
+      "scientificName": "Balistoides conspicillum",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Boldly patterned triggerfish with large white spots on a dark body and yellow lips, found on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_titan_triggerfish",
+      "commonName": "Titan Triggerfish",
+      "scientificName": "Balistoides viridescens",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large aggressive triggerfish known to charge divers near its nest. Common on Indo-Pacific coral reefs."
+    },
+    {
+      "id": "sp_queen_triggerfish",
+      "commonName": "Queen Triggerfish",
+      "scientificName": "Balistes vetula",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Colorful Caribbean triggerfish with blue facial markings and long tail streamers."
+    },
+    {
+      "id": "sp_picasso_triggerfish",
+      "commonName": "Picasso Triggerfish",
+      "scientificName": "Rhinecanthus aculeatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Triggerfish with an abstract pattern of blue, yellow, and black stripes, common on Indo-Pacific reef flats."
+    },
+    {
+      "id": "sp_yellowmargin_triggerfish",
+      "commonName": "Yellowmargin Triggerfish",
+      "scientificName": "Pseudobalistes flavimarginatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large tan triggerfish with yellow-edged fins, known for aggressive nest guarding on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_porcupinefish",
+      "commonName": "Porcupinefish",
+      "scientificName": "Diodon hystrix",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large spiny fish that inflates into a ball when threatened, found on tropical reefs worldwide."
+    },
+    {
+      "id": "sp_guineafowl_pufferfish",
+      "commonName": "Guineafowl Pufferfish",
+      "scientificName": "Arothron meleagris",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Dark pufferfish covered in small white spots, sometimes found in a golden-yellow color phase on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_map_pufferfish",
+      "commonName": "Map Pufferfish",
+      "scientificName": "Arothron mappa",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large pale pufferfish with intricate dark map-like markings across its body, found on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_sharpnose_pufferfish",
+      "commonName": "Sharpnose Pufferfish",
+      "scientificName": "Canthigaster rostrata",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Tiny pufferfish with blue lines on the face and orange tail, commonly seen on Caribbean reefs."
+    },
+    {
+      "id": "sp_boxfish",
+      "commonName": "Yellow Boxfish",
+      "scientificName": "Ostracion cubicus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Juveniles are bright yellow cubes with black spots. Adults darken to blue-gray. Found across the Indo-Pacific."
+    },
+    {
+      "id": "sp_cowfish",
+      "commonName": "Longhorn Cowfish",
+      "scientificName": "Lactoria cornuta",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Boxy yellow fish with distinctive horn-like projections above each eye, found on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_napoleon_wrasse",
+      "commonName": "Napoleon Wrasse",
+      "scientificName": "Cheilinus undulatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Massive wrasse reaching 2m with a prominent forehead bump. Endangered and protected, found on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_cleaner_wrasse",
+      "commonName": "Bluestreak Cleaner Wrasse",
+      "scientificName": "Labroides dimidiatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Small blue-striped wrasse that operates cleaning stations, removing parasites from larger fish on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_yellowtail_coris",
+      "commonName": "Yellowtail Coris",
+      "scientificName": "Coris gaimard",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Colorful wrasse with spotted body and yellow tail, juveniles are bright orange-red with white markings."
+    },
+    {
+      "id": "sp_bluehead_wrasse",
+      "commonName": "Bluehead Wrasse",
+      "scientificName": "Thalassoma bifasciatum",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Abundant Caribbean wrasse; terminal males have a vivid blue head and green body with black-white bars."
+    },
+    {
+      "id": "sp_spanish_hogfish",
+      "commonName": "Spanish Hogfish",
+      "scientificName": "Bodianus rufus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Purple and yellow wrasse common on Caribbean reefs; juveniles act as cleaner fish."
+    },
+    {
+      "id": "sp_bumphead_parrotfish",
+      "commonName": "Bumphead Parrotfish",
+      "scientificName": "Bolbometopon muricatum",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Largest parrotfish species reaching 1.3m, with a massive forehead bump. Travels in schools on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_stoplight_parrotfish",
+      "commonName": "Stoplight Parrotfish",
+      "scientificName": "Sparisoma viride",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Common Caribbean parrotfish with dramatic color changes between initial and terminal phases."
+    },
+    {
+      "id": "sp_queen_parrotfish",
+      "commonName": "Queen Parrotfish",
+      "scientificName": "Scarus vetula",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large blue-green parrotfish found on Caribbean reefs, often seen biting coral to feed on algae."
+    },
+    {
+      "id": "sp_yellowtail_damselfish",
+      "commonName": "Yellowtail Damselfish",
+      "scientificName": "Microspathodon chrysurus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Dark blue damselfish with a bright yellow tail, common on Caribbean reef tops and crests."
+    },
+    {
+      "id": "sp_sergeant_major",
+      "commonName": "Sergeant Major",
+      "scientificName": "Abudefduf saxatilis",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Silver-yellow damselfish with five bold black bars, found in large aggregations on tropical Atlantic reefs."
+    },
+    {
+      "id": "sp_three_spot_damselfish",
+      "commonName": "Threespot Damselfish",
+      "scientificName": "Stegastes planifrons",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Dark brown territorial damselfish that aggressively defends its algae garden on Caribbean reefs."
+    },
+    {
+      "id": "sp_chromis_viridis",
+      "commonName": "Blue-Green Chromis",
+      "scientificName": "Chromis viridis",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Small iridescent green damselfish seen in large schools hovering above branching corals on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_blue_chromis",
+      "commonName": "Blue Chromis",
+      "scientificName": "Chromis cyanea",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Brilliant blue planktivorous damselfish found in large midwater aggregations above Caribbean reef walls."
+    },
+    {
+      "id": "sp_nassau_grouper",
+      "commonName": "Nassau Grouper",
+      "scientificName": "Epinephelus striatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large Caribbean grouper with distinctive dark eye stripe and banded pattern, now endangered due to overfishing."
+    },
+    {
+      "id": "sp_giant_grouper",
+      "commonName": "Giant Grouper",
+      "scientificName": "Epinephelus lanceolatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "The largest bony reef fish, reaching 2.7m and 400kg. Found in caves and wrecks across the Indo-Pacific."
+    },
+    {
+      "id": "sp_coral_grouper",
+      "commonName": "Coral Grouper",
+      "scientificName": "Cephalopholis miniata",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Bright red-orange grouper covered in blue spots, a signature species of Indo-Pacific coral reefs."
+    },
+    {
+      "id": "sp_goliath_grouper",
+      "commonName": "Goliath Grouper",
+      "scientificName": "Epinephelus itajara",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Massive Atlantic grouper reaching 2.5m, often encountered near wrecks and ledges in Florida and the Caribbean."
+    },
+    {
+      "id": "sp_potato_grouper",
+      "commonName": "Potato Grouper",
+      "scientificName": "Epinephelus tukula",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large friendly grouper with dark potato-shaped blotches, famous at the Great Barrier Reef's Cod Hole."
+    },
+    {
+      "id": "sp_peacock_grouper",
+      "commonName": "Peacock Grouper",
+      "scientificName": "Cephalopholis argus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Dark brown grouper with bright blue spots and pale vertical bars at the rear, common on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_yellowfin_tuna",
+      "commonName": "Yellowfin Tuna",
+      "scientificName": "Thunnus albacares",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Fast pelagic predator with long yellow dorsal and anal fins, occasionally seen by divers at offshore sites."
+    },
+    {
+      "id": "sp_dogtooth_tuna",
+      "commonName": "Dogtooth Tuna",
+      "scientificName": "Gymnosarda unicolor",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Powerful reef-associated tuna with prominent teeth, encountered at deep reef drop-offs in the Indo-Pacific."
+    },
+    {
+      "id": "sp_great_barracuda",
+      "commonName": "Great Barracuda",
+      "scientificName": "Sphyraena barracuda",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Sleek silver predator up to 1.8m with prominent teeth, often seen hovering motionless near tropical reefs."
+    },
+    {
+      "id": "sp_blackfin_barracuda",
+      "commonName": "Blackfin Barracuda",
+      "scientificName": "Sphyraena qenie",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Indo-Pacific barracuda known for forming massive tornado-like schools at dive sites like Barracuda Point."
+    },
+    {
+      "id": "sp_mahi_mahi",
+      "commonName": "Mahi-Mahi",
+      "scientificName": "Coryphaena hippurus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Dazzling blue-green and gold pelagic fish with a blunt forehead, occasionally seen at offshore dive sites."
+    },
+    {
+      "id": "sp_giant_trevally",
+      "commonName": "Giant Trevally",
+      "scientificName": "Caranx ignobilis",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Powerful silver predator up to 1.7m, known for hunting on reef channels and drop-offs across the Indo-Pacific."
+    },
+    {
+      "id": "sp_bluefin_trevally",
+      "commonName": "Bluefin Trevally",
+      "scientificName": "Caranx melampygus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Sleek blue-spotted jack commonly seen patrolling Indo-Pacific reef edges in small hunting groups."
+    },
+    {
+      "id": "sp_bigeye_trevally",
+      "commonName": "Bigeye Trevally",
+      "scientificName": "Caranx sexfasciatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Silver jack with large eyes that forms impressive swirling schools near reef walls and cleaning stations."
+    },
+    {
+      "id": "sp_bar_jack",
+      "commonName": "Bar Jack",
+      "scientificName": "Carangoides ruber",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Sleek silver Caribbean jack with a distinctive dark blue stripe along the back and onto the lower tail."
+    },
+    {
+      "id": "sp_horse_eye_jack",
+      "commonName": "Horse-Eye Jack",
+      "scientificName": "Caranx latus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large-eyed silver jack that forms schools near reefs and wrecks in the Caribbean and western Atlantic."
+    },
+    {
+      "id": "sp_yellowtail_snapper",
+      "commonName": "Yellowtail Snapper",
+      "scientificName": "Ocyurus chrysurus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Sleek snapper with a yellow lateral stripe and tail, often seen in midwater schools on Caribbean reefs."
+    },
+    {
+      "id": "sp_schoolmaster_snapper",
+      "commonName": "Schoolmaster Snapper",
+      "scientificName": "Lutjanus apodus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Yellow-silver snapper with blue lines under the eye, found in groups under ledges on Caribbean reefs."
+    },
+    {
+      "id": "sp_bluestripe_snapper",
+      "commonName": "Bluestripe Snapper",
+      "scientificName": "Lutjanus kasmira",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Bright yellow snapper with four blue horizontal stripes, forming dense schools on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_twinspot_snapper",
+      "commonName": "Twinspot Snapper",
+      "scientificName": "Lutjanus bohar",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large red snapper found on Indo-Pacific outer reefs, sometimes forming schools on deep walls and channels."
+    },
+    {
+      "id": "sp_humphead_snapper",
+      "commonName": "Midnight Snapper",
+      "scientificName": "Macolor macularis",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large dark snapper found in schools near steep Indo-Pacific drop-offs, juveniles are boldly black and white."
+    },
+    {
+      "id": "sp_longfin_bannerfish",
+      "commonName": "Longfin Bannerfish",
+      "scientificName": "Heniochus acuminatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Black and white fish with a long trailing dorsal fin and yellow tail, often seen in pairs on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_batfish_orbicular",
+      "commonName": "Orbicular Batfish",
+      "scientificName": "Platax orbicularis",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Silver disc-shaped fish with tall fins that approaches divers curiously. Common on Indo-Pacific wrecks and reefs."
+    },
+    {
+      "id": "sp_batfish_teira",
+      "commonName": "Longfin Batfish",
+      "scientificName": "Platax teira",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Tall-finned batfish with a dark blotch near the pectoral fin, often seen at cleaning stations and wrecks."
+    },
+    {
+      "id": "sp_batfish_pinnatus",
+      "commonName": "Pinnate Batfish",
+      "scientificName": "Platax pinnatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Juveniles are jet black with vivid orange borders resembling a toxic flatworm. Found in the western Pacific."
+    },
+    {
+      "id": "sp_banggai_cardinalfish",
+      "commonName": "Banggai Cardinalfish",
+      "scientificName": "Pterapogon kauderni",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Striking silver and black cardinalfish with elongated fins, endemic to the Banggai Islands of Indonesia."
+    },
+    {
+      "id": "sp_pajama_cardinalfish",
+      "commonName": "Pajama Cardinalfish",
+      "scientificName": "Sphaeramia nematoptera",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Unusual cardinalfish with yellow face, dark waist band, and spotted rear, found among corals in the Indo-Pacific."
+    },
+    {
+      "id": "sp_longnose_hawkfish",
+      "commonName": "Longnose Hawkfish",
+      "scientificName": "Oxycirrhites typus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Small white fish with red crosshatch pattern and elongated snout, perches on gorgonians and black corals."
+    },
+    {
+      "id": "sp_arc_eye_hawkfish",
+      "commonName": "Arc-Eye Hawkfish",
+      "scientificName": "Paracirrhites arcatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Small hawkfish with distinctive orange arc behind the eye, commonly perched on coral heads on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_flame_hawkfish",
+      "commonName": "Flame Hawkfish",
+      "scientificName": "Neocirrhites armatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Brilliant red hawkfish with dark eye markings, found perching in Pocillopora corals across the western Pacific."
+    },
+    {
+      "id": "sp_fire_goby",
+      "commonName": "Fire Goby",
+      "scientificName": "Nemateleotris magnifica",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Elegant white goby with a tall first dorsal fin and red-orange tail, hovers above Indo-Pacific reef rubble."
+    },
+    {
+      "id": "sp_purple_firefish",
+      "commonName": "Purple Firefish",
+      "scientificName": "Nemateleotris decora",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Delicate goby with purple fins and a tall dorsal spike, found hovering near burrows on Indo-Pacific outer reefs."
+    },
+    {
+      "id": "sp_yellownose_goby",
+      "commonName": "Yellownose Goby",
+      "scientificName": "Elacatinus randalli",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Tiny Caribbean cleaner goby with a yellow snout and blue lateral stripe, found on sponges and coral heads."
+    },
+    {
+      "id": "sp_citron_goby",
+      "commonName": "Citron Goby",
+      "scientificName": "Gobiodon citrinus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Tiny bright yellow goby that lives among the branches of Acropora corals on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_shrimp_goby",
+      "commonName": "Steinitz's Shrimp Goby",
+      "scientificName": "Amblyeleotris steinitzi",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Sandy-colored goby that shares a burrow with alpheid shrimp in a mutualistic relationship on Indo-Pacific sand flats."
+    },
+    {
+      "id": "sp_neon_goby",
+      "commonName": "Neon Goby",
+      "scientificName": "Elacatinus oceanops",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Tiny dark goby with a brilliant neon blue stripe, operates cleaning stations on Caribbean coral heads."
+    },
+    {
+      "id": "sp_bluestriped_fangblenny",
+      "commonName": "Bluestriped Fangblenny",
+      "scientificName": "Plagiotremus rhinorhynchos",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Small blue-striped blenny that mimics cleaner wrasses to bite scales from unsuspecting fish."
+    },
+    {
+      "id": "sp_sailfin_blenny",
+      "commonName": "Sailfin Blenny",
+      "scientificName": "Emblemaria pandionis",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Tiny Caribbean blenny that raises a large sail-like dorsal fin from its tube home to attract mates."
+    },
+    {
+      "id": "sp_bicolor_blenny",
+      "commonName": "Bicolor Blenny",
+      "scientificName": "Ecsenius bicolor",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Small blenny with dark brown front half and orange rear half, peers from holes on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_redlip_blenny",
+      "commonName": "Redlip Blenny",
+      "scientificName": "Ophioblennius macclurei",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Dark blenny with prominent red-orange lips that defends algae patches on Caribbean reef crests."
+    },
+    {
+      "id": "sp_pygmy_seahorse",
+      "commonName": "Bargibant's Pygmy Seahorse",
+      "scientificName": "Hippocampus bargibanti",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Tiny seahorse under 2cm that perfectly matches its host gorgonian coral, a prized macro photography subject."
+    },
+    {
+      "id": "sp_common_seahorse",
+      "commonName": "Common Seahorse",
+      "scientificName": "Hippocampus kuda",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Medium-sized seahorse found in seagrass beds and coral rubble across the Indo-Pacific, variable in color."
+    },
+    {
+      "id": "sp_thorny_seahorse",
+      "commonName": "Thorny Seahorse",
+      "scientificName": "Hippocampus histrix",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Seahorse covered in long spines found in seagrass beds and soft bottom habitats across the Indo-Pacific."
+    },
+    {
+      "id": "sp_ornate_ghost_pipefish",
+      "commonName": "Ornate Ghost Pipefish",
+      "scientificName": "Solenostomus paradoxus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Elaborately camouflaged pipefish that hovers head-down near crinoids and soft corals in the Indo-Pacific."
+    },
+    {
+      "id": "sp_robust_ghost_pipefish",
+      "commonName": "Robust Ghost Pipefish",
+      "scientificName": "Solenostomus cyanopterus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large ghost pipefish that mimics seagrass or algae, often found in pairs in Indo-Pacific coastal waters."
+    },
+    {
+      "id": "sp_trumpetfish",
+      "commonName": "Trumpetfish",
+      "scientificName": "Aulostomus maculatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Long slender fish that hunts by shadowing larger fish, found on Caribbean and Atlantic reefs in various colors."
+    },
+    {
+      "id": "sp_cornetfish",
+      "commonName": "Cornetfish",
+      "scientificName": "Fistularia commersonii",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Extremely elongated fish up to 1.5m with a trailing tail filament, often seen gliding over reef flats."
+    },
+    {
+      "id": "sp_yellowhead_jawfish",
+      "commonName": "Yellowhead Jawfish",
+      "scientificName": "Opistognathus aurifrons",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Small blue-bodied fish with a yellow head that hovers above its sand burrow on Caribbean reefs. Males brood eggs in their mouth."
+    },
+    {
+      "id": "sp_flamefish",
+      "commonName": "Flamefish",
+      "scientificName": "Apogon maculatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Small bright red cardinalfish with a dark spot below the second dorsal fin, hides in Caribbean reef crevices by day."
+    },
+    {
+      "id": "sp_longspine_squirrelfish",
+      "commonName": "Longspine Squirrelfish",
+      "scientificName": "Holocentrus rufus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Red nocturnal fish with large eyes and a long dorsal spine, found under ledges on Caribbean reefs by day."
+    },
+    {
+      "id": "sp_soldierfish",
+      "commonName": "Bigscale Soldierfish",
+      "scientificName": "Myripristis berndti",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Red nocturnal fish with enormous dark eyes and large scales, forms groups in caves and overhangs by day."
+    },
+    {
+      "id": "sp_flame_angelfish",
+      "commonName": "Flame Angelfish",
+      "scientificName": "Centropyge loricula",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Brilliant red-orange dwarf angelfish with black vertical bars and blue-tipped fins, found across the Pacific."
+    },
+    {
+      "id": "sp_royal_gramma",
+      "commonName": "Royal Gramma",
+      "scientificName": "Gramma loreto",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Small bicolored Caribbean basslet with a purple front half and yellow rear half, found under ledges."
+    },
+    {
+      "id": "sp_anthias_lyretail",
+      "commonName": "Lyretail Anthias",
+      "scientificName": "Pseudanthias squamipinnis",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Abundant reef fish forming large orange and pink clouds above Indo-Pacific coral formations. Males are purple."
+    },
+    {
+      "id": "sp_mediterranean_grouper",
+      "commonName": "Dusky Grouper",
+      "scientificName": "Epinephelus marginatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large dark brown grouper with pale mottling, the iconic predator of Mediterranean rocky reefs."
+    },
+    {
+      "id": "sp_mediterranean_moray",
+      "commonName": "Mediterranean Moray",
+      "scientificName": "Muraena helena",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Dark brown moray eel with yellow mottling, commonly seen peering from rocky crevices in the Mediterranean."
+    },
+    {
+      "id": "sp_ornate_wrasse",
+      "commonName": "Ornate Wrasse",
+      "scientificName": "Thalassoma pavo",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Colorful green wrasse with red head markings, one of the most common wrasses on Mediterranean reefs."
+    },
+    {
+      "id": "sp_red_sea_bannerfish",
+      "commonName": "Masked Butterflyfish",
+      "scientificName": "Chaetodon semilarvatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Bright yellow butterflyfish with a dark eye patch, endemic to the Red Sea. Often seen in pairs."
+    },
+    {
+      "id": "sp_red_sea_anemonefish",
+      "commonName": "Red Sea Anemonefish",
+      "scientificName": "Amphiprion bicinctus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Orange-yellow anemonefish with two white bars, endemic to the Red Sea and Gulf of Aden."
+    },
+    {
+      "id": "sp_arabian_angelfish",
+      "commonName": "Arabian Angelfish",
+      "scientificName": "Pomacanthus asfur",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large dark blue angelfish with a bold yellow vertical bar and tail, endemic to the western Indian Ocean."
+    },
+    {
+      "id": "sp_king_angelfish",
+      "commonName": "King Angelfish",
+      "scientificName": "Holacanthus passer",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large dark blue angelfish with a white vertical bar and yellow tail, found in the eastern Pacific and Galapagos."
+    },
+    {
+      "id": "sp_ocean_sunfish",
+      "commonName": "Ocean Sunfish",
+      "scientificName": "Mola mola",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "The heaviest bony fish, reaching over 2 tons. Occasionally seen by divers at cleaning stations in Bali and the Galapagos."
+    },
+    {
+      "id": "sp_lingcod",
+      "commonName": "Lingcod",
+      "scientificName": "Ophiodon elongatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large mottled predatory greenling found on rocky reefs of the Pacific Northwest, often guarding egg masses."
+    },
+    {
+      "id": "sp_wolf_eel",
+      "commonName": "Wolf-Eel",
+      "scientificName": "Anarrhichthys ocellatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large gray wolf-eel with a bulbous head and powerful jaws, found in rocky dens in the Pacific Northwest."
+    },
+    {
+      "id": "sp_giant_sea_bass",
+      "commonName": "Giant Sea Bass",
+      "scientificName": "Stereolepis gigas",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Massive bass reaching over 2m and 250kg, found on rocky reefs and kelp forests off southern California."
+    },
+    {
+      "id": "sp_garibaldi",
+      "commonName": "Garibaldi",
+      "scientificName": "Hypsypops rubicundus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Bright orange damselfish and California's state marine fish, territorial on kelp forest reefs."
+    },
+    {
+      "id": "sp_sheephead",
+      "commonName": "California Sheephead",
+      "scientificName": "Semicossyphus pulcher",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large wrasse with black head and tail, red midsection, and white chin. Found in California kelp forests."
+    },
+    {
+      "id": "sp_copper_rockfish",
+      "commonName": "Copper Rockfish",
+      "scientificName": "Sebastes caurinus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Coppery-orange rockfish with pale patches, a common sight on Pacific Northwest rocky reefs and kelp forests."
+    },
+    {
+      "id": "sp_oriental_sweetlips",
+      "commonName": "Oriental Sweetlips",
+      "scientificName": "Plectorhinchus vittatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large Indo-Pacific reef fish with bold black and white stripes and yellow fins. Juveniles perform a wriggling dance."
+    },
+    {
+      "id": "sp_harlequin_sweetlips",
+      "commonName": "Harlequin Sweetlips",
+      "scientificName": "Plectorhinchus chaetodonoides",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Adults are gray with dark spots; juveniles are brown with large white spots and swim with an undulating motion."
+    },
+    {
+      "id": "sp_blue_ringed_angelfish",
+      "commonName": "Blue-Ringed Angelfish",
+      "scientificName": "Pomacanthus annularis",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large brown angelfish with blue curved lines and a distinctive blue ring above the gill cover."
+    },
+    {
+      "id": "sp_yellowbar_angelfish",
+      "commonName": "Yellowbar Angelfish",
+      "scientificName": "Pomacanthus maculosus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large gray-blue angelfish with a prominent yellow body patch, found in the Red Sea and western Indian Ocean."
+    },
+    {
+      "id": "sp_filefish_scrawled",
+      "commonName": "Scrawled Filefish",
+      "scientificName": "Aluterus scriptus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large olive-brown filefish with blue scribble-like markings and orange dewlap, found on tropical reefs worldwide."
+    },
+    {
+      "id": "sp_clown_filefish",
+      "commonName": "Orangespotted Filefish",
+      "scientificName": "Oxymonacanthus longirostris",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Small green filefish with orange spots and a long snout, feeds exclusively on Acropora coral polyps."
+    },
+    {
+      "id": "sp_unicornfish",
+      "commonName": "Bluespine Unicornfish",
+      "scientificName": "Naso unicornis",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Gray surgeonfish with a prominent forehead horn and two blue tail spines, common on Indo-Pacific reef flats."
+    },
+    {
+      "id": "sp_surgeonfish_sailfin",
+      "commonName": "Sailfin Tang",
+      "scientificName": "Zebrasoma veliferum",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Boldly banded surgeonfish with a greatly expanded dorsal and anal fin, found across the Indo-Pacific."
+    },
+    {
+      "id": "sp_achilles_tang",
+      "commonName": "Achilles Tang",
+      "scientificName": "Acanthurus achilles",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Dark brown surgeonfish with a bold orange teardrop near the tail, found in surge zones of the central Pacific."
+    },
+    {
+      "id": "sp_doctorfish",
+      "commonName": "Doctorfish",
+      "scientificName": "Acanthurus chirurgus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Grayish-brown surgeonfish with faint dark bars and a prominent tail scalpel, common on Caribbean reefs."
+    },
+    {
+      "id": "sp_checkerboard_wrasse",
+      "commonName": "Checkerboard Wrasse",
+      "scientificName": "Halichoeres hortulanus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Colorful wrasse with a checkerboard pattern of green, pink, and black squares across the body."
+    },
+    {
+      "id": "sp_bird_wrasse",
+      "commonName": "Bird Wrasse",
+      "scientificName": "Gomphosus varius",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Wrasse with an extremely elongated snout resembling a bird's beak, males are dark green, females are brown."
+    },
+    {
+      "id": "sp_sling_jaw_wrasse",
+      "commonName": "Sling-Jaw Wrasse",
+      "scientificName": "Epibulus insidiator",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Wrasse with an extendable jaw that shoots forward to capture prey, found in yellow or brown color morphs."
+    },
+    {
+      "id": "sp_peacock_flounder",
+      "commonName": "Peacock Flounder",
+      "scientificName": "Bothus lunatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Flat bottom-dwelling fish with blue rings and spots that can change color to match the seafloor."
+    },
+    {
+      "id": "sp_hogfish",
+      "commonName": "Hogfish",
+      "scientificName": "Lachnolaimus maximus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large western Atlantic wrasse with a pig-like snout and elongated dorsal spines, found near reefs and wrecks."
+    },
+    {
+      "id": "sp_tarpon",
+      "commonName": "Atlantic Tarpon",
+      "scientificName": "Megalops atlanticus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Huge silver fish with large mirror-like scales, sometimes encountered by divers in Caribbean caves and channels."
+    },
+    {
+      "id": "sp_permit",
+      "commonName": "Permit",
+      "scientificName": "Trachinotus falcatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Deep-bodied silver jack with a dark forked tail, found on Caribbean sand flats and near reefs."
+    },
+    {
+      "id": "sp_spotted_drum",
+      "commonName": "Spotted Drum",
+      "scientificName": "Equetus punctatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Striking Caribbean fish with a tall elongated dorsal fin and bold black and white spotted pattern."
+    },
+    {
+      "id": "sp_jackknife_fish",
+      "commonName": "Jackknife Fish",
+      "scientificName": "Equetus lanceolatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Elegant Caribbean fish with a tall black dorsal fin stripe and diagonal body band, found under ledges."
+    },
+    {
+      "id": "sp_bigeye",
+      "commonName": "Glasseye",
+      "scientificName": "Heteropriacanthus cruentatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Bright red nocturnal fish with large reflective eyes, found hiding in caves on Caribbean and Atlantic reefs."
+    },
+    {
+      "id": "sp_remora",
+      "commonName": "Remora",
+      "scientificName": "Echeneis naucrates",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Slender fish with a suction disc on its head that hitchhikes on sharks, rays, turtles, and other large animals."
+    },
+    {
+      "id": "sp_tilefish_sand",
+      "commonName": "Sand Tilefish",
+      "scientificName": "Malacanthus plumieri",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Elongated pale blue fish that builds rubble mounds over sandy areas on Caribbean reefs."
+    },
+    {
+      "id": "sp_weedy_seadragon",
+      "commonName": "Weedy Seadragon",
+      "scientificName": "Phyllopteryx taeniolatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Ornate relative of seahorses with leaf-like appendages, endemic to temperate southern Australian waters."
+    },
+    {
+      "id": "sp_leafy_seadragon",
+      "commonName": "Leafy Seadragon",
+      "scientificName": "Phycodurus eques",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Spectacular seadragon covered in elaborate leaf-like projections, endemic to southern Australia. A bucket-list dive sighting."
+    },
+    {
+      "id": "sp_sailfin_snapper",
+      "commonName": "Sailfin Snapper",
+      "scientificName": "Symphorichthys spilurus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Elegant yellow and blue snapper with elongated dorsal and anal fins, found on Indo-Pacific reef slopes."
+    },
+    {
+      "id": "sp_sweetlip_emperor",
+      "commonName": "Spangled Emperor",
+      "scientificName": "Lethrinus nebulosus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large silvery emperor with blue lines on the face and yellow fin edges, common over Indo-Pacific sandy reef areas."
+    },
+    {
+      "id": "sp_crocodilefish",
+      "commonName": "Crocodilefish",
+      "scientificName": "Cymbacephalus beauforti",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Flat-headed ambush predator with elaborate eye fringes, lies perfectly camouflaged on Indo-Pacific reef floors."
+    },
+    {
+      "id": "sp_devil_scorpionfish",
+      "commonName": "Devil Scorpionfish",
+      "scientificName": "Scorpaenopsis diabolus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Stout camouflaged scorpionfish with colorful inner pectoral fins flashed as a warning to predators."
+    },
+    {
+      "id": "sp_spiny_devilfish",
+      "commonName": "Demon Stinger",
+      "scientificName": "Inimicus didactylus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Venomous bottom-dweller that walks on modified fin rays and flashes bright pectoral fins when disturbed."
+    },
+    {
+      "id": "sp_waspfish",
+      "commonName": "Cockatoo Waspfish",
+      "scientificName": "Ablabys taenianotus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Small compressed scorpionfish that sways like a dead leaf in the current on Indo-Pacific muddy bottoms."
+    },
+    {
+      "id": "sp_stargazer",
+      "commonName": "Whitemargin Stargazer",
+      "scientificName": "Uranoscopus sulphureus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Ambush predator that buries in sand with only eyes exposed, can deliver electric shocks. Found in the Indo-Pacific."
+    },
+    {
+      "id": "sp_striped_catfish",
+      "commonName": "Striped Catfish",
+      "scientificName": "Plotosus lineatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Venomous-spined catfish; juveniles form dense ball-shaped schools that roll across Indo-Pacific reef floors."
+    },
+    {
+      "id": "sp_red_emperor",
+      "commonName": "Red Emperor",
+      "scientificName": "Lutjanus sebae",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large snapper; adults are pinkish-red, juveniles have bold red and white bands. Found on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_mangrove_snapper",
+      "commonName": "Mangrove Snapper",
+      "scientificName": "Lutjanus griseus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Gray snapper found in Caribbean mangroves, seagrass, and reefs, often aggregating near structure."
+    },
+    {
+      "id": "sp_dottyback_orchid",
+      "commonName": "Orchid Dottyback",
+      "scientificName": "Pseudochromis fridmani",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Small vivid purple fish endemic to the Red Sea, darting in and out of crevices on steep reef walls."
+    },
+    {
+      "id": "sp_dottyback_royal",
+      "commonName": "Royal Dottyback",
+      "scientificName": "Pseudochromis paccagnellae",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Small bicolored fish with a magenta front and bright yellow rear, found on Indo-Pacific reef walls."
+    },
+    {
+      "id": "sp_coral_trout",
+      "commonName": "Coral Trout",
+      "scientificName": "Plectropomus leopardus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Prized Great Barrier Reef predator with an orange-red body covered in blue spots."
+    },
+    {
+      "id": "sp_barramundi_cod",
+      "commonName": "Barramundi Cod",
+      "scientificName": "Cromileptes altivelis",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Distinctive grouper with a small head, humped body, and dark polka dots on a pale background."
+    },
+    {
+      "id": "sp_spadefish_atlantic",
+      "commonName": "Atlantic Spadefish",
+      "scientificName": "Chaetodipterus faber",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Silver disc-shaped fish with dark vertical bars, often seen in large schools around Caribbean wrecks."
+    },
+    {
+      "id": "sp_fusilier_yellowback",
+      "commonName": "Yellowback Fusilier",
+      "scientificName": "Caesio xanthonota",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Sleek blue planktivorous fish with a yellow back, forming massive schools above Indo-Pacific reef slopes."
+    },
+    {
+      "id": "sp_fusilier_bluestreak",
+      "commonName": "Bluestreak Fusilier",
+      "scientificName": "Pterocaesio tile",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Small blue fusilier with a dark lateral stripe, seen in fast-moving schools along Indo-Pacific reef walls."
+    },
+    {
+      "id": "sp_porkfish",
+      "commonName": "Porkfish",
+      "scientificName": "Anisotremus virginicus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Colorful Caribbean grunt with blue and yellow stripes and two black head bars, found near reefs and wrecks."
+    },
+    {
+      "id": "sp_blue_striped_grunt",
+      "commonName": "Blue-Striped Grunt",
+      "scientificName": "Haemulon sciurus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Yellow Caribbean grunt with vivid blue horizontal stripes, forms large resting schools under ledges by day."
+    },
+    {
+      "id": "sp_french_grunt",
+      "commonName": "French Grunt",
+      "scientificName": "Haemulon flavolineatum",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Small yellow-striped grunt that forms dense resting schools on Caribbean reefs during daylight hours."
+    },
+    {
+      "id": "sp_convict_tang",
+      "commonName": "Convict Tang",
+      "scientificName": "Acanthurus triostegus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Pale surgeonfish with six vertical black bars, often seen grazing in large schools on Indo-Pacific reef flats."
+    },
+    {
+      "id": "sp_great_hammerhead",
+      "commonName": "Scalloped Hammerhead",
+      "scientificName": "Sphyrna lewini",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Distinctive shark with a scalloped hammer-shaped head, forms large schools at seamounts and offshore islands."
+    },
+    {
+      "id": "sp_wobbegong",
+      "commonName": "Spotted Wobbegong",
+      "scientificName": "Orectolobus maculatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Flat, well-camouflaged carpet shark with fringed lobes around the mouth, found on Australian temperate reefs."
+    },
+    {
+      "id": "sp_manta_ray",
+      "commonName": "Reef Manta Ray",
+      "scientificName": "Mobula alfredi",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Graceful giant reaching 5m wingspan that visits cleaning stations and feeds on plankton at Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_oceanic_manta",
+      "commonName": "Oceanic Manta Ray",
+      "scientificName": "Mobula birostris",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "The largest ray species with wingspans exceeding 7m, encountered at offshore seamounts and cleaning stations."
+    },
+    {
+      "id": "sp_undulated_moray",
+      "commonName": "Undulated Moray Eel",
+      "scientificName": "Gymnothorax undulatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Yellowish-green moray with dark wavy markings, commonly seen hunting on Indo-Pacific reefs at night."
+    },
+    {
+      "id": "sp_whitemouth_moray",
+      "commonName": "Whitemouth Moray Eel",
+      "scientificName": "Gymnothorax meleagris",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Dark brown moray with small white spots and a distinctive white mouth interior, found across the Indo-Pacific."
+    },
+    {
+      "id": "sp_dragon_moray",
+      "commonName": "Dragon Moray Eel",
+      "scientificName": "Enchelycore pardalis",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Striking moray with dragon-like horns above its nostrils and orange-red leopard spots, found in the Indo-Pacific."
+    },
+    {
+      "id": "sp_lyretail_grouper",
+      "commonName": "Lyretail Grouper",
+      "scientificName": "Variola louti",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Red-pink grouper with blue spots and a distinctive crescent-shaped tail, found on Indo-Pacific outer reef walls."
+    },
+    {
+      "id": "sp_banded_butterflyfish",
+      "commonName": "Banded Butterflyfish",
+      "scientificName": "Chaetodon striatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "White butterflyfish with four bold black vertical bands, one of the most common butterflies on Caribbean reefs."
+    },
+    {
+      "id": "sp_ringed_pipefish",
+      "commonName": "Ringed Pipefish",
+      "scientificName": "Doryrhamphus dactyliophorus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Slender pipefish with alternating red and white rings, found in caves and under ledges on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_razorfish",
+      "commonName": "Razorfish",
+      "scientificName": "Aeoliscus strigatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Tiny fish that swims vertically head-down in groups, often hiding among sea urchin spines on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_harlequin_tuskfish",
+      "commonName": "Harlequin Tuskfish",
+      "scientificName": "Choerodon fasciatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Colorful wrasse with bright blue tusks, red-orange bars, and white patches, found on western Pacific reefs."
+    },
+    {
+      "id": "sp_blue_groper",
+      "commonName": "Blue Groper",
+      "scientificName": "Achoerodus viridis",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large blue wrasse endemic to eastern Australia, friendly and often approaches divers on temperate reefs."
+    },
+    {
+      "id": "sp_red_lipped_batfish",
+      "commonName": "Red-Lipped Batfish",
+      "scientificName": "Ogcocephalus darwini",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Bizarre flat-bodied fish with bright red lips that walks on modified fins on the Galapagos seafloor."
+    },
+    {
+      "id": "sp_orangeband_surgeonfish",
+      "commonName": "Orangeband Surgeonfish",
+      "scientificName": "Acanthurus olivaceus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Gray-brown surgeonfish with an orange horizontal band behind the eye, found on Pacific reef slopes."
+    },
+    {
+      "id": "sp_maori_wrasse",
+      "commonName": "Maori Wrasse",
+      "scientificName": "Oxycheilinus unifasciatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Medium-sized wrasse with a dark band behind the pectoral fin, common on Pacific and Indian Ocean reefs."
+    },
+    {
+      "id": "sp_blue_ringed_octopus",
+      "commonName": "Blue-ringed Octopus",
+      "scientificName": "Hapalochlaena lunulata",
+      "category": "invertebrate",
+      "taxonomyClass": "Cephalopoda",
+      "description": "Small but extremely venomous octopus with bright blue rings that flash when threatened."
+    },
+    {
+      "id": "sp_common_octopus",
+      "commonName": "Common Octopus",
+      "scientificName": "Octopus vulgaris",
+      "category": "invertebrate",
+      "taxonomyClass": "Cephalopoda",
+      "description": "Highly intelligent octopus known for rapid color changes and problem-solving abilities."
+    },
+    {
+      "id": "sp_giant_pacific_octopus",
+      "commonName": "Giant Pacific Octopus",
+      "scientificName": "Enteroctopus dofleini",
+      "category": "invertebrate",
+      "taxonomyClass": "Cephalopoda",
+      "description": "The largest octopus species, with arm spans reaching over 4 meters in cold Pacific waters."
+    },
+    {
+      "id": "sp_mimic_octopus",
+      "commonName": "Mimic Octopus",
+      "scientificName": "Thaumoctopus mimicus",
+      "category": "invertebrate",
+      "taxonomyClass": "Cephalopoda",
+      "description": "Remarkable octopus that imitates the appearance and behavior of other marine species."
+    },
+    {
+      "id": "sp_coconut_octopus",
+      "commonName": "Coconut Octopus",
+      "scientificName": "Amphioctopus marginatus",
+      "category": "invertebrate",
+      "taxonomyClass": "Cephalopoda",
+      "description": "Small octopus famous for carrying coconut shells and using them as portable shelters."
+    },
+    {
+      "id": "sp_day_octopus",
+      "commonName": "Day Octopus",
+      "scientificName": "Octopus cyanea",
+      "category": "invertebrate",
+      "taxonomyClass": "Cephalopoda",
+      "description": "Active daytime hunter common on Indo-Pacific reefs with impressive camouflage abilities."
+    },
+    {
+      "id": "sp_wonderpus_octopus",
+      "commonName": "Wonderpus Octopus",
+      "scientificName": "Wunderpus photogenicus",
+      "category": "invertebrate",
+      "taxonomyClass": "Cephalopoda",
+      "description": "Striking octopus with unique white and brown banding found on sandy muck dive sites."
+    },
+    {
+      "id": "sp_broadclub_cuttlefish",
+      "commonName": "Broadclub Cuttlefish",
+      "scientificName": "Sepia latimanus",
+      "category": "invertebrate",
+      "taxonomyClass": "Cephalopoda",
+      "description": "Large cuttlefish with mesmerizing color displays, commonly seen on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_pharaoh_cuttlefish",
+      "commonName": "Pharaoh Cuttlefish",
+      "scientificName": "Sepia pharaonis",
+      "category": "invertebrate",
+      "taxonomyClass": "Cephalopoda",
+      "description": "Large cuttlefish found across the Indian Ocean, known for pulsating color patterns."
+    },
+    {
+      "id": "sp_flamboyant_cuttlefish",
+      "commonName": "Flamboyant Cuttlefish",
+      "scientificName": "Metasepia pfefferi",
+      "category": "invertebrate",
+      "taxonomyClass": "Cephalopoda",
+      "description": "Tiny cuttlefish that walks on the seafloor displaying vivid purple, pink, and yellow pulses."
+    },
+    {
+      "id": "sp_giant_cuttlefish",
+      "commonName": "Giant Cuttlefish",
+      "scientificName": "Sepia apama",
+      "category": "invertebrate",
+      "taxonomyClass": "Cephalopoda",
+      "description": "The world's largest cuttlefish, famous for mass spawning aggregations in South Australia."
+    },
+    {
+      "id": "sp_bigfin_reef_squid",
+      "commonName": "Bigfin Reef Squid",
+      "scientificName": "Sepioteuthis lessoniana",
+      "category": "invertebrate",
+      "taxonomyClass": "Cephalopoda",
+      "description": "Schooling squid frequently encountered on night dives, attracted to dive lights."
+    },
+    {
+      "id": "sp_caribbean_reef_squid",
+      "commonName": "Caribbean Reef Squid",
+      "scientificName": "Sepioteuthis sepioidea",
+      "category": "invertebrate",
+      "taxonomyClass": "Cephalopoda",
+      "description": "Curious squid often hovering in small groups near reef edges in the Caribbean."
+    },
+    {
+      "id": "sp_bobtail_squid",
+      "commonName": "Bobtail Squid",
+      "scientificName": "Euprymna berryi",
+      "category": "invertebrate",
+      "taxonomyClass": "Cephalopoda",
+      "description": "Tiny nocturnal squid that buries in sand by day, a prized muck diving find."
+    },
+    {
+      "id": "sp_chambered_nautilus",
+      "commonName": "Chambered Nautilus",
+      "scientificName": "Nautilus pompilius",
+      "category": "invertebrate",
+      "taxonomyClass": "Cephalopoda",
+      "description": "Ancient living fossil with a coiled shell, rarely seen by divers in deep water at dawn."
+    },
+    {
+      "id": "sp_spanish_dancer",
+      "commonName": "Spanish Dancer",
+      "scientificName": "Hexabranchus sanguineus",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Largest nudibranch species that swims with undulating red mantle resembling a flamenco dancer."
+    },
+    {
+      "id": "sp_chromodoris_willani",
+      "commonName": "Willan's Chromodoris",
+      "scientificName": "Chromodoris willani",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Striking blue and black nudibranch with white margin, common in the Indo-Pacific."
+    },
+    {
+      "id": "sp_chromodoris_lochi",
+      "commonName": "Loch's Chromodoris",
+      "scientificName": "Chromodoris lochi",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Blue nudibranch with dark lines and white border found throughout the tropical Pacific."
+    },
+    {
+      "id": "sp_chromodoris_magnifica",
+      "commonName": "Magnificent Chromodoris",
+      "scientificName": "Chromodoris magnifica",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Brilliant blue, white, and orange nudibranch found on Indo-Pacific coral reefs."
+    },
+    {
+      "id": "sp_chromodoris_annae",
+      "commonName": "Anna's Chromodoris",
+      "scientificName": "Chromodoris annae",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Deep blue nudibranch with black lines and orange-tipped rhinophores and gills."
+    },
+    {
+      "id": "sp_nembrotha_kubaryana",
+      "commonName": "Variable Neon Slug",
+      "scientificName": "Nembrotha kubaryana",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Dark green nudibranch with vivid orange or red markings, feeds on tunicates."
+    },
+    {
+      "id": "sp_nembrotha_cristata",
+      "commonName": "Crested Nembrotha",
+      "scientificName": "Nembrotha cristata",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Black nudibranch with bright green pustules and striping found on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_phyllidia_varicosa",
+      "commonName": "Varicose Phyllidia",
+      "scientificName": "Phyllidia varicosa",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Blue-grey nudibranch with raised yellow-tipped tubercles, toxic to predators."
+    },
+    {
+      "id": "sp_phyllidia_ocellata",
+      "commonName": "Ocellated Phyllidia",
+      "scientificName": "Phyllidia ocellata",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "White nudibranch with raised pink-ringed tubercles found on tropical reefs."
+    },
+    {
+      "id": "sp_pikachu_nudibranch",
+      "commonName": "Pikachu Nudibranch",
+      "scientificName": "Thecacera pacifica",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Tiny yellow and black sea slug resembling a cartoon character, found in the Pacific."
+    },
+    {
+      "id": "sp_anna_rosefieldi",
+      "commonName": "Roboastra Nudibranch",
+      "scientificName": "Roboastra gracilis",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Predatory nudibranch with dark body and bright longitudinal stripes that hunts other slugs."
+    },
+    {
+      "id": "sp_lettuce_sea_slug",
+      "commonName": "Lettuce Sea Slug",
+      "scientificName": "Elysia crispata",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Ruffled green sea slug that retains chloroplasts from algae for photosynthesis."
+    },
+    {
+      "id": "sp_blue_dragon_nudibranch",
+      "commonName": "Blue Dragon Nudibranch",
+      "scientificName": "Pteraeolidia ianthina",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Long aeolid nudibranch with blue-tipped cerata that harbors symbiotic zooxanthellae."
+    },
+    {
+      "id": "sp_gloomy_nudibranch",
+      "commonName": "Gloomy Nudibranch",
+      "scientificName": "Tambja morosa",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Dark blue-green nudibranch with blue-edged ridges common on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_ocellined_nudibranch",
+      "commonName": "Ocellined Nudibranch",
+      "scientificName": "Halgerda batangas",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "White nudibranch with orange-lined ridges forming geometric patterns on its mantle."
+    },
+    {
+      "id": "sp_glossodoris_cincta",
+      "commonName": "Glossodoris Nudibranch",
+      "scientificName": "Glossodoris cincta",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Cream-colored nudibranch with dark brown border and orange margin on the mantle."
+    },
+    {
+      "id": "sp_jorunna_funebris",
+      "commonName": "Dotted Nudibranch",
+      "scientificName": "Jorunna funebris",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "White nudibranch covered in black-tipped caryophyllidia, resembling a fuzzy bunny."
+    },
+    {
+      "id": "sp_ceratosoma_trilobatum",
+      "commonName": "Trilobate Nudibranch",
+      "scientificName": "Ceratosoma trilobatum",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Large nudibranch with tall dorsal horn and lateral lobes in purple and yellow hues."
+    },
+    {
+      "id": "sp_hypselodoris_apolegma",
+      "commonName": "Purple Hypselodoris",
+      "scientificName": "Hypselodoris apolegma",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Elegant purple nudibranch with white mantle border found on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_hypselodoris_bullockii",
+      "commonName": "Bullock's Hypselodoris",
+      "scientificName": "Hypselodoris bullockii",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Pink and purple nudibranch with yellow-tipped rhinophores on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_flabellina_exoptata",
+      "commonName": "Desirable Flabellina",
+      "scientificName": "Flabellina exoptata",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Translucent aeolid nudibranch with purple-tipped orange cerata found in tropical waters."
+    },
+    {
+      "id": "sp_risbecia_tryoni",
+      "commonName": "Tryon's Risbecia",
+      "scientificName": "Risbecia tryoni",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Large brown and blue nudibranch often found in mating pairs on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_goniobranchus_kuniei",
+      "commonName": "Kunie's Nudibranch",
+      "scientificName": "Goniobranchus kuniei",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Orange-spotted white nudibranch with purple mantle margin found in the western Pacific."
+    },
+    {
+      "id": "sp_mexichromis_multituberculata",
+      "commonName": "Multi-tuberculated Nudibranch",
+      "scientificName": "Mexichromis multituberculata",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Purple and white nudibranch with raised tubercles and orange-tipped appendages."
+    },
+    {
+      "id": "sp_chromodoris_dianae",
+      "commonName": "Diana's Chromodoris",
+      "scientificName": "Chromodoris dianae",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Bright blue nudibranch with black stripes and orange gills found in the western Pacific."
+    },
+    {
+      "id": "sp_phyllodesmium_poindimiei",
+      "commonName": "Solar-powered Nudibranch",
+      "scientificName": "Phyllodesmium poindimiei",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Translucent aeolid nudibranch with branching cerata that harbors zooxanthellae."
+    },
+    {
+      "id": "sp_chromodoris_elisabethina",
+      "commonName": "Elizabeth's Chromodoris",
+      "scientificName": "Chromodoris elisabethina",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Blue and yellow-lined nudibranch with a white mantle border, common in Southeast Asia."
+    },
+    {
+      "id": "sp_doridella_batava",
+      "commonName": "Batavian Dorid",
+      "scientificName": "Dendrodoris nigra",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Variable black to brown dorid nudibranch found under rocks and rubble on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_tiger_cowrie",
+      "commonName": "Tiger Cowrie",
+      "scientificName": "Cypraea tigris",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Large spotted cowrie shell found on tropical reefs, often partially covered by its mantle."
+    },
+    {
+      "id": "sp_tritons_trumpet",
+      "commonName": "Triton's Trumpet",
+      "scientificName": "Charonia tritonis",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Large predatory snail and natural enemy of the crown-of-thorns starfish."
+    },
+    {
+      "id": "sp_queen_conch",
+      "commonName": "Queen Conch",
+      "scientificName": "Aliger gigas",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Iconic large conch of Caribbean seagrass beds with a distinctive pink inner lip."
+    },
+    {
+      "id": "sp_banded_coral_shrimp",
+      "commonName": "Banded Coral Shrimp",
+      "scientificName": "Stenopus hispidus",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Red and white banded cleaner shrimp with long white antennae found in reef crevices."
+    },
+    {
+      "id": "sp_mantis_shrimp",
+      "commonName": "Peacock Mantis Shrimp",
+      "scientificName": "Odontodactylus scyllarus",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Colorful predator with powerful club-like appendages that can smash through shells."
+    },
+    {
+      "id": "sp_cleaner_shrimp",
+      "commonName": "Scarlet Cleaner Shrimp",
+      "scientificName": "Lysmata amboinensis",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Bright red and white shrimp that sets up cleaning stations to service reef fish."
+    },
+    {
+      "id": "sp_pederson_cleaner_shrimp",
+      "commonName": "Pederson Cleaner Shrimp",
+      "scientificName": "Ancylomenes pedersoni",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Translucent Caribbean cleaner shrimp living among anemone tentacles."
+    },
+    {
+      "id": "sp_harlequin_shrimp",
+      "commonName": "Harlequin Shrimp",
+      "scientificName": "Hymenocera picta",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Strikingly patterned shrimp with flat claws that feeds exclusively on sea stars."
+    },
+    {
+      "id": "sp_coleman_shrimp",
+      "commonName": "Coleman Shrimp",
+      "scientificName": "Periclimenes colemani",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Tiny paired shrimp living on fire urchins, highly prized by underwater photographers."
+    },
+    {
+      "id": "sp_emperor_shrimp",
+      "commonName": "Emperor Shrimp",
+      "scientificName": "Periclimenes imperator",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Colorful commensal shrimp that rides on sea cucumbers and nudibranchs."
+    },
+    {
+      "id": "sp_sexy_shrimp",
+      "commonName": "Sexy Shrimp",
+      "scientificName": "Thor amboinensis",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Tiny anemone shrimp known for its tail-waving dance, popular in macro photography."
+    },
+    {
+      "id": "sp_marble_shrimp",
+      "commonName": "Marble Shrimp",
+      "scientificName": "Saron marmoratus",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Nocturnal mottled shrimp with feathery legs found hiding in reef crevices by day."
+    },
+    {
+      "id": "sp_spiny_lobster",
+      "commonName": "Caribbean Spiny Lobster",
+      "scientificName": "Panulirus argus",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Large clawless lobster with long antennae found sheltering under reef ledges."
+    },
+    {
+      "id": "sp_painted_spiny_lobster",
+      "commonName": "Painted Spiny Lobster",
+      "scientificName": "Panulirus versicolor",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Vibrantly colored lobster with blue, green, and white striped legs on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_slipper_lobster",
+      "commonName": "Slipper Lobster",
+      "scientificName": "Scyllarides latus",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Flat-bodied nocturnal lobster with wide antennae plates instead of long whips."
+    },
+    {
+      "id": "sp_squat_lobster",
+      "commonName": "Squat Lobster",
+      "scientificName": "Lauriea siagiani",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Tiny pink-purple crustacean living on giant barrel sponges, a macro photography favorite."
+    },
+    {
+      "id": "sp_hermit_crab",
+      "commonName": "Blue-legged Hermit Crab",
+      "scientificName": "Clibanarius tricolor",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Small hermit crab with bright blue legs commonly seen on Caribbean reefs."
+    },
+    {
+      "id": "sp_orangutan_crab",
+      "commonName": "Orangutan Crab",
+      "scientificName": "Achaeus japonicus",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Tiny hairy crab living in bubble coral, named for its resemblance to an orangutan."
+    },
+    {
+      "id": "sp_decorator_crab",
+      "commonName": "Decorator Crab",
+      "scientificName": "Camposcia retusa",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Master of disguise that attaches sponges, algae, and hydroids to its carapace."
+    },
+    {
+      "id": "sp_porcelain_crab",
+      "commonName": "Porcelain Anemone Crab",
+      "scientificName": "Neopetrolisthes maculatus",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Flat spotted crab living in anemones, filter-feeding with feathery mouthparts."
+    },
+    {
+      "id": "sp_arrow_crab",
+      "commonName": "Arrow Crab",
+      "scientificName": "Stenorhynchus seticornis",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Spindly Caribbean crab with long pointed rostrum and striped legs."
+    },
+    {
+      "id": "sp_channel_clinging_crab",
+      "commonName": "Channel Clinging Crab",
+      "scientificName": "Mithrax spinosissimus",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Large Caribbean reef crab with dark body and red-orange claws found in crevices."
+    },
+    {
+      "id": "sp_coral_crab",
+      "commonName": "Coral Guard Crab",
+      "scientificName": "Trapezia tigrina",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Small spotted crab living symbiotically in Pocillopora corals, defending its host."
+    },
+    {
+      "id": "sp_crown_of_thorns_starfish",
+      "commonName": "Crown-of-thorns Starfish",
+      "scientificName": "Acanthaster planci",
+      "category": "invertebrate",
+      "taxonomyClass": "Echinodermata",
+      "description": "Venomous multi-armed starfish that feeds on coral and can devastate reefs in outbreaks."
+    },
+    {
+      "id": "sp_blue_linckia_starfish",
+      "commonName": "Blue Linckia Starfish",
+      "scientificName": "Linckia laevigata",
+      "category": "invertebrate",
+      "taxonomyClass": "Echinodermata",
+      "description": "Vivid blue sea star commonly seen on Indo-Pacific reef flats and slopes."
+    },
+    {
+      "id": "sp_red_knob_starfish",
+      "commonName": "Red Knob Starfish",
+      "scientificName": "Protoreaster linckii",
+      "category": "invertebrate",
+      "taxonomyClass": "Echinodermata",
+      "description": "Large grey starfish with prominent red-tipped spines found on sandy reef areas."
+    },
+    {
+      "id": "sp_chocolate_chip_starfish",
+      "commonName": "Chocolate Chip Starfish",
+      "scientificName": "Protoreaster nodosus",
+      "category": "invertebrate",
+      "taxonomyClass": "Echinodermata",
+      "description": "Tan starfish with dark raised nodules resembling chocolate chips on sandy substrates."
+    },
+    {
+      "id": "sp_cushion_star",
+      "commonName": "Cushion Star",
+      "scientificName": "Culcita novaeguineae",
+      "category": "invertebrate",
+      "taxonomyClass": "Echinodermata",
+      "description": "Puffy pentagonal starfish with reduced arms found on Indo-Pacific reef flats."
+    },
+    {
+      "id": "sp_fromia_starfish",
+      "commonName": "Elegant Starfish",
+      "scientificName": "Fromia monilis",
+      "category": "invertebrate",
+      "taxonomyClass": "Echinodermata",
+      "description": "Small orange-red starfish with pale plate margins creating a tiled pattern."
+    },
+    {
+      "id": "sp_basket_star",
+      "commonName": "Basket Star",
+      "scientificName": "Astroboa nuda",
+      "category": "invertebrate",
+      "taxonomyClass": "Echinodermata",
+      "description": "Elaborately branched arms unfurl at night to filter-feed in the current."
+    },
+    {
+      "id": "sp_brittle_star",
+      "commonName": "Banded Brittle Star",
+      "scientificName": "Ophiolepis superba",
+      "category": "invertebrate",
+      "taxonomyClass": "Echinodermata",
+      "description": "Striped brittle star found under rocks and in crevices with agile, snake-like arms."
+    },
+    {
+      "id": "sp_feather_star",
+      "commonName": "Feather Star",
+      "scientificName": "Oxycomanthus bennetti",
+      "category": "invertebrate",
+      "taxonomyClass": "Echinodermata",
+      "description": "Multi-armed crinoid perched on reef prominences, filter-feeding with feathery arms."
+    },
+    {
+      "id": "sp_black_feather_star",
+      "commonName": "Black Feather Star",
+      "scientificName": "Himerometra robustipinna",
+      "category": "invertebrate",
+      "taxonomyClass": "Echinodermata",
+      "description": "Dark crinoid that can swim briefly by rhythmically waving its many arms."
+    },
+    {
+      "id": "sp_long_spined_sea_urchin",
+      "commonName": "Long-spined Sea Urchin",
+      "scientificName": "Diadema antillarum",
+      "category": "invertebrate",
+      "taxonomyClass": "Echinodermata",
+      "description": "Black urchin with long venomous spines, a critical reef grazer in the Caribbean."
+    },
+    {
+      "id": "sp_fire_urchin",
+      "commonName": "Fire Urchin",
+      "scientificName": "Asthenosoma varium",
+      "category": "invertebrate",
+      "taxonomyClass": "Echinodermata",
+      "description": "Soft-bodied urchin with venomous spines that cause painful stings on contact."
+    },
+    {
+      "id": "sp_pencil_urchin",
+      "commonName": "Pencil Urchin",
+      "scientificName": "Heterocentrotus mamillatus",
+      "category": "invertebrate",
+      "taxonomyClass": "Echinodermata",
+      "description": "Robust urchin with thick blunt spines found wedged into reef crevices."
+    },
+    {
+      "id": "sp_collector_urchin",
+      "commonName": "Collector Urchin",
+      "scientificName": "Tripneustes gratilla",
+      "category": "invertebrate",
+      "taxonomyClass": "Echinodermata",
+      "description": "Urchin that covers itself with debris and algae fragments for camouflage."
+    },
+    {
+      "id": "sp_sea_apple",
+      "commonName": "Sea Apple",
+      "scientificName": "Pseudocolochirus violaceus",
+      "category": "invertebrate",
+      "taxonomyClass": "Echinodermata",
+      "description": "Brightly colored sea cucumber with oral tentacles used for filter feeding."
+    },
+    {
+      "id": "sp_pineapple_sea_cucumber",
+      "commonName": "Pineapple Sea Cucumber",
+      "scientificName": "Thelenota ananas",
+      "category": "invertebrate",
+      "taxonomyClass": "Echinodermata",
+      "description": "Large orange-red sea cucumber with star-shaped papillae found on reef slopes."
+    },
+    {
+      "id": "sp_black_sea_cucumber",
+      "commonName": "Black Sea Cucumber",
+      "scientificName": "Holothuria atra",
+      "category": "invertebrate",
+      "taxonomyClass": "Echinodermata",
+      "description": "Common black sea cucumber found on sandy reef flats throughout the Indo-Pacific."
+    },
+    {
+      "id": "sp_leopard_sea_cucumber",
+      "commonName": "Leopard Sea Cucumber",
+      "scientificName": "Bohadschia argus",
+      "category": "invertebrate",
+      "taxonomyClass": "Echinodermata",
+      "description": "Spotted sea cucumber that ejects sticky white Cuvierian tubules when disturbed."
+    },
+    {
+      "id": "sp_sand_dollar",
+      "commonName": "Sand Dollar",
+      "scientificName": "Clypeaster reticulatus",
+      "category": "invertebrate",
+      "taxonomyClass": "Echinodermata",
+      "description": "Flat disc-shaped urchin found partially buried in sandy substrates."
+    },
+    {
+      "id": "sp_moon_jellyfish",
+      "commonName": "Moon Jellyfish",
+      "scientificName": "Aurelia aurita",
+      "category": "invertebrate",
+      "taxonomyClass": "Scyphozoa",
+      "description": "Translucent bell-shaped jellyfish with four horseshoe-shaped gonads visible through its body."
+    },
+    {
+      "id": "sp_lions_mane_jellyfish",
+      "commonName": "Lion's Mane Jellyfish",
+      "scientificName": "Cyanea capillata",
+      "category": "invertebrate",
+      "taxonomyClass": "Scyphozoa",
+      "description": "One of the largest jellyfish species with long trailing tentacles in cold waters."
+    },
+    {
+      "id": "sp_box_jellyfish",
+      "commonName": "Box Jellyfish",
+      "scientificName": "Chironex fleckeri",
+      "category": "invertebrate",
+      "taxonomyClass": "Scyphozoa",
+      "description": "Extremely dangerous jellyfish with potent venom found in Indo-Pacific tropical waters."
+    },
+    {
+      "id": "sp_upside_down_jellyfish",
+      "commonName": "Upside-down Jellyfish",
+      "scientificName": "Cassiopea andromeda",
+      "category": "invertebrate",
+      "taxonomyClass": "Scyphozoa",
+      "description": "Unusual jellyfish that rests bell-down on sandy bottoms to photosynthesize algae."
+    },
+    {
+      "id": "sp_blue_blubber_jellyfish",
+      "commonName": "Blue Blubber Jellyfish",
+      "scientificName": "Catostylus mosaicus",
+      "category": "invertebrate",
+      "taxonomyClass": "Scyphozoa",
+      "description": "Blue-white jellyfish with a firm bell and frilly oral arms common in Australian waters."
+    },
+    {
+      "id": "sp_fried_egg_jellyfish",
+      "commonName": "Fried Egg Jellyfish",
+      "scientificName": "Cotylorhiza tuberculata",
+      "category": "invertebrate",
+      "taxonomyClass": "Scyphozoa",
+      "description": "Mediterranean jellyfish with a yellow dome resembling a fried egg and mild sting."
+    },
+    {
+      "id": "sp_pacific_sea_nettle",
+      "commonName": "Pacific Sea Nettle",
+      "scientificName": "Chrysaora fuscescens",
+      "category": "invertebrate",
+      "taxonomyClass": "Scyphozoa",
+      "description": "Golden-brown jellyfish with long trailing tentacles found along the Pacific coast."
+    },
+    {
+      "id": "sp_compass_jellyfish",
+      "commonName": "Compass Jellyfish",
+      "scientificName": "Chrysaora hysoscella",
+      "category": "invertebrate",
+      "taxonomyClass": "Scyphozoa",
+      "description": "Brown and white jellyfish with V-shaped markings radiating like a compass rose."
+    },
+    {
+      "id": "sp_spotted_jellyfish",
+      "commonName": "Spotted Jellyfish",
+      "scientificName": "Mastigias papua",
+      "category": "invertebrate",
+      "taxonomyClass": "Scyphozoa",
+      "description": "White-spotted golden jellyfish famous for filling Palau's Jellyfish Lake."
+    },
+    {
+      "id": "sp_barrel_jellyfish",
+      "commonName": "Barrel Jellyfish",
+      "scientificName": "Rhizostoma pulmo",
+      "category": "invertebrate",
+      "taxonomyClass": "Scyphozoa",
+      "description": "Large dome-shaped jellyfish with frilly oral arms and a mild sting, common in the Atlantic."
+    },
+    {
+      "id": "sp_persian_carpet_flatworm",
+      "commonName": "Persian Carpet Flatworm",
+      "scientificName": "Pseudobiceros bedfordi",
+      "category": "invertebrate",
+      "taxonomyClass": "Turbellaria",
+      "description": "Ornate black flatworm with yellow-orange margins often mistaken for a nudibranch."
+    },
+    {
+      "id": "sp_leopard_flatworm",
+      "commonName": "Leopard Flatworm",
+      "scientificName": "Pseudobiceros pardalis",
+      "category": "invertebrate",
+      "taxonomyClass": "Turbellaria",
+      "description": "Translucent flatworm with leopard-like spots gliding across reef substrates."
+    },
+    {
+      "id": "sp_divided_flatworm",
+      "commonName": "Divided Flatworm",
+      "scientificName": "Pseudoceros dimidiatus",
+      "category": "invertebrate",
+      "taxonomyClass": "Turbellaria",
+      "description": "Striking black and orange flatworm that mimics toxic nudibranchs for protection."
+    },
+    {
+      "id": "sp_blue_pseudoceros_flatworm",
+      "commonName": "Blue Pseudoceros Flatworm",
+      "scientificName": "Pseudoceros bifurcus",
+      "category": "invertebrate",
+      "taxonomyClass": "Turbellaria",
+      "description": "Deep blue flatworm with orange margin found gliding over Indo-Pacific reef surfaces."
+    },
+    {
+      "id": "sp_racing_stripe_flatworm",
+      "commonName": "Racing Stripe Flatworm",
+      "scientificName": "Pseudoceros ferrugineus",
+      "category": "invertebrate",
+      "taxonomyClass": "Turbellaria",
+      "description": "Cream-colored flatworm with a distinct dark central stripe and ruffled margin."
+    },
+    {
+      "id": "sp_christmas_tree_worm",
+      "commonName": "Christmas Tree Worm",
+      "scientificName": "Spirobranchus giganteus",
+      "category": "invertebrate",
+      "taxonomyClass": "Polychaeta",
+      "description": "Colorful spiral-crowned worm embedded in coral that retracts instantly when approached."
+    },
+    {
+      "id": "sp_feather_duster_worm",
+      "commonName": "Feather Duster Worm",
+      "scientificName": "Sabellastarte spectabilis",
+      "category": "invertebrate",
+      "taxonomyClass": "Polychaeta",
+      "description": "Tube-dwelling worm with a fan-shaped crown of feathery radioles for filter feeding."
+    },
+    {
+      "id": "sp_fire_worm",
+      "commonName": "Bearded Fire Worm",
+      "scientificName": "Hermodice carunculata",
+      "category": "invertebrate",
+      "taxonomyClass": "Polychaeta",
+      "description": "Bristle worm with white stinging chaetae that cause painful irritation on contact."
+    },
+    {
+      "id": "sp_bobbit_worm",
+      "commonName": "Bobbit Worm",
+      "scientificName": "Eunice aphroditois",
+      "category": "invertebrate",
+      "taxonomyClass": "Polychaeta",
+      "description": "Ambush predator hiding in sand with powerful jaws that strike at lightning speed."
+    },
+    {
+      "id": "sp_social_feather_duster",
+      "commonName": "Social Feather Duster",
+      "scientificName": "Bispira brunnea",
+      "category": "invertebrate",
+      "taxonomyClass": "Polychaeta",
+      "description": "Colonial tube worm forming clusters of delicate banded crowns on Caribbean reefs."
+    },
+    {
+      "id": "sp_giant_clam",
+      "commonName": "Giant Clam",
+      "scientificName": "Tridacna gigas",
+      "category": "invertebrate",
+      "taxonomyClass": "Bivalvia",
+      "description": "The largest living bivalve, with iridescent mantle tissue harboring symbiotic algae."
+    },
+    {
+      "id": "sp_boring_clam",
+      "commonName": "Boring Clam",
+      "scientificName": "Tridacna crocea",
+      "category": "invertebrate",
+      "taxonomyClass": "Bivalvia",
+      "description": "Small colorful clam that bores into coral rock showing only its vivid mantle."
+    },
+    {
+      "id": "sp_maxima_clam",
+      "commonName": "Maxima Clam",
+      "scientificName": "Tridacna maxima",
+      "category": "invertebrate",
+      "taxonomyClass": "Bivalvia",
+      "description": "Brilliantly colored clam embedded in reef rock with electric blue and green mantles."
+    },
+    {
+      "id": "sp_flame_scallop",
+      "commonName": "Flame Scallop",
+      "scientificName": "Ctenoides ales",
+      "category": "invertebrate",
+      "taxonomyClass": "Bivalvia",
+      "description": "Red bivalve with flashing white light along its mantle edge found in reef crevices."
+    },
+    {
+      "id": "sp_thorny_oyster",
+      "commonName": "Thorny Oyster",
+      "scientificName": "Spondylus varians",
+      "category": "invertebrate",
+      "taxonomyClass": "Bivalvia",
+      "description": "Spiny-shelled bivalve cemented to reef rock, often encrusted with sponges and algae."
+    },
+    {
+      "id": "sp_magnificent_sea_anemone",
+      "commonName": "Magnificent Sea Anemone",
+      "scientificName": "Heteractis magnifica",
+      "category": "invertebrate",
+      "taxonomyClass": "Anthozoa",
+      "description": "Large colorful anemone hosting clownfish, with a prominent column and flowing tentacles."
+    },
+    {
+      "id": "sp_bubble_tip_anemone",
+      "commonName": "Bubble Tip Anemone",
+      "scientificName": "Entacmaea quadricolor",
+      "category": "invertebrate",
+      "taxonomyClass": "Anthozoa",
+      "description": "Popular clownfish host with bulbous-tipped tentacles in green, brown, or rose colors."
+    },
+    {
+      "id": "sp_giant_carpet_anemone",
+      "commonName": "Giant Carpet Anemone",
+      "scientificName": "Stichodactyla gigantea",
+      "category": "invertebrate",
+      "taxonomyClass": "Anthozoa",
+      "description": "Massive anemone with short sticky tentacles that can reach over one meter across."
+    },
+    {
+      "id": "sp_haddon_carpet_anemone",
+      "commonName": "Haddon's Carpet Anemone",
+      "scientificName": "Stichodactyla haddoni",
+      "category": "invertebrate",
+      "taxonomyClass": "Anthozoa",
+      "description": "Flat carpet anemone on sandy substrates hosting various clownfish and porcelain crabs."
+    },
+    {
+      "id": "sp_long_tentacle_anemone",
+      "commonName": "Long Tentacle Anemone",
+      "scientificName": "Macrodactyla doreensis",
+      "category": "invertebrate",
+      "taxonomyClass": "Anthozoa",
+      "description": "Sandy-bottom anemone with long flowing tentacles, often hosting clownfish."
+    },
+    {
+      "id": "sp_tube_anemone",
+      "commonName": "Tube Anemone",
+      "scientificName": "Cerianthus membranaceus",
+      "category": "invertebrate",
+      "taxonomyClass": "Anthozoa",
+      "description": "Elegant anemone dwelling in a parchment tube in sand with two rings of tentacles."
+    },
+    {
+      "id": "sp_hell_fire_anemone",
+      "commonName": "Hell's Fire Anemone",
+      "scientificName": "Actinodendron plumosum",
+      "category": "invertebrate",
+      "taxonomyClass": "Anthozoa",
+      "description": "Highly stinging anemone with branched tentacles resembling soft coral."
+    },
+    {
+      "id": "sp_beaded_sea_anemone",
+      "commonName": "Beaded Sea Anemone",
+      "scientificName": "Heteractis aurora",
+      "category": "invertebrate",
+      "taxonomyClass": "Anthozoa",
+      "description": "Anemone with swollen bead-like tentacle tips found on sandy Indo-Pacific reef areas."
+    },
+    {
+      "id": "sp_condylactis_anemone",
+      "commonName": "Giant Caribbean Anemone",
+      "scientificName": "Condylactis gigantea",
+      "category": "invertebrate",
+      "taxonomyClass": "Anthozoa",
+      "description": "Large Caribbean anemone with purple-tipped tentacles found on rocky reef substrates."
+    },
+    {
+      "id": "sp_sand_anemone",
+      "commonName": "Sand Anemone",
+      "scientificName": "Heteractis malu",
+      "category": "invertebrate",
+      "taxonomyClass": "Anthozoa",
+      "description": "Delicate anemone partially buried in sand with purple-tipped tentacles."
+    },
+    {
+      "id": "sp_barrel_sponge",
+      "commonName": "Giant Barrel Sponge",
+      "scientificName": "Xestospongia muta",
+      "category": "invertebrate",
+      "taxonomyClass": "Demospongiae",
+      "description": "Massive barrel-shaped sponge that can live for centuries on Caribbean reef walls."
+    },
+    {
+      "id": "sp_azure_vase_sponge",
+      "commonName": "Azure Vase Sponge",
+      "scientificName": "Callyspongia plicifera",
+      "category": "invertebrate",
+      "taxonomyClass": "Demospongiae",
+      "description": "Vibrant blue-purple vase-shaped sponge found on Caribbean reef walls."
+    },
+    {
+      "id": "sp_yellow_tube_sponge",
+      "commonName": "Yellow Tube Sponge",
+      "scientificName": "Aplysina fistularis",
+      "category": "invertebrate",
+      "taxonomyClass": "Demospongiae",
+      "description": "Bright yellow tubular sponge growing in clusters on Caribbean reef walls."
+    },
+    {
+      "id": "sp_elephant_ear_sponge",
+      "commonName": "Elephant Ear Sponge",
+      "scientificName": "Agelas clathrodes",
+      "category": "invertebrate",
+      "taxonomyClass": "Demospongiae",
+      "description": "Large orange fan-shaped sponge growing on walls and overhangs in the Caribbean."
+    },
+    {
+      "id": "sp_rope_sponge",
+      "commonName": "Rope Sponge",
+      "scientificName": "Amphimedon compressa",
+      "category": "invertebrate",
+      "taxonomyClass": "Demospongiae",
+      "description": "Red erect branching sponge growing in rope-like formations on Caribbean reefs."
+    },
+    {
+      "id": "sp_portuguese_man_o_war",
+      "commonName": "Portuguese Man o' War",
+      "scientificName": "Physalia physalis",
+      "category": "invertebrate",
+      "taxonomyClass": "Hydrozoa",
+      "description": "Colonial hydrozoan with a gas-filled float and extremely painful trailing tentacles."
+    },
+    {
+      "id": "sp_fire_coral",
+      "commonName": "Fire Coral",
+      "scientificName": "Millepora dichotoma",
+      "category": "invertebrate",
+      "taxonomyClass": "Hydrozoa",
+      "description": "Not a true coral but a hydrozoan that delivers painful stings to divers on contact."
+    },
+    {
+      "id": "sp_by_the_wind_sailor",
+      "commonName": "By-the-wind Sailor",
+      "scientificName": "Velella velella",
+      "category": "invertebrate",
+      "taxonomyClass": "Hydrozoa",
+      "description": "Blue floating hydrozoan colony with a diagonal sail that catches the wind."
+    },
+    {
+      "id": "sp_blue_button",
+      "commonName": "Blue Button",
+      "scientificName": "Porpita porpita",
+      "category": "invertebrate",
+      "taxonomyClass": "Hydrozoa",
+      "description": "Floating colonial hydrozoan with a flat disc and blue tentacle-like hydroids."
+    },
+    {
+      "id": "sp_giant_sea_hare",
+      "commonName": "Giant Sea Hare",
+      "scientificName": "Aplysia vaccaria",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "One of the largest sea slugs, dark brown to black, found in kelp beds."
+    },
+    {
+      "id": "sp_sea_hare",
+      "commonName": "Spotted Sea Hare",
+      "scientificName": "Aplysia dactylomela",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Large green-spotted sea hare that releases purple ink when disturbed."
+    },
+    {
+      "id": "sp_nudibranch_berghia",
+      "commonName": "Berghia Nudibranch",
+      "scientificName": "Berghia coerulescens",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Translucent aeolid nudibranch with white-tipped cerata that feeds on anemones."
+    },
+    {
+      "id": "sp_sea_pen",
+      "commonName": "Sea Pen",
+      "scientificName": "Virgularia gustaviana",
+      "category": "invertebrate",
+      "taxonomyClass": "Anthozoa",
+      "description": "Feather-shaped colonial octocoral anchored in sand that retracts when disturbed."
+    },
+    {
+      "id": "sp_blue_sea_star",
+      "commonName": "Blue Sea Star",
+      "scientificName": "Linckia multifora",
+      "category": "invertebrate",
+      "taxonomyClass": "Echinodermata",
+      "description": "Multi-colored sea star that regenerates from single arm fragments on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_reef_squid",
+      "commonName": "Reef Squid",
+      "scientificName": "Sepioteuthis australis",
+      "category": "invertebrate",
+      "taxonomyClass": "Cephalopoda",
+      "description": "Southern reef squid commonly encountered in temperate Australian waters."
+    },
+    {
+      "id": "sp_tiger_shrimp",
+      "commonName": "Tiger Shrimp",
+      "scientificName": "Penaeus monodon",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Large banded shrimp found on sandy bottoms and seagrass beds in the Indo-Pacific."
+    },
+    {
+      "id": "sp_candy_crab",
+      "commonName": "Candy Crab",
+      "scientificName": "Hoplophrys oatesi",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Tiny colorful crab matching its soft coral host with pink or yellow spiny projections."
+    },
+    {
+      "id": "sp_spider_crab",
+      "commonName": "Spider Decorator Crab",
+      "scientificName": "Cyclocoeloma tuberculata",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Slow-moving crab covered in attached sponges and algae for camouflage."
+    },
+    {
+      "id": "sp_anemone_shrimp",
+      "commonName": "Magnificent Anemone Shrimp",
+      "scientificName": "Ancylomenes magnificus",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Transparent shrimp with white and purple markings living among anemone tentacles."
+    },
+    {
+      "id": "sp_snapping_shrimp",
+      "commonName": "Snapping Shrimp",
+      "scientificName": "Alpheus bellulus",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Small shrimp producing a loud snap with its oversized claw, often paired with gobies."
+    },
+    {
+      "id": "sp_glass_sponge",
+      "commonName": "Venus Flower Basket",
+      "scientificName": "Euplectella aspergillum",
+      "category": "invertebrate",
+      "taxonomyClass": "Hexactinellida",
+      "description": "Delicate glass sponge with an intricate silica skeleton found in deep water."
+    },
+    {
+      "id": "sp_toxic_sea_urchin",
+      "commonName": "Flower Urchin",
+      "scientificName": "Toxopneustes pileolus",
+      "category": "invertebrate",
+      "taxonomyClass": "Echinodermata",
+      "description": "Deceptively attractive urchin covered in flower-like pedicellariae with potent venom."
+    },
+    {
+      "id": "sp_slate_pencil_urchin",
+      "commonName": "Slate Pencil Urchin",
+      "scientificName": "Eucidaris tribuloides",
+      "category": "invertebrate",
+      "taxonomyClass": "Echinodermata",
+      "description": "Urchin with thick rounded spines found on Caribbean and Atlantic reef substrates."
+    },
+    {
+      "id": "sp_spiny_sea_star",
+      "commonName": "Spiny Sea Star",
+      "scientificName": "Marthasterias glacialis",
+      "category": "invertebrate",
+      "taxonomyClass": "Echinodermata",
+      "description": "Large temperate sea star with prominent spines found in European and Atlantic waters."
+    },
+    {
+      "id": "sp_bat_star",
+      "commonName": "Bat Star",
+      "scientificName": "Patiria miniata",
+      "category": "invertebrate",
+      "taxonomyClass": "Echinodermata",
+      "description": "Webbed-armed Pacific sea star in orange, red, or purple found in kelp forests."
+    },
+    {
+      "id": "sp_sunflower_star",
+      "commonName": "Sunflower Star",
+      "scientificName": "Pycnopodia helianthoides",
+      "category": "invertebrate",
+      "taxonomyClass": "Echinodermata",
+      "description": "Massive fast-moving sea star with up to 24 arms found in Pacific kelp forests."
+    },
+    {
+      "id": "sp_blood_star",
+      "commonName": "Blood Star",
+      "scientificName": "Henricia leviuscula",
+      "category": "invertebrate",
+      "taxonomyClass": "Echinodermata",
+      "description": "Bright red-orange slender-armed sea star found in Pacific temperate waters."
+    },
+    {
+      "id": "sp_common_cuttlefish",
+      "commonName": "Common Cuttlefish",
+      "scientificName": "Sepia officinalis",
+      "category": "invertebrate",
+      "taxonomyClass": "Cephalopoda",
+      "description": "Master of camouflage found in European and Mediterranean waters with W-shaped pupils."
+    },
+    {
+      "id": "sp_blue_spotted_crab",
+      "commonName": "Blue-spotted Swimming Crab",
+      "scientificName": "Portunus pelagicus",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Active swimming crab with blue spots on carapace found on sandy Indo-Pacific substrates."
+    },
+    {
+      "id": "sp_sponge_crab",
+      "commonName": "Sponge Crab",
+      "scientificName": "Dromia personata",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Crab that carves and carries a living sponge on its back for camouflage."
+    },
+    {
+      "id": "sp_horseshoe_crab",
+      "commonName": "Horseshoe Crab",
+      "scientificName": "Limulus polyphemus",
+      "category": "invertebrate",
+      "taxonomyClass": "Merostomata",
+      "description": "Ancient chelicerate arthropod with a helmet-shaped shell found on Atlantic sandy bottoms."
+    },
+    {
+      "id": "sp_sea_spider",
+      "commonName": "Sea Spider",
+      "scientificName": "Nymphon gracile",
+      "category": "invertebrate",
+      "taxonomyClass": "Pycnogonida",
+      "description": "Delicate long-legged marine arthropod found crawling on hydroids and bryozoans."
+    },
+    {
+      "id": "sp_sea_lily",
+      "commonName": "Sea Lily",
+      "scientificName": "Metacrinus rotundus",
+      "category": "invertebrate",
+      "taxonomyClass": "Echinodermata",
+      "description": "Stalked crinoid living fossil found in deeper waters, filter feeding with feathery arms."
+    },
+    {
+      "id": "sp_mantis_shrimp_lysiosquilla",
+      "commonName": "Spearer Mantis Shrimp",
+      "scientificName": "Lysiosquillina maculata",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Large burrowing mantis shrimp with spearing appendages found on sandy substrates."
+    },
+    {
+      "id": "sp_purple_sea_urchin",
+      "commonName": "Purple Sea Urchin",
+      "scientificName": "Strongylocentrotus purpuratus",
+      "category": "invertebrate",
+      "taxonomyClass": "Echinodermata",
+      "description": "Abundant purple urchin found in Pacific kelp forests and rocky tidepools."
+    },
+    {
+      "id": "sp_crown_jellyfish",
+      "commonName": "Crown Jellyfish",
+      "scientificName": "Cephea cephea",
+      "category": "invertebrate",
+      "taxonomyClass": "Scyphozoa",
+      "description": "Deep purple jellyfish with a raised crown-like bell found in the Indo-Pacific."
+    },
+    {
+      "id": "sp_comb_jelly",
+      "commonName": "Sea Gooseberry",
+      "scientificName": "Pleurobrachia bachei",
+      "category": "invertebrate",
+      "taxonomyClass": "Tentaculata",
+      "description": "Small bioluminescent ctenophore with iridescent comb rows and two long tentacles."
+    },
+    {
+      "id": "sp_warty_sea_slug",
+      "commonName": "Warty Sea Slug",
+      "scientificName": "Phyllidia coelestis",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Blue and black nudibranch with yellow-capped tubercles commonly seen on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_doris_nudibranch",
+      "commonName": "Sea Lemon",
+      "scientificName": "Peltodoris nobilis",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Yellow spotted dorid nudibranch found in temperate Pacific waters feeding on sponges."
+    },
+    {
+      "id": "sp_opalescent_nudibranch",
+      "commonName": "Opalescent Nudibranch",
+      "scientificName": "Hermissenda opalescens",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Translucent aeolid with bright orange cerata and blue dorsal lines in Pacific waters."
+    },
+    {
+      "id": "sp_clown_nudibranch",
+      "commonName": "Clown Nudibranch",
+      "scientificName": "Ceratosoma amoena",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Pink-orange nudibranch with blue and white spots found in temperate Australian waters."
+    },
+    {
+      "id": "sp_bottlenose_dolphin",
+      "commonName": "Bottlenose Dolphin",
+      "scientificName": "Tursiops truncatus",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Curious and playful dolphin frequently encountered by divers in tropical and temperate waters."
+    },
+    {
+      "id": "sp_spinner_dolphin",
+      "commonName": "Spinner Dolphin",
+      "scientificName": "Stenella longirostris",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Acrobatic dolphin known for aerial spins, often seen in large pods near coral reefs."
+    },
+    {
+      "id": "sp_common_dolphin",
+      "commonName": "Common Dolphin",
+      "scientificName": "Delphinus delphis",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Fast-swimming dolphin with distinctive hourglass pattern, found in open ocean and coastal waters."
+    },
+    {
+      "id": "sp_spotted_dolphin",
+      "commonName": "Atlantic Spotted Dolphin",
+      "scientificName": "Stenella frontalis",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Friendly spotted dolphin that frequently approaches divers in the Bahamas and Caribbean."
+    },
+    {
+      "id": "sp_rissos_dolphin",
+      "commonName": "Risso's Dolphin",
+      "scientificName": "Grampus griseus",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Large dolphin with heavily scarred grey body, found in deep offshore waters worldwide."
+    },
+    {
+      "id": "sp_humpback_whale",
+      "commonName": "Humpback Whale",
+      "scientificName": "Megaptera novaeangliae",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Majestic whale known for breaching and complex songs, seen on seasonal migrations."
+    },
+    {
+      "id": "sp_grey_whale",
+      "commonName": "Grey Whale",
+      "scientificName": "Eschrichtius robustus",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Bottom-feeding baleen whale that migrates along the Pacific coast, often barnacle-covered."
+    },
+    {
+      "id": "sp_blue_whale",
+      "commonName": "Blue Whale",
+      "scientificName": "Balaenoptera musculus",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "The largest animal ever to live, occasionally encountered by divers in deep blue water."
+    },
+    {
+      "id": "sp_sperm_whale",
+      "commonName": "Sperm Whale",
+      "scientificName": "Physeter macrocephalus",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Deep-diving whale with massive head, sometimes seen resting at the surface between dives."
+    },
+    {
+      "id": "sp_orca",
+      "commonName": "Orca",
+      "scientificName": "Orcinus orca",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Apex predator with distinctive black and white markings, found in all ocean basins."
+    },
+    {
+      "id": "sp_minke_whale",
+      "commonName": "Minke Whale",
+      "scientificName": "Balaenoptera acutorostrata",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Smaller baleen whale that is curious around divers, especially in the Great Barrier Reef."
+    },
+    {
+      "id": "sp_beluga_whale",
+      "commonName": "Beluga Whale",
+      "scientificName": "Delphinapterus leucas",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "White arctic whale known for its vocalizations and sociable behavior in cold waters."
+    },
+    {
+      "id": "sp_pilot_whale",
+      "commonName": "Short-finned Pilot Whale",
+      "scientificName": "Globicephala macrorhynchus",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Social deep-diving whale often seen in large pods in tropical and warm temperate seas."
+    },
+    {
+      "id": "sp_false_killer_whale",
+      "commonName": "False Killer Whale",
+      "scientificName": "Pseudorca crassidens",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Large oceanic dolphin that occasionally approaches divers in open water."
+    },
+    {
+      "id": "sp_dugong",
+      "commonName": "Dugong",
+      "scientificName": "Dugong dugon",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Gentle herbivore that grazes on seagrass beds in the Indo-Pacific, closely related to manatees."
+    },
+    {
+      "id": "sp_west_indian_manatee",
+      "commonName": "West Indian Manatee",
+      "scientificName": "Trichechus manatus",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Slow-moving herbivore found in warm shallow waters, estuaries, and springs of the Caribbean."
+    },
+    {
+      "id": "sp_sea_otter",
+      "commonName": "Sea Otter",
+      "scientificName": "Enhydra lutris",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Charismatic marine mammal found in kelp forests along the North Pacific coast."
+    },
+    {
+      "id": "sp_california_sea_lion",
+      "commonName": "California Sea Lion",
+      "scientificName": "Zalophus californianus",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Playful and agile pinniped that often interacts with divers along the Pacific coast."
+    },
+    {
+      "id": "sp_steller_sea_lion",
+      "commonName": "Steller Sea Lion",
+      "scientificName": "Eumetopias jubatus",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Largest sea lion species, found in cold North Pacific waters near rocky coastlines."
+    },
+    {
+      "id": "sp_harbor_seal",
+      "commonName": "Harbor Seal",
+      "scientificName": "Phoca vitulina",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Curious seal commonly seen in temperate coastal waters, often resting on rocks near dive sites."
+    },
+    {
+      "id": "sp_grey_seal",
+      "commonName": "Grey Seal",
+      "scientificName": "Halichoerus grypus",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Large playful seal found in the North Atlantic, known for approaching divers underwater."
+    },
+    {
+      "id": "sp_northern_elephant_seal",
+      "commonName": "Northern Elephant Seal",
+      "scientificName": "Mirounga angustirostris",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Massive deep-diving seal, males have a large proboscis. Found along the eastern Pacific coast."
+    },
+    {
+      "id": "sp_hawaiian_monk_seal",
+      "commonName": "Hawaiian Monk Seal",
+      "scientificName": "Neomonachus schauinslandi",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Critically endangered seal endemic to Hawaii, occasionally seen by divers on reefs."
+    },
+    {
+      "id": "sp_leopard_seal",
+      "commonName": "Leopard Seal",
+      "scientificName": "Hydrurga leptonyx",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Powerful Antarctic predator with spotted coat, encountered by cold-water divers."
+    },
+    {
+      "id": "sp_narwhal",
+      "commonName": "Narwhal",
+      "scientificName": "Monodon monoceros",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Arctic whale with a long spiral tusk, rarely seen but iconic among marine mammals."
+    },
+    {
+      "id": "sp_green_sea_turtle",
+      "commonName": "Green Sea Turtle",
+      "scientificName": "Chelonia mydas",
+      "category": "turtle",
+      "taxonomyClass": "Reptilia",
+      "description": "Large sea turtle commonly seen grazing on seagrass in tropical waters."
+    },
+    {
+      "id": "sp_hawksbill_sea_turtle",
+      "commonName": "Hawksbill Sea Turtle",
+      "scientificName": "Eretmochelys imbricata",
+      "category": "turtle",
+      "taxonomyClass": "Reptilia",
+      "description": "Reef-dwelling turtle with a pointed beak, feeds on sponges among coral formations."
+    },
+    {
+      "id": "sp_loggerhead_sea_turtle",
+      "commonName": "Loggerhead Sea Turtle",
+      "scientificName": "Caretta caretta",
+      "category": "turtle",
+      "taxonomyClass": "Reptilia",
+      "description": "Large-headed turtle found in temperate and tropical seas, often near rocky reefs."
+    },
+    {
+      "id": "sp_leatherback_sea_turtle",
+      "commonName": "Leatherback Sea Turtle",
+      "scientificName": "Dermochelys coriacea",
+      "category": "turtle",
+      "taxonomyClass": "Reptilia",
+      "description": "Largest living turtle with a flexible leathery shell, dives to extreme depths."
+    },
+    {
+      "id": "sp_olive_ridley_sea_turtle",
+      "commonName": "Olive Ridley Sea Turtle",
+      "scientificName": "Lepidochelys olivacea",
+      "category": "turtle",
+      "taxonomyClass": "Reptilia",
+      "description": "Smallest sea turtle species known for synchronized mass nesting events called arribadas."
+    },
+    {
+      "id": "sp_kemps_ridley_sea_turtle",
+      "commonName": "Kemp's Ridley Sea Turtle",
+      "scientificName": "Lepidochelys kempii",
+      "category": "turtle",
+      "taxonomyClass": "Reptilia",
+      "description": "Critically endangered sea turtle found primarily in the Gulf of Mexico."
+    },
+    {
+      "id": "sp_flatback_sea_turtle",
+      "commonName": "Flatback Sea Turtle",
+      "scientificName": "Natator depressus",
+      "category": "turtle",
+      "taxonomyClass": "Reptilia",
+      "description": "Endemic to Australian waters, distinguished by its flat carapace and coastal habitat."
+    },
+    {
+      "id": "sp_brain_coral",
+      "commonName": "Brain Coral",
+      "scientificName": "Diploria labyrinthiformis",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Massive reef-building coral with grooved surface resembling a brain, common on Caribbean reefs."
+    },
+    {
+      "id": "sp_staghorn_coral",
+      "commonName": "Staghorn Coral",
+      "scientificName": "Acropora cervicornis",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Fast-growing branching coral that forms dense thickets, critical habitat for reef fish."
+    },
+    {
+      "id": "sp_elkhorn_coral",
+      "commonName": "Elkhorn Coral",
+      "scientificName": "Acropora palmata",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Large branching coral with flat palmate branches, a key reef builder in the Caribbean."
+    },
+    {
+      "id": "sp_table_coral",
+      "commonName": "Table Coral",
+      "scientificName": "Acropora hyacinthus",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Flat plate-forming coral found on Indo-Pacific reefs, provides shelter for many fish species."
+    },
+    {
+      "id": "sp_mushroom_coral",
+      "commonName": "Mushroom Coral",
+      "scientificName": "Fungia fungites",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Free-living solitary coral shaped like a disc, found on sandy areas near Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_bubble_coral",
+      "commonName": "Bubble Coral",
+      "scientificName": "Plerogyra sinuosa",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Distinctive coral with grape-like vesicles that inflate during the day to capture light."
+    },
+    {
+      "id": "sp_plate_coral",
+      "commonName": "Plate Coral",
+      "scientificName": "Montipora capricornis",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Thin plating coral forming whorled shelves, common on Indo-Pacific reef slopes."
+    },
+    {
+      "id": "sp_pillar_coral",
+      "commonName": "Pillar Coral",
+      "scientificName": "Dendrogyra cylindrus",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Rare upward-growing coral forming tall columns, found in the Caribbean."
+    },
+    {
+      "id": "sp_star_coral",
+      "commonName": "Star Coral",
+      "scientificName": "Orbicella annularis",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Major Caribbean reef builder forming large boulder-shaped colonies with star-shaped polyps."
+    },
+    {
+      "id": "sp_lettuce_coral",
+      "commonName": "Lettuce Coral",
+      "scientificName": "Agaricia agaricites",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Thin plating coral with leaf-like folds, common on Caribbean reef walls and slopes."
+    },
+    {
+      "id": "sp_finger_coral",
+      "commonName": "Finger Coral",
+      "scientificName": "Porites porites",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Sturdy branching coral with thick finger-like projections found on shallow reefs."
+    },
+    {
+      "id": "sp_massive_porites",
+      "commonName": "Massive Porites Coral",
+      "scientificName": "Porites lobata",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Large boulder coral that can grow for centuries, a dominant reef builder in the Indo-Pacific."
+    },
+    {
+      "id": "sp_cauliflower_coral",
+      "commonName": "Cauliflower Coral",
+      "scientificName": "Pocillopora damicornis",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Compact branching coral with a cauliflower shape, widespread in tropical reef shallows."
+    },
+    {
+      "id": "sp_flower_pot_coral",
+      "commonName": "Flowerpot Coral",
+      "scientificName": "Goniopora lobata",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Colony of long-tentacled polyps that extend during the day, resembling a bouquet of flowers."
+    },
+    {
+      "id": "sp_cup_coral",
+      "commonName": "Orange Cup Coral",
+      "scientificName": "Tubastraea coccinea",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Bright orange non-photosynthetic coral found on walls and overhangs in tropical waters."
+    },
+    {
+      "id": "sp_scroll_coral",
+      "commonName": "Scroll Coral",
+      "scientificName": "Turbinaria reniformis",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Coral forming large scrolling plates, common on Indo-Pacific reef slopes and lagoons."
+    },
+    {
+      "id": "sp_cabbage_coral",
+      "commonName": "Cabbage Coral",
+      "scientificName": "Turbinaria peltata",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Disc-shaped plating coral resembling cabbage leaves, found in sheltered reef areas."
+    },
+    {
+      "id": "sp_hammer_coral",
+      "commonName": "Hammer Coral",
+      "scientificName": "Euphyllia ancora",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Large-polyped coral with anchor or hammer-shaped tentacle tips, popular on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_torch_coral",
+      "commonName": "Torch Coral",
+      "scientificName": "Euphyllia glabrescens",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Branching coral with long flowing tentacles tipped with glowing bulbs."
+    },
+    {
+      "id": "sp_frogspawn_coral",
+      "commonName": "Frogspawn Coral",
+      "scientificName": "Euphyllia divisa",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Large-polyped coral with branching tentacle tips resembling frog eggs."
+    },
+    {
+      "id": "sp_sea_fan",
+      "commonName": "Common Sea Fan",
+      "scientificName": "Gorgonia ventalina",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Flat fan-shaped gorgonian oriented perpendicular to currents, iconic on Caribbean reefs."
+    },
+    {
+      "id": "sp_venus_sea_fan",
+      "commonName": "Venus Sea Fan",
+      "scientificName": "Gorgonia flabellum",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Delicate fan-shaped gorgonian found on shallow Caribbean reefs in moderate current areas."
+    },
+    {
+      "id": "sp_deepwater_sea_fan",
+      "commonName": "Deepwater Sea Fan",
+      "scientificName": "Iciligorgia schrammi",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Large bushy gorgonian found on deep reef walls in the Caribbean."
+    },
+    {
+      "id": "sp_sea_whip",
+      "commonName": "Sea Whip",
+      "scientificName": "Leptogorgia virgulata",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Slender rod-shaped gorgonian found swaying in currents on Atlantic and Caribbean reefs."
+    },
+    {
+      "id": "sp_sea_plume",
+      "commonName": "Sea Plume",
+      "scientificName": "Pseudopterogorgia americana",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Tall feathery gorgonian forming plume-like colonies on Caribbean reef tops."
+    },
+    {
+      "id": "sp_organ_pipe_coral",
+      "commonName": "Organ Pipe Coral",
+      "scientificName": "Tubipora musica",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Bright red skeletal tubes with delicate polyps, found on sheltered Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_leather_coral",
+      "commonName": "Leather Coral",
+      "scientificName": "Sarcophyton trocheliophorum",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Soft coral with a smooth leathery surface that forms large mushroom-shaped colonies."
+    },
+    {
+      "id": "sp_toadstool_leather_coral",
+      "commonName": "Toadstool Leather Coral",
+      "scientificName": "Sarcophyton glaucum",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Soft coral with a thick stalk and flat cap, common on Indo-Pacific reef flats."
+    },
+    {
+      "id": "sp_pulsing_xenia",
+      "commonName": "Pulsing Xenia",
+      "scientificName": "Xenia umbellata",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Soft coral with rhythmically pulsing polyps, found in sheltered Indo-Pacific waters."
+    },
+    {
+      "id": "sp_tree_coral",
+      "commonName": "Tree Coral",
+      "scientificName": "Dendronephthya hemprichi",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Vibrant soft coral forming tree-like clusters on walls and overhangs in the Red Sea."
+    },
+    {
+      "id": "sp_blue_coral",
+      "commonName": "Blue Coral",
+      "scientificName": "Heliopora coerulea",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Unique octocoral with a blue skeleton, found on shallow Indo-Pacific reef flats."
+    },
+    {
+      "id": "sp_black_coral",
+      "commonName": "Black Coral",
+      "scientificName": "Antipathes dichotoma",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Deep-water coral with a dark skeleton, found on walls and drop-offs below 30 meters."
+    },
+    {
+      "id": "sp_carnation_coral",
+      "commonName": "Carnation Coral",
+      "scientificName": "Dendronephthya klunzingeri",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Brightly colored soft coral found under ledges and on walls in the Indo-Pacific."
+    },
+    {
+      "id": "sp_wire_coral",
+      "commonName": "Wire Coral",
+      "scientificName": "Cirrhipathes spiralis",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Long spiral black coral forming coiled whips, host to gobies and shrimp."
+    },
+    {
+      "id": "sp_dead_mans_fingers",
+      "commonName": "Dead Man's Fingers",
+      "scientificName": "Alcyonium digitatum",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Fleshy soft coral with finger-like lobes, common on temperate North Atlantic reefs."
+    },
+    {
+      "id": "sp_sun_coral",
+      "commonName": "Sun Coral",
+      "scientificName": "Tubastraea faulkneri",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Yellow-orange non-photosynthetic coral that opens its polyps at night on Indo-Pacific walls."
+    },
+    {
+      "id": "sp_lace_coral",
+      "commonName": "Lace Coral",
+      "scientificName": "Stylaster roseus",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Delicate pink hydrocoral with lace-like branches found in crevices and under ledges."
+    },
+    {
+      "id": "sp_kenya_tree_coral",
+      "commonName": "Kenya Tree Coral",
+      "scientificName": "Capnella imbricata",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Hardy soft coral with tree-like branches, common in the Indo-Pacific."
+    },
+    {
+      "id": "sp_colt_coral",
+      "commonName": "Colt Coral",
+      "scientificName": "Cladiella australis",
+      "category": "coral",
+      "taxonomyClass": "Anthozoa",
+      "description": "Soft coral with thick rubbery branches covered in small polyps on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_turtle_grass",
+      "commonName": "Turtle Grass",
+      "scientificName": "Thalassia testudinum",
+      "category": "plant",
+      "taxonomyClass": "Magnoliopsida",
+      "description": "Dominant Caribbean seagrass with wide flat blades, vital food source for sea turtles."
+    },
+    {
+      "id": "sp_eelgrass",
+      "commonName": "Eelgrass",
+      "scientificName": "Zostera marina",
+      "category": "plant",
+      "taxonomyClass": "Magnoliopsida",
+      "description": "Temperate seagrass forming dense underwater meadows that serve as nursery habitat."
+    },
+    {
+      "id": "sp_manatee_grass",
+      "commonName": "Manatee Grass",
+      "scientificName": "Syringodium filiforme",
+      "category": "plant",
+      "taxonomyClass": "Magnoliopsida",
+      "description": "Cylindrical-bladed seagrass found in Caribbean sandy areas, often near turtle grass beds."
+    },
+    {
+      "id": "sp_shoal_grass",
+      "commonName": "Shoal Grass",
+      "scientificName": "Halodule wrightii",
+      "category": "plant",
+      "taxonomyClass": "Magnoliopsida",
+      "description": "Pioneer seagrass with narrow blades, colonizes disturbed sandy areas in the Caribbean."
+    },
+    {
+      "id": "sp_paddle_grass",
+      "commonName": "Paddle Grass",
+      "scientificName": "Halophila decipiens",
+      "category": "plant",
+      "taxonomyClass": "Magnoliopsida",
+      "description": "Small delicate seagrass with oval leaves, found in deeper waters across the tropics."
+    },
+    {
+      "id": "sp_neptune_grass",
+      "commonName": "Neptune Grass",
+      "scientificName": "Posidonia oceanica",
+      "category": "plant",
+      "taxonomyClass": "Magnoliopsida",
+      "description": "Mediterranean seagrass forming vast meadows critical for coastal marine ecosystems."
+    },
+    {
+      "id": "sp_giant_kelp",
+      "commonName": "Giant Kelp",
+      "scientificName": "Macrocystis pyrifera",
+      "category": "plant",
+      "taxonomyClass": "Phaeophyceae",
+      "description": "Towering underwater forest species growing up to 60 meters, iconic for California diving."
+    },
+    {
+      "id": "sp_bull_kelp",
+      "commonName": "Bull Kelp",
+      "scientificName": "Nereocystis luetkeana",
+      "category": "plant",
+      "taxonomyClass": "Phaeophyceae",
+      "description": "Pacific kelp with a single long stipe and bulbous float, forms dense canopy forests."
+    },
+    {
+      "id": "sp_bladder_wrack",
+      "commonName": "Bladder Wrack",
+      "scientificName": "Fucus vesiculosus",
+      "category": "plant",
+      "taxonomyClass": "Phaeophyceae",
+      "description": "Common brown alga with paired air bladders, found in intertidal zones of the North Atlantic."
+    },
+    {
+      "id": "sp_sargassum",
+      "commonName": "Sargassum",
+      "scientificName": "Sargassum natans",
+      "category": "plant",
+      "taxonomyClass": "Phaeophyceae",
+      "description": "Free-floating brown alga forming rafts that shelter juvenile fish and invertebrates."
+    },
+    {
+      "id": "sp_kelp_forest_ecklonia",
+      "commonName": "Ecklonia Kelp",
+      "scientificName": "Ecklonia radiata",
+      "category": "plant",
+      "taxonomyClass": "Phaeophyceae",
+      "description": "Dominant kelp in southern hemisphere waters, forming important underwater forests."
+    },
+    {
+      "id": "sp_coralline_algae",
+      "commonName": "Coralline Algae",
+      "scientificName": "Lithothamnion glaciale",
+      "category": "plant",
+      "taxonomyClass": "Rhodophyta",
+      "description": "Hard encrusting red alga that cements reef structures and gives reefs a pink hue."
+    },
+    {
+      "id": "sp_irish_moss",
+      "commonName": "Irish Moss",
+      "scientificName": "Chondrus crispus",
+      "category": "plant",
+      "taxonomyClass": "Rhodophyta",
+      "description": "Fan-shaped red alga found on rocky shores of the North Atlantic intertidal zone."
+    },
+    {
+      "id": "sp_dulse",
+      "commonName": "Dulse",
+      "scientificName": "Palmaria palmata",
+      "category": "plant",
+      "taxonomyClass": "Rhodophyta",
+      "description": "Flat reddish-purple alga growing on rocks and kelp stipes in cold northern waters."
+    },
+    {
+      "id": "sp_halimeda",
+      "commonName": "Halimeda",
+      "scientificName": "Halimeda tuna",
+      "category": "plant",
+      "taxonomyClass": "Chlorophyta",
+      "description": "Calcified green alga with disc-shaped segments, major contributor to reef sand."
+    },
+    {
+      "id": "sp_sea_lettuce",
+      "commonName": "Sea Lettuce",
+      "scientificName": "Ulva lactuca",
+      "category": "plant",
+      "taxonomyClass": "Chlorophyta",
+      "description": "Bright green sheet-like alga found in shallow coastal waters worldwide."
+    },
+    {
+      "id": "sp_caulerpa",
+      "commonName": "Green Grape Algae",
+      "scientificName": "Caulerpa racemosa",
+      "category": "plant",
+      "taxonomyClass": "Chlorophyta",
+      "description": "Creeping green alga with grape-like fronds, found on tropical reef rubble and sand."
+    },
+    {
+      "id": "sp_mermaid_fan",
+      "commonName": "Mermaid's Fan",
+      "scientificName": "Udotea flabellum",
+      "category": "plant",
+      "taxonomyClass": "Chlorophyta",
+      "description": "Calcified green alga shaped like a small fan, common on Caribbean sandy bottoms."
+    },
+    {
+      "id": "sp_shaving_brush_algae",
+      "commonName": "Shaving Brush Algae",
+      "scientificName": "Penicillus capitatus",
+      "category": "plant",
+      "taxonomyClass": "Chlorophyta",
+      "description": "Calcified green alga with a brush-like tuft on a stalk, found on Caribbean sandy bottoms."
+    },
+    {
+      "id": "sp_finger_kelp",
+      "commonName": "Oarweed",
+      "scientificName": "Laminaria digitata",
+      "category": "plant",
+      "taxonomyClass": "Phaeophyceae",
+      "description": "Brown alga with finger-like fronds forming kelp beds in North Atlantic coastal waters."
+    },
+    {
+      "id": "sp_banded_sea_krait",
+      "commonName": "Banded Sea Krait",
+      "scientificName": "Laticauda colubrina",
+      "category": "other",
+      "taxonomyClass": "Reptilia",
+      "description": "Venomous sea snake with blue-grey and black bands, docile and commonly seen on Indo-Pacific reefs."
+    },
+    {
+      "id": "sp_olive_sea_snake",
+      "commonName": "Olive Sea Snake",
+      "scientificName": "Aipysurus laevis",
+      "category": "other",
+      "taxonomyClass": "Reptilia",
+      "description": "Curious sea snake found on Australian reefs, known for approaching divers."
+    },
+    {
+      "id": "sp_yellow_bellied_sea_snake",
+      "commonName": "Yellow-bellied Sea Snake",
+      "scientificName": "Hydrophis platurus",
+      "category": "other",
+      "taxonomyClass": "Reptilia",
+      "description": "Pelagic sea snake with yellow underside, the most widespread snake species on Earth."
+    },
+    {
+      "id": "sp_marine_iguana",
+      "commonName": "Marine Iguana",
+      "scientificName": "Amblyrhynchus cristatus",
+      "category": "other",
+      "taxonomyClass": "Reptilia",
+      "description": "Endemic to the Galapagos, the only lizard that forages underwater on algae."
+    },
+    {
+      "id": "sp_saltwater_crocodile",
+      "commonName": "Saltwater Crocodile",
+      "scientificName": "Crocodylus porosus",
+      "category": "other",
+      "taxonomyClass": "Reptilia",
+      "description": "Largest living reptile, found in coastal and estuarine waters of the Indo-Pacific."
+    }
+  ]
+}

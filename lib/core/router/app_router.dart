@@ -64,6 +64,9 @@ import 'package:submersion/features/transfer/presentation/pages/transfer_page.da
 import 'package:submersion/features/dive_types/presentation/pages/dive_types_page.dart';
 import 'package:submersion/features/tank_presets/presentation/pages/tank_presets_page.dart';
 import 'package:submersion/features/tank_presets/presentation/pages/tank_preset_edit_page.dart';
+import 'package:submersion/features/marine_life/presentation/pages/species_manage_page.dart';
+import 'package:submersion/features/marine_life/presentation/pages/species_edit_page.dart';
+import 'package:submersion/features/marine_life/presentation/pages/species_detail_page.dart';
 import 'package:submersion/features/planning/presentation/pages/planning_page.dart';
 import 'package:submersion/features/planning/presentation/widgets/planning_shell.dart';
 import 'package:submersion/features/planning/presentation/widgets/planning_welcome.dart';
@@ -709,6 +712,34 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: 'editTankPreset',
                 builder: (context, state) => TankPresetEditPage(
                   presetId: state.pathParameters['presetId'],
+                ),
+              ),
+            ],
+          ),
+
+          // Species Management
+          GoRoute(
+            path: '/species',
+            name: 'speciesManage',
+            builder: (context, state) => const SpeciesManagePage(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'newSpecies',
+                builder: (context, state) => const SpeciesEditPage(),
+              ),
+              GoRoute(
+                path: ':speciesId',
+                name: 'speciesDetail',
+                builder: (context, state) => SpeciesDetailPage(
+                  speciesId: state.pathParameters['speciesId']!,
+                ),
+              ),
+              GoRoute(
+                path: ':speciesId/edit',
+                name: 'editSpecies',
+                builder: (context, state) => SpeciesEditPage(
+                  speciesId: state.pathParameters['speciesId'],
                 ),
               ),
             ],

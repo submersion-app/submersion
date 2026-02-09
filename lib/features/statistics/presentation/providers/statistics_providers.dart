@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
+import 'package:submersion/features/statistics/domain/entities/species_statistics.dart';
 
 /// Repository provider
 final statisticsRepositoryProvider = Provider<StatisticsRepository>((ref) {
@@ -247,6 +248,18 @@ final bestSitesForMarineLifeProvider = FutureProvider<List<RankingItem>>((
   final currentDiverId = ref.watch(currentDiverIdProvider);
   return repository.getBestSitesForMarineLife(diverId: currentDiverId);
 });
+
+/// Per-species statistics (sightings, depth range, sites, first/last seen)
+final speciesStatisticsProvider =
+    FutureProvider.family<SpeciesStatistics, String>((ref, speciesId) async {
+      _keepAliveWithExpiry(ref);
+      final repository = ref.watch(statisticsRepositoryProvider);
+      final currentDiverId = ref.watch(currentDiverIdProvider);
+      return repository.getSpeciesStatistics(
+        speciesId: speciesId,
+        diverId: currentDiverId,
+      );
+    });
 
 // ============================================================================
 // Time Pattern Providers

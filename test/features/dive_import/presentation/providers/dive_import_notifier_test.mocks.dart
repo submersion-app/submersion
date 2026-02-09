@@ -6,16 +6,20 @@
 import 'dart:async' as _i5;
 
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i6;
+import 'package:mockito/src/dummies.dart' as _i8;
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart'
-    as _i8;
+    as _i10;
 import 'package:submersion/features/dive_import/domain/services/health_import_service.dart'
-    as _i7;
+    as _i9;
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart'
     as _i3;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart' as _i2;
+import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart'
+    as _i6;
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart'
     as _i4;
+import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart'
+    as _i7;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -94,6 +98,24 @@ class MockDiveRepository extends _i1.Mock implements _i3.DiveRepository {
           as _i5.Future<List<_i2.DiveProfilePoint>>);
 
   @override
+  _i5.Future<Map<String, List<_i2.DiveProfilePoint>>> getBatchProfileSummaries(
+    List<String>? diveIds, {
+    int? maxSamples = 20,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #getBatchProfileSummaries,
+              [diveIds],
+              {#maxSamples: maxSamples},
+            ),
+            returnValue:
+                _i5.Future<Map<String, List<_i2.DiveProfilePoint>>>.value(
+                  <String, List<_i2.DiveProfilePoint>>{},
+                ),
+          )
+          as _i5.Future<Map<String, List<_i2.DiveProfilePoint>>>);
+
+  @override
   _i5.Future<_i2.Dive> createDive(_i2.Dive? dive) =>
       (super.noSuchMethod(
             Invocation.method(#createDive, [dive]),
@@ -136,6 +158,40 @@ class MockDiveRepository extends _i1.Mock implements _i3.DiveRepository {
             returnValue: _i5.Future<List<_i2.Dive>>.value(<_i2.Dive>[]),
           )
           as _i5.Future<List<_i2.Dive>>);
+
+  @override
+  _i5.Future<List<_i6.DiveSummary>> getDiveSummaries({
+    String? diverId,
+    _i7.DiveFilterState? filter = const _i7.DiveFilterState(),
+    _i6.DiveSummaryCursor? cursor,
+    int? limit = 50,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#getDiveSummaries, [], {
+              #diverId: diverId,
+              #filter: filter,
+              #cursor: cursor,
+              #limit: limit,
+            }),
+            returnValue: _i5.Future<List<_i6.DiveSummary>>.value(
+              <_i6.DiveSummary>[],
+            ),
+          )
+          as _i5.Future<List<_i6.DiveSummary>>);
+
+  @override
+  _i5.Future<int> getDiveCount({
+    String? diverId,
+    _i7.DiveFilterState? filter = const _i7.DiveFilterState(),
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#getDiveCount, [], {
+              #diverId: diverId,
+              #filter: filter,
+            }),
+            returnValue: _i5.Future<int>.value(0),
+          )
+          as _i5.Future<int>);
 
   @override
   _i5.Future<List<_i2.Dive>> getDivesForSite(String? siteId) =>
@@ -291,7 +347,7 @@ class MockDiveRepository extends _i1.Mock implements _i3.DiveRepository {
               {#actualDateTime: actualDateTime},
             ),
             returnValue: _i5.Future<String>.value(
-              _i6.dummyValue<String>(
+              _i8.dummyValue<String>(
                 this,
                 Invocation.method(
                   #convertPlanToActualDive,
@@ -448,18 +504,18 @@ class MockDiveRepository extends _i1.Mock implements _i3.DiveRepository {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockHealthImportService extends _i1.Mock
-    implements _i7.HealthImportService {
+    implements _i9.HealthImportService {
   MockHealthImportService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i8.ImportSource get source =>
+  _i10.ImportSource get source =>
       (super.noSuchMethod(
             Invocation.getter(#source),
-            returnValue: _i8.ImportSource.appleWatch,
+            returnValue: _i10.ImportSource.appleWatch,
           )
-          as _i8.ImportSource);
+          as _i10.ImportSource);
 
   @override
   _i5.Future<bool> isAvailable() =>
@@ -486,7 +542,7 @@ class MockHealthImportService extends _i1.Mock
           as _i5.Future<bool>);
 
   @override
-  _i5.Future<List<_i8.ImportedDive>> fetchDives({
+  _i5.Future<List<_i10.ImportedDive>> fetchDives({
     required DateTime? startDate,
     required DateTime? endDate,
   }) =>
@@ -495,21 +551,21 @@ class MockHealthImportService extends _i1.Mock
               #startDate: startDate,
               #endDate: endDate,
             }),
-            returnValue: _i5.Future<List<_i8.ImportedDive>>.value(
-              <_i8.ImportedDive>[],
+            returnValue: _i5.Future<List<_i10.ImportedDive>>.value(
+              <_i10.ImportedDive>[],
             ),
           )
-          as _i5.Future<List<_i8.ImportedDive>>);
+          as _i5.Future<List<_i10.ImportedDive>>);
 
   @override
-  _i5.Future<List<_i8.ImportedProfileSample>> fetchDiveProfile(
+  _i5.Future<List<_i10.ImportedProfileSample>> fetchDiveProfile(
     String? sourceId,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#fetchDiveProfile, [sourceId]),
-            returnValue: _i5.Future<List<_i8.ImportedProfileSample>>.value(
-              <_i8.ImportedProfileSample>[],
+            returnValue: _i5.Future<List<_i10.ImportedProfileSample>>.value(
+              <_i10.ImportedProfileSample>[],
             ),
           )
-          as _i5.Future<List<_i8.ImportedProfileSample>>);
+          as _i5.Future<List<_i10.ImportedProfileSample>>);
 }

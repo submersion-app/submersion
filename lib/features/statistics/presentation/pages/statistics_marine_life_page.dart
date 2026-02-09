@@ -70,8 +70,12 @@ class StatisticsMarineLifePage extends ConsumerWidget {
       title: 'Most Common Sightings',
       subtitle: 'Species spotted most often',
       child: sightingsAsync.when(
-        data: (data) =>
-            RankingList(items: data, countLabel: 'sightings', maxItems: 10),
+        data: (data) => RankingList(
+          items: data,
+          countLabel: 'sightings',
+          maxItems: 10,
+          onItemTap: (item) => context.push('/species/${item.id}'),
+        ),
         loading: () => const SizedBox(
           height: 200,
           child: Center(child: CircularProgressIndicator()),

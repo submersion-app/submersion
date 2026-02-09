@@ -145,11 +145,92 @@ final sightingsNotifierProvider =
       return SightingsNotifier(repository, diveId);
     });
 
-/// Initialize species database with common species
+/// Initialize species database with built-in species from bundled JSON asset
 final seedSpeciesProvider = FutureProvider<void>((ref) async {
   final repository = ref.watch(speciesRepositoryProvider);
-  await repository.seedCommonSpecies();
+  await repository.seedBuiltInSpecies();
 });
+
+// ===========================================================================
+// Species Management (CRUD)
+// ===========================================================================
+
+/// Species list notifier for the species management page
+class SpeciesListNotifier extends StateNotifier<AsyncValue<List<Species>>> {
+  final SpeciesRepository _repository;
+  final Ref _ref;
+
+  SpeciesListNotifier(this._repository, this._ref)
+    : super(const AsyncValue.loading()) {
+    _loadSpecies();
+  }
+
+  Future<void> _loadSpecies() async {
+    try {
+      final species = await _repository.getAllSpecies();
+      state = AsyncValue.data(species);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<Species> addSpecies({
+    required String commonName,
+    String? scientificName,
+    required SpeciesCategory category,
+    String? taxonomyClass,
+    String? description,
+  }) async {
+    final species = await _repository.createSpecies(
+      commonName: commonName,
+      scientificName: scientificName,
+      category: category,
+      taxonomyClass: taxonomyClass,
+      description: description,
+    );
+    await _loadSpecies();
+    _invalidateRelatedProviders();
+    return species;
+  }
+
+  Future<void> updateSpecies(Species species) async {
+    await _repository.updateSpecies(species);
+    await _loadSpecies();
+    _invalidateRelatedProviders();
+  }
+
+  Future<void> deleteSpecies(String id) async {
+    await _repository.deleteSpecies(id);
+    await _loadSpecies();
+    _invalidateRelatedProviders();
+  }
+
+  Future<bool> isSpeciesInUse(String id) async {
+    return _repository.isSpeciesInUse(id);
+  }
+
+  Future<void> resetBuiltInSpecies() async {
+    await _repository.resetBuiltInSpecies();
+    await _loadSpecies();
+    _invalidateRelatedProviders();
+  }
+
+  void _invalidateRelatedProviders() {
+    _ref.invalidate(allSpeciesProvider);
+    _ref.invalidate(speciesByCategoryProvider);
+    _ref.invalidate(speciesSearchProvider);
+  }
+}
+
+/// Species list notifier provider for managing species
+final speciesListNotifierProvider =
+    StateNotifierProvider.autoDispose<
+      SpeciesListNotifier,
+      AsyncValue<List<Species>>
+    >((ref) {
+      final repository = ref.watch(speciesRepositoryProvider);
+      return SpeciesListNotifier(repository, ref);
+    });
 
 // ===========================================================================
 // Site Marine Life Providers (for Common Marine Life feature)

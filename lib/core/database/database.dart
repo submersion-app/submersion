@@ -364,8 +364,10 @@ class Species extends Table {
   TextColumn get commonName => text()();
   TextColumn get scientificName => text().nullable()();
   TextColumn get category => text()(); // fish, coral, mammal, etc.
+  TextColumn get taxonomyClass => text().nullable()(); // e.g. Actinopterygii
   TextColumn get description => text().nullable()();
   TextColumn get photoPath => text().nullable()();
+  BoolColumn get isBuiltIn => boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -1061,7 +1063,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 31;
+  int get schemaVersion => 32;
 
   @override
   MigrationStrategy get migration {
@@ -1760,6 +1762,15 @@ class AppDatabase extends _$AppDatabase {
             CREATE INDEX IF NOT EXISTS idx_dive_buddies_dive_id
             ON dive_buddies(dive_id)
           ''');
+        }
+        if (from < 32) {
+          // Add taxonomy class and built-in flag to species table
+          await customStatement(
+            'ALTER TABLE species ADD COLUMN taxonomy_class TEXT',
+          );
+          await customStatement(
+            'ALTER TABLE species ADD COLUMN is_built_in INTEGER NOT NULL DEFAULT 0',
+          );
         }
       },
       beforeOpen: (details) async {

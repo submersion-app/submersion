@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/statistics/domain/entities/species_statistics.dart';
 
 /// Data point for line chart trends
 class TrendDataPoint {
@@ -981,6 +982,85 @@ class StatisticsRepository {
     } catch (e, stackTrace) {
       _log.error('Failed to get best sites for marine life', e, stackTrace);
       return [];
+    }
+  }
+
+  /// Get detailed statistics for a single species
+  Future<SpeciesStatistics> getSpeciesStatistics({
+    required String speciesId,
+    String? diverId,
+  }) async {
+    try {
+      final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
+      final baseParams = diverId != null
+          ? [speciesId, diverId]
+          : <dynamic>[speciesId];
+
+      // Aggregate stats: total sightings, dive count, depth range, date range
+      final statsResult = await _db.customSelect('''
+        SELECT
+          COALESCE(SUM(s.count), 0) AS total_sightings,
+          COUNT(DISTINCT s.dive_id) AS dive_count,
+          MIN(d.max_depth) AS min_depth,
+          MAX(d.max_depth) AS max_depth,
+          COUNT(DISTINCT d.site_id) AS site_count,
+          MIN(d.dive_date_time) AS first_seen,
+          MAX(d.dive_date_time) AS last_seen
+        FROM sightings s
+        JOIN dives d ON d.id = s.dive_id
+        WHERE s.species_id = ? $diverFilter
+      ''', variables: baseParams.map((p) => Variable(p)).toList()).getSingle();
+
+      final totalSightings = statsResult.read<int>('total_sightings');
+
+      if (totalSightings == 0) {
+        return SpeciesStatistics.empty;
+      }
+
+      // Top sites where this species was seen
+      final sitesResult = await _db.customSelect('''
+        SELECT
+          ds.id,
+          ds.name,
+          SUM(s.count) AS sighting_count
+        FROM sightings s
+        JOIN dives d ON d.id = s.dive_id
+        JOIN dive_sites ds ON ds.id = d.site_id
+        WHERE s.species_id = ? $diverFilter
+          AND d.site_id IS NOT NULL
+        GROUP BY ds.id
+        ORDER BY sighting_count DESC
+        LIMIT 5
+      ''', variables: baseParams.map((p) => Variable(p)).toList()).get();
+
+      final topSites = sitesResult.map((row) {
+        return RankingItem(
+          id: row.read<String>('id'),
+          name: row.read<String>('name'),
+          count: row.read<int>('sighting_count'),
+        );
+      }).toList();
+
+      final firstSeenMs = statsResult.read<int?>('first_seen');
+      final lastSeenMs = statsResult.read<int?>('last_seen');
+
+      return SpeciesStatistics(
+        totalSightings: totalSightings,
+        diveCount: statsResult.read<int>('dive_count'),
+        minDepthMeters: statsResult.read<double?>('min_depth'),
+        maxDepthMeters: statsResult.read<double?>('max_depth'),
+        siteCount: statsResult.read<int>('site_count'),
+        topSites: topSites,
+        firstSeen: firstSeenMs != null
+            ? DateTime.fromMillisecondsSinceEpoch(firstSeenMs)
+            : null,
+        lastSeen: lastSeenMs != null
+            ? DateTime.fromMillisecondsSinceEpoch(lastSeenMs)
+            : null,
+      );
+    } catch (e, stackTrace) {
+      _log.error('Failed to get species statistics', e, stackTrace);
+      return SpeciesStatistics.empty;
     }
   }
 

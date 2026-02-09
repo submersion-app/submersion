@@ -91,11 +91,6 @@ This document contains only the features and tasks that are **not yet completed*
 
 ---
 
-## v1.5 Release Criteria (Remaining)
-- [ ] Performance with 5000+ dives
-
----
-
 # v2.0 Planned Features
 
 ## Category 1: Core Dive Log Entry

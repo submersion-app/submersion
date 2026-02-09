@@ -6,6 +6,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/marine_life/data/services/species_seed_service.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart'
     as domain;
 
@@ -38,7 +39,7 @@ class SpeciesRepository {
     return rows.map((row) => _mapRowToSpecies(row)).toList();
   }
 
-  /// Search species by name
+  /// Search species by name or taxonomy class
   Future<List<domain.Species>> searchSpecies(String query) async {
     final searchTerm = '%${query.toLowerCase()}%';
 
@@ -48,29 +49,19 @@ class SpeciesRepository {
       SELECT * FROM species
       WHERE LOWER(common_name) LIKE ?
          OR LOWER(scientific_name) LIKE ?
+         OR LOWER(taxonomy_class) LIKE ?
       ORDER BY category ASC, common_name ASC
       LIMIT 50
     ''',
           variables: [
             Variable.withString(searchTerm),
             Variable.withString(searchTerm),
+            Variable.withString(searchTerm),
           ],
         )
         .get();
 
-    return results.map((row) {
-      return domain.Species(
-        id: row.data['id'] as String,
-        commonName: row.data['common_name'] as String,
-        scientificName: row.data['scientific_name'] as String?,
-        category: SpeciesCategory.values.firstWhere(
-          (c) => c.name == row.data['category'],
-          orElse: () => SpeciesCategory.other,
-        ),
-        description: row.data['description'] as String?,
-        photoPath: row.data['photo_path'] as String?,
-      );
-    }).toList();
+    return results.map(_mapRawRowToSpecies).toList();
   }
 
   /// Get species by ID
@@ -99,17 +90,7 @@ class SpeciesRepository {
         .getSingleOrNull();
 
     if (existing != null) {
-      return domain.Species(
-        id: existing.data['id'] as String,
-        commonName: existing.data['common_name'] as String,
-        scientificName: existing.data['scientific_name'] as String?,
-        category: SpeciesCategory.values.firstWhere(
-          (c) => c.name == existing.data['category'],
-          orElse: () => SpeciesCategory.other,
-        ),
-        description: existing.data['description'] as String?,
-        photoPath: existing.data['photo_path'] as String?,
-      );
+      return _mapRawRowToSpecies(existing);
     }
 
     // Create new species
@@ -293,80 +274,176 @@ class SpeciesRepository {
     SyncEventBus.notifyLocalChange();
   }
 
-  /// Seed common species data
-  Future<void> seedCommonSpecies() async {
-    final count = await _db
-        .customSelect('SELECT COUNT(*) as count FROM species')
-        .getSingle();
-    if ((count.data['count'] as int) > 0) return; // Already seeded
+  /// Seed built-in species from the bundled JSON asset.
+  ///
+  /// Uses INSERT OR IGNORE keyed on stable sp_ IDs for idempotent seeding.
+  /// Safe to call on every app launch.
+  Future<void> seedBuiltInSpecies() async {
+    final builtInSpecies = await SpeciesSeedService.loadBundledSpecies();
 
-    final commonSpecies = [
-      // Fish
-      ('Clownfish', 'Amphiprion ocellaris', SpeciesCategory.fish),
-      ('Blue Tang', 'Paracanthurus hepatus', SpeciesCategory.fish),
-      ('Parrotfish', 'Scaridae', SpeciesCategory.fish),
-      ('Lionfish', 'Pterois', SpeciesCategory.fish),
-      ('Angelfish', 'Pomacanthidae', SpeciesCategory.fish),
-      ('Butterflyfish', 'Chaetodontidae', SpeciesCategory.fish),
-      ('Grouper', 'Epinephelinae', SpeciesCategory.fish),
-      ('Moray Eel', 'Muraenidae', SpeciesCategory.fish),
-      ('Barracuda', 'Sphyraena', SpeciesCategory.fish),
-      ('Tuna', 'Thunnus', SpeciesCategory.fish),
+    await _db.batch((batch) {
+      for (final species in builtInSpecies) {
+        batch.insert(
+          _db.species,
+          SpeciesCompanion(
+            id: Value(species.id),
+            commonName: Value(species.commonName),
+            scientificName: Value(species.scientificName),
+            category: Value(species.category.name),
+            taxonomyClass: Value(species.taxonomyClass),
+            description: Value(species.description),
+            isBuiltIn: const Value(true),
+          ),
+          mode: InsertMode.insertOrIgnore,
+        );
+      }
+    });
+  }
 
-      // Sharks
-      ('Whale Shark', 'Rhincodon typus', SpeciesCategory.shark),
-      ('Reef Shark', 'Carcharhinus', SpeciesCategory.shark),
-      ('Hammerhead Shark', 'Sphyrna', SpeciesCategory.shark),
-      ('Nurse Shark', 'Ginglymostoma cirratum', SpeciesCategory.shark),
-      ('Bull Shark', 'Carcharhinus leucas', SpeciesCategory.shark),
+  /// Reset built-in species to their default values.
+  ///
+  /// Deletes all built-in species that are not referenced by sightings,
+  /// then re-seeds from the JSON asset. Species with existing sightings
+  /// are preserved but updated to match the latest bundled data.
+  Future<void> resetBuiltInSpecies() async {
+    final builtInSpecies = await SpeciesSeedService.loadBundledSpecies();
 
-      // Rays
-      ('Manta Ray', 'Manta birostris', SpeciesCategory.ray),
-      ('Eagle Ray', 'Myliobatidae', SpeciesCategory.ray),
-      ('Stingray', 'Dasyatis', SpeciesCategory.ray),
+    // Update existing built-in species that have sightings
+    final inUseResults = await _db.customSelect('''
+      SELECT DISTINCT species_id FROM sightings
+      WHERE species_id IN (
+        SELECT id FROM species WHERE is_built_in = 1
+      )
+    ''').get();
+    final inUseIds = inUseResults
+        .map((r) => r.data['species_id'] as String)
+        .toSet();
 
-      // Mammals
-      ('Dolphin', 'Delphinidae', SpeciesCategory.mammal),
-      ('Sea Lion', 'Otariinae', SpeciesCategory.mammal),
-      ('Whale', 'Cetacea', SpeciesCategory.mammal),
-      ('Manatee', 'Trichechus', SpeciesCategory.mammal),
+    // Delete built-in species not referenced by sightings
+    await _db.customStatement('''
+      DELETE FROM species
+      WHERE is_built_in = 1
+      AND id NOT IN (SELECT DISTINCT species_id FROM sightings)
+    ''');
 
-      // Turtles
-      ('Green Sea Turtle', 'Chelonia mydas', SpeciesCategory.turtle),
-      ('Hawksbill Turtle', 'Eretmochelys imbricata', SpeciesCategory.turtle),
-      ('Loggerhead Turtle', 'Caretta caretta', SpeciesCategory.turtle),
-
-      // Invertebrates
-      ('Octopus', 'Octopoda', SpeciesCategory.invertebrate),
-      ('Squid', 'Teuthida', SpeciesCategory.invertebrate),
-      ('Lobster', 'Nephropidae', SpeciesCategory.invertebrate),
-      ('Sea Cucumber', 'Holothuroidea', SpeciesCategory.invertebrate),
-      ('Jellyfish', 'Medusozoa', SpeciesCategory.invertebrate),
-      ('Starfish', 'Asteroidea', SpeciesCategory.invertebrate),
-      ('Crab', 'Brachyura', SpeciesCategory.invertebrate),
-      ('Shrimp', 'Caridea', SpeciesCategory.invertebrate),
-      ('Nudibranch', 'Nudibranchia', SpeciesCategory.invertebrate),
-      ('Sea Anemone', 'Actiniaria', SpeciesCategory.invertebrate),
-
-      // Coral
-      ('Brain Coral', 'Diploria', SpeciesCategory.coral),
-      ('Staghorn Coral', 'Acropora cervicornis', SpeciesCategory.coral),
-      ('Fan Coral', 'Gorgonia', SpeciesCategory.coral),
-      ('Table Coral', 'Acropora', SpeciesCategory.coral),
-    ];
-
-    for (final (name, scientificName, category) in commonSpecies) {
-      await _db
-          .into(_db.species)
-          .insert(
-            SpeciesCompanion(
-              id: Value(_uuid.v4()),
-              commonName: Value(name),
-              scientificName: Value(scientificName),
-              category: Value(category.name),
-            ),
-          );
+    // Update in-use built-in species to match bundled data
+    for (final species in builtInSpecies) {
+      if (inUseIds.contains(species.id)) {
+        await (_db.update(
+          _db.species,
+        )..where((t) => t.id.equals(species.id))).write(
+          SpeciesCompanion(
+            commonName: Value(species.commonName),
+            scientificName: Value(species.scientificName),
+            category: Value(species.category.name),
+            taxonomyClass: Value(species.taxonomyClass),
+            description: Value(species.description),
+            isBuiltIn: const Value(true),
+          ),
+        );
+      }
     }
+
+    // Re-seed (INSERT OR IGNORE handles species that still exist)
+    await seedBuiltInSpecies();
+
+    SyncEventBus.notifyLocalChange();
+  }
+
+  // ===========================================================================
+  // Species CRUD Methods
+  // ===========================================================================
+
+  /// Create a custom (non-built-in) species
+  Future<domain.Species> createSpecies({
+    required String commonName,
+    String? scientificName,
+    required SpeciesCategory category,
+    String? taxonomyClass,
+    String? description,
+  }) async {
+    final id = _uuid.v4();
+    await _db
+        .into(_db.species)
+        .insert(
+          SpeciesCompanion(
+            id: Value(id),
+            commonName: Value(commonName),
+            scientificName: Value(scientificName),
+            category: Value(category.name),
+            taxonomyClass: Value(taxonomyClass),
+            description: Value(description),
+            isBuiltIn: const Value(false),
+          ),
+        );
+
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _syncRepository.markRecordPending(
+      entityType: 'species',
+      recordId: id,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
+
+    return domain.Species(
+      id: id,
+      commonName: commonName,
+      scientificName: scientificName,
+      category: category,
+      taxonomyClass: taxonomyClass,
+      description: description,
+    );
+  }
+
+  /// Update an existing species (works for both custom and built-in)
+  Future<void> updateSpecies(domain.Species species) async {
+    await (_db.update(
+      _db.species,
+    )..where((t) => t.id.equals(species.id))).write(
+      SpeciesCompanion(
+        commonName: Value(species.commonName),
+        scientificName: Value(species.scientificName),
+        category: Value(species.category.name),
+        taxonomyClass: Value(species.taxonomyClass),
+        description: Value(species.description),
+      ),
+    );
+
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _syncRepository.markRecordPending(
+      entityType: 'species',
+      recordId: species.id,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
+  }
+
+  /// Delete a species. Throws if the species is referenced by sightings.
+  Future<void> deleteSpecies(String id) async {
+    if (await isSpeciesInUse(id)) {
+      throw Exception('Cannot delete species that is referenced by sightings');
+    }
+
+    // Also remove from site_species
+    await (_db.delete(
+      _db.siteSpecies,
+    )..where((t) => t.speciesId.equals(id))).go();
+
+    await (_db.delete(_db.species)..where((t) => t.id.equals(id))).go();
+
+    await _syncRepository.logDeletion(entityType: 'species', recordId: id);
+    SyncEventBus.notifyLocalChange();
+  }
+
+  /// Check if a species is referenced by any sightings
+  Future<bool> isSpeciesInUse(String id) async {
+    final result = await _db
+        .customSelect(
+          'SELECT COUNT(*) as count FROM sightings WHERE species_id = ?',
+          variables: [Variable.withString(id)],
+        )
+        .getSingle();
+    return (result.data['count'] as int) > 0;
   }
 
   // ===========================================================================
@@ -544,6 +621,24 @@ class SpeciesRepository {
     return (result.data['count'] as int) > 0;
   }
 
+  /// Map a raw SQL query result row to a Species domain entity
+  domain.Species _mapRawRowToSpecies(QueryRow row) {
+    return domain.Species(
+      id: row.data['id'] as String,
+      commonName: row.data['common_name'] as String,
+      scientificName: row.data['scientific_name'] as String?,
+      category: SpeciesCategory.values.firstWhere(
+        (c) => c.name == row.data['category'],
+        orElse: () => SpeciesCategory.other,
+      ),
+      taxonomyClass: row.data['taxonomy_class'] as String?,
+      description: row.data['description'] as String?,
+      photoPath: row.data['photo_path'] as String?,
+      isBuiltIn: (row.data['is_built_in'] as int) == 1,
+    );
+  }
+
+  /// Map a typed Drift row to a Species domain entity
   domain.Species _mapRowToSpecies(Specy row) {
     return domain.Species(
       id: row.id,
@@ -553,8 +648,10 @@ class SpeciesRepository {
         (c) => c.name == row.category,
         orElse: () => SpeciesCategory.other,
       ),
+      taxonomyClass: row.taxonomyClass,
       description: row.description,
       photoPath: row.photoPath,
+      isBuiltIn: row.isBuiltIn,
     );
   }
 }

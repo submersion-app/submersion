@@ -8,16 +8,20 @@ class Species extends Equatable {
   final String commonName;
   final String? scientificName;
   final SpeciesCategory category;
+  final String? taxonomyClass;
   final String? description;
   final String? photoPath;
+  final bool isBuiltIn;
 
   const Species({
     required this.id,
     required this.commonName,
     this.scientificName,
     required this.category,
+    this.taxonomyClass,
     this.description,
     this.photoPath,
+    this.isBuiltIn = false,
   });
 
   /// Display name with scientific name if available
@@ -33,16 +37,20 @@ class Species extends Equatable {
     String? commonName,
     String? scientificName,
     SpeciesCategory? category,
+    String? taxonomyClass,
     String? description,
     String? photoPath,
+    bool? isBuiltIn,
   }) {
     return Species(
       id: id ?? this.id,
       commonName: commonName ?? this.commonName,
       scientificName: scientificName ?? this.scientificName,
       category: category ?? this.category,
+      taxonomyClass: taxonomyClass ?? this.taxonomyClass,
       description: description ?? this.description,
       photoPath: photoPath ?? this.photoPath,
+      isBuiltIn: isBuiltIn ?? this.isBuiltIn,
     );
   }
 
@@ -52,8 +60,10 @@ class Species extends Equatable {
     commonName,
     scientificName,
     category,
+    taxonomyClass,
     description,
     photoPath,
+    isBuiltIn,
   ];
 }
 

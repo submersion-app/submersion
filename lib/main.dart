@@ -95,9 +95,9 @@ Future<void> main() async {
     // App continues without offline map caching
   }
 
-  // Seed common species data
+  // Seed built-in species from bundled JSON asset
   final speciesRepository = SpeciesRepository();
-  await speciesRepository.seedCommonSpecies();
+  await speciesRepository.seedBuiltInSpecies();
 
   runApp(
     ProviderScope(
