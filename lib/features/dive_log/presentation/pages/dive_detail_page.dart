@@ -891,7 +891,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         child: RangeSelectionOverlay(
                           diveId: dive.id,
                           chartWidth: constraints.maxWidth,
-                          leftPadding: 45, // Match chart's left axis width
+                          leftPadding:
+                              DiveProfileChart.leftAxisSize(
+                                constraints.maxWidth,
+                              ) +
+                              5,
                           rightPadding: 16,
                         ),
                       ),

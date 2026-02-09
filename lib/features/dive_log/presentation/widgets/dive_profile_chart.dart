@@ -117,6 +117,16 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// TTS (Time To Surface) curve in seconds
   final List<int>? ttsCurve;
 
+  /// Returns responsive left axis reserved size based on available chart width.
+  /// Tick labels are plain numbers (e.g. "30", "60") so don't need much space.
+  static double leftAxisSize(double availableWidth) =>
+      availableWidth < 350 ? 28.0 : 32.0;
+
+  /// Returns responsive right axis reserved size based on available chart width.
+  /// Tick labels are plain numbers (units moved to axis name label).
+  static double rightAxisSize(double availableWidth) =>
+      availableWidth < 350 ? 28.0 : 32.0;
+
   const DiveProfileChart({
     super.key,
     required this.profile,
@@ -576,6 +586,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             child: _buildChart(
               context,
               units,
+              availableWidth: constraints.maxWidth,
               hasTemperatureData: hasTemperatureData,
               hasPressureData: hasPressureData,
               hasHeartRateData: hasHeartRateData,
@@ -620,6 +631,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   Widget _buildChart(
     BuildContext context,
     UnitFormatter units, {
+    required double availableWidth,
     required bool hasTemperatureData,
     required bool hasPressureData,
     required bool hasHeartRateData,
@@ -754,7 +766,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 ),
                 sideTitles: SideTitles(
                   showTitles: true,
-                  reservedSize: 40,
+                  reservedSize: DiveProfileChart.leftAxisSize(availableWidth),
                   interval: _calculateDepthInterval(visibleRangeY),
                   getTitlesWidget: (value, meta) {
                     // Show positive depth values (negate the negative axis values)
@@ -784,11 +796,20 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 ),
               ),
               rightTitles: AxisTitles(
+                axisNameWidget:
+                    effectiveRightAxisMetric != null && rightAxisRange != null
+                    ? Text(
+                        _rightAxisLabel(effectiveRightAxisMetric, units),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: effectiveRightAxisMetric.getColor(colorScheme),
+                        ),
+                      )
+                    : null,
                 sideTitles: SideTitles(
                   showTitles:
                       effectiveRightAxisMetric != null &&
                       rightAxisRange != null,
-                  reservedSize: 50,
+                  reservedSize: DiveProfileChart.rightAxisSize(availableWidth),
                   getTitlesWidget: (value, meta) {
                     if (effectiveRightAxisMetric == null ||
                         rightAxisRange == null) {
@@ -2547,38 +2568,61 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     }
   }
 
-  /// Format a value for the right axis label
+  /// Format right axis tick values as plain numbers (units shown in axis label).
+  ///
+  /// Values from [_getMetricRange] are in storage units (bar, meters, etc.).
+  /// Temperature is pre-converted in [_getMetricRange]; all others are
+  /// converted here at display time to match the user's unit preferences.
   String _formatRightAxisValue(
     ProfileRightAxisMetric metric,
     double value,
     UnitFormatter units,
   ) {
     switch (metric) {
+      // Temperature range is already in user units (converted in _getMetricRange)
       case ProfileRightAxisMetric.temperature:
-        return '${value.toStringAsFixed(0)}${units.temperatureSymbol}';
-      case ProfileRightAxisMetric.pressure:
-        return '${value.toStringAsFixed(0)}${units.pressureSymbol}';
-      case ProfileRightAxisMetric.heartRate:
         return value.toStringAsFixed(0);
+      // Pressure stored in bar -> convert to user unit
+      case ProfileRightAxisMetric.pressure:
+        return units.convertPressure(value).toStringAsFixed(0);
+      // SAC stored in bar/min -> convert pressure component to user unit
       case ProfileRightAxisMetric.sac:
-        return value.toStringAsFixed(1);
-      case ProfileRightAxisMetric.ndl:
-        final min = (value / 60).round();
-        return '${min}m';
+        return units.convertPressure(value).toStringAsFixed(1);
+      // Mean depth stored in meters -> convert to user unit
+      case ProfileRightAxisMetric.meanDepth:
+        return units.convertDepth(value).toStringAsFixed(0);
+      // Universal units - no conversion needed
+      case ProfileRightAxisMetric.heartRate:
+      case ProfileRightAxisMetric.gf:
+      case ProfileRightAxisMetric.surfaceGf:
+        return value.toStringAsFixed(0);
       case ProfileRightAxisMetric.ppO2:
       case ProfileRightAxisMetric.ppN2:
       case ProfileRightAxisMetric.ppHe:
-        return value.toStringAsFixed(1);
       case ProfileRightAxisMetric.gasDensity:
         return value.toStringAsFixed(1);
-      case ProfileRightAxisMetric.gf:
-      case ProfileRightAxisMetric.surfaceGf:
-        return '${value.toStringAsFixed(0)}%';
-      case ProfileRightAxisMetric.meanDepth:
-        return units.formatDepth(value);
+      case ProfileRightAxisMetric.ndl:
       case ProfileRightAxisMetric.tts:
-        final min = (value / 60).round();
-        return '${min}m';
+        return (value / 60).round().toString();
+    }
+  }
+
+  /// Build axis label text for the right axis (e.g. "Temp (°C)").
+  String _rightAxisLabel(ProfileRightAxisMetric metric, UnitFormatter units) {
+    final name = metric.shortName;
+    switch (metric) {
+      case ProfileRightAxisMetric.temperature:
+        return '$name (${units.temperatureSymbol})';
+      case ProfileRightAxisMetric.pressure:
+        return '$name (${units.pressureSymbol})';
+      case ProfileRightAxisMetric.meanDepth:
+        return '$name (${units.depthSymbol})';
+      case ProfileRightAxisMetric.sac:
+        return '$name (${units.pressureSymbol}/min)';
+      default:
+        final suffix = metric.unitSuffix;
+        if (suffix != null) return '$name ($suffix)';
+        return name;
     }
   }
 
