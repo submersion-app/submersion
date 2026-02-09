@@ -450,12 +450,6 @@ This document contains only the features and tasks that are **not yet completed*
 
 ## Category 16: Manufacturer-Specific & Advanced Features
 
-### 16.1 Advanced Hardware Integration
-| Feature | Notes |
-|---------|-------|
-| Remote DC configuration | Bluetooth settings sync |
-| Firmware updates via app | Shearwater-specific |
-
 ### 16.2 Partner Ecosystem Integration
 | Feature | Notes |
 |---------|-------|
@@ -471,7 +465,6 @@ This document contains only the features and tasks that are **not yet completed*
 ---
 
 ## v2.0 Release Criteria
-- [ ] Web platform with backend service
 - [ ] 7+ language translations
 - [ ] Community features beta tested
 
