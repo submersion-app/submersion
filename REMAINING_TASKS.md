@@ -22,24 +22,6 @@ This document contains only the features and tasks that are **not yet completed*
 
 ---
 
-## Category 9: Environment, Wildlife & Photography
-
-### 9.2 Marine Life Tracking
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Taxonomy, photos | 📋 Planned | Scientific names, images |
-| Stats per species | 📋 Planned | First/last seen, depth range |
-
-**Tasks:**
-- [ ] Extend build-in species database.
-- [ ] Species database management (settings->manage)
-- [ ] Add `scientific_name`, `taxonomy_class`, `image_url` to species table
-- [ ] Species photo library (local or remote images)
-- [ ] Species detail page (description, typical depth, geographic range, photo)
-- [ ] Species statistics (total sightings, depth range, sites seen, first/last sighting)
-
----
-
 ## Category 13: Import, Export & Interoperability
 
 ### 13.2 Interoperability
@@ -211,11 +193,13 @@ This document contains only the features and tasks that are **not yet completed*
 ### 9.2 Marine Life Tracking
 | Feature | Notes |
 |---------|-------|
+| Species photos | Local or remote images |
 | Distribution map | Map of sightings |
 | AI species identification | Upload photo, AI identifies species |
 | Offline species ID | Works without internet connection |
 
 **Tasks:**
+- [ ] Species photo library (local or remote images)
 - [ ] Species distribution map (heatmap of sightings)
 - [ ] "Life list" progress tracker (total species seen)
 - [ ] Rare species badges
@@ -498,17 +482,16 @@ This document contains only the features and tasks that are **not yet completed*
 
 | Phase | Remaining Features | Remaining Tasks |
 |-------|-------------------|-----------------|
-| **v1.5** | ~9 features | ~17 tasks |
-| **v2.0** | ~64+ features | ~104+ tasks |
+| **v1.5** | ~7 features | ~11 tasks |
+| **v2.0** | ~65+ features | ~105+ tasks |
 | **v3.0** | ~4 features | Future scope |
 
 ## v1.5 Priority Areas
-1. Performance testing with large datasets
-2. Import from other dive log apps
-3. Accessibility improvements
-4. Species detail enhancements
+1. Import from other dive log apps
+2. Accessibility improvements
+3. Performance testing with large datasets
 
 ---
 
-**Document Version:** 2.6
-**Updated:** 2026-02-08 (Removed completed items; only remaining work listed)
+**Document Version:** 2.7
+**Updated:** 2026-02-09 (Removed completed 9.2 Marine Life Tracking from v1.5; species photos moved to v2.0)

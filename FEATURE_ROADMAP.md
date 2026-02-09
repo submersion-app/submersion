@@ -5,7 +5,7 @@
 > **Current Version:** 1.1.0 (v1.1 Complete)
 > **Status:** v1.0 ✅ COMPLETE | v1.1 ✅ COMPLETE | v1.5 🚧 In Progress
 >
-> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Profile Visualization (Category 2.1) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete | Search & Filtering (Category 10.1) ✅ Complete | Tools & Calculators (Category 11) ✅ Complete | Digital Signatures (Category 7.2) ✅ Complete | Training Dives (Category 8.3) ✅ Complete | Underwater Photography (Category 9.3) ✅ Complete | Maps & Visualization (Category 5.3) ✅ Complete | Certification Cards (Category 8.1) ✅ Complete | Push Notifications (Category 6.3) ✅ Complete | PDF Templates (Category 10.3) ✅ Complete | Wearable Integration v1 (Category 15.5) ✅ Complete
+> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Profile Visualization (Category 2.1) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete | Search & Filtering (Category 10.1) ✅ Complete | Tools & Calculators (Category 11) ✅ Complete | Digital Signatures (Category 7.2) ✅ Complete | Training Dives (Category 8.3) ✅ Complete | Underwater Photography (Category 9.3) ✅ Complete | Maps & Visualization (Category 5.3) ✅ Complete | Certification Cards (Category 8.1) ✅ Complete | Push Notifications (Category 6.3) ✅ Complete | PDF Templates (Category 10.3) ✅ Complete | Wearable Integration v1 (Category 15.5) ✅ Complete | Marine Life Tracking (Category 9.2) ✅ Complete
 
 ---
 
@@ -677,21 +677,32 @@
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Species database | ✅ Implemented | MVP | 40+ pre-seeded species |
+| Species database | ✅ Implemented | MVP | 511 pre-seeded species with scientific names |
 | Tag species per dive | ✅ Implemented | MVP | Sightings with counts |
-| Taxonomy, photos | 📋 Planned | v1.5 | Scientific names, images |
-| Stats per species | 📋 Planned | v1.5 | First/last seen, depth range |
+| Taxonomy class | ✅ Implemented | v1.5 | taxonomy_class column, is_built_in flag |
+| Species management UI | ✅ Implemented | v1.5 | Settings > Manage > Species (list, search, filter, add, edit, delete) |
+| Species detail page | ✅ Implemented | v1.5 | Description, per-species statistics, navigation from stats/dive detail |
+| Stats per species | ✅ Implemented | v1.5 | Total sightings, dive count, depth range, top sites, first/last seen |
+| Reset to defaults | ✅ Implemented | v1.5 | Restore built-in species to original values |
+| Species photos | 📋 Planned | v2.0 | Local or remote images |
 | Distribution map | 📋 Planned | v2.0 | Map of sightings |
 | AI species identification | 📋 Planned | v2.0 | Upload photo, AI identifies species |
 | Offline species ID | 📋 Planned | v2.0 | Works without internet connection |
 
-**v1.5 Tasks:**
-- [ ] Add `scientific_name`, `taxonomy_class`, `image_url` to species table
-- [ ] Species photo library (local or remote images)
-- [ ] Species detail page (description, typical depth, geographic range, photo)
-- [ ] Species statistics (total sightings, depth range, sites seen, first/last sighting)
+**v1.5 Tasks (Complete):**
+- [x] Add `taxonomy_class`, `is_built_in` columns to species table (schema v32)
+- [x] Expand species database from 36 to 511 species (JSON asset with scientific names, taxonomy, descriptions)
+- [x] Species seed service (JSON asset loader with static cache)
+- [x] Species management page (search, category filter, custom/built-in sections)
+- [x] Species edit page (add/edit form with all fields)
+- [x] Species detail page (header, taxonomy badge, description, statistics section)
+- [x] Per-species statistics (total sightings, dive count, depth range, top 5 sites, first/last sighting)
+- [x] Reset to defaults (restore built-in species, preserve custom species and sighting data)
+- [x] Navigation links from statistics marine life page and dive detail sighting tiles
+- [x] 30 tests (repository CRUD, statistics queries, entity behavior)
 
 **v2.0 Tasks:**
+- [ ] Species photo library (local or remote images)
 - [ ] Species distribution map (heatmap of sightings)
 - [ ] "Life list" progress tracker (total species seen)
 - [ ] Rare species badges
@@ -1303,7 +1314,6 @@
 -- gas_switches (dive_id, timestamp, tank_id)
 -- profile_events (dive_id, timestamp, event_type, description)
 -- CCR fields: dive_mode, tank_role
--- Species extensions: scientific_name, taxonomy_class, image_url
 ```
 
 ## v1.5 Tables (Implemented)
@@ -1340,6 +1350,11 @@
 -- dives.wearable_source (e.g., 'apple_health')
 -- dives.wearable_id (unique identifier from wearable platform)
 -- dive_profiles.heart_rate_source (e.g., 'apple_watch')
+
+-- Marine life tracking columns (v32):
+-- species.taxonomy_class (text, e.g., 'Actinopterygii')
+-- species.is_built_in (boolean, true for JSON-seeded species)
+-- 511 built-in species loaded from assets/data/species.json
 ```
 
 ## v2.0 Tables (Planned)
@@ -1443,6 +1458,7 @@
 - [x] Training Log Export (PDF with instructor signatures, course info, dive list)
 - [x] PDF Templates (Simple, Detailed, Professional, PADI-style, NAUI-style with page size and cert cards)
 - [x] Wearable Integration v1 (Apple Watch Ultra import via HealthKit, duplicate detection, 3-step wizard)
+- [x] Marine Life Tracking (511 species database, taxonomy, management UI, detail page with stats, reset-to-defaults)
 - [ ] Performance with 5000+ dives
 
 ## v2.0 (Planned)
@@ -1465,5 +1481,5 @@
 
 ---
 
-**Document Version:** 2.18
-**Last Updated:** 2026-02-05 (Wearable Integration v1: Apple Watch Ultra import via HealthKit, duplicate detection, import wizard)
+**Document Version:** 2.19
+**Last Updated:** 2026-02-09 (Marine Life Tracking: 511 species database, taxonomy, management UI, species detail with stats, reset-to-defaults)
