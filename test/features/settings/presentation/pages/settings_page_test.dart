@@ -310,7 +310,7 @@ void main() {
       );
       expect(find.text('Manage'), findsOneWidget);
       // The subtitle describes what's in the Manage section
-      expect(find.text('Trips, buddies, certifications'), findsOneWidget);
+      expect(find.text('Dive types & tank presets'), findsOneWidget);
     });
 
     testWidgets('should display Data section for backup/restore/storage', (
