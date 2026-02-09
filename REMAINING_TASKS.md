@@ -31,7 +31,8 @@ This document contains only the features and tasks that are **not yet completed*
 | Stats per species | 📋 Planned | First/last seen, depth range |
 
 **Tasks:**
-- [ ] Extend build-in species database
+- [ ] Extend build-in species database.
+- [ ] Species database management (settings->manage)
 - [ ] Add `scientific_name`, `taxonomy_class`, `image_url` to species table
 - [ ] Species photo library (local or remote images)
 - [ ] Species detail page (description, typical depth, geographic range, photo)

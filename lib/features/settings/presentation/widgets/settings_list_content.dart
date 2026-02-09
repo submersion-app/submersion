@@ -54,7 +54,7 @@ const settingsSections = [
     id: 'manage',
     icon: Icons.folder_shared,
     title: 'Manage',
-    subtitle: 'Trips, buddies, certifications',
+    subtitle: 'Dive types & tank presets',
   ),
   SettingsSection(
     id: 'data',

@@ -1527,38 +1527,6 @@ class _ManageSectionContent extends StatelessWidget {
             child: Column(
               children: [
                 ListTile(
-                  leading: const Icon(Icons.flight_takeoff),
-                  title: const Text('Trips'),
-                  subtitle: const Text('Manage your dive trips'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/trips'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.people),
-                  title: const Text('Buddies'),
-                  subtitle: const Text('Manage your dive buddies'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/buddies'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.card_membership),
-                  title: const Text('Certifications'),
-                  subtitle: const Text('Manage your dive certifications'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/certifications'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.store),
-                  title: const Text('Dive Centers'),
-                  subtitle: const Text('Manage dive shops and operators'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/dive-centers'),
-                ),
-                const Divider(height: 1),
-                ListTile(
                   leading: const Icon(Icons.label),
                   title: const Text('Dive Types'),
                   subtitle: const Text('Manage custom dive types'),
