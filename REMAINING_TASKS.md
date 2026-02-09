@@ -31,6 +31,7 @@ This document contains only the features and tasks that are **not yet completed*
 | Stats per species | 📋 Planned | First/last seen, depth range |
 
 **Tasks:**
+- [ ] Extend build-in species database
 - [ ] Add `scientific_name`, `taxonomy_class`, `image_url` to species table
 - [ ] Species photo library (local or remote images)
 - [ ] Species detail page (description, typical depth, geographic range, photo)
@@ -441,21 +442,12 @@ This document contains only the features and tasks that are **not yet completed*
 - [ ] Life list tracker (species collection progress)
 
 ### 15.5 Wearable Integration
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Apple Watch Ultra import | Done | Import dives via HealthKit |
-| Apple HealthKit integration | Done | Read depth/temperature/heart rate data |
-| Garmin Connect import | Planned | Import Descent dive activities |
-| Suunto app integration | Planned | Import via UDDF/Movescount |
+| Feature | Notes |
+|---------|-------|
+| Garmin Connect cloud API | Cloud sync (not file-based) |
 
-**Completed:**
-- [x] HealthKit permission and data reading
-- [x] Import Apple Watch Ultra dives (depth, temperature, time, heart rate)
-- [x] Duplicate detection (exact wearableId match + fuzzy DiveMatcher scoring)
-- [x] 3-step import wizard UI (Select > Review > Summary)
-
-**Remaining:**
-- [ ] Garmin Connect API integration
+**Tasks:**
+- [ ] Garmin Connect cloud API integration
 - [ ] Automatic sync from connected wearables
 - [ ] Merge wearable data with dive computer data
 
@@ -504,40 +496,23 @@ This document contains only the features and tasks that are **not yet completed*
 
 ---
 
-# v3.0 Future Features
-
-## Category 9: Environment, Wildlife & Photography
-| Feature | Notes |
-|---------|-------|
-| Depth/time overlay | Requires camera integration |
-
-## Category 14: Social, Community & Travel Features
-
-### 14.4 Booking & Commerce
-| Feature | Notes |
-|---------|-------|
-| Browse/book fun dives | PADI Adventures-style |
-| Book courses | Integration with dive shops |
-| Pass cert details to bookings | Auto-fill diver info |
-
 # Summary
 
 ## Task Counts by Phase
 
 | Phase | Remaining Features | Remaining Tasks |
 |-------|-------------------|-----------------|
-| **v1.5** | ~12 features | ~21 tasks |
-| **v2.0** | ~69+ features | ~104+ tasks |
-| **v3.0** | ~5 features | Future scope |
+| **v1.5** | ~9 features | ~17 tasks |
+| **v2.0** | ~64+ features | ~104+ tasks |
+| **v3.0** | ~4 features | Future scope |
 
 ## v1.5 Priority Areas
 1. Performance testing with large datasets
-2. Remaining export formats (DAN DL7, Excel, KML)
-3. Import from other dive log apps
-4. Accessibility improvements
-5. Species detail enhancements
+2. Import from other dive log apps
+3. Accessibility improvements
+4. Species detail enhancements
 
 ---
 
-**Document Version:** 2.5
-**Updated:** 2026-02-05 (Wearable integration v1 complete: HealthKit import, duplicate detection, import wizard)
+**Document Version:** 2.6
+**Updated:** 2026-02-08 (Removed completed items; only remaining work listed)

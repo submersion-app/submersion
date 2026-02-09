@@ -716,7 +716,7 @@
 | Tag species in photos | 📋 Planned | v2.0 | Image annotation |
 | Color correction | 📋 Planned | v2.0 | Blue filter removal |
 | Shareable dive cards | 📋 Planned | v2.0 | Generate visual summary for social media |
-| Depth/time overlay | 🔮 Future | v3.0 | Requires camera integration |
+| Depth/time overlay | ✅ Implemented | v1.5 | MiniDiveProfileOverlay on photo viewer |
 
 **v1.5 Tasks (Complete):**
 - [x] Photo picker in dive detail page (time range filtering based on dive times)
@@ -1213,8 +1213,10 @@
 | Apple Watch Ultra import | ✅ Implemented | v1.5 | Import dives via HealthKit with 3-step wizard |
 | Apple HealthKit integration | ✅ Implemented | v1.5 | Read depth/temperature/heart rate data |
 | Duplicate detection | ✅ Implemented | v1.5 | Exact wearableId + fuzzy DiveMatcher scoring |
-| Garmin Connect import | 📋 Planned | v2.0 | Import Descent dive activities |
-| Suunto app integration | 📋 Planned | v2.0 | Import via UDDF/Movescount |
+| Garmin FIT file import | ✅ Implemented | v1.5 | FitParserService + 3-step import wizard |
+| Suunto BLE direct download | ✅ Implemented | v1.5 | suunto_ble_protocol, device library support |
+| UDDF import | ✅ Implemented | v1.5 | Covers Suunto app/Movescount exports |
+| Garmin Connect cloud API | 📋 Planned | v2.0 | Cloud sync (not file-based) |
 
 **v1.5 Tasks (Complete):**
 - [x] HealthKit permission and data reading (health package, UNDERWATER_DIVING activity)
@@ -1225,9 +1227,13 @@
 - [x] Exact dedup via wearableId + fuzzy match via DiveMatcher
 - [x] Database: wearableSource/wearableId on dives, heartRateSource on dive_profiles
 - [x] Route: /settings/wearable-import (Transfer > Dive Computers > Apple Watch)
+- [x] Garmin FIT file parsing and import (FitParserService, fit_tool package)
+- [x] FIT import wizard (Transfer > Import from FIT File, 3-step: Pick > Duplicates > Summary)
+- [x] Suunto BLE protocol implementation (EON Steel/D5, HDLC framing)
+- [x] UDDF import wizard (Transfer > Import from UDDF)
 
 **v2.0 Tasks:**
-- [ ] Garmin Connect API integration
+- [ ] Garmin Connect cloud API integration
 - [ ] Automatic sync from connected wearables
 - [ ] Merge wearable data with dive computer data
 
