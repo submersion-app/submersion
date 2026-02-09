@@ -389,6 +389,7 @@ This document contains only the features and tasks that are **not yet completed*
 - [ ] Customizable dive list columns (user selects which fields to show)
 - [ ] Theme editor (custom colors, fonts)
 - [ ] Layout presets (Compact, Detailed, Photo-focused)
+- [ ] Make the hero bar more interesting to look at
 
 ### 15.3 Accessibility & Localization
 | Feature | Notes |

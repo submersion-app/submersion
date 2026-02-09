@@ -9,6 +9,7 @@ import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.d
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/import_progress_dialog.dart';
+import 'package:submersion/features/transfer/presentation/widgets/csv_export_dialog.dart';
 import 'package:submersion/features/transfer/presentation/widgets/pdf_export_dialog.dart';
 import 'package:submersion/features/transfer/presentation/widgets/transfer_list_content.dart';
 
@@ -354,67 +355,13 @@ class _ExportSectionContent extends ConsumerWidget {
                         .saveUddfToFile(),
                   ),
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildSectionHeader(context, 'CSV Export'),
-          const SizedBox(height: 8),
-          Card(
-            child: Column(
-              children: [
+                const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.table_chart),
-                  title: const Text('Dives as CSV'),
+                  title: const Text('CSV Export'),
                   subtitle: const Text('Spreadsheet format'),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _showExportOptions(
-                    context,
-                    ref,
-                    title: 'Dives as CSV',
-                    shareAction: () => ref
-                        .read(exportNotifierProvider.notifier)
-                        .exportDivesToCsv(),
-                    saveAction: () => ref
-                        .read(exportNotifierProvider.notifier)
-                        .saveDivesCsvToFile(),
-                  ),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.location_on),
-                  title: const Text('Sites as CSV'),
-                  subtitle: const Text('Export dive sites'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _showExportOptions(
-                    context,
-                    ref,
-                    title: 'Sites as CSV',
-                    shareAction: () => ref
-                        .read(exportNotifierProvider.notifier)
-                        .exportSitesToCsv(),
-                    saveAction: () => ref
-                        .read(exportNotifierProvider.notifier)
-                        .saveSitesCsvToFile(),
-                  ),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.build),
-                  title: const Text('Equipment as CSV'),
-                  subtitle: const Text('Export equipment inventory'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _showExportOptions(
-                    context,
-                    ref,
-                    title: 'Equipment as CSV',
-                    shareAction: () => ref
-                        .read(exportNotifierProvider.notifier)
-                        .exportEquipmentToCsv(),
-                    saveAction: () => ref
-                        .read(exportNotifierProvider.notifier)
-                        .saveEquipmentCsvToFile(),
-                  ),
+                  onTap: () => _handleCsvExport(context, ref),
                 ),
               ],
             ),
@@ -496,6 +443,40 @@ class _ExportSectionContent extends ConsumerWidget {
       saveAction: () =>
           ref.read(exportNotifierProvider.notifier).savePdfToFile(options),
     );
+  }
+
+  /// Handle CSV export with type selection dialog, then share/save options.
+  Future<void> _handleCsvExport(BuildContext context, WidgetRef ref) async {
+    final type = await CsvExportDialog.show(context);
+    if (type == null || !context.mounted) return;
+
+    final notifier = ref.read(exportNotifierProvider.notifier);
+    switch (type) {
+      case CsvExportType.dives:
+        _showExportOptions(
+          context,
+          ref,
+          title: 'Dives CSV',
+          shareAction: () => notifier.exportDivesToCsv(),
+          saveAction: () => notifier.saveDivesCsvToFile(),
+        );
+      case CsvExportType.sites:
+        _showExportOptions(
+          context,
+          ref,
+          title: 'Sites CSV',
+          shareAction: () => notifier.exportSitesToCsv(),
+          saveAction: () => notifier.saveSitesCsvToFile(),
+        );
+      case CsvExportType.equipment:
+        _showExportOptions(
+          context,
+          ref,
+          title: 'Equipment CSV',
+          shareAction: () => notifier.exportEquipmentToCsv(),
+          saveAction: () => notifier.saveEquipmentCsvToFile(),
+        );
+    }
   }
 
   Future<void> _handleExport(
