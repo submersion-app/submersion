@@ -8,6 +8,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/theme/app_colors.dart';
 import 'package:submersion/core/deco/ascent_rate_calculator.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -1068,11 +1069,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     addRow('Time', timeValue, onSurface.withValues(alpha: 0.5));
 
                     // Depth (always shown) - use same color as depth line
-                    final depthColor =
-                        (widget.tanks != null && widget.tanks!.isNotEmpty)
-                        ? GasColors.forGasMix(widget.tanks!.first.gasMix)
-                        : colorScheme.primary;
-                    addRow('Depth', units.formatDepth(point.depth), depthColor);
+                    addRow(
+                      'Depth',
+                      units.formatDepth(point.depth),
+                      AppColors.chartDepth,
+                    );
 
                     // Temperature (if enabled - always show row)
                     if (_showTemperature) {
@@ -1133,11 +1134,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                           ceilingValue = units.formatDepth(ceiling);
                         }
                       }
-                      addRow(
-                        'Ceiling',
-                        ceilingValue,
-                        Colors.red.withValues(alpha: 0.7),
-                      );
+                      addRow('Ceiling', ceilingValue, const Color(0xFFD32F2F));
                     }
 
                     // Ascent rate (if enabled - always show row with fixed format)
@@ -1192,7 +1189,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                           ndlValue = '>60 min';
                         }
                       }
-                      addRow('NDL', ndlValue, Colors.green.shade600);
+                      addRow('NDL', ndlValue, Colors.lightGreen.shade700);
                     }
 
                     // ppO2 (if enabled)
@@ -1203,7 +1200,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                         final ppO2 = widget.ppO2Curve![spot.spotIndex];
                         ppO2Value = '${ppO2.toStringAsFixed(2)} bar';
                       }
-                      addRow('ppO2', ppO2Value, Colors.blue.shade600);
+                      addRow('ppO2', ppO2Value, const Color(0xFF00ACC1));
                     }
 
                     // ppN2 (if enabled)
@@ -1302,7 +1299,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                           ttsValue = '0 min';
                         }
                       }
-                      addRow('TTS', ttsValue, Colors.orange.shade800);
+                      addRow('TTS', ttsValue, const Color(0xFFAD1457));
                     }
 
                     // Per-tank pressure (if any tanks are enabled)
@@ -1530,85 +1527,22 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     });
   }
 
-  /// Build depth line segments colored by active gas
-  /// Returns multiple line segments, each colored based on the active gas at that time
+  /// Build depth line segments - always uses consistent blue color.
+  /// Gas switches are indicated by separate gas switch markers, not depth line color.
   List<LineChartBarData> _buildGasColoredDepthLines(
     ColorScheme colorScheme,
     UnitFormatter units,
   ) {
-    final gasSwitches = widget.gasSwitches;
-    final tanks = widget.tanks;
-
-    // If no gas switches, use initial tank color or theme primary
-    if (gasSwitches == null || gasSwitches.isEmpty) {
-      final gasColor = (tanks != null && tanks.isNotEmpty)
-          ? GasColors.forGasMix(tanks.first.gasMix)
-          : colorScheme.primary;
-      return [
-        _buildSingleDepthSegment(
-          gasColor,
-          units,
-          0,
-          widget.profile.length,
-          showFill: true,
-        ),
-      ];
-    }
-
-    final lines = <LineChartBarData>[];
-
-    // Determine initial gas color from first tank
-    Color currentColor = (tanks != null && tanks.isNotEmpty)
-        ? GasColors.forGasMix(tanks.first.gasMix)
-        : GasColors.air;
-
-    int segmentStart = 0;
-    int switchIndex = 0;
-
-    for (int i = 0; i < widget.profile.length; i++) {
-      final point = widget.profile[i];
-
-      // Check if we've passed a gas switch
-      while (switchIndex < gasSwitches.length &&
-          point.timestamp >= gasSwitches[switchIndex].timestamp) {
-        // Create segment up to this switch point
-        if (i > segmentStart) {
-          lines.add(
-            _buildSingleDepthSegment(
-              currentColor,
-              units,
-              segmentStart,
-              i,
-              showFill: segmentStart == 0, // Only show fill for first segment
-            ),
-          );
-        }
-
-        // Update color for new gas
-        currentColor = GasColors.forMixFraction(
-          gasSwitches[switchIndex].o2Fraction,
-          gasSwitches[switchIndex].heFraction,
-        );
-        segmentStart = i;
-        switchIndex++;
-      }
-    }
-
-    // Add final segment
-    if (segmentStart < widget.profile.length) {
-      lines.add(
-        _buildSingleDepthSegment(
-          currentColor,
-          units,
-          segmentStart,
-          widget.profile.length,
-          showFill:
-              segmentStart == 0, // Only show fill if this is the only segment
-        ),
-      );
-    }
-
-    return lines;
+    const depthColor = AppColors.chartDepth;
+    return [
+      _buildSingleDepthSegment(
+        depthColor,
+        units,
+        0,
+        widget.profile.length,
+        showFill: true,
+      ),
+    ];
   }
 
   /// Build a single depth line segment with the given color
@@ -1946,7 +1880,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// Build the ceiling line (decompression ceiling)
   LineChartBarData _buildCeilingLine(UnitFormatter units) {
     final ceilingData = widget.ceilingCurve!;
-    final ceilingColor = Colors.amber.shade700;
+    const ceilingColor = Color(
+      0xFFD32F2F,
+    ); // Red 700 - distinct from pressure orange
 
     // Build spots only where ceiling > 0
     final spots = <FlSpot>[];
@@ -1986,7 +1922,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// NDL values are in seconds; shows time remaining before deco obligation
   LineChartBarData _buildNdlLine(double chartMaxDepth) {
     final ndlData = widget.ndlCurve!;
-    const ndlColor = Colors.green;
+    final ndlColor = Colors.lightGreen.shade700;
 
     // Map NDL to chart: max NDL (~60 min) at top, 0 at bottom
     const maxNdlSeconds = 3600.0; // 60 minutes as max display
@@ -2018,7 +1954,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// Values typically range from 0.21 (surface air) to 1.6+ (critical)
   LineChartBarData _buildPpO2Line(double chartMaxDepth) {
     final ppO2Data = widget.ppO2Curve!;
-    final ppO2Color = Colors.blue.shade600;
+    const ppO2Color = Color(0xFF00ACC1); // Cyan 600 - distinct from depth blue
 
     // Map ppO2 to chart: 0 at top, 2.0 bar at bottom
     const minPpO2 = 0.0;
@@ -2269,7 +2205,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// Shows total time including deco stops to reach surface
   LineChartBarData _buildTtsLine(double chartMaxDepth) {
     final ttsData = widget.ttsCurve!;
-    final ttsColor = Colors.orange.shade800;
+    const ttsColor = Color(
+      0xFFAD1457,
+    ); // Pink 800 - distinct from pressure orange
 
     // Map TTS to chart: 0 at top, 60 min at bottom
     const maxTtsSeconds = 3600.0;

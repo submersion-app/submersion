@@ -37,14 +37,14 @@ enum ProfileRightAxisMetric {
   ndl(
     displayName: 'NDL',
     shortName: 'NDL',
-    color: Color(0xFF43A047), // Colors.green.shade600
+    color: Color(0xFF689F38), // Colors.lightGreen.shade700
     unitSuffix: 'min',
     category: ProfileMetricCategory.decompression,
   ),
   ppO2(
     displayName: 'ppO2',
     shortName: 'ppO2',
-    color: Color(0xFF1E88E5), // Colors.blue.shade600
+    color: Color(0xFF00ACC1), // Cyan 600 - distinct from depth blue
     unitSuffix: 'bar',
     category: ProfileMetricCategory.gasAnalysis,
   ),
@@ -93,7 +93,7 @@ enum ProfileRightAxisMetric {
   tts(
     displayName: 'TTS',
     shortName: 'TTS',
-    color: Color(0xFFEF6C00), // Colors.orange.shade800
+    color: Color(0xFFAD1457), // Pink 800 - distinct from pressure orange
     unitSuffix: 'min',
     category: ProfileMetricCategory.decompression,
   );

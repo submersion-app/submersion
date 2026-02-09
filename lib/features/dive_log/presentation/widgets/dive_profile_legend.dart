@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/theme/app_colors.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
@@ -142,7 +143,7 @@ class DiveProfileLegend extends ConsumerWidget {
                 // Depth legend (always shown, not a toggle)
                 _buildLegendItem(
                   context,
-                  color: colorScheme.primary,
+                  color: AppColors.chartDepth,
                   label: 'Depth',
                 ),
                 // Temperature toggle (primary)
@@ -167,7 +168,7 @@ class DiveProfileLegend extends ConsumerWidget {
                 if (config.hasCeilingCurve)
                   _buildMetricToggle(
                     context,
-                    color: Colors.amber.shade700,
+                    color: const Color(0xFFD32F2F), // Red 700
                     label: 'Ceiling',
                     isEnabled: legendState.showCeiling,
                     onTap: legendNotifier.toggleCeiling,
@@ -391,7 +392,7 @@ class _MoreOptionsButton extends StatelessWidget {
         _buildToggleMenuItem(
           context,
           label: 'Ascent Rate',
-          color: Colors.green,
+          color: Colors.lime.shade700,
           isEnabled: legendState.showAscentRateColors,
           onTap: legendNotifier.toggleAscentRateColors,
         ),
@@ -404,7 +405,7 @@ class _MoreOptionsButton extends StatelessWidget {
         _buildToggleMenuItem(
           context,
           label: 'Events',
-          color: Colors.purple,
+          color: Colors.amber,
           isEnabled: legendState.showEvents,
           onTap: legendNotifier.toggleEvents,
         ),
@@ -508,7 +509,7 @@ class _MoreOptionsButton extends StatelessWidget {
         _buildToggleMenuItem(
           context,
           label: 'NDL',
-          color: Colors.green.shade600,
+          color: Colors.lightGreen.shade700,
           isEnabled: legendState.showNdl,
           onTap: legendNotifier.toggleNdl,
         ),
@@ -521,7 +522,7 @@ class _MoreOptionsButton extends StatelessWidget {
         _buildToggleMenuItem(
           context,
           label: 'ppO2',
-          color: Colors.blue.shade600,
+          color: const Color(0xFF00ACC1), // Cyan 600
           isEnabled: legendState.showPpO2,
           onTap: legendNotifier.togglePpO2,
         ),
@@ -625,7 +626,7 @@ class _MoreOptionsButton extends StatelessWidget {
         _buildToggleMenuItem(
           context,
           label: 'TTS',
-          color: Colors.orange.shade800,
+          color: const Color(0xFFAD1457), // Pink 800
           isEnabled: legendState.showTts,
           onTap: legendNotifier.toggleTts,
         ),
