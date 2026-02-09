@@ -9,9 +9,11 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
+import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart'
     as domain;
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
@@ -214,6 +216,61 @@ class DiveRepository {
     } catch (e, stackTrace) {
       _log.error('Failed to get profile for dive: $diveId', e, stackTrace);
       return [];
+    }
+  }
+
+  /// Load downsampled profile points for multiple dives in a single query.
+  ///
+  /// Returns a map of `diveId` to `List<DiveProfilePoint>` where each profile
+  /// is downsampled to at most [maxSamples] evenly-spaced points. This is
+  /// used for mini-charts in the dive list to avoid N+1 queries.
+  Future<Map<String, List<domain.DiveProfilePoint>>> getBatchProfileSummaries(
+    List<String> diveIds, {
+    int maxSamples = 20,
+  }) async {
+    if (diveIds.isEmpty) return {};
+    try {
+      final query = _db.select(_db.diveProfiles)
+        ..where((t) => t.diveId.isIn(diveIds))
+        ..orderBy([
+          (t) => OrderingTerm.asc(t.diveId),
+          (t) => OrderingTerm.asc(t.timestamp),
+        ]);
+      final rows = await query.get();
+
+      // Group by diveId
+      final grouped = <String, List<domain.DiveProfilePoint>>{};
+      for (final row in rows) {
+        grouped
+            .putIfAbsent(row.diveId, () => [])
+            .add(
+              domain.DiveProfilePoint(
+                timestamp: row.timestamp,
+                depth: row.depth,
+              ),
+            );
+      }
+
+      // Downsample each dive's profile to maxSamples points
+      final result = <String, List<domain.DiveProfilePoint>>{};
+      for (final entry in grouped.entries) {
+        final points = entry.value;
+        if (points.length <= maxSamples) {
+          result[entry.key] = points;
+        } else {
+          // Evenly space samples across the profile
+          final sampled = <domain.DiveProfilePoint>[];
+          for (var i = 0; i < maxSamples; i++) {
+            final index = (i * (points.length - 1)) ~/ (maxSamples - 1);
+            sampled.add(points[index]);
+          }
+          result[entry.key] = sampled;
+        }
+      }
+      return result;
+    } catch (e, stackTrace) {
+      _log.error('Failed to get batch profiles', e, stackTrace);
+      return {};
     }
   }
 
@@ -643,6 +700,273 @@ class DiveRepository {
     } catch (e, stackTrace) {
       _log.error('Failed to get dives by ids', e, stackTrace);
       rethrow;
+    }
+  }
+
+  // ============================================================================
+  // Paginated Queries
+  // ============================================================================
+
+  /// Get paginated dive summaries with SQL-level filtering.
+  ///
+  /// Uses cursor-based pagination for stable page boundaries even when
+  /// rows are inserted or deleted between page loads.
+  /// Returns lightweight [DiveSummary] objects optimized for list display.
+  Future<List<DiveSummary>> getDiveSummaries({
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+    DiveSummaryCursor? cursor,
+    int limit = 50,
+  }) async {
+    try {
+      final whereClauses = <String>[];
+      final args = <Variable<Object>>[];
+
+      if (diverId != null) {
+        whereClauses.add('d.diver_id = ?');
+        args.add(Variable(diverId));
+      }
+
+      // Cursor condition: rows that come after the cursor in descending order.
+      // Expands tuple comparison (ts, num, id) < (?, ?, ?) for SQLite.
+      if (cursor != null) {
+        whereClauses.add(
+          '('
+          'COALESCE(d.entry_time, d.dive_date_time) < ? '
+          'OR (COALESCE(d.entry_time, d.dive_date_time) = ? '
+          'AND COALESCE(d.dive_number, 0) < ?) '
+          'OR (COALESCE(d.entry_time, d.dive_date_time) = ? '
+          'AND COALESCE(d.dive_number, 0) = ? AND d.id < ?)'
+          ')',
+        );
+        args.add(Variable(cursor.sortTimestamp));
+        args.add(Variable(cursor.sortTimestamp));
+        args.add(Variable(cursor.diveNumber));
+        args.add(Variable(cursor.sortTimestamp));
+        args.add(Variable(cursor.diveNumber));
+        args.add(Variable(cursor.id));
+      }
+
+      _buildFilterWhereClauses(filter, whereClauses, args);
+
+      final whereClause = whereClauses.isNotEmpty
+          ? 'WHERE ${whereClauses.join(' AND ')}'
+          : '';
+
+      final sql =
+          'SELECT '
+          'd.id, d.dive_number, d.dive_date_time, d.entry_time, '
+          'd.max_depth, d.duration, d.water_temp, d.rating, '
+          'd.is_favorite, d.dive_type, '
+          'COALESCE(d.entry_time, d.dive_date_time) AS sort_timestamp, '
+          's.name AS site_name, s.country AS site_country, '
+          's.region AS site_region, s.latitude AS site_latitude, '
+          's.longitude AS site_longitude '
+          'FROM dives d '
+          'LEFT JOIN dive_sites s ON d.site_id = s.id '
+          '$whereClause '
+          'ORDER BY sort_timestamp DESC, '
+          'COALESCE(d.dive_number, 0) DESC, d.id DESC '
+          'LIMIT ?';
+      args.add(Variable(limit));
+
+      final rows = await _db
+          .customSelect(
+            sql,
+            variables: args,
+            readsFrom: {_db.dives, _db.diveSites},
+          )
+          .get();
+
+      if (rows.isEmpty) return [];
+
+      // Batch load tags for all returned dive IDs
+      final diveIds = rows.map((r) => r.read<String>('id')).toList();
+      final tagsByDive = await _tagRepository.getTagsForDives(diveIds);
+
+      return rows.map((row) {
+        final id = row.read<String>('id');
+        final entryTime = row.readNullable<int>('entry_time');
+        final duration = row.readNullable<int>('duration');
+
+        return DiveSummary(
+          id: id,
+          diveNumber: row.readNullable<int>('dive_number'),
+          dateTime: DateTime.fromMillisecondsSinceEpoch(
+            row.read<int>('dive_date_time'),
+          ),
+          entryTime: entryTime != null
+              ? DateTime.fromMillisecondsSinceEpoch(entryTime)
+              : null,
+          maxDepth: row.readNullable<double>('max_depth'),
+          duration: duration != null ? Duration(seconds: duration) : null,
+          waterTemp: row.readNullable<double>('water_temp'),
+          rating: row.readNullable<int>('rating'),
+          isFavorite: row.read<int>('is_favorite') == 1,
+          diveTypeId: row.read<String>('dive_type'),
+          tags: tagsByDive[id] ?? [],
+          siteName: row.readNullable<String>('site_name'),
+          siteCountry: row.readNullable<String>('site_country'),
+          siteRegion: row.readNullable<String>('site_region'),
+          siteLatitude: row.readNullable<double>('site_latitude'),
+          siteLongitude: row.readNullable<double>('site_longitude'),
+          sortTimestamp: row.read<int>('sort_timestamp'),
+        );
+      }).toList();
+    } catch (e, stackTrace) {
+      _log.error('Failed to get dive summaries', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Get total count of dives matching the given filters.
+  ///
+  /// Used to display "X dives" in the UI header without loading all data.
+  Future<int> getDiveCount({
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+  }) async {
+    try {
+      final whereClauses = <String>[];
+      final args = <Variable<Object>>[];
+
+      if (diverId != null) {
+        whereClauses.add('d.diver_id = ?');
+        args.add(Variable(diverId));
+      }
+
+      _buildFilterWhereClauses(filter, whereClauses, args);
+
+      final whereClause = whereClauses.isNotEmpty
+          ? 'WHERE ${whereClauses.join(' AND ')}'
+          : '';
+
+      final result = await _db
+          .customSelect(
+            'SELECT COUNT(*) AS count FROM dives d $whereClause',
+            variables: args,
+            readsFrom: {_db.dives},
+          )
+          .getSingle();
+      return result.read<int>('count');
+    } catch (e, stackTrace) {
+      _log.error('Failed to get dive count', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Build SQL WHERE clauses from a [DiveFilterState].
+  ///
+  /// Translates each active filter field into parameterized SQL.
+  /// Junction-table filters (tags, equipment, buddies) use EXISTS subqueries.
+  void _buildFilterWhereClauses(
+    DiveFilterState filter,
+    List<String> clauses,
+    List<Variable<Object>> args,
+  ) {
+    if (filter.startDate != null) {
+      clauses.add('d.dive_date_time >= ?');
+      args.add(Variable(filter.startDate!.millisecondsSinceEpoch));
+    }
+    if (filter.endDate != null) {
+      final endOfDay = filter.endDate!.add(const Duration(days: 1));
+      clauses.add('d.dive_date_time < ?');
+      args.add(Variable(endOfDay.millisecondsSinceEpoch));
+    }
+    if (filter.diveTypeId != null) {
+      clauses.add('d.dive_type = ?');
+      args.add(Variable(filter.diveTypeId!));
+    }
+    if (filter.siteId != null) {
+      clauses.add('d.site_id = ?');
+      args.add(Variable(filter.siteId!));
+    }
+    if (filter.tripId != null) {
+      clauses.add('d.trip_id = ?');
+      args.add(Variable(filter.tripId!));
+    }
+    if (filter.diveCenterId != null) {
+      clauses.add('d.dive_center_id = ?');
+      args.add(Variable(filter.diveCenterId!));
+    }
+    if (filter.minDepth != null) {
+      clauses.add('d.max_depth >= ?');
+      args.add(Variable(filter.minDepth!));
+    }
+    if (filter.maxDepth != null) {
+      clauses.add('d.max_depth <= ?');
+      args.add(Variable(filter.maxDepth!));
+    }
+    if (filter.favoritesOnly == true) {
+      clauses.add('d.is_favorite = 1');
+    }
+    if (filter.tagIds.isNotEmpty) {
+      final placeholders = List.filled(filter.tagIds.length, '?').join(', ');
+      clauses.add(
+        'EXISTS (SELECT 1 FROM dive_tags dt '
+        'WHERE dt.dive_id = d.id AND dt.tag_id IN ($placeholders))',
+      );
+      for (final tagId in filter.tagIds) {
+        args.add(Variable(tagId));
+      }
+    }
+    if (filter.equipmentIds.isNotEmpty) {
+      final placeholders = List.filled(
+        filter.equipmentIds.length,
+        '?',
+      ).join(', ');
+      clauses.add(
+        'EXISTS (SELECT 1 FROM dive_equipment de '
+        'WHERE de.dive_id = d.id AND de.equipment_id IN ($placeholders))',
+      );
+      for (final eqId in filter.equipmentIds) {
+        args.add(Variable(eqId));
+      }
+    }
+    if (filter.buddyNameFilter != null && filter.buddyNameFilter!.isNotEmpty) {
+      clauses.add('d.buddy LIKE ?');
+      args.add(Variable('%${filter.buddyNameFilter}%'));
+    }
+    if (filter.buddyId != null) {
+      clauses.add(
+        'EXISTS (SELECT 1 FROM dive_buddies db '
+        'WHERE db.dive_id = d.id AND db.buddy_id = ?)',
+      );
+      args.add(Variable(filter.buddyId!));
+    }
+    if (filter.diveIds.isNotEmpty) {
+      final placeholders = List.filled(filter.diveIds.length, '?').join(', ');
+      clauses.add('d.id IN ($placeholders)');
+      for (final diveId in filter.diveIds) {
+        args.add(Variable(diveId));
+      }
+    }
+    if (filter.minO2Percent != null || filter.maxO2Percent != null) {
+      final tankClauses = <String>[];
+      if (filter.minO2Percent != null) {
+        tankClauses.add('t.o2_percent >= ?');
+        args.add(Variable(filter.minO2Percent!));
+      }
+      if (filter.maxO2Percent != null) {
+        tankClauses.add('t.o2_percent <= ?');
+        args.add(Variable(filter.maxO2Percent!));
+      }
+      clauses.add(
+        'EXISTS (SELECT 1 FROM dive_tanks t '
+        'WHERE t.dive_id = d.id AND ${tankClauses.join(' AND ')})',
+      );
+    }
+    if (filter.minRating != null) {
+      clauses.add('d.rating >= ?');
+      args.add(Variable(filter.minRating!));
+    }
+    if (filter.minDurationMinutes != null) {
+      clauses.add('d.duration >= ?');
+      args.add(Variable(filter.minDurationMinutes! * 60));
+    }
+    if (filter.maxDurationMinutes != null) {
+      clauses.add('d.duration <= ?');
+      args.add(Variable(filter.maxDurationMinutes! * 60));
     }
   }
 

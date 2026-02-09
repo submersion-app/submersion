@@ -275,7 +275,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 : 'Add to favorites',
             onPressed: () {
               ref
-                  .read(diveListNotifierProvider.notifier)
+                  .read(paginatedDiveListProvider.notifier)
                   .toggleFavorite(diveId);
             },
           ),
@@ -384,7 +384,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 : 'Add to favorites',
             onPressed: () {
               ref
-                  .read(diveListNotifierProvider.notifier)
+                  .read(paginatedDiveListProvider.notifier)
                   .toggleFavorite(diveId);
             },
           ),
@@ -3495,7 +3495,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             onPressed: () async {
               Navigator.of(dialogContext).pop();
               await ref
-                  .read(diveListNotifierProvider.notifier)
+                  .read(paginatedDiveListProvider.notifier)
                   .deleteDive(diveId);
               if (context.mounted) {
                 if (widget.embedded && widget.onDeleted != null) {

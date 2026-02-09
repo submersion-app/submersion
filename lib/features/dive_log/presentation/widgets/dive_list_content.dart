@@ -16,6 +16,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
@@ -40,7 +41,7 @@ class DiveListContent extends ConsumerStatefulWidget {
   /// Callback for when an item is tapped in map mode.
   /// When provided along with [isMapMode], this will be called instead of
   /// navigating to the detail page.
-  final void Function(Dive dive)? onItemTapForMap;
+  final void Function(DiveSummary dive)? onItemTapForMap;
 
   /// Whether the list is being displayed alongside a map.
   /// When true and [onItemTapForMap] is provided, tapping an item will call
@@ -82,6 +83,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     // If there's already a selected ID on init (e.g., from URL), scroll to it after build
     if (widget.selectedId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -92,8 +94,19 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
   @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.offset;
+    // Load next page when within 200px of bottom
+    if (maxScroll - currentScroll <= 200) {
+      ref.read(paginatedDiveListProvider.notifier).loadNextPage();
+    }
   }
 
   @override
@@ -117,9 +130,10 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   void _scrollToSelectedItem() {
     if (widget.selectedId == null) return;
 
-    // Get the current dive list from the provider
-    final divesAsync = ref.read(sortedFilteredDivesProvider);
-    divesAsync.whenData((dives) {
+    // Get the current dive list from the paginated provider
+    final divesAsync = ref.read(paginatedDiveListProvider);
+    divesAsync.whenData((paginatedState) {
+      final dives = paginatedState.dives;
       final index = dives.indexWhere((d) => d.id == widget.selectedId);
       if (index >= 0 && _scrollController.hasClients) {
         // Use post-frame callback to ensure layout is complete
@@ -180,7 +194,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     });
   }
 
-  void _selectAll(List<Dive> dives) {
+  void _selectAll(List<DiveSummary> dives) {
     setState(() {
       _selectedIds.addAll(dives.map((d) => d.id));
     });
@@ -230,7 +244,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       _exitSelectionMode();
 
       final deletedDives = await ref
-          .read(diveListNotifierProvider.notifier)
+          .read(paginatedDiveListProvider.notifier)
           .bulkDeleteDives(idsToDelete);
 
       _deletedDives = deletedDives;
@@ -249,7 +263,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               onPressed: () async {
                 if (_deletedDives != null && _deletedDives!.isNotEmpty) {
                   await ref
-                      .read(diveListNotifierProvider.notifier)
+                      .read(paginatedDiveListProvider.notifier)
                       .restoreDives(_deletedDives!);
                   _deletedDives = null;
                   if (mounted) {
@@ -269,11 +283,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     }
   }
 
-  void _showExportDialog(List<Dive> allDives) {
-    final selectedDives = allDives
-        .where((d) => _selectedIds.contains(d.id))
-        .toList();
-    final count = selectedDives.length;
+  void _showExportDialog() {
+    final count = _selectedIds.length;
 
     showModalBottomSheet(
       context: context,
@@ -304,7 +315,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               subtitle: const Text('Printable dive log pages'),
               onTap: () {
                 Navigator.pop(sheetContext);
-                _exportSelected(selectedDives, 'pdf');
+                _exportSelectedAs('pdf');
               },
             ),
             ListTile(
@@ -313,7 +324,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               subtitle: const Text('Spreadsheet format'),
               onTap: () {
                 Navigator.pop(sheetContext);
-                _exportSelected(selectedDives, 'csv');
+                _exportSelectedAs('csv');
               },
             ),
             ListTile(
@@ -322,7 +333,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               subtitle: const Text('Universal Dive Data Format'),
               onTap: () {
                 Navigator.pop(sheetContext);
-                _exportSelected(selectedDives, 'uddf');
+                _exportSelectedAs('uddf');
               },
             ),
             const SizedBox(height: 8),
@@ -332,8 +343,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     );
   }
 
-  Future<void> _exportSelected(List<Dive> selectedDives, String format) async {
-    // Show loading dialog
+  Future<void> _exportSelectedAs(String format) async {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -349,6 +359,10 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     );
 
     try {
+      final repository = ref.read(diveRepositoryProvider);
+      final selectedDives = await repository.getDivesByIds(
+        _selectedIds.toList(),
+      );
       final exportService = ref.read(exportServiceProvider);
 
       switch (format) {
@@ -359,7 +373,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           await exportService.exportDivesToCsv(selectedDives);
           break;
         case 'uddf':
-          // Collect unique sites from selected dives
           final sites = selectedDives
               .where((d) => d.site != null)
               .map((d) => d.site!)
@@ -370,7 +383,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       }
 
       if (mounted) {
-        Navigator.of(context).pop(); // Close loading dialog
+        Navigator.of(context).pop();
         _exitSelectionMode();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -383,7 +396,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       }
     } catch (e) {
       if (mounted) {
-        Navigator.of(context).pop(); // Close loading dialog
+        Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Export failed: $e'),
@@ -394,7 +407,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     }
   }
 
-  void _showBulkEditSheet(List<Dive> allDives) {
+  void _showBulkEditSheet() {
     final count = _selectedIds.length;
 
     showModalBottomSheet(
@@ -509,7 +522,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
     try {
       await ref
-          .read(diveListNotifierProvider.notifier)
+          .read(paginatedDiveListProvider.notifier)
           .bulkUpdateTrip(diveIds, tripId);
 
       _exitSelectionMode();
@@ -607,7 +620,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
     try {
       await ref
-          .read(diveListNotifierProvider.notifier)
+          .read(paginatedDiveListProvider.notifier)
           .bulkAddTags(diveIds, tagIds);
 
       _exitSelectionMode();
@@ -704,7 +717,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
     try {
       await ref
-          .read(diveListNotifierProvider.notifier)
+          .read(paginatedDiveListProvider.notifier)
           .bulkRemoveTags(diveIds, tagIds);
 
       _exitSelectionMode();
@@ -731,7 +744,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     }
   }
 
-  void _handleItemTap(Dive dive) {
+  void _handleItemTap(DiveSummary dive) {
     if (_isSelectionMode) {
       _toggleSelection(dive.id);
       return;
@@ -781,23 +794,25 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
   @override
   Widget build(BuildContext context) {
-    final divesAsync = ref.watch(sortedFilteredDivesProvider);
+    final paginatedAsync = ref.watch(paginatedDiveListProvider);
     final filter = ref.watch(diveFilterProvider);
 
-    final content = divesAsync.when(
-      data: (dives) => dives.isEmpty
+    final content = paginatedAsync.when(
+      data: (paginatedState) => paginatedState.dives.isEmpty
           ? _buildEmptyState(context, filter.hasActiveFilters)
-          : _buildDiveList(context, dives, filter.hasActiveFilters),
+          : _buildDiveList(context, paginatedState, filter.hasActiveFilters),
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, stack) => _buildErrorState(context, error),
     );
+
+    final loadedDives = paginatedAsync.value?.dives ?? [];
 
     if (!widget.showAppBar) {
       // Used inside MasterDetailScaffold - no Scaffold wrapper
       return Column(
         children: [
           if (_isSelectionMode)
-            _buildSelectionBar(divesAsync.value ?? [])
+            _buildSelectionBar(loadedDives)
           else
             _buildCompactAppBar(context, filter),
           Expanded(child: content),
@@ -808,7 +823,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     // Standalone mode with full Scaffold
     return Scaffold(
       appBar: _isSelectionMode
-          ? _buildSelectionAppBar(divesAsync.value ?? [])
+          ? _buildSelectionAppBar(loadedDives)
           : _buildAppBar(context, filter),
       body: content,
       floatingActionButton: _isSelectionMode
@@ -984,7 +999,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     );
   }
 
-  AppBar _buildSelectionAppBar(List<Dive> dives) {
+  AppBar _buildSelectionAppBar(List<DiveSummary> dives) {
     return AppBar(
       leading: IconButton(
         icon: const Icon(Icons.close),
@@ -1008,13 +1023,13 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           IconButton(
             icon: const Icon(Icons.upload),
             tooltip: 'Export Selected',
-            onPressed: () => _showExportDialog(dives),
+            onPressed: _showExportDialog,
           ),
         if (_selectedIds.isNotEmpty)
           IconButton(
             icon: const Icon(Icons.edit),
             tooltip: 'Edit Selected',
-            onPressed: () => _showBulkEditSheet(dives),
+            onPressed: _showBulkEditSheet,
           ),
         if (_selectedIds.isNotEmpty)
           IconButton(
@@ -1030,7 +1045,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   }
 
   /// Selection bar for master pane in split view
-  Widget _buildSelectionBar(List<Dive> dives) {
+  Widget _buildSelectionBar(List<DiveSummary> dives) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -1066,14 +1081,14 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               icon: const Icon(Icons.upload, size: 20),
               visualDensity: VisualDensity.compact,
               tooltip: 'Export Selected',
-              onPressed: () => _showExportDialog(dives),
+              onPressed: _showExportDialog,
             ),
           if (_selectedIds.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.edit, size: 20),
               visualDensity: VisualDensity.compact,
               tooltip: 'Edit Selected',
-              onPressed: () => _showBulkEditSheet(dives),
+              onPressed: _showBulkEditSheet,
             ),
           if (_selectedIds.isNotEmpty)
             IconButton(
@@ -1093,9 +1108,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
   Widget _buildDiveList(
     BuildContext context,
-    List<Dive> dives,
+    PaginatedDiveListState paginatedState,
     bool hasActiveFilters,
   ) {
+    final dives = paginatedState.dives;
+
     // Calculate depth range for relative depth coloring
     final depthsWithValues = dives
         .where((d) => d.maxDepth != null)
@@ -1107,8 +1124,13 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         ? depthsWithValues.reduce((a, b) => a > b ? a : b)
         : null;
 
+    // +1 for loading indicator when more pages are available
+    final itemCount =
+        dives.length +
+        (paginatedState.hasMore || paginatedState.isLoadingMore ? 1 : 0);
+
     return RefreshIndicator(
-      onRefresh: () => ref.read(diveListNotifierProvider.notifier).refresh(),
+      onRefresh: () => ref.read(paginatedDiveListProvider.notifier).refresh(),
       child: Column(
         children: [
           if (hasActiveFilters) _buildActiveFiltersBar(context),
@@ -1116,8 +1138,16 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             child: ListView.builder(
               controller: _scrollController,
               padding: const EdgeInsets.only(bottom: 80),
-              itemCount: dives.length,
+              itemCount: itemCount,
               itemBuilder: (context, index) {
+                // Loading indicator at the end
+                if (index >= dives.length) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+
                 final dive = dives[index];
                 final isSelected = _selectedIds.contains(dive.id);
                 final isMasterSelected = widget.selectedId == dive.id;
@@ -1125,8 +1155,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   diveId: dive.id,
                   diveNumber: dive.diveNumber ?? index + 1,
                   dateTime: dive.dateTime,
-                  siteName: dive.site?.name,
-                  siteLocation: dive.site?.locationString,
+                  siteName: dive.siteName,
+                  siteLocation: dive.siteLocation,
                   maxDepth: dive.maxDepth,
                   duration: dive.duration,
                   waterTemp: dive.waterTemp,
@@ -1137,8 +1167,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   isSelected: isSelected || isMasterSelected,
                   minDepthInList: minDepth,
                   maxDepthInList: maxDepth,
-                  siteLatitude: dive.site?.location?.latitude,
-                  siteLongitude: dive.site?.location?.longitude,
+                  siteLatitude: dive.siteLatitude,
+                  siteLongitude: dive.siteLongitude,
                   onTap: () => _handleItemTap(dive),
                   onLongPress: _isSelectionMode
                       ? null
@@ -1425,7 +1455,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             const SizedBox(height: 16),
             FilledButton.icon(
               onPressed: () =>
-                  ref.read(diveListNotifierProvider.notifier).refresh(),
+                  ref.read(paginatedDiveListProvider.notifier).refresh(),
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),
             ),

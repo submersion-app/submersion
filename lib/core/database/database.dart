@@ -1061,7 +1061,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 30;
+  int get schemaVersion => 31;
 
   @override
   MigrationStrategy get migration {
@@ -1701,6 +1701,65 @@ class AppDatabase extends _$AppDatabase {
           await customStatement(
             'ALTER TABLE dive_profiles ADD COLUMN heart_rate_source TEXT',
           );
+        }
+        if (from < 31) {
+          // Performance indexes for 5000+ dives
+          // Primary query: dives by diver, ordered by date
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dives_diver_datetime
+            ON dives(diver_id, dive_date_time DESC)
+          ''');
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dives_diver_entrytime
+            ON dives(diver_id, entry_time DESC)
+          ''');
+          // FK lookups for batch loading in getAllDives()
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dives_site_id
+            ON dives(site_id)
+          ''');
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dives_trip_id
+            ON dives(trip_id)
+          ''');
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dives_dive_center_id
+            ON dives(dive_center_id)
+          ''');
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dives_course_id
+            ON dives(course_id)
+          ''');
+          // Favorite filter
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dives_favorite
+            ON dives(diver_id, is_favorite)
+          ''');
+          // Child table lookups for batch loading
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dive_tanks_dive_id
+            ON dive_tanks(dive_id)
+          ''');
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dive_equipment_dive_id
+            ON dive_equipment(dive_id)
+          ''');
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dive_weights_dive_id
+            ON dive_weights(dive_id)
+          ''');
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dive_tags_dive_id
+            ON dive_tags(dive_id)
+          ''');
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dive_tags_tag_id
+            ON dive_tags(tag_id)
+          ''');
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dive_buddies_dive_id
+            ON dive_buddies(dive_id)
+          ''');
         }
       },
       beforeOpen: (details) async {

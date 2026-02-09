@@ -1059,7 +1059,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         message: 'Importing ${parsedDives.length} dives...',
       );
       const uuid = Uuid();
-      final diveNotifier = _ref.read(diveListNotifierProvider.notifier);
+      final diveNotifier = _ref.read(paginatedDiveListProvider.notifier);
 
       var importedCount = 0;
       var buddiesCreated = 0;
@@ -1344,6 +1344,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
 
       // Invalidate all providers to refresh data
       _ref.invalidate(diveListNotifierProvider);
+      _ref.invalidate(paginatedDiveListProvider);
       _ref.invalidate(sitesProvider);
       _ref.invalidate(sitesWithCountsProvider);
       _ref.invalidate(siteListNotifierProvider);

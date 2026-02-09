@@ -1,8 +1,9 @@
+import 'dart:math' as math;
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
@@ -21,6 +22,22 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_c
 import 'package:submersion/features/dive_log/presentation/widgets/dive_summary_widget.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
+
+/// Compute a single OSM tile URL for the given lat/lng at [zoom].
+///
+/// Converts WGS-84 coordinates to slippy map tile x/y using the standard
+/// Web Mercator projection formula, then returns the OSM raster tile URL.
+String _osmTileUrl(double lat, double lng, int zoom) {
+  final n = 1 << zoom; // 2^zoom
+  final x = ((lng + 180.0) / 360.0 * n).floor();
+  final latRad = lat * math.pi / 180.0;
+  final y =
+      ((1.0 - math.log(math.tan(latRad) + 1.0 / math.cos(latRad)) / math.pi) /
+              2.0 *
+              n)
+          .floor();
+  return 'https://tile.openstreetmap.org/$zoom/$x/$y.png';
+}
 
 /// Main dive list page with master-detail layout on desktop.
 ///
@@ -389,7 +406,8 @@ class DiveListTile extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
-    final profileAsync = ref.watch(diveProfileProvider(diveId));
+    final profileCache = ref.watch(batchProfileCacheProvider);
+    final profile = profileCache[diveId] ?? const [];
 
     // Check if depth-colored cards are enabled
     final showDepthColors = ref.watch(showDepthColoredDiveCardsProvider);
@@ -602,40 +620,19 @@ class DiveListTile extends ConsumerWidget {
                   ),
                 ),
                 // Dive profile mini chart (right side)
-                profileAsync.when(
-                  data: (profile) => profile.isNotEmpty
-                      ? Padding(
-                          padding: const EdgeInsets.only(left: 8),
-                          child: SizedBox(
-                            width: chartWidth,
-                            height: 50,
-                            child: DiveProfileMiniChart(
-                              profile: profile,
-                              height: 50,
-                              color: accentColor,
-                            ),
-                          ),
-                        )
-                      : const SizedBox.shrink(),
-                  loading: () => Padding(
+                if (profile.isNotEmpty)
+                  Padding(
                     padding: const EdgeInsets.only(left: 8),
                     child: SizedBox(
                       width: chartWidth,
                       height: 50,
-                      child: Center(
-                        child: SizedBox(
-                          height: 16,
-                          width: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: accentColor.withValues(alpha: 0.5),
-                          ),
-                        ),
+                      child: DiveProfileMiniChart(
+                        profile: profile,
+                        height: 50,
+                        color: accentColor,
                       ),
                     ),
                   ),
-                  error: (_, _) => const SizedBox.shrink(),
-                ),
                 // Chevron
                 Icon(Icons.chevron_right, color: secondaryTextColor),
               ],
@@ -647,7 +644,7 @@ class DiveListTile extends ConsumerWidget {
 
     // Build the card with or without map background
     if (shouldShowMap) {
-      final siteLocation = LatLng(siteLatitude!, siteLongitude!);
+      final tileUrl = _osmTileUrl(siteLatitude!, siteLongitude!, 13);
       return Card(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         clipBehavior: Clip.antiAlias,
@@ -656,24 +653,16 @@ class DiveListTile extends ConsumerWidget {
           onLongPress: onLongPress,
           child: Stack(
             children: [
-              // Map background layer
+              // Static map tile background (cached)
               Positioned.fill(
-                child: FlutterMap(
-                  options: MapOptions(
-                    initialCenter: siteLocation,
-                    initialZoom: 13.0,
-                    interactionOptions: const InteractionOptions(
-                      flags: InteractiveFlag.none, // Non-interactive
-                    ),
-                  ),
-                  children: [
-                    TileLayer(
-                      urlTemplate:
-                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      userAgentPackageName: 'com.submersion.app',
-                      maxZoom: 19,
-                    ),
-                  ],
+                child: CachedNetworkImage(
+                  imageUrl: tileUrl,
+                  fit: BoxFit.cover,
+                  fadeInDuration: Duration.zero,
+                  placeholder: (_, _) =>
+                      Container(color: const Color(0xFF1A1A2E)),
+                  errorWidget: (_, _, _) =>
+                      Container(color: const Color(0xFF1A1A2E)),
                 ),
               ),
               // Gradient overlay for text readability

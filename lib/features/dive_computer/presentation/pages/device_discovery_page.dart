@@ -467,6 +467,7 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
 
       // Invalidate the dive list so it refreshes with the new dives
       ref.invalidate(diveListNotifierProvider);
+      ref.invalidate(paginatedDiveListProvider);
     }
 
     ref.read(discoveryNotifierProvider.notifier).goToSummary();

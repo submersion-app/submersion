@@ -212,6 +212,7 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
     }
 
     ref.invalidate(diveListNotifierProvider);
+    ref.invalidate(paginatedDiveListProvider);
   }
 
   @override

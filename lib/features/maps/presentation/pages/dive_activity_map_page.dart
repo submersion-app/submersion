@@ -69,11 +69,8 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
         isMapMode: true,
         selectedId: selectionState.selectedId,
         onItemTapForMap: (dive) {
-          if (dive.site?.hasCoordinates == true) {
-            _animateToLocation(
-              dive.site!.location!.latitude,
-              dive.site!.location!.longitude,
-            );
+          if (dive.siteLatitude != null && dive.siteLongitude != null) {
+            _animateToLocation(dive.siteLatitude!, dive.siteLongitude!);
           }
         },
         onItemSelected: (id) {

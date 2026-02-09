@@ -262,6 +262,7 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
       await repository.assignMissingDiveNumbers();
       ref.invalidate(diveNumberingInfoProvider);
       ref.invalidate(diveListNotifierProvider);
+      ref.invalidate(paginatedDiveListProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Missing dive numbers assigned')),
@@ -333,6 +334,7 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
       await repository.renumberAllDives(startFrom: startFrom);
       ref.invalidate(diveNumberingInfoProvider);
       ref.invalidate(diveListNotifierProvider);
+      ref.invalidate(paginatedDiveListProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

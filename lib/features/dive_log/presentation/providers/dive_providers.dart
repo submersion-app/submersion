@@ -6,283 +6,14 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
+import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
+import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 
-/// Filter state for dive list
-class DiveFilterState {
-  final DateTime? startDate;
-  final DateTime? endDate;
-  final String? diveTypeId;
-  final String? siteId;
-  final String? tripId;
-  final String? diveCenterId;
-  final double? minDepth;
-  final double? maxDepth;
-  final bool? favoritesOnly;
-  final List<String> tagIds;
-
-  // v1.5: Additional filter criteria
-  final List<String> equipmentIds; // Upgraded from single equipmentId
-  final String? buddyNameFilter; // Text search on buddy field
-  final String?
-  buddyId; // Filter by buddy ID (uses dive_buddies junction table)
-  final List<String>
-  diveIds; // Filter to specific dive IDs (e.g., shared dives with buddy)
-  final double? minO2Percent; // Gas mix O2 filter (min)
-  final double? maxO2Percent; // Gas mix O2 filter (max)
-  final int? minRating; // Minimum star rating (1-5)
-  final int? minDurationMinutes; // Minimum dive duration
-  final int? maxDurationMinutes; // Maximum dive duration
-
-  const DiveFilterState({
-    this.startDate,
-    this.endDate,
-    this.diveTypeId,
-    this.siteId,
-    this.tripId,
-    this.diveCenterId,
-    this.minDepth,
-    this.maxDepth,
-    this.favoritesOnly,
-    this.tagIds = const [],
-    // v1.5 filters
-    this.equipmentIds = const [],
-    this.buddyNameFilter,
-    this.buddyId,
-    this.diveIds = const [],
-    this.minO2Percent,
-    this.maxO2Percent,
-    this.minRating,
-    this.minDurationMinutes,
-    this.maxDurationMinutes,
-  });
-
-  bool get hasActiveFilters =>
-      startDate != null ||
-      endDate != null ||
-      diveTypeId != null ||
-      siteId != null ||
-      tripId != null ||
-      diveCenterId != null ||
-      minDepth != null ||
-      maxDepth != null ||
-      favoritesOnly == true ||
-      tagIds.isNotEmpty ||
-      // v1.5 filters
-      equipmentIds.isNotEmpty ||
-      (buddyNameFilter != null && buddyNameFilter!.isNotEmpty) ||
-      buddyId != null ||
-      diveIds.isNotEmpty ||
-      minO2Percent != null ||
-      maxO2Percent != null ||
-      minRating != null ||
-      minDurationMinutes != null ||
-      maxDurationMinutes != null;
-
-  DiveFilterState copyWith({
-    DateTime? startDate,
-    DateTime? endDate,
-    String? diveTypeId,
-    String? siteId,
-    String? tripId,
-    String? diveCenterId,
-    double? minDepth,
-    double? maxDepth,
-    bool? favoritesOnly,
-    List<String>? tagIds,
-    // v1.5 filters
-    List<String>? equipmentIds,
-    String? buddyNameFilter,
-    String? buddyId,
-    List<String>? diveIds,
-    double? minO2Percent,
-    double? maxO2Percent,
-    int? minRating,
-    int? minDurationMinutes,
-    int? maxDurationMinutes,
-    // Clear flags
-    bool clearStartDate = false,
-    bool clearEndDate = false,
-    bool clearDiveType = false,
-    bool clearSiteId = false,
-    bool clearTripId = false,
-    bool clearDiveCenterId = false,
-    bool clearMinDepth = false,
-    bool clearMaxDepth = false,
-    bool clearFavoritesOnly = false,
-    bool clearTagIds = false,
-    bool clearEquipmentIds = false,
-    bool clearBuddyNameFilter = false,
-    bool clearBuddyId = false,
-    bool clearDiveIds = false,
-    bool clearMinO2Percent = false,
-    bool clearMaxO2Percent = false,
-    bool clearMinRating = false,
-    bool clearMinDurationMinutes = false,
-    bool clearMaxDurationMinutes = false,
-  }) {
-    return DiveFilterState(
-      startDate: clearStartDate ? null : (startDate ?? this.startDate),
-      endDate: clearEndDate ? null : (endDate ?? this.endDate),
-      diveTypeId: clearDiveType ? null : (diveTypeId ?? this.diveTypeId),
-      siteId: clearSiteId ? null : (siteId ?? this.siteId),
-      tripId: clearTripId ? null : (tripId ?? this.tripId),
-      diveCenterId: clearDiveCenterId
-          ? null
-          : (diveCenterId ?? this.diveCenterId),
-      minDepth: clearMinDepth ? null : (minDepth ?? this.minDepth),
-      maxDepth: clearMaxDepth ? null : (maxDepth ?? this.maxDepth),
-      favoritesOnly: clearFavoritesOnly
-          ? null
-          : (favoritesOnly ?? this.favoritesOnly),
-      tagIds: clearTagIds ? const [] : (tagIds ?? this.tagIds),
-      // v1.5 filters
-      equipmentIds: clearEquipmentIds
-          ? const []
-          : (equipmentIds ?? this.equipmentIds),
-      buddyNameFilter: clearBuddyNameFilter
-          ? null
-          : (buddyNameFilter ?? this.buddyNameFilter),
-      buddyId: clearBuddyId ? null : (buddyId ?? this.buddyId),
-      diveIds: clearDiveIds ? const [] : (diveIds ?? this.diveIds),
-      minO2Percent: clearMinO2Percent
-          ? null
-          : (minO2Percent ?? this.minO2Percent),
-      maxO2Percent: clearMaxO2Percent
-          ? null
-          : (maxO2Percent ?? this.maxO2Percent),
-      minRating: clearMinRating ? null : (minRating ?? this.minRating),
-      minDurationMinutes: clearMinDurationMinutes
-          ? null
-          : (minDurationMinutes ?? this.minDurationMinutes),
-      maxDurationMinutes: clearMaxDurationMinutes
-          ? null
-          : (maxDurationMinutes ?? this.maxDurationMinutes),
-    );
-  }
-
-  /// Filter a list of dives based on current filter state
-  List<domain.Dive> apply(List<domain.Dive> dives) {
-    return dives.where((dive) {
-      // Date range filter
-      if (startDate != null && dive.dateTime.isBefore(startDate!)) {
-        return false;
-      }
-      if (endDate != null &&
-          dive.dateTime.isAfter(endDate!.add(const Duration(days: 1)))) {
-        return false;
-      }
-
-      // Dive type filter
-      if (diveTypeId != null && dive.diveTypeId != diveTypeId) {
-        return false;
-      }
-
-      // Site filter
-      if (siteId != null && dive.site?.id != siteId) {
-        return false;
-      }
-
-      // Trip filter
-      if (tripId != null && dive.tripId != tripId) {
-        return false;
-      }
-
-      // Dive center filter
-      if (diveCenterId != null && dive.diveCenter?.id != diveCenterId) {
-        return false;
-      }
-
-      // Equipment filter (match any selected equipment)
-      if (equipmentIds.isNotEmpty) {
-        final diveEquipmentIds = dive.equipment.map((e) => e.id).toSet();
-        if (!equipmentIds.any((eqId) => diveEquipmentIds.contains(eqId))) {
-          return false;
-        }
-      }
-
-      // Depth filter
-      if (minDepth != null &&
-          (dive.maxDepth == null || dive.maxDepth! < minDepth!)) {
-        return false;
-      }
-      if (maxDepth != null &&
-          (dive.maxDepth == null || dive.maxDepth! > maxDepth!)) {
-        return false;
-      }
-
-      // Favorites filter
-      if (favoritesOnly == true && !dive.isFavorite) {
-        return false;
-      }
-
-      // Tags filter (match any tag)
-      if (tagIds.isNotEmpty) {
-        final diveTagIds = dive.tags.map((t) => t.id).toSet();
-        if (!tagIds.any((tagId) => diveTagIds.contains(tagId))) {
-          return false;
-        }
-      }
-
-      // v1.5: Buddy name filter (text search on buddy field)
-      if (buddyNameFilter != null && buddyNameFilter!.isNotEmpty) {
-        final buddyLower = dive.buddy?.toLowerCase() ?? '';
-        if (!buddyLower.contains(buddyNameFilter!.toLowerCase())) {
-          return false;
-        }
-      }
-
-      // v1.5: Dive IDs filter (for filtering to specific dives, e.g., shared with buddy)
-      if (diveIds.isNotEmpty && !diveIds.contains(dive.id)) {
-        return false;
-      }
-
-      // v1.5: Gas mix O2% filter (check any tank)
-      if (minO2Percent != null || maxO2Percent != null) {
-        if (dive.tanks.isEmpty) {
-          return false;
-        }
-        // Check if any tank matches the O2% criteria
-        final hasMatchingTank = dive.tanks.any((tank) {
-          final o2 = tank.gasMix.o2;
-          if (minO2Percent != null && o2 < minO2Percent!) return false;
-          if (maxO2Percent != null && o2 > maxO2Percent!) return false;
-          return true;
-        });
-        if (!hasMatchingTank) {
-          return false;
-        }
-      }
-
-      // v1.5: Rating filter
-      if (minRating != null) {
-        if (dive.rating == null || dive.rating! < minRating!) {
-          return false;
-        }
-      }
-
-      // v1.5: Duration filter
-      if (minDurationMinutes != null || maxDurationMinutes != null) {
-        final durationMinutes = dive.duration?.inMinutes;
-        if (durationMinutes == null) {
-          return false;
-        }
-        if (minDurationMinutes != null &&
-            durationMinutes < minDurationMinutes!) {
-          return false;
-        }
-        if (maxDurationMinutes != null &&
-            durationMinutes > maxDurationMinutes!) {
-          return false;
-        }
-      }
-
-      return true;
-    }).toList();
-  }
-}
+// Re-export DiveFilterState so existing imports continue to work
+export 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 
 /// Dive filter state provider
 final diveFilterProvider = StateProvider<DiveFilterState>(
@@ -385,6 +116,19 @@ final diveProfileProvider =
       final repository = ref.watch(diveRepositoryProvider);
       return repository.getDiveProfile(diveId);
     });
+
+/// Batch profile cache for mini charts in the dive list.
+///
+/// Stores downsampled (~20 points) profiles keyed by dive ID. Populated in
+/// bulk when a page of dives loads, avoiding N+1 per-tile queries.
+final batchProfileCacheProvider =
+    StateProvider<Map<String, List<domain.DiveProfilePoint>>>((ref) => {});
+
+/// Version counter for statistics cache invalidation.
+///
+/// All statistics providers watch this. Bumping the version causes all of them
+/// to re-fetch, while keepAlive prevents disposal between navigations.
+final statisticsVersionProvider = StateProvider<int>((ref) => 0);
 
 /// Statistics provider (filtered by current diver)
 final diveStatisticsProvider = FutureProvider<DiveStatistics>((ref) async {
@@ -608,6 +352,347 @@ final diveListNotifierProvider =
     ) {
       final repository = ref.watch(diveRepositoryProvider);
       return DiveListNotifier(repository, ref);
+    });
+
+// ============================================================================
+// Paginated Dive List (Performance-optimized for 5000+ dives)
+// ============================================================================
+
+/// Paginated dive list notifier using cursor-based pagination.
+///
+/// Loads [DiveSummary] objects in pages of 50, with SQL-level filtering.
+/// Automatically reloads when the current diver or filter state changes.
+class PaginatedDiveListNotifier
+    extends StateNotifier<AsyncValue<PaginatedDiveListState>> {
+  final DiveRepository _repository;
+  final Ref _ref;
+  String? _currentDiverId;
+  static const _pageSize = 50;
+
+  PaginatedDiveListNotifier(this._repository, this._ref)
+    : super(const AsyncValue.loading()) {
+    _currentDiverId = _ref.read(currentDiverIdProvider);
+    _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
+      if (previous != next) {
+        _currentDiverId = next;
+        loadFirstPage();
+      }
+    });
+    _ref.listen<DiveFilterState>(diveFilterProvider, (previous, next) {
+      if (previous != next) {
+        loadFirstPage();
+      }
+    });
+    loadFirstPage();
+  }
+
+  Future<void> loadFirstPage() async {
+    state = const AsyncValue.loading();
+    try {
+      final filter = _ref.read(diveFilterProvider);
+      final results = await Future.wait([
+        _repository.getDiveSummaries(
+          diverId: _currentDiverId,
+          filter: filter,
+          limit: _pageSize,
+        ),
+        _repository.getDiveCount(diverId: _currentDiverId, filter: filter),
+      ]);
+      final dives = results[0] as List<DiveSummary>;
+      final totalCount = results[1] as int;
+
+      state = AsyncValue.data(
+        PaginatedDiveListState(
+          dives: dives,
+          hasMore: dives.length >= _pageSize,
+          nextCursor: _cursorFromLastDive(dives),
+          totalCount: totalCount,
+        ),
+      );
+      // Pre-load downsampled profiles for mini charts (fire and forget)
+      _loadBatchProfiles(dives.map((d) => d.id).toList());
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> loadNextPage() async {
+    final current = state.valueOrNull;
+    if (current == null || current.isLoadingMore || !current.hasMore) return;
+
+    state = AsyncValue.data(current.copyWith(isLoadingMore: true));
+    try {
+      final filter = _ref.read(diveFilterProvider);
+      final newDives = await _repository.getDiveSummaries(
+        diverId: _currentDiverId,
+        filter: filter,
+        cursor: current.nextCursor,
+        limit: _pageSize,
+      );
+
+      state = AsyncValue.data(
+        current.copyWith(
+          dives: [...current.dives, ...newDives],
+          isLoadingMore: false,
+          hasMore: newDives.length >= _pageSize,
+          nextCursor: _cursorFromLastDive(newDives),
+        ),
+      );
+      // Pre-load downsampled profiles for the new page
+      _loadBatchProfiles(newDives.map((d) => d.id).toList());
+    } catch (_) {
+      state = AsyncValue.data(current.copyWith(isLoadingMore: false));
+    }
+  }
+
+  /// Load downsampled profiles for a batch of dive IDs and merge into cache.
+  Future<void> _loadBatchProfiles(List<String> diveIds) async {
+    if (diveIds.isEmpty) return;
+    // Skip IDs already in cache
+    final cache = _ref.read(batchProfileCacheProvider);
+    final uncached = diveIds.where((id) => !cache.containsKey(id)).toList();
+    if (uncached.isEmpty) return;
+
+    final profiles = await _repository.getBatchProfileSummaries(uncached);
+    // Merge into cache (immutable update)
+    _ref.read(batchProfileCacheProvider.notifier).state = {
+      ...cache,
+      ...profiles,
+    };
+  }
+
+  Future<void> refresh() async {
+    await loadFirstPage();
+  }
+
+  DiveSummaryCursor? _cursorFromLastDive(List<DiveSummary> dives) {
+    if (dives.isEmpty) return null;
+    final last = dives.last;
+    return DiveSummaryCursor(
+      sortTimestamp: last.sortTimestamp,
+      diveNumber: last.diveNumber ?? 0,
+      id: last.id,
+    );
+  }
+
+  // --------------------------------------------------------------------------
+  // Mutations — optimistic local state updates (no DB reload)
+  // --------------------------------------------------------------------------
+
+  void _invalidateRelatedProviders(domain.Dive dive) {
+    final tripId = dive.tripId ?? dive.trip?.id;
+    if (tripId != null) {
+      _ref.invalidate(tripWithStatsProvider(tripId));
+    }
+    if (dive.diveCenter != null) {
+      _ref.invalidate(diveCenterDiveCountProvider(dive.diveCenter!.id));
+    }
+    _ref.read(tripListNotifierProvider.notifier).refresh();
+    _ref.invalidate(allTripsWithStatsProvider);
+  }
+
+  /// Also invalidate the old diveListNotifierProvider so legacy consumers
+  /// (export, map views) stay in sync.
+  void _invalidateOldProvider() {
+    _ref.invalidate(diveListNotifierProvider);
+  }
+
+  /// Bump the statistics version to invalidate all cached stats providers,
+  /// and also invalidate the dive-level stats provider.
+  void _invalidateStatistics() {
+    _ref.invalidate(diveStatisticsProvider);
+    _ref.read(statisticsVersionProvider.notifier).state++;
+  }
+
+  Future<domain.Dive> addDive(domain.Dive dive) async {
+    var diveWithDiver = dive;
+    if (dive.diverId == null && _currentDiverId != null) {
+      final diverRepository = _ref.read(diverRepositoryProvider);
+      final diverExists = await diverRepository.getDiverById(_currentDiverId!);
+      if (diverExists != null) {
+        diveWithDiver = dive.copyWith(diverId: _currentDiverId);
+      }
+    }
+    final newDive = await _repository.createDive(diveWithDiver);
+
+    if (dive.diveNumber == null) {
+      await _repository.assignMissingDiveNumbers();
+      _ref.invalidate(diveNumberingInfoProvider);
+    }
+
+    // Optimistic: prepend new summary and bump totalCount
+    final current = state.valueOrNull;
+    if (current != null) {
+      final summary = DiveSummary.fromDive(newDive);
+      state = AsyncValue.data(
+        current.copyWith(
+          dives: [summary, ...current.dives],
+          totalCount: current.totalCount + 1,
+        ),
+      );
+    } else {
+      await loadFirstPage();
+    }
+
+    _invalidateStatistics();
+    _invalidateRelatedProviders(newDive);
+    _invalidateOldProvider();
+    return newDive;
+  }
+
+  Future<void> updateDive(domain.Dive dive) async {
+    final oldDive = await _repository.getDiveById(dive.id);
+    await _repository.updateDive(dive);
+
+    // Optimistic: replace the item in the list by ID
+    final current = state.valueOrNull;
+    if (current != null) {
+      final summary = DiveSummary.fromDive(dive);
+      final updated = current.dives.map((d) {
+        return d.id == dive.id ? summary : d;
+      }).toList();
+      state = AsyncValue.data(current.copyWith(dives: updated));
+    } else {
+      await loadFirstPage();
+    }
+
+    _invalidateStatistics();
+    _ref.invalidate(diveProvider(dive.id));
+    if (oldDive != null) _invalidateRelatedProviders(oldDive);
+    _invalidateRelatedProviders(dive);
+    _invalidateOldProvider();
+  }
+
+  Future<void> deleteDive(String id) async {
+    final dive = await _repository.getDiveById(id);
+    await _repository.deleteDive(id);
+
+    // Optimistic: remove item by ID and decrement totalCount
+    final current = state.valueOrNull;
+    if (current != null) {
+      state = AsyncValue.data(
+        current.copyWith(
+          dives: current.dives.where((d) => d.id != id).toList(),
+          totalCount: current.totalCount - 1,
+        ),
+      );
+    } else {
+      await loadFirstPage();
+    }
+
+    _invalidateStatistics();
+    if (dive != null) _invalidateRelatedProviders(dive);
+    _invalidateOldProvider();
+  }
+
+  Future<List<domain.Dive>> bulkDeleteDives(List<String> ids) async {
+    final divesToDelete = await _repository.getDivesByIds(ids);
+    await _repository.bulkDeleteDives(ids);
+
+    // Optimistic: remove items by IDs
+    final idSet = ids.toSet();
+    final current = state.valueOrNull;
+    if (current != null) {
+      state = AsyncValue.data(
+        current.copyWith(
+          dives: current.dives.where((d) => !idSet.contains(d.id)).toList(),
+          totalCount: current.totalCount - ids.length,
+        ),
+      );
+    } else {
+      await loadFirstPage();
+    }
+
+    _invalidateStatistics();
+    for (final dive in divesToDelete) {
+      _invalidateRelatedProviders(dive);
+    }
+    _invalidateOldProvider();
+    return divesToDelete;
+  }
+
+  Future<void> restoreDives(List<domain.Dive> dives) async {
+    for (final dive in dives) {
+      await _repository.createDive(dive);
+    }
+    // Restore is complex (ordering), reload first page
+    await loadFirstPage();
+    _invalidateStatistics();
+    for (final dive in dives) {
+      _invalidateRelatedProviders(dive);
+    }
+    _invalidateOldProvider();
+  }
+
+  Future<void> toggleFavorite(String diveId) async {
+    // Optimistic: flip isFavorite immediately
+    final current = state.valueOrNull;
+    if (current != null) {
+      final updated = current.dives.map((d) {
+        return d.id == diveId ? d.copyWith(isFavorite: !d.isFavorite) : d;
+      }).toList();
+      state = AsyncValue.data(current.copyWith(dives: updated));
+    }
+
+    await _repository.toggleFavorite(diveId);
+    _ref.invalidate(diveProvider(diveId));
+    _invalidateOldProvider();
+  }
+
+  Future<void> setFavorite(String diveId, bool isFavorite) async {
+    // Optimistic: set isFavorite immediately
+    final current = state.valueOrNull;
+    if (current != null) {
+      final updated = current.dives.map((d) {
+        return d.id == diveId ? d.copyWith(isFavorite: isFavorite) : d;
+      }).toList();
+      state = AsyncValue.data(current.copyWith(dives: updated));
+    }
+
+    await _repository.setFavorite(diveId, isFavorite);
+    _ref.invalidate(diveProvider(diveId));
+    _invalidateOldProvider();
+  }
+
+  Future<void> bulkUpdateTrip(List<String> diveIds, String? tripId) async {
+    await _repository.bulkUpdateTrip(diveIds, tripId);
+    // Bulk operations affect fields not in DiveSummary, reload
+    await loadFirstPage();
+    _invalidateStatistics();
+    for (final diveId in diveIds) {
+      _ref.invalidate(diveProvider(diveId));
+    }
+    _invalidateOldProvider();
+  }
+
+  Future<void> bulkAddTags(List<String> diveIds, List<String> tagIds) async {
+    await _repository.bulkAddTags(diveIds, tagIds);
+    // Tags changed — reload to get updated tag lists
+    await loadFirstPage();
+    for (final diveId in diveIds) {
+      _ref.invalidate(diveProvider(diveId));
+    }
+    _invalidateOldProvider();
+  }
+
+  Future<void> bulkRemoveTags(List<String> diveIds, List<String> tagIds) async {
+    await _repository.bulkRemoveTags(diveIds, tagIds);
+    // Tags changed — reload to get updated tag lists
+    await loadFirstPage();
+    for (final diveId in diveIds) {
+      _ref.invalidate(diveProvider(diveId));
+    }
+    _invalidateOldProvider();
+  }
+}
+
+final paginatedDiveListProvider =
+    StateNotifierProvider<
+      PaginatedDiveListNotifier,
+      AsyncValue<PaginatedDiveListState>
+    >((ref) {
+      final repository = ref.watch(diveRepositoryProvider);
+      return PaginatedDiveListNotifier(repository, ref);
     });
 
 /// Provider for getting the surface interval to the previous dive

@@ -2631,7 +2631,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       );
 
       // Save using the notifier
-      final notifier = ref.read(diveListNotifierProvider.notifier);
+      final notifier = ref.read(paginatedDiveListProvider.notifier);
       String? savedDiveId;
       if (widget.isEditing) {
         await notifier.updateDive(dive);
