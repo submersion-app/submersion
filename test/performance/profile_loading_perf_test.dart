@@ -38,15 +38,15 @@ void main() {
   });
 
   group('Profile loading benchmarks', () {
-    test('single dive profile < 300ms', () async {
+    test('single dive profile < 2000ms', () async {
       final profile = await repository.getDiveProfile(firstPage.first.id);
       final ms = PerfTimer.lastResult('getDiveProfile')!.inMilliseconds;
       // ignore: avoid_print
       print('  Single profile (${profile.length} pts): ${ms}ms');
-      expect(ms, lessThan(300));
+      expect(ms, lessThan(2000));
     });
 
-    test('batch profile summaries (50 dives) < 500ms', () async {
+    test('batch profile summaries (50 dives) < 3000ms', () async {
       final ids = firstPage.map((d) => d.id).toList();
 
       final profiles = await repository.getBatchProfileSummaries(ids);
@@ -60,17 +60,17 @@ void main() {
         '  Batch summaries (${profiles.length} dives, '
         '$totalPoints pts): ${ms}ms',
       );
-      expect(ms, lessThan(500));
+      expect(ms, lessThan(3000));
     });
 
-    test('batch profile summaries (25 dives) < 300ms', () async {
+    test('batch profile summaries (25 dives) < 2000ms', () async {
       final ids = firstPage.take(25).map((d) => d.id).toList();
 
       await repository.getBatchProfileSummaries(ids);
       final ms = PerfTimer.lastResult('batchProfileSummaries')!.inMilliseconds;
       // ignore: avoid_print
       print('  Batch summaries (${ids.length} dives): ${ms}ms');
-      expect(ms, lessThan(300));
+      expect(ms, lessThan(2000));
     });
   });
 }

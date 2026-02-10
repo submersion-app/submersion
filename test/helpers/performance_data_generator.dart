@@ -44,6 +44,7 @@ class PerformanceDataGenerator {
   final DataProfile profile;
   final _uuid = const Uuid();
   final Random _random;
+  var _profilePointCounter = 0;
 
   AppDatabase get _db => DatabaseService.instance.database;
 
@@ -315,7 +316,7 @@ class PerformanceDataGenerator {
     const tenYearsDays = 3650;
 
     // Process dives in batches to manage memory
-    const diveBatchSize = 100;
+    const diveBatchSize = 250;
 
     for (
       var batchStart = 0;
@@ -473,7 +474,7 @@ class PerformanceDataGenerator {
 
       // Insert all data for this batch
       await _batchInsert(_db.dives, diveCompanions);
-      await _batchInsert(_db.diveProfiles, profileCompanions);
+      await _batchInsert(_db.diveProfiles, profileCompanions, chunkSize: 5000);
       await _batchInsert(_db.diveTanks, tankCompanions);
       if (diveTagCompanions.isNotEmpty) {
         await _batchInsert(_db.diveTags, diveTagCompanions);
@@ -533,14 +534,15 @@ class PerformanceDataGenerator {
         depth = 5.0 * (1.0 - ascentProgress);
       }
 
+      _profilePointCounter++;
       points.add(
         DiveProfilesCompanion(
-          id: Value(_uuid.v4()),
+          id: Value('pp_$_profilePointCounter'),
           diveId: Value(diveId),
           isPrimary: const Value(true),
           timestamp: Value(t),
           depth: Value(depth.clamp(0.0, maxDepth)),
-          temperature: Value(12.0 + _random.nextDouble() * 8),
+          temperature: Value(12.0 + (t % 80) * 0.1),
         ),
       );
     }
@@ -612,10 +614,14 @@ class PerformanceDataGenerator {
   /// Batch insert with chunking to avoid SQLite variable limits.
   Future<void> _batchInsert<T extends Table, D>(
     TableInfo<T, D> table,
-    List<Insertable<D>> companions,
-  ) async {
-    for (var i = 0; i < companions.length; i += 500) {
-      final chunk = companions.sublist(i, min(i + 500, companions.length));
+    List<Insertable<D>> companions, {
+    int chunkSize = 500,
+  }) async {
+    for (var i = 0; i < companions.length; i += chunkSize) {
+      final chunk = companions.sublist(
+        i,
+        min(i + chunkSize, companions.length),
+      );
       await _db.batch((b) => b.insertAll(table, chunk));
     }
   }
