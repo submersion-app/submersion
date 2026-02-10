@@ -1,0 +1,5 @@
+tags:
+  performance:
+    # Performance tests use large datasets and may take minutes to run.
+    # Run explicitly: flutter test --tags performance
+    # Or: flutter test test/performance/

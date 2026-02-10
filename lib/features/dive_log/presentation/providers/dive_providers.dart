@@ -1,5 +1,6 @@
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -51,39 +52,43 @@ List<domain.Dive> _applySorting(
   List<domain.Dive> dives,
   SortState<DiveSortField> sort,
 ) {
-  final sorted = List<domain.Dive>.from(dives);
+  return PerfTimer.measureSync('applySorting', () {
+    final sorted = List<domain.Dive>.from(dives);
 
-  sorted.sort((a, b) {
-    int comparison;
-    // For text fields, invert direction (user expects descending = A→Z)
-    final invertForText = sort.field == DiveSortField.site;
+    sorted.sort((a, b) {
+      int comparison;
+      // For text fields, invert direction (user expects descending = A→Z)
+      final invertForText = sort.field == DiveSortField.site;
 
-    switch (sort.field) {
-      case DiveSortField.date:
-        comparison = a.dateTime.compareTo(b.dateTime);
-      case DiveSortField.site:
-        comparison = (a.site?.name ?? '').compareTo(b.site?.name ?? '');
-      case DiveSortField.depth:
-        comparison = (a.maxDepth ?? 0).compareTo(b.maxDepth ?? 0);
-      case DiveSortField.duration:
-        final aDuration = a.duration?.inMinutes ?? 0;
-        final bDuration = b.duration?.inMinutes ?? 0;
-        comparison = aDuration.compareTo(bDuration);
-      case DiveSortField.rating:
-        comparison = (a.rating ?? 0).compareTo(b.rating ?? 0);
-      case DiveSortField.diveNumber:
-        comparison = (a.diveNumber ?? 0).compareTo(b.diveNumber ?? 0);
-    }
+      switch (sort.field) {
+        case DiveSortField.date:
+          comparison = a.dateTime.compareTo(b.dateTime);
+        case DiveSortField.site:
+          comparison = (a.site?.name ?? '').compareTo(b.site?.name ?? '');
+        case DiveSortField.depth:
+          comparison = (a.maxDepth ?? 0).compareTo(b.maxDepth ?? 0);
+        case DiveSortField.duration:
+          final aDuration = a.duration?.inMinutes ?? 0;
+          final bDuration = b.duration?.inMinutes ?? 0;
+          comparison = aDuration.compareTo(bDuration);
+        case DiveSortField.rating:
+          comparison = (a.rating ?? 0).compareTo(b.rating ?? 0);
+        case DiveSortField.diveNumber:
+          comparison = (a.diveNumber ?? 0).compareTo(b.diveNumber ?? 0);
+      }
 
-    if (invertForText) {
+      if (invertForText) {
+        return sort.direction == SortDirection.ascending
+            ? -comparison
+            : comparison;
+      }
       return sort.direction == SortDirection.ascending
-          ? -comparison
-          : comparison;
-    }
-    return sort.direction == SortDirection.ascending ? comparison : -comparison;
-  });
+          ? comparison
+          : -comparison;
+    });
 
-  return sorted;
+    return sorted;
+  });
 }
 
 /// Repository provider

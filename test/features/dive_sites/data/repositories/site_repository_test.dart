@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
+import '../../../../helpers/performance_data_generator.dart';
 import '../../../../helpers/test_database.dart';
 
 void main() {
@@ -280,6 +282,39 @@ void main() {
           expect(results[1].diveCount, equals(0));
         },
       );
+    });
+  });
+
+  group('Performance smoke tests (light preset)', () {
+    late GeneratedDataSummary summary;
+
+    setUp(() async {
+      final generator = PerformanceDataGenerator(DataProfile.light);
+      summary = await generator.generate();
+    });
+
+    test('getAllSites loads in under 50ms', () async {
+      PerfTimer.reset();
+      await repository.getAllSites(diverId: summary.diverId);
+      final duration = PerfTimer.lastResult('getAllSites');
+      expect(duration, isNotNull);
+      expect(duration!.inMilliseconds, lessThan(50));
+    });
+
+    test('getSitesWithDiveCounts loads in under 100ms', () async {
+      PerfTimer.reset();
+      await repository.getSitesWithDiveCounts(diverId: summary.diverId);
+      final duration = PerfTimer.lastResult('getSitesWithDiveCounts');
+      expect(duration, isNotNull);
+      expect(duration!.inMilliseconds, lessThan(100));
+    });
+
+    test('searchSites returns in under 50ms', () async {
+      PerfTimer.reset();
+      await repository.searchSites('reef', diverId: summary.diverId);
+      final duration = PerfTimer.lastResult('searchSites');
+      expect(duration, isNotNull);
+      expect(duration!.inMilliseconds, lessThan(50));
     });
   });
 }
