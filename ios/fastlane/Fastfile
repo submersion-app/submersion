@@ -54,6 +54,7 @@ platform :ios do
       overwrite_screenshots: true,
       ignore_language_directory_validation: true,  # We have device folders alongside locale folders
       precheck_include_in_app_purchases: false,    # API key auth doesn't support IAP precheck
+      force: true,                                 # Skip HTML preview and y/n confirmation prompt
     )
 
     UI.success("Screenshots uploaded successfully!")
