@@ -283,48 +283,12 @@ This document contains only the features and tasks that are **not yet completed*
 |---------|-------|
 | Share dives to social media | FB, Instagram, Twitter |
 | Generate composite images | Profile + photo + stats |
-| Share links | Web view of dive (requires backend) |
 | Shareable dive cards | Visual summary image for social |
 
 **Tasks:**
 - [ ] "Share Dive" action with platform picker
 - [ ] Generate shareable image (profile chart, photo, depth/time/location text overlay)
 - [ ] Share as PNG or link (if cloud sync enabled)
-- [ ] Public dive view page (web) with privacy settings
-
-### 14.2 Community Maps & Logs
-| Feature | Notes |
-|---------|-------|
-| View community dive sites | Requires backend |
-| Explore nearby sites | GPS-based search |
-| User-submitted site photos | Photo gallery per site |
-| Dive site reviews & ratings | Rate and review sites |
-
-**Tasks:**
-- [ ] Community backend (user accounts, public profiles)
-- [ ] Public dive site database (user submissions)
-- [ ] Site photos, reviews, difficulty ratings
-- [ ] "Discover" tab with nearby sites, popular sites, new sites
-
-### 14.3 Diver Social Network
-| Feature | Notes |
-|---------|-------|
-| Diver profiles | Public profile with stats, certs, dive count |
-| Follow buddies | Activity feed from followed divers |
-| Buddy activity feed | New dives, photos, certs from buddies |
-| Community groups | Dive clubs, schools, interest groups |
-| In-app messaging | Chat between buddies |
-| Public dive feed | Discover dive logs from community |
-| Digital instructor signatures | Instructors verify/sign training logs |
-
-**Tasks:**
-- [ ] Diver profile page (public view with stats, certifications, dive count)
-- [ ] Follow/unfollow other divers
-- [ ] Activity feed (new dives, photos, certifications from followed divers)
-- [ ] Community groups with forums, events, shared stats
-- [ ] In-app messaging between buddies
-- [ ] Public dive feed ("Discover" section)
-- [ ] Privacy controls (public/private/buddies-only)
 
 ---
 
@@ -340,7 +304,6 @@ This document contains only the features and tasks that are **not yet completed*
 - [ ] Customizable dive list columns (user selects which fields to show)
 - [ ] Theme editor (custom colors, fonts)
 - [ ] Layout presets (Compact, Detailed, Photo-focused)
-- [ ] Make the hero bar more interesting to look at
 
 ### 15.3 Accessibility & Localization
 | Feature | Notes |
@@ -417,7 +380,6 @@ This document contains only the features and tasks that are **not yet completed*
 
 ## v2.0 Release Criteria
 - [ ] 7+ language translations
-- [ ] Community features beta tested
 
 ---
 

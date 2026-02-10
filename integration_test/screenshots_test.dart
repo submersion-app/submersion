@@ -59,6 +59,15 @@ const String _kOrientation = String.fromEnvironment(
   defaultValue: 'portrait',
 );
 
+/// Pumps multiple frames to allow layout and navigation transitions to
+/// complete, without waiting for all animations to stop. This avoids hangs
+/// caused by infinite/repeating animations (e.g. the HeroHeader ocean effect).
+Future<void> _settle(WidgetTester tester, {int frames = 10}) async {
+  for (int i = 0; i < frames; i++) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+}
+
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
@@ -132,7 +141,7 @@ void main() {
           DeviceOrientation.portraitDown,
         ]);
       }
-      await tester.pumpAndSettle();
+      await _settle(tester);
 
       // Launch the app with proper provider overrides
       await tester.pumpWidget(
@@ -143,7 +152,7 @@ void main() {
       );
 
       // Wait for initial load - app starts on /dashboard
-      await tester.pumpAndSettle(const Duration(seconds: 3));
+      await _settle(tester, frames: 50);
       await screenshotHelper.waitForContent(tester);
 
       // 1. Dashboard (initial screen)
@@ -177,10 +186,10 @@ void main() {
 
         // First ensure the item is visible by scrolling to it
         await tester.ensureVisible(diveListTiles.at(randomIndex));
-        await tester.pumpAndSettle();
+        await _settle(tester);
 
         await tester.tap(diveListTiles.at(randomIndex));
-        await tester.pumpAndSettle();
+        await _settle(tester);
         await screenshotHelper.waitForContent(
           tester,
           duration: const Duration(seconds: 2),
@@ -215,7 +224,7 @@ void main() {
         final backButton = find.byTooltip('Back');
         if (backButton.evaluate().isNotEmpty) {
           await tester.tap(backButton.first);
-          await tester.pumpAndSettle();
+          await _settle(tester);
         }
       }
 
@@ -266,7 +275,7 @@ void main() {
           // ignore: avoid_print
           print('Invoking map button onPressed callback directly');
           targetButton.onPressed!();
-          await tester.pumpAndSettle();
+          await _settle(tester);
         }
 
         // Wait for navigation
@@ -292,13 +301,13 @@ void main() {
         final fitAllSitesButton = find.byTooltip('Fit All Sites');
         if (fitAllSitesButton.evaluate().isNotEmpty) {
           await tester.tap(fitAllSitesButton.first);
-          await tester.pumpAndSettle();
+          await _settle(tester);
         } else {
           // Try finding by icon as fallback
           final myLocationIcon = find.byIcon(Icons.my_location);
           if (myLocationIcon.evaluate().isNotEmpty) {
             await tester.tap(myLocationIcon.first);
-            await tester.pumpAndSettle();
+            await _settle(tester);
           }
         }
 
@@ -319,7 +328,7 @@ void main() {
         if (individualMarkers.evaluate().isNotEmpty) {
           // Tap the first visible marker to select it and zoom in
           await tester.tap(individualMarkers.first);
-          await tester.pumpAndSettle();
+          await _settle(tester);
 
           // Wait for map to animate to the selected site
           await screenshotHelper.waitForContent(
@@ -361,7 +370,7 @@ void main() {
                 'Found cluster marker, tapping to zoom in (attempt ${attempt + 1})',
               );
               await tester.tap(clusterFinder.first);
-              await tester.pumpAndSettle();
+              await _settle(tester);
               await screenshotHelper.waitForContent(
                 tester,
                 duration: const Duration(seconds: 2),
@@ -376,7 +385,7 @@ void main() {
                 );
                 // Tap a marker to select it
                 await tester.tap(markersAfterZoom.first);
-                await tester.pumpAndSettle();
+                await _settle(tester);
                 await screenshotHelper.waitForContent(
                   tester,
                   duration: const Duration(seconds: 1),
@@ -402,12 +411,12 @@ void main() {
         final listButton = find.byTooltip('List View');
         if (listButton.evaluate().isNotEmpty) {
           await tester.tap(listButton.first);
-          await tester.pumpAndSettle();
+          await _settle(tester);
         } else {
           final backButton = find.byTooltip('Back');
           if (backButton.evaluate().isNotEmpty) {
             await tester.tap(backButton.first);
-            await tester.pumpAndSettle();
+            await _settle(tester);
           }
         }
       } else {
@@ -417,13 +426,13 @@ void main() {
 
       // 6. Navigate to Equipment via "More" menu
       await _tapBottomNavItem(tester, Icons.more_horiz_outlined);
-      await tester.pumpAndSettle();
+      await _settle(tester);
 
       // Find and tap Equipment in the menu/list
       final equipmentText = find.text('Equipment');
       if (equipmentText.evaluate().isNotEmpty) {
         await tester.tap(equipmentText.first);
-        await tester.pumpAndSettle();
+        await _settle(tester);
         await screenshotHelper.waitForContent(tester);
 
         // On iPad, select an equipment item to show its details in the right pane
@@ -444,7 +453,7 @@ void main() {
             // Tap on the second equipment card (skip first in case it's a header)
             final cardIndex = min(2, equipmentCards.evaluate().length - 1);
             await tester.tap(equipmentCards.at(cardIndex));
-            await tester.pumpAndSettle();
+            await _settle(tester);
             await screenshotHelper.waitForContent(
               tester,
               duration: const Duration(seconds: 1),
@@ -457,12 +466,12 @@ void main() {
 
       // 7. Navigate to Statistics via "More" menu
       await _tapBottomNavItem(tester, Icons.more_horiz_outlined);
-      await tester.pumpAndSettle();
+      await _settle(tester);
 
       final statisticsText = find.text('Statistics');
       if (statisticsText.evaluate().isNotEmpty) {
         await tester.tap(statisticsText.first);
-        await tester.pumpAndSettle();
+        await _settle(tester);
         await screenshotHelper.waitForContent(
           tester,
           duration: const Duration(seconds: 2),
@@ -475,17 +484,17 @@ void main() {
       final recordsText = find.text('Records');
       if (recordsText.evaluate().isNotEmpty) {
         await tester.tap(recordsText.first);
-        await tester.pumpAndSettle();
+        await _settle(tester);
         await screenshotHelper.waitForContent(tester);
         await screenshotHelper.takeScreenshot(tester, 'records');
       } else {
         // Try via More menu
         await _tapBottomNavItem(tester, Icons.more_horiz_outlined);
-        await tester.pumpAndSettle();
+        await _settle(tester);
         final recordsInMore = find.text('Records');
         if (recordsInMore.evaluate().isNotEmpty) {
           await tester.tap(recordsInMore.first);
-          await tester.pumpAndSettle();
+          await _settle(tester);
           await screenshotHelper.waitForContent(tester);
           await screenshotHelper.takeScreenshot(tester, 'records');
         }
@@ -502,14 +511,14 @@ Future<void> _enableProfileToggles(WidgetTester tester) async {
   final pressureToggle = find.text('Pressure');
   if (pressureToggle.evaluate().isNotEmpty) {
     await tester.tap(pressureToggle.first);
-    await tester.pumpAndSettle();
+    await _settle(tester);
   }
 
   // Look for SAC toggle and tap it if found
   final sacToggle = find.text('SAC');
   if (sacToggle.evaluate().isNotEmpty) {
     await tester.tap(sacToggle.first);
-    await tester.pumpAndSettle();
+    await _settle(tester);
   }
 }
 
@@ -545,12 +554,12 @@ Future<void> _tapBottomNavItem(WidgetTester tester, IconData icon) async {
 
   if (targetIcon != null) {
     await tester.tap(find.byWidget(targetIcon), warnIfMissed: false);
-    await tester.pumpAndSettle();
+    await _settle(tester);
   } else {
     // Fallback: tap first icon found (original behavior)
     if (iconFinder.evaluate().isNotEmpty) {
       await tester.tap(iconFinder.first, warnIfMissed: false);
-      await tester.pumpAndSettle();
+      await _settle(tester);
     }
   }
 }

@@ -48,14 +48,20 @@ class ScreenshotHelper {
     String name, {
     Duration settleDuration = const Duration(milliseconds: 500),
   }) async {
-    // Ensure all frames are rendered
-    await tester.pumpAndSettle();
+    // Pump multiple frames to allow layout to complete.
+    // We avoid pumpAndSettle() because infinite animations (e.g. HeroHeader
+    // ocean effect) would cause it to hang indefinitely.
+    for (int i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
 
     // Additional wait for async content (charts, maps, images)
     await Future.delayed(settleDuration);
 
     // Pump again to render any changes from the delay
-    await tester.pumpAndSettle();
+    for (int i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
 
     _screenshotIndex++;
     final paddedIndex = _screenshotIndex.toString().padLeft(2, '0');
@@ -78,8 +84,12 @@ class ScreenshotHelper {
     WidgetTester tester, {
     Duration duration = const Duration(seconds: 2),
   }) async {
-    await tester.pumpAndSettle();
+    for (int i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
     await Future.delayed(duration);
-    await tester.pumpAndSettle();
+    for (int i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
   }
 }
