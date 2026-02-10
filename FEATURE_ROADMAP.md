@@ -5,7 +5,7 @@
 > **Current Version:** 1.1.0 (v1.1 Complete)
 > **Status:** v1.0 ✅ COMPLETE | v1.1 ✅ COMPLETE | v1.5 🚧 In Progress
 >
-> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Profile Visualization (Category 2.1) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete | Search & Filtering (Category 10.1) ✅ Complete | Tools & Calculators (Category 11) ✅ Complete | Digital Signatures (Category 7.2) ✅ Complete | Training Dives (Category 8.3) ✅ Complete | Underwater Photography (Category 9.3) ✅ Complete | Maps & Visualization (Category 5.3) ✅ Complete | Certification Cards (Category 8.1) ✅ Complete | Push Notifications (Category 6.3) ✅ Complete | PDF Templates (Category 10.3) ✅ Complete | Wearable Integration v1 (Category 15.5) ✅ Complete | Marine Life Tracking (Category 9.2) ✅ Complete
+> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Profile Visualization (Category 2.1) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete | Search & Filtering (Category 10.1) ✅ Complete | Tools & Calculators (Category 11) ✅ Complete | Digital Signatures (Category 7.2) ✅ Complete | Training Dives (Category 8.3) ✅ Complete | Underwater Photography (Category 9.3) ✅ Complete | Maps & Visualization (Category 5.3) ✅ Complete | Certification Cards (Category 8.1) ✅ Complete | Push Notifications (Category 6.3) ✅ Complete | PDF Templates (Category 10.3) ✅ Complete | Wearable Integration v1 (Category 15.5) ✅ Complete | Marine Life Tracking (Category 9.2) ✅ Complete | Universal Import (Category 13.2/13.3) ✅ Complete
 
 ---
 
@@ -1026,9 +1026,9 @@
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Import from Subsurface | 📋 Planned | v1.5 | UDDF or XML |
-| Import from MacDive | 📋 Planned | v1.5 | CSV or proprietary format |
-| Import from other apps | 📋 Planned | v1.5 | Diving Log, DiveMate, etc. |
+| Import from Subsurface | ✅ Implemented | v1.5 | UDDF or XML via universal import wizard |
+| Import from MacDive | ✅ Implemented | v1.5 | CSV via universal import wizard |
+| Import from other apps | ✅ Implemented | v1.5 | Diving Log, DiveMate, etc. via universal import |
 | Upload to divelogs.de | 📋 Planned | v2.0 | API integration |
 | Garmin Connect integration | 📋 Planned | v2.0 | Import Garmin watch dives |
 | Shearwater Cloud import | 📋 Planned | v2.0 | Import from Shearwater cloud |
@@ -1036,10 +1036,13 @@
 | Diviac import | 📋 Planned | v2.0 | Import from Diviac online logbook |
 | Deepblu import | 📋 Planned | v2.0 | Import from Deepblu platform |
 
-**v1.5 Tasks:**
-- [ ] Import wizard with app selection (Subsurface, MacDive, Diving Log, etc.)
-- [ ] Per-app parser (detect format, map fields)
-- [ ] Dry-run preview before importing
+**v1.5 Tasks (Complete):**
+- [x] Import wizard with app selection (Subsurface, MacDive, Diving Log, etc.)
+- [x] Per-app parser (detect format, map fields)
+- [x] Dry-run preview before importing
+- [x] 6-step universal import wizard (file selection, source confirmation, field mapping, review, import, summary)
+- [x] Format auto-detection for 12+ source apps (Subsurface, MacDive, Diving Log, DiveMate, etc.)
+- [x] 9 entity types supported (dives, sites, buddies, equipment, species, certifications, tanks, weights, tags)
 
 **v2.0 Tasks:**
 - [ ] divelogs.de API integration (upload/download dives)
@@ -1057,12 +1060,16 @@
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
 | Universal CSV import | ✅ Implemented | MVP | Configurable column mapping |
-| Format auto-detection | 📋 Planned | v1.5 | Guess format from headers |
+| Format auto-detection | ✅ Implemented | v1.5 | Smart header analysis with source app detection |
+| Import templates | ✅ Implemented | v1.5 | Built-in mappings for 12+ apps |
+| Import validation | ✅ Implemented | v1.5 | Required fields, data types, dry-run preview |
 
-**v1.5 Tasks:**
-- [ ] Smart format detection (analyze CSV headers, suggest mapping)
-- [ ] Import templates for common apps (save column mappings)
-- [ ] Import validation (check required fields, data types)
+**v1.5 Tasks (Complete):**
+- [x] Smart format detection (analyze CSV headers, suggest mapping)
+- [x] Import templates for common apps (built-in column mappings for 12+ source apps)
+- [x] Import validation (check required fields, data types, row-level error reporting)
+- [x] Dry-run preview with entity counts and validation warnings
+- [x] 161 unit tests for universal import feature
 
 ---
 
@@ -1459,6 +1466,7 @@
 - [x] PDF Templates (Simple, Detailed, Professional, PADI-style, NAUI-style with page size and cert cards)
 - [x] Wearable Integration v1 (Apple Watch Ultra import via HealthKit, duplicate detection, 3-step wizard)
 - [x] Marine Life Tracking (511 species database, taxonomy, management UI, detail page with stats, reset-to-defaults)
+- [x] Universal Import (6-step wizard, 12+ source app detection, 9 entity types, field mapping, dry-run preview, 161 tests)
 - [ ] Performance with 5000+ dives
 
 ## v2.0 (Planned)
@@ -1481,5 +1489,5 @@
 
 ---
 
-**Document Version:** 2.19
-**Last Updated:** 2026-02-09 (Marine Life Tracking: 511 species database, taxonomy, management UI, species detail with stats, reset-to-defaults)
+**Document Version:** 2.20
+**Last Updated:** 2026-02-09 (Universal Import: 6-step wizard, 12+ source app format detection, 9 entity types, field mapping, dry-run preview, 161 tests)

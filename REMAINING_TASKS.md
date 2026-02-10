@@ -22,42 +22,7 @@ This document contains only the features and tasks that are **not yet completed*
 
 ---
 
-## Category 13: Import, Export & Interoperability
-
-### 13.2 Interoperability
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Import from Subsurface | 📋 Planned | UDDF or XML |
-| Import from MacDive | 📋 Planned | CSV or proprietary format |
-| Import from other apps | 📋 Planned | Diving Log, DiveMate, etc. |
-
-**Tasks:**
-- [ ] Import wizard with app selection (Subsurface, MacDive, Diving Log, etc.)
-- [ ] Per-app parser (detect format, map fields)
-- [ ] Dry-run preview before importing
-
-### 13.3 Universal Import
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Format auto-detection | 📋 Planned | Guess format from headers |
-
-**Tasks:**
-- [ ] Smart format detection (analyze CSV headers, suggest mapping)
-- [ ] Import templates for common apps (save column mappings)
-- [ ] Import validation (check required fields, data types)
-
----
-
 ## Category 15: UX, Customization & Quality-of-Life
-
-### 15.1 Layout & Customization
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Quick actions | 📋 Planned | iOS shortcuts, Android widgets |
-
-**Tasks:**
-- [ ] iOS 3D Touch shortcuts (Add Dive, View Last Dive)
-- [ ] Android home screen widgets (dive count, last dive, next service due)
 
 ### 15.3 Accessibility & Localization
 | Feature | Status | Notes |
@@ -476,16 +441,15 @@ This document contains only the features and tasks that are **not yet completed*
 
 | Phase | Remaining Features | Remaining Tasks |
 |-------|-------------------|-----------------|
-| **v1.5** | ~7 features | ~11 tasks |
+| **v1.5** | ~2 features | ~4 tasks |
 | **v2.0** | ~65+ features | ~105+ tasks |
 | **v3.0** | ~4 features | Future scope |
 
 ## v1.5 Priority Areas
-1. Import from other dive log apps
-2. Accessibility improvements
-3. Performance testing with large datasets
+1. Accessibility improvements
+2. Performance testing with large datasets
 
 ---
 
-**Document Version:** 2.7
-**Updated:** 2026-02-09 (Removed completed 9.2 Marine Life Tracking from v1.5; species photos moved to v2.0)
+**Document Version:** 2.8
+**Updated:** 2026-02-09 (Removed completed 13.2 Interoperability and 13.3 Universal Import from v1.5)
