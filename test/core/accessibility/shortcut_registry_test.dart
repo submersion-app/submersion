@@ -20,10 +20,7 @@ void main() {
       const entry = ShortcutEntry(
         label: 'Test',
         category: 'General',
-        activator: SingleActivator(
-          LogicalKeyboardKey.keyN,
-          control: true,
-        ),
+        activator: SingleActivator(LogicalKeyboardKey.keyN, control: true),
       );
 
       expect(entry.displayKey(TargetPlatform.windows), equals('Ctrl+N'));
