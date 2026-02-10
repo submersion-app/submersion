@@ -83,6 +83,7 @@ import 'package:submersion/features/surface_interval_tool/presentation/pages/sur
 import 'package:submersion/features/dive_import/presentation/pages/fit_import_page.dart';
 import 'package:submersion/features/dive_import/presentation/pages/healthkit_import_page.dart';
 import 'package:submersion/features/dive_import/presentation/pages/uddf_import_page.dart';
+import 'package:submersion/features/universal_import/presentation/pages/universal_import_page.dart';
 import 'package:submersion/shared/widgets/main_scaffold.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -648,6 +649,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'uddf-import',
                 name: 'uddfImport',
                 builder: (context, state) => const UddfImportPage(),
+              ),
+              GoRoute(
+                path: 'import-wizard',
+                name: 'universalImport',
+                builder: (context, state) => const UniversalImportPage(),
               ),
             ],
           ),

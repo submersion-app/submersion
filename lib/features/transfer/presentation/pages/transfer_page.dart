@@ -198,12 +198,67 @@ class _ImportSectionContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildSectionHeader(context, 'Import Data'),
+          const SizedBox(height: 8),
+          // Universal Import (primary entry point)
+          Card(
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: () => context.push('/transfer/import-wizard'),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.auto_fix_high,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Import Data',
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Auto-detects CSV, UDDF, FIT, and more',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: colorScheme.onSurfaceVariant),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Legacy import options
+          _buildSectionHeader(context, 'Import by Format'),
           const SizedBox(height: 8),
           Card(
             child: Column(
@@ -246,9 +301,9 @@ class _ImportSectionContent extends ConsumerWidget {
           _buildInfoCard(
             context,
             'About Import',
-            'Import dive data from other dive logging applications. '
-                'CSV files allow importing basic dive information, while '
-                'UDDF files can include dive profiles, equipment, and more.',
+            'Use "Import Data" for the best experience -- it '
+                'auto-detects your file format and source app. The individual '
+                'format options below are also available for direct access.',
           ),
         ],
       ),
