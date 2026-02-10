@@ -2,7 +2,7 @@
 
 > **Generated:** 2026-02-03
 > **Source:** FEATURE_ROADMAP.md
-> **Current Version:** 1.1.0 (v1.5 In Progress)
+> **Current Version:** 1.1.0 (v1.5 Nearly Complete - only performance testing remains)
 
 This document contains only the features and tasks that are **not yet completed**.
 
@@ -20,21 +20,7 @@ This document contains only the features and tasks that are **not yet completed*
 
 # v1.5 Remaining Tasks
 
----
-
-## Category 15: UX, Customization & Quality-of-Life
-
-### 15.3 Accessibility & Localization
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Screen reader support | 📋 Planned | Accessibility testing |
-| Keyboard navigation | 📋 Planned | Desktop accessibility |
-
-**Tasks:**
-- [ ] Accessibility audit (screen reader testing on iOS/Android)
-- [ ] Semantic labels for all interactive elements
-- [ ] Focus order testing and fixes
-- [ ] Keyboard shortcuts (desktop)
+> All v1.5 feature tasks are complete. Only performance testing remains.
 
 ---
 
@@ -441,15 +427,14 @@ This document contains only the features and tasks that are **not yet completed*
 
 | Phase | Remaining Features | Remaining Tasks |
 |-------|-------------------|-----------------|
-| **v1.5** | ~2 features | ~4 tasks |
+| **v1.5** | 0 features | 1 task (performance testing) |
 | **v2.0** | ~65+ features | ~105+ tasks |
 | **v3.0** | ~4 features | Future scope |
 
 ## v1.5 Priority Areas
-1. Accessibility improvements
-2. Performance testing with large datasets
+1. Performance testing with large datasets (5000+ dives)
 
 ---
 
-**Document Version:** 2.8
-**Updated:** 2026-02-09 (Removed completed 13.2 Interoperability and 13.3 Universal Import from v1.5)
+**Document Version:** 2.9
+**Updated:** 2026-02-09 (Removed completed 15.3 Accessibility & Keyboard Navigation from v1.5; all v1.5 feature tasks complete)
