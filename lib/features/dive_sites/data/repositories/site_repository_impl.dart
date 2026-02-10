@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -18,15 +19,17 @@ class SiteRepository {
   /// Get all sites ordered by name
   Future<List<domain.DiveSite>> getAllSites({String? diverId}) async {
     try {
-      final query = _db.select(_db.diveSites)
-        ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+      return await PerfTimer.measure('getAllSites', () async {
+        final query = _db.select(_db.diveSites)
+          ..orderBy([(t) => OrderingTerm.asc(t.name)]);
 
-      if (diverId != null) {
-        query.where((t) => t.diverId.equals(diverId));
-      }
+        if (diverId != null) {
+          query.where((t) => t.diverId.equals(diverId));
+        }
 
-      final rows = await query.get();
-      return rows.map(_mapRowToSite).toList();
+        final rows = await query.get();
+        return rows.map(_mapRowToSite).toList();
+      });
     } catch (e, stackTrace) {
       _log.error('Failed to get all sites', e, stackTrace);
       rethrow;
@@ -190,21 +193,23 @@ class SiteRepository {
     String? diverId,
   }) async {
     try {
-      final searchQuery = _db.select(_db.diveSites)
-        ..where(
-          (t) =>
-              t.name.contains(query) |
-              t.country.contains(query) |
-              t.region.contains(query),
-        )
-        ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+      return await PerfTimer.measure('searchSites', () async {
+        final searchQuery = _db.select(_db.diveSites)
+          ..where(
+            (t) =>
+                t.name.contains(query) |
+                t.country.contains(query) |
+                t.region.contains(query),
+          )
+          ..orderBy([(t) => OrderingTerm.asc(t.name)]);
 
-      if (diverId != null) {
-        searchQuery.where((t) => t.diverId.equals(diverId));
-      }
+        if (diverId != null) {
+          searchQuery.where((t) => t.diverId.equals(diverId));
+        }
 
-      final rows = await searchQuery.get();
-      return rows.map(_mapRowToSite).toList();
+        final rows = await searchQuery.get();
+        return rows.map(_mapRowToSite).toList();
+      });
     } catch (e, stackTrace) {
       _log.error('Failed to search sites: $query', e, stackTrace);
       rethrow;
@@ -236,16 +241,20 @@ class SiteRepository {
     String? diverId,
   }) async {
     try {
-      final sites = await getAllSites(diverId: diverId);
-      final counts = await getDiveCountsBySite();
+      return await PerfTimer.measure('getSitesWithDiveCounts', () async {
+        final sites = await getAllSites(diverId: diverId);
+        final counts = await getDiveCountsBySite();
 
-      return sites
-          .map(
-            (site) =>
-                SiteWithDiveCount(site: site, diveCount: counts[site.id] ?? 0),
-          )
-          .toList()
-        ..sort((a, b) => b.diveCount.compareTo(a.diveCount));
+        return sites
+            .map(
+              (site) => SiteWithDiveCount(
+                site: site,
+                diveCount: counts[site.id] ?? 0,
+              ),
+            )
+            .toList()
+          ..sort((a, b) => b.diveCount.compareTo(a.diveCount));
+      });
     } catch (e, stackTrace) {
       _log.error('Failed to get sites with dive counts', e, stackTrace);
       rethrow;

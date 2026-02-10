@@ -1,5 +1,6 @@
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -216,37 +217,41 @@ List<SiteWithDiveCount> _applySiteSorting(
   List<SiteWithDiveCount> sites,
   SortState<SiteSortField> sort,
 ) {
-  final sorted = List<SiteWithDiveCount>.from(sites);
+  return PerfTimer.measureSync('applySiteSorting', () {
+    final sorted = List<SiteWithDiveCount>.from(sites);
 
-  sorted.sort((a, b) {
-    int comparison;
-    // For text fields, invert direction (user expects descending = A→Z)
-    final invertForText = sort.field == SiteSortField.name;
+    sorted.sort((a, b) {
+      int comparison;
+      // For text fields, invert direction (user expects descending = A→Z)
+      final invertForText = sort.field == SiteSortField.name;
 
-    switch (sort.field) {
-      case SiteSortField.name:
-        comparison = a.site.name.compareTo(b.site.name);
-      case SiteSortField.rating:
-        comparison = (a.site.rating ?? 0).compareTo(b.site.rating ?? 0);
-      case SiteSortField.difficulty:
-        comparison = (a.site.difficulty?.index ?? 0).compareTo(
-          b.site.difficulty?.index ?? 0,
-        );
-      case SiteSortField.depth:
-        comparison = (a.site.maxDepth ?? 0).compareTo(b.site.maxDepth ?? 0);
-      case SiteSortField.diveCount:
-        comparison = a.diveCount.compareTo(b.diveCount);
-    }
+      switch (sort.field) {
+        case SiteSortField.name:
+          comparison = a.site.name.compareTo(b.site.name);
+        case SiteSortField.rating:
+          comparison = (a.site.rating ?? 0).compareTo(b.site.rating ?? 0);
+        case SiteSortField.difficulty:
+          comparison = (a.site.difficulty?.index ?? 0).compareTo(
+            b.site.difficulty?.index ?? 0,
+          );
+        case SiteSortField.depth:
+          comparison = (a.site.maxDepth ?? 0).compareTo(b.site.maxDepth ?? 0);
+        case SiteSortField.diveCount:
+          comparison = a.diveCount.compareTo(b.diveCount);
+      }
 
-    if (invertForText) {
+      if (invertForText) {
+        return sort.direction == SortDirection.ascending
+            ? -comparison
+            : comparison;
+      }
       return sort.direction == SortDirection.ascending
-          ? -comparison
-          : comparison;
-    }
-    return sort.direction == SortDirection.ascending ? comparison : -comparison;
-  });
+          ? comparison
+          : -comparison;
+    });
 
-  return sorted;
+    return sorted;
+  });
 }
 
 /// Single site provider
