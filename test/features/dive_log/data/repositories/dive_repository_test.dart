@@ -1,9 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
+import '../../../../helpers/performance_data_generator.dart';
 import '../../../../helpers/test_database.dart';
 
 void main() {
@@ -503,6 +505,41 @@ void main() {
         expect(records.warmestDive, isNotNull);
         expect(records.warmestDive!.waterTemp, equals(28.0));
       });
+    });
+  });
+
+  group('Performance smoke tests (light preset)', () {
+    late GeneratedDataSummary summary;
+
+    setUp(() async {
+      final generator = PerformanceDataGenerator(DataProfile.light);
+      summary = await generator.generate();
+    });
+
+    test('getDiveSummaries loads page in under 100ms', () async {
+      PerfTimer.reset();
+      await repository.getDiveSummaries(diverId: summary.diverId, limit: 50);
+      final duration = PerfTimer.lastResult('getDiveSummaries');
+      expect(duration, isNotNull);
+      expect(duration!.inMilliseconds, lessThan(100));
+    });
+
+    test('getDiveById loads in under 50ms', () async {
+      final dives = await repository.getAllDives(diverId: summary.diverId);
+      PerfTimer.reset();
+      await repository.getDiveById(dives.first.id);
+      final duration = PerfTimer.lastResult('getDiveById');
+      expect(duration, isNotNull);
+      expect(duration!.inMilliseconds, lessThan(50));
+    });
+
+    test('getDiveProfile loads in under 50ms', () async {
+      final dives = await repository.getAllDives(diverId: summary.diverId);
+      PerfTimer.reset();
+      await repository.getDiveProfile(dives.first.id);
+      final duration = PerfTimer.lastResult('getDiveProfile');
+      expect(duration, isNotNull);
+      expect(duration!.inMilliseconds, lessThan(50));
     });
   });
 }
