@@ -511,7 +511,6 @@ class PerformanceDataGenerator {
 
     // Phase durations (as fraction of total time)
     final descentTime = durationSeconds * 0.1;
-    final ascentTime = durationSeconds * 0.15;
     final safetyStopStart = durationSeconds * 0.85;
     final safetyStopEnd = durationSeconds * 0.92;
 
