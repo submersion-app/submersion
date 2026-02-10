@@ -84,6 +84,7 @@ class PhotoGpsSuggestionBanner extends ConsumerWidget {
                     size: 18,
                     color: colorScheme.onSurfaceVariant,
                   ),
+                  tooltip: 'Dismiss GPS suggestion',
                   onPressed: onDismiss,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(

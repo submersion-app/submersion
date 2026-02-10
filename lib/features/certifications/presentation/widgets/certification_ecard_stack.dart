@@ -184,21 +184,28 @@ class _CertificationEcardStackState extends State<CertificationEcardStack> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(widget.certifications.length, (index) {
         final isActive = index == _currentIndex;
-        return GestureDetector(
-          onTap: () => _navigateToPage(index),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            width: isActive ? 24 : 8,
-            height: 8,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(4),
-              color: isActive ? theme.colorScheme.primary : Colors.transparent,
-              border: Border.all(
+        return Semantics(
+          button: true,
+          label:
+              'Page ${index + 1} of ${widget.certifications.length}${isActive ? ', current' : ''}',
+          child: GestureDetector(
+            onTap: () => _navigateToPage(index),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              width: isActive ? 24 : 8,
+              height: 8,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(4),
                 color: isActive
                     ? theme.colorScheme.primary
-                    : theme.colorScheme.outline,
-                width: 1.5,
+                    : Colors.transparent,
+                border: Border.all(
+                  color: isActive
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.outline,
+                  width: 1.5,
+                ),
               ),
             ),
           ),

@@ -348,40 +348,47 @@ class _GridThumbnail extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return GestureDetector(
-      onTap: () => _openViewer(context, ref),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // Thumbnail or placeholder
-            if (item.isOrphaned)
-              _buildOrphanedPlaceholder(colorScheme)
-            else if (item.platformAssetId != null)
-              _buildAssetThumbnail(ref, colorScheme)
-            else
-              _buildPlaceholder(colorScheme),
+    final mediaType = item.isVideo ? 'Video' : 'Photo';
+    final statusStr = item.isOrphaned ? ', missing from device' : '';
 
-            // Video icon (top-right)
-            if (item.isVideo)
-              Positioned(
-                top: 4,
-                right: 4,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.black54,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Icon(
-                    Icons.videocam,
-                    size: 14,
-                    color: Colors.white,
+    return Semantics(
+      button: true,
+      label: '$mediaType thumbnail$statusStr. Tap to view full screen',
+      child: GestureDetector(
+        onTap: () => _openViewer(context, ref),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // Thumbnail or placeholder
+              if (item.isOrphaned)
+                _buildOrphanedPlaceholder(colorScheme)
+              else if (item.platformAssetId != null)
+                _buildAssetThumbnail(ref, colorScheme)
+              else
+                _buildPlaceholder(colorScheme),
+
+              // Video icon (top-right)
+              if (item.isVideo)
+                Positioned(
+                  top: 4,
+                  right: 4,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Icon(
+                      Icons.videocam,
+                      size: 14,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -42,29 +42,32 @@ class MiniDiveProfileOverlay extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 160,
-        height: 100,
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.7),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.2),
-            width: 1,
+    return Semantics(
+      label: 'Mini dive profile chart',
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 160,
+          height: 100,
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.7),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.2),
+              width: 1,
+            ),
           ),
-        ),
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header with depth label
-            _buildHeader(context),
-            const SizedBox(height: 4),
-            // Mini chart
-            Expanded(child: _buildMiniChart(context)),
-          ],
+          padding: const EdgeInsets.all(8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header with depth label
+              _buildHeader(context),
+              const SizedBox(height: 4),
+              // Mini chart
+              Expanded(child: _buildMiniChart(context)),
+            ],
+          ),
         ),
       ),
     );

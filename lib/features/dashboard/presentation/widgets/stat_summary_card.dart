@@ -58,13 +58,17 @@ class StatSummaryCard extends StatelessWidget {
     );
 
     if (onTap != null) {
-      return InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: card,
+      return Semantics(
+        button: true,
+        label: '$label: $value',
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: card,
+        ),
       );
     }
 
-    return card;
+    return Semantics(label: '$label: $value', child: card);
   }
 }

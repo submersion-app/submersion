@@ -159,6 +159,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
           title: const Text('Dive Map'),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
+            tooltip: 'Back to dive list',
             onPressed: () => context.go('/dives'),
           ),
           actions: [
@@ -198,7 +199,11 @@ class DiveSearchDelegate extends SearchDelegate<Dive?> {
   List<Widget> buildActions(BuildContext context) {
     return [
       if (query.isNotEmpty)
-        IconButton(icon: const Icon(Icons.clear), onPressed: () => query = ''),
+        IconButton(
+          icon: const Icon(Icons.clear),
+          tooltip: 'Clear search',
+          onPressed: () => query = '',
+        ),
     ];
   }
 
@@ -206,6 +211,7 @@ class DiveSearchDelegate extends SearchDelegate<Dive?> {
   Widget buildLeading(BuildContext context) {
     return IconButton(
       icon: const Icon(Icons.arrow_back),
+      tooltip: 'Back',
       onPressed: () => close(context, null),
     );
   }
@@ -222,12 +228,14 @@ class DiveSearchDelegate extends SearchDelegate<Dive?> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.search,
-              size: 64,
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+            ExcludeSemantics(
+              child: Icon(
+                Icons.search,
+                size: 64,
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              ),
             ),
             const SizedBox(height: 16),
             Text(
@@ -253,12 +261,14 @@ class DiveSearchDelegate extends SearchDelegate<Dive?> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.search_off,
-                  size: 64,
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                ExcludeSemantics(
+                  child: Icon(
+                    Icons.search_off,
+                    size: 64,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -497,18 +507,22 @@ class DiveListTile extends ConsumerWidget {
                           ),
                           if (isFavorite) ...[
                             const SizedBox(width: 4),
-                            Icon(
-                              Icons.favorite,
-                              size: 18,
-                              color: Colors.red.shade400,
+                            ExcludeSemantics(
+                              child: Icon(
+                                Icons.favorite,
+                                size: 18,
+                                color: Colors.red.shade400,
+                              ),
                             ),
                           ],
                           if (rating != null) ...[
                             const SizedBox(width: 8),
-                            Icon(
-                              Icons.star,
-                              size: 16,
-                              color: Colors.amber.shade600,
+                            ExcludeSemantics(
+                              child: Icon(
+                                Icons.star,
+                                size: 16,
+                                color: Colors.amber.shade600,
+                              ),
                             ),
                             const SizedBox(width: 2),
                             Text(
@@ -544,12 +558,14 @@ class DiveListTile extends ConsumerWidget {
                       // Depth and duration stats (always shown)
                       Row(
                         children: [
-                          Icon(
-                            Icons.arrow_downward,
-                            size: 14,
-                            color: maxDepth != null
-                                ? accentColor
-                                : secondaryTextColor,
+                          ExcludeSemantics(
+                            child: Icon(
+                              Icons.arrow_downward,
+                              size: 14,
+                              color: maxDepth != null
+                                  ? accentColor
+                                  : secondaryTextColor,
+                            ),
                           ),
                           const SizedBox(width: 4),
                           Flexible(
@@ -566,12 +582,14 @@ class DiveListTile extends ConsumerWidget {
                             ),
                           ),
                           const SizedBox(width: 16),
-                          Icon(
-                            Icons.timer_outlined,
-                            size: 14,
-                            color: duration != null
-                                ? accentColor
-                                : secondaryTextColor,
+                          ExcludeSemantics(
+                            child: Icon(
+                              Icons.timer_outlined,
+                              size: 14,
+                              color: duration != null
+                                  ? accentColor
+                                  : secondaryTextColor,
+                            ),
                           ),
                           const SizedBox(width: 4),
                           Flexible(
@@ -591,10 +609,12 @@ class DiveListTile extends ConsumerWidget {
                           ),
                           if (waterTemp != null) ...[
                             const SizedBox(width: 16),
-                            Icon(
-                              Icons.thermostat_outlined,
-                              size: 14,
-                              color: accentColor,
+                            ExcludeSemantics(
+                              child: Icon(
+                                Icons.thermostat_outlined,
+                                size: 14,
+                                color: accentColor,
+                              ),
                             ),
                             const SizedBox(width: 4),
                             Flexible(
@@ -634,7 +654,9 @@ class DiveListTile extends ConsumerWidget {
                     ),
                   ),
                 // Chevron
-                Icon(Icons.chevron_right, color: secondaryTextColor),
+                ExcludeSemantics(
+                  child: Icon(Icons.chevron_right, color: secondaryTextColor),
+                ),
               ],
             ),
           );
@@ -648,44 +670,48 @@ class DiveListTile extends ConsumerWidget {
       return Card(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          onLongPress: onLongPress,
-          child: Stack(
-            children: [
-              // Static map tile background (cached)
-              Positioned.fill(
-                child: CachedNetworkImage(
-                  imageUrl: tileUrl,
-                  fit: BoxFit.cover,
-                  fadeInDuration: Duration.zero,
-                  placeholder: (_, _) =>
-                      Container(color: const Color(0xFF1A1A2E)),
-                  errorWidget: (_, _, _) =>
-                      Container(color: const Color(0xFF1A1A2E)),
+        child: Semantics(
+          button: true,
+          label: 'Dive $diveNumber at ${siteName ?? 'Unknown Site'}',
+          child: InkWell(
+            onTap: onTap,
+            onLongPress: onLongPress,
+            child: Stack(
+              children: [
+                // Static map tile background (cached)
+                Positioned.fill(
+                  child: CachedNetworkImage(
+                    imageUrl: tileUrl,
+                    fit: BoxFit.cover,
+                    fadeInDuration: Duration.zero,
+                    placeholder: (_, _) =>
+                        Container(color: const Color(0xFF1A1A2E)),
+                    errorWidget: (_, _, _) =>
+                        Container(color: const Color(0xFF1A1A2E)),
+                  ),
                 ),
-              ),
-              // Gradient overlay for text readability
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      stops: const [0.0, 0.3, 0.7, 1.0],
-                      colors: [
-                        Colors.black.withValues(alpha: 0.4),
-                        Colors.black.withValues(alpha: 0.5),
-                        Colors.black.withValues(alpha: 0.7),
-                        Colors.black.withValues(alpha: 0.85),
-                      ],
+                // Gradient overlay for text readability
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        stops: const [0.0, 0.3, 0.7, 1.0],
+                        colors: [
+                          Colors.black.withValues(alpha: 0.4),
+                          Colors.black.withValues(alpha: 0.5),
+                          Colors.black.withValues(alpha: 0.7),
+                          Colors.black.withValues(alpha: 0.85),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              // Content layer
-              buildContent(),
-            ],
+                // Content layer
+                buildContent(),
+              ],
+            ),
           ),
         ),
       );
@@ -695,11 +721,15 @@ class DiveListTile extends ConsumerWidget {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       color: cardColor,
-      child: InkWell(
-        onTap: onTap,
-        onLongPress: onLongPress,
-        borderRadius: BorderRadius.circular(12),
-        child: buildContent(),
+      child: Semantics(
+        button: true,
+        label: 'Dive $diveNumber at ${siteName ?? 'Unknown Site'}',
+        child: InkWell(
+          onTap: onTap,
+          onLongPress: onLongPress,
+          borderRadius: BorderRadius.circular(12),
+          child: buildContent(),
+        ),
       ),
     );
   }
@@ -811,6 +841,7 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.close),
+                    tooltip: 'Close filter',
                   ),
                 ],
               ),
@@ -1131,6 +1162,7 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                       color: isSelected ? Colors.amber : null,
                       size: 32,
                     ),
+                    tooltip: '$rating star${rating > 1 ? 's' : ''}',
                     onPressed: () {
                       setState(() {
                         if (_minRating == rating) {

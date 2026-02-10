@@ -70,14 +70,18 @@ class NextDiveInput extends ConsumerWidget {
               label: 'Depth',
               icon: Icons.arrow_downward,
               value: '${displayDepth.toStringAsFixed(0)} $depthSymbol',
-              slider: Slider(
-                value: depth,
-                min: 6,
-                max: 60,
-                divisions: 54,
-                onChanged: (value) {
-                  ref.read(siSecondDiveDepthProvider.notifier).state = value;
-                },
+              slider: Semantics(
+                label:
+                    'Second dive depth: ${displayDepth.toStringAsFixed(0)} $depthSymbol',
+                child: Slider(
+                  value: depth,
+                  min: 6,
+                  max: 60,
+                  divisions: 54,
+                  onChanged: (value) {
+                    ref.read(siSecondDiveDepthProvider.notifier).state = value;
+                  },
+                ),
               ),
               minLabel:
                   '${units.convertDepth(6).toStringAsFixed(0)} $depthSymbol',
@@ -91,15 +95,18 @@ class NextDiveInput extends ConsumerWidget {
               label: 'Time',
               icon: Icons.timer,
               value: '$time min',
-              slider: Slider(
-                value: time.toDouble(),
-                min: 5,
-                max: 120,
-                divisions: 23,
-                onChanged: (value) {
-                  ref.read(siSecondDiveTimeProvider.notifier).state = value
-                      .round();
-                },
+              slider: Semantics(
+                label: 'Second dive time: $time minutes',
+                child: Slider(
+                  value: time.toDouble(),
+                  min: 5,
+                  max: 120,
+                  divisions: 23,
+                  onChanged: (value) {
+                    ref.read(siSecondDiveTimeProvider.notifier).state = value
+                        .round();
+                  },
+                ),
               ),
               minLabel: '5 min',
               maxLabel: '120 min',
@@ -115,7 +122,7 @@ class NextDiveInput extends ConsumerWidget {
     required String label,
     required IconData icon,
     required String value,
-    required Slider slider,
+    required Widget slider,
     required String minLabel,
     required String maxLabel,
   }) {
@@ -129,7 +136,13 @@ class NextDiveInput extends ConsumerWidget {
           children: [
             Row(
               children: [
-                Icon(icon, size: 16, color: colorScheme.onSurfaceVariant),
+                ExcludeSemantics(
+                  child: Icon(
+                    icon,
+                    size: 16,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
                 const SizedBox(width: 8),
                 Text(label, style: theme.textTheme.bodyMedium),
               ],

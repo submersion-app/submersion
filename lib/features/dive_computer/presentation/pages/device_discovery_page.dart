@@ -64,6 +64,7 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
           leading: IconButton(
             icon: const Icon(Icons.close),
             onPressed: () => _showExitConfirmation(context),
+            tooltip: 'Exit setup',
           ),
         ),
         body: Column(

@@ -288,133 +288,137 @@ class DiverListTile extends ConsumerWidget {
           : isCurrentDiver
           ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3)
           : null,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              // Avatar
-              Stack(
-                children: [
-                  CircleAvatar(
-                    radius: 28,
-                    backgroundColor: theme.colorScheme.primaryContainer,
-                    backgroundImage: diver.photoPath != null
-                        ? AssetImage(diver.photoPath!)
-                        : null,
-                    child: diver.photoPath == null
-                        ? Text(
-                            diver.initials,
-                            style: TextStyle(
-                              color: theme.colorScheme.onPrimaryContainer,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          )
-                        : null,
-                  ),
-                  if (isCurrentDiver)
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(2),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.primary,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.check,
-                          size: 12,
-                          color: theme.colorScheme.onPrimary,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(width: 16),
-              // Info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      child: Semantics(
+        button: true,
+        label: 'View diver ${diver.name}',
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                // Avatar
+                Stack(
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            diver.name,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: isCurrentDiver
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                            ),
+                    CircleAvatar(
+                      radius: 28,
+                      backgroundColor: theme.colorScheme.primaryContainer,
+                      backgroundImage: diver.photoPath != null
+                          ? AssetImage(diver.photoPath!)
+                          : null,
+                      child: diver.photoPath == null
+                          ? Text(
+                              diver.initials,
+                              style: TextStyle(
+                                color: theme.colorScheme.onPrimaryContainer,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            )
+                          : null,
+                    ),
+                    if (isCurrentDiver)
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primary,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.check,
+                            size: 12,
+                            color: theme.colorScheme.onPrimary,
                           ),
                         ),
-                        if (isCurrentDiver)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.primary,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                      ),
+                  ],
+                ),
+                const SizedBox(width: 16),
+                // Info
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
                             child: Text(
-                              'Active',
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: theme.colorScheme.onPrimary,
+                              diver.name,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: isCurrentDiver
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
                               ),
                             ),
                           ),
+                          if (isCurrentDiver)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.primary,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                'Active',
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: theme.colorScheme.onPrimary,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      statsAsync.when(
+                        data: (stats) => Text(
+                          '${stats.diveCount} dives${stats.totalBottomTimeSeconds > 0 ? ' - ${stats.formattedBottomTime}' : ''}',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        loading: () => Text(
+                          'Loading...',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        error: (e, st) => Text(
+                          'Error loading stats',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.error,
+                          ),
+                        ),
+                      ),
+                      if (diver.email != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          diver.email!,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ],
-                    ),
-                    const SizedBox(height: 4),
-                    statsAsync.when(
-                      data: (stats) => Text(
-                        '${stats.diveCount} dives${stats.totalBottomTimeSeconds > 0 ? ' - ${stats.formattedBottomTime}' : ''}',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      loading: () => Text(
-                        'Loading...',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      error: (e, st) => Text(
-                        'Error loading stats',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.error,
-                        ),
-                      ),
-                    ),
-                    if (diver.email != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        diver.email!,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
                     ],
-                  ],
+                  ),
                 ),
-              ),
-              // Switch button (if not current)
-              if (!isCurrentDiver && onSwitchTo != null)
-                IconButton(
-                  onPressed: onSwitchTo,
-                  icon: const Icon(Icons.switch_account),
-                  tooltip: 'Switch to this diver',
-                )
-              else
-                const Icon(Icons.chevron_right),
-            ],
+                // Switch button (if not current)
+                if (!isCurrentDiver && onSwitchTo != null)
+                  IconButton(
+                    onPressed: onSwitchTo,
+                    icon: const Icon(Icons.switch_account),
+                    tooltip: 'Switch to this diver',
+                  )
+                else
+                  const ExcludeSemantics(child: Icon(Icons.chevron_right)),
+              ],
+            ),
           ),
         ),
       ),

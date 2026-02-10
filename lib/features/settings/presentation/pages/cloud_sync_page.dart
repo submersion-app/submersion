@@ -110,59 +110,74 @@ class CloudSyncPage extends ConsumerWidget {
   ) {
     final theme = Theme.of(context);
 
-    return Card(
-      margin: const EdgeInsets.all(16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                _buildStatusIcon(syncState.status),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _getStatusTitle(syncState.status),
-                        style: theme.textTheme.titleMedium,
-                      ),
-                      if (syncState.message != null)
+    return Semantics(
+      label:
+          _getStatusTitle(syncState.status) +
+          (syncState.lastSync != null
+              ? ', last synced ${_formatDateTime(syncState.lastSync!)}'
+              : '') +
+          (syncState.pendingChanges > 0
+              ? ', ${syncState.pendingChanges} pending changes'
+              : ''),
+      liveRegion: syncState.status == SyncStatus.syncing,
+      child: Card(
+        margin: const EdgeInsets.all(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  ExcludeSemantics(child: _buildStatusIcon(syncState.status)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text(
-                          syncState.message!,
-                          style: theme.textTheme.bodySmall,
+                          _getStatusTitle(syncState.status),
+                          style: theme.textTheme.titleMedium,
                         ),
-                    ],
+                        if (syncState.message != null)
+                          Text(
+                            syncState.message!,
+                            style: theme.textTheme.bodySmall,
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              if (syncState.status == SyncStatus.syncing &&
+                  syncState.progress != null) ...[
+                const SizedBox(height: 16),
+                Semantics(
+                  label:
+                      'Sync progress: ${(syncState.progress! * 100).toStringAsFixed(0)} percent',
+                  child: LinearProgressIndicator(value: syncState.progress),
+                ),
+              ],
+              if (syncState.lastSync != null) ...[
+                const SizedBox(height: 12),
+                Text(
+                  'Last synced: ${_formatDateTime(syncState.lastSync!)}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
-            ),
-            if (syncState.status == SyncStatus.syncing &&
-                syncState.progress != null) ...[
-              const SizedBox(height: 16),
-              LinearProgressIndicator(value: syncState.progress),
-            ],
-            if (syncState.lastSync != null) ...[
-              const SizedBox(height: 12),
-              Text(
-                'Last synced: ${_formatDateTime(syncState.lastSync!)}',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+              if (syncState.pendingChanges > 0) ...[
+                const SizedBox(height: 4),
+                Text(
+                  '${syncState.pendingChanges} pending change${syncState.pendingChanges == 1 ? '' : 's'}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.primary,
+                  ),
                 ),
-              ),
+              ],
             ],
-            if (syncState.pendingChanges > 0) ...[
-              const SizedBox(height: 4),
-              Text(
-                '${syncState.pendingChanges} pending change${syncState.pendingChanges == 1 ? '' : 's'}',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.primary,
-                ),
-              ),
-            ],
-          ],
+          ),
         ),
       ),
     );
@@ -253,15 +268,26 @@ class CloudSyncPage extends ConsumerWidget {
     required bool isSelected,
     required bool isAvailable,
   }) {
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(title),
-      subtitle: Text(isAvailable ? subtitle : 'Not available on this platform'),
-      trailing: isSelected
-          ? const Icon(Icons.check_circle, color: Colors.green)
-          : null,
-      enabled: isAvailable,
-      onTap: isAvailable ? () => _selectProvider(context, ref, provider) : null,
+    return Semantics(
+      selected: isSelected,
+      child: ListTile(
+        leading: Icon(icon),
+        title: Text(title),
+        subtitle: Text(
+          isAvailable ? subtitle : 'Not available on this platform',
+        ),
+        trailing: isSelected
+            ? const Icon(
+                Icons.check_circle,
+                color: Colors.green,
+                semanticLabel: 'Connected',
+              )
+            : null,
+        enabled: isAvailable,
+        onTap: isAvailable
+            ? () => _selectProvider(context, ref, provider)
+            : null,
+      ),
     );
   }
 
@@ -338,12 +364,14 @@ class CloudSyncPage extends ConsumerWidget {
                 ? null
                 : () => ref.read(syncStateProvider.notifier).performSync(),
             icon: isSyncing
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
+                ? const ExcludeSemantics(
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
                     ),
                   )
                 : const Icon(Icons.sync),

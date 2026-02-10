@@ -58,88 +58,111 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Progress indicator
-          _buildProgressIndicator(downloadState, colorScheme),
-          const SizedBox(height: 32),
+    final statusText = downloadState.progress?.status ?? 'Preparing...';
+    final percentText =
+        downloadState.progress != null && downloadState.progress!.totalDives > 0
+        ? ', ${(downloadState.progress!.percentage * 100).toStringAsFixed(0)} percent'
+        : '';
 
-          // Status text
-          Text(
-            downloadState.progress?.status ?? 'Preparing...',
-            style: theme.textTheme.titleMedium,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
+    return Semantics(
+      label: 'Download progress: $statusText$percentText',
+      liveRegion: downloadState.isDownloading,
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Progress indicator
+            ExcludeSemantics(
+              child: _buildProgressIndicator(downloadState, colorScheme),
+            ),
+            const SizedBox(height: 32),
 
-          // Progress percentage
-          if (downloadState.progress != null &&
-              downloadState.progress!.totalDives > 0)
+            // Status text
             Text(
-              '${(downloadState.progress!.percentage * 100).toStringAsFixed(0)}%',
-              style: theme.textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: colorScheme.primary,
+              statusText,
+              style: theme.textTheme.titleMedium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+
+            // Progress percentage
+            if (downloadState.progress != null &&
+                downloadState.progress!.totalDives > 0)
+              Text(
+                '${(downloadState.progress!.percentage * 100).toStringAsFixed(0)}%',
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.primary,
+                ),
               ),
-            ),
 
-          const SizedBox(height: 32),
+            const SizedBox(height: 32),
 
-          // Downloaded dives count
-          if (downloadState.downloadedDives.isNotEmpty)
-            _buildDivesList(context, downloadState),
+            // Downloaded dives count
+            if (downloadState.downloadedDives.isNotEmpty)
+              _buildDivesList(context, downloadState),
 
-          const Spacer(),
+            const Spacer(),
 
-          // Cancel button
-          if (downloadState.isDownloading)
-            OutlinedButton.icon(
-              onPressed: () {
-                ref.read(downloadNotifierProvider.notifier).cancelDownload();
-              },
-              icon: const Icon(Icons.cancel),
-              label: const Text('Cancel'),
-            ),
+            // Cancel button
+            if (downloadState.isDownloading)
+              OutlinedButton.icon(
+                onPressed: () {
+                  ref.read(downloadNotifierProvider.notifier).cancelDownload();
+                },
+                icon: const Icon(Icons.cancel),
+                label: const Text('Cancel'),
+              ),
 
-          // Error state
-          if (downloadState.hasError)
-            Column(
-              children: [
-                Card(
-                  color: colorScheme.errorContainer,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        Icon(Icons.error, color: colorScheme.error),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            downloadState.errorMessage ?? 'An error occurred',
-                            style: TextStyle(
-                              color: colorScheme.onErrorContainer,
+            // Error state
+            if (downloadState.hasError)
+              Column(
+                children: [
+                  Semantics(
+                    label:
+                        'Download error: ${downloadState.errorMessage ?? 'An error occurred'}',
+                    liveRegion: true,
+                    child: Card(
+                      color: colorScheme.errorContainer,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            ExcludeSemantics(
+                              child: Icon(
+                                Icons.error,
+                                color: colorScheme.error,
+                              ),
                             ),
-                          ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                downloadState.errorMessage ??
+                                    'An error occurred',
+                                style: TextStyle(
+                                  color: colorScheme.onErrorContainer,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                FilledButton.icon(
-                  onPressed: () {
-                    _hasStarted = false;
-                    _startDownload();
-                  },
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Retry'),
-                ),
-              ],
-            ),
-        ],
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed: () {
+                      _hasStarted = false;
+                      _startDownload();
+                    },
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Retry'),
+                  ),
+                ],
+              ),
+          ],
+        ),
       ),
     );
   }

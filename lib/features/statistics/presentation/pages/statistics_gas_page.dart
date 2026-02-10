@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -153,31 +154,38 @@ class StatisticsGasPage extends ConsumerWidget {
               final role = entry.key;
               final sac = entry.value;
               final isFirst = entry.key == data.keys.first;
+              final displayName = getRoleDisplayName(role);
+              final sacValue = '${sac.toStringAsFixed(1)} $unitSymbol';
 
-              return Padding(
-                padding: EdgeInsets.only(top: isFirst ? 0 : 8),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.propane_tank,
-                      size: 20,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        getRoleDisplayName(role),
-                        style: Theme.of(context).textTheme.bodyMedium,
+              return Semantics(
+                label: statLabel(name: displayName, value: sacValue),
+                child: Padding(
+                  padding: EdgeInsets.only(top: isFirst ? 0 : 8),
+                  child: Row(
+                    children: [
+                      ExcludeSemantics(
+                        child: Icon(
+                          Icons.propane_tank,
+                          size: 20,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                       ),
-                    ),
-                    Text(
-                      '${sac.toStringAsFixed(1)} $unitSymbol',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          displayName,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
                       ),
-                    ),
-                  ],
+                      Text(
+                        sacValue,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             }).toList(),

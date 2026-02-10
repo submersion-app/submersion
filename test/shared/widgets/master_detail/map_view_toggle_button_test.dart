@@ -65,6 +65,6 @@ void main() {
     );
 
     final iconButton = tester.widget<IconButton>(find.byType(IconButton));
-    expect(iconButton.tooltip, 'Map View');
+    expect(iconButton.tooltip, 'Show Map View');
   });
 }

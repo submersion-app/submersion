@@ -144,6 +144,7 @@ class _CertificationListContentState
           ),
           IconButton(
             icon: const Icon(Icons.search),
+            tooltip: 'Search certifications',
             onPressed: () {
               showSearch(
                 context: context,
@@ -192,6 +193,7 @@ class _CertificationListContentState
           ),
           IconButton(
             icon: const Icon(Icons.search, size: 20),
+            tooltip: 'Search certifications',
             onPressed: () {
               showSearch(
                 context: context,
@@ -380,17 +382,30 @@ class CertificationListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      color: isSelected
-          ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
-          : null,
-      child: ListTile(
-        onTap: onTap,
-        leading: _buildLeadingIcon(context),
-        title: Text(certification.name),
-        subtitle: _buildSubtitle(context),
-        trailing: _buildTrailing(context),
+    final statusLabel = certification.isExpired
+        ? ', Expired'
+        : certification.expiresWithin(90)
+        ? ', Expiring in ${certification.daysUntilExpiry} days'
+        : '';
+    final issueDateLabel = certification.issueDate != null
+        ? ', issued ${DateFormat.yMMMd().format(certification.issueDate!)}'
+        : '';
+
+    return Semantics(
+      label:
+          '${certification.agency.displayName} ${certification.name}$issueDateLabel$statusLabel',
+      child: Card(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        color: isSelected
+            ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
+            : null,
+        child: ListTile(
+          onTap: onTap,
+          leading: _buildLeadingIcon(context),
+          title: Text(certification.name),
+          subtitle: _buildSubtitle(context),
+          trailing: _buildTrailing(context),
+        ),
       ),
     );
   }
@@ -482,7 +497,11 @@ class CertificationSearchDelegate extends SearchDelegate<Certification?> {
   List<Widget> buildActions(BuildContext context) {
     return [
       if (query.isNotEmpty)
-        IconButton(icon: const Icon(Icons.clear), onPressed: () => query = ''),
+        IconButton(
+          icon: const Icon(Icons.clear),
+          tooltip: 'Clear search',
+          onPressed: () => query = '',
+        ),
     ];
   }
 
@@ -490,6 +509,7 @@ class CertificationSearchDelegate extends SearchDelegate<Certification?> {
   Widget buildLeading(BuildContext context) {
     return IconButton(
       icon: const Icon(Icons.arrow_back),
+      tooltip: 'Back',
       onPressed: () => close(context, null),
     );
   }

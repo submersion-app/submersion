@@ -81,12 +81,14 @@ class _WelcomePageState extends ConsumerState<WelcomePage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   // App icon/logo
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(24),
-                    child: Image.asset(
-                      'assets/icon/icon.png',
-                      width: 120,
-                      height: 120,
+                  ExcludeSemantics(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: Image.asset(
+                        'assets/icon/icon.png',
+                        width: 120,
+                        height: 120,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 32),

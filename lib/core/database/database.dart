@@ -963,12 +963,8 @@ class Courses extends Table {
   TextColumn get instructorName => text().nullable()(); // Text fallback
   TextColumn get instructorNumber =>
       text().nullable()(); // Instructor cert number
-  // Link to earned certification (bidirectional)
-  TextColumn get certificationId => text().nullable().references(
-    Certifications,
-    #id,
-    onDelete: KeyAction.setNull,
-  )();
+  // Link to earned certification (bidirectional, no FK to avoid circular ref)
+  TextColumn get certificationId => text().nullable()();
   TextColumn get location => text().nullable()(); // Dive center/shop
   TextColumn get notes => text().withDefault(const Constant(''))();
   IntColumn get createdAt => integer()();

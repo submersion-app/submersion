@@ -59,10 +59,12 @@ class StatisticsSummaryWidget extends ConsumerWidget {
           // Header
           Row(
             children: [
-              Icon(
-                Icons.analytics,
-                size: 32,
-                color: Theme.of(context).colorScheme.primary,
+              ExcludeSemantics(
+                child: Icon(
+                  Icons.analytics,
+                  size: 32,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -212,129 +214,136 @@ class StatisticsSummaryWidget extends ConsumerWidget {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 16),
-            SizedBox(
-              height: 200,
-              child: hasData
-                  ? BarChart(
-                      BarChartData(
-                        alignment: BarChartAlignment.spaceAround,
-                        maxY: maxCount + 1,
-                        barTouchData: BarTouchData(
-                          touchTooltipData: BarTouchTooltipData(
-                            getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                              final data = stats.divesByMonth[groupIndex];
-                              return BarTooltipItem(
-                                '${data.fullLabel}\n${data.count} dives',
-                                TextStyle(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onPrimary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              );
-                            },
+            Semantics(
+              label: 'Bar chart showing dives by month',
+              child: SizedBox(
+                height: 200,
+                child: hasData
+                    ? BarChart(
+                        BarChartData(
+                          alignment: BarChartAlignment.spaceAround,
+                          maxY: maxCount + 1,
+                          barTouchData: BarTouchData(
+                            touchTooltipData: BarTouchTooltipData(
+                              getTooltipItem:
+                                  (group, groupIndex, rod, rodIndex) {
+                                    final data = stats.divesByMonth[groupIndex];
+                                    return BarTooltipItem(
+                                      '${data.fullLabel}\n${data.count} dives',
+                                      TextStyle(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onPrimary,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    );
+                                  },
+                            ),
                           ),
-                        ),
-                        titlesData: FlTitlesData(
-                          show: true,
-                          bottomTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              getTitlesWidget: (value, meta) {
-                                final index = value.toInt();
-                                if (index >= 0 &&
-                                    index < stats.divesByMonth.length) {
-                                  return Padding(
-                                    padding: const EdgeInsets.only(top: 8),
-                                    child: Text(
-                                      stats.divesByMonth[index].label,
+                          titlesData: FlTitlesData(
+                            show: true,
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                getTitlesWidget: (value, meta) {
+                                  final index = value.toInt();
+                                  if (index >= 0 &&
+                                      index < stats.divesByMonth.length) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(top: 8),
+                                      child: Text(
+                                        stats.divesByMonth[index].label,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodySmall,
+                                      ),
+                                    );
+                                  }
+                                  return const Text('');
+                                },
+                                reservedSize: 30,
+                              ),
+                            ),
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 30,
+                                getTitlesWidget: (value, meta) {
+                                  if (value == value.roundToDouble()) {
+                                    return Text(
+                                      value.toInt().toString(),
                                       style: Theme.of(
                                         context,
                                       ).textTheme.bodySmall,
-                                    ),
-                                  );
-                                }
-                                return const Text('');
-                              },
-                              reservedSize: 30,
-                            ),
-                          ),
-                          leftTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              reservedSize: 30,
-                              getTitlesWidget: (value, meta) {
-                                if (value == value.roundToDouble()) {
-                                  return Text(
-                                    value.toInt().toString(),
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall,
-                                  );
-                                }
-                                return const Text('');
-                              },
-                            ),
-                          ),
-                          topTitles: const AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
-                          ),
-                          rightTitles: const AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
-                          ),
-                        ),
-                        borderData: FlBorderData(show: false),
-                        gridData: FlGridData(
-                          show: true,
-                          drawVerticalLine: false,
-                          horizontalInterval: 1,
-                          getDrawingHorizontalLine: (value) => FlLine(
-                            color: Theme.of(context).colorScheme.outlineVariant,
-                            strokeWidth: 1,
-                          ),
-                        ),
-                        barGroups: List.generate(
-                          stats.divesByMonth.length,
-                          (index) => BarChartGroupData(
-                            x: index,
-                            barRods: [
-                              BarChartRodData(
-                                toY: stats.divesByMonth[index].count.toDouble(),
-                                color: Theme.of(context).colorScheme.primary,
-                                width: 16,
-                                borderRadius: const BorderRadius.vertical(
-                                  top: Radius.circular(4),
-                                ),
+                                    );
+                                  }
+                                  return const Text('');
+                                },
                               ),
-                            ],
+                            ),
+                            topTitles: const AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                            rightTitles: const AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                          ),
+                          borderData: FlBorderData(show: false),
+                          gridData: FlGridData(
+                            show: true,
+                            drawVerticalLine: false,
+                            horizontalInterval: 1,
+                            getDrawingHorizontalLine: (value) => FlLine(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.outlineVariant,
+                              strokeWidth: 1,
+                            ),
+                          ),
+                          barGroups: List.generate(
+                            stats.divesByMonth.length,
+                            (index) => BarChartGroupData(
+                              x: index,
+                              barRods: [
+                                BarChartRodData(
+                                  toY: stats.divesByMonth[index].count
+                                      .toDouble(),
+                                  color: Theme.of(context).colorScheme.primary,
+                                  width: 16,
+                                  borderRadius: const BorderRadius.vertical(
+                                    top: Radius.circular(4),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
+                      )
+                    : Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.bar_chart,
+                              size: 48,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.primary.withValues(alpha: 0.5),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Chart will appear when you log dives',
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                          ],
+                        ),
                       ),
-                    )
-                  : Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.bar_chart,
-                            size: 48,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.primary.withValues(alpha: 0.5),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Chart will appear when you log dives',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
+              ),
             ),
           ],
         ),
@@ -370,103 +379,109 @@ class StatisticsSummaryWidget extends ConsumerWidget {
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 16),
-                SizedBox(
-                  height: 200,
-                  child: hasData
-                      ? Row(
-                          children: [
-                            Expanded(
-                              flex: 2,
-                              child: PieChart(
-                                PieChartData(
-                                  sectionsSpace: 2,
-                                  centerSpaceRadius: 30,
-                                  sections: List.generate(data.length, (index) {
-                                    final segment = data[index];
-                                    return PieChartSectionData(
-                                      value: segment.count.toDouble(),
-                                      title:
-                                          '${segment.percentage.toStringAsFixed(0)}%',
-                                      color: colors[index % colors.length],
-                                      radius: 60,
-                                      titleStyle: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
-                                      ),
-                                    );
-                                  }),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: List.generate(
-                                  data.length > 6 ? 6 : data.length,
-                                  (index) {
-                                    final segment = data[index];
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 2,
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Container(
-                                            width: 12,
-                                            height: 12,
-                                            decoration: BoxDecoration(
-                                              color:
-                                                  colors[index % colors.length],
-                                              borderRadius:
-                                                  BorderRadius.circular(2),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: Text(
-                                              segment.label,
-                                              style: Theme.of(
-                                                context,
-                                              ).textTheme.bodySmall,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                          ],
-                        )
-                      : Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                Semantics(
+                  label: 'Pie chart showing dive type distribution',
+                  child: SizedBox(
+                    height: 200,
+                    child: hasData
+                        ? Row(
                             children: [
-                              Icon(
-                                Icons.pie_chart,
-                                size: 48,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.primary.withValues(alpha: 0.5),
+                              Expanded(
+                                flex: 2,
+                                child: PieChart(
+                                  PieChartData(
+                                    sectionsSpace: 2,
+                                    centerSpaceRadius: 30,
+                                    sections: List.generate(data.length, (
+                                      index,
+                                    ) {
+                                      final segment = data[index];
+                                      return PieChartSectionData(
+                                        value: segment.count.toDouble(),
+                                        title:
+                                            '${segment.percentage.toStringAsFixed(0)}%',
+                                        color: colors[index % colors.length],
+                                        radius: 60,
+                                        titleStyle: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
+                                      );
+                                    }),
+                                  ),
+                                ),
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Chart will appear when you log dives',
-                                style: Theme.of(context).textTheme.bodyMedium
-                                    ?.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant,
-                                    ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: List.generate(
+                                    data.length > 6 ? 6 : data.length,
+                                    (index) {
+                                      final segment = data[index];
+                                      return Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 2,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Container(
+                                              width: 12,
+                                              height: 12,
+                                              decoration: BoxDecoration(
+                                                color:
+                                                    colors[index %
+                                                        colors.length],
+                                                borderRadius:
+                                                    BorderRadius.circular(2),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: Text(
+                                                segment.label,
+                                                style: Theme.of(
+                                                  context,
+                                                ).textTheme.bodySmall,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
                               ),
                             ],
+                          )
+                        : Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.pie_chart,
+                                  size: 48,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.primary.withValues(alpha: 0.5),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Chart will appear when you log dives',
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                      ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
+                  ),
                 ),
                 if (hasData && data.length > 6) ...[
                   const SizedBox(height: 8),
@@ -519,115 +534,119 @@ class StatisticsSummaryWidget extends ConsumerWidget {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 16),
-            SizedBox(
-              height: 200,
-              child: hasData
-                  ? Row(
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: PieChart(
-                            PieChartData(
-                              sectionsSpace: 2,
-                              centerSpaceRadius: 30,
-                              sections: List.generate(
+            Semantics(
+              label: 'Pie chart showing depth distribution',
+              child: SizedBox(
+                height: 200,
+                child: hasData
+                    ? Row(
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: PieChart(
+                              PieChartData(
+                                sectionsSpace: 2,
+                                centerSpaceRadius: 30,
+                                sections: List.generate(
+                                  stats.depthDistribution.length,
+                                  (index) {
+                                    final data = stats.depthDistribution[index];
+                                    if (data.count == 0) return null;
+                                    return PieChartSectionData(
+                                      value: data.count.toDouble(),
+                                      title: '${data.count}',
+                                      color: colors[index % colors.length],
+                                      radius: 60,
+                                      titleStyle: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    );
+                                  },
+                                ).whereType<PieChartSectionData>().toList(),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            flex: 1,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: List.generate(
                                 stats.depthDistribution.length,
                                 (index) {
                                   final data = stats.depthDistribution[index];
-                                  if (data.count == 0) return null;
-                                  return PieChartSectionData(
-                                    value: data.count.toDouble(),
-                                    title: '${data.count}',
-                                    color: colors[index % colors.length],
-                                    radius: 60,
-                                    titleStyle: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
+                                  final minDisplay = units
+                                      .convertDepth(data.minDepth.toDouble())
+                                      .round();
+                                  final maxDisplay = units
+                                      .convertDepth(data.maxDepth.toDouble())
+                                      .round();
+                                  final label = data.maxDepth >= 100
+                                      ? '$minDisplay${units.depthSymbol}+'
+                                      : '$minDisplay-$maxDisplay${units.depthSymbol}';
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 2,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          width: 12,
+                                          height: 12,
+                                          decoration: BoxDecoration(
+                                            color:
+                                                colors[index % colors.length],
+                                            borderRadius: BorderRadius.circular(
+                                              2,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            label,
+                                            style: Theme.of(
+                                              context,
+                                            ).textTheme.bodySmall,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   );
                                 },
-                              ).whereType<PieChartSectionData>().toList(),
+                              ),
                             ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          flex: 1,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: List.generate(
-                              stats.depthDistribution.length,
-                              (index) {
-                                final data = stats.depthDistribution[index];
-                                final minDisplay = units
-                                    .convertDepth(data.minDepth.toDouble())
-                                    .round();
-                                final maxDisplay = units
-                                    .convertDepth(data.maxDepth.toDouble())
-                                    .round();
-                                final label = data.maxDepth >= 100
-                                    ? '$minDisplay${units.depthSymbol}+'
-                                    : '$minDisplay-$maxDisplay${units.depthSymbol}';
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 2,
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Container(
-                                        width: 12,
-                                        height: 12,
-                                        decoration: BoxDecoration(
-                                          color: colors[index % colors.length],
-                                          borderRadius: BorderRadius.circular(
-                                            2,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Text(
-                                          label,
-                                          style: Theme.of(
-                                            context,
-                                          ).textTheme.bodySmall,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  : Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.pie_chart,
-                            size: 48,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.primary.withValues(alpha: 0.5),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Chart will appear when you log dives',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
                           ),
                         ],
+                      )
+                    : Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.pie_chart,
+                              size: 48,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.primary.withValues(alpha: 0.5),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Chart will appear when you log dives',
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
+              ),
             ),
             if (hasData) ...[
               const SizedBox(height: 12),

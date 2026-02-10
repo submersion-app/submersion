@@ -15,17 +15,21 @@ class CertificationWalletCard extends ConsumerWidget {
     final certificationsAsync = ref.watch(certificationListNotifierProvider);
     final theme = Theme.of(context);
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => context.go('/certifications/wallet'),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: certificationsAsync.when(
-            data: (certifications) =>
-                _buildContent(context, theme, certifications),
-            loading: () => _buildLoadingState(theme),
-            error: (error, _) => _buildErrorState(theme),
+    return Semantics(
+      button: true,
+      label: 'Certification Wallet. Tap to view all certifications',
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => context.go('/certifications/wallet'),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: certificationsAsync.when(
+              data: (certifications) =>
+                  _buildContent(context, theme, certifications),
+              loading: () => _buildLoadingState(theme),
+              error: (error, _) => _buildErrorState(theme),
+            ),
           ),
         ),
       ),

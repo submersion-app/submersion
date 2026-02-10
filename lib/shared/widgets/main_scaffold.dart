@@ -149,6 +149,7 @@ class _MainScaffoldState extends State<MainScaffold> {
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.close),
+                    tooltip: 'Close menu',
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],

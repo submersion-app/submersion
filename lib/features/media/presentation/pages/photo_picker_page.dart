@@ -102,6 +102,7 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.close),
+          tooltip: 'Close photo picker',
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text('Select Photos'),
@@ -269,98 +270,102 @@ class _PhotoThumbnail extends ConsumerWidget {
     final thumbnailAsync = ref.watch(assetThumbnailProvider(asset.id));
     final colorScheme = Theme.of(context).colorScheme;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Thumbnail
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: thumbnailAsync.when(
-              data: (bytes) {
-                if (bytes == null) {
-                  return _buildPlaceholder(colorScheme);
-                }
-                return Image.memory(
-                  bytes,
-                  fit: BoxFit.cover,
-                  cacheWidth: 200,
-                  cacheHeight: 200,
-                  errorBuilder: (context, error, stack) =>
-                      _buildPlaceholder(colorScheme),
-                );
-              },
-              loading: () => Container(
-                color: colorScheme.surfaceContainerHighest,
-                child: const Center(
-                  child: CircularProgressIndicator(strokeWidth: 2),
+    return Semantics(
+      button: true,
+      label: 'Toggle selection for photo${isSelected ? ", selected" : ""}',
+      child: GestureDetector(
+        onTap: onTap,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Thumbnail
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: thumbnailAsync.when(
+                data: (bytes) {
+                  if (bytes == null) {
+                    return _buildPlaceholder(colorScheme);
+                  }
+                  return Image.memory(
+                    bytes,
+                    fit: BoxFit.cover,
+                    cacheWidth: 200,
+                    cacheHeight: 200,
+                    errorBuilder: (context, error, stack) =>
+                        _buildPlaceholder(colorScheme),
+                  );
+                },
+                loading: () => Container(
+                  color: colorScheme.surfaceContainerHighest,
+                  child: const Center(
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
                 ),
-              ),
-              error: (error, stack) => _buildPlaceholder(colorScheme),
-            ),
-          ),
-
-          // Selection overlay
-          if (isSelected)
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: colorScheme.primary, width: 3),
-                color: colorScheme.primary.withValues(alpha: 0.2),
+                error: (error, stack) => _buildPlaceholder(colorScheme),
               ),
             ),
 
-          // Checkmark
-          if (isSelected)
-            Positioned(
-              top: 4,
-              right: 4,
-              child: Container(
-                width: 24,
-                height: 24,
+            // Selection overlay
+            if (isSelected)
+              Container(
                 decoration: BoxDecoration(
-                  color: colorScheme.primary,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.check,
-                  size: 16,
-                  color: colorScheme.onPrimary,
-                ),
-              ),
-            ),
-
-          // Video icon
-          if (asset.isVideo)
-            Positioned(
-              bottom: 4,
-              left: 4,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.black54,
                   borderRadius: BorderRadius.circular(4),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.videocam, size: 14, color: Colors.white),
-                    if (asset.durationSeconds != null) ...[
-                      const SizedBox(width: 2),
-                      Text(
-                        _formatDuration(asset.durationSeconds!),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                        ),
-                      ),
-                    ],
-                  ],
+                  border: Border.all(color: colorScheme.primary, width: 3),
+                  color: colorScheme.primary.withValues(alpha: 0.2),
                 ),
               ),
-            ),
-        ],
+
+            // Checkmark
+            if (isSelected)
+              Positioned(
+                top: 4,
+                right: 4,
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.check,
+                    size: 16,
+                    color: colorScheme.onPrimary,
+                  ),
+                ),
+              ),
+
+            // Video icon
+            if (asset.isVideo)
+              Positioned(
+                bottom: 4,
+                left: 4,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.videocam, size: 14, color: Colors.white),
+                      if (asset.durationSeconds != null) ...[
+                        const SizedBox(width: 2),
+                        Text(
+                          _formatDuration(asset.durationSeconds!),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

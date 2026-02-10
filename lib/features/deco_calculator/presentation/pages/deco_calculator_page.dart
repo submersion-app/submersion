@@ -33,10 +33,13 @@ class DecoCalculatorPage extends ConsumerWidget {
             onPressed: () => resetCalculator(ref),
             tooltip: 'Reset to defaults',
           ),
-          TextButton.icon(
-            icon: const Icon(Icons.edit_calendar),
-            label: const Text('Add to Planner'),
-            onPressed: () => _addToPlan(context, ref),
+          Tooltip(
+            message: 'Create a dive plan from current parameters',
+            child: TextButton.icon(
+              icon: const Icon(Icons.edit_calendar),
+              label: const Text('Add to Planner'),
+              onPressed: () => _addToPlan(context, ref),
+            ),
           ),
         ],
       ),

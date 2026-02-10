@@ -155,78 +155,84 @@ class GasConsumptionCalculator extends ConsumerWidget {
               const SizedBox(height: 16),
 
               // Results card
-              Card(
-                color: result.exceedsTank
-                    ? colorScheme.errorContainer
-                    : colorScheme.primaryContainer,
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    children: [
-                      Text(
-                        'Gas Consumption',
-                        style: textTheme.titleMedium?.copyWith(
-                          color: result.exceedsTank
-                              ? colorScheme.onErrorContainer
-                              : colorScheme.onPrimaryContainer,
+              Semantics(
+                label:
+                    'Gas consumption: ${displayVolume.toStringAsFixed(0)} $volumeSymbol, '
+                    '${displayPressure.toStringAsFixed(0)} $pressureSymbol'
+                    '${result.exceedsTank ? '. Warning: exceeds tank capacity' : ''}',
+                child: Card(
+                  color: result.exceedsTank
+                      ? colorScheme.errorContainer
+                      : colorScheme.primaryContainer,
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      children: [
+                        Text(
+                          'Gas Consumption',
+                          style: textTheme.titleMedium?.copyWith(
+                            color: result.exceedsTank
+                                ? colorScheme.onErrorContainer
+                                : colorScheme.onPrimaryContainer,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          _buildResultColumn(
-                            context,
-                            label: 'Volume',
-                            value: displayVolume.toStringAsFixed(0),
-                            unit: volumeSymbol,
-                            isError: result.exceedsTank,
-                          ),
-                          Container(
-                            width: 1,
-                            height: 60,
-                            color:
-                                (result.exceedsTank
-                                        ? colorScheme.onErrorContainer
-                                        : colorScheme.onPrimaryContainer)
-                                    .withValues(alpha: 0.3),
-                          ),
-                          _buildResultColumn(
-                            context,
-                            label: 'Pressure',
-                            value: displayPressure.toStringAsFixed(0),
-                            unit: pressureSymbol,
-                            isError: result.exceedsTank,
-                          ),
-                        ],
-                      ),
-                      if (result.exceedsTank) ...[
                         const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: colorScheme.error.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.warning, color: colorScheme.error),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  'Consumption exceeds a ${maxFillPressure.toStringAsFixed(0)} $pressureSymbol fill! '
-                                  'Reduce dive time or depth.',
-                                  style: textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.error,
-                                    fontWeight: FontWeight.w500,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _buildResultColumn(
+                              context,
+                              label: 'Volume',
+                              value: displayVolume.toStringAsFixed(0),
+                              unit: volumeSymbol,
+                              isError: result.exceedsTank,
+                            ),
+                            Container(
+                              width: 1,
+                              height: 60,
+                              color:
+                                  (result.exceedsTank
+                                          ? colorScheme.onErrorContainer
+                                          : colorScheme.onPrimaryContainer)
+                                      .withValues(alpha: 0.3),
+                            ),
+                            _buildResultColumn(
+                              context,
+                              label: 'Pressure',
+                              value: displayPressure.toStringAsFixed(0),
+                              unit: pressureSymbol,
+                              isError: result.exceedsTank,
+                            ),
+                          ],
+                        ),
+                        if (result.exceedsTank) ...[
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: colorScheme.error.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.warning, color: colorScheme.error),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Consumption exceeds a ${maxFillPressure.toStringAsFixed(0)} $pressureSymbol fill! '
+                                    'Reduce dive time or depth.',
+                                    style: textTheme.bodySmall?.copyWith(
+                                      color: colorScheme.error,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -351,12 +357,15 @@ class GasConsumptionCalculator extends ConsumerWidget {
             thumbColor: colorScheme.primary,
             overlayColor: colorScheme.primary.withValues(alpha: 0.12),
           ),
-          child: Slider(
-            value: value,
-            min: min,
-            max: max,
-            divisions: divisions,
-            onChanged: onChanged,
+          child: Semantics(
+            label: '$label: ${value.toStringAsFixed(0)} $unit',
+            child: Slider(
+              value: value,
+              min: min,
+              max: max,
+              divisions: divisions,
+              onChanged: onChanged,
+            ),
           ),
         ),
       ],

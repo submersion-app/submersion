@@ -53,13 +53,16 @@ class _SimplePlanDialogState extends ConsumerState<SimplePlanDialog> {
                 child: Text('Depth:', style: theme.textTheme.bodyMedium),
               ),
               Expanded(
-                child: Slider(
-                  value: _depth,
-                  min: 5,
-                  max: 40,
-                  divisions: 35,
-                  label: units.formatDepth(_depth),
-                  onChanged: (v) => setState(() => _depth = v),
+                child: Semantics(
+                  label: 'Depth: ${units.formatDepth(_depth)}',
+                  child: Slider(
+                    value: _depth,
+                    min: 5,
+                    max: 40,
+                    divisions: 35,
+                    label: units.formatDepth(_depth),
+                    onChanged: (v) => setState(() => _depth = v),
+                  ),
                 ),
               ),
               SizedBox(
@@ -82,13 +85,16 @@ class _SimplePlanDialogState extends ConsumerState<SimplePlanDialog> {
                 child: Text('Time:', style: theme.textTheme.bodyMedium),
               ),
               Expanded(
-                child: Slider(
-                  value: _bottomTime.toDouble(),
-                  min: 5,
-                  max: 120,
-                  divisions: 23,
-                  label: '$_bottomTime min',
-                  onChanged: (v) => setState(() => _bottomTime = v.round()),
+                child: Semantics(
+                  label: 'Bottom time: $_bottomTime minutes',
+                  child: Slider(
+                    value: _bottomTime.toDouble(),
+                    min: 5,
+                    max: 120,
+                    divisions: 23,
+                    label: '$_bottomTime min',
+                    onChanged: (v) => setState(() => _bottomTime = v.round()),
+                  ),
                 ),
               ),
               SizedBox(
@@ -106,35 +112,46 @@ class _SimplePlanDialogState extends ConsumerState<SimplePlanDialog> {
           const SizedBox(height: 16),
 
           // Preview info
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Plan Preview:',
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: theme.colorScheme.primary,
+          Semantics(
+            label:
+                'Plan preview: Descent to ${units.formatDepth(_depth)}, '
+                'bottom time $_bottomTime minutes, ascent with safety stop',
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Plan Preview:',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: theme.colorScheme.primary,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '↓ Descent to ${units.formatDepth(_depth)}',
-                  style: theme.textTheme.bodySmall,
-                ),
-                Text(
-                  '● Bottom time: $_bottomTime min',
-                  style: theme.textTheme.bodySmall,
-                ),
-                Text(
-                  '↑ Ascent with safety stop',
-                  style: theme.textTheme.bodySmall,
-                ),
-              ],
+                  const SizedBox(height: 4),
+                  ExcludeSemantics(
+                    child: Text(
+                      'Descent to ${units.formatDepth(_depth)}',
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ),
+                  ExcludeSemantics(
+                    child: Text(
+                      'Bottom time: $_bottomTime min',
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ),
+                  ExcludeSemantics(
+                    child: Text(
+                      'Ascent with safety stop',
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],

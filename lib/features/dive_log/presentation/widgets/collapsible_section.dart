@@ -54,47 +54,55 @@ class CollapsibleSection extends StatelessWidget {
         Card(
           margin: EdgeInsets.zero,
           clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: () => onToggle(!isExpanded),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Icon(icon, size: 20, color: iconColor ?? colorScheme.primary),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        if (subtitle != null && !isExpanded)
+          child: Semantics(
+            button: true,
+            label: '${isExpanded ? 'Collapse' : 'Expand'} $title section',
+            child: InkWell(
+              onTap: () => onToggle(!isExpanded),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Icon(
+                      icon,
+                      size: 20,
+                      color: iconColor ?? colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            subtitle!,
-                            style: textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
+                            title,
+                            style: textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                      ],
+                          if (subtitle != null && !isExpanded)
+                            Text(
+                              subtitle!,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
-                  if (trailing != null && !isExpanded) ...[
-                    trailing!,
-                    const SizedBox(width: 8),
+                    if (trailing != null && !isExpanded) ...[
+                      trailing!,
+                      const SizedBox(width: 8),
+                    ],
+                    AnimatedRotation(
+                      turns: isExpanded ? 0.5 : 0,
+                      duration: const Duration(milliseconds: 200),
+                      child: Icon(
+                        Icons.expand_more,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                   ],
-                  AnimatedRotation(
-                    turns: isExpanded ? 0.5 : 0,
-                    duration: const Duration(milliseconds: 200),
-                    child: Icon(
-                      Icons.expand_more,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
@@ -173,53 +181,61 @@ class CollapsibleCardSection extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           // Header row (always visible, clickable)
-          InkWell(
-            onTap: () => onToggle(!isExpanded),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Icon(icon, size: 20, color: iconColor ?? colorScheme.primary),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        if (collapsedSubtitle != null && !isExpanded)
+          Semantics(
+            button: true,
+            label: '${isExpanded ? 'Collapse' : 'Expand'} $title section',
+            child: InkWell(
+              onTap: () => onToggle(!isExpanded),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Icon(
+                      icon,
+                      size: 20,
+                      color: iconColor ?? colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            collapsedSubtitle!,
-                            style: textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
+                            title,
+                            style: textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                      ],
+                          if (collapsedSubtitle != null && !isExpanded)
+                            Text(
+                              collapsedSubtitle!,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
-                  // Show collapsed-only trailing when collapsed
-                  if (collapsedTrailing != null && !isExpanded) ...[
-                    collapsedTrailing!,
-                    const SizedBox(width: 8),
-                  ],
-                  // Always show the trailing widget
-                  if (trailing != null) ...[
-                    trailing!,
-                    const SizedBox(width: 8),
-                  ],
-                  AnimatedRotation(
-                    turns: isExpanded ? 0.5 : 0,
-                    duration: const Duration(milliseconds: 200),
-                    child: Icon(
-                      Icons.expand_more,
-                      color: colorScheme.onSurfaceVariant,
+                    // Show collapsed-only trailing when collapsed
+                    if (collapsedTrailing != null && !isExpanded) ...[
+                      collapsedTrailing!,
+                      const SizedBox(width: 8),
+                    ],
+                    // Always show the trailing widget
+                    if (trailing != null) ...[
+                      trailing!,
+                      const SizedBox(width: 8),
+                    ],
+                    AnimatedRotation(
+                      turns: isExpanded ? 0.5 : 0,
+                      duration: const Duration(milliseconds: 200),
+                      child: Icon(
+                        Icons.expand_more,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/domain/entities/cached_region.dart';
@@ -169,10 +170,14 @@ class OfflineMapsPage extends ConsumerWidget {
             ),
             if (stats.hits + stats.misses > 0) ...[
               const SizedBox(height: 12),
-              LinearProgressIndicator(
-                value: stats.hitRate / 100,
-                backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                color: theme.colorScheme.primary,
+              Semantics(
+                label:
+                    'Cache hit rate: ${stats.hitRate.toStringAsFixed(1)} percent',
+                child: LinearProgressIndicator(
+                  value: stats.hitRate / 100,
+                  backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                  color: theme.colorScheme.primary,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
@@ -196,28 +201,37 @@ class OfflineMapsPage extends ConsumerWidget {
   }) {
     final theme = Theme.of(context);
 
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: theme.colorScheme.onSurfaceVariant),
-        const SizedBox(width: 8),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              value,
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+    return Semantics(
+      label: statLabel(name: label, value: value),
+      child: Row(
+        children: [
+          ExcludeSemantics(
+            child: Icon(
+              icon,
+              size: 16,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
-            Text(
-              label,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                value,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-          ],
-        ),
-      ],
+              Text(
+                label,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -230,86 +244,94 @@ class OfflineMapsPage extends ConsumerWidget {
     final progressPercent = state.progress.clamp(0.0, 100.0);
     final notifier = ref.read(downloadProgressProvider.notifier);
 
-    return Card(
-      color: theme.colorScheme.primaryContainer,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.downloading,
-                  color: theme.colorScheme.onPrimaryContainer,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Downloading: ${state.regionName ?? "Region"}',
-                    style: theme.textTheme.titleMedium?.copyWith(
+    return Semantics(
+      label:
+          'Downloading ${state.regionName ?? "Region"}, '
+          '${progressPercent.toStringAsFixed(1)} percent complete, '
+          '${state.downloadedTiles} of ${state.totalTiles} tiles',
+      liveRegion: true,
+      child: Card(
+        color: theme.colorScheme.primaryContainer,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  ExcludeSemantics(
+                    child: Icon(
+                      Icons.downloading,
                       color: theme.colorScheme.onPrimaryContainer,
                     ),
                   ),
-                ),
-                IconButton(
-                  icon: Icon(
-                    Icons.cancel,
-                    color: theme.colorScheme.onPrimaryContainer,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Downloading: ${state.regionName ?? "Region"}',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: theme.colorScheme.onPrimaryContainer,
+                      ),
+                    ),
                   ),
-                  tooltip: 'Cancel Download',
-                  onPressed: () => notifier.cancelDownload(),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            LinearProgressIndicator(
-              value: progressPercent / 100,
-              backgroundColor: theme.colorScheme.onPrimaryContainer.withValues(
-                alpha: 0.2,
+                  IconButton(
+                    icon: Icon(
+                      Icons.cancel,
+                      color: theme.colorScheme.onPrimaryContainer,
+                    ),
+                    tooltip: 'Cancel Download',
+                    onPressed: () => notifier.cancelDownload(),
+                  ),
+                ],
               ),
-              color: theme.colorScheme.onPrimaryContainer,
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '${progressPercent.toStringAsFixed(1)}%',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.bold,
+              const SizedBox(height: 12),
+              LinearProgressIndicator(
+                value: progressPercent / 100,
+                backgroundColor: theme.colorScheme.onPrimaryContainer
+                    .withValues(alpha: 0.2),
+                color: theme.colorScheme.onPrimaryContainer,
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${progressPercent.toStringAsFixed(1)}%',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onPrimaryContainer,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
+                  Text(
+                    '${state.downloadedTiles} / ${state.totalTiles} tiles',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                ],
+              ),
+              if (state.tilesPerSecond > 0) ...[
+                const SizedBox(height: 4),
                 Text(
-                  '${state.downloadedTiles} / ${state.totalTiles} tiles',
+                  '${state.tilesPerSecond.toStringAsFixed(1)} tiles/sec',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onPrimaryContainer,
+                    color: theme.colorScheme.onPrimaryContainer.withValues(
+                      alpha: 0.7,
+                    ),
                   ),
                 ),
               ],
-            ),
-            if (state.tilesPerSecond > 0) ...[
-              const SizedBox(height: 4),
-              Text(
-                '${state.tilesPerSecond.toStringAsFixed(1)} tiles/sec',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onPrimaryContainer.withValues(
-                    alpha: 0.7,
+              if (state.failedTiles > 0) ...[
+                const SizedBox(height: 4),
+                Text(
+                  '${state.failedTiles} failed',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.error,
                   ),
                 ),
-              ),
+              ],
             ],
-            if (state.failedTiles > 0) ...[
-              const SizedBox(height: 4),
-              Text(
-                '${state.failedTiles} failed',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.error,
-                ),
-              ),
-            ],
-          ],
+          ),
         ),
       ),
     );
@@ -324,10 +346,14 @@ class OfflineMapsPage extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.map_outlined,
-              size: 64,
-              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+            ExcludeSemantics(
+              child: Icon(
+                Icons.map_outlined,
+                size: 64,
+                color: theme.colorScheme.onSurfaceVariant.withValues(
+                  alpha: 0.5,
+                ),
+              ),
             ),
             const SizedBox(height: 16),
             Text(
@@ -360,24 +386,32 @@ class OfflineMapsPage extends ConsumerWidget {
   ) {
     final theme = Theme.of(context);
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: theme.colorScheme.primaryContainer,
-          child: Icon(Icons.map, color: theme.colorScheme.onPrimaryContainer),
+    return Semantics(
+      label: listItemLabel(
+        title: region.name,
+        subtitle:
+            '${region.formattedSize}, ${region.tileCount} tiles, '
+            'zoom ${region.minZoom} to ${region.maxZoom}',
+      ),
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 8),
+        child: ListTile(
+          leading: CircleAvatar(
+            backgroundColor: theme.colorScheme.primaryContainer,
+            child: Icon(Icons.map, color: theme.colorScheme.onPrimaryContainer),
+          ),
+          title: Text(region.name),
+          subtitle: Text(
+            '${region.formattedSize} | ${region.tileCount} tiles | '
+            'Zoom ${region.minZoom}-${region.maxZoom}',
+          ),
+          trailing: IconButton(
+            icon: Icon(Icons.delete_outline, color: theme.colorScheme.error),
+            tooltip: 'Delete ${region.name} region',
+            onPressed: () => _confirmDeleteRegion(context, ref, region),
+          ),
+          onTap: () => _showRegionDetails(context, region),
         ),
-        title: Text(region.name),
-        subtitle: Text(
-          '${region.formattedSize} | ${region.tileCount} tiles | '
-          'Zoom ${region.minZoom}-${region.maxZoom}',
-        ),
-        trailing: IconButton(
-          icon: Icon(Icons.delete_outline, color: theme.colorScheme.error),
-          tooltip: 'Delete Region',
-          onPressed: () => _confirmDeleteRegion(context, ref, region),
-        ),
-        onTap: () => _showRegionDetails(context, region),
       ),
     );
   }

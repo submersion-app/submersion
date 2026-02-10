@@ -51,10 +51,14 @@ class DiveModeSelector extends StatelessWidget {
           showSelectedIcon: false,
         ),
         const SizedBox(height: 4),
-        Text(
-          _getDescriptionForMode(selectedMode),
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
+        Semantics(
+          label:
+              'Selected mode: ${selectedMode.name.toUpperCase()}, ${_getDescriptionForMode(selectedMode)}',
+          child: Text(
+            _getDescriptionForMode(selectedMode),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
         ),
       ],

@@ -329,6 +329,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.search),
+                  tooltip: 'Search Sites',
                   onPressed: () {
                     showSearch(
                       context: context,
@@ -341,6 +342,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                     isLabelVisible: filter.hasActiveFilters,
                     child: const Icon(Icons.filter_list),
                   ),
+                  tooltip: 'Filter Sites',
                   onPressed: () {
                     showModalBottomSheet(
                       context: context,
@@ -419,6 +421,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
             ),
           IconButton(
             icon: const Icon(Icons.search, size: 20),
+            tooltip: 'Search Sites',
             onPressed: () {
               showSearch(context: context, delegate: SiteSearchDelegate(ref));
             },
@@ -428,6 +431,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
               isLabelVisible: filter.hasActiveFilters,
               child: const Icon(Icons.filter_list, size: 20),
             ),
+            tooltip: 'Filter Sites',
             visualDensity: VisualDensity.compact,
             onPressed: () {
               showModalBottomSheet(
@@ -477,6 +481,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
         children: [
           IconButton(
             icon: const Icon(Icons.close, size: 20),
+            tooltip: 'Close Selection',
             onPressed: _exitSelectionMode,
           ),
           Text(
@@ -517,6 +522,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     return AppBar(
       leading: IconButton(
         icon: const Icon(Icons.close),
+        tooltip: 'Close Selection',
         onPressed: _exitSelectionMode,
       ),
       title: Text('${_selectedIds.length} selected'),
@@ -795,7 +801,11 @@ class SiteSearchDelegate extends SearchDelegate<DiveSite?> {
   List<Widget> buildActions(BuildContext context) {
     return [
       if (query.isNotEmpty)
-        IconButton(icon: const Icon(Icons.clear), onPressed: () => query = ''),
+        IconButton(
+          icon: const Icon(Icons.clear),
+          tooltip: 'Clear Search',
+          onPressed: () => query = '',
+        ),
     ];
   }
 
@@ -803,6 +813,7 @@ class SiteSearchDelegate extends SearchDelegate<DiveSite?> {
   Widget buildLeading(BuildContext context) {
     return IconButton(
       icon: const Icon(Icons.arrow_back),
+      tooltip: 'Back',
       onPressed: () => close(context, null),
     );
   }
@@ -1054,52 +1065,56 @@ class SiteListTile extends ConsumerWidget {
       return Card(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          onLongPress: onLongPress,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: FlutterMap(
-                  options: MapOptions(
-                    initialCenter: siteLocation,
-                    initialZoom: 13.0,
-                    interactionOptions: const InteractionOptions(
-                      flags: InteractiveFlag.none,
+        child: Semantics(
+          button: true,
+          label: 'Dive site: $name',
+          child: InkWell(
+            onTap: onTap,
+            onLongPress: onLongPress,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: FlutterMap(
+                    options: MapOptions(
+                      initialCenter: siteLocation,
+                      initialZoom: 13.0,
+                      interactionOptions: const InteractionOptions(
+                        flags: InteractiveFlag.none,
+                      ),
                     ),
-                  ),
-                  children: [
-                    TileLayer(
-                      urlTemplate:
-                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      userAgentPackageName: 'com.submersion.app',
-                      maxZoom: 19,
-                      tileProvider: TileCacheService.instance.isInitialized
-                          ? TileCacheService.instance.getTileProvider()
-                          : null,
-                    ),
-                  ],
-                ),
-              ),
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      stops: const [0.0, 0.3, 0.7, 1.0],
-                      colors: [
-                        Colors.black.withValues(alpha: 0.4),
-                        Colors.black.withValues(alpha: 0.5),
-                        Colors.black.withValues(alpha: 0.7),
-                        Colors.black.withValues(alpha: 0.85),
-                      ],
-                    ),
+                    children: [
+                      TileLayer(
+                        urlTemplate:
+                            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        userAgentPackageName: 'com.submersion.app',
+                        maxZoom: 19,
+                        tileProvider: TileCacheService.instance.isInitialized
+                            ? TileCacheService.instance.getTileProvider()
+                            : null,
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              buildContent(),
-            ],
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        stops: const [0.0, 0.3, 0.7, 1.0],
+                        colors: [
+                          Colors.black.withValues(alpha: 0.4),
+                          Colors.black.withValues(alpha: 0.5),
+                          Colors.black.withValues(alpha: 0.7),
+                          Colors.black.withValues(alpha: 0.85),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                buildContent(),
+              ],
+            ),
           ),
         ),
       );
@@ -1112,11 +1127,15 @@ class SiteListTile extends ConsumerWidget {
           : isChecked
           ? colorScheme.primaryContainer.withValues(alpha: 0.3)
           : null,
-      child: InkWell(
-        onTap: onTap,
-        onLongPress: onLongPress,
-        borderRadius: BorderRadius.circular(12),
-        child: buildContent(),
+      child: Semantics(
+        button: true,
+        label: 'Dive site: $name',
+        child: InkWell(
+          onTap: onTap,
+          onLongPress: onLongPress,
+          borderRadius: BorderRadius.circular(12),
+          child: buildContent(),
+        ),
       ),
     );
   }

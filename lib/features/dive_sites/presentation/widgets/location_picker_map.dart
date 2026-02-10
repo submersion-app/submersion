@@ -136,182 +136,215 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
         title: const Text('Pick Location'),
         actions: [
           if (_selectedLocation != null)
-            TextButton.icon(
-              onPressed: _confirmSelection,
-              icon: const Icon(Icons.check),
-              label: const Text('Confirm'),
+            Tooltip(
+              message: 'Confirm selected location',
+              child: TextButton.icon(
+                onPressed: _confirmSelection,
+                icon: const Icon(Icons.check),
+                label: const Text('Confirm'),
+              ),
             ),
         ],
       ),
-      body: Stack(
-        children: [
-          FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-              initialCenter: initialCenter,
-              initialZoom: initialZoom,
-              minZoom: 2.0,
-              maxZoom: 18.0,
-              onTap: _onMapTap,
-              interactionOptions: const InteractionOptions(
-                flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
-              ),
-            ),
-            children: [
-              TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.submersion.app',
-                maxZoom: 19,
-                tileProvider: TileCacheService.instance.isInitialized
-                    ? TileCacheService.instance.getTileProvider()
-                    : null,
-              ),
-              if (_selectedLocation != null)
-                MarkerLayer(
-                  markers: [
-                    Marker(
-                      point: _selectedLocation!,
-                      width: 50,
-                      height: 50,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: colorScheme.primary,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: colorScheme.onPrimary,
-                            width: 3,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Center(
-                          child: Icon(
-                            Icons.location_on,
-                            size: 28,
-                            color: colorScheme.onPrimary,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-            ],
-          ),
-
-          // Instructions overlay
-          Positioned(
-            top: 16,
-            left: 16,
-            right: 16,
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  children: [
-                    Icon(Icons.touch_app, color: colorScheme.primary),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        _selectedLocation == null
-                            ? 'Tap on the map to select a location'
-                            : _isGeocoding
-                            ? 'Looking up location...'
-                            : _locationPreview ?? 'Location selected',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                    ),
-                    if (_isGeocoding)
-                      const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                  ],
+      body: Semantics(
+        label:
+            'Interactive map for picking a dive site location. '
+            'Tap on the map to select a location.',
+        child: Stack(
+          children: [
+            FlutterMap(
+              mapController: _mapController,
+              options: MapOptions(
+                initialCenter: initialCenter,
+                initialZoom: initialZoom,
+                minZoom: 2.0,
+                maxZoom: 18.0,
+                onTap: _onMapTap,
+                interactionOptions: const InteractionOptions(
+                  flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
                 ),
               ),
-            ),
-          ),
-
-          // Coordinates display
-          if (_selectedLocation != null)
-            Positioned(
-              bottom: 100,
-              left: 16,
-              right: 16,
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Latitude',
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color: colorScheme.onSurfaceVariant,
-                                      ),
-                                ),
-                                Text(
-                                  _selectedLocation!.latitude.toStringAsFixed(
-                                    6,
-                                  ),
-                                  style: Theme.of(context).textTheme.titleMedium
-                                      ?.copyWith(fontFamily: 'monospace'),
-                                ),
-                              ],
+              children: [
+                TileLayer(
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.submersion.app',
+                  maxZoom: 19,
+                  tileProvider: TileCacheService.instance.isInitialized
+                      ? TileCacheService.instance.getTileProvider()
+                      : null,
+                ),
+                if (_selectedLocation != null)
+                  MarkerLayer(
+                    markers: [
+                      Marker(
+                        point: _selectedLocation!,
+                        width: 50,
+                        height: 50,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: colorScheme.onPrimary,
+                              width: 3,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Icon(
+                              Icons.location_on,
+                              size: 28,
+                              color: colorScheme.onPrimary,
                             ),
                           ),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Longitude',
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color: colorScheme.onSurfaceVariant,
-                                      ),
-                                ),
-                                Text(
-                                  _selectedLocation!.longitude.toStringAsFixed(
-                                    6,
-                                  ),
-                                  style: Theme.of(context).textTheme.titleMedium
-                                      ?.copyWith(fontFamily: 'monospace'),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ],
+                  ),
+              ],
+            ),
+
+            // Instructions overlay
+            Positioned(
+              top: 16,
+              left: 16,
+              right: 16,
+              child: Semantics(
+                liveRegion: true,
+                label: _selectedLocation == null
+                    ? 'Tap on the map to select a location'
+                    : _isGeocoding
+                    ? 'Looking up location'
+                    : _locationPreview ?? 'Location selected',
+                child: Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        ExcludeSemantics(
+                          child: Icon(
+                            Icons.touch_app,
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            _selectedLocation == null
+                                ? 'Tap on the map to select a location'
+                                : _isGeocoding
+                                ? 'Looking up location...'
+                                : _locationPreview ?? 'Location selected',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ),
+                        if (_isGeocoding)
+                          const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
 
-          // FAB for current location
-          Positioned(
-            bottom: 24,
-            right: 16,
-            child: FloatingActionButton(
-              onPressed: _useCurrentLocation,
-              tooltip: 'Use my location',
-              child: const Icon(Icons.my_location),
+            // Coordinates display
+            if (_selectedLocation != null)
+              Positioned(
+                bottom: 100,
+                left: 16,
+                right: 16,
+                child: Semantics(
+                  label:
+                      'Selected coordinates: '
+                      'latitude ${_selectedLocation!.latitude.toStringAsFixed(6)}, '
+                      'longitude ${_selectedLocation!.longitude.toStringAsFixed(6)}',
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Latitude',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            color: colorScheme.onSurfaceVariant,
+                                          ),
+                                    ),
+                                    Text(
+                                      _selectedLocation!.latitude
+                                          .toStringAsFixed(6),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(fontFamily: 'monospace'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Longitude',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            color: colorScheme.onSurfaceVariant,
+                                          ),
+                                    ),
+                                    Text(
+                                      _selectedLocation!.longitude
+                                          .toStringAsFixed(6),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(fontFamily: 'monospace'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+            // FAB for current location
+            Positioned(
+              bottom: 24,
+              right: 16,
+              child: FloatingActionButton(
+                onPressed: _useCurrentLocation,
+                tooltip: 'Use my location',
+                child: const Icon(Icons.my_location),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

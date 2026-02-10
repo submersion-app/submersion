@@ -283,9 +283,18 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
                     ),
                     width: isSelected ? 50 : 40,
                     height: isSelected ? 50 : 40,
-                    child: GestureDetector(
-                      onTap: () => _onMarkerTapped(site),
-                      child: _buildMarker(context, site, diveCount, isSelected),
+                    child: Semantics(
+                      button: true,
+                      label: 'Dive site: ${site.name}',
+                      child: GestureDetector(
+                        onTap: () => _onMarkerTapped(site),
+                        child: _buildMarker(
+                          context,
+                          site,
+                          diveCount,
+                          isSelected,
+                        ),
+                      ),
                     ),
                   );
                 }).toList(),

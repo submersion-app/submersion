@@ -198,6 +198,7 @@ class _SiteDetailContent extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
+            tooltip: 'Edit Site',
             onPressed: () => context.push('/sites/$siteId/edit'),
           ),
         ],
@@ -407,15 +408,19 @@ class _SiteDetailContent extends ConsumerWidget {
               child: Material(
                 color: colorScheme.surface.withValues(alpha: 0.9),
                 borderRadius: BorderRadius.circular(4),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(4),
-                  onTap: () => _showFullscreenMap(context, site),
-                  child: Padding(
-                    padding: const EdgeInsets.all(6),
-                    child: Icon(
-                      Icons.fullscreen,
-                      size: 20,
-                      color: colorScheme.primary,
+                child: Semantics(
+                  button: true,
+                  label: 'View fullscreen map',
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(4),
+                    onTap: () => _showFullscreenMap(context, site),
+                    child: Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: Icon(
+                        Icons.fullscreen,
+                        size: 20,
+                        color: colorScheme.primary,
+                      ),
                     ),
                   ),
                 ),
@@ -553,55 +558,61 @@ class _SiteDetailContent extends ConsumerWidget {
       data: (diveCount) {
         return Card(
           clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: diveCount > 0
-                ? () {
-                    ref.read(diveFilterProvider.notifier).state =
-                        DiveFilterState(siteId: site.id);
-                    context.go('/dives');
-                  }
-                : null,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundColor: colorScheme.primaryContainer,
-                    child: Icon(
-                      Icons.scuba_diving,
-                      color: colorScheme.onPrimaryContainer,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Dives at this Site',
-                          style: Theme.of(context).textTheme.titleMedium,
+          child: Semantics(
+            button: diveCount > 0,
+            label: diveCount > 0 ? 'View dives at this site' : null,
+            child: InkWell(
+              onTap: diveCount > 0
+                  ? () {
+                      ref.read(diveFilterProvider.notifier).state =
+                          DiveFilterState(siteId: site.id);
+                      context.go('/dives');
+                    }
+                  : null,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    ExcludeSemantics(
+                      child: CircleAvatar(
+                        radius: 24,
+                        backgroundColor: colorScheme.primaryContainer,
+                        child: Icon(
+                          Icons.scuba_diving,
+                          color: colorScheme.onPrimaryContainer,
+                          size: 24,
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          diveCount == 0
-                              ? 'No dives logged yet'
-                              : diveCount == 1
-                              ? '1 dive logged'
-                              : '$diveCount dives logged',
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(color: colorScheme.onSurfaceVariant),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                  if (diveCount > 0)
-                    Icon(
-                      Icons.chevron_right,
-                      color: colorScheme.onSurfaceVariant,
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Dives at this Site',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            diveCount == 0
+                                ? 'No dives logged yet'
+                                : diveCount == 1
+                                ? '1 dive logged'
+                                : '$diveCount dives logged',
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: colorScheme.onSurfaceVariant),
+                          ),
+                        ],
+                      ),
                     ),
-                ],
+                    if (diveCount > 0)
+                      Icon(
+                        Icons.chevron_right,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -774,10 +785,14 @@ class _SiteDetailContent extends ConsumerWidget {
     );
 
     if (onTap != null) {
-      return InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: content,
+      return Semantics(
+        button: true,
+        label: 'Copy $label to clipboard',
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(8),
+          child: content,
+        ),
       );
     }
 

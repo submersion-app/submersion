@@ -150,6 +150,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
+            tooltip: 'Search trips',
             onPressed: () {
               showSearch(context: context, delegate: TripSearchDelegate());
             },
@@ -190,6 +191,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
           const Spacer(),
           IconButton(
             icon: const Icon(Icons.search, size: 20),
+            tooltip: 'Search trips',
             onPressed: () {
               showSearch(context: context, delegate: TripSearchDelegate());
             },
@@ -393,67 +395,82 @@ class TripListTile extends StatelessWidget {
     final dateFormat = DateFormat.yMMMd();
     final theme = Theme.of(context);
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      color: isSelected
-          ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
-          : null,
-      child: ListTile(
-        onTap: onTap,
-        leading: CircleAvatar(
-          backgroundColor: theme.colorScheme.primaryContainer,
-          child: Icon(
-            trip.isLiveaboard ? Icons.sailing : Icons.flight_takeoff,
-            color: theme.colorScheme.onPrimaryContainer,
-          ),
-        ),
-        title: Text(trip.name),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '${dateFormat.format(trip.startDate)} - ${dateFormat.format(trip.endDate)}',
-              style: theme.textTheme.bodySmall,
+    final subtitleStr = trip.subtitle != null ? ', ${trip.subtitle}' : '';
+    final diveCountStr = '${tripWithStats.diveCount} dives';
+    final bottomTimeStr = tripWithStats.totalBottomTime > 0
+        ? ', ${tripWithStats.formattedBottomTime}'
+        : '';
+    final tripLabel =
+        '${trip.name}, ${dateFormat.format(trip.startDate)} to ${dateFormat.format(trip.endDate)}$subtitleStr, $diveCountStr$bottomTimeStr${isSelected ? ', selected' : ''}';
+
+    return Semantics(
+      label: tripLabel,
+      child: Card(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        color: isSelected
+            ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
+            : null,
+        child: ListTile(
+          onTap: onTap,
+          leading: CircleAvatar(
+            backgroundColor: theme.colorScheme.primaryContainer,
+            child: Icon(
+              trip.isLiveaboard ? Icons.sailing : Icons.flight_takeoff,
+              color: theme.colorScheme.onPrimaryContainer,
             ),
-            if (trip.subtitle != null)
+          ),
+          title: Text(trip.name),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Text(
-                trip.subtitle!,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
+                '${dateFormat.format(trip.startDate)} - ${dateFormat.format(trip.endDate)}',
+                style: theme.textTheme.bodySmall,
               ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Icon(
-                  Icons.scuba_diving,
-                  size: 14,
-                  color: theme.colorScheme.primary,
-                ),
-                const SizedBox(width: 4),
+              if (trip.subtitle != null)
                 Text(
-                  '${tripWithStats.diveCount} dives',
+                  trip.subtitle!,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.primary,
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
-                if (tripWithStats.totalBottomTime > 0) ...[
-                  const SizedBox(width: 12),
-                  Icon(Icons.timer, size: 14, color: theme.colorScheme.primary),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Icon(
+                    Icons.scuba_diving,
+                    size: 14,
+                    color: theme.colorScheme.primary,
+                  ),
                   const SizedBox(width: 4),
                   Text(
-                    tripWithStats.formattedBottomTime,
+                    '${tripWithStats.diveCount} dives',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.primary,
                     ),
                   ),
+                  if (tripWithStats.totalBottomTime > 0) ...[
+                    const SizedBox(width: 12),
+                    Icon(
+                      Icons.timer,
+                      size: 14,
+                      color: theme.colorScheme.primary,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      tripWithStats.formattedBottomTime,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  ],
                 ],
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
+          trailing: const Icon(Icons.chevron_right),
+          isThreeLine: true,
         ),
-        trailing: const Icon(Icons.chevron_right),
-        isThreeLine: true,
       ),
     );
   }
@@ -470,7 +487,11 @@ class TripSearchDelegate extends SearchDelegate<Trip?> {
   List<Widget> buildActions(BuildContext context) {
     return [
       if (query.isNotEmpty)
-        IconButton(icon: const Icon(Icons.clear), onPressed: () => query = ''),
+        IconButton(
+          icon: const Icon(Icons.clear),
+          tooltip: 'Clear search',
+          onPressed: () => query = '',
+        ),
     ];
   }
 
@@ -478,6 +499,7 @@ class TripSearchDelegate extends SearchDelegate<Trip?> {
   Widget buildLeading(BuildContext context) {
     return IconButton(
       icon: const Icon(Icons.arrow_back),
+      tooltip: 'Back',
       onPressed: () => close(context, null),
     );
   }

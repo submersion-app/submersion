@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_wallet_card.dart';
@@ -97,32 +98,46 @@ class DashboardPage extends ConsumerWidget {
     UnitFormatter units,
   ) {
     final displayMaxDepth = units.convertDepth(stats.maxDepth);
+    final hoursValue = _formatHours(stats.totalTimeSeconds);
+    final maxDepthValue = stats.maxDepth > 0
+        ? '${displayMaxDepth.toStringAsFixed(1)}${units.depthSymbol}'
+        : '-';
     final cards = [
-      StatSummaryCard(
-        icon: Icons.waves,
-        label: 'Total Dives',
-        value: '${stats.totalDives}',
-        iconColor: Colors.blue,
+      Semantics(
+        label: statLabel(name: 'Total Dives', value: '${stats.totalDives}'),
+        child: StatSummaryCard(
+          icon: Icons.waves,
+          label: 'Total Dives',
+          value: '${stats.totalDives}',
+          iconColor: Colors.blue,
+        ),
       ),
-      StatSummaryCard(
-        icon: Icons.timer,
-        label: 'Hours Logged',
-        value: _formatHours(stats.totalTimeSeconds),
-        iconColor: Colors.teal,
+      Semantics(
+        label: statLabel(name: 'Hours Logged', value: hoursValue),
+        child: StatSummaryCard(
+          icon: Icons.timer,
+          label: 'Hours Logged',
+          value: hoursValue,
+          iconColor: Colors.teal,
+        ),
       ),
-      StatSummaryCard(
-        icon: Icons.arrow_downward,
-        label: 'Max Depth',
-        value: stats.maxDepth > 0
-            ? '${displayMaxDepth.toStringAsFixed(1)}${units.depthSymbol}'
-            : '-',
-        iconColor: Colors.indigo,
+      Semantics(
+        label: statLabel(name: 'Max Depth', value: maxDepthValue),
+        child: StatSummaryCard(
+          icon: Icons.arrow_downward,
+          label: 'Max Depth',
+          value: maxDepthValue,
+          iconColor: Colors.indigo,
+        ),
       ),
-      StatSummaryCard(
-        icon: Icons.location_on,
-        label: 'Sites Visited',
-        value: '${stats.totalSites}',
-        iconColor: Colors.orange,
+      Semantics(
+        label: statLabel(name: 'Sites Visited', value: '${stats.totalSites}'),
+        child: StatSummaryCard(
+          icon: Icons.location_on,
+          label: 'Sites Visited',
+          value: '${stats.totalSites}',
+          iconColor: Colors.orange,
+        ),
       ),
     ];
 
@@ -166,25 +181,30 @@ class DashboardPage extends ConsumerWidget {
 
   Widget _buildStatsGridError(BuildContext context) {
     final theme = Theme.of(context);
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Center(
-          child: Column(
-            children: [
-              Icon(
-                Icons.error_outline,
-                color: theme.colorScheme.error,
-                size: 32,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Failed to load statistics',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.error,
+    return Semantics(
+      label: 'Error: Failed to load statistics',
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Center(
+            child: Column(
+              children: [
+                ExcludeSemantics(
+                  child: Icon(
+                    Icons.error_outline,
+                    color: theme.colorScheme.error,
+                    size: 32,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 8),
+                Text(
+                  'Failed to load statistics',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.error,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -599,6 +599,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
                 color: isSelected ? Colors.amber : null,
                 size: 32,
               ),
+              tooltip: '$rating star${rating > 1 ? 's' : ''}',
               onPressed: () {
                 setState(() {
                   if (_minRating == rating) {

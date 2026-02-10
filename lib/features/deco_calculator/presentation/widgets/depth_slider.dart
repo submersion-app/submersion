@@ -33,7 +33,13 @@ class DepthSlider extends ConsumerWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.straighten, size: 20, color: colorScheme.primary),
+                ExcludeSemantics(
+                  child: Icon(
+                    Icons.straighten,
+                    size: 20,
+                    color: colorScheme.primary,
+                  ),
+                ),
                 const SizedBox(width: 8),
                 Text(
                   'Depth',
@@ -67,17 +73,19 @@ class DepthSlider extends ConsumerWidget {
             thumbColor: colorScheme.primary,
             overlayColor: colorScheme.primary.withValues(alpha: 0.12),
           ),
-          child: Slider(
-            value: displayDepth,
-            min: minDisplay,
-            max: maxDisplay,
-            divisions: isMetric ? 60 : 200,
-            onChanged: (value) {
-              // Convert back to meters for storage
-              ref.read(calcDepthProvider.notifier).state = units.depthToMeters(
-                value,
-              );
-            },
+          child: Semantics(
+            label: 'Depth: ${displayDepth.toStringAsFixed(0)} $depthSymbol',
+            child: Slider(
+              value: displayDepth,
+              min: minDisplay,
+              max: maxDisplay,
+              divisions: isMetric ? 60 : 200,
+              onChanged: (value) {
+                // Convert back to meters for storage
+                ref.read(calcDepthProvider.notifier).state = units
+                    .depthToMeters(value);
+              },
+            ),
           ),
         ),
         Padding(

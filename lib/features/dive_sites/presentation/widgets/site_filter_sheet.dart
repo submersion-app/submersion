@@ -307,6 +307,7 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
                   i <= (_minRating ?? 0) ? Icons.star : Icons.star_border,
                   color: Colors.amber.shade600,
                 ),
+                tooltip: '$i ${i == 1 ? 'star' : 'stars'}',
                 onPressed: () {
                   setState(() {
                     // Tapping the same star clears the filter

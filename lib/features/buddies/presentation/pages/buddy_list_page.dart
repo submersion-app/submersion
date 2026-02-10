@@ -24,42 +24,50 @@ class BuddyListPage extends ConsumerWidget {
           context.push('/buddies/new');
         }
       },
+      tooltip: 'Add a new dive buddy',
       icon: const Icon(Icons.person_add),
       label: const Text('Add Buddy'),
     );
 
     // Desktop: Use master-detail layout
     if (ResponsiveBreakpoints.isMasterDetail(context)) {
-      return MasterDetailScaffold(
-        sectionId: 'buddies',
-        masterBuilder: (context, onItemSelected, selectedId) =>
-            BuddyListContent(
-              onItemSelected: onItemSelected,
-              selectedId: selectedId,
-              showAppBar: false,
-            ),
-        detailBuilder: (context, buddyId) => BuddyDetailPage(
-          buddyId: buddyId,
-          embedded: true,
-          onDeleted: () {
-            final state = GoRouterState.of(context);
-            context.go(state.uri.path);
-          },
+      return FocusTraversalGroup(
+        child: MasterDetailScaffold(
+          sectionId: 'buddies',
+          masterBuilder: (context, onItemSelected, selectedId) =>
+              BuddyListContent(
+                onItemSelected: onItemSelected,
+                selectedId: selectedId,
+                showAppBar: false,
+              ),
+          detailBuilder: (context, buddyId) => BuddyDetailPage(
+            buddyId: buddyId,
+            embedded: true,
+            onDeleted: () {
+              final state = GoRouterState.of(context);
+              context.go(state.uri.path);
+            },
+          ),
+          summaryBuilder: (context) => const BuddySummaryWidget(),
+          editBuilder: (context, buddyId, onSaved, onCancel) => BuddyEditPage(
+            buddyId: buddyId,
+            embedded: true,
+            onSaved: onSaved,
+            onCancel: onCancel,
+          ),
+          createBuilder: (context, onSaved, onCancel) => BuddyEditPage(
+            embedded: true,
+            onSaved: onSaved,
+            onCancel: onCancel,
+          ),
+          floatingActionButton: fab,
         ),
-        summaryBuilder: (context) => const BuddySummaryWidget(),
-        editBuilder: (context, buddyId, onSaved, onCancel) => BuddyEditPage(
-          buddyId: buddyId,
-          embedded: true,
-          onSaved: onSaved,
-          onCancel: onCancel,
-        ),
-        createBuilder: (context, onSaved, onCancel) =>
-            BuddyEditPage(embedded: true, onSaved: onSaved, onCancel: onCancel),
-        floatingActionButton: fab,
       );
     }
 
     // Mobile: Use list content with full scaffold
-    return BuddyListContent(showAppBar: true, floatingActionButton: fab);
+    return FocusTraversalGroup(
+      child: BuddyListContent(showAppBar: true, floatingActionButton: fab),
+    );
   }
 }

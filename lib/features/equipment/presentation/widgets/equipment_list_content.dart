@@ -171,6 +171,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           ),
           IconButton(
             icon: const Icon(Icons.search),
+            tooltip: 'Search Equipment',
             onPressed: () {
               showSearch(context: context, delegate: EquipmentSearchDelegate());
             },
@@ -221,6 +222,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           ),
           IconButton(
             icon: const Icon(Icons.search, size: 20),
+            tooltip: 'Search Equipment',
             onPressed: () {
               showSearch(context: context, delegate: EquipmentSearchDelegate());
             },
@@ -539,7 +541,11 @@ class EquipmentSearchDelegate extends SearchDelegate<EquipmentItem?> {
   List<Widget> buildActions(BuildContext context) {
     return [
       if (query.isNotEmpty)
-        IconButton(icon: const Icon(Icons.clear), onPressed: () => query = ''),
+        IconButton(
+          icon: const Icon(Icons.clear),
+          tooltip: 'Clear Search',
+          onPressed: () => query = '',
+        ),
     ];
   }
 
@@ -547,6 +553,7 @@ class EquipmentSearchDelegate extends SearchDelegate<EquipmentItem?> {
   Widget buildLeading(BuildContext context) {
     return IconButton(
       icon: const Icon(Icons.arrow_back),
+      tooltip: 'Back',
       onPressed: () => close(context, null),
     );
   }

@@ -33,69 +33,85 @@ class ImportProgressDialog extends ConsumerWidget {
       });
     }
 
-    return AlertDialog(
-      title: Row(
-        children: [
-          Icon(Icons.download, color: colorScheme.primary),
-          const SizedBox(width: 12),
-          const Text('Importing Data'),
-        ],
-      ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Phase indicator
-          Text(
-            _getPhaseLabel(state.importPhase),
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: 16),
+    final progressLabel = state.totalItems > 0
+        ? '${_getPhaseLabel(state.importPhase)}, ${state.currentItem} of ${state.totalItems}'
+        : _getPhaseLabel(state.importPhase);
 
-          // Progress bar
-          if (state.totalItems > 0) ...[
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
-                value: state.progress,
-                minHeight: 8,
-                backgroundColor: colorScheme.surfaceContainerHighest,
-                valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+    return Semantics(
+      label: progressLabel,
+      liveRegion: true,
+      child: AlertDialog(
+        title: Row(
+          children: [
+            ExcludeSemantics(
+              child: Icon(Icons.download, color: colorScheme.primary),
+            ),
+            const SizedBox(width: 12),
+            const Text('Importing Data'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Phase indicator
+            Text(
+              _getPhaseLabel(state.importPhase),
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: colorScheme.onSurface,
               ),
             ),
+            const SizedBox(height: 16),
+
+            // Progress bar
+            if (state.totalItems > 0) ...[
+              Semantics(
+                label:
+                    'Import progress: ${(state.progress * 100).toStringAsFixed(0)} percent',
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: LinearProgressIndicator(
+                    value: state.progress,
+                    minHeight: 8,
+                    backgroundColor: colorScheme.surfaceContainerHighest,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '${state.currentItem} of ${state.totalItems}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ] else ...[
+              const LinearProgressIndicator(),
+            ],
+
+            const SizedBox(height: 16),
+
+            // Status message
+            if (state.message != null)
+              Text(
+                state.message!,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+
             const SizedBox(height: 8),
             Text(
-              '${state.currentItem} of ${state.totalItems}',
+              'Please do not close the app',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
+                fontStyle: FontStyle.italic,
               ),
             ),
-          ] else ...[
-            const LinearProgressIndicator(),
           ],
-
-          const SizedBox(height: 16),
-
-          // Status message
-          if (state.message != null)
-            Text(
-              state.message!,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-
-          const SizedBox(height: 8),
-          Text(
-            'Please do not close the app',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-              fontStyle: FontStyle.italic,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

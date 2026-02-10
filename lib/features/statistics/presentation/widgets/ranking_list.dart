@@ -219,10 +219,14 @@ class _RankingTile extends StatelessWidget {
     );
 
     if (onTap != null) {
-      tile = InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: tile,
+      tile = Semantics(
+        button: true,
+        label: '${item.name}, rank $rank, ${item.count} $countLabel',
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(8),
+          child: tile,
+        ),
       );
     }
 
@@ -256,17 +260,19 @@ class ValueRankingCard extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: (iconColor ?? Theme.of(context).colorScheme.primary)
-                    .withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                icon,
-                color: iconColor ?? Theme.of(context).colorScheme.primary,
-                size: 20,
+            ExcludeSemantics(
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: (iconColor ?? Theme.of(context).colorScheme.primary)
+                      .withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  icon,
+                  color: iconColor ?? Theme.of(context).colorScheme.primary,
+                  size: 20,
+                ),
               ),
             ),
             const SizedBox(width: 12),
@@ -297,9 +303,11 @@ class ValueRankingCard extends StatelessWidget {
               ),
             ),
             if (onTap != null)
-              Icon(
-                Icons.chevron_right,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ExcludeSemantics(
+                child: Icon(
+                  Icons.chevron_right,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
           ],
         ),
@@ -307,10 +315,14 @@ class ValueRankingCard extends StatelessWidget {
     );
 
     if (onTap != null) {
-      return InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: card,
+      return Semantics(
+        button: true,
+        label: '$title: $value',
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: card,
+        ),
       );
     }
 

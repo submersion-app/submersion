@@ -239,64 +239,72 @@ class RockBottomCalculator extends ConsumerWidget {
               const SizedBox(height: 16),
 
               // Result card
-              Card(
-                color: colorScheme.errorContainer,
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.warning_amber,
+              Semantics(
+                label:
+                    'Minimum reserve: ${displayPressure.toStringAsFixed(0)} $pressureSymbol, '
+                    '${displayVolume.toStringAsFixed(0)} $volumeSymbol. '
+                    'Turn the dive when reaching ${displayPressure.toStringAsFixed(0)} $pressureSymbol remaining',
+                child: Card(
+                  color: colorScheme.errorContainer,
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ExcludeSemantics(
+                              child: Icon(
+                                Icons.warning_amber,
+                                color: colorScheme.onErrorContainer,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Minimum Reserve',
+                              style: textTheme.titleMedium?.copyWith(
+                                color: colorScheme.onErrorContainer,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          '${displayPressure.toStringAsFixed(0)} $pressureSymbol',
+                          style: textTheme.displayMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
                             color: colorScheme.onErrorContainer,
                           ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Minimum Reserve',
-                            style: textTheme.titleMedium?.copyWith(
-                              color: colorScheme.onErrorContainer,
-                              fontWeight: FontWeight.w600,
+                        ),
+                        Text(
+                          '(${displayVolume.toStringAsFixed(0)} $volumeSymbol)',
+                          style: textTheme.titleMedium?.copyWith(
+                            color: colorScheme.onErrorContainer.withValues(
+                              alpha: 0.7,
                             ),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        '${displayPressure.toStringAsFixed(0)} $pressureSymbol',
-                        style: textTheme.displayMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onErrorContainer,
                         ),
-                      ),
-                      Text(
-                        '(${displayVolume.toStringAsFixed(0)} $volumeSymbol)',
-                        style: textTheme.titleMedium?.copyWith(
-                          color: colorScheme.onErrorContainer.withValues(
-                            alpha: 0.7,
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: colorScheme.onErrorContainer.withValues(
+                              alpha: 0.1,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'Turn the dive when reaching ${displayPressure.toStringAsFixed(0)} $pressureSymbol remaining',
+                            textAlign: TextAlign.center,
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onErrorContainer,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: colorScheme.onErrorContainer.withValues(
-                            alpha: 0.1,
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          'Turn the dive when reaching ${displayPressure.toStringAsFixed(0)} $pressureSymbol remaining',
-                          textAlign: TextAlign.center,
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onErrorContainer,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -463,12 +471,15 @@ class RockBottomCalculator extends ConsumerWidget {
             thumbColor: colorScheme.primary,
             overlayColor: colorScheme.primary.withValues(alpha: 0.12),
           ),
-          child: Slider(
-            value: value,
-            min: min,
-            max: max,
-            divisions: divisions,
-            onChanged: onChanged,
+          child: Semantics(
+            label: '$label: ${value.toStringAsFixed(0)} $unit',
+            child: Slider(
+              value: value,
+              min: min,
+              max: max,
+              divisions: divisions,
+              onChanged: onChanged,
+            ),
           ),
         ),
       ],

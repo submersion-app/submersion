@@ -52,16 +52,18 @@ class TissueRecoveryChart extends ConsumerWidget {
             // Header
             Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: colorScheme.tertiary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    Icons.show_chart,
-                    color: colorScheme.tertiary,
-                    size: 20,
+                ExcludeSemantics(
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: colorScheme.tertiary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.show_chart,
+                      color: colorScheme.tertiary,
+                      size: 20,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -85,10 +87,12 @@ class TissueRecoveryChart extends ConsumerWidget {
             // Surface interval slider
             Row(
               children: [
-                Icon(
-                  Icons.timer,
-                  size: 16,
-                  color: colorScheme.onSurfaceVariant,
+                ExcludeSemantics(
+                  child: Icon(
+                    Icons.timer,
+                    size: 16,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(width: 8),
                 Text('Surface Interval', style: theme.textTheme.bodyMedium),
@@ -135,174 +139,179 @@ class TissueRecoveryChart extends ConsumerWidget {
             const SizedBox(height: 16),
 
             // Chart
-            SizedBox(
-              height: 250,
-              child: LineChart(
-                LineChartData(
-                  minX: 0,
-                  maxX: 240,
-                  minY: chartMinY,
-                  maxY: chartMaxY,
-                  clipData: const FlClipData.all(),
-                  gridData: FlGridData(
-                    show: true,
-                    drawVerticalLine: true,
-                    horizontalInterval: (chartMaxY - chartMinY) / 4,
-                    verticalInterval: 60,
-                    getDrawingHorizontalLine: (value) => FlLine(
-                      color: colorScheme.outlineVariant,
-                      strokeWidth: 1,
-                    ),
-                    getDrawingVerticalLine: (value) => FlLine(
-                      color: colorScheme.outlineVariant,
-                      strokeWidth: 1,
-                    ),
-                  ),
-                  titlesData: FlTitlesData(
-                    show: true,
-                    bottomTitles: AxisTitles(
-                      axisNameWidget: Text(
-                        'Surface Interval',
-                        style: theme.textTheme.bodySmall,
+            Semantics(
+              label:
+                  'Tissue recovery chart showing 16 compartment off-gassing '
+                  'over a ${_formatInterval(currentInterval)} surface interval',
+              child: SizedBox(
+                height: 250,
+                child: LineChart(
+                  LineChartData(
+                    minX: 0,
+                    maxX: 240,
+                    minY: chartMinY,
+                    maxY: chartMaxY,
+                    clipData: const FlClipData.all(),
+                    gridData: FlGridData(
+                      show: true,
+                      drawVerticalLine: true,
+                      horizontalInterval: (chartMaxY - chartMinY) / 4,
+                      verticalInterval: 60,
+                      getDrawingHorizontalLine: (value) => FlLine(
+                        color: colorScheme.outlineVariant,
+                        strokeWidth: 1,
                       ),
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 30,
-                        interval: 60,
-                        getTitlesWidget: (value, meta) {
-                          final hours = value ~/ 60;
-                          return Padding(
-                            padding: const EdgeInsets.only(top: 8),
-                            child: Text(
-                              '${hours}h',
-                              style: theme.textTheme.bodySmall,
-                            ),
-                          );
-                        },
+                      getDrawingVerticalLine: (value) => FlLine(
+                        color: colorScheme.outlineVariant,
+                        strokeWidth: 1,
                       ),
                     ),
-                    leftTitles: AxisTitles(
-                      axisNameWidget: Text(
-                        'Loading %',
-                        style: theme.textTheme.bodySmall,
-                      ),
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 40,
-                        getTitlesWidget: (value, meta) {
-                          return Text(
-                            '${value.toStringAsFixed(0)}%',
-                            style: theme.textTheme.bodySmall,
-                          );
-                        },
-                      ),
-                    ),
-                    topTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                    rightTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                  ),
-                  borderData: FlBorderData(show: false),
-                  lineBarsData: [
-                    // Generate a line for each compartment
-                    ...List.generate(16, (compartmentIdx) {
-                      final curve = recoveryCurves[compartmentIdx];
-                      final color = Color(
-                        compartmentColorValues[compartmentIdx],
-                      );
-                      final isLeading = compartmentIdx == leadingCompartment;
-
-                      return LineChartBarData(
-                        spots: curve.map((point) {
-                          return FlSpot(
-                            point.minutes.toDouble(),
-                            point.loadingPercent,
-                          );
-                        }).toList(),
-                        isCurved: true,
-                        curveSmoothness: 0.2,
-                        color: color,
-                        barWidth: isLeading ? 3 : 1.5,
-                        isStrokeCapRound: true,
-                        dotData: const FlDotData(show: false),
-                      );
-                    }),
-                  ],
-                  extraLinesData: ExtraLinesData(
-                    verticalLines: [
-                      // Current surface interval marker
-                      VerticalLine(
-                        x: currentInterval.toDouble(),
-                        color: colorScheme.primary,
-                        strokeWidth: 2,
-                        dashArray: [5, 5],
-                        label: VerticalLineLabel(
-                          show: true,
-                          alignment: Alignment.topRight,
-                          labelResolver: (line) => 'Now',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.primary,
-                            fontWeight: FontWeight.bold,
-                          ),
+                    titlesData: FlTitlesData(
+                      show: true,
+                      bottomTitles: AxisTitles(
+                        axisNameWidget: Text(
+                          'Surface Interval',
+                          style: theme.textTheme.bodySmall,
+                        ),
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 30,
+                          interval: 60,
+                          getTitlesWidget: (value, meta) {
+                            final hours = value ~/ 60;
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Text(
+                                '${hours}h',
+                                style: theme.textTheme.bodySmall,
+                              ),
+                            );
+                          },
                         ),
                       ),
-                      // Minimum interval marker
-                      if (minInterval > 0 && minInterval <= 240)
+                      leftTitles: AxisTitles(
+                        axisNameWidget: Text(
+                          'Loading %',
+                          style: theme.textTheme.bodySmall,
+                        ),
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 40,
+                          getTitlesWidget: (value, meta) {
+                            return Text(
+                              '${value.toStringAsFixed(0)}%',
+                              style: theme.textTheme.bodySmall,
+                            );
+                          },
+                        ),
+                      ),
+                      topTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                      rightTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                    ),
+                    borderData: FlBorderData(show: false),
+                    lineBarsData: [
+                      // Generate a line for each compartment
+                      ...List.generate(16, (compartmentIdx) {
+                        final curve = recoveryCurves[compartmentIdx];
+                        final color = Color(
+                          compartmentColorValues[compartmentIdx],
+                        );
+                        final isLeading = compartmentIdx == leadingCompartment;
+
+                        return LineChartBarData(
+                          spots: curve.map((point) {
+                            return FlSpot(
+                              point.minutes.toDouble(),
+                              point.loadingPercent,
+                            );
+                          }).toList(),
+                          isCurved: true,
+                          curveSmoothness: 0.2,
+                          color: color,
+                          barWidth: isLeading ? 3 : 1.5,
+                          isStrokeCapRound: true,
+                          dotData: const FlDotData(show: false),
+                        );
+                      }),
+                    ],
+                    extraLinesData: ExtraLinesData(
+                      verticalLines: [
+                        // Current surface interval marker
                         VerticalLine(
-                          x: minInterval.toDouble(),
-                          color: Colors.green,
+                          x: currentInterval.toDouble(),
+                          color: colorScheme.primary,
                           strokeWidth: 2,
-                          dashArray: [8, 4],
+                          dashArray: [5, 5],
                           label: VerticalLineLabel(
                             show: true,
-                            alignment: Alignment.topLeft,
-                            labelResolver: (line) => 'Min',
+                            alignment: Alignment.topRight,
+                            labelResolver: (line) => 'Now',
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: Colors.green,
+                              color: colorScheme.primary,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
-                    ],
-                  ),
-                  lineTouchData: LineTouchData(
-                    touchTooltipData: LineTouchTooltipData(
-                      maxContentWidth: 200,
-                      getTooltipItems: (touchedSpots) {
-                        // Show the leading compartment info
-                        if (touchedSpots.isEmpty) return [];
+                        // Minimum interval marker
+                        if (minInterval > 0 && minInterval <= 240)
+                          VerticalLine(
+                            x: minInterval.toDouble(),
+                            color: Colors.green,
+                            strokeWidth: 2,
+                            dashArray: [8, 4],
+                            label: VerticalLineLabel(
+                              show: true,
+                              alignment: Alignment.topLeft,
+                              labelResolver: (line) => 'Min',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: Colors.green,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    lineTouchData: LineTouchData(
+                      touchTooltipData: LineTouchTooltipData(
+                        maxContentWidth: 200,
+                        getTooltipItems: (touchedSpots) {
+                          // Show the leading compartment info
+                          if (touchedSpots.isEmpty) return [];
 
-                        // Only show a few key compartments to avoid clutter
-                        return touchedSpots
-                            .where(
-                              (spot) =>
-                                  spot.barIndex == leadingCompartment ||
-                                  spot.barIndex == 0 ||
-                                  spot.barIndex == 15,
-                            )
-                            .map((spot) {
-                              final compartmentNum = spot.barIndex + 1;
-                              final category = getCompartmentCategory(
-                                spot.barIndex,
-                              );
-                              return LineTooltipItem(
-                                'C$compartmentNum ($category): ${spot.y.toStringAsFixed(1)}%',
-                                TextStyle(
-                                  color: Color(
-                                    compartmentColorValues[spot.barIndex],
+                          // Only show a few key compartments to avoid clutter
+                          return touchedSpots
+                              .where(
+                                (spot) =>
+                                    spot.barIndex == leadingCompartment ||
+                                    spot.barIndex == 0 ||
+                                    spot.barIndex == 15,
+                              )
+                              .map((spot) {
+                                final compartmentNum = spot.barIndex + 1;
+                                final category = getCompartmentCategory(
+                                  spot.barIndex,
+                                );
+                                return LineTooltipItem(
+                                  'C$compartmentNum ($category): ${spot.y.toStringAsFixed(1)}%',
+                                  TextStyle(
+                                    color: Color(
+                                      compartmentColorValues[spot.barIndex],
+                                    ),
+                                    fontWeight:
+                                        spot.barIndex == leadingCompartment
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                    fontSize: 12,
                                   ),
-                                  fontWeight:
-                                      spot.barIndex == leadingCompartment
-                                      ? FontWeight.bold
-                                      : FontWeight.normal,
-                                  fontSize: 12,
-                                ),
-                              );
-                            })
-                            .toList();
-                      },
+                                );
+                              })
+                              .toList();
+                        },
+                      ),
                     ),
                   ),
                 ),

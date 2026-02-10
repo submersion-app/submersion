@@ -57,10 +57,14 @@ class TideSection extends ConsumerWidget {
             Center(
               child: Column(
                 children: [
-                  Icon(
-                    Icons.waves_outlined,
-                    size: 48,
-                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                  ExcludeSemantics(
+                    child: Icon(
+                      Icons.waves_outlined,
+                      size: 48,
+                      color: colorScheme.onSurfaceVariant.withValues(
+                        alpha: 0.5,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(

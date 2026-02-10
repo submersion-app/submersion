@@ -67,28 +67,38 @@ class TideCycleGraph extends StatelessWidget {
     // Calculate the position in the cycle (0.0 to 1.0)
     final cyclePosition = _calculateCyclePosition();
 
-    return SizedBox(
-      height: height,
-      width: width ?? double.infinity,
-      child: CustomPaint(
-        painter: _TideCyclePainter(
-          cyclePosition: cyclePosition,
-          tideState: record.tideState,
-          waveColor: colorScheme.primary,
-          fillColor: colorScheme.primary.withValues(alpha: 0.1),
-          markerColor: _getStateColor(record.tideState),
-          gridColor: colorScheme.outlineVariant.withValues(alpha: 0.3),
-          labelColor: colorScheme.onSurfaceVariant,
-          labelStyle: textTheme.labelSmall ?? const TextStyle(fontSize: 10),
-          showLabels: showLabels,
-          currentHeight: record.heightMeters,
-          highTideHeight: record.highTideHeight,
-          lowTideHeight: record.lowTideHeight,
-          highTideTime: record.highTideTime,
-          lowTideTime: record.lowTideTime,
-          referenceTime: referenceTime,
-          timeFormat: timeFormat,
-          depthUnit: depthUnit,
+    final displayHeight = DepthUnit.meters
+        .convert(record.heightMeters, depthUnit)
+        .toStringAsFixed(1);
+    final stateLabel = record.tideState.name;
+    final chartSummary =
+        'Tide cycle: $stateLabel, current height $displayHeight${depthUnit.symbol}';
+
+    return Semantics(
+      label: chartSummary,
+      child: SizedBox(
+        height: height,
+        width: width ?? double.infinity,
+        child: CustomPaint(
+          painter: _TideCyclePainter(
+            cyclePosition: cyclePosition,
+            tideState: record.tideState,
+            waveColor: colorScheme.primary,
+            fillColor: colorScheme.primary.withValues(alpha: 0.1),
+            markerColor: _getStateColor(record.tideState),
+            gridColor: colorScheme.outlineVariant.withValues(alpha: 0.3),
+            labelColor: colorScheme.onSurfaceVariant,
+            labelStyle: textTheme.labelSmall ?? const TextStyle(fontSize: 10),
+            showLabels: showLabels,
+            currentHeight: record.heightMeters,
+            highTideHeight: record.highTideHeight,
+            lowTideHeight: record.lowTideHeight,
+            highTideTime: record.highTideTime,
+            lowTideTime: record.lowTideTime,
+            referenceTime: referenceTime,
+            timeFormat: timeFormat,
+            depthUnit: depthUnit,
+          ),
         ),
       ),
     );

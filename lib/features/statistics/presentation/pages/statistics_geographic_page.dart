@@ -44,8 +44,15 @@ class StatisticsGeographicPage extends ConsumerWidget {
       title: 'Countries Visited',
       subtitle: 'Dives by country',
       child: countriesAsync.when(
-        data: (data) =>
-            RankingList(items: data, countLabel: 'dives', maxItems: 10),
+        data: (data) {
+          final summary = data.isNotEmpty
+              ? '${data.length} countries. Top: ${data.first.name} with ${data.first.count} dives'
+              : 'No countries visited';
+          return Semantics(
+            label: summary,
+            child: RankingList(items: data, countLabel: 'dives', maxItems: 10),
+          );
+        },
         loading: () => const SizedBox(
           height: 200,
           child: Center(child: CircularProgressIndicator()),
@@ -65,8 +72,15 @@ class StatisticsGeographicPage extends ConsumerWidget {
       title: 'Regions Explored',
       subtitle: 'Dives by region',
       child: regionsAsync.when(
-        data: (data) =>
-            RankingList(items: data, countLabel: 'dives', maxItems: 10),
+        data: (data) {
+          final summary = data.isNotEmpty
+              ? '${data.length} regions. Top: ${data.first.name} with ${data.first.count} dives'
+              : 'No regions explored';
+          return Semantics(
+            label: summary,
+            child: RankingList(items: data, countLabel: 'dives', maxItems: 10),
+          );
+        },
         loading: () => const SizedBox(
           height: 200,
           child: Center(child: CircularProgressIndicator()),
@@ -86,12 +100,20 @@ class StatisticsGeographicPage extends ConsumerWidget {
       title: 'Dives Per Trip',
       subtitle: 'Most productive trips',
       child: tripsAsync.when(
-        data: (data) => RankingList(
-          items: data,
-          countLabel: 'dives',
-          maxItems: 10,
-          onItemTap: (item) => context.push('/trips/${item.id}'),
-        ),
+        data: (data) {
+          final summary = data.isNotEmpty
+              ? '${data.length} trips. Top: ${data.first.name} with ${data.first.count} dives'
+              : 'No trip data';
+          return Semantics(
+            label: summary,
+            child: RankingList(
+              items: data,
+              countLabel: 'dives',
+              maxItems: 10,
+              onItemTap: (item) => context.push('/trips/${item.id}'),
+            ),
+          );
+        },
         loading: () => const SizedBox(
           height: 200,
           child: Center(child: CircularProgressIndicator()),

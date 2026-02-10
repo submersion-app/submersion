@@ -306,6 +306,7 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
           ),
           IconButton(
             icon: const Icon(Icons.close),
+            tooltip: 'Dismiss error',
             onPressed: () {
               ref.read(storageConfigNotifierProvider.notifier).clearError();
             },
@@ -355,6 +356,7 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
           ),
           IconButton(
             icon: const Icon(Icons.close),
+            tooltip: 'Dismiss success message',
             onPressed: () {
               ref
                   .read(storageConfigNotifierProvider.notifier)

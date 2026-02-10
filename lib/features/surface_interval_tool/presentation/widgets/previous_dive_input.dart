@@ -75,14 +75,18 @@ class PreviousDiveInput extends ConsumerWidget {
               label: 'Depth',
               icon: Icons.arrow_downward,
               value: '${displayDepth.toStringAsFixed(0)} $depthSymbol',
-              slider: Slider(
-                value: depth,
-                min: 6,
-                max: 60,
-                divisions: 54,
-                onChanged: (value) {
-                  ref.read(siFirstDiveDepthProvider.notifier).state = value;
-                },
+              slider: Semantics(
+                label:
+                    'First dive depth: ${displayDepth.toStringAsFixed(0)} $depthSymbol',
+                child: Slider(
+                  value: depth,
+                  min: 6,
+                  max: 60,
+                  divisions: 54,
+                  onChanged: (value) {
+                    ref.read(siFirstDiveDepthProvider.notifier).state = value;
+                  },
+                ),
               ),
               minLabel:
                   '${units.convertDepth(6).toStringAsFixed(0)} $depthSymbol',
@@ -96,15 +100,18 @@ class PreviousDiveInput extends ConsumerWidget {
               label: 'Time',
               icon: Icons.timer,
               value: '$time min',
-              slider: Slider(
-                value: time.toDouble(),
-                min: 5,
-                max: 120,
-                divisions: 23,
-                onChanged: (value) {
-                  ref.read(siFirstDiveTimeProvider.notifier).state = value
-                      .round();
-                },
+              slider: Semantics(
+                label: 'First dive time: $time minutes',
+                child: Slider(
+                  value: time.toDouble(),
+                  min: 5,
+                  max: 120,
+                  divisions: 23,
+                  onChanged: (value) {
+                    ref.read(siFirstDiveTimeProvider.notifier).state = value
+                        .round();
+                  },
+                ),
               ),
               minLabel: '5 min',
               maxLabel: '120 min',
@@ -114,10 +121,12 @@ class PreviousDiveInput extends ConsumerWidget {
             // Gas Mix Section
             Row(
               children: [
-                Icon(
-                  Icons.science,
-                  size: 16,
-                  color: colorScheme.onSurfaceVariant,
+                ExcludeSemantics(
+                  child: Icon(
+                    Icons.science,
+                    size: 16,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(width: 8),
                 Text(
@@ -153,19 +162,22 @@ class PreviousDiveInput extends ConsumerWidget {
               label: 'O₂',
               icon: Icons.bubble_chart,
               value: '${o2.toStringAsFixed(0)}%',
-              slider: Slider(
-                value: o2,
-                min: 21,
-                max: 100,
-                divisions: 79,
-                onChanged: (value) {
-                  ref.read(siFirstDiveO2Provider.notifier).state = value;
-                  // Ensure O2 + He doesn't exceed 100%
-                  if (value + he > 100) {
-                    ref.read(siFirstDiveHeProvider.notifier).state =
-                        100 - value;
-                  }
-                },
+              slider: Semantics(
+                label: 'O2: ${o2.toStringAsFixed(0)}%',
+                child: Slider(
+                  value: o2,
+                  min: 21,
+                  max: 100,
+                  divisions: 79,
+                  onChanged: (value) {
+                    ref.read(siFirstDiveO2Provider.notifier).state = value;
+                    // Ensure O2 + He doesn't exceed 100%
+                    if (value + he > 100) {
+                      ref.read(siFirstDiveHeProvider.notifier).state =
+                          100 - value;
+                    }
+                  },
+                ),
               ),
               minLabel: '21%',
               maxLabel: '100%',
@@ -178,19 +190,22 @@ class PreviousDiveInput extends ConsumerWidget {
               label: 'He',
               icon: Icons.air,
               value: '${he.toStringAsFixed(0)}%',
-              slider: Slider(
-                value: he,
-                min: 0,
-                max: 79,
-                divisions: 79,
-                onChanged: (value) {
-                  ref.read(siFirstDiveHeProvider.notifier).state = value;
-                  // Ensure O2 + He doesn't exceed 100%
-                  if (o2 + value > 100) {
-                    ref.read(siFirstDiveO2Provider.notifier).state =
-                        100 - value;
-                  }
-                },
+              slider: Semantics(
+                label: 'Helium: ${he.toStringAsFixed(0)}%',
+                child: Slider(
+                  value: he,
+                  min: 0,
+                  max: 79,
+                  divisions: 79,
+                  onChanged: (value) {
+                    ref.read(siFirstDiveHeProvider.notifier).state = value;
+                    // Ensure O2 + He doesn't exceed 100%
+                    if (o2 + value > 100) {
+                      ref.read(siFirstDiveO2Provider.notifier).state =
+                          100 - value;
+                    }
+                  },
+                ),
               ),
               minLabel: '0%',
               maxLabel: '79%',
@@ -206,7 +221,7 @@ class PreviousDiveInput extends ConsumerWidget {
     required String label,
     required IconData icon,
     required String value,
-    required Slider slider,
+    required Widget slider,
     required String minLabel,
     required String maxLabel,
   }) {
@@ -220,7 +235,13 @@ class PreviousDiveInput extends ConsumerWidget {
           children: [
             Row(
               children: [
-                Icon(icon, size: 16, color: colorScheme.onSurfaceVariant),
+                ExcludeSemantics(
+                  child: Icon(
+                    icon,
+                    size: 16,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
                 const SizedBox(width: 8),
                 Text(label, style: theme.textTheme.bodyMedium),
               ],

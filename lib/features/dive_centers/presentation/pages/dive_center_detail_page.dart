@@ -105,6 +105,7 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage> {
             actions: [
               IconButton(
                 icon: const Icon(Icons.edit_outlined),
+                tooltip: 'Edit dive center',
                 onPressed: () =>
                     context.push('/dive-centers/${widget.centerId}/edit'),
               ),
@@ -477,39 +478,49 @@ class _ContactTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      onLongPress: onLongPress,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          children: [
-            Icon(icon, size: 24, color: Theme.of(context).colorScheme.primary),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
-                    ),
-                  ),
-                  Text(
-                    value,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                ],
+    return Semantics(
+      button: true,
+      label: '$label: $value',
+      child: InkWell(
+        onTap: onTap,
+        onLongPress: onLongPress,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                size: 24,
+                color: Theme.of(context).colorScheme.primary,
               ),
-            ),
-            Icon(
-              Icons.chevron_right,
-              color: Theme.of(context).colorScheme.outline,
-            ),
-          ],
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
+                    ),
+                    Text(
+                      value,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              ExcludeSemantics(
+                child: Icon(
+                  Icons.chevron_right,
+                  color: Theme.of(context).colorScheme.outline,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -615,15 +626,19 @@ class _MapSection extends StatelessWidget {
               child: Material(
                 color: colorScheme.surface.withValues(alpha: 0.9),
                 borderRadius: BorderRadius.circular(4),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(4),
-                  onTap: () => _showFullscreenMap(context),
-                  child: Padding(
-                    padding: const EdgeInsets.all(6),
-                    child: Icon(
-                      Icons.fullscreen,
-                      size: 20,
-                      color: colorScheme.primary,
+                child: Semantics(
+                  button: true,
+                  label: 'View fullscreen map',
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(4),
+                    onTap: () => _showFullscreenMap(context),
+                    child: Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: Icon(
+                        Icons.fullscreen,
+                        size: 20,
+                        color: colorScheme.primary,
+                      ),
                     ),
                   ),
                 ),
@@ -719,56 +734,64 @@ class _DivesSection extends ConsumerWidget {
         data: (diveCount) {
           return Card(
             clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              onTap: diveCount > 0
-                  ? () {
-                      // Set the filter to this dive center and navigate to dive list
-                      ref.read(diveFilterProvider.notifier).state =
-                          DiveFilterState(diveCenterId: centerId);
-                      context.go('/dives');
-                    }
-                  : null,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 24,
-                      backgroundColor: colorScheme.primaryContainer,
-                      child: Icon(
-                        Icons.scuba_diving,
-                        color: colorScheme.onPrimaryContainer,
-                        size: 24,
+            child: Semantics(
+              button: true,
+              label: 'View dives with this center',
+              child: InkWell(
+                onTap: diveCount > 0
+                    ? () {
+                        // Set the filter to this dive center and navigate to dive list
+                        ref.read(diveFilterProvider.notifier).state =
+                            DiveFilterState(diveCenterId: centerId);
+                        context.go('/dives');
+                      }
+                    : null,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 24,
+                        backgroundColor: colorScheme.primaryContainer,
+                        child: Icon(
+                          Icons.scuba_diving,
+                          color: colorScheme.onPrimaryContainer,
+                          size: 24,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Dives with this Center',
-                            style: Theme.of(context).textTheme.titleMedium,
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Dives with this Center',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              diveCount == 0
+                                  ? 'No dives logged yet'
+                                  : diveCount == 1
+                                  ? '1 dive logged'
+                                  : '$diveCount dives logged',
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (diveCount > 0)
+                        ExcludeSemantics(
+                          child: Icon(
+                            Icons.chevron_right,
+                            color: colorScheme.onSurfaceVariant,
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            diveCount == 0
-                                ? 'No dives logged yet'
-                                : diveCount == 1
-                                ? '1 dive logged'
-                                : '$diveCount dives logged',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: colorScheme.onSurfaceVariant),
-                          ),
-                        ],
-                      ),
-                    ),
-                    if (diveCount > 0)
-                      Icon(
-                        Icons.chevron_right,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                  ],
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),

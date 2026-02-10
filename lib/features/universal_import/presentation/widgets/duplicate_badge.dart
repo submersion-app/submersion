@@ -20,32 +20,37 @@ class DuplicateBadge extends StatelessWidget {
     final badgeColor = isProbable ? colorScheme.error : colorScheme.tertiary;
     final displayLabel = label ?? (isProbable ? 'Duplicate' : 'Possible match');
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: badgeColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            isProbable
-                ? Icons.warning_amber_rounded
-                : Icons.help_outline_rounded,
-            size: 14,
-            color: badgeColor,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            displayLabel,
-            style: TextStyle(
-              fontSize: 12,
-              color: badgeColor,
-              fontWeight: FontWeight.w500,
+    return Semantics(
+      label: isProbable ? 'Probable duplicate' : 'Possible duplicate',
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: badgeColor.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ExcludeSemantics(
+              child: Icon(
+                isProbable
+                    ? Icons.warning_amber_rounded
+                    : Icons.help_outline_rounded,
+                size: 14,
+                color: badgeColor,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(width: 4),
+            Text(
+              displayLabel,
+              style: TextStyle(
+                fontSize: 12,
+                color: badgeColor,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

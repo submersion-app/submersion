@@ -58,58 +58,62 @@ class ImportDiveCard extends StatelessWidget {
       color: isSelected
           ? colorScheme.primaryContainer.withValues(alpha: 0.3)
           : null,
-      child: InkWell(
-        onTap: onToggle,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-              _buildCheckbox(colorScheme),
-              const SizedBox(width: 12),
-              Icon(
-                Icons.scuba_diving,
-                size: 20,
-                color: colorScheme.onSurfaceVariant,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w500,
+      child: Semantics(
+        button: true,
+        label: 'Toggle selection for $title',
+        child: InkWell(
+          onTap: onToggle,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                _buildCheckbox(colorScheme),
+                const SizedBox(width: 12),
+                Icon(
+                  Icons.scuba_diving,
+                  size: 20,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (diveNumber != null) ...[
                       const SizedBox(height: 2),
-                      _buildMetrics(theme, depthStr, durationStr, siteName),
+                      Text(
+                        subtitle,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (diveNumber != null) ...[
+                        const SizedBox(height: 2),
+                        _buildMetrics(theme, depthStr, durationStr, siteName),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-              if (matchResult != null) ...[
-                const SizedBox(width: 8),
-                DuplicateBadge(
-                  isProbable: matchResult!.score >= 0.7,
-                  label:
-                      '${(matchResult!.score * 100).toStringAsFixed(0)}% match',
-                ),
+                if (matchResult != null) ...[
+                  const SizedBox(width: 8),
+                  DuplicateBadge(
+                    isProbable: matchResult!.score >= 0.7,
+                    label:
+                        '${(matchResult!.score * 100).toStringAsFixed(0)}% match',
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),

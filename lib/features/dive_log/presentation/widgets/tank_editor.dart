@@ -311,7 +311,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                       value: preset,
                       child: Row(
                         children: [
-                          const Icon(Icons.star, size: 16),
+                          const ExcludeSemantics(
+                            child: Icon(Icons.star, size: 16),
+                          ),
                           const SizedBox(width: 8),
                           Text(preset.displayName),
                         ],
@@ -559,16 +561,21 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       padding: const EdgeInsets.only(top: 12),
       child: Row(
         children: [
-          Icon(
-            Icons.warning_amber,
-            size: 16,
-            color: Theme.of(context).colorScheme.tertiary,
+          ExcludeSemantics(
+            child: Icon(
+              Icons.warning_amber,
+              size: 16,
+              color: Theme.of(context).colorScheme.tertiary,
+            ),
           ),
           const SizedBox(width: 8),
-          Text(
-            'MOD: $modDepth (ppO2 1.4)',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.tertiary,
+          Semantics(
+            label: 'Maximum operating depth: $modDepth at ppO2 1.4',
+            child: Text(
+              'MOD: $modDepth (ppO2 1.4)',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.tertiary,
+              ),
             ),
           ),
         ],

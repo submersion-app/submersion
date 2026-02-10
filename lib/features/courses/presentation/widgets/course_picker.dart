@@ -183,50 +183,56 @@ class CoursePickerSheet extends ConsumerWidget {
                   final isSelected = selectedCourse?.id == course.id;
                   final dateFormat = DateFormat.yMMMd();
 
-                  return ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: isSelected
-                          ? colorScheme.primary
-                          : course.isCompleted
-                          ? Colors.green.withValues(alpha: 0.15)
-                          : colorScheme.primaryContainer,
-                      child: Icon(
-                        course.isCompleted
-                            ? Icons.check_circle_outline
-                            : Icons.school_outlined,
-                        color: isSelected
-                            ? colorScheme.onPrimary
+                  final courseLabel =
+                      '${course.agency.displayName} ${course.name}, Started ${dateFormat.format(course.startDate)}${isSelected ? ', selected' : ''}${course.isInProgress ? ', Active' : ''}';
+
+                  return Semantics(
+                    label: courseLabel,
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: isSelected
+                            ? colorScheme.primary
                             : course.isCompleted
-                            ? Colors.green
-                            : colorScheme.onPrimaryContainer,
+                            ? Colors.green.withValues(alpha: 0.15)
+                            : colorScheme.primaryContainer,
+                        child: Icon(
+                          course.isCompleted
+                              ? Icons.check_circle_outline
+                              : Icons.school_outlined,
+                          color: isSelected
+                              ? colorScheme.onPrimary
+                              : course.isCompleted
+                              ? Colors.green
+                              : colorScheme.onPrimaryContainer,
+                        ),
                       ),
+                      title: Text(course.name),
+                      subtitle: Text(
+                        '${course.agency.displayName} - Started ${dateFormat.format(course.startDate)}',
+                      ),
+                      trailing: isSelected
+                          ? Icon(Icons.check_circle, color: colorScheme.primary)
+                          : course.isInProgress
+                          ? Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: colorScheme.primaryContainer,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                'Active',
+                                style: Theme.of(context).textTheme.labelSmall
+                                    ?.copyWith(
+                                      color: colorScheme.onPrimaryContainer,
+                                    ),
+                              ),
+                            )
+                          : null,
+                      onTap: () => onCourseSelected(course),
                     ),
-                    title: Text(course.name),
-                    subtitle: Text(
-                      '${course.agency.displayName} - Started ${dateFormat.format(course.startDate)}',
-                    ),
-                    trailing: isSelected
-                        ? Icon(Icons.check_circle, color: colorScheme.primary)
-                        : course.isInProgress
-                        ? Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: colorScheme.primaryContainer,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              'Active',
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(
-                                    color: colorScheme.onPrimaryContainer,
-                                  ),
-                            ),
-                          )
-                        : null,
-                    onTap: () => onCourseSelected(course),
                   );
                 },
               );

@@ -158,10 +158,12 @@ class _CertificationDetailContent extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
+            tooltip: 'Edit certification',
             onPressed: () =>
                 context.push('/certifications/${certification.id}/edit'),
           ),
           PopupMenuButton<String>(
+            tooltip: 'More options',
             onSelected: (value) async {
               if (value == 'delete') {
                 await _handleDelete(context, ref);
@@ -251,6 +253,7 @@ class _CertificationDetailContent extends ConsumerWidget {
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, size: 20),
+            tooltip: 'More options',
             onSelected: (value) async {
               if (value == 'delete') {
                 await _handleDelete(context, ref);
@@ -295,80 +298,88 @@ class _CertificationDetailContent extends ConsumerWidget {
 
   Widget _buildStatusBanner(BuildContext context) {
     if (certification.isExpired) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.red.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.warning, color: Colors.red),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'This certification has expired',
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  if (certification.expiryDate != null)
-                    Text(
-                      'Expired on ${DateFormat.yMMMd().format(certification.expiryDate!)}',
+      return Semantics(
+        label:
+            'Warning: This certification has expired${certification.expiryDate != null ? ' on ${DateFormat.yMMMd().format(certification.expiryDate!)}' : ''}',
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.red.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.warning, color: Colors.red),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'This certification has expired',
                       style: TextStyle(
-                        color: Colors.red.withValues(alpha: 0.8),
-                        fontSize: 12,
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                ],
+                    if (certification.expiryDate != null)
+                      Text(
+                        'Expired on ${DateFormat.yMMMd().format(certification.expiryDate!)}',
+                        style: TextStyle(
+                          color: Colors.red.withValues(alpha: 0.8),
+                          fontSize: 12,
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     } else if (certification.expiresWithin(90)) {
       final days = certification.daysUntilExpiry ?? 0;
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.orange.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.schedule, color: Colors.orange),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Expires in $days days',
-                    style: const TextStyle(
-                      color: Colors.orange,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  if (certification.expiryDate != null)
+      return Semantics(
+        label:
+            'Warning: Certification expires in $days days${certification.expiryDate != null ? ' on ${DateFormat.yMMMd().format(certification.expiryDate!)}' : ''}',
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.orange.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.schedule, color: Colors.orange),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      'Expires on ${DateFormat.yMMMd().format(certification.expiryDate!)}',
-                      style: TextStyle(
-                        color: Colors.orange.withValues(alpha: 0.8),
-                        fontSize: 12,
+                      'Expires in $days days',
+                      style: const TextStyle(
+                        color: Colors.orange,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                ],
+                    if (certification.expiryDate != null)
+                      Text(
+                        'Expires on ${DateFormat.yMMMd().format(certification.expiryDate!)}',
+                        style: TextStyle(
+                          color: Colors.orange.withValues(alpha: 0.8),
+                          fontSize: 12,
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     }
@@ -676,43 +687,50 @@ class _CertificationDetailContent extends ConsumerWidget {
   }) {
     return Column(
       children: [
-        GestureDetector(
-          onTap: () => _showFullscreenPhoto(context, imageData, label),
-          child: AspectRatio(
-            aspectRatio: 1.6,
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: Image.memory(
-                imageData,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.broken_image_outlined,
-                          size: 32,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Unable to load image',
-                          style: TextStyle(
-                            fontSize: 10,
+        Semantics(
+          button: true,
+          label:
+              '$label photo of ${certification.name}. Tap to view full screen',
+          child: GestureDetector(
+            onTap: () => _showFullscreenPhoto(context, imageData, label),
+            child: AspectRatio(
+              aspectRatio: 1.6,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Image.memory(
+                  imageData,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.broken_image_outlined,
+                            size: 32,
                             color: Theme.of(
                               context,
                             ).colorScheme.onSurfaceVariant,
                           ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
+                          const SizedBox(height: 4),
+                          Text(
+                            'Unable to load image',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
           ),
@@ -842,23 +860,32 @@ class _InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
-          ),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: valueColor,
+    return Semantics(
+      label: '$label: $value',
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          children: [
+            ExcludeSemantics(
+              child: Icon(
+                icon,
+                size: 20,
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
+            ),
+            Text(
+              value,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: valueColor,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

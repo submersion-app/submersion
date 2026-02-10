@@ -15,16 +15,18 @@ class PlanningWelcome extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: colorScheme.primaryContainer.withValues(alpha: 0.3),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.edit_calendar,
-                size: 64,
-                color: colorScheme.primary.withValues(alpha: 0.7),
+            ExcludeSemantics(
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.edit_calendar,
+                  size: 64,
+                  color: colorScheme.primary.withValues(alpha: 0.7),
+                ),
               ),
             ),
             const SizedBox(height: 24),

@@ -227,40 +227,44 @@ class DiveProfileLegend extends ConsumerWidget {
     required bool isEnabled,
     required VoidCallback onTap,
   }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(4),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              isEnabled ? Icons.check_box : Icons.check_box_outline_blank,
-              size: 16,
-              color: isEnabled
-                  ? color
-                  : Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: 4),
-            Container(
-              width: 12,
-              height: 3,
-              decoration: BoxDecoration(
-                color: isEnabled ? color : color.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+    return Semantics(
+      toggled: isEnabled,
+      label: '$label ${isEnabled ? 'enabled' : 'disabled'}',
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(4),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isEnabled ? Icons.check_box : Icons.check_box_outline_blank,
+                size: 16,
                 color: isEnabled
-                    ? null
+                    ? color
                     : Theme.of(context).colorScheme.onSurfaceVariant,
               ),
-            ),
-          ],
+              const SizedBox(width: 4),
+              Container(
+                width: 12,
+                height: 3,
+                decoration: BoxDecoration(
+                  color: isEnabled ? color : color.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: isEnabled
+                      ? null
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

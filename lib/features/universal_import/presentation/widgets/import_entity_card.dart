@@ -37,51 +37,55 @@ class ImportEntityCard extends StatelessWidget {
       color: isSelected
           ? colorScheme.primaryContainer.withValues(alpha: 0.3)
           : null,
-      child: InkWell(
-        onTap: onToggle,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-              _SelectionCheckbox(
-                isSelected: isSelected,
-                colorScheme: colorScheme,
-              ),
-              const SizedBox(width: 12),
-              Icon(icon, size: 20, color: colorScheme.onSurfaceVariant),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 2),
+      child: Semantics(
+        button: true,
+        label: 'Toggle selection for $name',
+        child: InkWell(
+          onTap: onToggle,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                _SelectionCheckbox(
+                  isSelected: isSelected,
+                  colorScheme: colorScheme,
+                ),
+                const SizedBox(width: 12),
+                Icon(icon, size: 20, color: colorScheme.onSurfaceVariant),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        subtitle!,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+                        name,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.w500,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
+                      if (subtitle != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          subtitle!,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-              if (isDuplicate) ...[
-                const SizedBox(width: 8),
-                DuplicateBadge(label: duplicateLabel),
+                if (isDuplicate) ...[
+                  const SizedBox(width: 8),
+                  DuplicateBadge(label: duplicateLabel),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),

@@ -47,14 +47,17 @@ class PlaybackControls extends ConsumerWidget {
         Row(
           children: [
             // Current time
-            SizedBox(
-              width: 48,
-              child: Text(
-                playbackState.formattedTime,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontFeatures: [const FontFeature.tabularFigures()],
+            Semantics(
+              label: 'Current time ${playbackState.formattedTime}',
+              child: SizedBox(
+                width: 48,
+                child: Text(
+                  playbackState.formattedTime,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    fontFeatures: [const FontFeature.tabularFigures()],
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
               ),
             ),
             // Slider
@@ -74,6 +77,7 @@ class PlaybackControls extends ConsumerWidget {
                   overlayColor: colorScheme.primary.withValues(alpha: 0.2),
                 ),
                 child: Slider(
+                  label: 'Playback position',
                   value: playbackState.progress,
                   onChanged: (value) => playbackNotifier.seekToProgress(value),
                   onChangeStart: (_) {
@@ -86,15 +90,18 @@ class PlaybackControls extends ConsumerWidget {
               ),
             ),
             // Total time
-            SizedBox(
-              width: 48,
-              child: Text(
-                playbackState.formattedTotalTime,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                  fontFeatures: [const FontFeature.tabularFigures()],
+            Semantics(
+              label: 'Total time ${playbackState.formattedTotalTime}',
+              child: SizedBox(
+                width: 48,
+                child: Text(
+                  playbackState.formattedTotalTime,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontFeatures: [const FontFeature.tabularFigures()],
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
               ),
             ),
           ],
@@ -204,17 +211,20 @@ class _SpeedSelector extends StatelessWidget {
       initialValue: currentSpeed,
       onSelected: onSpeedChanged,
       tooltip: 'Playback speed',
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: Text(
-          '${currentSpeed}x',
-          style: Theme.of(
-            context,
-          ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+      child: Semantics(
+        label: 'Playback speed ${currentSpeed}x',
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(
+            '${currentSpeed}x',
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+          ),
         ),
       ),
       itemBuilder: (context) => [

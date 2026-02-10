@@ -163,10 +163,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.error_outline,
-                size: 64,
-                color: Theme.of(context).colorScheme.error,
+              ExcludeSemantics(
+                child: Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: Theme.of(context).colorScheme.error,
+                ),
               ),
               const SizedBox(height: 16),
               Text(
@@ -281,6 +283,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           ),
           IconButton(
             icon: const Icon(Icons.edit),
+            tooltip: 'Edit dive',
             onPressed: () => context.go('/dives/$diveId/edit'),
           ),
           PopupMenuButton<String>(
@@ -512,7 +515,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               if (dive.rating != null)
                 Row(
                   children: [
-                    Icon(Icons.star, color: Colors.amber.shade600, size: 20),
+                    ExcludeSemantics(
+                      child: Icon(
+                        Icons.star,
+                        color: Colors.amber.shade600,
+                        size: 20,
+                      ),
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       '${dive.rating}',
@@ -570,120 +579,124 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
     return Card(
       clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => context.push('/sites/${site.id}'),
-        child: Stack(
-          children: [
-            // Map background
-            Positioned.fill(
-              child: FlutterMap(
-                options: MapOptions(
-                  initialCenter: siteLocation,
-                  initialZoom: 12.0,
-                  interactionOptions: const InteractionOptions(
-                    flags: InteractiveFlag.none,
+      child: Semantics(
+        button: true,
+        label: 'View dive site ${site.name}',
+        child: InkWell(
+          onTap: () => context.push('/sites/${site.id}'),
+          child: Stack(
+            children: [
+              // Map background
+              Positioned.fill(
+                child: FlutterMap(
+                  options: MapOptions(
+                    initialCenter: siteLocation,
+                    initialZoom: 12.0,
+                    interactionOptions: const InteractionOptions(
+                      flags: InteractiveFlag.none,
+                    ),
+                  ),
+                  children: [
+                    TileLayer(
+                      urlTemplate:
+                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      userAgentPackageName: 'com.submersion.app',
+                      maxZoom: 19,
+                      tileProvider: TileCacheService.instance.isInitialized
+                          ? TileCacheService.instance.getTileProvider()
+                          : null,
+                    ),
+                    MarkerLayer(
+                      markers: [
+                        Marker(
+                          point: siteLocation,
+                          width: 32,
+                          height: 32,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: colorScheme.primary,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: colorScheme.onPrimary,
+                                width: 2,
+                              ),
+                            ),
+                            child: Center(
+                              child: Icon(
+                                Icons.scuba_diving,
+                                size: 16,
+                                color: colorScheme.onPrimary,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // Gradient overlay from top to bottom
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      stops: const [0.0, 0.3, 0.7, 1.0],
+                      colors: [
+                        cardColor.withValues(alpha: 0.3),
+                        cardColor.withValues(alpha: 0.6),
+                        cardColor.withValues(alpha: 0.85),
+                        cardColor,
+                      ],
+                    ),
                   ),
                 ),
-                children: [
-                  TileLayer(
-                    urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'com.submersion.app',
-                    maxZoom: 19,
-                    tileProvider: TileCacheService.instance.isInitialized
-                        ? TileCacheService.instance.getTileProvider()
-                        : null,
+              ),
+              // Content
+              content,
+              // View Site button
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
                   ),
-                  MarkerLayer(
-                    markers: [
-                      Marker(
-                        point: siteLocation,
-                        width: 32,
-                        height: 32,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: colorScheme.primary,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: colorScheme.onPrimary,
-                              width: 2,
-                            ),
-                          ),
-                          child: Center(
-                            child: Icon(
-                              Icons.scuba_diving,
-                              size: 16,
-                              color: colorScheme.onPrimary,
-                            ),
-                          ),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.open_in_new,
+                        size: 14,
+                        color: colorScheme.onPrimaryContainer,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'View Site',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: colorScheme.onPrimaryContainer,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
-            // Gradient overlay from top to bottom
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    stops: const [0.0, 0.3, 0.7, 1.0],
-                    colors: [
-                      cardColor.withValues(alpha: 0.3),
-                      cardColor.withValues(alpha: 0.6),
-                      cardColor.withValues(alpha: 0.85),
-                      cardColor,
-                    ],
-                  ),
                 ),
               ),
-            ),
-            // Content
-            content,
-            // View Site button
-            Positioned(
-              right: 8,
-              top: 8,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.2),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.open_in_new,
-                      size: 14,
-                      color: colorScheme.onPrimaryContainer,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'View Site',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: colorScheme.onPrimaryContainer,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -710,7 +723,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   ) {
     return Column(
       children: [
-        Icon(icon, color: Theme.of(context).colorScheme.primary),
+        ExcludeSemantics(
+          child: Icon(icon, color: Theme.of(context).colorScheme.primary),
+        ),
         const SizedBox(height: 4),
         Text(value, style: Theme.of(context).textTheme.titleMedium),
         Text(
@@ -2793,90 +2808,102 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
   Widget _buildTripRow(BuildContext context, Dive dive) {
     final trip = dive.trip!;
-    return InkWell(
-      onTap: () => context.push('/trips/${trip.id}'),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Trip',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+    return Semantics(
+      button: true,
+      label: 'View trip ${trip.name}',
+      child: InkWell(
+        onTap: () => context.push('/trips/${trip.id}'),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Trip',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
-            ),
-            Flexible(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Flexible(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          trip.name,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (trip.subtitle != null)
+              Flexible(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
                           Text(
-                            trip.subtitle!,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
+                            trip.name,
+                            style: Theme.of(context).textTheme.bodyMedium,
                             overflow: TextOverflow.ellipsis,
                           ),
-                      ],
+                          if (trip.subtitle != null)
+                            Text(
+                              trip.subtitle!,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  Icon(
-                    Icons.chevron_right,
-                    size: 16,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ],
+                    const SizedBox(width: 4),
+                    ExcludeSemantics(
+                      child: Icon(
+                        Icons.chevron_right,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildDiveCenterRow(BuildContext context, Dive dive) {
-    return InkWell(
-      onTap: () => context.push('/dive-centers/${dive.diveCenter!.id}'),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Dive Center',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-            Row(
-              children: [
-                Text(
-                  dive.diveCenter!.name,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                const SizedBox(width: 4),
-                Icon(
-                  Icons.chevron_right,
-                  size: 16,
+    return Semantics(
+      button: true,
+      label: 'View dive center ${dive.diveCenter!.name}',
+      child: InkWell(
+        onTap: () => context.push('/dive-centers/${dive.diveCenter!.id}'),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Dive Center',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
-              ],
-            ),
-          ],
+              ),
+              Row(
+                children: [
+                  Text(
+                    dive.diveCenter!.name,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(width: 4),
+                  ExcludeSemantics(
+                    child: Icon(
+                      Icons.chevron_right,
+                      size: 16,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -3154,62 +3181,69 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   }
 
   Widget _buildSightingTile(BuildContext context, Sighting sighting) {
-    return InkWell(
-      onTap: () => context.push('/species/${sighting.speciesId}'),
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundColor: _getCategoryColor(sighting.speciesCategory),
-              child: Icon(
-                _getCategoryIcon(sighting.speciesCategory),
-                color: Colors.white,
-                size: 18,
+    return Semantics(
+      button: true,
+      label: 'View species ${sighting.speciesName}',
+      child: InkWell(
+        onTap: () => context.push('/species/${sighting.speciesId}'),
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: _getCategoryColor(sighting.speciesCategory),
+                child: Icon(
+                  _getCategoryIcon(sighting.speciesCategory),
+                  color: Colors.white,
+                  size: 18,
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    sighting.speciesName,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  if (sighting.notes.isNotEmpty)
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      sighting.notes,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      sighting.speciesName,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                ],
-              ),
-            ),
-            if (sighting.count > 1)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(12),
+                    if (sighting.notes.isNotEmpty)
+                      Text(
+                        sighting.notes,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                  ],
                 ),
-                child: Text(
-                  'x${sighting.count}',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
+              ),
+              if (sighting.count > 1)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    'x${sighting.count}',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -3323,36 +3357,40 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 ),
                 const Spacer(),
                 if (courseAsync.hasValue && courseAsync.value != null) ...[
-                  InkWell(
-                    onTap: () =>
-                        context.push('/courses/${courseAsync.value!.id}'),
-                    borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.school,
-                            size: 14,
-                            color: colorScheme.onPrimaryContainer,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            courseAsync.value!.name,
-                            style: Theme.of(context).textTheme.labelSmall
-                                ?.copyWith(
-                                  color: colorScheme.onPrimaryContainer,
-                                ),
-                          ),
-                        ],
+                  Semantics(
+                    button: true,
+                    label: 'View course ${courseAsync.value!.name}',
+                    child: InkWell(
+                      onTap: () =>
+                          context.push('/courses/${courseAsync.value!.id}'),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.school,
+                              size: 14,
+                              color: colorScheme.onPrimaryContainer,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              courseAsync.value!.name,
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: colorScheme.onPrimaryContainer,
+                                  ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -3409,37 +3447,41 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       instructorName = courseAsync.value!.instructorName;
     }
 
-    return InkWell(
-      onTap: () => _showSignatureCapture(context, ref, dive, instructorName),
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: colorScheme.outline.withValues(alpha: 0.5),
-            style: BorderStyle.solid,
+    return Semantics(
+      button: true,
+      label: 'Capture instructor signature',
+      child: InkWell(
+        onTap: () => _showSignatureCapture(context, ref, dive, instructorName),
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: colorScheme.outline.withValues(alpha: 0.5),
+              style: BorderStyle.solid,
+            ),
+            borderRadius: BorderRadius.circular(12),
           ),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          children: [
-            Icon(Icons.draw_outlined, size: 48, color: colorScheme.primary),
-            const SizedBox(height: 12),
-            Text(
-              'Capture Instructor Signature',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(color: colorScheme.primary),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Tap to add instructor verification for this training dive',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
+          child: Column(
+            children: [
+              Icon(Icons.draw_outlined, size: 48, color: colorScheme.primary),
+              const SizedBox(height: 12),
+              Text(
+                'Capture Instructor Signature',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(color: colorScheme.primary),
               ),
-              textAlign: TextAlign.center,
-            ),
-          ],
+              const SizedBox(height: 4),
+              Text(
+                'Tap to add instructor verification for this training dive',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -3714,6 +3756,7 @@ class _FullscreenProfilePageState
               title: Text('Dive #${dive.diveNumber ?? "-"} Profile'),
               leading: IconButton(
                 icon: const Icon(Icons.close),
+                tooltip: 'Close fullscreen',
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ),
@@ -3802,6 +3845,7 @@ class _FullscreenProfilePageState
                 left: 8,
                 child: IconButton(
                   icon: const Icon(Icons.close),
+                  tooltip: 'Close fullscreen',
                   onPressed: () => Navigator.of(context).pop(),
                   style: IconButton.styleFrom(
                     backgroundColor: Theme.of(

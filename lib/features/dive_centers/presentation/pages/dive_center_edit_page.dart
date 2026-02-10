@@ -789,6 +789,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
             ...List.generate(
               5,
               (index) => IconButton(
+                tooltip: '${index + 1} star${index > 0 ? 's' : ''}',
                 onPressed: () {
                   setState(() {
                     if (_rating == index + 1) {

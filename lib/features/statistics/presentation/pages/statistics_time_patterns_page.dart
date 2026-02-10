@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/features/statistics/presentation/widgets/stat_charts.dart';
 import 'package:submersion/features/statistics/presentation/widgets/stat_section_card.dart';
@@ -76,7 +77,17 @@ class StatisticsTimePatternsPage extends ConsumerWidget {
             );
             return (label: _dayNames[day], count: existing.count);
           });
-          return CategoryBarChart(data: fullData, barColor: Colors.blue);
+          final description = fullData
+              .where((d) => d.count > 0)
+              .map((d) => '${d.label}: ${d.count}')
+              .join(', ');
+          return Semantics(
+            label: chartSummaryLabel(
+              chartType: 'Bar',
+              description: 'Dives by day of week. $description',
+            ),
+            child: CategoryBarChart(data: fullData, barColor: Colors.blue),
+          );
         },
         loading: () => const SizedBox(
           height: 200,
@@ -97,15 +108,26 @@ class StatisticsTimePatternsPage extends ConsumerWidget {
       title: 'Dives by Time of Day',
       subtitle: 'Morning, afternoon, evening, or night',
       child: timeOfDayAsync.when(
-        data: (data) => DistributionPieChart(
-          data: data,
-          colors: const [
-            Colors.amber, // Morning
-            Colors.orange, // Afternoon
-            Colors.deepOrange, // Evening
-            Colors.indigo, // Night
-          ],
-        ),
+        data: (data) {
+          final description = data
+              .map((d) => '${d.label}: ${d.percentage.toStringAsFixed(0)}%')
+              .join(', ');
+          return Semantics(
+            label: chartSummaryLabel(
+              chartType: 'Pie',
+              description: 'Dives by time of day. $description',
+            ),
+            child: DistributionPieChart(
+              data: data,
+              colors: const [
+                Colors.amber, // Morning
+                Colors.orange, // Afternoon
+                Colors.deepOrange, // Evening
+                Colors.indigo, // Night
+              ],
+            ),
+          );
+        },
         loading: () => const SizedBox(
           height: 200,
           child: Center(child: CircularProgressIndicator()),
@@ -141,7 +163,17 @@ class StatisticsTimePatternsPage extends ConsumerWidget {
             );
             return (label: _monthNames[month], count: existing.count);
           });
-          return CategoryBarChart(data: fullData, barColor: Colors.teal);
+          final description = fullData
+              .where((d) => d.count > 0)
+              .map((d) => '${d.label}: ${d.count}')
+              .join(', ');
+          return Semantics(
+            label: chartSummaryLabel(
+              chartType: 'Bar',
+              description: 'Dives by month. $description',
+            ),
+            child: CategoryBarChart(data: fullData, barColor: Colors.teal),
+          );
         },
         loading: () => const SizedBox(
           height: 200,
@@ -219,29 +251,32 @@ class StatisticsTimePatternsPage extends ConsumerWidget {
     String value,
     Color color,
   ) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        children: [
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+    return Semantics(
+      label: statLabel(name: '$label surface interval', value: value),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          children: [
+            Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: color,
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

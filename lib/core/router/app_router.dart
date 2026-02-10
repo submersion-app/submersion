@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:submersion/core/accessibility/app_shortcuts.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
@@ -126,7 +127,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const WelcomePage(),
       ),
       ShellRoute(
-        builder: (context, state, child) => MainScaffold(child: child),
+        builder: (context, state, child) => CallbackShortcuts(
+          bindings: AppShortcuts.globalBindings(context),
+          child: Focus(autofocus: true, child: MainScaffold(child: child)),
+        ),
         routes: [
           // Dashboard (Home)
           GoRoute(

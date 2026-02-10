@@ -105,10 +105,12 @@ class _PlanningSidebar extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    Icons.info_outline,
-                    size: 18,
-                    color: colorScheme.onSurfaceVariant,
+                  ExcludeSemantics(
+                    child: Icon(
+                      Icons.info_outline,
+                      size: 18,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -158,61 +160,70 @@ class _SidebarTile extends StatelessWidget {
           ? colorScheme.primaryContainer
           : colorScheme.surfaceContainerLow,
       clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? colorScheme.primary.withValues(alpha: 0.2)
-                      : iconColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  icon,
-                  size: 22,
-                  color: isSelected ? colorScheme.primary : iconColor,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: isSelected
-                            ? FontWeight.w600
-                            : FontWeight.w500,
-                        color: isSelected
-                            ? colorScheme.onPrimaryContainer
-                            : colorScheme.onSurface,
-                      ),
+      child: Semantics(
+        button: true,
+        label: '$title: $subtitle',
+        selected: isSelected,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                ExcludeSemantics(
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? colorScheme.primary.withValues(alpha: 0.2)
+                          : iconColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    Text(
-                      subtitle,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: isSelected
-                            ? colorScheme.onPrimaryContainer.withValues(
-                                alpha: 0.8,
-                              )
-                            : colorScheme.onSurfaceVariant,
-                      ),
+                    child: Icon(
+                      icon,
+                      size: 22,
+                      color: isSelected ? colorScheme.primary : iconColor,
                     ),
-                  ],
+                  ),
                 ),
-              ),
-              if (isSelected)
-                Icon(
-                  Icons.chevron_right,
-                  color: colorScheme.onPrimaryContainer,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: isSelected
+                              ? FontWeight.w600
+                              : FontWeight.w500,
+                          color: isSelected
+                              ? colorScheme.onPrimaryContainer
+                              : colorScheme.onSurface,
+                        ),
+                      ),
+                      Text(
+                        subtitle,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: isSelected
+                              ? colorScheme.onPrimaryContainer.withValues(
+                                  alpha: 0.8,
+                                )
+                              : colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-            ],
+                if (isSelected)
+                  ExcludeSemantics(
+                    child: Icon(
+                      Icons.chevron_right,
+                      color: colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),

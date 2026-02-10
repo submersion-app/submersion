@@ -58,55 +58,60 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage> {
           context.push('/dive-centers/new');
         }
       },
+      tooltip: 'Add a new dive center',
       icon: const Icon(Icons.add),
       label: const Text('Add Dive Center'),
     );
 
     // Desktop: Use master-detail layout
     if (ResponsiveBreakpoints.isMasterDetail(context)) {
-      return MasterDetailScaffold(
-        sectionId: 'dive-centers',
-        masterBuilder: (context, onItemSelected, selectedId) =>
-            DiveCenterListContent(
-              onItemSelected: onItemSelected,
-              selectedId: selectedId,
-              showAppBar: false,
-              isMapViewActive: _isMapView,
-              onMapViewToggle: _toggleMapView,
-            ),
-        detailBuilder: (context, centerId) => DiveCenterDetailPage(
-          centerId: centerId,
-          embedded: true,
-          onDeleted: () {
-            final state = GoRouterState.of(context);
-            context.go(state.uri.path);
-          },
+      return FocusTraversalGroup(
+        child: MasterDetailScaffold(
+          sectionId: 'dive-centers',
+          masterBuilder: (context, onItemSelected, selectedId) =>
+              DiveCenterListContent(
+                onItemSelected: onItemSelected,
+                selectedId: selectedId,
+                showAppBar: false,
+                isMapViewActive: _isMapView,
+                onMapViewToggle: _toggleMapView,
+              ),
+          detailBuilder: (context, centerId) => DiveCenterDetailPage(
+            centerId: centerId,
+            embedded: true,
+            onDeleted: () {
+              final state = GoRouterState.of(context);
+              context.go(state.uri.path);
+            },
+          ),
+          summaryBuilder: (context) => const DiveCenterSummaryWidget(),
+          mapBuilder: (context, selectedId, onItemSelected) =>
+              DiveCenterMapContent(
+                selectedId: selectedId,
+                onItemSelected: onItemSelected,
+                onDetailsTap: (centerId) =>
+                    context.push('/dive-centers/$centerId'),
+              ),
+          editBuilder: (context, centerId, onSaved, onCancel) =>
+              DiveCenterEditPage(
+                centerId: centerId,
+                embedded: true,
+                onSaved: onSaved,
+                onCancel: onCancel,
+              ),
+          createBuilder: (context, onSaved, onCancel) => DiveCenterEditPage(
+            embedded: true,
+            onSaved: onSaved,
+            onCancel: onCancel,
+          ),
+          floatingActionButton: fab,
         ),
-        summaryBuilder: (context) => const DiveCenterSummaryWidget(),
-        mapBuilder: (context, selectedId, onItemSelected) =>
-            DiveCenterMapContent(
-              selectedId: selectedId,
-              onItemSelected: onItemSelected,
-              onDetailsTap: (centerId) =>
-                  context.push('/dive-centers/$centerId'),
-            ),
-        editBuilder: (context, centerId, onSaved, onCancel) =>
-            DiveCenterEditPage(
-              centerId: centerId,
-              embedded: true,
-              onSaved: onSaved,
-              onCancel: onCancel,
-            ),
-        createBuilder: (context, onSaved, onCancel) => DiveCenterEditPage(
-          embedded: true,
-          onSaved: onSaved,
-          onCancel: onCancel,
-        ),
-        floatingActionButton: fab,
       );
     }
 
     // Mobile: Use list content with full scaffold
-    return DiveCenterListContent(showAppBar: true, floatingActionButton: fab);
+    return FocusTraversalGroup(
+      child: DiveCenterListContent(showAppBar: true, floatingActionButton: fab),
+    );
   }
 }

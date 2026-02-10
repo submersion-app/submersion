@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 
 /// Summary widget shown when no equipment is selected.
@@ -155,37 +156,42 @@ class EquipmentSummaryWidget extends ConsumerWidget {
     required String label,
     required Color color,
   }) {
-    return SizedBox(
-      width: 120,
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+    return Semantics(
+      label: statLabel(name: label, value: value),
+      child: SizedBox(
+        width: 120,
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              children: [
+                ExcludeSemantics(
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(icon, color: color, size: 20),
+                  ),
                 ),
-                child: Icon(icon, color: color, size: 20),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                value,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                const SizedBox(height: 8),
+                Text(
+                  value,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                textAlign: TextAlign.center,
-              ),
-            ],
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -213,36 +219,42 @@ class EquipmentSummaryWidget extends ConsumerWidget {
           color: Theme.of(context).colorScheme.errorContainer,
           child: Column(
             children: serviceDue.take(3).map((item) {
-              return ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: Theme.of(context).colorScheme.error,
-                  child: Icon(
-                    Icons.build,
-                    color: Theme.of(context).colorScheme.onError,
-                    size: 20,
+              return Semantics(
+                button: true,
+                label: '${item.name}, ${item.type.displayName}, service due',
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: Theme.of(context).colorScheme.error,
+                    child: Icon(
+                      Icons.build,
+                      color: Theme.of(context).colorScheme.onError,
+                      size: 20,
+                    ),
                   ),
-                ),
-                title: Text(
-                  item.name,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onErrorContainer,
+                  title: Text(
+                    item.name,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onErrorContainer,
+                    ),
                   ),
-                ),
-                subtitle: Text(
-                  item.type.displayName,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onErrorContainer,
+                  subtitle: Text(
+                    item.type.displayName,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onErrorContainer,
+                    ),
                   ),
+                  trailing: ExcludeSemantics(
+                    child: Icon(
+                      Icons.chevron_right,
+                      color: Theme.of(context).colorScheme.onErrorContainer,
+                    ),
+                  ),
+                  onTap: () {
+                    final state = GoRouterState.of(context);
+                    final currentPath = state.uri.path;
+                    context.go('$currentPath?selected=${item.id}');
+                  },
                 ),
-                trailing: Icon(
-                  Icons.chevron_right,
-                  color: Theme.of(context).colorScheme.onErrorContainer,
-                ),
-                onTap: () {
-                  final state = GoRouterState.of(context);
-                  final currentPath = state.uri.path;
-                  context.go('$currentPath?selected=${item.id}');
-                },
               );
             }).toList(),
           ),
@@ -267,24 +279,30 @@ class EquipmentSummaryWidget extends ConsumerWidget {
         Card(
           child: Column(
             children: previewItems.map((item) {
-              return ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: Theme.of(
-                    context,
-                  ).colorScheme.tertiaryContainer,
-                  child: Icon(
-                    Icons.backpack,
-                    color: Theme.of(context).colorScheme.onTertiaryContainer,
+              return Semantics(
+                button: true,
+                label: '${item.name}, ${item.type.displayName}',
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.tertiaryContainer,
+                    child: Icon(
+                      Icons.backpack,
+                      color: Theme.of(context).colorScheme.onTertiaryContainer,
+                    ),
                   ),
+                  title: Text(item.name),
+                  subtitle: Text(item.type.displayName),
+                  trailing: const ExcludeSemantics(
+                    child: Icon(Icons.chevron_right),
+                  ),
+                  onTap: () {
+                    final state = GoRouterState.of(context);
+                    final currentPath = state.uri.path;
+                    context.go('$currentPath?selected=${item.id}');
+                  },
                 ),
-                title: Text(item.name),
-                subtitle: Text(item.type.displayName),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  final state = GoRouterState.of(context);
-                  final currentPath = state.uri.path;
-                  context.go('$currentPath?selected=${item.id}');
-                },
               );
             }).toList(),
           ),

@@ -247,9 +247,11 @@ class CourseDetailPage extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
+            tooltip: 'Edit course',
             onPressed: () => context.push('/courses/${course.id}/edit'),
           ),
           PopupMenuButton<String>(
+            tooltip: 'More options',
             onSelected: (value) {
               if (value == 'delete') {
                 _confirmDelete(context, ref, course);
@@ -288,52 +290,59 @@ class CourseDetailPage extends ConsumerWidget {
 
   Widget _buildStatusCard(BuildContext context, Course course) {
     final colorScheme = Theme.of(context).colorScheme;
+    final statusLabel = course.isCompleted ? 'Completed' : 'In Progress';
+    final durationLabel = course.durationDays != null
+        ? '${course.durationDays} days'
+        : '${course.daysSinceStart} days since start';
 
-    return Card(
-      color: course.isCompleted
-          ? Colors.green.withValues(alpha: 0.1)
-          : colorScheme.primaryContainer.withValues(alpha: 0.5),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Icon(
-              course.isCompleted ? Icons.check_circle : Icons.pending,
-              size: 40,
-              color: course.isCompleted ? Colors.green : colorScheme.primary,
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    course.isCompleted ? 'Completed' : 'In Progress',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: course.isCompleted
-                          ? Colors.green
-                          : colorScheme.primary,
-                    ),
-                  ),
-                  if (course.durationDays != null)
-                    Text(
-                      '${course.durationDays} days',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    )
-                  else
-                    Text(
-                      '${course.daysSinceStart} days since start',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                ],
+    return Semantics(
+      label: 'Course status: $statusLabel, $durationLabel',
+      child: Card(
+        color: course.isCompleted
+            ? Colors.green.withValues(alpha: 0.1)
+            : colorScheme.primaryContainer.withValues(alpha: 0.5),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Icon(
+                course.isCompleted ? Icons.check_circle : Icons.pending,
+                size: 40,
+                color: course.isCompleted ? Colors.green : colorScheme.primary,
               ),
-            ),
-          ],
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      course.isCompleted ? 'Completed' : 'In Progress',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: course.isCompleted
+                            ? Colors.green
+                            : colorScheme.primary,
+                      ),
+                    ),
+                    if (course.durationDays != null)
+                      Text(
+                        '${course.durationDays} days',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      )
+                    else
+                      Text(
+                        '${course.daysSinceStart} days since start',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -366,25 +375,30 @@ class CourseDetailPage extends ConsumerWidget {
     IconData icon,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Icon(icon, size: 16, color: colorScheme.onSurfaceVariant),
-          const SizedBox(width: 8),
-          SizedBox(
-            width: 100,
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
+    return Semantics(
+      label: '$label: $value',
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            ExcludeSemantics(
+              child: Icon(icon, size: 16, color: colorScheme.onSurfaceVariant),
+            ),
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 100,
+              child: Text(
+                label,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
-          ),
-          Expanded(
-            child: Text(value, style: Theme.of(context).textTheme.bodyMedium),
-          ),
-        ],
+            Expanded(
+              child: Text(value, style: Theme.of(context).textTheme.bodyMedium),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -499,6 +513,7 @@ class CourseDetailPage extends ConsumerWidget {
           ),
           IconButton(
             icon: const Icon(Icons.edit),
+            tooltip: 'Edit course',
             onPressed: () {
               if (ResponsiveBreakpoints.isMasterDetail(context)) {
                 final state = GoRouterState.of(context);
@@ -511,6 +526,7 @@ class CourseDetailPage extends ConsumerWidget {
             },
           ),
           PopupMenuButton<String>(
+            tooltip: 'More options',
             onSelected: (value) {
               if (value == 'delete') {
                 _confirmDelete(context, ref, course);

@@ -227,21 +227,29 @@ class SiteMarineLifeSection extends ConsumerWidget {
                 spacing: 8,
                 runSpacing: 4,
                 children: entry.value.map((s) {
-                  return Chip(
-                    avatar: Icon(
-                      _getCategoryIcon(s.category),
-                      size: 16,
-                      color: _getCategoryColor(s.category),
+                  final chipLabel = showCount && s.count != null
+                      ? '${s.name}, spotted ${s.count} times'
+                      : s.name;
+                  return Semantics(
+                    label: chipLabel,
+                    child: Chip(
+                      avatar: ExcludeSemantics(
+                        child: Icon(
+                          _getCategoryIcon(s.category),
+                          size: 16,
+                          color: _getCategoryColor(s.category),
+                        ),
+                      ),
+                      label: Text(
+                        showCount && s.count != null
+                            ? '${s.name} (${s.count})'
+                            : s.name,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      visualDensity: VisualDensity.compact,
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
                     ),
-                    label: Text(
-                      showCount && s.count != null
-                          ? '${s.name} (${s.count})'
-                          : s.name,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    visualDensity: VisualDensity.compact,
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
                   );
                 }).toList(),
               ),

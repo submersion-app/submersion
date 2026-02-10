@@ -150,23 +150,33 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                   const SizedBox(height: 12),
 
                   // Start date
-                  ListTile(
-                    leading: const Icon(Icons.calendar_today),
-                    title: const Text('Start Date'),
-                    subtitle: Text(dateFormat.format(_startDate)),
-                    onTap: () => _selectDate(context, true),
-                    contentPadding: EdgeInsets.zero,
-                    trailing: const Icon(Icons.edit),
+                  Semantics(
+                    button: true,
+                    label:
+                        'Start Date: ${dateFormat.format(_startDate)}. Tap to change',
+                    child: ListTile(
+                      leading: const Icon(Icons.calendar_today),
+                      title: const Text('Start Date'),
+                      subtitle: Text(dateFormat.format(_startDate)),
+                      onTap: () => _selectDate(context, true),
+                      contentPadding: EdgeInsets.zero,
+                      trailing: const Icon(Icons.edit),
+                    ),
                   ),
 
                   // End date
-                  ListTile(
-                    leading: const Icon(Icons.event),
-                    title: const Text('End Date'),
-                    subtitle: Text(dateFormat.format(_endDate)),
-                    onTap: () => _selectDate(context, false),
-                    contentPadding: EdgeInsets.zero,
-                    trailing: const Icon(Icons.edit),
+                  Semantics(
+                    button: true,
+                    label:
+                        'End Date: ${dateFormat.format(_endDate)}. Tap to change',
+                    child: ListTile(
+                      leading: const Icon(Icons.event),
+                      title: const Text('End Date'),
+                      subtitle: Text(dateFormat.format(_endDate)),
+                      onTap: () => _selectDate(context, false),
+                      contentPadding: EdgeInsets.zero,
+                      trailing: const Icon(Icons.edit),
+                    ),
                   ),
 
                   // Duration display
@@ -319,7 +329,14 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                 ),
               )
             else
-              TextButton(onPressed: _saveTrip, child: const Text('Save')),
+              Semantics(
+                button: true,
+                label: 'Save trip',
+                child: TextButton(
+                  onPressed: _saveTrip,
+                  child: const Text('Save'),
+                ),
+              ),
           ],
         ),
         body: body,

@@ -237,9 +237,13 @@ class _DiveCenterMapPageState extends ConsumerState<DiveCenterMapPage>
                     point: LatLng(diveCenter.latitude!, diveCenter.longitude!),
                     width: isSelected ? 50 : 40,
                     height: isSelected ? 50 : 40,
-                    child: GestureDetector(
-                      onTap: () => _onMarkerTapped(diveCenter),
-                      child: _buildMarker(context, diveCenter, isSelected),
+                    child: Semantics(
+                      button: true,
+                      label: 'Dive center: ${diveCenter.name}',
+                      child: GestureDetector(
+                        onTap: () => _onMarkerTapped(diveCenter),
+                        child: _buildMarker(context, diveCenter, isSelected),
+                      ),
                     ),
                   );
                 }).toList(),

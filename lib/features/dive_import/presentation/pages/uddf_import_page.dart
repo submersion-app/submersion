@@ -26,6 +26,7 @@ class UddfImportPage extends ConsumerWidget {
         title: const Text('Import from UDDF'),
         leading: IconButton(
           icon: const Icon(Icons.close),
+          tooltip: 'Close UDDF import',
           onPressed: () {
             ref.read(uddfImportNotifierProvider.notifier).reset();
             context.pop();
@@ -195,10 +196,12 @@ class _StepFileSelection extends ConsumerWidget {
             _ErrorCard(message: state.error!),
           ],
           const Spacer(),
-          Icon(
-            Icons.file_open,
-            size: 64,
-            color: theme.colorScheme.onSurfaceVariant,
+          ExcludeSemantics(
+            child: Icon(
+              Icons.file_open,
+              size: 64,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 16),
           Text('No File Selected', style: theme.textTheme.titleLarge),
@@ -429,64 +432,68 @@ class _EntityList extends ConsumerWidget {
       color: isSelected
           ? colorScheme.primaryContainer.withValues(alpha: 0.3)
           : null,
-      child: InkWell(
-        onTap: () => ref
-            .read(uddfImportNotifierProvider.notifier)
-            .toggleSelection(type, index),
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              _buildCheckbox(colorScheme, isSelected),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (dateTime != null)
-                      Text(
-                        '${DateFormat.yMMMd().format(dateTime)} '
-                        '${DateFormat.jm().format(dateTime)}',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    if (siteName != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        siteName,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 16,
-                      children: [
-                        if (maxDepth != null)
-                          _diveMetric(
-                            Icons.arrow_downward,
-                            '${maxDepth.toStringAsFixed(1)}m',
-                            theme,
+      child: Semantics(
+        button: true,
+        label: 'Toggle selection for dive',
+        child: InkWell(
+          onTap: () => ref
+              .read(uddfImportNotifierProvider.notifier)
+              .toggleSelection(type, index),
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                _buildCheckbox(colorScheme, isSelected),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (dateTime != null)
+                        Text(
+                          '${DateFormat.yMMMd().format(dateTime)} '
+                          '${DateFormat.jm().format(dateTime)}',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
                           ),
-                        if (duration != null)
-                          _diveMetric(
-                            Icons.timer_outlined,
-                            _formatDuration(duration),
-                            theme,
+                        ),
+                      if (siteName != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          siteName,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
                           ),
+                        ),
                       ],
-                    ),
-                    if (isDuplicate) ...[
                       const SizedBox(height: 8),
-                      _buildDiveDuplicateBadge(colorScheme),
+                      Wrap(
+                        spacing: 16,
+                        children: [
+                          if (maxDepth != null)
+                            _diveMetric(
+                              Icons.arrow_downward,
+                              '${maxDepth.toStringAsFixed(1)}m',
+                              theme,
+                            ),
+                          if (duration != null)
+                            _diveMetric(
+                              Icons.timer_outlined,
+                              _formatDuration(duration),
+                              theme,
+                            ),
+                        ],
+                      ),
+                      if (isDuplicate) ...[
+                        const SizedBox(height: 8),
+                        _buildDiveDuplicateBadge(colorScheme),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -724,7 +731,13 @@ class _StepSummary extends ConsumerWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.check_circle, size: 80, color: theme.colorScheme.primary),
+          ExcludeSemantics(
+            child: Icon(
+              Icons.check_circle,
+              size: 80,
+              color: theme.colorScheme.primary,
+            ),
+          ),
           const SizedBox(height: 24),
           Text('Import Complete', style: theme.textTheme.headlineMedium),
           const SizedBox(height: 16),

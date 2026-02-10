@@ -174,105 +174,70 @@ class TideTimesTable extends StatelessWidget {
     final isHigh = extreme.type == TideExtremeType.high;
     final typeColor = isHigh ? Colors.red.shade600 : Colors.blue.shade600;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: isPast
-            ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)
-            : null,
-      ),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: compact ? 12 : 16,
-          vertical: compact ? 8 : 12,
+    final heightDisplay =
+        '${DepthUnit.meters.convert(extreme.heightMeters, depthUnit).toStringAsFixed(2)}${depthUnit.symbol}';
+    final tideTypeLabel = isHigh ? 'High tide' : 'Low tide';
+    final timeLabel = timeFormatter.format(extreme.time.toLocal());
+    final durationLabel = isPast
+        ? '${_formatDuration(duration)} ago'
+        : '${_formatDuration(duration)} from now';
+
+    return Semantics(
+      label:
+          '$tideTypeLabel, $dateLabel at $timeLabel, $heightDisplay, $durationLabel',
+      child: Container(
+        decoration: BoxDecoration(
+          color: isPast
+              ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)
+              : null,
         ),
-        child: Row(
-          children: [
-            // Type indicator
-            Container(
-              width: compact ? 36 : 44,
-              height: compact ? 36 : 44,
-              decoration: BoxDecoration(
-                color: typeColor.withValues(alpha: isPast ? 0.1 : 0.15),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                isHigh ? Icons.arrow_upward : Icons.arrow_downward,
-                color: isPast ? typeColor.withValues(alpha: 0.5) : typeColor,
-                size: compact ? 18 : 22,
-              ),
-            ),
-            SizedBox(width: compact ? 12 : 16),
-
-            // Time and date
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    timeFormatter.format(extreme.time.toLocal()),
-                    style:
-                        (compact ? textTheme.titleMedium : textTheme.titleLarge)
-                            ?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: isPast
-                                  ? colorScheme.onSurfaceVariant
-                                  : null,
-                            ),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: compact ? 12 : 16,
+            vertical: compact ? 8 : 12,
+          ),
+          child: Row(
+            children: [
+              // Type indicator
+              ExcludeSemantics(
+                child: Container(
+                  width: compact ? 36 : 44,
+                  height: compact ? 36 : 44,
+                  decoration: BoxDecoration(
+                    color: typeColor.withValues(alpha: isPast ? 0.1 : 0.15),
+                    shape: BoxShape.circle,
                   ),
-                  Text(
-                    dateLabel,
-                    style: textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Height
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '${DepthUnit.meters.convert(extreme.heightMeters, depthUnit).toStringAsFixed(2)}${depthUnit.symbol}',
-                  style:
-                      (compact ? textTheme.titleSmall : textTheme.titleMedium)
-                          ?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: isPast
-                                ? colorScheme.onSurfaceVariant
-                                : typeColor,
-                          ),
-                ),
-                Text(
-                  extreme.type.shortName,
-                  style: textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
+                  child: Icon(
+                    isHigh ? Icons.arrow_upward : Icons.arrow_downward,
+                    color: isPast
+                        ? typeColor.withValues(alpha: 0.5)
+                        : typeColor,
+                    size: compact ? 18 : 22,
                   ),
                 ),
-              ],
-            ),
+              ),
+              SizedBox(width: compact ? 12 : 16),
 
-            if (!compact) ...[
-              const SizedBox(width: 16),
-
-              // Duration from now
-              SizedBox(
-                width: 80,
+              // Time and date
+              Expanded(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _formatDuration(duration),
-                      style: textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w500,
-                        color: isPast
-                            ? colorScheme.onSurfaceVariant
-                            : colorScheme.primary,
-                      ),
+                      timeFormatter.format(extreme.time.toLocal()),
+                      style:
+                          (compact
+                                  ? textTheme.titleMedium
+                                  : textTheme.titleLarge)
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: isPast
+                                    ? colorScheme.onSurfaceVariant
+                                    : null,
+                              ),
                     ),
                     Text(
-                      isPast ? 'ago' : 'from now',
+                      dateLabel,
                       style: textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -280,8 +245,61 @@ class TideTimesTable extends StatelessWidget {
                   ],
                 ),
               ),
+
+              // Height
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '${DepthUnit.meters.convert(extreme.heightMeters, depthUnit).toStringAsFixed(2)}${depthUnit.symbol}',
+                    style:
+                        (compact ? textTheme.titleSmall : textTheme.titleMedium)
+                            ?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: isPast
+                                  ? colorScheme.onSurfaceVariant
+                                  : typeColor,
+                            ),
+                  ),
+                  Text(
+                    extreme.type.shortName,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+
+              if (!compact) ...[
+                const SizedBox(width: 16),
+
+                // Duration from now
+                SizedBox(
+                  width: 80,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        _formatDuration(duration),
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w500,
+                          color: isPast
+                              ? colorScheme.onSurfaceVariant
+                              : colorScheme.primary,
+                        ),
+                      ),
+                      Text(
+                        isPast ? 'ago' : 'from now',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

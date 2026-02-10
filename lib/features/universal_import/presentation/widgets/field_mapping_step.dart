@@ -188,10 +188,12 @@ class _ColumnMappingRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          Icon(
-            Icons.arrow_forward,
-            size: 16,
-            color: theme.colorScheme.onSurfaceVariant,
+          ExcludeSemantics(
+            child: Icon(
+              Icons.arrow_forward,
+              size: 16,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(width: 8),
           Expanded(

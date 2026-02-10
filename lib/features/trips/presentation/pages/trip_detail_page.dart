@@ -159,6 +159,7 @@ class _TripDetailContent extends ConsumerWidget {
           ),
           IconButton(
             icon: const Icon(Icons.edit),
+            tooltip: 'Edit trip',
             onPressed: () => context.push('/trips/${trip.id}/edit'),
           ),
           _buildMoreMenu(context, ref, trip),
@@ -242,6 +243,7 @@ class _TripDetailContent extends ConsumerWidget {
 
   Widget _buildMoreMenu(BuildContext context, WidgetRef ref, Trip trip) {
     return PopupMenuButton<String>(
+      tooltip: 'More options',
       onSelected: (value) async {
         if (value == 'delete') {
           final confirmed = await _showDeleteConfirmation(context);
@@ -624,81 +626,102 @@ class _TripDetailContent extends ConsumerWidget {
                 final displayDives = sortedDives.take(5).toList();
                 return Column(
                   children: displayDives.map((dive) {
-                    return InkWell(
-                      onTap: () => context.push('/dives/${dive.id}'),
-                      borderRadius: BorderRadius.circular(8),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 8,
-                          horizontal: 4,
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.primaryContainer,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              alignment: Alignment.center,
-                              child: Text(
-                                '#${dive.diveNumber ?? '-'}',
-                                style: theme.textTheme.labelMedium?.copyWith(
-                                  color: theme.colorScheme.onPrimaryContainer,
-                                  fontWeight: FontWeight.bold,
+                    final siteName = dive.site?.name ?? 'Unknown Site';
+                    final diveNum = dive.diveNumber ?? '-';
+                    final depthStr = dive.maxDepth != null
+                        ? ', ${dive.maxDepth!.toStringAsFixed(1)}m'
+                        : '';
+                    final durationStr = dive.duration != null
+                        ? ', ${dive.duration!.inMinutes} minutes'
+                        : '';
+                    return Semantics(
+                      button: true,
+                      label:
+                          'Dive $diveNum at $siteName, ${dateFormat.format(dive.dateTime)}$depthStr$durationStr. Tap to view details',
+                      child: InkWell(
+                        onTap: () => context.push('/dives/${dive.id}'),
+                        borderRadius: BorderRadius.circular(8),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 8,
+                            horizontal: 4,
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.primaryContainer,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  '#${dive.diveNumber ?? '-'}',
+                                  style: theme.textTheme.labelMedium?.copyWith(
+                                    color: theme.colorScheme.onPrimaryContainer,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      dive.site?.name ?? 'Unknown Site',
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      dateFormat.format(dive.dateTime),
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                            color: theme
+                                                .colorScheme
+                                                .onSurfaceVariant,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
-                                  Text(
-                                    dive.site?.name ?? 'Unknown Site',
-                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                      fontWeight: FontWeight.w500,
+                                  if (dive.maxDepth != null)
+                                    Text(
+                                      '${dive.maxDepth!.toStringAsFixed(1)}m',
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w500,
+                                          ),
                                     ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    dateFormat.format(dive.dateTime),
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: theme.colorScheme.onSurfaceVariant,
+                                  if (dive.duration != null)
+                                    Text(
+                                      '${dive.duration!.inMinutes}min',
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                            color: theme
+                                                .colorScheme
+                                                .onSurfaceVariant,
+                                          ),
                                     ),
-                                  ),
                                 ],
                               ),
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                if (dive.maxDepth != null)
-                                  Text(
-                                    '${dive.maxDepth!.toStringAsFixed(1)}m',
-                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                if (dive.duration != null)
-                                  Text(
-                                    '${dive.duration!.inMinutes}min',
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: theme.colorScheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            const SizedBox(width: 4),
-                            Icon(
-                              Icons.chevron_right,
-                              color: theme.colorScheme.onSurfaceVariant,
-                              size: 20,
-                            ),
-                          ],
+                              const SizedBox(width: 4),
+                              Icon(
+                                Icons.chevron_right,
+                                color: theme.colorScheme.onSurfaceVariant,
+                                size: 20,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     );
@@ -752,27 +775,35 @@ class _TripDetailContent extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(
-              leading: const Icon(Icons.description),
-              title: const Text('Export to CSV'),
-              subtitle: const Text('All dives in this trip'),
-              onTap: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('CSV export coming soon')),
-                );
-              },
+            Semantics(
+              button: true,
+              label: 'Export to CSV. All dives in this trip',
+              child: ListTile(
+                leading: const Icon(Icons.description),
+                title: const Text('Export to CSV'),
+                subtitle: const Text('All dives in this trip'),
+                onTap: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('CSV export coming soon')),
+                  );
+                },
+              ),
             ),
-            ListTile(
-              leading: const Icon(Icons.picture_as_pdf),
-              title: const Text('Export to PDF'),
-              subtitle: const Text('Trip summary with dive details'),
-              onTap: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('PDF export coming soon')),
-                );
-              },
+            Semantics(
+              button: true,
+              label: 'Export to PDF. Trip summary with dive details',
+              child: ListTile(
+                leading: const Icon(Icons.picture_as_pdf),
+                title: const Text('Export to PDF'),
+                subtitle: const Text('Trip summary with dive details'),
+                onTap: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('PDF export coming soon')),
+                  );
+                },
+              ),
             ),
           ],
         ),
@@ -935,22 +966,31 @@ class _StatRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
-          ),
-          Text(
-            value,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
-          ),
-        ],
+    return Semantics(
+      label: '$label: $value',
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            ExcludeSemantics(
+              child: Icon(
+                icon,
+                size: 20,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
+            ),
+            Text(
+              value,
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
       ),
     );
   }

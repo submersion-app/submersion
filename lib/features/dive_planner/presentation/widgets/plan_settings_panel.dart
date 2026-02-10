@@ -26,7 +26,9 @@ class PlanSettingsPanel extends ConsumerWidget {
             // Header
             Row(
               children: [
-                Icon(Icons.settings, color: theme.colorScheme.primary),
+                ExcludeSemantics(
+                  child: Icon(Icons.settings, color: theme.colorScheme.primary),
+                ),
                 const SizedBox(width: 8),
                 Text(
                   'Plan Settings',
@@ -74,18 +76,22 @@ class PlanSettingsPanel extends ConsumerWidget {
                 const Text('SAC Rate:'),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Slider(
-                    value: planState.sacRate,
-                    min: 8,
-                    max: 30,
-                    divisions: 22,
+                  child: Semantics(
                     label:
-                        '${planState.sacRate.toStringAsFixed(0)} ${units.volumeSymbol}/min',
-                    onChanged: (value) {
-                      ref
-                          .read(divePlanNotifierProvider.notifier)
-                          .updateSacRate(value);
-                    },
+                        'SAC Rate: ${planState.sacRate.toStringAsFixed(0)} ${units.volumeSymbol} per minute',
+                    child: Slider(
+                      value: planState.sacRate,
+                      min: 8,
+                      max: 30,
+                      divisions: 22,
+                      label:
+                          '${planState.sacRate.toStringAsFixed(0)} ${units.volumeSymbol}/min',
+                      onChanged: (value) {
+                        ref
+                            .read(divePlanNotifierProvider.notifier)
+                            .updateSacRate(value);
+                      },
+                    ),
                   ),
                 ),
                 SizedBox(
@@ -209,7 +215,10 @@ class _AltitudeInputState extends State<_AltitudeInput> {
             ),
             const SizedBox(width: 8),
             if (hasAltitude && altitudeGroup != AltitudeGroup.seaLevel)
-              _buildGroupChip(theme, altitudeGroup),
+              Semantics(
+                label: 'Altitude group: ${altitudeGroup.displayName}',
+                child: _buildGroupChip(theme, altitudeGroup),
+              ),
           ],
         ),
         if (hasAltitude && altitudeGroup != AltitudeGroup.seaLevel)
@@ -282,13 +291,16 @@ class _GfSlider extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: Slider(
-                value: value.toDouble(),
-                min: 10,
-                max: 100,
-                divisions: 18,
-                label: '$value%',
-                onChanged: (v) => onChanged(v.round()),
+              child: Semantics(
+                label: '$label: $value%',
+                child: Slider(
+                  value: value.toDouble(),
+                  min: 10,
+                  max: 100,
+                  divisions: 18,
+                  label: '$value%',
+                  onChanged: (v) => onChanged(v.round()),
+                ),
               ),
             ),
             SizedBox(

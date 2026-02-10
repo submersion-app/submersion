@@ -167,65 +167,72 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
     final colorScheme = Theme.of(context).colorScheme;
     final hasPhoto = imageData != null;
 
-    return AspectRatio(
-      aspectRatio: 1.6, // Standard card aspect ratio
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onPick,
-          child: hasPhoto
-              ? Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    Image.memory(
-                      imageData,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return _buildEmptyPhotoCard(
-                          context,
-                          label,
-                          colorScheme,
-                        );
-                      },
-                    ),
-                    Positioned(
-                      top: 4,
-                      left: 4,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.black54,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          label,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
+    return Semantics(
+      button: true,
+      label: hasPhoto
+          ? '$label photo attached. Tap to change'
+          : 'Add $label photo. Tap to select',
+      child: AspectRatio(
+        aspectRatio: 1.6, // Standard card aspect ratio
+        child: Card(
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onPick,
+            child: hasPhoto
+                ? Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Image.memory(
+                        imageData,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return _buildEmptyPhotoCard(
+                            context,
+                            label,
+                            colorScheme,
+                          );
+                        },
+                      ),
+                      Positioned(
+                        top: 4,
+                        left: 4,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black54,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            label,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    Positioned(
-                      top: 4,
-                      right: 4,
-                      child: IconButton(
-                        icon: const Icon(Icons.close),
-                        color: Colors.white,
-                        style: IconButton.styleFrom(
-                          backgroundColor: Colors.black54,
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: IconButton(
+                          icon: const Icon(Icons.close),
+                          tooltip: 'Remove $label photo',
+                          color: Colors.white,
+                          style: IconButton.styleFrom(
+                            backgroundColor: Colors.black54,
+                          ),
+                          iconSize: 18,
+                          onPressed: onDelete,
                         ),
-                        iconSize: 18,
-                        onPressed: onDelete,
                       ),
-                    ),
-                  ],
-                )
-              : _buildEmptyPhotoCard(context, label, colorScheme),
+                    ],
+                  )
+                : _buildEmptyPhotoCard(context, label, colorScheme),
+          ),
         ),
       ),
     );
@@ -786,27 +793,34 @@ class _DatePickerField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        InkWell(
-          onTap: () => _pickDate(context),
-          child: InputDecorator(
-            decoration: InputDecoration(
-              labelText: label,
-              prefixIcon: Icon(icon),
-              suffixIcon: value != null
-                  ? IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () => onChanged(null),
-                    )
-                  : const Icon(Icons.calendar_today),
-            ),
-            child: Text(
-              value != null
-                  ? DateFormat.yMMMd().format(value!)
-                  : 'Tap to select',
-              style: TextStyle(
-                color: value != null
-                    ? null
-                    : Theme.of(context).colorScheme.onSurfaceVariant,
+        Semantics(
+          button: true,
+          label: value != null
+              ? '$label: ${DateFormat.yMMMd().format(value!)}. Tap to change'
+              : '$label: not set. Tap to select',
+          child: InkWell(
+            onTap: () => _pickDate(context),
+            child: InputDecorator(
+              decoration: InputDecoration(
+                labelText: label,
+                prefixIcon: Icon(icon),
+                suffixIcon: value != null
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        tooltip: 'Clear $label',
+                        onPressed: () => onChanged(null),
+                      )
+                    : const Icon(Icons.calendar_today),
+              ),
+              child: Text(
+                value != null
+                    ? DateFormat.yMMMd().format(value!)
+                    : 'Tap to select',
+                style: TextStyle(
+                  color: value != null
+                      ? null
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
           ),

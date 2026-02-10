@@ -15,10 +15,13 @@ class QuickActionsCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Quick Actions',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
+            Semantics(
+              header: true,
+              child: Text(
+                'Quick Actions',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
             const SizedBox(height: 16),
@@ -26,25 +29,37 @@ class QuickActionsCard extends StatelessWidget {
               spacing: 12,
               runSpacing: 12,
               children: [
-                FilledButton.icon(
-                  onPressed: () => context.go('/dives/new'),
-                  icon: const Icon(Icons.add),
-                  label: const Text('Log Dive'),
+                Tooltip(
+                  message: 'Log a new dive',
+                  child: FilledButton.icon(
+                    onPressed: () => context.go('/dives/new'),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Log Dive'),
+                  ),
                 ),
-                FilledButton.tonalIcon(
-                  onPressed: () => context.go('/planning/dive-planner'),
-                  icon: const Icon(Icons.edit_calendar),
-                  label: const Text('Plan Dive'),
+                Tooltip(
+                  message: 'Plan a new dive',
+                  child: FilledButton.tonalIcon(
+                    onPressed: () => context.go('/planning/dive-planner'),
+                    icon: const Icon(Icons.edit_calendar),
+                    label: const Text('Plan Dive'),
+                  ),
                 ),
-                OutlinedButton.icon(
-                  onPressed: () => context.go('/statistics'),
-                  icon: const Icon(Icons.bar_chart),
-                  label: const Text('Statistics'),
+                Tooltip(
+                  message: 'View dive statistics',
+                  child: OutlinedButton.icon(
+                    onPressed: () => context.go('/statistics'),
+                    icon: const Icon(Icons.bar_chart),
+                    label: const Text('Statistics'),
+                  ),
                 ),
-                OutlinedButton.icon(
-                  onPressed: () => context.go('/sites/new'),
-                  icon: const Icon(Icons.location_on),
-                  label: const Text('Add Site'),
+                Tooltip(
+                  message: 'Add a new dive site',
+                  child: OutlinedButton.icon(
+                    onPressed: () => context.go('/sites/new'),
+                    icon: const Icon(Icons.location_on),
+                    label: const Text('Add Site'),
+                  ),
                 ),
               ],
             ),

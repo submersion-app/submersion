@@ -140,14 +140,22 @@ class _QuickStatTile extends StatelessWidget {
       ),
     );
 
+    final semanticDescription = subtitle != null
+        ? '$label: $value $subtitle'
+        : '$label: $value';
+
     if (onTap != null) {
-      return InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: content,
+      return Semantics(
+        button: true,
+        label: semanticDescription,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: content,
+        ),
       );
     }
 
-    return content;
+    return Semantics(label: semanticDescription, child: content);
   }
 }

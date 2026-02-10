@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 
 /// A 16-bar chart showing tissue compartment saturation levels.
@@ -45,66 +46,79 @@ class TissueSaturationChart extends StatelessWidget {
         .reduce((a, b) => a > b ? a : b)
         .clamp(100.0, 150.0);
 
-    return SizedBox(
-      height: height,
-      child: Column(
-        children: [
-          // M-value line (100% loading indicator)
-          Expanded(
-            child: Stack(
-              children: [
-                // 100% M-value line
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: (100 / maxLoading) * (height - (showLabels ? 20 : 0)),
-                  child: Container(
-                    height: 1,
-                    color: colorScheme.error.withValues(alpha: 0.5),
-                  ),
-                ),
-                // Bars
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    for (int i = 0; i < compartments.length; i++)
-                      _TissueBar(
-                        compartment: compartments[i],
-                        maxLoading: maxLoading,
-                        isLeading:
-                            compartments[i].compartmentNumber ==
-                            leadingCompartmentNumber,
-                        animate: animate,
-                      ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          // Labels
-          if (showLabels)
-            SizedBox(
-              height: 20,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    final maxLoadedComp = compartments.reduce(
+      (a, b) => a.percentLoading > b.percentLoading ? a : b,
+    );
+
+    return Semantics(
+      label: chartSummaryLabel(
+        chartType: 'Tissue saturation',
+        description:
+            '${compartments.length} compartments. Most loaded: compartment ${maxLoadedComp.compartmentNumber} at ${maxLoadedComp.percentLoading.toStringAsFixed(0)} percent',
+      ),
+      child: SizedBox(
+        height: height,
+        child: Column(
+          children: [
+            // M-value line (100% loading indicator)
+            Expanded(
+              child: Stack(
                 children: [
-                  for (final comp in compartments)
-                    SizedBox(
-                      width: 16,
-                      child: Text(
-                        '${comp.compartmentNumber}',
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          fontSize: 8,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
+                  // 100% M-value line
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom:
+                        (100 / maxLoading) * (height - (showLabels ? 20 : 0)),
+                    child: Container(
+                      height: 1,
+                      color: colorScheme.error.withValues(alpha: 0.5),
                     ),
+                  ),
+                  // Bars
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      for (int i = 0; i < compartments.length; i++)
+                        _TissueBar(
+                          compartment: compartments[i],
+                          maxLoading: maxLoading,
+                          isLeading:
+                              compartments[i].compartmentNumber ==
+                              leadingCompartmentNumber,
+                          animate: animate,
+                        ),
+                    ],
+                  ),
                 ],
               ),
             ),
-        ],
+            // Labels
+            if (showLabels)
+              SizedBox(
+                height: 20,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    for (final comp in compartments)
+                      SizedBox(
+                        width: 16,
+                        child: Text(
+                          '${comp.compartmentNumber}',
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                fontSize: 8,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -291,17 +305,18 @@ class _LegendItem extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (isLine)
-          Container(width: 16, height: 2, color: color)
-        else
-          Container(
-            width: 12,
-            height: 12,
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
+        ExcludeSemantics(
+          child: isLine
+              ? Container(width: 16, height: 2, color: color)
+              : Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+        ),
         const SizedBox(width: 4),
         Text(label, style: Theme.of(context).textTheme.labelSmall),
       ],

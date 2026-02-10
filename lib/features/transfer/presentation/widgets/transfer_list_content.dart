@@ -122,14 +122,16 @@ class _TransferSectionTile extends StatelessWidget {
           ? colorScheme.primaryContainer.withValues(alpha: 0.3)
           : Colors.transparent,
       child: ListTile(
-        leading: Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(12),
+        leading: ExcludeSemantics(
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(section.icon, color: color, size: 24),
           ),
-          child: Icon(section.icon, color: color, size: 24),
         ),
         title: Text(
           section.title,
@@ -143,9 +145,8 @@ class _TransferSectionTile extends StatelessWidget {
             context,
           ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
         ),
-        trailing: Icon(
-          Icons.chevron_right,
-          color: colorScheme.onSurfaceVariant,
+        trailing: ExcludeSemantics(
+          child: Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
         ),
         onTap: onTap,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),

@@ -27,31 +27,35 @@ class ImportedDiveCard extends StatelessWidget {
       color: isSelected
           ? colorScheme.primaryContainer.withValues(alpha: 0.3)
           : null,
-      child: InkWell(
-        onTap: onToggleSelection,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              _buildCheckbox(context),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(context),
-                    const SizedBox(height: 8),
-                    _buildMetrics(context),
-                    if (matchStatus != null) ...[
+      child: Semantics(
+        button: true,
+        label: 'Toggle selection for dive',
+        child: InkWell(
+          onTap: onToggleSelection,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                _buildCheckbox(context),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeader(context),
                       const SizedBox(height: 8),
-                      _buildMatchBadge(context),
+                      _buildMetrics(context),
+                      if (matchStatus != null) ...[
+                        const SizedBox(height: 8),
+                        _buildMatchBadge(context),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-              _buildSourceBadge(context),
-            ],
+                _buildSourceBadge(context),
+              ],
+            ),
           ),
         ),
       ),

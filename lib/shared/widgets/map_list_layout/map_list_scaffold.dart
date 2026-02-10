@@ -57,21 +57,24 @@ class MapListScaffold extends ConsumerWidget {
       // Mobile: Show only map with info card overlay
       return Scaffold(
         appBar: AppBar(
-          title: Text(title),
+          title: Semantics(header: true, child: Text(title)),
           leading: _buildLeadingButton(),
           actions: actions,
         ),
-        body: Stack(
-          children: [
-            mapPane,
-            if (infoCard != null)
-              Positioned(
-                left: 16,
-                right: 16,
-                bottom: _mobileInfoCardBottomOffset,
-                child: infoCard!,
-              ),
-          ],
+        body: Semantics(
+          label: '$title map view',
+          child: Stack(
+            children: [
+              mapPane,
+              if (infoCard != null)
+                Positioned(
+                  left: 16,
+                  right: 16,
+                  bottom: _mobileInfoCardBottomOffset,
+                  child: infoCard!,
+                ),
+            ],
+          ),
         ),
         floatingActionButton: floatingActionButton,
       );
@@ -80,7 +83,7 @@ class MapListScaffold extends ConsumerWidget {
     // Desktop: Show list + map split
     return Scaffold(
       appBar: AppBar(
-        title: Text(title),
+        title: Semantics(header: true, child: Text(title)),
         leading: _buildLeadingButton(),
         actions: [
           // Expand button when collapsed
@@ -95,46 +98,54 @@ class MapListScaffold extends ConsumerWidget {
           ...?actions,
         ],
       ),
-      body: Row(
-        children: [
-          // Collapsible list pane
-          CollapsibleListPane(
-            isCollapsed: selectionState.isCollapsed,
-            onToggle: () => ref
-                .read(mapListSelectionProvider(sectionKey).notifier)
-                .toggleCollapse(),
-            width: listWidth,
-            child: listPane,
-          ),
-          // Vertical divider
-          if (!selectionState.isCollapsed)
-            VerticalDivider(
-              width: 1,
-              thickness: 1,
-              color: colorScheme.outlineVariant,
+      body: FocusTraversalGroup(
+        child: Row(
+          children: [
+            // Collapsible list pane
+            Semantics(
+              label: '$title list pane',
+              child: CollapsibleListPane(
+                isCollapsed: selectionState.isCollapsed,
+                onToggle: () => ref
+                    .read(mapListSelectionProvider(sectionKey).notifier)
+                    .toggleCollapse(),
+                width: listWidth,
+                child: listPane,
+              ),
             ),
-          // Map pane
-          Expanded(
-            child: Stack(
-              children: [
-                mapPane,
-                // Info card at bottom center
-                if (infoCard != null)
-                  Positioned(
-                    left: 16,
-                    right: 16,
-                    bottom: 16,
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 400),
-                        child: infoCard!,
+            // Vertical divider
+            if (!selectionState.isCollapsed)
+              VerticalDivider(
+                width: 1,
+                thickness: 1,
+                color: colorScheme.outlineVariant,
+              ),
+            // Map pane
+            Expanded(
+              child: Semantics(
+                label: '$title map pane',
+                child: Stack(
+                  children: [
+                    mapPane,
+                    // Info card at bottom center
+                    if (infoCard != null)
+                      Positioned(
+                        left: 16,
+                        right: 16,
+                        bottom: 16,
+                        child: Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 400),
+                            child: infoCard!,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-              ],
+                  ],
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       floatingActionButton: floatingActionButton,
     );

@@ -303,6 +303,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.close),
+                    tooltip: 'Close',
                     onPressed: () => Navigator.pop(sheetContext),
                   ),
                 ],
@@ -427,6 +428,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.close),
+                    tooltip: 'Close',
                     onPressed: () => Navigator.pop(sheetContext),
                   ),
                 ],
@@ -843,6 +845,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         ),
         IconButton(
           icon: const Icon(Icons.search),
+          tooltip: 'Search dives',
           onPressed: () {
             showSearch(context: context, delegate: DiveSearchDelegate(ref));
           },
@@ -852,6 +855,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             isLabelVisible: filter.hasActiveFilters,
             child: const Icon(Icons.filter_list),
           ),
+          tooltip: 'Filter dives',
           onPressed: () {
             showModalBottomSheet(
               context: context,
@@ -938,6 +942,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           IconButton(
             icon: const Icon(Icons.search, size: 20),
             visualDensity: VisualDensity.compact,
+            tooltip: 'Search dives',
             onPressed: () {
               showSearch(context: context, delegate: DiveSearchDelegate(ref));
             },
@@ -948,6 +953,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               child: const Icon(Icons.filter_list, size: 20),
             ),
             visualDensity: VisualDensity.compact,
+            tooltip: 'Filter dives',
             onPressed: () {
               showModalBottomSheet(
                 context: context,
@@ -1003,6 +1009,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     return AppBar(
       leading: IconButton(
         icon: const Icon(Icons.close),
+        tooltip: 'Exit selection',
         onPressed: _exitSelectionMode,
       ),
       title: Text('${_selectedIds.length} selected'),
@@ -1062,6 +1069,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           IconButton(
             icon: const Icon(Icons.close, size: 20),
             visualDensity: VisualDensity.compact,
+            tooltip: 'Exit selection',
             onPressed: _exitSelectionMode,
           ),
           Text(

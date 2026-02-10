@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/accessibility/semantic_helpers.dart';
+
 /// Statistics category data model.
 class StatisticsCategory {
   final String id;
@@ -180,39 +182,49 @@ class _StatisticsCategoryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final selectedLabel = isSelected ? ', selected' : '';
 
-    return Material(
-      color: isSelected
-          ? colorScheme.primaryContainer.withValues(alpha: 0.3)
-          : Colors.transparent,
-      child: ListTile(
-        leading: Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: category.color.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(12),
+    return Semantics(
+      button: true,
+      label: '${category.title}, ${category.subtitle}$selectedLabel',
+      child: Material(
+        color: isSelected
+            ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+            : Colors.transparent,
+        child: ListTile(
+          leading: ExcludeSemantics(
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: category.color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(category.icon, color: category.color, size: 24),
+            ),
           ),
-          child: Icon(category.icon, color: category.color, size: 24),
-        ),
-        title: Text(
-          category.title,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+          title: Text(
+            category.title,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+            ),
+          ),
+          subtitle: Text(
+            category.subtitle,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          trailing: Icon(
+            Icons.chevron_right,
+            color: colorScheme.onSurfaceVariant,
+          ).excludeFromSemantics(),
+          onTap: onTap,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 4,
           ),
         ),
-        subtitle: Text(
-          category.subtitle,
-          style: Theme.of(
-            context,
-          ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
-        ),
-        trailing: Icon(
-          Icons.chevron_right,
-          color: colorScheme.onSurfaceVariant,
-        ),
-        onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       ),
     );
   }

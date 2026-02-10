@@ -145,13 +145,15 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
                       child: Center(
                         child: Column(
                           children: [
-                            Icon(
-                              Icons.backpack_outlined,
-                              size: 48,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant
-                                  .withValues(alpha: 0.5),
+                            ExcludeSemantics(
+                              child: Icon(
+                                Icons.backpack_outlined,
+                                size: 48,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant
+                                    .withValues(alpha: 0.5),
+                              ),
                             ),
                             const SizedBox(height: 8),
                             Text(
@@ -222,15 +224,20 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
             const SizedBox(height: 32),
 
             // Save Button
-            FilledButton(
-              onPressed: _isLoading ? null : () => _saveSet(existingSet),
-              child: _isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(widget.isEditing ? 'Save Changes' : 'Create Set'),
+            Tooltip(
+              message: widget.isEditing
+                  ? 'Save equipment set changes'
+                  : 'Create new equipment set',
+              child: FilledButton(
+                onPressed: _isLoading ? null : () => _saveSet(existingSet),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(widget.isEditing ? 'Save Changes' : 'Create Set'),
+              ),
             ),
           ],
         ),

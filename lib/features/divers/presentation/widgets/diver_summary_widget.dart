@@ -290,7 +290,9 @@ class DiverSummaryWidget extends ConsumerWidget {
                   ),
                 ),
                 title: Text(diver.name),
-                trailing: const Icon(Icons.chevron_right),
+                trailing: const ExcludeSemantics(
+                  child: Icon(Icons.chevron_right),
+                ),
                 onTap: () {
                   final state = GoRouterState.of(context);
                   final currentPath = state.uri.path;

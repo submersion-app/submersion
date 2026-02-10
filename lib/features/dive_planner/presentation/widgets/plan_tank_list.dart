@@ -30,7 +30,12 @@ class PlanTankList extends ConsumerWidget {
             // Header
             Row(
               children: [
-                Icon(Icons.propane_tank, color: theme.colorScheme.primary),
+                ExcludeSemantics(
+                  child: Icon(
+                    Icons.propane_tank,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
                 const SizedBox(width: 8),
                 Text(
                   'Tanks',
@@ -125,31 +130,41 @@ class _TankChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return InputChip(
-      avatar: CircleAvatar(
-        backgroundColor: theme.colorScheme.primaryContainer,
-        child: Text(
-          tank.gasMix.name.substring(0, 1),
-          style: TextStyle(
-            fontSize: 12,
-            color: theme.colorScheme.onPrimaryContainer,
+    final tankLabel =
+        '${tank.name ?? tank.gasMix.name}, '
+        '${units.formatPressure(tank.startPressure?.toDouble())}, '
+        '${units.formatVolume(tank.volume)}';
+
+    return Semantics(
+      label: tankLabel,
+      child: InputChip(
+        avatar: CircleAvatar(
+          backgroundColor: theme.colorScheme.primaryContainer,
+          child: ExcludeSemantics(
+            child: Text(
+              tank.gasMix.name.substring(0, 1),
+              style: TextStyle(
+                fontSize: 12,
+                color: theme.colorScheme.onPrimaryContainer,
+              ),
+            ),
           ),
         ),
+        label: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(tank.name ?? tank.gasMix.name),
+            Text(
+              '${units.formatPressure(tank.startPressure?.toDouble())} • ${units.formatVolume(tank.volume)}',
+              style: theme.textTheme.bodySmall,
+            ),
+          ],
+        ),
+        onPressed: onEdit,
+        deleteIcon: onDelete != null ? const Icon(Icons.close, size: 18) : null,
+        onDeleted: onDelete,
       ),
-      label: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(tank.name ?? tank.gasMix.name),
-          Text(
-            '${units.formatPressure(tank.startPressure?.toDouble())} • ${units.formatVolume(tank.volume)}',
-            style: theme.textTheme.bodySmall,
-          ),
-        ],
-      ),
-      onPressed: onEdit,
-      deleteIcon: onDelete != null ? const Icon(Icons.close, size: 18) : null,
-      onDeleted: onDelete,
     );
   }
 }

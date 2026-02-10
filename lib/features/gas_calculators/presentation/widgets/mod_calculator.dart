@@ -108,50 +108,57 @@ class ModCalculator extends ConsumerWidget {
               const SizedBox(height: 16),
 
               // Result card
-              Card(
-                color: colorScheme.primaryContainer,
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    children: [
-                      Text(
-                        'Maximum Operating Depth',
-                        style: textTheme.titleMedium?.copyWith(
-                          color: colorScheme.onPrimaryContainer,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        '${displayMod.toStringAsFixed(1)} $primaryUnit',
-                        style: textTheme.displayMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onPrimaryContainer,
-                        ),
-                      ),
-                      Text(
-                        '(${secondaryMod.toStringAsFixed(0)} $secondaryUnit)',
-                        style: textTheme.titleMedium?.copyWith(
-                          color: colorScheme.onPrimaryContainer.withValues(
-                            alpha: 0.7,
+              Semantics(
+                label:
+                    'Maximum Operating Depth: ${displayMod.toStringAsFixed(1)} $primaryUnit '
+                    'at ${ppO2.toStringAsFixed(1)} bar ppO2 with ${o2.toStringAsFixed(0)}% oxygen',
+                child: Card(
+                  color: colorScheme.primaryContainer,
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      children: [
+                        Text(
+                          'Maximum Operating Depth',
+                          style: textTheme.titleMedium?.copyWith(
+                            color: colorScheme.onPrimaryContainer,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      // Warning thresholds stay in meters (internal calculation)
-                      Icon(
-                        mod < 10
-                            ? Icons.warning
-                            : mod < 30
-                            ? Icons.info
-                            : Icons.check_circle,
-                        size: 32,
-                        color: mod < 10
-                            ? Colors.orange
-                            : mod < 30
-                            ? colorScheme.onPrimaryContainer
-                            : Colors.green,
-                      ),
-                    ],
+                        const SizedBox(height: 16),
+                        Text(
+                          '${displayMod.toStringAsFixed(1)} $primaryUnit',
+                          style: textTheme.displayMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onPrimaryContainer,
+                          ),
+                        ),
+                        Text(
+                          '(${secondaryMod.toStringAsFixed(0)} $secondaryUnit)',
+                          style: textTheme.titleMedium?.copyWith(
+                            color: colorScheme.onPrimaryContainer.withValues(
+                              alpha: 0.7,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        // Warning thresholds stay in meters (internal calculation)
+                        ExcludeSemantics(
+                          child: Icon(
+                            mod < 10
+                                ? Icons.warning
+                                : mod < 30
+                                ? Icons.info
+                                : Icons.check_circle,
+                            size: 32,
+                            color: mod < 10
+                                ? Colors.orange
+                                : mod < 30
+                                ? colorScheme.onPrimaryContainer
+                                : Colors.green,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -258,12 +265,15 @@ class ModCalculator extends ConsumerWidget {
             thumbColor: colorScheme.primary,
             overlayColor: colorScheme.primary.withValues(alpha: 0.12),
           ),
-          child: Slider(
-            value: value,
-            min: min,
-            max: max,
-            divisions: divisions,
-            onChanged: onChanged,
+          child: Semantics(
+            label: '$label: ${value.toStringAsFixed(0)}$unit',
+            child: Slider(
+              value: value,
+              min: min,
+              max: max,
+              divisions: divisions,
+              onChanged: onChanged,
+            ),
           ),
         ),
         Padding(

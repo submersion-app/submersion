@@ -165,77 +165,81 @@ class _MediaThumbnail extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final formatter = UnitFormatter(settings);
 
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            fullscreenDialog: true,
-            builder: (_) =>
-                PhotoViewerPage(diveId: diveId, initialMediaId: item.id),
-          ),
-        );
-      },
-      onLongPress: () => _showUnlinkDialog(context, ref),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // Thumbnail or placeholder
-            if (item.isOrphaned)
-              const _OrphanedPlaceholder()
-            else if (item.platformAssetId != null)
-              _buildAssetThumbnail(ref, colorScheme)
-            else
-              _buildPlaceholder(colorScheme),
+    return Semantics(
+      button: true,
+      label: 'View photo. Long press to unlink',
+      child: GestureDetector(
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              fullscreenDialog: true,
+              builder: (_) =>
+                  PhotoViewerPage(diveId: diveId, initialMediaId: item.id),
+            ),
+          );
+        },
+        onLongPress: () => _showUnlinkDialog(context, ref),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // Thumbnail or placeholder
+              if (item.isOrphaned)
+                const _OrphanedPlaceholder()
+              else if (item.platformAssetId != null)
+                _buildAssetThumbnail(ref, colorScheme)
+              else
+                _buildPlaceholder(colorScheme),
 
-            // Video icon (top-right)
-            if (item.isVideo)
-              Positioned(
-                top: 4,
-                right: 4,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.black54,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Icon(
-                    Icons.videocam,
-                    size: 16,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-
-            // Depth badge (bottom-left)
-            if (item.enrichment?.depthMeters != null)
-              Positioned(
-                bottom: 4,
-                left: 4,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.black54,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    formatter.formatDepth(
-                      item.enrichment!.depthMeters,
-                      decimals: 0,
+              // Video icon (top-right)
+              if (item.isVideo)
+                Positioned(
+                  top: 4,
+                  right: 4,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(4),
                     ),
-                    style: const TextStyle(
+                    child: const Icon(
+                      Icons.videocam,
+                      size: 16,
                       color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
-              ),
-          ],
+
+              // Depth badge (bottom-left)
+              if (item.enrichment?.depthMeters != null)
+                Positioned(
+                  bottom: 4,
+                  left: 4,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      formatter.formatDepth(
+                        item.enrichment!.depthMeters,
+                        decimals: 0,
+                      ),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

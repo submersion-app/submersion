@@ -133,10 +133,14 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
                 // Videos handle their own tap gestures for play/pause
                 if (!currentItem.isVideo)
                   Positioned.fill(
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.translucent,
-                      onTap: () => setState(() => _showOverlay = !_showOverlay),
-                      child: const SizedBox.expand(),
+                    child: Semantics(
+                      label: 'Toggle photo overlay',
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.translucent,
+                        onTap: () =>
+                            setState(() => _showOverlay = !_showOverlay),
+                        child: const SizedBox.expand(),
+                      ),
                     ),
                   ),
 
@@ -609,13 +613,17 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
         alignment: Alignment.center,
         children: [
           // Video player - tap anywhere on video to play/pause
-          GestureDetector(
-            onTap: _togglePlayPause,
-            behavior: HitTestBehavior.opaque,
-            child: Center(
-              child: AspectRatio(
-                aspectRatio: controller.value.aspectRatio,
-                child: VideoPlayer(controller),
+          Semantics(
+            button: true,
+            label: 'Play or pause video',
+            child: GestureDetector(
+              onTap: _togglePlayPause,
+              behavior: HitTestBehavior.opaque,
+              child: Center(
+                child: AspectRatio(
+                  aspectRatio: controller.value.aspectRatio,
+                  child: VideoPlayer(controller),
+                ),
               ),
             ),
           ),
@@ -730,52 +738,55 @@ class _VideoControlsOverlayState extends State<_VideoControlsOverlay> {
           Expanded(
             child: LayoutBuilder(
               builder: (context, constraints) {
-                return GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTapDown: (details) {
-                    _seekToPosition(
-                      details.localPosition.dx,
-                      constraints.maxWidth,
-                    );
-                  },
-                  child: SizedBox(
-                    height: 40, // Larger touch target
-                    child: Center(
-                      child: Stack(
-                        children: [
-                          // Background track
-                          Container(
-                            height: 4,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.3),
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                          ),
-                          // Progress track
-                          FractionallySizedBox(
-                            widthFactor: progress,
-                            child: Container(
+                return Semantics(
+                  label: 'Seek video position',
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTapDown: (details) {
+                      _seekToPosition(
+                        details.localPosition.dx,
+                        constraints.maxWidth,
+                      );
+                    },
+                    child: SizedBox(
+                      height: 40, // Larger touch target
+                      child: Center(
+                        child: Stack(
+                          children: [
+                            // Background track
+                            Container(
                               height: 4,
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: Colors.white.withValues(alpha: 0.3),
                                 borderRadius: BorderRadius.circular(2),
                               ),
                             ),
-                          ),
-                          // Thumb indicator
-                          Positioned(
-                            left: (constraints.maxWidth * progress) - 8,
-                            top: -6,
-                            child: Container(
-                              width: 16,
-                              height: 16,
-                              decoration: const BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
+                            // Progress track
+                            FractionallySizedBox(
+                              widthFactor: progress,
+                              child: Container(
+                                height: 4,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                            // Thumb indicator
+                            Positioned(
+                              left: (constraints.maxWidth * progress) - 8,
+                              top: -6,
+                              child: Container(
+                                width: 16,
+                                height: 16,
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -842,6 +853,7 @@ class _TopOverlay extends StatelessWidget {
               children: [
                 IconButton(
                   icon: const Icon(Icons.close, color: Colors.white),
+                  tooltip: 'Close photo viewer',
                   onPressed: onClose,
                 ),
                 Expanded(
@@ -865,6 +877,7 @@ class _TopOverlay extends StatelessWidget {
                   ),
                 IconButton(
                   icon: const Icon(Icons.share, color: Colors.white),
+                  tooltip: 'Share photo',
                   onPressed: onShare,
                 ),
               ],

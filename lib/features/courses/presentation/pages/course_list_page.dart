@@ -24,6 +24,7 @@ class CourseListPage extends ConsumerWidget {
           context.push('/courses/new');
         }
       },
+      tooltip: 'Add Course',
       icon: const Icon(Icons.add),
       label: const Text('Add Course'),
     );
@@ -63,6 +64,8 @@ class CourseListPage extends ConsumerWidget {
     }
 
     // Mobile: Use list content with full scaffold
-    return CourseListContent(showAppBar: true, floatingActionButton: fab);
+    return FocusTraversalGroup(
+      child: CourseListContent(showAppBar: true, floatingActionButton: fab),
+    );
   }
 }

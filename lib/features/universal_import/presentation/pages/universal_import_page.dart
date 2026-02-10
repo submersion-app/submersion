@@ -31,6 +31,7 @@ class UniversalImportPage extends ConsumerWidget {
         title: const Text('Import Data'),
         leading: IconButton(
           icon: const Icon(Icons.close),
+          tooltip: 'Close import wizard',
           onPressed: () {
             ref.read(universalImportNotifierProvider.notifier).reset();
             context.pop();

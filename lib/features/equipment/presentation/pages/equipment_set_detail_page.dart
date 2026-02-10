@@ -46,6 +46,7 @@ class EquipmentSetDetailPage extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
+            tooltip: 'Edit Set',
             onPressed: () => context.push('/equipment/sets/$setId/edit'),
           ),
           PopupMenuButton<String>(

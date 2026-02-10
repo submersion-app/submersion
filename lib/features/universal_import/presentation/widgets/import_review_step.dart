@@ -39,27 +39,33 @@ class ImportReviewStep extends ConsumerWidget {
           if (state.duplicateResult?.hasDuplicates == true)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Card(
-                color: theme.colorScheme.tertiaryContainer,
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.info_outline,
-                        color: theme.colorScheme.onTertiaryContainer,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          '${state.duplicateResult!.totalDuplicates} '
-                          'duplicates found and auto-deselected.',
-                          style: theme.textTheme.bodyMedium?.copyWith(
+              child: Semantics(
+                label:
+                    '${state.duplicateResult!.totalDuplicates} duplicates found and auto-deselected',
+                child: Card(
+                  color: theme.colorScheme.tertiaryContainer,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        ExcludeSemantics(
+                          child: Icon(
+                            Icons.info_outline,
                             color: theme.colorScheme.onTertiaryContainer,
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            '${state.duplicateResult!.totalDuplicates} '
+                            'duplicates found and auto-deselected.',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onTertiaryContainer,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -100,10 +106,13 @@ class ImportReviewStep extends ConsumerWidget {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  Text(
-                    '${state.totalSelected} selected',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+                  Semantics(
+                    label: '${state.totalSelected} items selected for import',
+                    child: Text(
+                      '${state.totalSelected} selected',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ),
                   const Spacer(),
@@ -146,10 +155,14 @@ class _EntityTypeList extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
             children: [
-              Text(
-                '${selection.length} of ${items.length} selected',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+              Semantics(
+                label:
+                    '${selection.length} of ${items.length} ${type.shortName} selected',
+                child: Text(
+                  '${selection.length} of ${items.length} selected',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
               const Spacer(),

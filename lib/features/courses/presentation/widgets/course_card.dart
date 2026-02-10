@@ -21,92 +21,67 @@ class CourseCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final dateFormat = DateFormat.yMMMd();
 
-    return Card(
-      elevation: isSelected ? 2 : 1,
-      color: isSelected ? colorScheme.primaryContainer : null,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              // Status icon
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: course.isCompleted
-                      ? Colors.green.withValues(alpha: 0.15)
-                      : colorScheme.primary.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
+    final statusStr = course.isCompleted ? 'Completed' : 'In Progress';
+    final instructorStr = course.instructorName != null
+        ? ', Instructor: ${course.instructorName}'
+        : '';
+
+    return Semantics(
+      label:
+          '${course.name}, ${course.agency.displayName}, Started ${dateFormat.format(course.startDate)}, $statusStr$instructorStr',
+      child: Card(
+        elevation: isSelected ? 2 : 1,
+        color: isSelected ? colorScheme.primaryContainer : null,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // Status icon
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: course.isCompleted
+                        ? Colors.green.withValues(alpha: 0.15)
+                        : colorScheme.primary.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    course.isCompleted
+                        ? Icons.check_circle_outline
+                        : Icons.school_outlined,
+                    color: course.isCompleted
+                        ? Colors.green
+                        : colorScheme.primary,
+                  ),
                 ),
-                child: Icon(
-                  course.isCompleted
-                      ? Icons.check_circle_outline
-                      : Icons.school_outlined,
-                  color: course.isCompleted
-                      ? Colors.green
-                      : colorScheme.primary,
-                ),
-              ),
-              const SizedBox(width: 16),
-              // Course info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      course.name,
-                      style: Theme.of(context).textTheme.titleMedium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.business,
-                          size: 14,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 4),
-                        Flexible(
-                          child: Text(
-                            course.agency.displayName,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: colorScheme.onSurfaceVariant),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Icon(
-                          Icons.calendar_today,
-                          size: 14,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          dateFormat.format(course.startDate),
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: colorScheme.onSurfaceVariant),
-                        ),
-                      ],
-                    ),
-                    if (course.instructorName != null) ...[
+                const SizedBox(width: 16),
+                // Course info
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        course.name,
+                        style: Theme.of(context).textTheme.titleMedium,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                       const SizedBox(height: 4),
                       Row(
                         children: [
                           Icon(
-                            Icons.person_outline,
+                            Icons.business,
                             size: 14,
                             color: colorScheme.onSurfaceVariant,
                           ),
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(
-                              course.instructorName!,
+                              course.agency.displayName,
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
                                     color: colorScheme.onSurfaceVariant,
@@ -115,15 +90,51 @@ class CourseCard extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
+                          const SizedBox(width: 12),
+                          Icon(
+                            Icons.calendar_today,
+                            size: 14,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            dateFormat.format(course.startDate),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: colorScheme.onSurfaceVariant),
+                          ),
                         ],
                       ),
+                      if (course.instructorName != null) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.person_outline,
+                              size: 14,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                course.instructorName!,
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-              // Status badge
-              _buildStatusBadge(context),
-            ],
+                // Status badge
+                _buildStatusBadge(context),
+              ],
+            ),
           ),
         ),
       ),

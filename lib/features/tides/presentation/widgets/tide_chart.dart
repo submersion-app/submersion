@@ -189,296 +189,331 @@ class _TideChartState extends State<TideChart> {
     // Constant for chart layout (must match titlesData reservedSize for left axis)
     const leftAxisWidth = 45.0;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Legend
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: _buildLegend(context),
-        ),
+    // Build a textual summary for screen readers
+    final extremesSummary =
+        widget.extremes != null && widget.extremes!.isNotEmpty
+        ? widget.extremes!
+              .map((e) {
+                final typeLabel = e.type == TideExtremeType.high
+                    ? 'High'
+                    : 'Low';
+                final displayHeight = DepthUnit.meters.convert(
+                  e.heightMeters,
+                  widget.depthUnit,
+                );
+                final timeStr = DateFormat(
+                  widget.timeFormat.pattern,
+                ).format(e.time.toLocal());
+                return '$typeLabel tide at $timeStr, ${displayHeight.toStringAsFixed(1)}${widget.depthUnit.symbol}';
+              })
+              .join('. ')
+        : 'No extremes data';
 
-        // Chart with "Now" label positioned above
-        LayoutBuilder(
-          builder: (context, constraints) {
-            // Calculate the pixel x-position for the "Now" marker
-            final chartDrawingWidth = constraints.maxWidth - leftAxisWidth;
-            final nowPixelX = leftAxisWidth + (nowX / maxX) * chartDrawingWidth;
+    return Semantics(
+      label: 'Tide chart. $extremesSummary',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Legend
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: _buildLegend(context),
+          ),
 
-            return Stack(
-              clipBehavior: Clip.none,
-              children: [
-                // The chart
-                SizedBox(
-                  height: widget.height,
-                  child: LineChart(
-                    LineChartData(
-                      minX: 0,
-                      maxX: maxX,
-                      minY: paddedMinHeight,
-                      maxY: paddedMaxHeight,
-                      clipData: const FlClipData.all(),
-                      gridData: FlGridData(
-                        show: true,
-                        drawVerticalLine: true,
-                        horizontalInterval: _calculateHeightInterval(
-                          heightRange,
-                        ),
-                        verticalInterval: _calculateTimeInterval(maxX),
-                        getDrawingHorizontalLine: (value) => FlLine(
-                          color: colorScheme.outlineVariant.withValues(
-                            alpha: 0.3,
+          // Chart with "Now" label positioned above
+          LayoutBuilder(
+            builder: (context, constraints) {
+              // Calculate the pixel x-position for the "Now" marker
+              final chartDrawingWidth = constraints.maxWidth - leftAxisWidth;
+              final nowPixelX =
+                  leftAxisWidth + (nowX / maxX) * chartDrawingWidth;
+
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  // The chart
+                  SizedBox(
+                    height: widget.height,
+                    child: LineChart(
+                      LineChartData(
+                        minX: 0,
+                        maxX: maxX,
+                        minY: paddedMinHeight,
+                        maxY: paddedMaxHeight,
+                        clipData: const FlClipData.all(),
+                        gridData: FlGridData(
+                          show: true,
+                          drawVerticalLine: true,
+                          horizontalInterval: _calculateHeightInterval(
+                            heightRange,
                           ),
-                          strokeWidth: 1,
-                        ),
-                        getDrawingVerticalLine: (value) => FlLine(
-                          color: colorScheme.outlineVariant.withValues(
-                            alpha: 0.3,
+                          verticalInterval: _calculateTimeInterval(maxX),
+                          getDrawingHorizontalLine: (value) => FlLine(
+                            color: colorScheme.outlineVariant.withValues(
+                              alpha: 0.3,
+                            ),
+                            strokeWidth: 1,
                           ),
-                          strokeWidth: 1,
-                        ),
-                      ),
-                      titlesData: FlTitlesData(
-                        leftTitles: AxisTitles(
-                          axisNameWidget: Text(
-                            'Height (${widget.depthUnit.symbol})',
-                            style: Theme.of(context).textTheme.labelSmall,
-                          ),
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 45,
-                            interval: _calculateHeightInterval(heightRange),
-                            getTitlesWidget: (value, meta) {
-                              final displayValue = DepthUnit.meters.convert(
-                                value,
-                                widget.depthUnit,
-                              );
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 4),
-                                child: Text(
-                                  displayValue.toStringAsFixed(1),
-                                  style: Theme.of(context).textTheme.labelSmall,
-                                ),
-                              );
-                            },
+                          getDrawingVerticalLine: (value) => FlLine(
+                            color: colorScheme.outlineVariant.withValues(
+                              alpha: 0.3,
+                            ),
+                            strokeWidth: 1,
                           ),
                         ),
-                        bottomTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 30,
-                            interval: _calculateTimeInterval(maxX),
-                            getTitlesWidget: (value, meta) {
-                              final time = minTime.add(
-                                Duration(minutes: (value * 60).round()),
-                              );
-                              return Padding(
-                                padding: const EdgeInsets.only(top: 4),
-                                child: Text(
-                                  DateFormat(
-                                    widget.timeFormat.pattern,
-                                  ).format(time.toLocal()),
-                                  style: Theme.of(context).textTheme.labelSmall,
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        rightTitles: const AxisTitles(
-                          sideTitles: SideTitles(showTitles: false),
-                        ),
-                        topTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 20,
-                            interval: _calculateTimeInterval(maxX),
-                            getTitlesWidget: (value, meta) {
-                              final time = minTime.add(
-                                Duration(minutes: (value * 60).round()),
-                              );
-                              // Show day labels at midnight crossings
-                              if (time.hour == 0 && time.minute < 30) {
-                                return Text(
-                                  DateFormat('EEE').format(time.toLocal()),
-                                  style: Theme.of(context).textTheme.labelSmall
-                                      ?.copyWith(fontWeight: FontWeight.bold),
+                        titlesData: FlTitlesData(
+                          leftTitles: AxisTitles(
+                            axisNameWidget: Text(
+                              'Height (${widget.depthUnit.symbol})',
+                              style: Theme.of(context).textTheme.labelSmall,
+                            ),
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: 45,
+                              interval: _calculateHeightInterval(heightRange),
+                              getTitlesWidget: (value, meta) {
+                                final displayValue = DepthUnit.meters.convert(
+                                  value,
+                                  widget.depthUnit,
                                 );
-                              }
-                              return const SizedBox.shrink();
-                            },
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 4),
+                                  child: Text(
+                                    displayValue.toStringAsFixed(1),
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.labelSmall,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          bottomTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: 30,
+                              interval: _calculateTimeInterval(maxX),
+                              getTitlesWidget: (value, meta) {
+                                final time = minTime.add(
+                                  Duration(minutes: (value * 60).round()),
+                                );
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Text(
+                                    DateFormat(
+                                      widget.timeFormat.pattern,
+                                    ).format(time.toLocal()),
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.labelSmall,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          rightTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
+                          topTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: 20,
+                              interval: _calculateTimeInterval(maxX),
+                              getTitlesWidget: (value, meta) {
+                                final time = minTime.add(
+                                  Duration(minutes: (value * 60).round()),
+                                );
+                                // Show day labels at midnight crossings
+                                if (time.hour == 0 && time.minute < 30) {
+                                  return Text(
+                                    DateFormat('EEE').format(time.toLocal()),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelSmall
+                                        ?.copyWith(fontWeight: FontWeight.bold),
+                                  );
+                                }
+                                return const SizedBox.shrink();
+                              },
+                            ),
                           ),
                         ),
-                      ),
-                      borderData: FlBorderData(
-                        show: true,
-                        border: Border.all(color: colorScheme.outlineVariant),
-                      ),
-                      lineBarsData: [
-                        // Main tide curve
-                        _buildTideCurve(
-                          colorScheme,
-                          timeToX,
-                          paddedMinHeight,
-                          paddedMaxHeight,
-                          effectivePredictions,
+                        borderData: FlBorderData(
+                          show: true,
+                          border: Border.all(color: colorScheme.outlineVariant),
                         ),
+                        lineBarsData: [
+                          // Main tide curve
+                          _buildTideCurve(
+                            colorScheme,
+                            timeToX,
+                            paddedMinHeight,
+                            paddedMaxHeight,
+                            effectivePredictions,
+                          ),
 
-                        // Extreme markers
-                        if (widget.showExtremeMarkers &&
-                            widget.extremes != null)
-                          ..._buildExtremeMarkers(timeToX, minTime, maxTime),
-                      ],
-                      extraLinesData: ExtraLinesData(
-                        verticalLines: [
-                          // Extreme marker labels (high/low tide)
+                          // Extreme markers
                           if (widget.showExtremeMarkers &&
                               widget.extremes != null)
-                            ..._buildExtremeLabels(
-                              timeToX,
-                              minTime,
-                              maxTime,
-                              colorScheme,
-                            ),
-                          // Current time marker (line only, label is positioned above chart)
-                          if (widget.showNowMarker && nowX >= 0 && nowX <= maxX)
-                            VerticalLine(
-                              x: nowX,
-                              color: colorScheme.primary,
-                              strokeWidth: 2,
-                              dashArray: [4, 4],
-                            ),
+                            ..._buildExtremeMarkers(timeToX, minTime, maxTime),
                         ],
-                        horizontalLines: [
-                          // Zero line (mean sea level)
-                          if (paddedMinHeight < 0 && paddedMaxHeight > 0)
-                            HorizontalLine(
-                              y: 0,
-                              color: colorScheme.outline.withValues(alpha: 0.5),
-                              strokeWidth: 1,
-                              dashArray: [8, 4],
-                              label: HorizontalLineLabel(
-                                show: true,
-                                alignment: Alignment.topRight,
-                                padding: const EdgeInsets.only(
-                                  right: 4,
-                                  bottom: 2,
-                                ),
-                                style: TextStyle(
-                                  color: colorScheme.onSurfaceVariant,
-                                  fontSize: 10,
-                                ),
-                                labelResolver: (line) => 'MSL',
+                        extraLinesData: ExtraLinesData(
+                          verticalLines: [
+                            // Extreme marker labels (high/low tide)
+                            if (widget.showExtremeMarkers &&
+                                widget.extremes != null)
+                              ..._buildExtremeLabels(
+                                timeToX,
+                                minTime,
+                                maxTime,
+                                colorScheme,
                               ),
-                            ),
-                        ],
-                      ),
-                      lineTouchData: LineTouchData(
-                        enabled: true,
-                        touchCallback: (event, response) {
-                          if (widget.onPointSelected != null) {
-                            if (response?.lineBarSpots != null &&
-                                response!.lineBarSpots!.isNotEmpty) {
-                              final spot = response.lineBarSpots!.first;
-                              if (spot.barIndex == 0 &&
-                                  spot.spotIndex <
-                                      effectivePredictions.length) {
-                                widget.onPointSelected!(
-                                  effectivePredictions[spot.spotIndex],
-                                );
-                              }
-                            } else {
-                              widget.onPointSelected!(null);
-                            }
-                          }
-                        },
-                        touchTooltipData: LineTouchTooltipData(
-                          fitInsideHorizontally: true,
-                          fitInsideVertically: true,
-                          getTooltipColor: (spot) => colorScheme.inverseSurface,
-                          getTooltipItems: (touchedSpots) {
-                            return touchedSpots.map((spot) {
-                              if (spot.barIndex != 0) return null;
-                              if (spot.spotIndex >=
-                                  effectivePredictions.length) {
-                                return null;
-                              }
-
-                              final prediction =
-                                  effectivePredictions[spot.spotIndex];
-                              final timeStr = DateFormat(
-                                widget.timeFormat.pattern,
-                              ).format(prediction.time.toLocal());
-                              final dateStr = DateFormat(
-                                'EEE, MMM d',
-                              ).format(prediction.time.toLocal());
-                              final displayHeight = DepthUnit.meters.convert(
-                                prediction.heightMeters,
-                                widget.depthUnit,
-                              );
-
-                              return LineTooltipItem(
-                                '$timeStr\n',
-                                TextStyle(
-                                  color: colorScheme.onInverseSurface
-                                      .withValues(alpha: 0.7),
-                                  fontSize: 11,
+                            // Current time marker (line only, label is positioned above chart)
+                            if (widget.showNowMarker &&
+                                nowX >= 0 &&
+                                nowX <= maxX)
+                              VerticalLine(
+                                x: nowX,
+                                color: colorScheme.primary,
+                                strokeWidth: 2,
+                                dashArray: [4, 4],
+                              ),
+                          ],
+                          horizontalLines: [
+                            // Zero line (mean sea level)
+                            if (paddedMinHeight < 0 && paddedMaxHeight > 0)
+                              HorizontalLine(
+                                y: 0,
+                                color: colorScheme.outline.withValues(
+                                  alpha: 0.5,
                                 ),
-                                children: [
-                                  TextSpan(
-                                    text:
-                                        '${displayHeight.toStringAsFixed(2)}${widget.depthUnit.symbol}\n',
-                                    style: TextStyle(
-                                      color: colorScheme.onInverseSurface,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                    ),
+                                strokeWidth: 1,
+                                dashArray: [8, 4],
+                                label: HorizontalLineLabel(
+                                  show: true,
+                                  alignment: Alignment.topRight,
+                                  padding: const EdgeInsets.only(
+                                    right: 4,
+                                    bottom: 2,
                                   ),
-                                  TextSpan(
-                                    text: dateStr,
-                                    style: TextStyle(
-                                      color: colorScheme.onInverseSurface
-                                          .withValues(alpha: 0.7),
-                                      fontSize: 10,
-                                    ),
+                                  style: TextStyle(
+                                    color: colorScheme.onSurfaceVariant,
+                                    fontSize: 10,
                                   ),
-                                ],
-                              );
-                            }).toList();
+                                  labelResolver: (line) => 'MSL',
+                                ),
+                              ),
+                          ],
+                        ),
+                        lineTouchData: LineTouchData(
+                          enabled: true,
+                          touchCallback: (event, response) {
+                            if (widget.onPointSelected != null) {
+                              if (response?.lineBarSpots != null &&
+                                  response!.lineBarSpots!.isNotEmpty) {
+                                final spot = response.lineBarSpots!.first;
+                                if (spot.barIndex == 0 &&
+                                    spot.spotIndex <
+                                        effectivePredictions.length) {
+                                  widget.onPointSelected!(
+                                    effectivePredictions[spot.spotIndex],
+                                  );
+                                }
+                              } else {
+                                widget.onPointSelected!(null);
+                              }
+                            }
                           },
+                          touchTooltipData: LineTouchTooltipData(
+                            fitInsideHorizontally: true,
+                            fitInsideVertically: true,
+                            getTooltipColor: (spot) =>
+                                colorScheme.inverseSurface,
+                            getTooltipItems: (touchedSpots) {
+                              return touchedSpots.map((spot) {
+                                if (spot.barIndex != 0) return null;
+                                if (spot.spotIndex >=
+                                    effectivePredictions.length) {
+                                  return null;
+                                }
+
+                                final prediction =
+                                    effectivePredictions[spot.spotIndex];
+                                final timeStr = DateFormat(
+                                  widget.timeFormat.pattern,
+                                ).format(prediction.time.toLocal());
+                                final dateStr = DateFormat(
+                                  'EEE, MMM d',
+                                ).format(prediction.time.toLocal());
+                                final displayHeight = DepthUnit.meters.convert(
+                                  prediction.heightMeters,
+                                  widget.depthUnit,
+                                );
+
+                                return LineTooltipItem(
+                                  '$timeStr\n',
+                                  TextStyle(
+                                    color: colorScheme.onInverseSurface
+                                        .withValues(alpha: 0.7),
+                                    fontSize: 11,
+                                  ),
+                                  children: [
+                                    TextSpan(
+                                      text:
+                                          '${displayHeight.toStringAsFixed(2)}${widget.depthUnit.symbol}\n',
+                                      style: TextStyle(
+                                        color: colorScheme.onInverseSurface,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    TextSpan(
+                                      text: dateStr,
+                                      style: TextStyle(
+                                        color: colorScheme.onInverseSurface
+                                            .withValues(alpha: 0.7),
+                                        fontSize: 10,
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              }).toList();
+                            },
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                // "Now" label positioned above the chart
-                if (widget.showNowMarker && nowX >= 0 && nowX <= maxX)
-                  Positioned(
-                    left: nowPixelX - 50, // Approximate center of label
-                    top: 0, // At the very top of the reserved space
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        nowLabelText.trim(),
-                        style: TextStyle(
-                          color: colorScheme.onPrimaryContainer,
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
+                  // "Now" label positioned above the chart
+                  if (widget.showNowMarker && nowX >= 0 && nowX <= maxX)
+                    Positioned(
+                      left: nowPixelX - 50, // Approximate center of label
+                      top: 0, // At the very top of the reserved space
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          nowLabelText.trim(),
+                          style: TextStyle(
+                            color: colorScheme.onPrimaryContainer,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-              ],
-            );
-          },
-        ),
-      ],
+                ],
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 

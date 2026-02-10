@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 
@@ -41,10 +42,12 @@ class DecoInfoPanel extends StatelessWidget {
         if (showHeader) ...[
           Row(
             children: [
-              Icon(
-                status.inDeco ? Icons.warning : Icons.check_circle,
-                size: 20,
-                color: status.inDeco ? Colors.orange : Colors.green,
+              ExcludeSemantics(
+                child: Icon(
+                  status.inDeco ? Icons.warning : Icons.check_circle,
+                  size: 20,
+                  color: status.inDeco ? Colors.orange : Colors.green,
+                ),
               ),
               const SizedBox(width: 8),
               Text(
@@ -54,19 +57,27 @@ class DecoInfoPanel extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: status.inDeco
-                      ? Colors.orange.withValues(alpha: 0.2)
-                      : Colors.green.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  status.inDeco ? 'DECO' : 'NO DECO',
-                  style: textTheme.labelSmall?.copyWith(
-                    color: status.inDeco ? Colors.orange : Colors.green,
-                    fontWeight: FontWeight.bold,
+              Semantics(
+                label: status.inDeco
+                    ? 'Decompression required'
+                    : 'No decompression required',
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: status.inDeco
+                        ? Colors.orange.withValues(alpha: 0.2)
+                        : Colors.green.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    status.inDeco ? 'DECO' : 'NO DECO',
+                    style: textTheme.labelSmall?.copyWith(
+                      color: status.inDeco ? Colors.orange : Colors.green,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -92,16 +103,20 @@ class DecoInfoPanel extends StatelessWidget {
 
         // Gradient factors
         const SizedBox(height: 12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'GF: ${(status.gfLow * 100).toInt()}/${(status.gfHigh * 100).toInt()}',
-              style: textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
+        Semantics(
+          label:
+              'Gradient factors: low ${(status.gfLow * 100).toInt()}, high ${(status.gfHigh * 100).toInt()}',
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'GF: ${(status.gfLow * 100).toInt()}/${(status.gfHigh * 100).toInt()}',
+                style: textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );
@@ -172,37 +187,40 @@ class DecoInfoPanel extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, size: 20, color: color),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          if (subtitle != null)
+    return Semantics(
+      label: subtitle != null ? '$label: $value, $subtitle' : '$label: $value',
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          children: [
+            ExcludeSemantics(child: Icon(icon, size: 20, color: color)),
+            const SizedBox(height: 4),
             Text(
-              subtitle,
+              value,
+              style: textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+            if (subtitle != null)
+              Text(
+                subtitle,
+                style: textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            Text(
+              label,
               style: textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
             ),
-          Text(
-            label,
-            style: textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -219,18 +237,25 @@ class DecoInfoPanel extends StatelessWidget {
           style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
-        SizedBox(
-          height: 60,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: status.compartments.map((comp) {
-              return Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 1),
-                  child: _buildTissueBar(context, comp),
-                ),
-              );
-            }).toList(),
+        Semantics(
+          label: chartSummaryLabel(
+            chartType: 'Tissue loading bar',
+            description:
+                '${status.compartments.length} compartments, leading compartment ${status.leadingCompartmentNumber} at ${status.leadingCompartmentLoading.toStringAsFixed(0)} percent',
+          ),
+          child: SizedBox(
+            height: 60,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: status.compartments.map((comp) {
+                return Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 1),
+                    child: _buildTissueBar(context, comp),
+                  ),
+                );
+              }).toList(),
+            ),
           ),
         ),
         const SizedBox(height: 4),
@@ -314,35 +339,42 @@ class DecoInfoPanel extends StatelessWidget {
           spacing: 8,
           runSpacing: 8,
           children: status.decoStops.map((stop) {
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: stop.isDeepStop
-                    ? Colors.purple.withValues(alpha: 0.1)
-                    : Colors.orange.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: stop.isDeepStop ? Colors.purple : Colors.orange,
+            return Semantics(
+              label:
+                  '${stop.isDeepStop ? "Deep" : "Deco"} stop at ${stop.depthFormatted()} for ${stop.durationFormatted}',
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
                 ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    stop.depthFormatted(),
-                    style: textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: stop.isDeepStop ? Colors.purple : Colors.orange,
-                    ),
+                decoration: BoxDecoration(
+                  color: stop.isDeepStop
+                      ? Colors.purple.withValues(alpha: 0.1)
+                      : Colors.orange.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: stop.isDeepStop ? Colors.purple : Colors.orange,
                   ),
-                  const SizedBox(width: 4),
-                  Text(
-                    stop.durationFormatted,
-                    style: textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      stop.depthFormatted(),
+                      style: textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: stop.isDeepStop ? Colors.purple : Colors.orange,
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 4),
+                    Text(
+                      stop.durationFormatted,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           }).toList(),
@@ -375,34 +407,41 @@ class NdlBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final isInDeco = status.inDeco;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: isInDeco
-            ? Colors.orange.withValues(alpha: 0.1)
-            : Colors.green.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: isInDeco ? Colors.orange : Colors.green),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            isInDeco ? Icons.warning : Icons.timer,
-            size: 14,
-            color: isInDeco ? Colors.orange : Colors.green,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            isInDeco
-                ? 'Ceiling ${status.ceilingMeters.toStringAsFixed(1)}m'
-                : 'NDL ${status.ndlFormatted}',
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: isInDeco ? Colors.orange : Colors.green,
-              fontWeight: FontWeight.w600,
+    return Semantics(
+      label: isInDeco
+          ? 'Decompression ceiling ${status.ceilingMeters.toStringAsFixed(1)} meters'
+          : 'No decompression limit ${status.ndlFormatted}',
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: isInDeco
+              ? Colors.orange.withValues(alpha: 0.1)
+              : Colors.green.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: isInDeco ? Colors.orange : Colors.green),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ExcludeSemantics(
+              child: Icon(
+                isInDeco ? Icons.warning : Icons.timer,
+                size: 14,
+                color: isInDeco ? Colors.orange : Colors.green,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(width: 4),
+            Text(
+              isInDeco
+                  ? 'Ceiling ${status.ceilingMeters.toStringAsFixed(1)}m'
+                  : 'NDL ${status.ndlFormatted}',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: isInDeco ? Colors.orange : Colors.green,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

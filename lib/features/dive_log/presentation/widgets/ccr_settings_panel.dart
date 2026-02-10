@@ -154,7 +154,9 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
             // Header
             Row(
               children: [
-                Icon(Icons.loop, color: theme.colorScheme.primary),
+                ExcludeSemantics(
+                  child: Icon(Icons.loop, color: theme.colorScheme.primary),
+                ),
                 const SizedBox(width: 8),
                 Text(
                   'CCR Settings',
@@ -266,13 +268,16 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: InputDecorator(
-                    decoration: const InputDecoration(
-                      labelText: 'N₂',
-                      suffixText: '%',
-                      isDense: true,
+                  child: Semantics(
+                    label: 'Nitrogen: ${_calculateN2()} percent',
+                    child: InputDecorator(
+                      decoration: const InputDecoration(
+                        labelText: 'N₂',
+                        suffixText: '%',
+                        isDense: true,
+                      ),
+                      child: Text(_calculateN2()),
                     ),
-                    child: Text(_calculateN2()),
                   ),
                 ),
               ],

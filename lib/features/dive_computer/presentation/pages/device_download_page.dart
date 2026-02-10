@@ -235,6 +235,7 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
             }
             context.pop();
           },
+          tooltip: 'Close',
         ),
       ),
       body: computerAsync.when(

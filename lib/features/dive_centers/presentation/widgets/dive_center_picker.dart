@@ -25,15 +25,17 @@ class DiveCenterPickerSheet extends ConsumerWidget {
     return Column(
       children: [
         // Handle bar
-        Container(
-          margin: const EdgeInsets.only(top: 12),
-          width: 40,
-          height: 4,
-          decoration: BoxDecoration(
-            color: Theme.of(
-              context,
-            ).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-            borderRadius: BorderRadius.circular(2),
+        ExcludeSemantics(
+          child: Container(
+            margin: const EdgeInsets.only(top: 12),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+              borderRadius: BorderRadius.circular(2),
+            ),
           ),
         ),
 
@@ -69,10 +71,12 @@ class DiveCenterPickerSheet extends ConsumerWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        Icons.store,
-                        size: 48,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ExcludeSemantics(
+                        child: Icon(
+                          Icons.store,
+                          size: 48,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -100,29 +104,40 @@ class DiveCenterPickerSheet extends ConsumerWidget {
                   final center = centers[index];
                   final isSelected = selectedCenter?.id == center.id;
 
-                  return ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: isSelected
-                          ? Theme.of(context).colorScheme.primary
-                          : Theme.of(context).colorScheme.primaryContainer,
-                      child: Icon(
-                        Icons.store,
-                        color: isSelected
-                            ? Theme.of(context).colorScheme.onPrimary
-                            : Theme.of(context).colorScheme.onPrimaryContainer,
+                  return Semantics(
+                    button: true,
+                    label: [
+                      center.name,
+                      if (center.displayLocation != null)
+                        center.displayLocation!,
+                      if (isSelected) 'selected',
+                    ].join(', '),
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: isSelected
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context).colorScheme.primaryContainer,
+                        child: Icon(
+                          Icons.store,
+                          color: isSelected
+                              ? Theme.of(context).colorScheme.onPrimary
+                              : Theme.of(
+                                  context,
+                                ).colorScheme.onPrimaryContainer,
+                        ),
                       ),
+                      title: Text(center.name),
+                      subtitle: center.displayLocation != null
+                          ? Text(center.displayLocation!)
+                          : null,
+                      trailing: isSelected
+                          ? Icon(
+                              Icons.check_circle,
+                              color: Theme.of(context).colorScheme.primary,
+                            )
+                          : null,
+                      onTap: () => onCenterSelected(center),
                     ),
-                    title: Text(center.name),
-                    subtitle: center.displayLocation != null
-                        ? Text(center.displayLocation!)
-                        : null,
-                    trailing: isSelected
-                        ? Icon(
-                            Icons.check_circle,
-                            color: Theme.of(context).colorScheme.primary,
-                          )
-                        : null,
-                    onTap: () => onCenterSelected(center),
                   );
                 },
               );

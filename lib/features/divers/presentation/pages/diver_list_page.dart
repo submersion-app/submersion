@@ -24,42 +24,50 @@ class DiverListPage extends ConsumerWidget {
           context.push('/divers/new');
         }
       },
+      tooltip: 'Add a new diver profile',
       icon: const Icon(Icons.person_add),
       label: const Text('Add Diver'),
     );
 
     // Desktop: Use master-detail layout
     if (ResponsiveBreakpoints.isMasterDetail(context)) {
-      return MasterDetailScaffold(
-        sectionId: 'divers',
-        masterBuilder: (context, onItemSelected, selectedId) =>
-            DiverListContent(
-              onItemSelected: onItemSelected,
-              selectedId: selectedId,
-              showAppBar: false,
-            ),
-        detailBuilder: (context, diverId) => DiverDetailPage(
-          diverId: diverId,
-          embedded: true,
-          onDeleted: () {
-            final state = GoRouterState.of(context);
-            context.go(state.uri.path);
-          },
+      return FocusTraversalGroup(
+        child: MasterDetailScaffold(
+          sectionId: 'divers',
+          masterBuilder: (context, onItemSelected, selectedId) =>
+              DiverListContent(
+                onItemSelected: onItemSelected,
+                selectedId: selectedId,
+                showAppBar: false,
+              ),
+          detailBuilder: (context, diverId) => DiverDetailPage(
+            diverId: diverId,
+            embedded: true,
+            onDeleted: () {
+              final state = GoRouterState.of(context);
+              context.go(state.uri.path);
+            },
+          ),
+          summaryBuilder: (context) => const DiverSummaryWidget(),
+          editBuilder: (context, diverId, onSaved, onCancel) => DiverEditPage(
+            diverId: diverId,
+            embedded: true,
+            onSaved: onSaved,
+            onCancel: onCancel,
+          ),
+          createBuilder: (context, onSaved, onCancel) => DiverEditPage(
+            embedded: true,
+            onSaved: onSaved,
+            onCancel: onCancel,
+          ),
+          floatingActionButton: fab,
         ),
-        summaryBuilder: (context) => const DiverSummaryWidget(),
-        editBuilder: (context, diverId, onSaved, onCancel) => DiverEditPage(
-          diverId: diverId,
-          embedded: true,
-          onSaved: onSaved,
-          onCancel: onCancel,
-        ),
-        createBuilder: (context, onSaved, onCancel) =>
-            DiverEditPage(embedded: true, onSaved: onSaved, onCancel: onCancel),
-        floatingActionButton: fab,
       );
     }
 
     // Mobile: Use list content with full scaffold
-    return DiverListContent(showAppBar: true, floatingActionButton: fab);
+    return FocusTraversalGroup(
+      child: DiverListContent(showAppBar: true, floatingActionButton: fab),
+    );
   }
 }

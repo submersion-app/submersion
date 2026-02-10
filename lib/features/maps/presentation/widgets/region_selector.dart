@@ -96,11 +96,14 @@ class _RegionSelectorState extends State<RegionSelector> {
       children: [
         // Gesture detector for drawing
         Positioned.fill(
-          child: GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onPanStart: _onPanStart,
-            onPanUpdate: _onPanUpdate,
-            onPanEnd: _onPanEnd,
+          child: Semantics(
+            label: 'Select region on map',
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onPanStart: _onPanStart,
+              onPanUpdate: _onPanUpdate,
+              onPanEnd: _onPanEnd,
+            ),
           ),
         ),
 

@@ -76,29 +76,33 @@ class _TripPickerState extends ConsumerState<TripPicker> {
 
         return Padding(
           padding: const EdgeInsets.only(left: 56, top: 4),
-          child: InkWell(
-            onTap: () => widget.onTripSelected(suggestedTrip),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.auto_awesome,
-                  size: 16,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Suggested: ${suggestedTrip.name}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
+          child: Semantics(
+            button: true,
+            label: 'Suggested trip: ${suggestedTrip.name}. Tap to use',
+            child: InkWell(
+              onTap: () => widget.onTripSelected(suggestedTrip),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.auto_awesome,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Suggested: ${suggestedTrip.name}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                     ),
                   ),
-                ),
-                TextButton(
-                  onPressed: () => widget.onTripSelected(suggestedTrip),
-                  child: const Text('Use'),
-                ),
-              ],
+                  TextButton(
+                    onPressed: () => widget.onTripSelected(suggestedTrip),
+                    child: const Text('Use'),
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -226,31 +230,39 @@ class TripPickerSheet extends ConsumerWidget {
                   final isSelected = selectedTrip?.id == trip.id;
                   final dateFormat = DateFormat.yMMMd();
 
-                  return ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: isSelected
-                          ? Theme.of(context).colorScheme.primary
-                          : Theme.of(context).colorScheme.primaryContainer,
-                      child: Icon(
-                        trip.isLiveaboard
-                            ? Icons.sailing
-                            : Icons.flight_takeoff,
-                        color: isSelected
-                            ? Theme.of(context).colorScheme.onPrimary
-                            : Theme.of(context).colorScheme.onPrimaryContainer,
+                  final tripLabel =
+                      '${trip.name}, ${dateFormat.format(trip.startDate)} to ${dateFormat.format(trip.endDate)}${isSelected ? ', selected' : ''}';
+
+                  return Semantics(
+                    label: tripLabel,
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: isSelected
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context).colorScheme.primaryContainer,
+                        child: Icon(
+                          trip.isLiveaboard
+                              ? Icons.sailing
+                              : Icons.flight_takeoff,
+                          color: isSelected
+                              ? Theme.of(context).colorScheme.onPrimary
+                              : Theme.of(
+                                  context,
+                                ).colorScheme.onPrimaryContainer,
+                        ),
                       ),
+                      title: Text(trip.name),
+                      subtitle: Text(
+                        '${dateFormat.format(trip.startDate)} - ${dateFormat.format(trip.endDate)}',
+                      ),
+                      trailing: isSelected
+                          ? Icon(
+                              Icons.check_circle,
+                              color: Theme.of(context).colorScheme.primary,
+                            )
+                          : null,
+                      onTap: () => onTripSelected(trip),
                     ),
-                    title: Text(trip.name),
-                    subtitle: Text(
-                      '${dateFormat.format(trip.startDate)} - ${dateFormat.format(trip.endDate)}',
-                    ),
-                    trailing: isSelected
-                        ? Icon(
-                            Icons.check_circle,
-                            color: Theme.of(context).colorScheme.primary,
-                          )
-                        : null,
-                    onTap: () => onTripSelected(trip),
                   );
                 },
               );

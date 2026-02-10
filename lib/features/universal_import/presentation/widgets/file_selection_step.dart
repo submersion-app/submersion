@@ -39,10 +39,12 @@ class FileSelectionStep extends ConsumerWidget {
             _ErrorBanner(message: state.error!),
           ],
           const Spacer(),
-          Icon(
-            Icons.upload_file,
-            size: 64,
-            color: theme.colorScheme.onSurfaceVariant,
+          ExcludeSemantics(
+            child: Icon(
+              Icons.upload_file,
+              size: 64,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 16),
           Text('Import Data', style: theme.textTheme.titleLarge),

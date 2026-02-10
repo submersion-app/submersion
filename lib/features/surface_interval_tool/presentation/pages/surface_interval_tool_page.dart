@@ -62,9 +62,11 @@ class SurfaceIntervalToolPage extends ConsumerWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(
-                        Icons.info_outline,
-                        color: colorScheme.onSurfaceVariant,
+                      ExcludeSemantics(
+                        child: Icon(
+                          Icons.info_outline,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Text(
@@ -99,10 +101,12 @@ class SurfaceIntervalToolPage extends ConsumerWidget {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          Icons.warning_amber,
-                          size: 20,
-                          color: colorScheme.error,
+                        ExcludeSemantics(
+                          child: Icon(
+                            Icons.warning_amber,
+                            size: 20,
+                            color: colorScheme.error,
+                          ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(

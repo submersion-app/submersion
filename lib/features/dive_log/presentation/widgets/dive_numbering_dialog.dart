@@ -32,9 +32,11 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
             children: [
               Row(
                 children: [
-                  Icon(
-                    Icons.format_list_numbered,
-                    color: Theme.of(context).colorScheme.primary,
+                  ExcludeSemantics(
+                    child: Icon(
+                      Icons.format_list_numbered,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Text(
@@ -97,9 +99,13 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.warning_amber_rounded,
-                      color: Theme.of(context).colorScheme.onTertiaryContainer,
+                    ExcludeSemantics(
+                      child: Icon(
+                        Icons.warning_amber_rounded,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onTertiaryContainer,
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -139,12 +145,14 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            Icon(
-              isHealthy ? Icons.check_circle : Icons.info_outline,
-              color: isHealthy
-                  ? Theme.of(context).colorScheme.onPrimaryContainer
-                  : Theme.of(context).colorScheme.error,
-              size: 32,
+            ExcludeSemantics(
+              child: Icon(
+                isHealthy ? Icons.check_circle : Icons.info_outline,
+                color: isHealthy
+                    ? Theme.of(context).colorScheme.onPrimaryContainer
+                    : Theme.of(context).colorScheme.error,
+                size: 32,
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -177,25 +185,30 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
         padding: const EdgeInsets.all(12),
         child: Column(
           children: gaps.take(10).map((gap) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.space_bar,
-                    size: 20,
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(gap.description),
-                  const Spacer(),
-                  Text(
-                    '${gap.count} missing',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+            return Semantics(
+              label: '${gap.description}, ${gap.count} missing',
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  children: [
+                    ExcludeSemantics(
+                      child: Icon(
+                        Icons.space_bar,
+                        size: 20,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 8),
+                    Text(gap.description),
+                    const Spacer(),
+                    Text(
+                      '${gap.count} missing',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           }).toList(),

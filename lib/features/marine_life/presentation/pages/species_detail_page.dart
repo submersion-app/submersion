@@ -22,11 +22,13 @@ class SpeciesDetailPage extends ConsumerWidget {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
+          tooltip: 'Back',
           onPressed: () => context.pop(),
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.edit_outlined),
+            tooltip: 'Edit species',
             onPressed: () => context.push('/species/$speciesId/edit'),
           ),
         ],
@@ -178,12 +180,14 @@ class SpeciesDetailPage extends ConsumerWidget {
               child: Center(
                 child: Column(
                   children: [
-                    Icon(
-                      Icons.visibility_off_outlined,
-                      size: 48,
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withAlpha(77),
+                    ExcludeSemantics(
+                      child: Icon(
+                        Icons.visibility_off_outlined,
+                        size: 48,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withAlpha(77),
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(

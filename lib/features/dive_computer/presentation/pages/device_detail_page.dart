@@ -398,10 +398,12 @@ class DeviceDetailPage extends ConsumerWidget {
                     ),
                   ],
                 ),
-                Icon(
-                  Icons.arrow_forward,
-                  color: colorScheme.onSurfaceVariant,
-                  size: 16,
+                ExcludeSemantics(
+                  child: Icon(
+                    Icons.arrow_forward,
+                    color: colorScheme.onSurfaceVariant,
+                    size: 16,
+                  ),
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,

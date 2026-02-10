@@ -47,7 +47,9 @@ class _ConflictResolutionDialogState
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.check_circle, size: 64, color: Colors.green),
+            const ExcludeSemantics(
+              child: Icon(Icons.check_circle, size: 64, color: Colors.green),
+            ),
             const SizedBox(height: 16),
             Text('No Conflicts', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
@@ -109,6 +111,7 @@ class _ConflictResolutionDialogState
           ),
           IconButton(
             icon: const Icon(Icons.close),
+            tooltip: 'Close conflict dialog',
             onPressed: () => Navigator.pop(context),
           ),
         ],
@@ -364,12 +367,14 @@ class _ConflictResolutionDialogState
                 ? () => setState(() => _currentIndex--)
                 : null,
             icon: const Icon(Icons.chevron_left),
+            tooltip: 'Previous conflict',
           ),
           IconButton(
             onPressed: _currentIndex < conflicts.length - 1
                 ? () => setState(() => _currentIndex++)
                 : null,
             icon: const Icon(Icons.chevron_right),
+            tooltip: 'Next conflict',
           ),
           const Spacer(),
           // Action buttons

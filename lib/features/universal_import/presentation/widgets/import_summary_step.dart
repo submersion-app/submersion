@@ -19,7 +19,13 @@ class ImportSummaryStep extends ConsumerWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.check_circle, size: 80, color: theme.colorScheme.primary),
+          ExcludeSemantics(
+            child: Icon(
+              Icons.check_circle,
+              size: 80,
+              color: theme.colorScheme.primary,
+            ),
+          ),
           const SizedBox(height: 24),
           Text('Import Complete', style: theme.textTheme.headlineMedium),
           const SizedBox(height: 16),

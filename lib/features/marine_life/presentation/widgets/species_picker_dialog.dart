@@ -70,6 +70,7 @@ class _SpeciesPickerDialogState extends ConsumerState<SpeciesPickerDialog> {
                       const Spacer(),
                       IconButton(
                         icon: const Icon(Icons.close),
+                        tooltip: 'Close species picker',
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                     ],
@@ -84,6 +85,7 @@ class _SpeciesPickerDialogState extends ConsumerState<SpeciesPickerDialog> {
                       suffixIcon: _searchQuery.isNotEmpty
                           ? IconButton(
                               icon: const Icon(Icons.clear),
+                              tooltip: 'Clear search',
                               onPressed: () {
                                 _searchController.clear();
                                 setState(() => _searchQuery = '');

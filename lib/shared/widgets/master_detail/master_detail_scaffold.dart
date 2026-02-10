@@ -311,9 +311,13 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
       );
     }
     // For FloatingActionButton.extended, wrap in a GestureDetector
-    return GestureDetector(
-      onTap: _onCreate,
-      child: AbsorbPointer(child: fab),
+    return Semantics(
+      button: true,
+      label: 'Create new item',
+      child: GestureDetector(
+        onTap: _onCreate,
+        child: AbsorbPointer(child: fab),
+      ),
     );
   }
 }

@@ -142,10 +142,13 @@ class _TripPhotoViewerPageState extends ConsumerState<TripPhotoViewerPage> {
 
                 // Transparent tap target to toggle overlays
                 Positioned.fill(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.translucent,
-                    onTap: () => setState(() => _showOverlay = !_showOverlay),
-                    child: const SizedBox.expand(),
+                  child: Semantics(
+                    label: 'Toggle photo overlay',
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.translucent,
+                      onTap: () => setState(() => _showOverlay = !_showOverlay),
+                      child: const SizedBox.expand(),
+                    ),
                   ),
                 ),
 
@@ -373,6 +376,7 @@ class _TopOverlay extends StatelessWidget {
               children: [
                 IconButton(
                   icon: const Icon(Icons.close, color: Colors.white),
+                  tooltip: 'Close photo viewer',
                   onPressed: onClose,
                 ),
                 Expanded(
@@ -389,6 +393,7 @@ class _TopOverlay extends StatelessWidget {
                 ),
                 IconButton(
                   icon: const Icon(Icons.share, color: Colors.white),
+                  tooltip: 'Share photo',
                   onPressed: onShare,
                 ),
               ],

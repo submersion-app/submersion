@@ -26,6 +26,7 @@ class TripListPage extends ConsumerWidget {
       },
       icon: const Icon(Icons.add),
       label: const Text('Add Trip'),
+      tooltip: 'Add Trip',
     );
 
     // Desktop: Use master-detail layout
@@ -59,6 +60,8 @@ class TripListPage extends ConsumerWidget {
     }
 
     // Mobile: Use list content with full scaffold
-    return TripListContent(showAppBar: true, floatingActionButton: fab);
+    return FocusTraversalGroup(
+      child: TripListContent(showAppBar: true, floatingActionButton: fab),
+    );
   }
 }

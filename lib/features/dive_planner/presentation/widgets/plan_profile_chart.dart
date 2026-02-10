@@ -97,13 +97,19 @@ class PlanProfileChart extends ConsumerWidget {
 
             // Chart
             Expanded(
-              child: LineChart(
-                _buildChartData(
-                  profilePoints,
-                  maxDepthDisplay,
-                  maxTime,
-                  theme,
-                  units,
+              child: Semantics(
+                label:
+                    'Dive profile chart showing depth over time, '
+                    'max depth ${units.formatDepth(planState.maxDepth)}, '
+                    'total time ${(planState.totalTimeSeconds / 60).toStringAsFixed(0)} minutes',
+                child: LineChart(
+                  _buildChartData(
+                    profilePoints,
+                    maxDepthDisplay,
+                    maxTime,
+                    theme,
+                    units,
+                  ),
                 ),
               ),
             ),

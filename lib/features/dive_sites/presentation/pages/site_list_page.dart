@@ -58,54 +58,63 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
           context.push('/sites/new');
         }
       },
+      tooltip: 'Add a new dive site',
       icon: const Icon(Icons.add_location),
       label: const Text('Add Site'),
     );
 
     // Desktop: Use master-detail layout
     if (ResponsiveBreakpoints.isMasterDetail(context)) {
-      return MasterDetailScaffold(
-        sectionId: 'sites',
-        masterBuilder: (context, onItemSelected, selectedId) => SiteListContent(
-          onItemSelected: onItemSelected,
-          selectedId: selectedId,
-          showAppBar: false,
-          isMapViewActive: _isMapView,
-          onMapViewToggle: _toggleMapView,
+      return FocusTraversalGroup(
+        child: MasterDetailScaffold(
+          sectionId: 'sites',
+          masterBuilder: (context, onItemSelected, selectedId) =>
+              SiteListContent(
+                onItemSelected: onItemSelected,
+                selectedId: selectedId,
+                showAppBar: false,
+                isMapViewActive: _isMapView,
+                onMapViewToggle: _toggleMapView,
+              ),
+          detailBuilder: (context, id) => SiteDetailPage(
+            siteId: id,
+            embedded: true,
+            onDeleted: () {
+              final state = GoRouterState.of(context);
+              final currentPath = state.uri.path;
+              context.go(currentPath);
+            },
+          ),
+          summaryBuilder: (context) => const SiteSummaryWidget(),
+          mapBuilder: (context, selectedId, onItemSelected) => SiteMapContent(
+            selectedId: selectedId,
+            onItemSelected: onItemSelected,
+            onDetailsTap: (siteId) {
+              // Exit map view and show detail pane for the selected site
+              final state = GoRouterState.of(context);
+              final currentPath = state.uri.path;
+              context.go('$currentPath?selected=$siteId');
+            },
+          ),
+          editBuilder: (context, id, onSaved, onCancel) => SiteEditPage(
+            siteId: id,
+            embedded: true,
+            onSaved: onSaved,
+            onCancel: onCancel,
+          ),
+          createBuilder: (context, onSaved, onCancel) => SiteEditPage(
+            embedded: true,
+            onSaved: onSaved,
+            onCancel: onCancel,
+          ),
+          floatingActionButton: fab,
         ),
-        detailBuilder: (context, id) => SiteDetailPage(
-          siteId: id,
-          embedded: true,
-          onDeleted: () {
-            final state = GoRouterState.of(context);
-            final currentPath = state.uri.path;
-            context.go(currentPath);
-          },
-        ),
-        summaryBuilder: (context) => const SiteSummaryWidget(),
-        mapBuilder: (context, selectedId, onItemSelected) => SiteMapContent(
-          selectedId: selectedId,
-          onItemSelected: onItemSelected,
-          onDetailsTap: (siteId) {
-            // Exit map view and show detail pane for the selected site
-            final state = GoRouterState.of(context);
-            final currentPath = state.uri.path;
-            context.go('$currentPath?selected=$siteId');
-          },
-        ),
-        editBuilder: (context, id, onSaved, onCancel) => SiteEditPage(
-          siteId: id,
-          embedded: true,
-          onSaved: onSaved,
-          onCancel: onCancel,
-        ),
-        createBuilder: (context, onSaved, onCancel) =>
-            SiteEditPage(embedded: true, onSaved: onSaved, onCancel: onCancel),
-        floatingActionButton: fab,
       );
     }
 
     // Mobile: Use list content with full scaffold
-    return SiteListContent(showAppBar: true, floatingActionButton: fab);
+    return FocusTraversalGroup(
+      child: SiteListContent(showAppBar: true, floatingActionButton: fab),
+    );
   }
 }

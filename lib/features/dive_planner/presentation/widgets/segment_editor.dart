@@ -104,7 +104,7 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
                       value: type,
                       child: Row(
                         children: [
-                          _SegmentTypeIcon(type: type),
+                          ExcludeSemantics(child: _SegmentTypeIcon(type: type)),
                           const SizedBox(width: 8),
                           Text(_getTypeLabel(type)),
                         ],

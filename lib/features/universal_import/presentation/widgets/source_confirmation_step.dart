@@ -43,56 +43,63 @@ class _SourceConfirmationStepState
           ],
 
           // Detection result card
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        detection.isHighConfidence
-                            ? Icons.check_circle
-                            : Icons.help_outline,
-                        color: detection.isHighConfidence
-                            ? theme.colorScheme.primary
-                            : theme.colorScheme.tertiary,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          detection.description,
-                          style: theme.textTheme.bodyLarge,
+          Semantics(
+            label: detection.isHighConfidence
+                ? 'Source detected: ${detection.description}'
+                : 'Source uncertain: ${detection.description}',
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        ExcludeSemantics(
+                          child: Icon(
+                            detection.isHighConfidence
+                                ? Icons.check_circle
+                                : Icons.help_outline,
+                            color: detection.isHighConfidence
+                                ? theme.colorScheme.primary
+                                : theme.colorScheme.tertiary,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            detection.description,
+                            style: theme.textTheme.bodyLarge,
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (!detection.isFormatSupported) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        detection.sourceApp?.exportInstructions ??
+                            'This format is not yet supported. '
+                                'Please export as UDDF or CSV.',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.error,
                         ),
                       ),
                     ],
-                  ),
-                  if (!detection.isFormatSupported) ...[
-                    const SizedBox(height: 12),
-                    Text(
-                      detection.sourceApp?.exportInstructions ??
-                          'This format is not yet supported. '
-                              'Please export as UDDF or CSV.',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.error,
-                      ),
-                    ),
-                  ],
-                  if (detection.warnings.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    for (final warning in detection.warnings)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
-                        child: Text(
-                          warning,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
+                    if (detection.warnings.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      for (final warning in detection.warnings)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Text(
+                            warning,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
                           ),
                         ),
-                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ),

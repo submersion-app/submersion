@@ -190,6 +190,7 @@ class _DiverDetailContent extends ConsumerWidget {
         ),
       IconButton(
         icon: const Icon(Icons.edit),
+        tooltip: 'Edit diver',
         onPressed: () => context.push('/divers/${diver.id}/edit'),
       ),
       PopupMenuButton<String>(
@@ -305,6 +306,7 @@ class _DiverDetailContent extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.edit, size: 20),
             visualDensity: VisualDensity.compact,
+            tooltip: 'Edit diver',
             onPressed: () {
               final state = GoRouterState.of(context);
               final currentPath = state.uri.path;
@@ -414,20 +416,22 @@ class _DiverDetailContent extends ConsumerWidget {
                 Positioned(
                   bottom: 0,
                   right: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primary,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: theme.colorScheme.surface,
-                        width: 2,
+                  child: ExcludeSemantics(
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: theme.colorScheme.surface,
+                          width: 2,
+                        ),
                       ),
-                    ),
-                    child: Icon(
-                      Icons.check,
-                      size: 16,
-                      color: theme.colorScheme.onPrimary,
+                      child: Icon(
+                        Icons.check,
+                        size: 16,
+                        color: theme.colorScheme.onPrimary,
+                      ),
                     ),
                   ),
                 ),

@@ -516,81 +516,84 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   }) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        return GestureDetector(
-          onScaleStart: (details) {
-            _previousZoom = _zoomLevel;
-            _previousPan = Offset(_panOffsetX, _panOffsetY);
-            _startFocalPoint = details.localFocalPoint;
-          },
-          onScaleUpdate: (details) {
-            setState(() {
-              // Handle zoom
-              final newZoom = (_previousZoom * details.scale).clamp(
-                _minZoom,
-                _maxZoom,
-              );
-
-              // Handle pan
-              final panDelta = details.localFocalPoint - _startFocalPoint;
-
-              // Convert pixel delta to normalized offset based on chart size
-              final chartWidth = constraints.maxWidth;
-              final chartHeight = constraints.maxHeight;
-
-              // Only apply pan if zoomed in
-              if (newZoom > 1.0) {
-                final normalizedDeltaX = -panDelta.dx / chartWidth / newZoom;
-                final normalizedDeltaY = -panDelta.dy / chartHeight / newZoom;
-
-                _panOffsetX = (_previousPan.dx + normalizedDeltaX).clamp(
-                  0.0,
-                  1.0 - (1.0 / newZoom),
-                );
-                _panOffsetY = (_previousPan.dy + normalizedDeltaY).clamp(
-                  0.0,
-                  1.0 - (1.0 / newZoom),
-                );
-              } else {
-                _panOffsetX = 0.0;
-                _panOffsetY = 0.0;
-              }
-
-              _zoomLevel = newZoom;
-            });
-          },
-          onDoubleTap: () {
-            if (_zoomLevel > 1.0) {
-              _resetZoom();
-            } else {
+        return Semantics(
+          label: 'Dive profile chart, pinch to zoom',
+          child: GestureDetector(
+            onScaleStart: (details) {
+              _previousZoom = _zoomLevel;
+              _previousPan = Offset(_panOffsetX, _panOffsetY);
+              _startFocalPoint = details.localFocalPoint;
+            },
+            onScaleUpdate: (details) {
               setState(() {
-                _zoomLevel = 2.0;
+                // Handle zoom
+                final newZoom = (_previousZoom * details.scale).clamp(
+                  _minZoom,
+                  _maxZoom,
+                );
+
+                // Handle pan
+                final panDelta = details.localFocalPoint - _startFocalPoint;
+
+                // Convert pixel delta to normalized offset based on chart size
+                final chartWidth = constraints.maxWidth;
+                final chartHeight = constraints.maxHeight;
+
+                // Only apply pan if zoomed in
+                if (newZoom > 1.0) {
+                  final normalizedDeltaX = -panDelta.dx / chartWidth / newZoom;
+                  final normalizedDeltaY = -panDelta.dy / chartHeight / newZoom;
+
+                  _panOffsetX = (_previousPan.dx + normalizedDeltaX).clamp(
+                    0.0,
+                    1.0 - (1.0 / newZoom),
+                  );
+                  _panOffsetY = (_previousPan.dy + normalizedDeltaY).clamp(
+                    0.0,
+                    1.0 - (1.0 / newZoom),
+                  );
+                } else {
+                  _panOffsetX = 0.0;
+                  _panOffsetY = 0.0;
+                }
+
+                _zoomLevel = newZoom;
               });
-            }
-          },
-          child: Listener(
-            onPointerSignal: (event) {
-              // Handle mouse scroll wheel for zoom
-              if (event is PointerScrollEvent) {
+            },
+            onDoubleTap: () {
+              if (_zoomLevel > 1.0) {
+                _resetZoom();
+              } else {
                 setState(() {
-                  final scrollDelta = event.scrollDelta.dy;
-                  if (scrollDelta < 0) {
-                    // Scroll up = zoom in
-                    _zoomLevel = (_zoomLevel * 1.1).clamp(_minZoom, _maxZoom);
-                  } else {
-                    // Scroll down = zoom out
-                    _zoomLevel = (_zoomLevel / 1.1).clamp(_minZoom, _maxZoom);
-                  }
-                  _clampPanOffsets();
+                  _zoomLevel = 2.0;
                 });
               }
             },
-            child: _buildChart(
-              context,
-              units,
-              availableWidth: constraints.maxWidth,
-              hasTemperatureData: hasTemperatureData,
-              hasPressureData: hasPressureData,
-              hasHeartRateData: hasHeartRateData,
+            child: Listener(
+              onPointerSignal: (event) {
+                // Handle mouse scroll wheel for zoom
+                if (event is PointerScrollEvent) {
+                  setState(() {
+                    final scrollDelta = event.scrollDelta.dy;
+                    if (scrollDelta < 0) {
+                      // Scroll up = zoom in
+                      _zoomLevel = (_zoomLevel * 1.1).clamp(_minZoom, _maxZoom);
+                    } else {
+                      // Scroll down = zoom out
+                      _zoomLevel = (_zoomLevel / 1.1).clamp(_minZoom, _maxZoom);
+                    }
+                    _clampPanOffsets();
+                  });
+                }
+              },
+              child: _buildChart(
+                context,
+                units,
+                availableWidth: constraints.maxWidth,
+                hasTemperatureData: hasTemperatureData,
+                hasPressureData: hasPressureData,
+                hasHeartRateData: hasHeartRateData,
+              ),
             ),
           ),
         );
@@ -609,12 +612,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.show_chart,
-              size: 48,
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+            ExcludeSemantics(
+              child: Icon(
+                Icons.show_chart,
+                size: 48,
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              ),
             ),
             const SizedBox(height: 8),
             Text(
@@ -1386,16 +1391,20 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             top: 0,
             bottom: 30, // Leave space for bottom axis
             width: 50, // Match reservedSize of right axis
-            child: GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: () => _showRightAxisMetricSelector(
-                context,
-                colorScheme,
-                effectiveRightAxisMetric,
-              ),
-              child: MouseRegion(
-                cursor: SystemMouseCursors.click,
-                child: Container(color: Colors.transparent),
+            child: Semantics(
+              button: true,
+              label: 'Change right axis metric',
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: () => _showRightAxisMetricSelector(
+                  context,
+                  colorScheme,
+                  effectiveRightAxisMetric,
+                ),
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: Container(color: Colors.transparent),
+                ),
               ),
             ),
           ),

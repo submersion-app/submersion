@@ -11,17 +11,23 @@ class HeatMapToggleButton extends ConsumerWidget {
     final settings = ref.watch(heatMapSettingsProvider);
     final colorScheme = Theme.of(context).colorScheme;
 
-    return IconButton(
-      icon: Icon(
-        settings.isVisible ? Icons.blur_on : Icons.blur_off,
-        color: settings.isVisible ? colorScheme.primary : null,
+    return Semantics(
+      label: settings.isVisible
+          ? 'Heat map overlay is on'
+          : 'Heat map overlay is off',
+      toggled: settings.isVisible,
+      child: IconButton(
+        icon: Icon(
+          settings.isVisible ? Icons.blur_on : Icons.blur_off,
+          color: settings.isVisible ? colorScheme.primary : null,
+        ),
+        tooltip: settings.isVisible ? 'Hide Heat Map' : 'Show Heat Map',
+        onPressed: () {
+          ref.read(heatMapSettingsProvider.notifier).state = settings.copyWith(
+            isVisible: !settings.isVisible,
+          );
+        },
       ),
-      tooltip: settings.isVisible ? 'Hide Heat Map' : 'Show Heat Map',
-      onPressed: () {
-        ref.read(heatMapSettingsProvider.notifier).state = settings.copyWith(
-          isVisible: !settings.isVisible,
-        );
-      },
     );
   }
 }

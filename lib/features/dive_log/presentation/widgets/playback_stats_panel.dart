@@ -51,10 +51,12 @@ class PlaybackStatsPanel extends StatelessWidget {
           // Header
           Row(
             children: [
-              Icon(
-                Icons.analytics_outlined,
-                size: 16,
-                color: colorScheme.primary,
+              ExcludeSemantics(
+                child: Icon(
+                  Icons.analytics_outlined,
+                  size: 16,
+                  color: colorScheme.primary,
+                ),
               ),
               const SizedBox(width: 8),
               Text(
@@ -326,7 +328,7 @@ class _StatItem extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 14, color: color),
+        ExcludeSemantics(child: Icon(icon, size: 14, color: color)),
         const SizedBox(width: 4),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,

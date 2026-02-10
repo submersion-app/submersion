@@ -379,6 +379,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             if (widget.isEditing)
               IconButton(
                 icon: const Icon(Icons.delete),
+                tooltip: 'Delete Site',
                 onPressed: _confirmDelete,
               ),
             if (_isLoading)
@@ -504,6 +505,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                     color: Colors.amber,
                     size: 32,
                   ),
+                  tooltip: '${index + 1} star${index == 0 ? '' : 's'}',
                   onPressed: () {
                     setState(() {
                       _rating = index + 1.0;

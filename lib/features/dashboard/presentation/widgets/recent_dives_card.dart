@@ -23,15 +23,21 @@ class RecentDivesCard extends ConsumerWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Recent Dives',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
+              Semantics(
+                header: true,
+                child: Text(
+                  'Recent Dives',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-              TextButton(
-                onPressed: () => context.go('/dives'),
-                child: const Text('View All'),
+              Tooltip(
+                message: 'View all dives',
+                child: TextButton(
+                  onPressed: () => context.go('/dives'),
+                  child: const Text('View All'),
+                ),
               ),
             ],
           ),
@@ -84,13 +90,16 @@ class RecentDivesCard extends ConsumerWidget {
               child: CircularProgressIndicator(),
             ),
           ),
-          error: (error, _) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Text(
-                'Failed to load dives',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.error,
+          error: (error, _) => Semantics(
+            label: 'Error: Failed to load recent dives',
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  'Failed to load dives',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.error,
+                  ),
                 ),
               ),
             ),
@@ -107,10 +116,12 @@ class RecentDivesCard extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(vertical: 24),
         child: Column(
           children: [
-            Icon(
-              Icons.waves_outlined,
-              size: 48,
-              color: theme.colorScheme.primary.withValues(alpha: 0.5),
+            ExcludeSemantics(
+              child: Icon(
+                Icons.waves_outlined,
+                size: 48,
+                color: theme.colorScheme.primary.withValues(alpha: 0.5),
+              ),
             ),
             const SizedBox(height: 8),
             Text(

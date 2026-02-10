@@ -113,6 +113,7 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => context.pop(),
+          tooltip: 'Close',
         ),
         actions: [
           TextButton(

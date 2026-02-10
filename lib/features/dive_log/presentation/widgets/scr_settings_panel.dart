@@ -204,7 +204,9 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
             // Header
             Row(
               children: [
-                Icon(Icons.sync_alt, color: theme.colorScheme.primary),
+                ExcludeSemantics(
+                  child: Icon(Icons.sync_alt, color: theme.colorScheme.primary),
+                ),
                 const SizedBox(width: 8),
                 Text(
                   'SCR Settings',
@@ -289,13 +291,16 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: InputDecorator(
-                    decoration: const InputDecoration(
-                      labelText: 'N₂',
-                      suffixText: '%',
-                      isDense: true,
+                  child: Semantics(
+                    label: 'Nitrogen: ${_calculateN2()} percent',
+                    child: InputDecorator(
+                      decoration: const InputDecoration(
+                        labelText: 'N₂',
+                        suffixText: '%',
+                        isDense: true,
+                      ),
+                      child: Text(_calculateN2()),
                     ),
-                    child: Text(_calculateN2()),
                   ),
                 ),
               ],
@@ -595,27 +600,33 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
         (injectionRate * supplyFraction - vo2) / (injectionRate - vo2);
     final loopO2Percent = (loopFo2 * 100).clamp(0, 100);
 
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.tertiaryContainer,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.calculate,
-            size: 16,
-            color: theme.colorScheme.onTertiaryContainer,
-          ),
-          const SizedBox(width: 8),
-          Text(
-            'Calculated loop FO₂: ${loopO2Percent.toStringAsFixed(1)}%',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onTertiaryContainer,
+    return Semantics(
+      label:
+          'Calculated loop fraction of oxygen: ${loopO2Percent.toStringAsFixed(1)} percent',
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.tertiaryContainer,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            ExcludeSemantics(
+              child: Icon(
+                Icons.calculate,
+                size: 16,
+                color: theme.colorScheme.onTertiaryContainer,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(width: 8),
+            Text(
+              'Calculated loop FO₂: ${loopO2Percent.toStringAsFixed(1)}%',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onTertiaryContainer,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

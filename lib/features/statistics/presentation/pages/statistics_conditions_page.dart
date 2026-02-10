@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
@@ -51,15 +52,26 @@ class StatisticsConditionsPage extends ConsumerWidget {
       title: 'Visibility Distribution',
       subtitle: 'Dives by visibility condition',
       child: visibilityAsync.when(
-        data: (data) => DistributionPieChart(
-          data: data,
-          colors: [
-            Colors.green.shade400,
-            Colors.blue.shade400,
-            Colors.orange.shade400,
-            Colors.grey.shade400,
-          ],
-        ),
+        data: (data) {
+          final description = data
+              .map((d) => '${d.label}: ${d.percentage.toStringAsFixed(0)}%')
+              .join(', ');
+          return Semantics(
+            label: chartSummaryLabel(
+              chartType: 'Pie',
+              description: 'Visibility distribution. $description',
+            ),
+            child: DistributionPieChart(
+              data: data,
+              colors: [
+                Colors.green.shade400,
+                Colors.blue.shade400,
+                Colors.orange.shade400,
+                Colors.grey.shade400,
+              ],
+            ),
+          );
+        },
         loading: () => const SizedBox(
           height: 200,
           child: Center(child: CircularProgressIndicator()),
@@ -79,10 +91,21 @@ class StatisticsConditionsPage extends ConsumerWidget {
       title: 'Water Type',
       subtitle: 'Salt vs Fresh water dives',
       child: waterTypeAsync.when(
-        data: (data) => DistributionPieChart(
-          data: data,
-          colors: [Colors.blue.shade600, Colors.cyan.shade400],
-        ),
+        data: (data) {
+          final description = data
+              .map((d) => '${d.label}: ${d.percentage.toStringAsFixed(0)}%')
+              .join(', ');
+          return Semantics(
+            label: chartSummaryLabel(
+              chartType: 'Pie',
+              description: 'Water type distribution. $description',
+            ),
+            child: DistributionPieChart(
+              data: data,
+              colors: [Colors.blue.shade600, Colors.cyan.shade400],
+            ),
+          );
+        },
         loading: () => const SizedBox(
           height: 200,
           child: Center(child: CircularProgressIndicator()),
@@ -109,9 +132,18 @@ class StatisticsConditionsPage extends ConsumerWidget {
               message: 'No entry method data available',
             );
           }
-          return CategoryBarChart(
-            data: data.map((d) => (label: d.label, count: d.count)).toList(),
-            barColor: Colors.teal,
+          final chartData = data
+              .map((d) => (label: d.label, count: d.count))
+              .toList();
+          final description = data
+              .map((d) => '${d.label}: ${d.count} dives')
+              .join(', ');
+          return Semantics(
+            label: chartSummaryLabel(
+              chartType: 'Bar',
+              description: 'Entry methods. $description',
+            ),
+            child: CategoryBarChart(data: chartData, barColor: Colors.teal),
           );
         },
         loading: () => const SizedBox(

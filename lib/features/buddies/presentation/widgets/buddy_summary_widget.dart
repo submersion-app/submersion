@@ -188,7 +188,9 @@ class BuddySummaryWidget extends ConsumerWidget {
                 subtitle: buddy.certificationLevel != null
                     ? Text(buddy.certificationLevel!.displayName)
                     : null,
-                trailing: const Icon(Icons.chevron_right),
+                trailing: const ExcludeSemantics(
+                  child: Icon(Icons.chevron_right),
+                ),
                 onTap: () {
                   final state = GoRouterState.of(context);
                   final currentPath = state.uri.path;

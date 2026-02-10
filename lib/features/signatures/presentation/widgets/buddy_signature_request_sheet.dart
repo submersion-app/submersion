@@ -42,13 +42,15 @@ class _BuddySignatureRequestSheetState
           mainAxisSize: MainAxisSize.min,
           children: [
             // Handle bar
-            Container(
-              margin: const EdgeInsets.only(top: 12),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(2),
+            ExcludeSemantics(
+              child: Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
             ),
 
@@ -193,31 +195,34 @@ class _BuddySignatureCaptureState extends State<_BuddySignatureCapture> {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(11),
-              child: GestureDetector(
-                onPanStart: (details) {
-                  setState(() {
-                    _currentStroke = [details.localPosition];
-                  });
-                },
-                onPanUpdate: (details) {
-                  setState(() {
-                    _currentStroke.add(details.localPosition);
-                  });
-                },
-                onPanEnd: (details) {
-                  setState(() {
-                    if (_currentStroke.isNotEmpty) {
-                      _strokes.add(List.from(_currentStroke));
-                    }
-                    _currentStroke = [];
-                  });
-                },
-                child: CustomPaint(
-                  painter: _SignaturePainter(
-                    strokes: _strokes,
-                    currentStroke: _currentStroke,
+              child: Semantics(
+                label: 'Draw signature',
+                child: GestureDetector(
+                  onPanStart: (details) {
+                    setState(() {
+                      _currentStroke = [details.localPosition];
+                    });
+                  },
+                  onPanUpdate: (details) {
+                    setState(() {
+                      _currentStroke.add(details.localPosition);
+                    });
+                  },
+                  onPanEnd: (details) {
+                    setState(() {
+                      if (_currentStroke.isNotEmpty) {
+                        _strokes.add(List.from(_currentStroke));
+                      }
+                      _currentStroke = [];
+                    });
+                  },
+                  child: CustomPaint(
+                    painter: _SignaturePainter(
+                      strokes: _strokes,
+                      currentStroke: _currentStroke,
+                    ),
+                    size: Size.infinite,
                   ),
-                  size: Size.infinite,
                 ),
               ),
             ),

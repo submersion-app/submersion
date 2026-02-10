@@ -39,106 +39,117 @@ class SurfaceIntervalResult extends ConsumerWidget {
         ? '${currentHours}h ${currentMinutes}m'
         : '$currentMinutes min';
 
-    return Card(
-      color: isSafe ? colorScheme.primaryContainer : colorScheme.errorContainer,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            // Status Icon
-            Icon(
-              isSafe ? Icons.check_circle : Icons.warning,
-              size: 48,
-              color: isSafe
-                  ? colorScheme.onPrimaryContainer
-                  : colorScheme.onErrorContainer,
-            ),
-            const SizedBox(height: 12),
-
-            // Main Result
-            Text(
-              'Minimum Surface Interval',
-              style: theme.textTheme.titleSmall?.copyWith(
-                color: isSafe
-                    ? colorScheme.onPrimaryContainer
-                    : colorScheme.onErrorContainer,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              intervalText,
-              style: theme.textTheme.displaySmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: isSafe
-                    ? colorScheme.onPrimaryContainer
-                    : colorScheme.onErrorContainer,
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Divider
-            Divider(
-              color: isSafe
-                  ? colorScheme.onPrimaryContainer.withValues(alpha: 0.2)
-                  : colorScheme.onErrorContainer.withValues(alpha: 0.2),
-            ),
-            const SizedBox(height: 16),
-
-            // Current interval vs minimum
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildInfoColumn(
-                  context: context,
-                  label: 'Current Interval',
-                  value: currentText,
-                  isSafe: isSafe,
-                ),
-                Container(
-                  width: 1,
-                  height: 40,
+    return Semantics(
+      label:
+          'Minimum surface interval: $intervalText. '
+          'Current interval: $currentText. '
+          'NDL for second dive: $ndlText. '
+          '${isSafe ? "Safe to dive" : "Not yet safe, increase surface interval"}',
+      child: Card(
+        color: isSafe
+            ? colorScheme.primaryContainer
+            : colorScheme.errorContainer,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              // Status Icon
+              ExcludeSemantics(
+                child: Icon(
+                  isSafe ? Icons.check_circle : Icons.warning,
+                  size: 48,
                   color: isSafe
-                      ? colorScheme.onPrimaryContainer.withValues(alpha: 0.2)
-                      : colorScheme.onErrorContainer.withValues(alpha: 0.2),
+                      ? colorScheme.onPrimaryContainer
+                      : colorScheme.onErrorContainer,
                 ),
-                _buildInfoColumn(
-                  context: context,
-                  label: 'NDL for 2nd Dive',
-                  value: ndlText,
-                  isSafe: isSafe,
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 12),
 
-            if (!isSafe) ...[
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: colorScheme.error.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+              // Main Result
+              Text(
+                'Minimum Surface Interval',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: isSafe
+                      ? colorScheme.onPrimaryContainer
+                      : colorScheme.onErrorContainer,
                 ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      size: 20,
-                      color: colorScheme.onErrorContainer,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Increase surface interval or reduce second dive depth/time',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onErrorContainer,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                intervalText,
+                style: theme.textTheme.displaySmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: isSafe
+                      ? colorScheme.onPrimaryContainer
+                      : colorScheme.onErrorContainer,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Divider
+              Divider(
+                color: isSafe
+                    ? colorScheme.onPrimaryContainer.withValues(alpha: 0.2)
+                    : colorScheme.onErrorContainer.withValues(alpha: 0.2),
+              ),
+              const SizedBox(height: 16),
+
+              // Current interval vs minimum
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildInfoColumn(
+                    context: context,
+                    label: 'Current Interval',
+                    value: currentText,
+                    isSafe: isSafe,
+                  ),
+                  Container(
+                    width: 1,
+                    height: 40,
+                    color: isSafe
+                        ? colorScheme.onPrimaryContainer.withValues(alpha: 0.2)
+                        : colorScheme.onErrorContainer.withValues(alpha: 0.2),
+                  ),
+                  _buildInfoColumn(
+                    context: context,
+                    label: 'NDL for 2nd Dive',
+                    value: ndlText,
+                    isSafe: isSafe,
+                  ),
+                ],
+              ),
+
+              if (!isSafe) ...[
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: colorScheme.error.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        size: 20,
+                        color: colorScheme.onErrorContainer,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Increase surface interval or reduce second dive depth/time',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onErrorContainer,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

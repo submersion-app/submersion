@@ -280,6 +280,7 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
                   suffixIcon: _searchQuery.isNotEmpty
                       ? IconButton(
                           icon: const Icon(Icons.clear),
+                          tooltip: 'Clear search',
                           onPressed: () {
                             _searchController.clear();
                             setState(() => _searchQuery = '');

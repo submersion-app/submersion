@@ -24,16 +24,19 @@ class MapViewToggleButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return IconButton(
-      icon: Icon(Icons.map, size: iconSize),
-      tooltip: 'Map View',
-      onPressed: onToggle,
-      style: isActive
-          ? IconButton.styleFrom(
-              backgroundColor: colorScheme.primaryContainer,
-              foregroundColor: colorScheme.onPrimaryContainer,
-            )
-          : null,
+    return Semantics(
+      toggled: isActive,
+      child: IconButton(
+        icon: Icon(Icons.map, size: iconSize),
+        tooltip: isActive ? 'Hide Map View' : 'Show Map View',
+        onPressed: onToggle,
+        style: isActive
+            ? IconButton.styleFrom(
+                backgroundColor: colorScheme.primaryContainer,
+                foregroundColor: colorScheme.onPrimaryContainer,
+              )
+            : null,
+      ),
     );
   }
 }

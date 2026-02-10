@@ -37,20 +37,22 @@ class HeatMapLayer extends StatelessWidget {
   Widget build(BuildContext context) {
     if (points.isEmpty) return const SizedBox.shrink();
 
-    return IgnorePointer(
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return CustomPaint(
-            size: Size(constraints.maxWidth, constraints.maxHeight),
-            painter: _HeatMapPainter(
-              points: points,
-              radius: radius,
-              opacity: opacity,
-              gradient: gradient ?? _defaultGradient,
-              camera: MapCamera.of(context),
-            ),
-          );
-        },
+    return ExcludeSemantics(
+      child: IgnorePointer(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return CustomPaint(
+              size: Size(constraints.maxWidth, constraints.maxHeight),
+              painter: _HeatMapPainter(
+                points: points,
+                radius: radius,
+                opacity: opacity,
+                gradient: gradient ?? _defaultGradient,
+                camera: MapCamera.of(context),
+              ),
+            );
+          },
+        ),
       ),
     );
   }

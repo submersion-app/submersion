@@ -170,6 +170,7 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
           ),
           IconButton(
             icon: const Icon(Icons.search),
+            tooltip: 'Search dive centers',
             onPressed: () {
               showSearch(
                 context: context,
@@ -184,6 +185,7 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
+            tooltip: 'More options',
             onSelected: (value) {
               if (value == 'import') {
                 context.push('/dive-centers/import');
@@ -242,6 +244,7 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
             ),
           IconButton(
             icon: const Icon(Icons.search, size: 20),
+            tooltip: 'Search dive centers',
             onPressed: () {
               showSearch(
                 context: context,
@@ -256,6 +259,7 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, size: 20),
+            tooltip: 'More options',
             onSelected: (value) {
               if (value == 'import') {
                 context.push('/dive-centers/import');
@@ -501,7 +505,12 @@ class DiveCenterListTile extends ConsumerWidget {
                 ],
               ),
               const SizedBox(width: 8),
-              Icon(Icons.chevron_right, color: theme.colorScheme.outline),
+              ExcludeSemantics(
+                child: Icon(
+                  Icons.chevron_right,
+                  color: theme.colorScheme.outline,
+                ),
+              ),
             ],
           ),
         ),
@@ -520,7 +529,11 @@ class DiveCenterSearchDelegate extends SearchDelegate<DiveCenter?> {
   List<Widget>? buildActions(BuildContext context) {
     return [
       if (query.isNotEmpty)
-        IconButton(icon: const Icon(Icons.clear), onPressed: () => query = ''),
+        IconButton(
+          icon: const Icon(Icons.clear),
+          tooltip: 'Clear search',
+          onPressed: () => query = '',
+        ),
     ];
   }
 
@@ -528,6 +541,7 @@ class DiveCenterSearchDelegate extends SearchDelegate<DiveCenter?> {
   Widget? buildLeading(BuildContext context) {
     return IconButton(
       icon: const Icon(Icons.arrow_back),
+      tooltip: 'Back',
       onPressed: () => close(context, null),
     );
   }

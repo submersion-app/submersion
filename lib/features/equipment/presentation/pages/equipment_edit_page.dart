@@ -316,17 +316,22 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           if (!widget.embedded) ...[
             const SizedBox(height: 32),
             // Save Button
-            FilledButton(
-              onPressed: _isLoading
-                  ? null
-                  : () => _saveEquipment(existingEquipment),
-              child: _isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(widget.isEditing ? 'Save Changes' : 'Add Equipment'),
+            Tooltip(
+              message: widget.isEditing
+                  ? 'Save equipment changes'
+                  : 'Add new equipment item',
+              child: FilledButton(
+                onPressed: _isLoading
+                    ? null
+                    : () => _saveEquipment(existingEquipment),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(widget.isEditing ? 'Save Changes' : 'Add Equipment'),
+              ),
             ),
           ],
         ],
@@ -379,9 +384,12 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
                 ),
               )
             else
-              TextButton(
-                onPressed: () => _saveEquipment(existingEquipment),
-                child: const Text('Save'),
+              Tooltip(
+                message: 'Save equipment changes',
+                child: TextButton(
+                  onPressed: () => _saveEquipment(existingEquipment),
+                  child: const Text('Save'),
+                ),
               ),
           ],
         ),
@@ -438,20 +446,25 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             child: const Text('Cancel'),
           ),
           const SizedBox(width: 8),
-          FilledButton(
-            onPressed: _isLoading
-                ? null
-                : () => _saveEquipment(existingEquipment),
-            child: _isLoading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : const Text('Save'),
+          Tooltip(
+            message: widget.isEditing
+                ? 'Save equipment changes'
+                : 'Add new equipment',
+            child: FilledButton(
+              onPressed: _isLoading
+                  ? null
+                  : () => _saveEquipment(existingEquipment),
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text('Save'),
+            ),
           ),
         ],
       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_saturation_chart.dart';
 
@@ -40,7 +41,9 @@ class TissueSaturationPanel extends StatelessWidget {
         initiallyExpanded: initiallyExpanded,
         tilePadding: const EdgeInsets.symmetric(horizontal: 16),
         childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        leading: Icon(Icons.blur_linear, color: colorScheme.primary),
+        leading: ExcludeSemantics(
+          child: Icon(Icons.blur_linear, color: colorScheme.primary),
+        ),
         title: Text(
           'Tissue Loading',
           style: Theme.of(context).textTheme.titleSmall,
@@ -127,24 +130,27 @@ class _StatChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
+    return Semantics(
+      label: statLabel(name: label, value: value),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: color,
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -167,44 +173,57 @@ class CompactTissueSaturation extends StatelessWidget {
     final status = decoStatus!;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(8),
+    return Semantics(
+      label: chartSummaryLabel(
+        chartType: 'Compact tissue loading',
+        description:
+            'Leading compartment ${status.leadingCompartment.compartmentNumber} at ${status.leadingCompartment.percentLoading.toStringAsFixed(0)} percent',
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.blur_linear, size: 14, color: colorScheme.primary),
-              const SizedBox(width: 4),
-              Text(
-                'Tissue Loading',
-                style: Theme.of(
-                  context,
-                ).textTheme.labelSmall?.copyWith(color: colorScheme.primary),
-              ),
-              const Spacer(),
-              Text(
-                'TC${status.leadingCompartment.compartmentNumber}: ${status.leadingCompartment.percentLoading.toStringAsFixed(0)}%',
-                style: Theme.of(
-                  context,
-                ).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          TissueSaturationChart(
-            compartments: status.compartments,
-            leadingCompartmentNumber:
-                status.leadingCompartment.compartmentNumber,
-            height: 60,
-            showLabels: false,
-          ),
-        ],
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                ExcludeSemantics(
+                  child: Icon(
+                    Icons.blur_linear,
+                    size: 14,
+                    color: colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'Tissue Loading',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelSmall?.copyWith(color: colorScheme.primary),
+                ),
+                const Spacer(),
+                Text(
+                  'TC${status.leadingCompartment.compartmentNumber}: ${status.leadingCompartment.percentLoading.toStringAsFixed(0)}%',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            TissueSaturationChart(
+              compartments: status.compartments,
+              leadingCompartmentNumber:
+                  status.leadingCompartment.compartmentNumber,
+              height: 60,
+              showLabels: false,
+            ),
+          ],
+        ),
       ),
     );
   }

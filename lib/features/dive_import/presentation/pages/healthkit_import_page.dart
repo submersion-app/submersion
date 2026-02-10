@@ -39,6 +39,7 @@ class _HealthKitImportPageState extends ConsumerState<HealthKitImportPage> {
         title: const Text('Import from Apple Watch'),
         leading: IconButton(
           icon: const Icon(Icons.close),
+          tooltip: 'Close Apple Watch import',
           onPressed: () => context.pop(),
         ),
       ),
@@ -69,6 +70,7 @@ class _HealthKitImportPageState extends ConsumerState<HealthKitImportPage> {
         title: const Text('Import from Watch'),
         leading: IconButton(
           icon: const Icon(Icons.close),
+          tooltip: 'Close Apple Watch import',
           onPressed: () => context.pop(),
         ),
       ),
@@ -78,10 +80,12 @@ class _HealthKitImportPageState extends ConsumerState<HealthKitImportPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.watch_off,
-                size: 64,
-                color: theme.colorScheme.onSurfaceVariant,
+              ExcludeSemantics(
+                child: Icon(
+                  Icons.watch_off,
+                  size: 64,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 16),
               Text('Not Available', style: theme.textTheme.headlineSmall),
@@ -108,10 +112,12 @@ class _HealthKitImportPageState extends ConsumerState<HealthKitImportPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.health_and_safety,
-              size: 64,
-              color: theme.colorScheme.primary,
+            ExcludeSemantics(
+              child: Icon(
+                Icons.health_and_safety,
+                size: 64,
+                color: theme.colorScheme.primary,
+              ),
             ),
             const SizedBox(height: 16),
             Text(
@@ -419,7 +425,13 @@ class _HealthKitImportPageState extends ConsumerState<HealthKitImportPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.check_circle, size: 80, color: theme.colorScheme.primary),
+          ExcludeSemantics(
+            child: Icon(
+              Icons.check_circle,
+              size: 80,
+              color: theme.colorScheme.primary,
+            ),
+          ),
           const SizedBox(height: 24),
           Text('Import Complete', style: theme.textTheme.headlineMedium),
           const SizedBox(height: 16),
@@ -459,10 +471,12 @@ class _HealthKitImportPageState extends ConsumerState<HealthKitImportPage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.watch_off,
-            size: 64,
-            color: theme.colorScheme.onSurfaceVariant,
+          ExcludeSemantics(
+            child: Icon(
+              Icons.watch_off,
+              size: 64,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 16),
           Text('No Dives Found', style: theme.textTheme.titleLarge),
@@ -684,42 +698,46 @@ class _DateButton extends StatelessWidget {
     final theme = Theme.of(context);
     final dateFormat = DateFormat.yMMMd();
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        decoration: BoxDecoration(
-          border: Border.all(color: theme.colorScheme.outline),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              Icons.calendar_today,
-              size: 18,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    label,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  Text(
-                    dateFormat.format(date),
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                ],
+    return Semantics(
+      button: true,
+      label: '$label date selector',
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          decoration: BoxDecoration(
+            border: Border.all(color: theme.colorScheme.outline),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.calendar_today,
+                size: 18,
+                color: theme.colorScheme.onSurfaceVariant,
               ),
-            ),
-          ],
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      label,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    Text(
+                      dateFormat.format(date),
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

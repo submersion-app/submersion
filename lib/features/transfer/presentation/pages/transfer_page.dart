@@ -120,6 +120,7 @@ class _TransferSectionDetailPage extends ConsumerWidget {
         title: Text(title),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
+          tooltip: 'Back to transfer',
           onPressed: () => context.go('/transfer'),
         ),
       ),
@@ -210,48 +211,54 @@ class _ImportSectionContent extends ConsumerWidget {
           // Universal Import (primary entry point)
           Card(
             clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              onTap: () => context.push('/transfer/import-wizard'),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: colorScheme.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
+            child: Semantics(
+              button: true,
+              label: 'Import data with auto-detection',
+              child: InkWell(
+                onTap: () => context.push('/transfer/import-wizard'),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Icons.auto_fix_high,
+                          color: colorScheme.primary,
+                        ),
                       ),
-                      child: Icon(
-                        Icons.auto_fix_high,
-                        color: colorScheme.primary,
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Import Data',
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w600),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Auto-detects CSV, UDDF, FIT, and more',
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Import Data',
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.w600),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Auto-detects CSV, UDDF, FIT, and more',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: colorScheme.onSurfaceVariant),
-                          ),
-                        ],
+                      Icon(
+                        Icons.chevron_right,
+                        color: colorScheme.onSurfaceVariant,
                       ),
-                    ),
-                    Icon(
-                      Icons.chevron_right,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -729,10 +736,12 @@ class _TransferSummaryWidget extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.sync_alt,
-            size: 64,
-            color: colorScheme.primary.withValues(alpha: 0.5),
+          ExcludeSemantics(
+            child: Icon(
+              Icons.sync_alt,
+              size: 64,
+              color: colorScheme.primary.withValues(alpha: 0.5),
+            ),
           ),
           const SizedBox(height: 16),
           Text('Transfer', style: Theme.of(context).textTheme.headlineSmall),

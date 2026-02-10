@@ -55,10 +55,12 @@ class DiveSummaryWidget extends ConsumerWidget {
       children: [
         Row(
           children: [
-            Icon(
-              Icons.scuba_diving,
-              size: 32,
-              color: Theme.of(context).colorScheme.primary,
+            ExcludeSemantics(
+              child: Icon(
+                Icons.scuba_diving,
+                size: 32,
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ),
             const SizedBox(width: 12),
             Text(
@@ -177,7 +179,9 @@ class DiveSummaryWidget extends ConsumerWidget {
                   color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(icon, color: color, size: 24),
+                child: ExcludeSemantics(
+                  child: Icon(icon, color: color, size: 24),
+                ),
               ),
               const SizedBox(height: 8),
               Text(

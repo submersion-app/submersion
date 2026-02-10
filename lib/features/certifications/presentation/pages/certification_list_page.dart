@@ -24,6 +24,7 @@ class CertificationListPage extends ConsumerWidget {
           context.push('/certifications/new');
         }
       },
+      tooltip: 'Add Certification',
       icon: const Icon(Icons.add_card),
       label: const Text('Add Certification'),
     );
@@ -64,9 +65,11 @@ class CertificationListPage extends ConsumerWidget {
     }
 
     // Mobile: Use list content with full scaffold
-    return CertificationListContent(
-      showAppBar: true,
-      floatingActionButton: fab,
+    return FocusTraversalGroup(
+      child: CertificationListContent(
+        showAppBar: true,
+        floatingActionButton: fab,
+      ),
     );
   }
 }

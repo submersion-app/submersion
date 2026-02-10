@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 
 /// Card displaying oxygen toxicity information (CNS% and OTU).
@@ -36,7 +37,9 @@ class O2ToxicityCard extends StatelessWidget {
         if (showHeader) ...[
           Row(
             children: [
-              Icon(Icons.air, size: 20, color: colorScheme.primary),
+              ExcludeSemantics(
+                child: Icon(Icons.air, size: 20, color: colorScheme.primary),
+              ),
               const SizedBox(width: 8),
               Text(
                 'Oxygen Toxicity',
@@ -46,24 +49,29 @@ class O2ToxicityCard extends StatelessWidget {
               ),
               const Spacer(),
               if (exposure.cnsWarning || exposure.ppO2Warning)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: exposure.cnsCritical || exposure.ppO2Critical
-                        ? colorScheme.error
-                        : Colors.orange,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    exposure.cnsCritical || exposure.ppO2Critical
-                        ? 'CRITICAL'
-                        : 'WARNING',
-                    style: textTheme.labelSmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+                Semantics(
+                  label: exposure.cnsCritical || exposure.ppO2Critical
+                      ? 'Critical oxygen toxicity warning'
+                      : 'Oxygen toxicity warning',
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: exposure.cnsCritical || exposure.ppO2Critical
+                          ? colorScheme.error
+                          : Colors.orange,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      exposure.cnsCritical || exposure.ppO2Critical
+                          ? 'CRITICAL'
+                          : 'WARNING',
+                      style: textTheme.labelSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -108,51 +116,57 @@ class O2ToxicityCard extends StatelessWidget {
       return Colors.green;
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('CNS Oxygen Clock', style: textTheme.bodyMedium),
-            Text(
-              exposure.cnsFormatted,
-              style: textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: getProgressColor(),
+    return Semantics(
+      label: statLabel(name: 'CNS Oxygen Clock', value: exposure.cnsFormatted),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('CNS Oxygen Clock', style: textTheme.bodyMedium),
+              Text(
+                exposure.cnsFormatted,
+                style: textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: getProgressColor(),
+                ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(4),
-          child: LinearProgressIndicator(
-            value: (exposure.cnsEnd / 100).clamp(0.0, 1.0),
-            minHeight: 8,
-            backgroundColor: colorScheme.surfaceContainerHighest,
-            valueColor: AlwaysStoppedAnimation<Color>(getProgressColor()),
+            ],
           ),
-        ),
-        const SizedBox(height: 4),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Start: ${exposure.cnsStart.toStringAsFixed(0)}%',
-              style: textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
+          const SizedBox(height: 8),
+          Semantics(
+            label: 'CNS progress ${exposure.cnsEnd.toStringAsFixed(0)} percent',
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: (exposure.cnsEnd / 100).clamp(0.0, 1.0),
+                minHeight: 8,
+                backgroundColor: colorScheme.surfaceContainerHighest,
+                valueColor: AlwaysStoppedAnimation<Color>(getProgressColor()),
               ),
             ),
-            Text(
-              '+${exposure.cnsDelta.toStringAsFixed(1)}% this dive',
-              style: textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Start: ${exposure.cnsStart.toStringAsFixed(0)}%',
+                style: textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
-            ),
-          ],
-        ),
-      ],
+              Text(
+                '+${exposure.cnsDelta.toStringAsFixed(1)}% this dive',
+                style: textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -168,49 +182,53 @@ class O2ToxicityCard extends StatelessWidget {
       return Colors.green;
     }
 
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Oxygen Tolerance Units', style: textTheme.bodyMedium),
-              const SizedBox(height: 4),
-              Text(
-                exposure.otuFormatted,
-                style: textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: getOtuColor(),
+    return Semantics(
+      label:
+          'Oxygen Tolerance Units: ${exposure.otuFormatted}, ${exposure.otuPercentOfDaily.toStringAsFixed(0)} percent of daily limit',
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Oxygen Tolerance Units', style: textTheme.bodyMedium),
+                const SizedBox(height: 4),
+                Text(
+                  exposure.otuFormatted,
+                  style: textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: getOtuColor(),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Column(
-            children: [
-              Text(
-                '${exposure.otuPercentOfDaily.toStringAsFixed(0)}%',
-                style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: getOtuColor(),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  '${exposure.otuPercentOfDaily.toStringAsFixed(0)}%',
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: getOtuColor(),
+                  ),
                 ),
-              ),
-              Text(
-                'of daily limit',
-                style: textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+                Text(
+                  'of daily limit',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -273,30 +291,39 @@ class O2ToxicityCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          if (icon != null) ...[
-            Icon(icon, size: 16, color: colorScheme.onSurfaceVariant),
-            const SizedBox(width: 8),
-          ],
-          Expanded(
-            child: Text(
-              label,
-              style: textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
+    return Semantics(
+      label: '$label: $value',
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            if (icon != null) ...[
+              ExcludeSemantics(
+                child: Icon(
+                  icon,
+                  size: 16,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
+            Expanded(
+              child: Text(
+                label,
+                style: textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
-          ),
-          Text(
-            value,
-            style: textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w500,
-              color: valueColor,
+            Text(
+              value,
+              style: textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+                color: valueColor,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -326,26 +353,31 @@ class O2ToxicityBadge extends StatelessWidget {
       return Colors.green;
     }
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: getBadgeColor().withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: getBadgeColor()),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.air, size: 14, color: getBadgeColor()),
-          const SizedBox(width: 4),
-          Text(
-            'CNS ${exposure.cnsFormatted}',
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: getBadgeColor(),
-              fontWeight: FontWeight.w600,
+    return Semantics(
+      label: 'CNS oxygen toxicity ${exposure.cnsFormatted}',
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: getBadgeColor().withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: getBadgeColor()),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ExcludeSemantics(
+              child: Icon(Icons.air, size: 14, color: getBadgeColor()),
             ),
-          ),
-        ],
+            const SizedBox(width: 4),
+            Text(
+              'CNS ${exposure.cnsFormatted}',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: getBadgeColor(),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

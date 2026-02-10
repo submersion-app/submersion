@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/features/statistics/presentation/widgets/ranking_list.dart';
 import 'package:submersion/features/statistics/presentation/widgets/stat_section_card.dart';
@@ -41,17 +42,20 @@ class StatisticsMarineLifePage extends ConsumerWidget {
     final speciesCountAsync = ref.watch(uniqueSpeciesCountProvider);
 
     return speciesCountAsync.when(
-      data: (count) => Row(
-        children: [
-          Expanded(
-            child: StatValueCard(
-              icon: Icons.pets,
-              label: 'Species Spotted',
-              value: count.toString(),
-              iconColor: Colors.teal,
+      data: (count) => Semantics(
+        label: statLabel(name: 'Species Spotted', value: count.toString()),
+        child: Row(
+          children: [
+            Expanded(
+              child: StatValueCard(
+                icon: Icons.pets,
+                label: 'Species Spotted',
+                value: count.toString(),
+                iconColor: Colors.teal,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       loading: () => const Card(
         child: SizedBox(
@@ -70,12 +74,20 @@ class StatisticsMarineLifePage extends ConsumerWidget {
       title: 'Most Common Sightings',
       subtitle: 'Species spotted most often',
       child: sightingsAsync.when(
-        data: (data) => RankingList(
-          items: data,
-          countLabel: 'sightings',
-          maxItems: 10,
-          onItemTap: (item) => context.push('/species/${item.id}'),
-        ),
+        data: (data) {
+          final summary = data.isNotEmpty
+              ? '${data.length} species. Most common: ${data.first.name} with ${data.first.count} sightings'
+              : 'No sighting data';
+          return Semantics(
+            label: summary,
+            child: RankingList(
+              items: data,
+              countLabel: 'sightings',
+              maxItems: 10,
+              onItemTap: (item) => context.push('/species/${item.id}'),
+            ),
+          );
+        },
         loading: () => const SizedBox(
           height: 200,
           child: Center(child: CircularProgressIndicator()),
@@ -95,12 +107,20 @@ class StatisticsMarineLifePage extends ConsumerWidget {
       title: 'Best Sites for Marine Life',
       subtitle: 'Sites with most species variety',
       child: sitesAsync.when(
-        data: (data) => RankingList(
-          items: data,
-          countLabel: 'species',
-          maxItems: 10,
-          onItemTap: (item) => context.push('/sites/${item.id}'),
-        ),
+        data: (data) {
+          final summary = data.isNotEmpty
+              ? '${data.length} sites. Best: ${data.first.name} with ${data.first.count} species'
+              : 'No site data';
+          return Semantics(
+            label: summary,
+            child: RankingList(
+              items: data,
+              countLabel: 'species',
+              maxItems: 10,
+              onItemTap: (item) => context.push('/sites/${item.id}'),
+            ),
+          );
+        },
         loading: () => const SizedBox(
           height: 200,
           child: Center(child: CircularProgressIndicator()),

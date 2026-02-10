@@ -125,64 +125,71 @@ class ProfileSelectorWidget extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return InkWell(
-      onTap: onSelectionChanged != null
-          ? () => onSelectionChanged!(computer.id)
-          : null,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? colorScheme.primaryContainer
-              : colorScheme.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
+    return Semantics(
+      button: true,
+      label: 'Select dive computer ${computer.displayName}',
+      child: InkWell(
+        onTap: onSelectionChanged != null
+            ? () => onSelectionChanged!(computer.id)
+            : null,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
             color: isSelected
-                ? colorScheme.primary
-                : colorScheme.outlineVariant,
-            width: isSelected ? 2 : 1,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.watch,
-              size: 16,
+                ? colorScheme.primaryContainer
+                : colorScheme.surface,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
               color: isSelected
-                  ? colorScheme.onPrimaryContainer
-                  : colorScheme.onSurfaceVariant,
+                  ? colorScheme.primary
+                  : colorScheme.outlineVariant,
+              width: isSelected ? 2 : 1,
             ),
-            const SizedBox(width: 6),
-            Text(
-              computer.displayName,
-              style: textTheme.bodyMedium?.copyWith(
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.watch,
+                size: 16,
                 color: isSelected
                     ? colorScheme.onPrimaryContainer
-                    : colorScheme.onSurface,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                    : colorScheme.onSurfaceVariant,
               ),
-            ),
-            if (isPrimary) ...[
-              const SizedBox(width: 4),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: colorScheme.tertiary,
-                  borderRadius: BorderRadius.circular(8),
+              const SizedBox(width: 6),
+              Text(
+                computer.displayName,
+                style: textTheme.bodyMedium?.copyWith(
+                  color: isSelected
+                      ? colorScheme.onPrimaryContainer
+                      : colorScheme.onSurface,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                 ),
-                child: Text(
-                  'Primary',
-                  style: textTheme.labelSmall?.copyWith(
-                    color: colorScheme.onTertiary,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 10,
+              ),
+              if (isPrimary) ...[
+                const SizedBox(width: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colorScheme.tertiary,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'Primary',
+                    style: textTheme.labelSmall?.copyWith(
+                      color: colorScheme.onTertiary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 10,
+                    ),
                   ),
                 ),
-              ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

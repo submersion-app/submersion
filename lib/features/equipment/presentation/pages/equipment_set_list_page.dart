@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
@@ -39,6 +40,7 @@ class EquipmentSetListPage extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/equipment/sets/new'),
+        tooltip: 'Create a new equipment set',
         icon: const Icon(Icons.add),
         label: const Text('Create Set'),
       ),
@@ -52,12 +54,14 @@ class EquipmentSetListPage extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.folder_outlined,
-              size: 80,
-              color: Theme.of(
-                context,
-              ).colorScheme.primary.withValues(alpha: 0.5),
+            ExcludeSemantics(
+              child: Icon(
+                Icons.folder_outlined,
+                size: 80,
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.5),
+              ),
             ),
             const SizedBox(height: 16),
             Text(
@@ -90,31 +94,42 @@ class EquipmentSetListPage extends ConsumerWidget {
       itemCount: sets.length,
       itemBuilder: (context, index) {
         final set = sets[index];
-        return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          child: ListTile(
-            onTap: () => context.push('/equipment/sets/${set.id}'),
-            leading: CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              child: Icon(
-                Icons.folder,
-                color: Theme.of(context).colorScheme.onPrimaryContainer,
+        final itemCountText =
+            '${set.itemCount} ${set.itemCount == 1 ? 'item' : 'items'}';
+        return Semantics(
+          label: listItemLabel(
+            title: set.name,
+            subtitle: set.description.isNotEmpty
+                ? set.description
+                : itemCountText,
+          ),
+          child: Card(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: ListTile(
+              onTap: () => context.push('/equipment/sets/${set.id}'),
+              leading: CircleAvatar(
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                child: Icon(
+                  Icons.folder,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                ),
               ),
+              title: Text(set.name),
+              subtitle: Text(
+                set.description.isNotEmpty ? set.description : itemCountText,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              trailing: set.itemCount > 0
+                  ? Semantics(
+                      label: '$itemCountText in set',
+                      child: Chip(
+                        label: Text('${set.itemCount}'),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    )
+                  : null,
             ),
-            title: Text(set.name),
-            subtitle: Text(
-              set.description.isNotEmpty
-                  ? set.description
-                  : '${set.itemCount} ${set.itemCount == 1 ? 'item' : 'items'}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            trailing: set.itemCount > 0
-                ? Chip(
-                    label: Text('${set.itemCount}'),
-                    visualDensity: VisualDensity.compact,
-                  )
-                : null,
           ),
         );
       },

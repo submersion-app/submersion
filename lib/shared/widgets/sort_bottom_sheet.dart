@@ -71,7 +71,10 @@ class _SortBottomSheetState<T extends Enum> extends State<SortBottomSheet<T>> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
-                  Text(widget.title, style: textTheme.titleLarge),
+                  Semantics(
+                    header: true,
+                    child: Text(widget.title, style: textTheme.titleLarge),
+                  ),
                   const Spacer(),
                   // Direction toggle
                   SegmentedButton<SortDirection>(
@@ -104,27 +107,35 @@ class _SortBottomSheetState<T extends Enum> extends State<SortBottomSheet<T>> {
             // Sort field options
             ...widget.fields.map((field) {
               final isSelected = field == _selectedField;
-              return ListTile(
-                leading: Icon(
-                  widget.getFieldIcon(field),
-                  color: isSelected ? colorScheme.primary : null,
-                ),
-                title: Text(
-                  widget.getFieldDisplayName(field),
-                  style: TextStyle(
+              final displayName = widget.getFieldDisplayName(field);
+              return Semantics(
+                button: true,
+                selected: isSelected,
+                label: isSelected
+                    ? 'Sort by $displayName, currently selected'
+                    : 'Sort by $displayName',
+                child: ListTile(
+                  leading: Icon(
+                    widget.getFieldIcon(field),
                     color: isSelected ? colorScheme.primary : null,
-                    fontWeight: isSelected ? FontWeight.w600 : null,
                   ),
+                  title: Text(
+                    displayName,
+                    style: TextStyle(
+                      color: isSelected ? colorScheme.primary : null,
+                      fontWeight: isSelected ? FontWeight.w600 : null,
+                    ),
+                  ),
+                  trailing: isSelected
+                      ? Icon(Icons.check, color: colorScheme.primary)
+                      : null,
+                  onTap: () {
+                    setState(() {
+                      _selectedField = field;
+                    });
+                    widget.onSortChanged(_selectedField, _selectedDirection);
+                  },
                 ),
-                trailing: isSelected
-                    ? Icon(Icons.check, color: colorScheme.primary)
-                    : null,
-                onTap: () {
-                  setState(() {
-                    _selectedField = field;
-                  });
-                  widget.onSortChanged(_selectedField, _selectedDirection);
-                },
               );
             }),
             const SizedBox(height: 8),

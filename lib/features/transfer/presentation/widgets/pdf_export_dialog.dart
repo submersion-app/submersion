@@ -47,14 +47,16 @@ class _PdfExportDialogState extends ConsumerState<PdfExportDialog> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Handle bar
-            Center(
-              child: Container(
-                margin: const EdgeInsets.only(top: 12),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(2),
+            ExcludeSemantics(
+              child: Center(
+                child: Container(
+                  margin: const EdgeInsets.only(top: 12),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
             ),
@@ -167,71 +169,75 @@ class _PdfExportDialogState extends ConsumerState<PdfExportDialog> {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: InkWell(
-        onTap: () => setState(() => _selectedTemplate = template),
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            border: Border.all(
+      child: Semantics(
+        button: true,
+        label: 'Select ${template.displayName} template',
+        child: InkWell(
+          onTap: () => setState(() => _selectedTemplate = template),
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: isSelected
+                    ? colorScheme.primary
+                    : colorScheme.outline.withValues(alpha: 0.5),
+                width: isSelected ? 2 : 1,
+              ),
+              borderRadius: BorderRadius.circular(12),
               color: isSelected
-                  ? colorScheme.primary
-                  : colorScheme.outline.withValues(alpha: 0.5),
-              width: isSelected ? 2 : 1,
+                  ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+                  : null,
             ),
-            borderRadius: BorderRadius.circular(12),
-            color: isSelected
-                ? colorScheme.primaryContainer.withValues(alpha: 0.3)
-                : null,
-          ),
-          child: Row(
-            children: [
-              // Template icon
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? colorScheme.primary.withValues(alpha: 0.1)
-                      : colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(8),
+            child: Row(
+              children: [
+                // Template icon
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? colorScheme.primary.withValues(alpha: 0.1)
+                        : colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    _getTemplateIcon(template),
+                    size: 20,
+                    color: isSelected
+                        ? colorScheme.primary
+                        : colorScheme.onSurfaceVariant,
+                  ),
                 ),
-                child: Icon(
-                  _getTemplateIcon(template),
-                  size: 20,
-                  color: isSelected
-                      ? colorScheme.primary
-                      : colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Template info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      template.displayName,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: isSelected
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                        color: isSelected ? colorScheme.primary : null,
+                const SizedBox(width: 12),
+                // Template info
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        template.displayName,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: isSelected ? colorScheme.primary : null,
+                        ),
                       ),
-                    ),
-                    Text(
-                      template.description,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+                      Text(
+                        template.description,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              // Selection indicator
-              if (isSelected)
-                Icon(Icons.check_circle, color: colorScheme.primary),
-            ],
+                // Selection indicator
+                if (isSelected)
+                  Icon(Icons.check_circle, color: colorScheme.primary),
+              ],
+            ),
           ),
         ),
       ),

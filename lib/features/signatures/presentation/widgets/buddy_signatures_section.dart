@@ -68,10 +68,12 @@ class BuddySignaturesSection extends ConsumerWidget {
               children: [
                 Row(
                   children: [
-                    Icon(
-                      Icons.draw_outlined,
-                      size: 20,
-                      color: Theme.of(context).colorScheme.primary,
+                    ExcludeSemantics(
+                      child: Icon(
+                        Icons.draw_outlined,
+                        size: 20,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                     ),
                     const SizedBox(width: 8),
                     Text(
@@ -81,19 +83,25 @@ class BuddySignaturesSection extends ConsumerWidget {
                   ],
                 ),
                 if (signedCount > 0)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      '$signedCount/${buddies.length}',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  Semantics(
+                    label:
+                        '$signedCount of ${buddies.length} buddies have signed',
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '$signedCount/${buddies.length}',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onPrimaryContainer,
+                        ),
                       ),
                     ),
                   ),

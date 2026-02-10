@@ -45,7 +45,7 @@ class CertificationPicker extends ConsumerWidget {
             IconButton(
               icon: const Icon(Icons.clear),
               onPressed: () => onCertificationSelected(null),
-              tooltip: 'Clear selection',
+              tooltip: 'Clear certification selection',
             ),
           const Icon(Icons.chevron_right),
         ],
@@ -179,46 +179,53 @@ class CertificationPickerSheet extends ConsumerWidget {
                   final isSelected = selectedCertification?.id == cert.id;
                   final dateFormat = DateFormat.yMMMd();
 
-                  return ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: isSelected
-                          ? colorScheme.primary
-                          : Colors.green.withValues(alpha: 0.15),
-                      child: Icon(
-                        Icons.card_membership,
-                        color: isSelected
-                            ? colorScheme.onPrimary
-                            : Colors.green,
+                  final certLabel = cert.issueDate != null
+                      ? '${cert.agency.displayName} ${cert.name}, issued ${dateFormat.format(cert.issueDate!)}${isSelected ? ', selected' : ''}${cert.isExpired ? ', expired' : ''}'
+                      : '${cert.agency.displayName} ${cert.name}${isSelected ? ', selected' : ''}${cert.isExpired ? ', expired' : ''}';
+
+                  return Semantics(
+                    label: certLabel,
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: isSelected
+                            ? colorScheme.primary
+                            : Colors.green.withValues(alpha: 0.15),
+                        child: Icon(
+                          Icons.card_membership,
+                          color: isSelected
+                              ? colorScheme.onPrimary
+                              : Colors.green,
+                        ),
                       ),
+                      title: Text(cert.name),
+                      subtitle: Text(
+                        cert.issueDate != null
+                            ? '${cert.agency.displayName} - ${dateFormat.format(cert.issueDate!)}'
+                            : cert.agency.displayName,
+                      ),
+                      trailing: isSelected
+                          ? Icon(Icons.check_circle, color: colorScheme.primary)
+                          : cert.isExpired
+                          ? Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: colorScheme.errorContainer,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                'Expired',
+                                style: Theme.of(context).textTheme.labelSmall
+                                    ?.copyWith(
+                                      color: colorScheme.onErrorContainer,
+                                    ),
+                              ),
+                            )
+                          : null,
+                      onTap: () => onCertificationSelected(cert),
                     ),
-                    title: Text(cert.name),
-                    subtitle: Text(
-                      cert.issueDate != null
-                          ? '${cert.agency.displayName} - ${dateFormat.format(cert.issueDate!)}'
-                          : cert.agency.displayName,
-                    ),
-                    trailing: isSelected
-                        ? Icon(Icons.check_circle, color: colorScheme.primary)
-                        : cert.isExpired
-                        ? Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: colorScheme.errorContainer,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              'Expired',
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(
-                                    color: colorScheme.onErrorContainer,
-                                  ),
-                            ),
-                          )
-                        : null,
-                    onTap: () => onCertificationSelected(cert),
                   );
                 },
               );

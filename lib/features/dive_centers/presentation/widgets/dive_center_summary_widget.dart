@@ -257,7 +257,7 @@ class DiveCenterSummaryWidget extends ConsumerWidget {
                       Text(center.rating!.toStringAsFixed(1)),
                       const SizedBox(width: 8),
                     ],
-                    const Icon(Icons.chevron_right),
+                    const ExcludeSemantics(child: Icon(Icons.chevron_right)),
                   ],
                 ),
                 onTap: () {

@@ -91,6 +91,7 @@ class _CertificationWalletPageState
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
+            tooltip: 'Add certification',
             onPressed: () => context.push('/certifications/new'),
           ),
         ],
@@ -130,6 +131,7 @@ class _CertificationWalletPageState
           if (certifications.isEmpty) return null;
 
           return FloatingActionButton(
+            tooltip: 'Share certification',
             onPressed: () {
               final index = _currentIndex.clamp(0, certifications.length - 1);
               _showShareSheet(context, certifications[index]);

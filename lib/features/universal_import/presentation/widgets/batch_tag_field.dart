@@ -82,6 +82,7 @@ class _BatchTagFieldState extends State<BatchTagField> {
               isDense: true,
               suffixIcon: IconButton(
                 icon: const Icon(Icons.clear, size: 18),
+                tooltip: 'Clear tag',
                 onPressed: () {
                   _controller.clear();
                   widget.onChanged('');

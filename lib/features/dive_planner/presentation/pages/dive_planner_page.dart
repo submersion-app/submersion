@@ -82,6 +82,7 @@ class _DivePlannerPageState extends ConsumerState<DivePlannerPage>
           // Convert to dive button
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
+            tooltip: 'More options',
             onSelected: (value) {
               switch (value) {
                 case 'convert':
@@ -129,10 +130,15 @@ class _DivePlannerPageState extends ConsumerState<DivePlannerPage>
             const Tab(text: 'Plan', icon: Icon(Icons.edit_note)),
             Tab(
               text: 'Results',
-              icon: Badge(
-                isLabelVisible: hasWarnings,
-                label: Text('${results.warnings.length}'),
-                child: const Icon(Icons.analytics),
+              icon: Semantics(
+                label: hasWarnings
+                    ? 'Results, ${results.warnings.length} warnings'
+                    : 'Results',
+                child: Badge(
+                  isLabelVisible: hasWarnings,
+                  label: Text('${results.warnings.length}'),
+                  child: const Icon(Icons.analytics),
+                ),
               ),
             ),
             const Tab(text: 'Profile', icon: Icon(Icons.show_chart)),

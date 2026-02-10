@@ -226,11 +226,13 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
           ),
           IconButton(
             icon: const Icon(Icons.search),
+            tooltip: 'Search buddies',
             onPressed: () {
               showSearch(context: context, delegate: BuddySearchDelegate(ref));
             },
           ),
           PopupMenuButton<String>(
+            tooltip: 'More options',
             onSelected: (value) {
               if (value == 'import') {
                 _importFromContacts(context);
@@ -283,12 +285,14 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
           ),
           IconButton(
             icon: const Icon(Icons.search, size: 20),
+            tooltip: 'Search buddies',
             onPressed: () {
               showSearch(context: context, delegate: BuddySearchDelegate(ref));
             },
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, size: 20),
+            tooltip: 'More options',
             onSelected: (value) {
               if (value == 'import') {
                 _importFromContacts(context);
@@ -463,7 +467,12 @@ class BuddyListTile extends StatelessWidget {
                 ),
               ),
             if (diveCount != null) const SizedBox(width: 8),
-            Icon(Icons.chevron_right, color: theme.colorScheme.outline),
+            ExcludeSemantics(
+              child: Icon(
+                Icons.chevron_right,
+                color: theme.colorScheme.outline,
+              ),
+            ),
           ],
         ),
       ),
@@ -501,7 +510,11 @@ class BuddySearchDelegate extends SearchDelegate<Buddy?> {
   List<Widget> buildActions(BuildContext context) {
     return [
       if (query.isNotEmpty)
-        IconButton(icon: const Icon(Icons.clear), onPressed: () => query = ''),
+        IconButton(
+          icon: const Icon(Icons.clear),
+          tooltip: 'Clear search',
+          onPressed: () => query = '',
+        ),
     ];
   }
 
@@ -509,6 +522,7 @@ class BuddySearchDelegate extends SearchDelegate<Buddy?> {
   Widget buildLeading(BuildContext context) {
     return IconButton(
       icon: const Icon(Icons.arrow_back),
+      tooltip: 'Back',
       onPressed: () => close(context, null),
     );
   }

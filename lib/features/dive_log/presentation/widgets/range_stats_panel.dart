@@ -53,7 +53,13 @@ class RangeStatsPanel extends ConsumerWidget {
             // Header
             Row(
               children: [
-                Icon(Icons.timeline, size: 18, color: colorScheme.primary),
+                ExcludeSemantics(
+                  child: Icon(
+                    Icons.timeline,
+                    size: 18,
+                    color: colorScheme.primary,
+                  ),
+                ),
                 const SizedBox(width: 8),
                 Text(
                   'Range Analysis',
@@ -222,7 +228,7 @@ class RangeStatsPanel extends ConsumerWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 14, color: color),
+              ExcludeSemantics(child: Icon(icon, size: 14, color: color)),
               const SizedBox(width: 4),
               Text(
                 label,

@@ -364,9 +364,13 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
       appBar: AppBar(
         title: Text(_isEditing ? 'Edit Course' : 'New Course'),
         actions: [
-          TextButton(
-            onPressed: _isLoading ? null : () => _save(existingCourse),
-            child: const Text('Save'),
+          Semantics(
+            button: true,
+            label: 'Save course',
+            child: TextButton(
+              onPressed: _isLoading ? null : () => _save(existingCourse),
+              child: const Text('Save'),
+            ),
           ),
         ],
       ),

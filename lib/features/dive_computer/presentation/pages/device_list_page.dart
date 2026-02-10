@@ -75,10 +75,12 @@ class DeviceListPage extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.watch_outlined,
-              size: 80,
-              color: colorScheme.primary.withValues(alpha: 0.5),
+            ExcludeSemantics(
+              child: Icon(
+                Icons.watch_outlined,
+                size: 80,
+                color: colorScheme.primary.withValues(alpha: 0.5),
+              ),
             ),
             const SizedBox(height: 24),
             Text(
@@ -200,100 +202,106 @@ class _ComputerCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              // Icon
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: computer.isFavorite
-                      ? colorScheme.primaryContainer
-                      : colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(12),
+      child: Semantics(
+        button: true,
+        label: 'Dive computer: ${computer.displayName}',
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // Icon
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: computer.isFavorite
+                        ? colorScheme.primaryContainer
+                        : colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    _getConnectionIcon(computer.connectionType),
+                    color: computer.isFavorite
+                        ? colorScheme.onPrimaryContainer
+                        : colorScheme.onSurfaceVariant,
+                  ),
                 ),
-                child: Icon(
-                  _getConnectionIcon(computer.connectionType),
-                  color: computer.isFavorite
-                      ? colorScheme.onPrimaryContainer
-                      : colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(width: 16),
-              // Info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            computer.displayName,
-                            style: theme.textTheme.titleMedium,
-                            overflow: TextOverflow.ellipsis,
+                const SizedBox(width: 16),
+                // Info
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              computer.displayName,
+                              style: theme.textTheme.titleMedium,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        ),
-                        if (computer.isFavorite)
-                          Icon(
-                            Icons.star,
-                            size: 18,
-                            color: colorScheme.primary,
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      computer.fullName,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+                          if (computer.isFavorite)
+                            ExcludeSemantics(
+                              child: Icon(
+                                Icons.star,
+                                size: 18,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.scuba_diving,
-                          size: 14,
+                      const SizedBox(height: 4),
+                      Text(
+                        computer.fullName,
+                        style: theme.textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${computer.diveCount} dives',
-                          style: theme.textTheme.bodySmall?.copyWith(
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.scuba_diving,
+                            size: 14,
                             color: colorScheme.onSurfaceVariant,
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        Icon(
-                          Icons.access_time,
-                          size: 14,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          computer.lastDownloadFormatted,
-                          style: theme.textTheme.bodySmall?.copyWith(
+                          const SizedBox(width: 4),
+                          Text(
+                            '${computer.diveCount} dives',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Icon(
+                            Icons.access_time,
+                            size: 14,
                             color: colorScheme.onSurfaceVariant,
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                          const SizedBox(width: 4),
+                          Text(
+                            computer.lastDownloadFormatted,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              // Download button
-              IconButton(
-                onPressed: onDownload,
-                icon: const Icon(Icons.download),
-                tooltip: 'Download dives',
-              ),
-            ],
+                // Download button
+                IconButton(
+                  onPressed: onDownload,
+                  icon: const Icon(Icons.download),
+                  tooltip: 'Download dives',
+                ),
+              ],
+            ),
           ),
         ),
       ),

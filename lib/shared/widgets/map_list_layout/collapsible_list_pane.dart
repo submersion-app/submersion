@@ -52,20 +52,24 @@ class CollapsibleListPane extends StatelessWidget {
                 left: Radius.circular(20),
               ),
               elevation: 2,
-              child: InkWell(
-                onTap: onToggle,
-                borderRadius: const BorderRadius.horizontal(
-                  left: Radius.circular(20),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 4,
-                    vertical: 8,
+              child: Semantics(
+                button: true,
+                label: 'Hide list',
+                child: InkWell(
+                  onTap: onToggle,
+                  borderRadius: const BorderRadius.horizontal(
+                    left: Radius.circular(20),
                   ),
-                  child: Icon(
-                    Icons.chevron_left,
-                    size: 20,
-                    color: colorScheme.onSurfaceVariant,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 8,
+                    ),
+                    child: Icon(
+                      Icons.chevron_left,
+                      size: 20,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
               ),

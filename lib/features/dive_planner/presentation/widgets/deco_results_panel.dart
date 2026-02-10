@@ -34,7 +34,12 @@ class DecoResultsPanel extends ConsumerWidget {
             // Header
             Row(
               children: [
-                Icon(Icons.analytics, color: theme.colorScheme.primary),
+                ExcludeSemantics(
+                  child: Icon(
+                    Icons.analytics,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
                 const SizedBox(width: 8),
                 Text(
                   'Decompression',
@@ -154,30 +159,35 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, size: 20, color: theme.colorScheme.outline),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: valueColor ?? theme.colorScheme.onSurface,
-              fontWeight: FontWeight.bold,
+    return Semantics(
+      label: '$label: $value',
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          children: [
+            ExcludeSemantics(
+              child: Icon(icon, size: 20, color: theme.colorScheme.outline),
             ),
-          ),
-          Text(
-            label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.outline,
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: valueColor ?? theme.colorScheme.onSurface,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-        ],
+            Text(
+              label,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.outline,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -198,19 +208,24 @@ class _InfoRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: theme.colorScheme.outline),
-        const SizedBox(width: 8),
-        Text(label, style: theme.textTheme.bodyMedium),
-        const Spacer(),
-        Text(
-          value,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.bold,
+    return Semantics(
+      label: '$label: $value',
+      child: Row(
+        children: [
+          ExcludeSemantics(
+            child: Icon(icon, size: 18, color: theme.colorScheme.outline),
           ),
-        ),
-      ],
+          const SizedBox(width: 8),
+          Text(label, style: theme.textTheme.bodyMedium),
+          const Spacer(),
+          Text(
+            value,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -225,35 +240,41 @@ class _DecoStopRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              color: Colors.orange,
-              borderRadius: BorderRadius.circular(4),
+    return Semantics(
+      label:
+          'Deco stop at ${units.formatDepth(stop.depth)} for ${stop.durationFormatted} on ${stop.gasMix.name}',
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            ExcludeSemantics(
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: Colors.orange,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            units.formatDepth(stop.depth),
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.bold,
+            const SizedBox(width: 12),
+            Text(
+              units.formatDepth(stop.depth),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Text(stop.durationFormatted, style: theme.textTheme.bodyMedium),
-          const Spacer(),
-          Text(
-            stop.gasMix.name,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.outline,
+            const SizedBox(width: 16),
+            Text(stop.durationFormatted, style: theme.textTheme.bodyMedium),
+            const Spacer(),
+            Text(
+              stop.gasMix.name,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.outline,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -270,28 +291,36 @@ class _WarningRow extends StatelessWidget {
     final theme = Theme.of(context);
     final isCritical = warning.severity == PlanWarningSeverity.critical;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            isCritical ? Icons.error : Icons.warning_amber,
-            size: 18,
-            color: isCritical ? theme.colorScheme.error : Colors.orange,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              _formatWarningMessage(),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: isCritical
-                    ? theme.colorScheme.error
-                    : theme.colorScheme.onSurface,
+    final message = _formatWarningMessage();
+
+    return Semantics(
+      label: '${isCritical ? "Critical warning" : "Warning"}: $message',
+      liveRegion: true,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ExcludeSemantics(
+              child: Icon(
+                isCritical ? Icons.error : Icons.warning_amber,
+                size: 18,
+                color: isCritical ? theme.colorScheme.error : Colors.orange,
               ),
             ),
-          ),
-        ],
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                message,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: isCritical
+                      ? theme.colorScheme.error
+                      : theme.colorScheme.onSurface,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

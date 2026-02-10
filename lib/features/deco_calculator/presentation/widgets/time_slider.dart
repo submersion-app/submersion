@@ -21,7 +21,13 @@ class TimeSlider extends ConsumerWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.timer, size: 20, color: colorScheme.primary),
+                ExcludeSemantics(
+                  child: Icon(
+                    Icons.timer,
+                    size: 20,
+                    color: colorScheme.primary,
+                  ),
+                ),
                 const SizedBox(width: 8),
                 Text(
                   'Bottom Time',
@@ -55,14 +61,17 @@ class TimeSlider extends ConsumerWidget {
             thumbColor: colorScheme.primary,
             overlayColor: colorScheme.primary.withValues(alpha: 0.12),
           ),
-          child: Slider(
-            value: time.toDouble(),
-            min: 0,
-            max: 120,
-            divisions: 120,
-            onChanged: (value) {
-              ref.read(calcTimeProvider.notifier).state = value.toInt();
-            },
+          child: Semantics(
+            label: 'Bottom time: $time minutes',
+            child: Slider(
+              value: time.toDouble(),
+              min: 0,
+              max: 120,
+              divisions: 120,
+              onChanged: (value) {
+                ref.read(calcTimeProvider.notifier).state = value.toInt();
+              },
+            ),
           ),
         ),
         Padding(

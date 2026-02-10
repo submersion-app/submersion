@@ -24,82 +24,86 @@ class SignatureDisplayWidget extends StatelessWidget {
     final dateFormat = DateFormat.yMMMd().add_jm();
 
     return Card(
-      child: InkWell(
-        onTap: onTap ?? () => _showFullSignature(context),
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
-                children: [
-                  Icon(Icons.draw_outlined, color: colorScheme.primary),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Instructor Signature',
-                          style: Theme.of(context).textTheme.titleSmall,
-                        ),
-                        Text(
-                          signature.signerName,
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(fontWeight: FontWeight.w500),
-                        ),
-                      ],
+      child: Semantics(
+        button: true,
+        label: 'View signature from ${signature.signerName}',
+        child: InkWell(
+          onTap: onTap ?? () => _showFullSignature(context),
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(
+                  children: [
+                    Icon(Icons.draw_outlined, color: colorScheme.primary),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Instructor Signature',
+                            style: Theme.of(context).textTheme.titleSmall,
+                          ),
+                          Text(
+                            signature.signerName,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(fontWeight: FontWeight.w500),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (showDeleteButton)
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline),
+                        onPressed: () => _confirmDelete(context),
+                        tooltip: 'Delete signature',
+                      ),
+                  ],
+                ),
+
+                const SizedBox(height: 12),
+
+                // Signature image preview
+                Container(
+                  height: 100,
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: colorScheme.outline.withValues(alpha: 0.3),
                     ),
                   ),
-                  if (showDeleteButton)
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline),
-                      onPressed: () => _confirmDelete(context),
-                      tooltip: 'Delete signature',
-                    ),
-                ],
-              ),
-
-              const SizedBox(height: 12),
-
-              // Signature image preview
-              Container(
-                height: 100,
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: colorScheme.outline.withValues(alpha: 0.3),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(7),
+                    child: _buildSignatureImage(context),
                   ),
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(7),
-                  child: _buildSignatureImage(context),
-                ),
-              ),
 
-              const SizedBox(height: 8),
+                const SizedBox(height: 8),
 
-              // Timestamp
-              Row(
-                children: [
-                  Icon(
-                    Icons.schedule,
-                    size: 14,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Signed ${dateFormat.format(signature.signedAt)}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                // Timestamp
+                Row(
+                  children: [
+                    Icon(
+                      Icons.schedule,
+                      size: 14,
                       color: colorScheme.onSurfaceVariant,
                     ),
-                  ),
-                ],
-              ),
-            ],
+                    const SizedBox(width: 4),
+                    Text(
+                      'Signed ${dateFormat.format(signature.signedAt)}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -209,6 +213,7 @@ class SignatureFullViewDialog extends StatelessWidget {
                   ),
                   IconButton(
                     icon: const Icon(Icons.close),
+                    tooltip: 'Close signature view',
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -310,28 +315,32 @@ class SignatureBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: Colors.green.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.draw, size: 14, color: Colors.green),
-            const SizedBox(width: 4),
-            Text(
-              'Signed',
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: Colors.green,
-                fontWeight: FontWeight.w600,
+    return Semantics(
+      button: true,
+      label: 'View signature',
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.green.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.draw, size: 14, color: Colors.green),
+              const SizedBox(width: 4),
+              Text(
+                'Signed',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: Colors.green,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

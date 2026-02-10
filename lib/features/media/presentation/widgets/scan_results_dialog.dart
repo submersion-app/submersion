@@ -157,14 +157,16 @@ class _ScanResultsDialogState extends State<ScanResultsDialog> {
   }
 
   Widget _buildHandleBar(ColorScheme colorScheme) {
-    return Center(
-      child: Container(
-        margin: const EdgeInsets.only(top: 12),
-        width: 40,
-        height: 4,
-        decoration: BoxDecoration(
-          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-          borderRadius: BorderRadius.circular(2),
+    return ExcludeSemantics(
+      child: Center(
+        child: Container(
+          margin: const EdgeInsets.only(top: 12),
+          width: 40,
+          height: 4,
+          decoration: BoxDecoration(
+            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+            borderRadius: BorderRadius.circular(2),
+          ),
         ),
       ),
     );

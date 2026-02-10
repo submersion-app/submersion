@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
@@ -109,11 +110,21 @@ class StatisticsProgressionPage extends ConsumerWidget {
               message: 'No yearly data available',
             );
           }
-          return CategoryBarChart(
-            data: data
-                .map((d) => (label: '${d.year}', count: d.count))
-                .toList(),
-            barColor: Theme.of(context).colorScheme.primary,
+          final chartData = data
+              .map((d) => (label: '${d.year}', count: d.count))
+              .toList();
+          final description = data
+              .map((d) => '${d.count} dives in ${d.year}')
+              .join(', ');
+          return Semantics(
+            label: chartSummaryLabel(
+              chartType: 'Bar',
+              description: description,
+            ),
+            child: CategoryBarChart(
+              data: chartData,
+              barColor: Theme.of(context).colorScheme.primary,
+            ),
           );
         },
         loading: () => const SizedBox(

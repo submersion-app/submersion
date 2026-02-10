@@ -36,26 +36,39 @@ class CertificationEcard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: aspectRatio,
-      child: GestureDetector(
-        onTap: onTap,
-        onLongPress: onLongPress,
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 400),
-          transitionBuilder: (child, animation) {
-            return FadeTransition(opacity: animation, child: child);
-          },
-          child: showBack
-              ? _CardBack(
-                  key: const ValueKey('back'),
-                  certification: certification,
-                )
-              : _CardFront(
-                  key: const ValueKey('front'),
-                  certification: certification,
-                  diverName: diverName,
-                ),
+    final issueDateStr = certification.issueDate != null
+        ? ', issued ${DateFormat('MM/yy').format(certification.issueDate!)}'
+        : '';
+    final statusStr = certification.isExpired
+        ? ', Expired'
+        : certification.expiresWithin(90)
+        ? ', Expiring soon'
+        : '';
+
+    return Semantics(
+      label:
+          '${certification.agency.displayName} ${certification.name} certification for $diverName$issueDateStr$statusStr. ${showBack ? 'Showing back' : 'Showing front'}. Tap to flip',
+      child: AspectRatio(
+        aspectRatio: aspectRatio,
+        child: GestureDetector(
+          onTap: onTap,
+          onLongPress: onLongPress,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 400),
+            transitionBuilder: (child, animation) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+            child: showBack
+                ? _CardBack(
+                    key: const ValueKey('back'),
+                    certification: certification,
+                  )
+                : _CardFront(
+                    key: const ValueKey('front'),
+                    certification: certification,
+                    diverName: diverName,
+                  ),
+          ),
         ),
       ),
     );

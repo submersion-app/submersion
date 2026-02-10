@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
@@ -41,152 +42,170 @@ class CylinderSacCard extends StatelessWidget {
       color: isSelected
           ? colorScheme.primaryContainer.withValues(alpha: 0.3)
           : null,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header row: Tank name + role badge
-              Row(
-                children: [
-                  // Tank icon
-                  Icon(
-                    Icons.propane_tank,
-                    size: 18,
-                    color: colorScheme.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  // Tank name
-                  Expanded(
-                    child: Text(
-                      cylinderSac.displayLabel,
-                      style: textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  // Role badge
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _getRoleColor(colorScheme).withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      cylinderSac.role.displayName,
-                      style: textTheme.labelSmall?.copyWith(
-                        color: _getRoleColor(colorScheme),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 8),
-
-              // Gas mix
-              Text(
-                cylinderSac.gasMix.name,
-                style: textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              // SAC rate (prominent display)
-              if (cylinderSac.hasValidSac) ...[
+      child: Semantics(
+        button: onTap != null,
+        label: listItemLabel(
+          title: cylinderSac.displayLabel,
+          subtitle: cylinderSac.gasMix.name,
+          status: cylinderSac.hasValidSac ? 'SAC: ${_formatSacValue()}' : null,
+        ),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header row: Tank name + role badge
                 Row(
                   children: [
-                    Text(
-                      _formatSacValue(),
-                      style: textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
+                    // Tank icon
+                    ExcludeSemantics(
+                      child: Icon(
+                        Icons.propane_tank,
+                        size: 18,
                         color: colorScheme.primary,
                       ),
                     ),
-                    const Spacer(),
-                    // Data quality indicator
-                    _buildDataQualityBadge(context),
+                    const SizedBox(width: 8),
+                    // Tank name
+                    Expanded(
+                      child: Text(
+                        cylinderSac.displayLabel,
+                        style: textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    // Role badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _getRoleColor(
+                          colorScheme,
+                        ).withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        cylinderSac.role.displayName,
+                        style: textTheme.labelSmall?.copyWith(
+                          color: _getRoleColor(colorScheme),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
-              ] else ...[
+
+                const SizedBox(height: 8),
+
+                // Gas mix
                 Text(
-                  'SAC: --',
-                  style: textTheme.bodyMedium?.copyWith(
+                  cylinderSac.gasMix.name,
+                  style: textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
                 ),
-              ],
 
-              const SizedBox(height: 8),
+                const SizedBox(height: 12),
 
-              // Pressure usage
-              if (cylinderSac.startPressure != null &&
-                  cylinderSac.endPressure != null) ...[
-                Row(
-                  children: [
-                    Icon(
-                      Icons.trending_down,
-                      size: 14,
+                // SAC rate (prominent display)
+                if (cylinderSac.hasValidSac) ...[
+                  Row(
+                    children: [
+                      Text(
+                        _formatSacValue(),
+                        style: textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                      const Spacer(),
+                      // Data quality indicator
+                      _buildDataQualityBadge(context),
+                    ],
+                  ),
+                ] else ...[
+                  Text(
+                    'SAC: --',
+                    style: textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
-                    const SizedBox(width: 4),
-                    Text(
-                      _formatPressureRange(),
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const Spacer(),
-                    // Usage duration
-                    if (cylinderSac.usageDuration != null) ...[
-                      Icon(
-                        Icons.timer_outlined,
-                        size: 14,
-                        color: colorScheme.onSurfaceVariant,
+                  ),
+                ],
+
+                const SizedBox(height: 8),
+
+                // Pressure usage
+                if (cylinderSac.startPressure != null &&
+                    cylinderSac.endPressure != null) ...[
+                  Row(
+                    children: [
+                      ExcludeSemantics(
+                        child: Icon(
+                          Icons.trending_down,
+                          size: 14,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        cylinderSac.durationFormatted,
+                        _formatPressureRange(),
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const Spacer(),
+                      // Usage duration
+                      if (cylinderSac.usageDuration != null) ...[
+                        ExcludeSemantics(
+                          child: Icon(
+                            Icons.timer_outlined,
+                            size: 14,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          cylinderSac.durationFormatted,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+
+                // Average depth during use
+                if (cylinderSac.avgDepthDuringUse != null) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      ExcludeSemantics(
+                        child: Icon(
+                          Icons.straighten,
+                          size: 14,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Avg: ${units.formatDepth(cylinderSac.avgDepthDuringUse!)}',
                         style: textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
-                  ],
-                ),
+                  ),
+                ],
               ],
-
-              // Average depth during use
-              if (cylinderSac.avgDepthDuringUse != null) ...[
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.straighten,
-                      size: 14,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Avg: ${units.formatDepth(cylinderSac.avgDepthDuringUse!)}',
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ],
+            ),
           ),
         ),
       ),

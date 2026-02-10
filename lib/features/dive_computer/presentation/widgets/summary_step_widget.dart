@@ -33,14 +33,16 @@ class SummaryStepWidget extends ConsumerWidget {
           const SizedBox(height: 32),
 
           // Success icon
-          Container(
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: colorScheme.primaryContainer,
+          ExcludeSemantics(
+            child: Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: colorScheme.primaryContainer,
+              ),
+              child: Icon(Icons.check, size: 56, color: colorScheme.primary),
             ),
-            child: Icon(Icons.check, size: 56, color: colorScheme.primary),
           ),
           const SizedBox(height: 24),
 
@@ -49,10 +51,14 @@ class SummaryStepWidget extends ConsumerWidget {
           const SizedBox(height: 8),
 
           // Summary
-          Text(
-            '$diveCount ${diveCount == 1 ? 'dive' : 'dives'} downloaded',
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: colorScheme.onSurfaceVariant,
+          Semantics(
+            label:
+                '$diveCount ${diveCount == 1 ? 'dive' : 'dives'} downloaded from ${computer?.displayName ?? 'dive computer'}',
+            child: Text(
+              '$diveCount ${diveCount == 1 ? 'dive' : 'dives'} downloaded',
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
           const SizedBox(height: 32),
@@ -159,21 +165,24 @@ class SummaryStepWidget extends ConsumerWidget {
   ) {
     final theme = Theme.of(context);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Icon(icon, color: iconColor, size: 20),
-          const SizedBox(width: 12),
-          Text(label, style: theme.textTheme.bodyMedium),
-          const Spacer(),
-          Text(
-            value,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
+    return Semantics(
+      label: '$label: $value',
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            ExcludeSemantics(child: Icon(icon, color: iconColor, size: 20)),
+            const SizedBox(width: 12),
+            Text(label, style: theme.textTheme.bodyMedium),
+            const Spacer(),
+            Text(
+              value,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

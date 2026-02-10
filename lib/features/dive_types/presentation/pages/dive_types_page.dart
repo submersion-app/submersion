@@ -18,10 +18,12 @@ class DiveTypesPage extends ConsumerWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
+          tooltip: 'Back',
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddDiveTypeDialog(context, ref),
+        tooltip: 'Add dive type',
         child: const Icon(Icons.add),
       ),
       body: diveTypesAsync.when(
@@ -84,6 +86,7 @@ class DiveTypesPage extends ConsumerWidget {
           ? IconButton(
               icon: const Icon(Icons.delete_outline),
               onPressed: () => _confirmDelete(context, ref, diveType),
+              tooltip: 'Delete dive type',
             )
           : null,
     );

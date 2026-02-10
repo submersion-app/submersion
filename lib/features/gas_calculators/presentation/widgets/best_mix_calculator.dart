@@ -110,75 +110,79 @@ class BestMixCalculator extends ConsumerWidget {
               const SizedBox(height: 16),
 
               // Result card
-              Card(
-                color: colorScheme.primaryContainer,
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    children: [
-                      Text(
-                        'Best Oxygen Mix',
-                        style: textTheme.titleMedium?.copyWith(
-                          color: colorScheme.onPrimaryContainer,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        '${clampedO2.toStringAsFixed(0)}%',
-                        style: textTheme.displayLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onPrimaryContainer,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: colorScheme.onPrimaryContainer.withValues(
-                            alpha: 0.1,
-                          ),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          suggestion,
+              Semantics(
+                label:
+                    'Best oxygen mix: ${clampedO2.toStringAsFixed(0)}% O2. $suggestion',
+                child: Card(
+                  color: colorScheme.primaryContainer,
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      children: [
+                        Text(
+                          'Best Oxygen Mix',
                           style: textTheme.titleMedium?.copyWith(
                             color: colorScheme.onPrimaryContainer,
-                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                      ),
-                      if (!isAirOk) ...[
                         const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.orange.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(8),
+                        Text(
+                          '${clampedO2.toStringAsFixed(0)}%',
+                          style: textTheme.displayLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onPrimaryContainer,
                           ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.warning_amber,
-                                color: Colors.orange,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  'Depth exceeds air MOD at ${ppO2.toStringAsFixed(1)} bar. '
-                                  'Consider using air or trimix.',
-                                  style: textTheme.bodySmall?.copyWith(
-                                    color: Colors.orange.shade900,
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: colorScheme.onPrimaryContainer.withValues(
+                              alpha: 0.1,
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            suggestion,
+                            style: textTheme.titleMedium?.copyWith(
+                              color: colorScheme.onPrimaryContainer,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        if (!isAirOk) ...[
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.warning_amber,
+                                  color: Colors.orange,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Depth exceeds air MOD at ${ppO2.toStringAsFixed(1)} bar. '
+                                    'Consider using air or trimix.',
+                                    style: textTheme.bodySmall?.copyWith(
+                                      color: Colors.orange.shade900,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -281,12 +285,15 @@ class BestMixCalculator extends ConsumerWidget {
             thumbColor: colorScheme.primary,
             overlayColor: colorScheme.primary.withValues(alpha: 0.12),
           ),
-          child: Slider(
-            value: value,
-            min: min,
-            max: max,
-            divisions: divisions,
-            onChanged: onChanged,
+          child: Semantics(
+            label: '$label: ${value.toStringAsFixed(0)} $unit',
+            child: Slider(
+              value: value,
+              min: min,
+              max: max,
+              divisions: divisions,
+              onChanged: onChanged,
+            ),
           ),
         ),
         Padding(
@@ -347,34 +354,38 @@ class BestMixCalculator extends ConsumerWidget {
     // Convert to user's preferred unit
     final displayMod = units.convertDepth(modMeters);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 80,
-            child: Text(
-              name,
-              style: textTheme.bodyMedium?.copyWith(
+    return Semantics(
+      label:
+          '$name, $o2% O2, MOD: ${displayMod.toStringAsFixed(0)}${units.depthSymbol}',
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 80,
+              child: Text(
+                name,
+                style: textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            Text(
+              '$o2% O₂',
+              style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const Spacer(),
+            Text(
+              'MOD: ${displayMod.toStringAsFixed(0)}${units.depthSymbol}',
+              style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.primary,
                 fontWeight: FontWeight.w500,
               ),
             ),
-          ),
-          Text(
-            '$o2% O₂',
-            style: textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const Spacer(),
-          Text(
-            'MOD: ${displayMod.toStringAsFixed(0)}${units.depthSymbol}',
-            style: textTheme.bodySmall?.copyWith(
-              color: colorScheme.primary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

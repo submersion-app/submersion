@@ -967,30 +967,34 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
         return Padding(
           padding: const EdgeInsets.only(top: 8),
-          child: InkWell(
-            onTap: () => setState(() => _selectedTrip = suggestedTrip),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.auto_awesome,
-                  size: 16,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Suggested: ${suggestedTrip.name}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
+          child: Semantics(
+            button: true,
+            label: 'Use suggested trip ${suggestedTrip.name}',
+            child: InkWell(
+              onTap: () => setState(() => _selectedTrip = suggestedTrip),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.auto_awesome,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Suggested: ${suggestedTrip.name}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                     ),
                   ),
-                ),
-                TextButton(
-                  onPressed: () =>
-                      setState(() => _selectedTrip = suggestedTrip),
-                  child: const Text('Use'),
-                ),
-              ],
+                  TextButton(
+                    onPressed: () =>
+                        setState(() => _selectedTrip = suggestedTrip),
+                    child: const Text('Use'),
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -1495,6 +1499,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   subtitle: Text(item.type.displayName),
                   trailing: IconButton(
                     icon: const Icon(Icons.close, size: 18),
+                    tooltip: 'Remove equipment',
                     onPressed: () {
                       setState(() {
                         _selectedEquipment.removeAt(index);
@@ -2139,12 +2144,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(5, (index) {
+                final starNumber = index + 1;
                 return IconButton(
                   icon: Icon(
                     index < _rating ? Icons.star : Icons.star_border,
                     color: Colors.amber,
                     size: 32,
                   ),
+                  tooltip: '$starNumber star${starNumber > 1 ? 's' : ''}',
                   onPressed: () {
                     setState(() => _rating = index + 1);
                   },
@@ -2261,6 +2268,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                         ),
                       IconButton(
                         icon: const Icon(Icons.close, size: 18),
+                        tooltip: 'Remove sighting',
                         onPressed: () {
                           setState(() {
                             _sightings.removeAt(index);
@@ -3051,6 +3059,7 @@ class _SpeciesPickerSheetState extends ConsumerState<_SpeciesPickerSheet> {
               ),
               IconButton(
                 icon: const Icon(Icons.close),
+                tooltip: 'Close',
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ],
@@ -3066,6 +3075,7 @@ class _SpeciesPickerSheetState extends ConsumerState<_SpeciesPickerSheet> {
               suffixIcon: _searchQuery.isNotEmpty
                   ? IconButton(
                       icon: const Icon(Icons.clear),
+                      tooltip: 'Clear search',
                       onPressed: () {
                         _searchController.clear();
                         setState(() => _searchQuery = '');
@@ -3254,6 +3264,7 @@ class _SpeciesPickerSheetState extends ConsumerState<_SpeciesPickerSheet> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.remove_circle_outline),
+                    tooltip: 'Decrease count',
                     onPressed: count > 1
                         ? () => setDialogState(() => count--)
                         : null,
@@ -3276,6 +3287,7 @@ class _SpeciesPickerSheetState extends ConsumerState<_SpeciesPickerSheet> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.add_circle_outline),
+                    tooltip: 'Increase count',
                     onPressed: () => setDialogState(() => count++),
                   ),
                 ],
@@ -3377,6 +3389,7 @@ class _EditSightingSheetState extends State<_EditSightingSheet> {
               ),
               IconButton(
                 icon: const Icon(Icons.delete_outline, color: Colors.red),
+                tooltip: 'Delete sighting',
                 onPressed: () {
                   showDialog(
                     context: context,
@@ -3499,6 +3512,7 @@ class _EquipmentPickerSheet extends ConsumerWidget {
               ),
               IconButton(
                 icon: const Icon(Icons.close),
+                tooltip: 'Close',
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ],
@@ -3644,6 +3658,7 @@ class _EquipmentSetPickerSheet extends ConsumerWidget {
               ),
               IconButton(
                 icon: const Icon(Icons.close),
+                tooltip: 'Close',
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ],

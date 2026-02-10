@@ -105,6 +105,7 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
                     : _searchController.text.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear),
+                        tooltip: 'Clear search',
                         onPressed: () {
                           _searchController.clear();
                           ref.read(externalSiteSearchProvider.notifier).clear();
@@ -379,109 +380,113 @@ class _LocalSiteCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       color: colorScheme.primaryContainer.withValues(alpha: 0.3),
-      child: InkWell(
-        onTap: () => context.push('/sites/${site.id}'),
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Location icon with checkmark
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: colorScheme.primary,
-                  borderRadius: BorderRadius.circular(12),
+      child: Semantics(
+        button: true,
+        label: 'View saved site ${site.name}',
+        child: InkWell(
+          onTap: () => context.push('/sites/${site.id}'),
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Location icon with checkmark
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(Icons.place, color: colorScheme.onPrimary),
                 ),
-                child: Icon(Icons.place, color: colorScheme.onPrimary),
-              ),
-              const SizedBox(width: 12),
+                const SizedBox(width: 12),
 
-              // Site info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      site.name,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
+                // Site info
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        site.name,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _buildLocationText(),
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+                      const SizedBox(height: 4),
+                      Text(
+                        _buildLocationText(),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                    ),
-                    if (site.maxDepth != null || site.location != null) ...[
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          if (site.maxDepth != null) ...[
-                            Icon(
-                              Icons.arrow_downward,
-                              size: 16,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${site.maxDepth!.toStringAsFixed(0)}m',
-                              style: theme.textTheme.bodySmall?.copyWith(
+                      if (site.maxDepth != null || site.location != null) ...[
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            if (site.maxDepth != null) ...[
+                              Icon(
+                                Icons.arrow_downward,
+                                size: 16,
                                 color: colorScheme.onSurfaceVariant,
                               ),
-                            ),
-                            const SizedBox(width: 16),
-                          ],
-                          if (site.location != null) ...[
-                            Icon(
-                              Icons.location_on,
-                              size: 16,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              'GPS',
-                              style: theme.textTheme.bodySmall?.copyWith(
+                              const SizedBox(width: 4),
+                              Text(
+                                '${site.maxDepth!.toStringAsFixed(0)}m',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                            ],
+                            if (site.location != null) ...[
+                              Icon(
+                                Icons.location_on,
+                                size: 16,
                                 color: colorScheme.onSurfaceVariant,
                               ),
-                            ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'GPS',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
                           ],
-                        ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+
+                // Already saved indicator
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.check, size: 16, color: colorScheme.onPrimary),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Saved',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: colorScheme.onPrimary,
+                        ),
                       ),
                     ],
-                  ],
+                  ),
                 ),
-              ),
-
-              // Already saved indicator
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: colorScheme.primary,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.check, size: 16, color: colorScheme.onPrimary),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Saved',
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        color: colorScheme.onPrimary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -518,156 +523,160 @@ class _DiveSiteCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
-        onTap: () => _showDetails(context),
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Location icon
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.scuba_diving,
-                      color: colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-
-                  // Site info
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          site.name,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          _buildLocationText(),
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Import button
-                  if (isImported)
+      child: Semantics(
+        button: true,
+        label: 'View details for ${site.name}',
+        child: InkWell(
+          onTap: () => _showDetails(context),
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Location icon
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
+                      width: 48,
+                      height: 48,
                       decoration: BoxDecoration(
                         color: colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
+                      child: Icon(
+                        Icons.scuba_diving,
+                        color: colorScheme.onPrimaryContainer,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+
+                    // Site info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(
-                            Icons.check,
-                            size: 16,
-                            color: colorScheme.primary,
-                          ),
-                          const SizedBox(width: 4),
                           Text(
-                            'Imported',
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              color: colorScheme.primary,
+                            site.name,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _buildLocationText(),
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ],
                       ),
-                    )
-                  else
-                    FilledButton.tonal(
-                      onPressed: onImport,
-                      child: const Text('Import'),
                     ),
-                ],
-              ),
 
-              // Features
-              if (site.features.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  children: site.features.take(4).map((feature) {
-                    return Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        feature,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+                    // Import button
+                    if (isImported)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
                         ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ],
-
-              // Depth and coordinates
-              if (site.maxDepth != null || site.hasCoordinates) ...[
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    if (site.maxDepth != null) ...[
-                      Icon(
-                        Icons.arrow_downward,
-                        size: 16,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${site.maxDepth!.toStringAsFixed(0)}m',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+                        decoration: BoxDecoration(
+                          color: colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                    ],
-                    if (site.hasCoordinates) ...[
-                      Icon(
-                        Icons.location_on,
-                        size: 16,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'GPS',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.check,
+                              size: 16,
+                              color: colorScheme.primary,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Imported',
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                          ],
                         ),
+                      )
+                    else
+                      FilledButton.tonal(
+                        onPressed: onImport,
+                        child: const Text('Import'),
                       ),
-                    ],
                   ],
                 ),
+
+                // Features
+                if (site.features.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: site.features.take(4).map((feature) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          feature,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+
+                // Depth and coordinates
+                if (site.maxDepth != null || site.hasCoordinates) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      if (site.maxDepth != null) ...[
+                        Icon(
+                          Icons.arrow_downward,
+                          size: 16,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${site.maxDepth!.toStringAsFixed(0)}m',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                      ],
+                      if (site.hasCoordinates) ...[
+                        Icon(
+                          Icons.location_on,
+                          size: 16,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'GPS',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),

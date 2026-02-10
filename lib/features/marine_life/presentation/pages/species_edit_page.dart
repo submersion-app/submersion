@@ -89,6 +89,7 @@ class _SpeciesEditPageState extends ConsumerState<SpeciesEditPage> {
         title: Text(widget.isEditing ? 'Edit Species' : 'Add Species'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
+          tooltip: 'Back',
           onPressed: () => context.pop(),
         ),
         actions: [

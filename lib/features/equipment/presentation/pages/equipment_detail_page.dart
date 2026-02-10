@@ -148,6 +148,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
+            tooltip: 'Edit Equipment',
             onPressed: () => context.push('/equipment/$equipmentId/edit'),
           ),
           PopupMenuButton<String>(
@@ -371,49 +372,56 @@ class _EquipmentDetailContent extends ConsumerWidget {
             const Divider(),
             _buildDetailRow(context, 'Status', equipment.status.displayName),
             diveCountAsync.when(
-              data: (count) => InkWell(
-                onTap: count > 0
-                    ? () {
-                        ref.read(diveFilterProvider.notifier).state =
-                            DiveFilterState(equipmentIds: [equipmentId]);
-                        context.go('/dives');
-                      }
-                    : null,
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Dives',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+              data: (count) => Semantics(
+                button: count > 0,
+                label: 'View dives using this equipment',
+                child: InkWell(
+                  onTap: count > 0
+                      ? () {
+                          ref.read(diveFilterProvider.notifier).state =
+                              DiveFilterState(equipmentIds: [equipmentId]);
+                          context.go('/dives');
+                        }
+                      : null,
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Dives',
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
                         ),
-                      ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            '$count ${count == 1 ? 'dive' : 'dives'}',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  color: count > 0
-                                      ? Theme.of(context).colorScheme.primary
-                                      : null,
-                                ),
-                          ),
-                          if (count > 0) ...[
-                            const SizedBox(width: 4),
-                            Icon(
-                              Icons.chevron_right,
-                              size: 18,
-                              color: Theme.of(context).colorScheme.primary,
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '$count ${count == 1 ? 'dive' : 'dives'}',
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: count > 0
+                                        ? Theme.of(context).colorScheme.primary
+                                        : null,
+                                  ),
                             ),
+                            if (count > 0) ...[
+                              const SizedBox(width: 4),
+                              Icon(
+                                Icons.chevron_right,
+                                size: 18,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ],
                           ],
-                        ],
-                      ),
-                    ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -421,49 +429,56 @@ class _EquipmentDetailContent extends ConsumerWidget {
               error: (e, s) => const SizedBox.shrink(),
             ),
             tripCountAsync.when(
-              data: (count) => InkWell(
-                onTap: count > 0
-                    ? () {
-                        ref.read(tripFilterProvider.notifier).state =
-                            TripFilterState(equipmentId: equipmentId);
-                        context.go('/trips');
-                      }
-                    : null,
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Trips',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+              data: (count) => Semantics(
+                button: count > 0,
+                label: 'View trips using this equipment',
+                child: InkWell(
+                  onTap: count > 0
+                      ? () {
+                          ref.read(tripFilterProvider.notifier).state =
+                              TripFilterState(equipmentId: equipmentId);
+                          context.go('/trips');
+                        }
+                      : null,
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Trips',
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
                         ),
-                      ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            '$count ${count == 1 ? 'trip' : 'trips'}',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  color: count > 0
-                                      ? Theme.of(context).colorScheme.primary
-                                      : null,
-                                ),
-                          ),
-                          if (count > 0) ...[
-                            const SizedBox(width: 4),
-                            Icon(
-                              Icons.chevron_right,
-                              size: 18,
-                              color: Theme.of(context).colorScheme.primary,
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '$count ${count == 1 ? 'trip' : 'trips'}',
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: count > 0
+                                        ? Theme.of(context).colorScheme.primary
+                                        : null,
+                                  ),
                             ),
+                            if (count > 0) ...[
+                              const SizedBox(width: 4),
+                              Icon(
+                                Icons.chevron_right,
+                                size: 18,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ],
                           ],
-                        ],
-                      ),
-                    ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -1163,14 +1178,18 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
                 const SizedBox(height: 16),
 
                 // Service date picker
-                InkWell(
-                  onTap: () => _pickServiceDate(),
-                  child: InputDecorator(
-                    decoration: const InputDecoration(
-                      labelText: 'Service Date',
-                      prefixIcon: Icon(Icons.calendar_today),
+                Semantics(
+                  button: true,
+                  label: 'Pick service date',
+                  child: InkWell(
+                    onTap: () => _pickServiceDate(),
+                    child: InputDecorator(
+                      decoration: const InputDecoration(
+                        labelText: 'Service Date',
+                        prefixIcon: Icon(Icons.calendar_today),
+                      ),
+                      child: Text(units.formatDate(_serviceDate)),
                     ),
-                    child: Text(units.formatDate(_serviceDate)),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -1210,28 +1229,33 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
                 const SizedBox(height: 16),
 
                 // Next service due date picker
-                InkWell(
-                  onTap: () => _pickNextServiceDate(),
-                  child: InputDecorator(
-                    decoration: InputDecoration(
-                      labelText: 'Next Service Due',
-                      prefixIcon: const Icon(Icons.event),
-                      suffixIcon: _nextServiceDue != null
-                          ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () =>
-                                  setState(() => _nextServiceDue = null),
-                            )
-                          : null,
-                    ),
-                    child: Text(
-                      _nextServiceDue != null
-                          ? units.formatDate(_nextServiceDue)
-                          : 'Not set',
-                      style: TextStyle(
-                        color: _nextServiceDue == null
-                            ? Theme.of(context).colorScheme.onSurfaceVariant
+                Semantics(
+                  button: true,
+                  label: 'Pick next service due date',
+                  child: InkWell(
+                    onTap: () => _pickNextServiceDate(),
+                    child: InputDecorator(
+                      decoration: InputDecoration(
+                        labelText: 'Next Service Due',
+                        prefixIcon: const Icon(Icons.event),
+                        suffixIcon: _nextServiceDue != null
+                            ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                tooltip: 'Clear Next Service Date',
+                                onPressed: () =>
+                                    setState(() => _nextServiceDue = null),
+                              )
                             : null,
+                      ),
+                      child: Text(
+                        _nextServiceDue != null
+                            ? units.formatDate(_nextServiceDue)
+                            : 'Not set',
+                        style: TextStyle(
+                          color: _nextServiceDue == null
+                              ? Theme.of(context).colorScheme.onSurfaceVariant
+                              : null,
+                        ),
                       ),
                     ),
                   ),

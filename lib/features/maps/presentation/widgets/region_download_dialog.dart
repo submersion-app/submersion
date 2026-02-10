@@ -215,6 +215,7 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
                         min: 1,
                         max: 14,
                         divisions: 13,
+                        label: 'Minimum zoom: $_minZoom',
                         onChanged: (value) {
                           setState(() {
                             _minZoom = value.round();
@@ -237,6 +238,7 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
                         min: 8,
                         max: 18,
                         divisions: 10,
+                        label: 'Maximum zoom: $_maxZoom',
                         onChanged: (value) {
                           setState(() {
                             _maxZoom = value.round();
@@ -253,63 +255,81 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
             const SizedBox(height: 16),
 
             // Tile estimate card
-            Card(
-              color: colorScheme.surfaceContainerHighest,
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  children: [
-                    Icon(Icons.storage, color: colorScheme.primary),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _isEstimating
-                          ? const Text('Estimating...')
-                          : _estimatedTiles != null
-                          ? Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '~$_estimatedTiles tiles',
-                                  style: Theme.of(context).textTheme.bodyMedium
-                                      ?.copyWith(fontWeight: FontWeight.w500),
-                                ),
-                                Text(
-                                  '~${_formatEstimatedSize(_estimatedTiles!)}',
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color: colorScheme.onSurfaceVariant,
-                                      ),
-                                ),
-                              ],
-                            )
-                          : const Text('Unable to estimate'),
-                    ),
-                  ],
+            Semantics(
+              label: _isEstimating
+                  ? 'Estimating download size'
+                  : _estimatedTiles != null
+                  ? 'Estimated download: $_estimatedTiles tiles, '
+                        '${_formatEstimatedSize(_estimatedTiles!)}'
+                  : 'Unable to estimate download size',
+              child: Card(
+                color: colorScheme.surfaceContainerHighest,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      ExcludeSemantics(
+                        child: Icon(Icons.storage, color: colorScheme.primary),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _isEstimating
+                            ? const Text('Estimating...')
+                            : _estimatedTiles != null
+                            ? Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '~$_estimatedTiles tiles',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(fontWeight: FontWeight.w500),
+                                  ),
+                                  Text(
+                                    '~${_formatEstimatedSize(_estimatedTiles!)}',
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: colorScheme.onSurfaceVariant,
+                                        ),
+                                  ),
+                                ],
+                              )
+                            : const Text('Unable to estimate'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
 
             // Warning for large downloads
             if (_estimatedTiles != null && _estimatedTiles! > 10000)
-              Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.warning_amber,
-                      size: 20,
-                      color: colorScheme.error,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Large download. Consider reducing zoom levels or selecting a smaller region.',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              Semantics(
+                label:
+                    'Warning: Large download. Consider reducing zoom levels '
+                    'or selecting a smaller region.',
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Row(
+                    children: [
+                      ExcludeSemantics(
+                        child: Icon(
+                          Icons.warning_amber,
+                          size: 20,
                           color: colorScheme.error,
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Large download. Consider reducing zoom levels or selecting a smaller region.',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: colorScheme.error),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
           ],

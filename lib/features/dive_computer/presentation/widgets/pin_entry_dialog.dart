@@ -86,37 +86,41 @@ class _PinEntryDialogState extends State<PinEntryDialog> {
             ),
           ),
           const SizedBox(height: 24),
-          TextField(
-            controller: _pinController,
-            focusNode: _focusNode,
-            keyboardType: TextInputType.number,
-            textAlign: TextAlign.center,
-            maxLength: 6,
-            style: theme.textTheme.headlineMedium?.copyWith(
-              letterSpacing: 8,
-              fontWeight: FontWeight.bold,
-            ),
-            decoration: InputDecoration(
-              hintText: '----',
-              hintStyle: theme.textTheme.headlineMedium?.copyWith(
+          Semantics(
+            label: 'PIN code entry, 4 to 6 digits',
+            textField: true,
+            child: TextField(
+              controller: _pinController,
+              focusNode: _focusNode,
+              keyboardType: TextInputType.number,
+              textAlign: TextAlign.center,
+              maxLength: 6,
+              style: theme.textTheme.headlineMedium?.copyWith(
                 letterSpacing: 8,
-                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+                fontWeight: FontWeight.bold,
               ),
-              counterText: '',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+              decoration: InputDecoration(
+                hintText: '----',
+                hintStyle: theme.textTheme.headlineMedium?.copyWith(
+                  letterSpacing: 8,
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+                ),
+                counterText: '',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
               ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 16,
-              ),
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(6),
+              ],
+              onChanged: _onPinChanged,
+              onSubmitted: (_) => _onSubmit(),
             ),
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-              LengthLimitingTextInputFormatter(6),
-            ],
-            onChanged: _onPinChanged,
-            onSubmitted: (_) => _onSubmit(),
           ),
           const SizedBox(height: 8),
           Text(

@@ -73,26 +73,34 @@ class _GasMixSelectorState extends ConsumerState<GasMixSelector> {
         const SizedBox(height: 12),
 
         // Advanced toggle
-        InkWell(
-          onTap: () => setState(() => _showAdvanced = !_showAdvanced),
-          borderRadius: BorderRadius.circular(8),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              children: [
-                Icon(
-                  _showAdvanced ? Icons.expand_less : Icons.expand_more,
-                  size: 20,
-                  color: colorScheme.onSurfaceVariant,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  _showAdvanced ? 'Hide custom mix' : 'Custom mix / Trimix',
-                  style: textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
+        Semantics(
+          button: true,
+          label: _showAdvanced
+              ? 'Hide custom mix options'
+              : 'Show custom mix and trimix options',
+          child: InkWell(
+            onTap: () => setState(() => _showAdvanced = !_showAdvanced),
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                children: [
+                  ExcludeSemantics(
+                    child: Icon(
+                      _showAdvanced ? Icons.expand_less : Icons.expand_more,
+                      size: 20,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 4),
+                  Text(
+                    _showAdvanced ? 'Hide custom mix' : 'Custom mix / Trimix',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

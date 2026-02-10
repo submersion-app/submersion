@@ -310,15 +310,22 @@ class AppearancePage extends ConsumerWidget {
     return Column(
       children: ThemeMode.values.map((mode) {
         final isSelected = mode == currentMode;
-        return ListTile(
-          leading: Icon(_getThemeModeIcon(mode)),
-          title: Text(_getThemeModeName(mode)),
-          trailing: isSelected
-              ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
-              : null,
-          onTap: () {
-            ref.read(settingsProvider.notifier).setThemeMode(mode);
-          },
+        return Semantics(
+          selected: isSelected,
+          child: ListTile(
+            leading: Icon(_getThemeModeIcon(mode)),
+            title: Text(_getThemeModeName(mode)),
+            trailing: isSelected
+                ? Icon(
+                    Icons.check,
+                    color: Theme.of(context).colorScheme.primary,
+                    semanticLabel: 'Selected',
+                  )
+                : null,
+            onTap: () {
+              ref.read(settingsProvider.notifier).setThemeMode(mode);
+            },
+          ),
         );
       }).toList(),
     );

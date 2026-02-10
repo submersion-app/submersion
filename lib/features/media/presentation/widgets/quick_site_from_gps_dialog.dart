@@ -72,26 +72,36 @@ class _QuickSiteFromGpsDialogState extends State<QuickSiteFromGpsDialog> {
               ),
             ),
             const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.location_on, size: 20, color: colorScheme.primary),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      '${widget.latitude.toStringAsFixed(5)}, '
-                      '${widget.longitude.toStringAsFixed(5)}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontFamily: 'monospace',
+            Semantics(
+              label:
+                  'GPS coordinates: ${widget.latitude.toStringAsFixed(5)}, ${widget.longitude.toStringAsFixed(5)}',
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    ExcludeSemantics(
+                      child: Icon(
+                        Icons.location_on,
+                        size: 20,
+                        color: colorScheme.primary,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '${widget.latitude.toStringAsFixed(5)}, '
+                        '${widget.longitude.toStringAsFixed(5)}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 16),

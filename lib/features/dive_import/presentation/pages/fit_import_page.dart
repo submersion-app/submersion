@@ -41,6 +41,7 @@ class _FitImportPageState extends ConsumerState<FitImportPage> {
         title: const Text('Import from FIT File'),
         leading: IconButton(
           icon: const Icon(Icons.close),
+          tooltip: 'Close FIT import',
           onPressed: () {
             ref.read(fitImportProvider.notifier).reset();
             context.pop();
@@ -330,7 +331,13 @@ class _FitImportPageState extends ConsumerState<FitImportPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.check_circle, size: 80, color: theme.colorScheme.primary),
+          ExcludeSemantics(
+            child: Icon(
+              Icons.check_circle,
+              size: 80,
+              color: theme.colorScheme.primary,
+            ),
+          ),
           const SizedBox(height: 24),
           Text('Import Complete', style: theme.textTheme.headlineMedium),
           const SizedBox(height: 16),
@@ -379,10 +386,12 @@ class _FitImportPageState extends ConsumerState<FitImportPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.file_open,
-              size: 64,
-              color: theme.colorScheme.onSurfaceVariant,
+            ExcludeSemantics(
+              child: Icon(
+                Icons.file_open,
+                size: 64,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 16),
             Text('No Dives Loaded', style: theme.textTheme.titleLarge),

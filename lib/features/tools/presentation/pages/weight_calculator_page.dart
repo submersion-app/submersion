@@ -73,36 +73,39 @@ class _WeightCalculatorPageState extends ConsumerState<WeightCalculatorPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Result card at top
-            Card(
-              color: theme.colorScheme.primaryContainer,
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  children: [
-                    Text(
-                      'Recommended Weight',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: theme.colorScheme.onPrimaryContainer,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '${primaryWeight.toStringAsFixed(1)} $primaryUnit',
-                      style: theme.textTheme.displayMedium?.copyWith(
-                        color: theme.colorScheme.onPrimaryContainer,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '(${secondaryWeight.toStringAsFixed(1)} $secondaryUnit)',
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: theme.colorScheme.onPrimaryContainer.withValues(
-                          alpha: 0.7,
+            Semantics(
+              label:
+                  'Recommended weight: ${primaryWeight.toStringAsFixed(1)} $primaryUnit',
+              child: Card(
+                color: theme.colorScheme.primaryContainer,
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Recommended Weight',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: theme.colorScheme.onPrimaryContainer,
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      Text(
+                        '${primaryWeight.toStringAsFixed(1)} $primaryUnit',
+                        style: theme.textTheme.displayMedium?.copyWith(
+                          color: theme.colorScheme.onPrimaryContainer,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '(${secondaryWeight.toStringAsFixed(1)} $secondaryUnit)',
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: theme.colorScheme.onPrimaryContainer
+                              .withValues(alpha: 0.7),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

@@ -127,44 +127,47 @@ class _RangeSelectionOverlayState extends ConsumerState<RangeSelectionOverlay> {
       top: 0,
       bottom: 0,
       width: 32,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onHorizontalDragStart: (_) {
-          setState(() => _activeDrag = target);
-        },
-        onHorizontalDragUpdate: (details) {
-          _handleDrag(details.localPosition.dx + position - 16, isStart);
-        },
-        onHorizontalDragEnd: (_) {
-          setState(() => _activeDrag = null);
-        },
-        child: Column(
-          children: [
-            // Top grip circle
-            _HandleGrip(isActive: isActive, color: colorScheme.primary),
-            // Vertical line
-            Expanded(
-              child: Container(
-                width: 2,
-                decoration: BoxDecoration(
-                  color: isActive
-                      ? colorScheme.primary
-                      : colorScheme.primary.withValues(alpha: 0.7),
-                  boxShadow: isActive
-                      ? [
-                          BoxShadow(
-                            color: colorScheme.primary.withValues(alpha: 0.4),
-                            blurRadius: 4,
-                            spreadRadius: 1,
-                          ),
-                        ]
-                      : null,
+      child: Semantics(
+        label: 'Adjust range selection',
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onHorizontalDragStart: (_) {
+            setState(() => _activeDrag = target);
+          },
+          onHorizontalDragUpdate: (details) {
+            _handleDrag(details.localPosition.dx + position - 16, isStart);
+          },
+          onHorizontalDragEnd: (_) {
+            setState(() => _activeDrag = null);
+          },
+          child: Column(
+            children: [
+              // Top grip circle
+              _HandleGrip(isActive: isActive, color: colorScheme.primary),
+              // Vertical line
+              Expanded(
+                child: Container(
+                  width: 2,
+                  decoration: BoxDecoration(
+                    color: isActive
+                        ? colorScheme.primary
+                        : colorScheme.primary.withValues(alpha: 0.7),
+                    boxShadow: isActive
+                        ? [
+                            BoxShadow(
+                              color: colorScheme.primary.withValues(alpha: 0.4),
+                              blurRadius: 4,
+                              spreadRadius: 1,
+                            ),
+                          ]
+                        : null,
+                  ),
                 ),
               ),
-            ),
-            // Bottom grip circle
-            _HandleGrip(isActive: isActive, color: colorScheme.primary),
-          ],
+              // Bottom grip circle
+              _HandleGrip(isActive: isActive, color: colorScheme.primary),
+            ],
+          ),
         ),
       ),
     );

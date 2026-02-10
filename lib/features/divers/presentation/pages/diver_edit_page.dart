@@ -607,6 +607,7 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
           if (_medicalClearanceExpiry != null)
             IconButton(
               icon: const Icon(Icons.clear),
+              tooltip: 'Clear medical clearance date',
               onPressed: () {
                 setState(() {
                   _medicalClearanceExpiry = null;
@@ -616,6 +617,7 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
             ),
           IconButton(
             icon: const Icon(Icons.edit_calendar),
+            tooltip: 'Select medical clearance date',
             onPressed: _selectMedicalClearanceExpiry,
           ),
         ],
@@ -678,6 +680,7 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
                   if (_insuranceExpiry != null)
                     IconButton(
                       icon: const Icon(Icons.clear),
+                      tooltip: 'Clear insurance expiry date',
                       onPressed: () {
                         setState(() {
                           _insuranceExpiry = null;
@@ -687,6 +690,7 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
                     ),
                   IconButton(
                     icon: const Icon(Icons.edit_calendar),
+                    tooltip: 'Select insurance expiry date',
                     onPressed: _selectInsuranceExpiry,
                   ),
                 ],

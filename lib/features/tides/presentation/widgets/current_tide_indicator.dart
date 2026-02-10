@@ -38,89 +38,105 @@ class CurrentTideIndicator extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Card(
-      child: Padding(
-        padding: EdgeInsets.all(compact ? 12 : 16),
-        child: Row(
-          children: [
-            // Tide state icon
-            Container(
-              width: compact ? 40 : 48,
-              height: compact ? 40 : 48,
-              decoration: BoxDecoration(
-                color: _getStateColor(status.state).withValues(alpha: 0.15),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                _getStateIcon(status.state),
-                color: _getStateColor(status.state),
-                size: compact ? 24 : 28,
-              ),
-            ),
-            SizedBox(width: compact ? 12 : 16),
+    final currentHeightStr = DepthUnit.meters
+        .convert(status.currentHeight, depthUnit)
+        .toStringAsFixed(2);
+    final nextExtremeLabel = status.nextExtreme != null
+        ? ', ${status.nextExtreme!.type == TideExtremeType.high ? 'high' : 'low'} tide in ${_formatDuration(status.timeToNextExtreme!)}'
+        : '';
+    final semanticLabel =
+        '${status.state.displayName} tide, $currentHeightStr${depthUnit.symbol}$nextExtremeLabel';
 
-            // State info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    status.state.displayName,
-                    style:
-                        (compact ? textTheme.titleSmall : textTheme.titleMedium)
-                            ?.copyWith(fontWeight: FontWeight.bold),
+    return Semantics(
+      label: semanticLabel,
+      child: Card(
+        child: Padding(
+          padding: EdgeInsets.all(compact ? 12 : 16),
+          child: Row(
+            children: [
+              // Tide state icon
+              ExcludeSemantics(
+                child: Container(
+                  width: compact ? 40 : 48,
+                  height: compact ? 40 : 48,
+                  decoration: BoxDecoration(
+                    color: _getStateColor(status.state).withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
                   ),
-                  Text(
-                    'Current: ${DepthUnit.meters.convert(status.currentHeight, depthUnit).toStringAsFixed(2)}${depthUnit.symbol}',
-                    style:
-                        (compact ? textTheme.bodySmall : textTheme.bodyMedium)
-                            ?.copyWith(color: colorScheme.onSurfaceVariant),
+                  child: Icon(
+                    _getStateIcon(status.state),
+                    color: _getStateColor(status.state),
+                    size: compact ? 24 : 28,
                   ),
-                  if (status.rateOfChange != null && !compact)
+                ),
+              ),
+              SizedBox(width: compact ? 12 : 16),
+
+              // State info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
                     Text(
-                      '${status.rateOfChange! > 0 ? '+' : ''}${DepthUnit.meters.convert(status.rateOfChange!, depthUnit).toStringAsFixed(2)}${depthUnit.symbol}/hr',
+                      status.state.displayName,
+                      style:
+                          (compact
+                                  ? textTheme.titleSmall
+                                  : textTheme.titleMedium)
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      'Current: $currentHeightStr${depthUnit.symbol}',
+                      style:
+                          (compact ? textTheme.bodySmall : textTheme.bodyMedium)
+                              ?.copyWith(color: colorScheme.onSurfaceVariant),
+                    ),
+                    if (status.rateOfChange != null && !compact)
+                      Text(
+                        '${status.rateOfChange! > 0 ? '+' : ''}${DepthUnit.meters.convert(status.rateOfChange!, depthUnit).toStringAsFixed(2)}${depthUnit.symbol}/hr',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+
+              // Next extreme info
+              if (!compact && status.nextExtreme != null) ...[
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      status.nextExtreme!.type == TideExtremeType.high
+                          ? 'High in'
+                          : 'Low in',
                       style: textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
                     ),
-                ],
-              ),
-            ),
-
-            // Next extreme info
-            if (!compact && status.nextExtreme != null) ...[
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    status.nextExtreme!.type == TideExtremeType.high
-                        ? 'High in'
-                        : 'Low in',
-                    style: textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
+                    Text(
+                      _formatDuration(status.timeToNextExtreme!),
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: status.nextExtreme!.type == TideExtremeType.high
+                            ? Colors.red.shade700
+                            : Colors.blue.shade700,
+                      ),
                     ),
-                  ),
-                  Text(
-                    _formatDuration(status.timeToNextExtreme!),
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: status.nextExtreme!.type == TideExtremeType.high
-                          ? Colors.red.shade700
-                          : Colors.blue.shade700,
+                    Text(
+                      '${DepthUnit.meters.convert(status.nextExtreme!.heightMeters, depthUnit).toStringAsFixed(2)}${depthUnit.symbol}',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                     ),
-                  ),
-                  Text(
-                    '${DepthUnit.meters.convert(status.nextExtreme!.heightMeters, depthUnit).toStringAsFixed(2)}${depthUnit.symbol}',
-                    style: textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -170,26 +186,35 @@ class TideStateBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: _getStateColor(state).withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(_getStateIcon(state), size: 16, color: _getStateColor(state)),
-          const SizedBox(width: 4),
-          Text(
-            state.displayName,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: _getStateColor(state),
+    return Semantics(
+      label: 'Tide state: ${state.displayName}',
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: _getStateColor(state).withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ExcludeSemantics(
+              child: Icon(
+                _getStateIcon(state),
+                size: 16,
+                color: _getStateColor(state),
+              ),
             ),
-          ),
-        ],
+            const SizedBox(width: 4),
+            Text(
+              state.displayName,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: _getStateColor(state),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

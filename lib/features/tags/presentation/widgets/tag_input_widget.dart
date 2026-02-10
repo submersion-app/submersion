@@ -300,6 +300,7 @@ class TagManagementDialog extends ConsumerWidget {
                   trailing: IconButton(
                     icon: const Icon(Icons.delete_outline),
                     onPressed: () => _confirmDelete(context, ref, tag),
+                    tooltip: 'Delete tag',
                   ),
                   onTap: () => _editTag(context, ref, tag),
                 );
@@ -372,27 +373,32 @@ class TagManagementDialog extends ConsumerWidget {
                 runSpacing: 8,
                 children: TagColors.predefined.map((color) {
                   final isSelected = color == selectedColor;
-                  return GestureDetector(
-                    onTap: () => setState(() => selectedColor = color),
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: TagColors.fromHex(color),
-                        shape: BoxShape.circle,
-                        border: isSelected
-                            ? Border.all(color: Colors.white, width: 3)
-                            : null,
-                        boxShadow: isSelected
-                            ? [
-                                BoxShadow(
-                                  color: TagColors.fromHex(
-                                    color,
-                                  ).withValues(alpha: 0.5),
-                                  blurRadius: 8,
-                                ),
-                              ]
-                            : null,
+                  return Semantics(
+                    button: true,
+                    label: 'Select color $color',
+                    selected: isSelected,
+                    child: GestureDetector(
+                      onTap: () => setState(() => selectedColor = color),
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: TagColors.fromHex(color),
+                          shape: BoxShape.circle,
+                          border: isSelected
+                              ? Border.all(color: Colors.white, width: 3)
+                              : null,
+                          boxShadow: isSelected
+                              ? [
+                                  BoxShadow(
+                                    color: TagColors.fromHex(
+                                      color,
+                                    ).withValues(alpha: 0.5),
+                                    blurRadius: 8,
+                                  ),
+                                ]
+                              : null,
+                        ),
                       ),
                     ),
                   );
@@ -447,29 +453,36 @@ class TagColorPicker extends StatelessWidget {
       runSpacing: 8,
       children: TagColors.predefined.map((color) {
         final isSelected = color == selectedColor;
-        return GestureDetector(
-          onTap: () => onColorSelected(color),
-          child: Container(
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(
-              color: TagColors.fromHex(color),
-              shape: BoxShape.circle,
-              border: isSelected
-                  ? Border.all(color: Colors.white, width: 2)
-                  : null,
-              boxShadow: isSelected
-                  ? [
-                      BoxShadow(
-                        color: TagColors.fromHex(color).withValues(alpha: 0.5),
-                        blurRadius: 6,
-                      ),
-                    ]
+        return Semantics(
+          button: true,
+          label: 'Select color $color',
+          selected: isSelected,
+          child: GestureDetector(
+            onTap: () => onColorSelected(color),
+            child: Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: TagColors.fromHex(color),
+                shape: BoxShape.circle,
+                border: isSelected
+                    ? Border.all(color: Colors.white, width: 2)
+                    : null,
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: TagColors.fromHex(
+                            color,
+                          ).withValues(alpha: 0.5),
+                          blurRadius: 6,
+                        ),
+                      ]
+                    : null,
+              ),
+              child: isSelected
+                  ? const Icon(Icons.check, size: 16, color: Colors.white)
                   : null,
             ),
-            child: isSelected
-                ? const Icon(Icons.check, size: 16, color: Colors.white)
-                : null,
           ),
         );
       }).toList(),

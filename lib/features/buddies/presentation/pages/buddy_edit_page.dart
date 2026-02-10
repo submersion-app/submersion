@@ -156,15 +156,17 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                         Positioned(
                           bottom: 0,
                           right: 0,
-                          child: CircleAvatar(
-                            radius: 16,
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.primary,
-                            child: Icon(
-                              Icons.camera_alt,
-                              size: 16,
-                              color: Theme.of(context).colorScheme.onPrimary,
+                          child: ExcludeSemantics(
+                            child: CircleAvatar(
+                              radius: 16,
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.primary,
+                              child: Icon(
+                                Icons.camera_alt,
+                                size: 16,
+                                color: Theme.of(context).colorScheme.onPrimary,
+                              ),
                             ),
                           ),
                         ),

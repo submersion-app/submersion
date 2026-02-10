@@ -22,10 +22,12 @@ class TankPresetsPage extends ConsumerWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
+          tooltip: 'Back',
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/tank-presets/new'),
+        tooltip: 'Add tank preset',
         child: const Icon(Icons.add),
       ),
       body: presetsAsync.when(
@@ -119,10 +121,12 @@ class TankPresetsPage extends ConsumerWidget {
                   icon: const Icon(Icons.edit_outlined),
                   onPressed: () =>
                       context.push('/tank-presets/${preset.id}/edit'),
+                  tooltip: 'Edit preset',
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline),
                   onPressed: () => _confirmDelete(context, ref, preset),
+                  tooltip: 'Delete preset',
                 ),
               ],
             )

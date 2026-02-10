@@ -220,41 +220,47 @@ class _PhotoThumbnail extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return GestureDetector(
-      onTap: () => context.push('/trips/$tripId/gallery'),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: SizedBox(
-          width: 80,
-          height: 80,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              // Thumbnail
-              if (item.platformAssetId != null)
-                _buildAssetThumbnail(ref, colorScheme)
-              else
-                _buildPlaceholder(colorScheme),
+    final mediaType = item.isVideo ? 'Video' : 'Photo';
 
-              // Video icon
-              if (item.isVideo)
-                Positioned(
-                  top: 4,
-                  right: 4,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.black54,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: const Icon(
-                      Icons.videocam,
-                      size: 14,
-                      color: Colors.white,
+    return Semantics(
+      button: true,
+      label: '$mediaType thumbnail. Tap to open gallery',
+      child: GestureDetector(
+        onTap: () => context.push('/trips/$tripId/gallery'),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: SizedBox(
+            width: 80,
+            height: 80,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                // Thumbnail
+                if (item.platformAssetId != null)
+                  _buildAssetThumbnail(ref, colorScheme)
+                else
+                  _buildPlaceholder(colorScheme),
+
+                // Video icon
+                if (item.isVideo)
+                  Positioned(
+                    top: 4,
+                    right: 4,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Icon(
+                        Icons.videocam,
+                        size: 14,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -313,19 +319,22 @@ class _MoreIndicator extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Container(
-      width: 80,
-      height: 80,
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Center(
-        child: Text(
-          '+$count',
-          style: textTheme.titleMedium?.copyWith(
-            color: colorScheme.onSurfaceVariant,
-            fontWeight: FontWeight.bold,
+    return Semantics(
+      label: '$count more photos',
+      child: Container(
+        width: 80,
+        height: 80,
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Center(
+          child: Text(
+            '+$count',
+            style: textTheme.titleMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ),

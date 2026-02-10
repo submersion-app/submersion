@@ -26,6 +26,7 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
         title: const Text('Species'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
+          tooltip: 'Back',
           onPressed: () => context.pop(),
         ),
         actions: [
@@ -76,6 +77,7 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
           suffixIcon: _searchQuery.isNotEmpty
               ? IconButton(
                   icon: const Icon(Icons.clear),
+                  tooltip: 'Clear search',
                   onPressed: () => setState(() => _searchQuery = ''),
                 )
               : null,
@@ -190,11 +192,13 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
         children: [
           IconButton(
             icon: const Icon(Icons.edit_outlined),
+            tooltip: 'Edit species',
             onPressed: () => context.push('/species/${species.id}/edit'),
           ),
           if (isCustom)
             IconButton(
               icon: const Icon(Icons.delete_outline),
+              tooltip: 'Delete species',
               onPressed: () => _confirmDelete(species),
             ),
         ],
