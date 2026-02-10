@@ -32,6 +32,7 @@
 		AE1DA53686A3B5DA67CF4E05 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AC372392EBE18975F5373253 /* Pods_RunnerTests.framework */; };
 		DEAD1234BEEF56780011AABC /* MetadataWriteHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEAD1234BEEF56780011AABB /* MetadataWriteHandler.swift */; };
 		F00D1234ABCDEF0011223345 /* ICloudContainerHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00D1234ABCDEF0011223344 /* ICloudContainerHandler.swift */; };
+		A1B2C3D4E5F6A7B80011AABC /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B80011AABB /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -93,6 +94,7 @@
 		DBFD696D0C67B3E39A05C440 /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
 		DEAD1234BEEF56780011AABB /* MetadataWriteHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataWriteHandler.swift; sourceTree = "<group>"; };
 		F00D1234ABCDEF0011223344 /* ICloudContainerHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ICloudContainerHandler.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6A7B80011AABB /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		FFBAEADD6D34D0CA0625F251 /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -199,6 +201,7 @@
 				AABBCC001122334455667789 /* SecurityScopedBookmarkHandler.swift */,
 				F00D1234ABCDEF0011223344 /* ICloudContainerHandler.swift */,
 				DEAD1234BEEF56780011AABB /* MetadataWriteHandler.swift */,
+				A1B2C3D4E5F6A7B80011AABB /* PrivacyInfo.xcprivacy */,
 				33E51913231747F40026EE4D /* DebugProfile.entitlements */,
 				33E51914231749380026EE4D /* Release.entitlements */,
 				33CC11242044D66E0003C045 /* Resources */,
@@ -325,6 +328,7 @@
 			files = (
 				33CC10F32044A3C60003C045 /* Assets.xcassets in Resources */,
 				33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */,
+				A1B2C3D4E5F6A7B80011AABC /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
