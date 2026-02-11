@@ -12,15 +12,8 @@ This document contains only the features and tasks that are **not yet completed*
 
 | Phase | Status | Remaining Focus |
 |-------|--------|-----------------|
-| **v1.5** | 🚧 In Progress | Remaining v1.5 items below |
-| **v2.0** | 📋 Planned | Advanced features, social, backend |
+| **v2.0** | 🚧 In Progressd | Advanced features, social, backend |
 | **v3.0** | 🔮 Future | Community platform, AI features |
-
----
-
-# v1.5 Remaining Tasks
-
-> All v1.5 feature tasks are complete. Only performance testing remains.
 
 ---
 

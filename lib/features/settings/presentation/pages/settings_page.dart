@@ -17,6 +17,7 @@ import 'package:submersion/features/settings/presentation/providers/export_provi
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
+import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/import_progress_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_summary_widget.dart';
@@ -1058,6 +1059,23 @@ class _AppearanceSectionContent extends ConsumerWidget {
                   },
                 );
               }).toList(),
+            ),
+          ),
+          const SizedBox(height: 24),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_appearance_header_language,
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.language),
+              title: Text(context.l10n.settings_appearance_appLanguage),
+              subtitle: Text(
+                LanguageSettingsPage.getDisplayName(settings.locale),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.go('/settings/language'),
             ),
           ),
           const SizedBox(height: 24),
