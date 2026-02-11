@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
+
 /// Info card overlay for displaying selected item details on a map.
 ///
 /// Positioned at the bottom of the map pane, shows a summary of the selected
@@ -75,7 +77,7 @@ class MapInfoCard extends StatelessWidget {
                       Icons.chevron_right,
                       color: colorScheme.onSurfaceVariant,
                     ),
-                    tooltip: 'View details',
+                    tooltip: context.l10n.accessibility_label_viewDetails,
                     onPressed: onDetailsTap,
                   ),
               ],

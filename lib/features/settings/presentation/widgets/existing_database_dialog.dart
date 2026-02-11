@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/services/database_migration_service.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// User's choice when an existing database is found
 enum ExistingDatabaseChoice {
@@ -34,14 +35,14 @@ class _ExistingDatabaseDialogState extends State<ExistingDatabaseDialog> {
     final theme = Theme.of(context);
 
     return AlertDialog(
-      title: const Text('Existing Database Found'),
+      title: Text(context.l10n.settings_existingDb_dialog_title),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'A Submersion database already exists in this folder.',
+              context.l10n.settings_existingDb_dialog_message,
               style: theme.textTheme.bodyMedium,
             ),
             const SizedBox(height: 20),
@@ -52,7 +53,7 @@ class _ExistingDatabaseDialogState extends State<ExistingDatabaseDialog> {
                 Expanded(
                   child: _buildDatabaseCard(
                     context,
-                    title: 'Existing',
+                    title: context.l10n.settings_existingDb_existing,
                     info: widget.existingInfo,
                     isExisting: true,
                   ),
@@ -61,7 +62,7 @@ class _ExistingDatabaseDialogState extends State<ExistingDatabaseDialog> {
                 Expanded(
                   child: _buildDatabaseCard(
                     context,
-                    title: 'Current',
+                    title: context.l10n.settings_existingDb_current,
                     info: widget.currentInfo,
                     isExisting: false,
                   ),
@@ -75,16 +76,17 @@ class _ExistingDatabaseDialogState extends State<ExistingDatabaseDialog> {
             _buildOption(
               context,
               choice: ExistingDatabaseChoice.useExisting,
-              title: 'Use existing database',
-              subtitle: 'Switch to the database in this folder',
+              title: context.l10n.settings_existingDb_useExisting,
+              subtitle: context.l10n.settings_existingDb_useExisting_subtitle,
               icon: Icons.folder_open,
             ),
             const SizedBox(height: 8),
             _buildOption(
               context,
               choice: ExistingDatabaseChoice.replace,
-              title: 'Replace with my data',
-              subtitle: 'Overwrite with your current database',
+              title: context.l10n.settings_existingDb_replaceWithMyData,
+              subtitle:
+                  context.l10n.settings_existingDb_replaceWithMyData_subtitle,
               icon: Icons.drive_file_move,
             ),
 
@@ -111,7 +113,7 @@ class _ExistingDatabaseDialogState extends State<ExistingDatabaseDialog> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'The existing database will be backed up before being replaced.',
+                        context.l10n.settings_existingDb_replaceWarning,
                         style: theme.textTheme.bodySmall,
                       ),
                     ),
@@ -125,13 +127,13 @@ class _ExistingDatabaseDialogState extends State<ExistingDatabaseDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(null),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.settings_existingDb_cancel),
         ),
         FilledButton(
           onPressed: _selectedChoice != null
               ? () => Navigator.of(context).pop(_selectedChoice)
               : null,
-          child: const Text('Continue'),
+          child: Text(context.l10n.settings_existingDb_continue),
         ),
       ],
     );
@@ -169,11 +171,31 @@ class _ExistingDatabaseDialogState extends State<ExistingDatabaseDialog> {
           const SizedBox(height: 8),
           if (info != null) ...[
             // Primary stats
-            _buildStatRow(context, 'Users', info.userCount),
-            _buildStatRow(context, 'Dives', info.diveCount),
-            _buildStatRow(context, 'Sites', info.siteCount),
-            _buildStatRow(context, 'Trips', info.tripCount),
-            _buildStatRow(context, 'Buddies', info.buddyCount),
+            _buildStatRow(
+              context,
+              context.l10n.settings_existingDb_stat_users,
+              info.userCount,
+            ),
+            _buildStatRow(
+              context,
+              context.l10n.settings_existingDb_stat_dives,
+              info.diveCount,
+            ),
+            _buildStatRow(
+              context,
+              context.l10n.settings_existingDb_stat_sites,
+              info.siteCount,
+            ),
+            _buildStatRow(
+              context,
+              context.l10n.settings_existingDb_stat_trips,
+              info.tripCount,
+            ),
+            _buildStatRow(
+              context,
+              context.l10n.settings_existingDb_stat_buddies,
+              info.buddyCount,
+            ),
             const SizedBox(height: 6),
             Text(
               info.formattedFileSize,
@@ -183,7 +205,7 @@ class _ExistingDatabaseDialogState extends State<ExistingDatabaseDialog> {
             ),
           ] else ...[
             Text(
-              'Unknown',
+              context.l10n.settings_existingDb_unknown,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),

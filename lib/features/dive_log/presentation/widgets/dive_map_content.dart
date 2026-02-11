@@ -16,6 +16,7 @@ import 'package:submersion/features/maps/presentation/providers/heat_map_provide
 import 'package:submersion/features/maps/presentation/widgets/heat_map_controls.dart';
 import 'package:submersion/features/maps/presentation/widgets/heat_map_layer.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/map_list_layout/map_info_card.dart';
 
 /// Map content widget for displaying dives on a map.
@@ -198,7 +199,7 @@ class _DiveMapContentState extends ConsumerState<DiveMapContent>
                   const HeatMapToggleButton(),
                   IconButton(
                     icon: const Icon(Icons.my_location, size: 20),
-                    tooltip: 'Fit All Sites',
+                    tooltip: context.l10n.diveLog_map_tooltip_fitAllSites,
                     onPressed: () => _fitAllSites(
                       sitesWithCounts.map((s) => s.site).toList(),
                     ),
@@ -401,12 +402,12 @@ class _DiveMapContentState extends ConsumerState<DiveMapContent>
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'No dive activity to display',
+                      context.l10n.diveLog_map_emptyTitle,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Log dives with location data to see your activity on the map',
+                      context.l10n.diveLog_map_emptySubtitle,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -427,11 +428,11 @@ class _DiveMapContentState extends ConsumerState<DiveMapContent>
     final units = UnitFormatter(appSettings);
 
     // Title: Site name (matching DiveListTile)
-    final title = dive.site?.name ?? 'Unknown Site';
+    final title = dive.site?.name ?? context.l10n.diveLog_listPage_unknownSite;
 
     // Build subtitle with date, depth, duration, water temp (matching DiveListTile)
     final parts = <String>[];
-    parts.add(units.formatDateTime(dive.dateTime));
+    parts.add(units.formatDateTime(dive.dateTime, l10n: context.l10n));
     if (dive.maxDepth != null) {
       parts.add(units.formatDepth(dive.maxDepth!));
     }
@@ -682,14 +683,14 @@ class _DiveMapContentState extends ConsumerState<DiveMapContent>
         children: [
           const Icon(Icons.error_outline, size: 48, color: Colors.red),
           const SizedBox(height: 16),
-          Text('Error loading dive data: $error'),
+          Text(context.l10n.diveLog_map_errorLoading(error.toString())),
           const SizedBox(height: 16),
           FilledButton(
             onPressed: () {
               ref.invalidate(sortedFilteredDivesProvider);
               ref.invalidate(diveActivityHeatMapProvider);
             },
-            child: const Text('Retry'),
+            child: Text(context.l10n.diveLog_error_retry),
           ),
         ],
       ),

@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/utils/weight_calculator.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 class WeightCalculatorPage extends ConsumerStatefulWidget {
   const WeightCalculatorPage({super.key});
@@ -66,7 +67,7 @@ class _WeightCalculatorPageState extends ConsumerState<WeightCalculatorPage> {
     final secondaryUnit = isMetric ? 'lbs' : 'kg';
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Weight Calculator')),
+      appBar: AppBar(title: Text(context.l10n.tools_weight_title)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -74,8 +75,10 @@ class _WeightCalculatorPageState extends ConsumerState<WeightCalculatorPage> {
           children: [
             // Result card at top
             Semantics(
-              label:
-                  'Recommended weight: ${primaryWeight.toStringAsFixed(1)} $primaryUnit',
+              label: context.l10n.tools_weight_resultAccessibility(
+                primaryWeight.toStringAsFixed(1),
+                primaryUnit,
+              ),
               child: Card(
                 color: theme.colorScheme.primaryContainer,
                 child: Padding(
@@ -83,7 +86,7 @@ class _WeightCalculatorPageState extends ConsumerState<WeightCalculatorPage> {
                   child: Column(
                     children: [
                       Text(
-                        'Recommended Weight',
+                        context.l10n.tools_weight_recommendedWeight,
                         style: theme.textTheme.titleMedium?.copyWith(
                           color: theme.colorScheme.onPrimaryContainer,
                         ),
@@ -112,7 +115,10 @@ class _WeightCalculatorPageState extends ConsumerState<WeightCalculatorPage> {
             const SizedBox(height: 24),
 
             // Exposure Suit
-            Text('Exposure Suit', style: theme.textTheme.titleMedium),
+            Text(
+              context.l10n.tools_weight_exposureSuit,
+              style: theme.textTheme.titleMedium,
+            ),
             const SizedBox(height: 8),
             Card(
               child: Column(
@@ -131,13 +137,16 @@ class _WeightCalculatorPageState extends ConsumerState<WeightCalculatorPage> {
             const SizedBox(height: 16),
 
             // Tank Material
-            Text('Tank Material', style: theme.textTheme.titleMedium),
+            Text(
+              context.l10n.tools_weight_tankMaterial,
+              style: theme.textTheme.titleMedium,
+            ),
             const SizedBox(height: 8),
             Card(
               child: Column(
                 children: [
                   ListTile(
-                    title: const Text('Not specified'),
+                    title: Text(context.l10n.tools_weight_notSpecified),
                     trailing: _selectedTank == null
                         ? Icon(Icons.check, color: theme.colorScheme.primary)
                         : null,
@@ -160,13 +169,16 @@ class _WeightCalculatorPageState extends ConsumerState<WeightCalculatorPage> {
             const SizedBox(height: 16),
 
             // Water Type
-            Text('Water Type', style: theme.textTheme.titleMedium),
+            Text(
+              context.l10n.tools_weight_waterType,
+              style: theme.textTheme.titleMedium,
+            ),
             const SizedBox(height: 8),
             Card(
               child: Column(
                 children: [
                   ListTile(
-                    title: const Text('Not specified'),
+                    title: Text(context.l10n.tools_weight_notSpecified),
                     trailing: _selectedWater == null
                         ? Icon(Icons.check, color: theme.colorScheme.primary)
                         : null,
@@ -188,7 +200,10 @@ class _WeightCalculatorPageState extends ConsumerState<WeightCalculatorPage> {
             const SizedBox(height: 16),
 
             // Body Weight (optional)
-            Text('Body Weight (optional)', style: theme.textTheme.titleMedium),
+            Text(
+              context.l10n.tools_weight_bodyWeightOptional,
+              style: theme.textTheme.titleMedium,
+            ),
             const SizedBox(height: 8),
             Card(
               child: Padding(
@@ -196,11 +211,11 @@ class _WeightCalculatorPageState extends ConsumerState<WeightCalculatorPage> {
                 child: TextField(
                   controller: _bodyWeightController,
                   decoration: InputDecoration(
-                    labelText: 'Your weight',
+                    labelText: context.l10n.tools_weight_yourWeight,
                     suffixText: primaryUnit,
                     helperText: isMetric
-                        ? 'Adds ~1 kg per 10 kg over 70 kg'
-                        : 'Adds ~2 lbs per 22 lbs over 154 lbs',
+                        ? context.l10n.tools_weight_helperMetric
+                        : context.l10n.tools_weight_helperImperial,
                   ),
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
@@ -226,7 +241,7 @@ class _WeightCalculatorPageState extends ConsumerState<WeightCalculatorPage> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'This is an estimate only. Always perform a buoyancy check at the start of your dive and adjust as needed. Factors like BCD, personal buoyancy, and breathing patterns will affect your actual weight requirements.',
+                        context.l10n.tools_weight_disclaimer,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -247,14 +262,16 @@ class _WeightCalculatorPageState extends ConsumerState<WeightCalculatorPage> {
     switch (material) {
       case TankMaterial.aluminum:
         return isMetric
-            ? 'More buoyant when empty (+2 kg)'
-            : 'More buoyant when empty (+4 lbs)';
+            ? context.l10n.tools_weight_aluminumMetric
+            : context.l10n.tools_weight_aluminumImperial;
       case TankMaterial.steel:
         return isMetric
-            ? 'Negatively buoyant (-2 kg)'
-            : 'Negatively buoyant (-4 lbs)';
+            ? context.l10n.tools_weight_steelMetric
+            : context.l10n.tools_weight_steelImperial;
       case TankMaterial.carbonFiber:
-        return isMetric ? 'Very buoyant (+3 kg)' : 'Very buoyant (+7 lbs)';
+        return isMetric
+            ? context.l10n.tools_weight_carbonFiberMetric
+            : context.l10n.tools_weight_carbonFiberImperial;
     }
   }
 }

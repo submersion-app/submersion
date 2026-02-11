@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Banner widget that suggests using GPS coordinates from photos
 /// when a dive has no site or the site has no coordinates.
@@ -71,7 +72,7 @@ class PhotoGpsSuggestionBanner extends ConsumerWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'GPS found in photos',
+                    context.l10n.media_gpsBanner_title,
                     style: theme.textTheme.titleSmall?.copyWith(
                       color: colorScheme.primary,
                       fontWeight: FontWeight.w600,
@@ -84,7 +85,7 @@ class PhotoGpsSuggestionBanner extends ConsumerWidget {
                     size: 18,
                     color: colorScheme.onSurfaceVariant,
                   ),
-                  tooltip: 'Dismiss GPS suggestion',
+                  tooltip: context.l10n.media_gpsBanner_dismissTooltip,
                   onPressed: onDismiss,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(
@@ -96,8 +97,10 @@ class PhotoGpsSuggestionBanner extends ConsumerWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Coordinates: ${gps.latitude.toStringAsFixed(5)}, '
-              '${gps.longitude.toStringAsFixed(5)}',
+              context.l10n.media_gpsBanner_coordinates(
+                gps.latitude.toStringAsFixed(5),
+                gps.longitude.toStringAsFixed(5),
+              ),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
                 fontFamily: 'monospace',
@@ -111,7 +114,9 @@ class PhotoGpsSuggestionBanner extends ConsumerWidget {
                     child: FilledButton.icon(
                       onPressed: onCreateSite,
                       icon: const Icon(Icons.add_location_alt, size: 18),
-                      label: const Text('Create Site'),
+                      label: Text(
+                        context.l10n.media_gpsBanner_createSiteButton,
+                      ),
                       style: FilledButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
@@ -126,7 +131,7 @@ class PhotoGpsSuggestionBanner extends ConsumerWidget {
                       onPressed: () =>
                           onUpdateSite(GeoPoint(gps.latitude, gps.longitude)),
                       icon: const Icon(Icons.edit_location_alt, size: 18),
-                      label: const Text('Add to Site'),
+                      label: Text(context.l10n.media_gpsBanner_addToSiteButton),
                       style: FilledButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,

@@ -5,6 +5,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Panel displaying decompression calculation results.
 ///
@@ -42,7 +43,7 @@ class DecoResultsPanel extends ConsumerWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Decompression',
+                  context.l10n.divePlanner_label_decompression,
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: theme.colorScheme.primary,
                   ),
@@ -56,7 +57,7 @@ class DecoResultsPanel extends ConsumerWidget {
               children: [
                 Expanded(
                   child: _StatCard(
-                    label: 'Runtime',
+                    label: context.l10n.divePlanner_label_runtime,
                     value: _formatDuration(results.totalRuntime),
                     icon: Icons.timer,
                   ),
@@ -64,9 +65,11 @@ class DecoResultsPanel extends ConsumerWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: _StatCard(
-                    label: results.ndlAtBottom < 0 ? 'Status' : 'NDL',
+                    label: results.ndlAtBottom < 0
+                        ? context.l10n.divePlanner_label_status
+                        : context.l10n.divePlanner_label_ndl,
                     value: results.ndlAtBottom < 0
-                        ? 'DECO'
+                        ? context.l10n.divePlanner_label_deco
                         : _formatDuration(results.ndlAtBottom),
                     icon: Icons.warning_amber,
                     valueColor: results.ndlAtBottom < 0
@@ -77,7 +80,7 @@ class DecoResultsPanel extends ConsumerWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: _StatCard(
-                    label: 'TTS',
+                    label: context.l10n.divePlanner_label_tts,
                     value: _formatDuration(results.ttsAtBottom),
                     icon: Icons.arrow_upward,
                   ),
@@ -90,7 +93,7 @@ class DecoResultsPanel extends ConsumerWidget {
             if (results.maxCeiling > 0) ...[
               _InfoRow(
                 icon: Icons.layers,
-                label: 'Ceiling',
+                label: context.l10n.divePlanner_label_ceiling,
                 value: units.formatDepth(results.maxCeiling),
               ),
               const SizedBox(height: 8),
@@ -100,7 +103,10 @@ class DecoResultsPanel extends ConsumerWidget {
             if (results.decoSchedule.isNotEmpty) ...[
               const Divider(),
               const SizedBox(height: 8),
-              Text('Decompression Schedule', style: theme.textTheme.labelLarge),
+              Text(
+                context.l10n.divePlanner_label_decoSchedule,
+                style: theme.textTheme.labelLarge,
+              ),
               const SizedBox(height: 8),
               ...results.decoSchedule.map(
                 (stop) => _DecoStopRow(stop: stop, units: units),
@@ -112,7 +118,7 @@ class DecoResultsPanel extends ConsumerWidget {
               const Divider(),
               const SizedBox(height: 8),
               Text(
-                'Warnings',
+                context.l10n.divePlanner_label_warnings,
                 style: theme.textTheme.labelLarge?.copyWith(
                   color: theme.colorScheme.error,
                 ),
@@ -241,8 +247,11 @@ class _DecoStopRow extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Semantics(
-      label:
-          'Deco stop at ${units.formatDepth(stop.depth)} for ${stop.durationFormatted} on ${stop.gasMix.name}',
+      label: context.l10n.divePlanner_semantics_decoStop(
+        units.formatDepth(stop.depth),
+        stop.durationFormatted,
+        stop.gasMix.name,
+      ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(
@@ -291,10 +300,12 @@ class _WarningRow extends StatelessWidget {
     final theme = Theme.of(context);
     final isCritical = warning.severity == PlanWarningSeverity.critical;
 
-    final message = _formatWarningMessage();
+    final message = _formatWarningMessage(context);
 
     return Semantics(
-      label: '${isCritical ? "Critical warning" : "Warning"}: $message',
+      label: isCritical
+          ? context.l10n.divePlanner_semantics_criticalWarning(message)
+          : context.l10n.divePlanner_semantics_warning(message),
       liveRegion: true,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
@@ -326,42 +337,54 @@ class _WarningRow extends StatelessWidget {
   }
 
   /// Format warning message with proper units.
-  String _formatWarningMessage() {
+  String _formatWarningMessage(BuildContext context) {
     switch (warning.type) {
       case PlanWarningType.ppO2High:
         // ppO2 is universally expressed in bar (partial pressure)
-        return 'ppO₂ of ${warning.value?.toStringAsFixed(2) ?? "--"} bar exceeds working limit';
+        return context.l10n.divePlanner_warning_ppO2High(
+          warning.value?.toStringAsFixed(2) ?? '--',
+        );
       case PlanWarningType.ppO2Critical:
-        return 'ppO₂ of ${warning.value?.toStringAsFixed(2) ?? "--"} bar exceeds critical limit';
+        return context.l10n.divePlanner_warning_ppO2Critical(
+          warning.value?.toStringAsFixed(2) ?? '--',
+        );
       case PlanWarningType.gasLow:
         final threshold = warning.threshold ?? 50;
-        return 'Tank below ${units.formatPressure(threshold)} reserve';
+        return context.l10n.divePlanner_warning_gasLow(
+          units.formatPressure(threshold),
+        );
       case PlanWarningType.gasOut:
-        return 'Tank will be empty';
+        return context.l10n.divePlanner_warning_gasOut;
       case PlanWarningType.ndlExceeded:
-        return 'Dive enters decompression obligation';
+        return context.l10n.divePlanner_warning_ndlExceeded;
       case PlanWarningType.cnsWarning:
-        return 'CNS% exceeds ${warning.threshold?.toStringAsFixed(0) ?? "80"}%';
+        return context.l10n.divePlanner_warning_cnsWarning(
+          warning.threshold?.toStringAsFixed(0) ?? '80',
+        );
       case PlanWarningType.cnsCritical:
-        return 'CNS% exceeds 100%';
+        return context.l10n.divePlanner_warning_cnsCritical;
       case PlanWarningType.otuWarning:
-        return 'OTU accumulation high';
+        return context.l10n.divePlanner_warning_otuWarning;
       case PlanWarningType.ascentRateHigh:
         final rate = warning.value;
         if (rate != null) {
-          return 'Ascent rate ${units.formatDepth(rate)}/min exceeds safe limit';
+          return context.l10n.divePlanner_warning_ascentRateHighWithRate(
+            units.formatDepth(rate),
+          );
         }
-        return 'Ascent rate exceeds safe limit';
+        return context.l10n.divePlanner_warning_ascentRateHigh;
       case PlanWarningType.endHigh:
         final end = warning.value;
         if (end != null) {
-          return 'END of ${units.formatDepth(end)} exceeds safe limit';
+          return context.l10n.divePlanner_warning_endHighWithDepth(
+            units.formatDepth(end),
+          );
         }
-        return 'Equivalent Narcotic Depth too high';
+        return context.l10n.divePlanner_warning_endHigh;
       case PlanWarningType.minGasViolation:
-        return 'Minimum gas reserve not maintained';
+        return context.l10n.divePlanner_warning_minGasViolation;
       case PlanWarningType.modViolation:
-        return 'Gas switch attempted above MOD';
+        return context.l10n.divePlanner_warning_modViolation;
     }
   }
 }

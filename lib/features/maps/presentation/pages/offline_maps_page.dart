@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/domain/entities/cached_region.dart';
 import 'package:submersion/features/maps/presentation/providers/offline_map_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Page for managing offline map regions.
 ///
@@ -21,11 +22,11 @@ class OfflineMapsPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Offline Maps'),
+        title: Text(context.l10n.maps_offline_title),
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_sweep),
-            tooltip: 'Clear All Cache',
+            tooltip: context.l10n.maps_offline_clearAllCache,
             onPressed: () => _showClearCacheDialog(context, ref),
           ),
         ],
@@ -50,7 +51,9 @@ class OfflineMapsPage extends ConsumerWidget {
               error: (e, _) => Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
-                  child: Text('Error loading stats: $e'),
+                  child: Text(
+                    context.l10n.maps_offline_errorLoadingStats(e.toString()),
+                  ),
                 ),
               ),
             ),
@@ -67,12 +70,12 @@ class OfflineMapsPage extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Downloaded Regions',
+                  context.l10n.maps_offline_downloadedRegions,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 IconButton(
                   icon: const Icon(Icons.refresh),
-                  tooltip: 'Refresh',
+                  tooltip: context.l10n.maps_offline_refresh,
                   onPressed: () {
                     ref.invalidate(cachedRegionsProvider);
                     ref.invalidate(cacheStatsProvider);
@@ -100,7 +103,7 @@ class OfflineMapsPage extends ConsumerWidget {
               error: (e, _) => Center(
                 child: Padding(
                   padding: const EdgeInsets.all(32),
-                  child: Text('Error: $e'),
+                  child: Text(context.l10n.maps_offline_error(e.toString())),
                 ),
               ),
             ),
@@ -123,7 +126,10 @@ class OfflineMapsPage extends ConsumerWidget {
               children: [
                 Icon(Icons.storage, color: theme.colorScheme.primary),
                 const SizedBox(width: 12),
-                Text('Cache Statistics', style: theme.textTheme.titleMedium),
+                Text(
+                  context.l10n.maps_offline_cacheStatistics,
+                  style: theme.textTheme.titleMedium,
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -133,7 +139,7 @@ class OfflineMapsPage extends ConsumerWidget {
                   child: _buildStatItem(
                     context,
                     icon: Icons.grid_view,
-                    label: 'Tiles',
+                    label: context.l10n.maps_offline_tiles,
                     value: stats.tileCount.toString(),
                   ),
                 ),
@@ -141,7 +147,7 @@ class OfflineMapsPage extends ConsumerWidget {
                   child: _buildStatItem(
                     context,
                     icon: Icons.data_usage,
-                    label: 'Size',
+                    label: context.l10n.maps_offline_size,
                     value: stats.formattedSize,
                   ),
                 ),
@@ -154,7 +160,7 @@ class OfflineMapsPage extends ConsumerWidget {
                   child: _buildStatItem(
                     context,
                     icon: Icons.check_circle_outline,
-                    label: 'Cache Hits',
+                    label: context.l10n.maps_offline_cacheHits,
                     value: stats.hits.toString(),
                   ),
                 ),
@@ -162,7 +168,7 @@ class OfflineMapsPage extends ConsumerWidget {
                   child: _buildStatItem(
                     context,
                     icon: Icons.cancel_outlined,
-                    label: 'Cache Misses',
+                    label: context.l10n.maps_offline_cacheMisses,
                     value: stats.misses.toString(),
                   ),
                 ),
@@ -171,8 +177,9 @@ class OfflineMapsPage extends ConsumerWidget {
             if (stats.hits + stats.misses > 0) ...[
               const SizedBox(height: 12),
               Semantics(
-                label:
-                    'Cache hit rate: ${stats.hitRate.toStringAsFixed(1)} percent',
+                label: context.l10n.maps_offline_cacheHitRateAccessibility(
+                  stats.hitRate.toStringAsFixed(1),
+                ),
                 child: LinearProgressIndicator(
                   value: stats.hitRate / 100,
                   backgroundColor: theme.colorScheme.surfaceContainerHighest,
@@ -181,7 +188,9 @@ class OfflineMapsPage extends ConsumerWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'Hit Rate: ${stats.hitRate.toStringAsFixed(1)}%',
+                context.l10n.maps_offline_hitRate(
+                  stats.hitRate.toStringAsFixed(1),
+                ),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -245,10 +254,12 @@ class OfflineMapsPage extends ConsumerWidget {
     final notifier = ref.read(downloadProgressProvider.notifier);
 
     return Semantics(
-      label:
-          'Downloading ${state.regionName ?? "Region"}, '
-          '${progressPercent.toStringAsFixed(1)} percent complete, '
-          '${state.downloadedTiles} of ${state.totalTiles} tiles',
+      label: context.l10n.maps_offline_downloadingAccessibility(
+        state.regionName ?? context.l10n.maps_offline_region,
+        progressPercent.toStringAsFixed(1),
+        state.downloadedTiles,
+        state.totalTiles,
+      ),
       liveRegion: true,
       child: Card(
         color: theme.colorScheme.primaryContainer,
@@ -268,7 +279,9 @@ class OfflineMapsPage extends ConsumerWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Downloading: ${state.regionName ?? "Region"}',
+                      context.l10n.maps_offline_downloading(
+                        state.regionName ?? context.l10n.maps_offline_region,
+                      ),
                       style: theme.textTheme.titleMedium?.copyWith(
                         color: theme.colorScheme.onPrimaryContainer,
                       ),
@@ -279,7 +292,7 @@ class OfflineMapsPage extends ConsumerWidget {
                       Icons.cancel,
                       color: theme.colorScheme.onPrimaryContainer,
                     ),
-                    tooltip: 'Cancel Download',
+                    tooltip: context.l10n.maps_offline_cancelDownload,
                     onPressed: () => notifier.cancelDownload(),
                   ),
                 ],
@@ -303,7 +316,10 @@ class OfflineMapsPage extends ConsumerWidget {
                     ),
                   ),
                   Text(
-                    '${state.downloadedTiles} / ${state.totalTiles} tiles',
+                    context.l10n.maps_offline_tilesProgress(
+                      state.downloadedTiles,
+                      state.totalTiles,
+                    ),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onPrimaryContainer,
                     ),
@@ -313,7 +329,9 @@ class OfflineMapsPage extends ConsumerWidget {
               if (state.tilesPerSecond > 0) ...[
                 const SizedBox(height: 4),
                 Text(
-                  '${state.tilesPerSecond.toStringAsFixed(1)} tiles/sec',
+                  context.l10n.maps_offline_tilesPerSecond(
+                    state.tilesPerSecond.toStringAsFixed(1),
+                  ),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onPrimaryContainer.withValues(
                       alpha: 0.7,
@@ -324,7 +342,7 @@ class OfflineMapsPage extends ConsumerWidget {
               if (state.failedTiles > 0) ...[
                 const SizedBox(height: 4),
                 Text(
-                  '${state.failedTiles} failed',
+                  context.l10n.maps_offline_failedTiles(state.failedTiles),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.error,
                   ),
@@ -357,15 +375,14 @@ class OfflineMapsPage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'No Offline Regions',
+              context.l10n.maps_offline_noRegions,
               style: theme.textTheme.titleMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Download map regions from the site detail page '
-              'to use maps while offline.',
+              context.l10n.maps_offline_noRegionsDescription,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant.withValues(
@@ -389,9 +406,12 @@ class OfflineMapsPage extends ConsumerWidget {
     return Semantics(
       label: listItemLabel(
         title: region.name,
-        subtitle:
-            '${region.formattedSize}, ${region.tileCount} tiles, '
-            'zoom ${region.minZoom} to ${region.maxZoom}',
+        subtitle: context.l10n.maps_offline_regionSubtitle(
+          region.formattedSize,
+          region.tileCount,
+          region.minZoom,
+          region.maxZoom,
+        ),
       ),
       child: Card(
         margin: const EdgeInsets.only(bottom: 8),
@@ -402,12 +422,16 @@ class OfflineMapsPage extends ConsumerWidget {
           ),
           title: Text(region.name),
           subtitle: Text(
-            '${region.formattedSize} | ${region.tileCount} tiles | '
-            'Zoom ${region.minZoom}-${region.maxZoom}',
+            context.l10n.maps_offline_regionInfo(
+              region.formattedSize,
+              region.tileCount,
+              region.minZoom,
+              region.maxZoom,
+            ),
           ),
           trailing: IconButton(
             icon: Icon(Icons.delete_outline, color: theme.colorScheme.error),
-            tooltip: 'Delete ${region.name} region',
+            tooltip: context.l10n.maps_offline_deleteRegion(region.name),
             onPressed: () => _confirmDeleteRegion(context, ref, region),
           ),
           onTap: () => _showRegionDetails(context, region),
@@ -429,22 +453,34 @@ class OfflineMapsPage extends ConsumerWidget {
           children: [
             Text(region.name, style: theme.textTheme.headlineSmall),
             const SizedBox(height: 16),
-            _buildDetailRow(context, 'Size', region.formattedSize),
-            _buildDetailRow(context, 'Tiles', region.tileCount.toString()),
             _buildDetailRow(
               context,
-              'Zoom Range',
+              context.l10n.maps_offline_size,
+              region.formattedSize,
+            ),
+            _buildDetailRow(
+              context,
+              context.l10n.maps_offline_tiles,
+              region.tileCount.toString(),
+            ),
+            _buildDetailRow(
+              context,
+              context.l10n.maps_offline_zoomRange,
               '${region.minZoom} - ${region.maxZoom}',
             ),
-            _buildDetailRow(context, 'Created', _formatDate(region.createdAt)),
             _buildDetailRow(
               context,
-              'Last Accessed',
+              context.l10n.maps_offline_created,
+              _formatDate(region.createdAt),
+            ),
+            _buildDetailRow(
+              context,
+              context.l10n.maps_offline_lastAccessed,
               _formatDate(region.lastAccessedAt),
             ),
             const SizedBox(height: 16),
             Text(
-              'Bounds',
+              context.l10n.maps_offline_bounds,
               style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -505,22 +541,25 @@ class OfflineMapsPage extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Region?'),
+        title: Text(context.l10n.maps_offline_deleteRegionTitle),
         content: Text(
-          'Delete "${region.name}" and its ${region.tileCount} cached tiles?\n\n'
-          'This will free up ${region.formattedSize} of storage.',
+          context.l10n.maps_offline_deleteRegionMessage(
+            region.name,
+            region.tileCount,
+            region.formattedSize,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.common_action_cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('Delete'),
+            child: Text(context.l10n.common_action_delete),
           ),
         ],
       ),
@@ -540,29 +579,31 @@ class OfflineMapsPage extends ConsumerWidget {
     final cacheStats = ref.read(cacheStatsProvider);
 
     final statsText = cacheStats.whenOrNull(
-      data: (stats) =>
-          'This will delete ${stats.tileCount} tiles (${stats.formattedSize}).',
+      data: (stats) => context.l10n.maps_offline_clearCacheStats(
+        stats.tileCount,
+        stats.formattedSize,
+      ),
     );
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Clear All Cache?'),
+        title: Text(context.l10n.maps_offline_clearAllCacheTitle),
         content: Text(
-          'Delete all downloaded map regions and cached tiles?\n\n'
+          '${context.l10n.maps_offline_clearAllCacheMessage}\n\n'
           '${statsText ?? ""}',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.common_action_cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('Clear All'),
+            child: Text(context.l10n.maps_offline_clearAll),
           ),
         ],
       ),

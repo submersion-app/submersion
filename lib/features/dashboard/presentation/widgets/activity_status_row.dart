@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A row of activity status cards showing days since last dive, monthly count, and YTD
 class ActivityStatusRow extends ConsumerWidget {
@@ -32,15 +33,15 @@ class _DaysSinceLastDiveCard extends ConsumerWidget {
         final displayText = days == null
             ? '-'
             : days == 0
-            ? 'Today!'
+            ? context.l10n.dashboard_activity_today
             : '$days';
         final subtitle = days == null
-            ? 'No dives yet'
+            ? context.l10n.dashboard_activity_noDivesYet
             : days == 0
-            ? 'Last dive'
+            ? context.l10n.dashboard_activity_lastDive
             : days == 1
-            ? 'Day since diving'
-            : 'Days since diving';
+            ? context.l10n.dashboard_activity_daySinceDiving
+            : context.l10n.dashboard_activity_daysSinceDiving;
 
         return _StatusCard(
           value: displayText,
@@ -51,14 +52,14 @@ class _DaysSinceLastDiveCard extends ConsumerWidget {
       },
       loading: () => _StatusCard(
         value: '...',
-        label: 'Loading',
+        label: context.l10n.dashboard_activity_loading,
         icon: Icons.access_time,
         color: theme.colorScheme.primary,
         isLoading: true,
       ),
       error: (_, _) => _StatusCard(
         value: '-',
-        label: 'Error',
+        label: context.l10n.dashboard_activity_error,
         icon: Icons.access_time,
         color: theme.colorScheme.error,
       ),
@@ -75,20 +76,22 @@ class _MonthlyDiveCountCard extends ConsumerWidget {
     return countAsync.when(
       data: (count) => _StatusCard(
         value: '$count',
-        label: count == 1 ? 'Dive this month' : 'Dives this month',
+        label: count == 1
+            ? context.l10n.dashboard_activity_diveThisMonth
+            : context.l10n.dashboard_activity_divesThisMonth,
         icon: Icons.calendar_today,
         color: theme.colorScheme.secondary,
       ),
       loading: () => _StatusCard(
         value: '...',
-        label: 'Dives this month',
+        label: context.l10n.dashboard_activity_divesThisMonth,
         icon: Icons.calendar_today,
         color: theme.colorScheme.secondary,
         isLoading: true,
       ),
       error: (_, _) => _StatusCard(
         value: '-',
-        label: 'Dives this month',
+        label: context.l10n.dashboard_activity_divesThisMonth,
         icon: Icons.calendar_today,
         color: theme.colorScheme.error,
       ),
@@ -106,20 +109,22 @@ class _YearToDateCard extends ConsumerWidget {
     return countAsync.when(
       data: (count) => _StatusCard(
         value: '$count',
-        label: count == 1 ? 'Dive in $year' : 'Dives in $year',
+        label: count == 1
+            ? context.l10n.dashboard_activity_diveInYear(year)
+            : context.l10n.dashboard_activity_divesInYear(year),
         icon: Icons.trending_up,
         color: theme.colorScheme.tertiary,
       ),
       loading: () => _StatusCard(
         value: '...',
-        label: 'Dives in $year',
+        label: context.l10n.dashboard_activity_divesInYear(year),
         icon: Icons.trending_up,
         color: theme.colorScheme.tertiary,
         isLoading: true,
       ),
       error: (_, _) => _StatusCard(
         value: '-',
-        label: 'Dives in $year',
+        label: context.l10n.dashboard_activity_divesInYear(year),
         icon: Icons.trending_up,
         color: theme.colorScheme.error,
       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:submersion/features/signatures/domain/entities/signature.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Widget to display a saved instructor signature
 class SignatureDisplayWidget extends StatelessWidget {
@@ -26,7 +27,9 @@ class SignatureDisplayWidget extends StatelessWidget {
     return Card(
       child: Semantics(
         button: true,
-        label: 'View signature from ${signature.signerName}',
+        label: context.l10n.signatures_viewSignatureSemantics(
+          signature.signerName,
+        ),
         child: InkWell(
           onTap: onTap ?? () => _showFullSignature(context),
           borderRadius: BorderRadius.circular(12),
@@ -45,7 +48,7 @@ class SignatureDisplayWidget extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Instructor Signature',
+                            context.l10n.signatures_instructorSignature,
                             style: Theme.of(context).textTheme.titleSmall,
                           ),
                           Text(
@@ -60,7 +63,7 @@ class SignatureDisplayWidget extends StatelessWidget {
                       IconButton(
                         icon: const Icon(Icons.delete_outline),
                         onPressed: () => _confirmDelete(context),
-                        tooltip: 'Delete signature',
+                        tooltip: context.l10n.signatures_action_deleteSignature,
                       ),
                   ],
                 ),
@@ -95,7 +98,9 @@ class SignatureDisplayWidget extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      'Signed ${dateFormat.format(signature.signedAt)}',
+                      context.l10n.signatures_signedDate(
+                        dateFormat.format(signature.signedAt),
+                      ),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -145,14 +150,14 @@ class SignatureDisplayWidget extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Signature?'),
+        title: Text(context.l10n.signatures_deleteDialog_title),
         content: Text(
-          'Are you sure you want to delete the signature from ${signature.signerName}? This cannot be undone.',
+          context.l10n.signatures_deleteDialog_message(signature.signerName),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.common_action_cancel),
           ),
           FilledButton(
             onPressed: () {
@@ -162,7 +167,7 @@ class SignatureDisplayWidget extends StatelessWidget {
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('Delete'),
+            child: Text(context.l10n.common_action_delete),
           ),
         ],
       ),
@@ -200,7 +205,7 @@ class SignatureFullViewDialog extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Instructor Signature',
+                          context.l10n.signatures_instructorSignature,
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         Text(
@@ -213,7 +218,7 @@ class SignatureFullViewDialog extends StatelessWidget {
                   ),
                   IconButton(
                     icon: const Icon(Icons.close),
-                    tooltip: 'Close signature view',
+                    tooltip: context.l10n.signatures_action_closeSignatureView,
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -251,7 +256,9 @@ class SignatureFullViewDialog extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    'Signed ${dateFormat.format(signature.signedAt)}',
+                    context.l10n.signatures_signedDate(
+                      dateFormat.format(signature.signedAt),
+                    ),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -278,7 +285,7 @@ class SignatureFullViewDialog extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'No signature image',
+              context.l10n.signatures_noSignatureImage,
               style: TextStyle(color: colorScheme.onSurfaceVariant),
             ),
           ],
@@ -317,7 +324,7 @@ class SignatureBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: 'View signature',
+      label: context.l10n.signatures_viewSignature,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(8),
@@ -333,7 +340,7 @@ class SignatureBadge extends StatelessWidget {
               const Icon(Icons.draw, size: 14, color: Colors.green),
               const SizedBox(width: 4),
               Text(
-                'Signed',
+                context.l10n.signatures_signed,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   color: Colors.green,
                   fontWeight: FontWeight.w600,

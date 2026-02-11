@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
@@ -55,11 +56,11 @@ class _BuddyDetailPageState extends ConsumerState<BuddyDetailPage> {
       data: (buddy) {
         if (buddy == null) {
           if (widget.embedded) {
-            return const Center(child: Text('Buddy not found'));
+            return Center(child: Text(context.l10n.buddies_detail_notFound));
           }
           return Scaffold(
-            appBar: AppBar(title: const Text('Buddy')),
-            body: const Center(child: Text('Buddy not found')),
+            appBar: AppBar(title: Text(context.l10n.buddies_title_singular)),
+            body: Center(child: Text(context.l10n.buddies_detail_notFound)),
           );
         }
         return _BuddyDetailContent(
@@ -73,17 +74,21 @@ class _BuddyDetailPageState extends ConsumerState<BuddyDetailPage> {
           return const Center(child: CircularProgressIndicator());
         }
         return Scaffold(
-          appBar: AppBar(title: const Text('Buddy')),
+          appBar: AppBar(title: Text(context.l10n.buddies_title_singular)),
           body: const Center(child: CircularProgressIndicator()),
         );
       },
       error: (error, stack) {
         if (widget.embedded) {
-          return Center(child: Text('Error: $error'));
+          return Center(
+            child: Text(context.l10n.buddies_detail_error(error.toString())),
+          );
         }
         return Scaffold(
-          appBar: AppBar(title: const Text('Buddy')),
-          body: Center(child: Text('Error: $error')),
+          appBar: AppBar(title: Text(context.l10n.buddies_title_singular)),
+          body: Center(
+            child: Text(context.l10n.buddies_detail_error(error.toString())),
+          ),
         );
       },
     );
@@ -157,7 +162,7 @@ class _BuddyDetailContent extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
-            tooltip: 'Edit buddy',
+            tooltip: context.l10n.buddies_action_edit,
             onPressed: () => context.push('/buddies/${buddy.id}/edit'),
           ),
           PopupMenuButton<String>(
@@ -169,23 +174,26 @@ class _BuddyDetailContent extends ConsumerWidget {
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'share',
                 child: Row(
                   children: [
-                    Icon(Icons.share),
-                    SizedBox(width: 8),
-                    Text('Share Dives'),
+                    const Icon(Icons.share),
+                    const SizedBox(width: 8),
+                    Text(context.l10n.buddies_action_shareDives),
                   ],
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'delete',
                 child: Row(
                   children: [
-                    Icon(Icons.delete, color: Colors.red),
-                    SizedBox(width: 8),
-                    Text('Delete', style: TextStyle(color: Colors.red)),
+                    const Icon(Icons.delete, color: Colors.red),
+                    const SizedBox(width: 8),
+                    Text(
+                      context.l10n.common_action_delete,
+                      style: const TextStyle(color: Colors.red),
+                    ),
                   ],
                 ),
               ),
@@ -247,7 +255,7 @@ class _BuddyDetailContent extends ConsumerWidget {
           ),
           IconButton(
             icon: const Icon(Icons.edit, size: 20),
-            tooltip: 'Edit',
+            tooltip: context.l10n.common_action_edit,
             onPressed: () {
               final state = GoRouterState.of(context);
               context.go('${state.uri.path}?selected=${buddy.id}&mode=edit');
@@ -263,23 +271,26 @@ class _BuddyDetailContent extends ConsumerWidget {
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'share',
                 child: Row(
                   children: [
-                    Icon(Icons.share, size: 20),
-                    SizedBox(width: 8),
-                    Text('Share Dives'),
+                    const Icon(Icons.share, size: 20),
+                    const SizedBox(width: 8),
+                    Text(context.l10n.buddies_action_shareDives),
                   ],
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'delete',
                 child: Row(
                   children: [
-                    Icon(Icons.delete, color: Colors.red, size: 20),
-                    SizedBox(width: 8),
-                    Text('Delete', style: TextStyle(color: Colors.red)),
+                    const Icon(Icons.delete, color: Colors.red, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      context.l10n.common_action_delete,
+                      style: const TextStyle(color: Colors.red),
+                    ),
                   ],
                 ),
               ),
@@ -300,22 +311,23 @@ class _BuddyDetailContent extends ConsumerWidget {
         } else {
           context.pop();
         }
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Buddy deleted')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.buddies_message_deleted)),
+        );
       }
     }
   }
 
   Future<void> _shareDivesWithBuddy(BuildContext context, WidgetRef ref) async {
-    // Capture the scaffold messenger before any async gaps
+    // Capture the scaffold messenger and l10n before any async gaps
     final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
 
     // Show preparing message
     scaffoldMessenger.showSnackBar(
-      const SnackBar(
-        content: Text('Preparing export...'),
-        duration: Duration(seconds: 1),
+      SnackBar(
+        content: Text(l10n.buddies_message_preparingExport),
+        duration: const Duration(seconds: 1),
       ),
     );
 
@@ -325,7 +337,7 @@ class _BuddyDetailContent extends ConsumerWidget {
     if (diveIds.isEmpty) {
       scaffoldMessenger.hideCurrentSnackBar();
       scaffoldMessenger.showSnackBar(
-        const SnackBar(content: Text('No dives to share with this buddy')),
+        SnackBar(content: Text(l10n.buddies_message_noDivesToShare)),
       );
       return;
     }
@@ -344,7 +356,7 @@ class _BuddyDetailContent extends ConsumerWidget {
       if (dives.isEmpty) {
         scaffoldMessenger.hideCurrentSnackBar();
         scaffoldMessenger.showSnackBar(
-          const SnackBar(content: Text('No dives found to export')),
+          SnackBar(content: Text(l10n.buddies_message_noDivesFound)),
         );
         return;
       }
@@ -367,7 +379,9 @@ class _BuddyDetailContent extends ConsumerWidget {
     } catch (e) {
       scaffoldMessenger.hideCurrentSnackBar();
       scaffoldMessenger.showSnackBar(
-        SnackBar(content: Text('Export failed: $e')),
+        SnackBar(
+          content: Text(l10n.buddies_message_exportFailed(e.toString())),
+        ),
       );
     }
   }
@@ -408,7 +422,7 @@ class _BuddyDetailContent extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Contact',
+              context.l10n.buddies_section_contact,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -444,7 +458,7 @@ class _BuddyDetailContent extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Certification',
+              context.l10n.buddies_section_certification,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -453,14 +467,14 @@ class _BuddyDetailContent extends ConsumerWidget {
             if (buddy.certificationLevel != null)
               ListTile(
                 leading: const Icon(Icons.card_membership),
-                title: const Text('Level'),
+                title: Text(context.l10n.buddies_label_level),
                 subtitle: Text(buddy.certificationLevel!.displayName),
                 contentPadding: EdgeInsets.zero,
               ),
             if (buddy.certificationAgency != null)
               ListTile(
                 leading: const Icon(Icons.business),
-                title: const Text('Agency'),
+                title: Text(context.l10n.buddies_label_agency),
                 subtitle: Text(buddy.certificationAgency!.displayName),
                 contentPadding: EdgeInsets.zero,
               ),
@@ -481,7 +495,7 @@ class _BuddyDetailContent extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Dive Statistics',
+              context.l10n.buddies_section_diveStatistics,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -492,32 +506,33 @@ class _BuddyDetailContent extends ConsumerWidget {
                 children: [
                   _StatRow(
                     icon: Icons.scuba_diving,
-                    label: 'Dives Together',
+                    label: context.l10n.buddies_stat_divesTogether,
                     value: stats.totalDives.toString(),
                   ),
                   if (stats.firstDive != null)
                     _StatRow(
                       icon: Icons.first_page,
-                      label: 'First Dive',
+                      label: context.l10n.buddies_stat_firstDive,
                       value: DateFormat.yMMMd().format(stats.firstDive!),
                     ),
                   if (stats.lastDive != null)
                     _StatRow(
                       icon: Icons.last_page,
-                      label: 'Last Dive',
+                      label: context.l10n.buddies_stat_lastDive,
                       value: DateFormat.yMMMd().format(stats.lastDive!),
                     ),
                   if (stats.favoriteSite != null)
                     _StatRow(
                       icon: Icons.place,
-                      label: 'Favorite Site',
+                      label: context.l10n.buddies_stat_favoriteSite,
                       value: stats.favoriteSite!,
                     ),
                 ],
               ),
               loading: () =>
                   const Center(child: CircularProgressIndicator.adaptive()),
-              error: (error, _) => const Text('Unable to load stats'),
+              error: (error, _) =>
+                  Text(context.l10n.buddies_error_unableToLoadStats),
             ),
           ],
         ),
@@ -533,7 +548,7 @@ class _BuddyDetailContent extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Notes',
+              context.l10n.buddies_section_notes,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -562,7 +577,7 @@ class _BuddyDetailContent extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Shared Dives',
+                  context.l10n.buddies_section_sharedDives,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -582,7 +597,9 @@ class _BuddyDetailContent extends ConsumerWidget {
                             // Navigate to dive list
                             context.go('/dives');
                           },
-                    child: Text('View All (${ids.length})'),
+                    child: Text(
+                      context.l10n.buddies_action_viewAll(ids.length),
+                    ),
                   ),
                   loading: () => const SizedBox.shrink(),
                   error: (e, st) => const SizedBox.shrink(),
@@ -593,9 +610,11 @@ class _BuddyDetailContent extends ConsumerWidget {
             divesAsync.when(
               data: (dives) {
                 if (dives.isEmpty) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    child: Center(child: Text('No dives together yet')),
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Center(
+                      child: Text(context.l10n.buddies_detail_noDivesTogether),
+                    ),
                   );
                 }
                 // Show first 5 dives with same format as trip detail page
@@ -707,7 +726,8 @@ class _BuddyDetailContent extends ConsumerWidget {
                   child: CircularProgressIndicator.adaptive(),
                 ),
               ),
-              error: (e, st) => const Text('Unable to load dives'),
+              error: (e, st) =>
+                  Text(context.l10n.buddies_error_unableToLoadDives),
             ),
           ],
         ),
@@ -719,21 +739,21 @@ class _BuddyDetailContent extends ConsumerWidget {
     return await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Delete Buddy?'),
+            title: Text(context.l10n.buddies_dialog_deleteTitle),
             content: Text(
-              'Are you sure you want to delete ${buddy.name}? This will also remove them from all dives.',
+              context.l10n.buddies_dialog_deleteMessage(buddy.name),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Cancel'),
+                child: Text(context.l10n.common_action_cancel),
               ),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(true),
                 style: FilledButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.error,
                 ),
-                child: const Text('Delete'),
+                child: Text(context.l10n.common_action_delete),
               ),
             ],
           ),

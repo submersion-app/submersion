@@ -587,7 +587,7 @@ class _SignalIndicator extends StatelessWidget {
         return Container(
           width: 3,
           height: height,
-          margin: const EdgeInsets.only(right: 1),
+          margin: const EdgeInsetsDirectional.only(end: 1),
           decoration: BoxDecoration(
             color: index < bars ? color : color.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(1),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Settings section data model.
 class SettingsSection {
@@ -89,7 +90,7 @@ class SettingsListContent extends StatelessWidget {
 
     return Scaffold(
       appBar: showAppBar
-          ? AppBar(title: const Text('Settings'))
+          ? AppBar(title: Text(context.l10n.settings_appBar_title))
           : PreferredSize(
               preferredSize: const Size.fromHeight(56),
               child: Container(
@@ -100,7 +101,7 @@ class SettingsListContent extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          'Settings',
+                          context.l10n.settings_appBar_title,
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                       ),
@@ -147,6 +148,8 @@ class _SettingsSectionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final color = section.color ?? colorScheme.primary;
+    final localizedTitle = _getLocalizedTitle(context, section.id);
+    final localizedSubtitle = _getLocalizedSubtitle(context, section.id);
 
     return Material(
       color: isSelected
@@ -165,13 +168,13 @@ class _SettingsSectionTile extends StatelessWidget {
           ),
         ),
         title: Text(
-          section.title,
+          localizedTitle,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
           ),
         ),
         subtitle: Text(
-          section.subtitle,
+          localizedSubtitle,
           style: Theme.of(
             context,
           ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
@@ -183,5 +186,51 @@ class _SettingsSectionTile extends StatelessWidget {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       ),
     );
+  }
+
+  String _getLocalizedTitle(BuildContext context, String id) {
+    switch (id) {
+      case 'profile':
+        return context.l10n.settings_section_diverProfile_title;
+      case 'units':
+        return context.l10n.settings_section_units_title;
+      case 'decompression':
+        return context.l10n.settings_section_decompression_title;
+      case 'appearance':
+        return context.l10n.settings_section_appearance_title;
+      case 'notifications':
+        return context.l10n.settings_section_notifications_title;
+      case 'manage':
+        return context.l10n.settings_section_manage_title;
+      case 'data':
+        return context.l10n.settings_section_data_title;
+      case 'about':
+        return context.l10n.settings_section_about_title;
+      default:
+        return section.title;
+    }
+  }
+
+  String _getLocalizedSubtitle(BuildContext context, String id) {
+    switch (id) {
+      case 'profile':
+        return context.l10n.settings_section_diverProfile_subtitle;
+      case 'units':
+        return context.l10n.settings_section_units_subtitle;
+      case 'decompression':
+        return context.l10n.settings_section_decompression_subtitle;
+      case 'appearance':
+        return context.l10n.settings_section_appearance_subtitle;
+      case 'notifications':
+        return context.l10n.settings_section_notifications_subtitle;
+      case 'manage':
+        return context.l10n.settings_section_manage_subtitle;
+      case 'data':
+        return context.l10n.settings_section_data_subtitle;
+      case 'about':
+        return context.l10n.settings_section_about_subtitle;
+      default:
+        return section.subtitle;
+    }
   }
 }

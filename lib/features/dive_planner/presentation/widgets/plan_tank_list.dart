@@ -7,6 +7,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 const _uuid = Uuid();
 
@@ -38,7 +39,7 @@ class PlanTankList extends ConsumerWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Tanks',
+                  context.l10n.divePlanner_label_tanks,
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: theme.colorScheme.primary,
                   ),
@@ -46,7 +47,7 @@ class PlanTankList extends ConsumerWidget {
                 const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.add),
-                  tooltip: 'Add Tank',
+                  tooltip: context.l10n.divePlanner_action_addTank,
                   onPressed: () => _showAddTankDialog(context, ref, units),
                 ),
               ],
@@ -222,16 +223,20 @@ class _TankEditDialogState extends State<_TankEditDialog> {
     final isNew = widget.tank == null;
 
     return AlertDialog(
-      title: Text(isNew ? 'Add Tank' : 'Edit Tank'),
+      title: Text(
+        isNew
+            ? context.l10n.divePlanner_action_addTank
+            : context.l10n.divePlanner_action_editTank,
+      ),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Name',
-                hintText: 'e.g., Primary, Stage 1',
+              decoration: InputDecoration(
+                labelText: context.l10n.divePlanner_field_name,
+                hintText: context.l10n.divePlanner_hint_tankName,
               ),
             ),
             const SizedBox(height: 16),
@@ -241,7 +246,9 @@ class _TankEditDialogState extends State<_TankEditDialog> {
                   child: TextField(
                     controller: _volumeController,
                     decoration: InputDecoration(
-                      labelText: 'Volume (${widget.units.volumeSymbol})',
+                      labelText: context.l10n.divePlanner_field_volume(
+                        widget.units.volumeSymbol,
+                      ),
                     ),
                     keyboardType: TextInputType.number,
                   ),
@@ -251,7 +258,9 @@ class _TankEditDialogState extends State<_TankEditDialog> {
                   child: TextField(
                     controller: _pressureController,
                     decoration: InputDecoration(
-                      labelText: 'Start (${widget.units.pressureSymbol})',
+                      labelText: context.l10n.divePlanner_field_startPressure(
+                        widget.units.pressureSymbol,
+                      ),
                     ),
                     keyboardType: TextInputType.number,
                   ),
@@ -264,7 +273,9 @@ class _TankEditDialogState extends State<_TankEditDialog> {
                 Expanded(
                   child: TextField(
                     controller: _o2Controller,
-                    decoration: const InputDecoration(labelText: 'O₂ %'),
+                    decoration: InputDecoration(
+                      labelText: context.l10n.divePlanner_field_o2Percent,
+                    ),
                     keyboardType: TextInputType.number,
                   ),
                 ),
@@ -272,7 +283,9 @@ class _TankEditDialogState extends State<_TankEditDialog> {
                 Expanded(
                   child: TextField(
                     controller: _heController,
-                    decoration: const InputDecoration(labelText: 'He %'),
+                    decoration: InputDecoration(
+                      labelText: context.l10n.divePlanner_field_hePercent,
+                    ),
                     keyboardType: TextInputType.number,
                   ),
                 ),
@@ -280,7 +293,9 @@ class _TankEditDialogState extends State<_TankEditDialog> {
             ),
             const SizedBox(height: 16),
             InputDecorator(
-              decoration: const InputDecoration(labelText: 'Role'),
+              decoration: InputDecoration(
+                labelText: context.l10n.divePlanner_field_role,
+              ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<TankRole>(
                   value: _role,
@@ -304,9 +319,12 @@ class _TankEditDialogState extends State<_TankEditDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.common_action_cancel),
         ),
-        FilledButton(onPressed: _save, child: const Text('Save')),
+        FilledButton(
+          onPressed: _save,
+          child: Text(context.l10n.common_action_save),
+        ),
       ],
     );
   }

@@ -10,6 +10,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_gallery_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_media_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
   group('TripGalleryPage', () {
@@ -21,7 +22,11 @@ void main() {
               return Future.value(<Dive, List<MediaItem>>{});
             }),
           ],
-          child: const MaterialApp(home: TripGalleryPage(tripId: 'test-trip')),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripGalleryPage(tripId: 'test-trip'),
+          ),
         ),
       );
 
@@ -39,7 +44,11 @@ void main() {
               return completer.future;
             }),
           ],
-          child: const MaterialApp(home: TripGalleryPage(tripId: 'test-trip')),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripGalleryPage(tripId: 'test-trip'),
+          ),
         ),
       );
 
@@ -57,7 +66,11 @@ void main() {
               throw Exception('Network error');
             }),
           ],
-          child: const MaterialApp(home: TripGalleryPage(tripId: 'test-trip')),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripGalleryPage(tripId: 'test-trip'),
+          ),
         ),
       );
 
@@ -74,7 +87,11 @@ void main() {
               return Future.value(<Dive, List<MediaItem>>{});
             }),
           ],
-          child: const MaterialApp(home: TripGalleryPage(tripId: 'test-trip')),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripGalleryPage(tripId: 'test-trip'),
+          ),
         ),
       );
 
@@ -95,7 +112,11 @@ void main() {
               return Future.value(<Dive, List<MediaItem>>{});
             }),
           ],
-          child: const MaterialApp(home: TripGalleryPage(tripId: 'test-trip')),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripGalleryPage(tripId: 'test-trip'),
+          ),
         ),
       );
 
@@ -135,7 +156,11 @@ void main() {
               return Future.value(Uint8List(0));
             }),
           ],
-          child: const MaterialApp(home: TripGalleryPage(tripId: 'test-trip')),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripGalleryPage(tripId: 'test-trip'),
+          ),
         ),
       );
 
@@ -193,7 +218,11 @@ void main() {
               return Future.value(Uint8List(0));
             }),
           ],
-          child: const MaterialApp(home: TripGalleryPage(tripId: 'test-trip')),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripGalleryPage(tripId: 'test-trip'),
+          ),
         ),
       );
 
@@ -232,7 +261,11 @@ void main() {
               return Future.value(Uint8List(0));
             }),
           ],
-          child: const MaterialApp(home: TripGalleryPage(tripId: 'test-trip')),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripGalleryPage(tripId: 'test-trip'),
+          ),
         ),
       );
 
@@ -270,7 +303,11 @@ void main() {
               return Future.value(Uint8List(0));
             }),
           ],
-          child: const MaterialApp(home: TripGalleryPage(tripId: 'test-trip')),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripGalleryPage(tripId: 'test-trip'),
+          ),
         ),
       );
 

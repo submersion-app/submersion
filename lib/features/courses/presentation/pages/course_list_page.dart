@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/courses/presentation/widgets/course_list_content.dart';
@@ -24,9 +25,9 @@ class CourseListPage extends ConsumerWidget {
           context.push('/courses/new');
         }
       },
-      tooltip: 'Add Course',
+      tooltip: context.l10n.courses_action_add,
       icon: const Icon(Icons.add),
-      label: const Text('Add Course'),
+      label: Text(context.l10n.courses_action_add),
     );
 
     // Desktop: Use master-detail layout

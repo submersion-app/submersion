@@ -1,11 +1,11 @@
 # Submersion Feature Roadmap
 ## Comprehensive Development Plan
 
-> **Last Updated:** 2026-02-05
+> **Last Updated:** 2026-02-10
 > **Current Version:** 1.1.0 (v1.1 Complete)
 > **Status:** v1.0 ✅ COMPLETE | v1.1 ✅ COMPLETE | v1.5 🚧 In Progress
 >
-> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Profile Visualization (Category 2.1) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete | Search & Filtering (Category 10.1) ✅ Complete | Tools & Calculators (Category 11) ✅ Complete | Digital Signatures (Category 7.2) ✅ Complete | Training Dives (Category 8.3) ✅ Complete | Underwater Photography (Category 9.3) ✅ Complete | Maps & Visualization (Category 5.3) ✅ Complete | Certification Cards (Category 8.1) ✅ Complete | Push Notifications (Category 6.3) ✅ Complete | PDF Templates (Category 10.3) ✅ Complete | Wearable Integration v1 (Category 15.5) ✅ Complete | Marine Life Tracking (Category 9.2) ✅ Complete | Universal Import (Category 13.2/13.3) ✅ Complete | Accessibility & Keyboard Navigation (Category 15.3) ✅ Complete
+> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Profile Visualization (Category 2.1) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete | Search & Filtering (Category 10.1) ✅ Complete | Tools & Calculators (Category 11) ✅ Complete | Digital Signatures (Category 7.2) ✅ Complete | Training Dives (Category 8.3) ✅ Complete | Underwater Photography (Category 9.3) ✅ Complete | Maps & Visualization (Category 5.3) ✅ Complete | Certification Cards (Category 8.1) ✅ Complete | Push Notifications (Category 6.3) ✅ Complete | PDF Templates (Category 10.3) ✅ Complete | Wearable Integration v1 (Category 15.5) ✅ Complete | Marine Life Tracking (Category 9.2) ✅ Complete | Universal Import (Category 13.2/13.3) ✅ Complete | Accessibility & Keyboard Navigation (Category 15.3) ✅ Complete | Internationalization & Localization (Category 15.3) ✅ Complete
 
 ---
 
@@ -1188,7 +1188,10 @@
 | Semantic helpers | ✅ Implemented | v1.5 | Extension methods and label builders |
 | Focus management | ✅ Implemented | v1.5 | FocusableCard, AccessiblePage, OrderedTraversalPolicy |
 | Shortcuts help dialog | ✅ Implemented | v1.5 | ? key opens categorized shortcut overlay |
-| Multi-language support | 📋 Planned | v2.0 | i18n with ARB files |
+| Multi-language support | ✅ Implemented | v1.5 | 10 languages, 3,931 ARB keys, gen-l10n codegen |
+| RTL layout support | ✅ Implemented | v1.5 | Arabic & Hebrew with directional EdgeInsets/Alignment |
+| Locale-aware formatting | ✅ Implemented | v1.5 | Localized dates, numbers, durations, connector words |
+| Language picker | ✅ Implemented | v1.5 | Per-diver locale persistence via Drift |
 | High contrast themes | 📋 Planned | v2.0 | Accessibility feature |
 
 **v1.5 Tasks (Complete):**
@@ -1204,11 +1207,18 @@
 - [x] Label builder functions (chartSummaryLabel, listItemLabel, statLabel)
 - [x] 83 unit/widget tests for accessibility infrastructure
 
+**v1.5 i18n Tasks (Complete):**
+- [x] flutter_localizations integration with gen-l10n codegen pipeline
+- [x] ARB files for 10 languages: English, Spanish, French, German, Italian, Dutch, Portuguese, Arabic, Hebrew, Hungarian
+- [x] 3,931 ARB keys extracted from ~233 presentation files
+- [x] Localized date/time/number formats (DateFormat locale, NumberFormat locale, duration labels)
+- [x] RTL language support (Arabic, Hebrew) with directional EdgeInsets, Alignment, icon mirroring
+- [x] context.l10n convenience extension for concise access to localized strings
+- [x] Language picker in Settings with per-diver locale persistence via Drift (schema v33)
+- [x] Connector word localization in UnitFormatter (at, From, Until)
+- [x] Localization integration tests (locale switching, RTL direction, provider persistence)
+
 **v2.0 Tasks:**
-- [ ] flutter_localizations integration
-- [ ] ARB files for: English, Spanish, French, German, Italian, Dutch, Portuguese
-- [ ] Localized date/time/number formats
-- [ ] RTL language support (Arabic, Hebrew)
 - [ ] Translation management workflow (POEditor, Crowdin)
 
 ---
@@ -1482,7 +1492,7 @@
 
 ## v2.0 (Planned)
 - [ ] Web platform with backend service
-- [ ] 7+ language translations
+- [x] 7+ language translations (10 languages: EN, ES, FR, DE, IT, NL, PT, AR, HE, HU)
 - [ ] Community features beta tested
 
 ---
@@ -1500,5 +1510,5 @@
 
 ---
 
-**Document Version:** 2.21
-**Last Updated:** 2026-02-09 (Accessibility & Keyboard Navigation: Semantics on 200+ files, global shortcuts, focus traversal, shortcuts help dialog, 83 tests)
+**Document Version:** 2.22
+**Last Updated:** 2026-02-10 (Internationalization & Localization: 10 languages, 3,931 ARB keys, RTL support, locale-aware formatting, language picker)

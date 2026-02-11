@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 
@@ -36,12 +37,14 @@ class CoursePicker extends ConsumerWidget {
               : colorScheme.onPrimaryContainer,
         ),
       ),
-      title: Text(selectedCourse?.name ?? 'No course selected'),
+      title: Text(
+        selectedCourse?.name ?? context.l10n.courses_picker_noneSelected,
+      ),
       subtitle: selectedCourse != null
           ? Text(
-              '${selectedCourse!.agency.displayName} - ${selectedCourse!.isCompleted ? 'Completed' : 'In Progress'}',
+              '${selectedCourse!.agency.displayName} - ${selectedCourse!.isCompleted ? context.l10n.courses_status_completed : context.l10n.courses_status_inProgress}',
             )
-          : const Text('Tap to link to a training course'),
+          : Text(context.l10n.courses_picker_tapToLink),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -49,7 +52,7 @@ class CoursePicker extends ConsumerWidget {
             IconButton(
               icon: const Icon(Icons.clear),
               onPressed: () => onCourseSelected(null),
-              tooltip: 'Clear selection',
+              tooltip: context.l10n.courses_picker_clearSelection,
             ),
           const Icon(Icons.chevron_right),
         ],
@@ -118,7 +121,7 @@ class CoursePickerSheet extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Select Training Course',
+                context.l10n.courses_picker_selectTitle,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               TextButton.icon(
@@ -127,7 +130,7 @@ class CoursePickerSheet extends ConsumerWidget {
                   context.push('/courses/new');
                 },
                 icon: const Icon(Icons.add),
-                label: const Text('New Course'),
+                label: Text(context.l10n.courses_picker_newCourse),
               ),
             ],
           ),
@@ -150,7 +153,7 @@ class CoursePickerSheet extends ConsumerWidget {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'No courses yet',
+                        context.l10n.courses_picker_noCourses,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 8),
@@ -160,7 +163,7 @@ class CoursePickerSheet extends ConsumerWidget {
                           context.push('/courses/new');
                         },
                         icon: const Icon(Icons.add),
-                        label: const Text('Create Course'),
+                        label: Text(context.l10n.courses_picker_createCourse),
                       ),
                     ],
                   ),
@@ -184,7 +187,7 @@ class CoursePickerSheet extends ConsumerWidget {
                   final dateFormat = DateFormat.yMMMd();
 
                   final courseLabel =
-                      '${course.agency.displayName} ${course.name}, Started ${dateFormat.format(course.startDate)}${isSelected ? ', selected' : ''}${course.isInProgress ? ', Active' : ''}';
+                      '${course.agency.displayName} ${course.name}, ${context.l10n.courses_card_started(dateFormat.format(course.startDate))}${isSelected ? ', ${context.l10n.courses_picker_selected}' : ''}${course.isInProgress ? ', ${context.l10n.courses_picker_active}' : ''}';
 
                   return Semantics(
                     label: courseLabel,
@@ -208,7 +211,7 @@ class CoursePickerSheet extends ConsumerWidget {
                       ),
                       title: Text(course.name),
                       subtitle: Text(
-                        '${course.agency.displayName} - Started ${dateFormat.format(course.startDate)}',
+                        '${course.agency.displayName} - ${context.l10n.courses_card_started(dateFormat.format(course.startDate))}',
                       ),
                       trailing: isSelected
                           ? Icon(Icons.check_circle, color: colorScheme.primary)
@@ -223,7 +226,7 @@ class CoursePickerSheet extends ConsumerWidget {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
-                                'Active',
+                                context.l10n.courses_picker_active,
                                 style: Theme.of(context).textTheme.labelSmall
                                     ?.copyWith(
                                       color: colorScheme.onPrimaryContainer,
@@ -238,8 +241,11 @@ class CoursePickerSheet extends ConsumerWidget {
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) =>
-                Center(child: Text('Error loading courses: $error')),
+            error: (error, _) => Center(
+              child: Text(
+                context.l10n.courses_picker_errorLoading(error.toString()),
+              ),
+            ),
           ),
         ),
       ],

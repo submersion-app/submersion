@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Card displaying a non-dive UDDF entity for selection in the import wizard.
 ///
@@ -35,7 +36,7 @@ class UddfEntityCard extends StatelessWidget {
           : null,
       child: Semantics(
         button: true,
-        label: 'Toggle selection for $name',
+        label: context.l10n.diveImport_uddf_toggleEntitySelection(name),
         child: InkWell(
           onTap: onToggle,
           borderRadius: BorderRadius.circular(12),
@@ -75,7 +76,7 @@ class UddfEntityCard extends StatelessWidget {
                 ),
                 if (isDuplicate) ...[
                   const SizedBox(width: 8),
-                  _buildDuplicateBadge(colorScheme),
+                  _buildDuplicateBadge(context, colorScheme),
                 ],
               ],
             ),
@@ -103,7 +104,7 @@ class UddfEntityCard extends StatelessWidget {
     );
   }
 
-  Widget _buildDuplicateBadge(ColorScheme colorScheme) {
+  Widget _buildDuplicateBadge(BuildContext context, ColorScheme colorScheme) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -116,7 +117,7 @@ class UddfEntityCard extends StatelessWidget {
           Icon(Icons.warning_amber_rounded, size: 14, color: colorScheme.error),
           const SizedBox(width: 4),
           Text(
-            'Duplicate',
+            context.l10n.diveImport_uddf_duplicate,
             style: TextStyle(
               fontSize: 12,
               color: colorScheme.error,

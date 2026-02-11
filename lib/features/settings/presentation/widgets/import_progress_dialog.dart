@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Dialog shown during UDDF/CSV import with progress tracking
 class ImportProgressDialog extends ConsumerWidget {
@@ -33,9 +34,14 @@ class ImportProgressDialog extends ConsumerWidget {
       });
     }
 
+    final phaseLabel = _getPhaseLabel(context, state.importPhase);
     final progressLabel = state.totalItems > 0
-        ? '${_getPhaseLabel(state.importPhase)}, ${state.currentItem} of ${state.totalItems}'
-        : _getPhaseLabel(state.importPhase);
+        ? context.l10n.settings_import_progressLabel(
+            phaseLabel,
+            state.currentItem,
+            state.totalItems,
+          )
+        : phaseLabel;
 
     return Semantics(
       label: progressLabel,
@@ -47,7 +53,7 @@ class ImportProgressDialog extends ConsumerWidget {
               child: Icon(Icons.download, color: colorScheme.primary),
             ),
             const SizedBox(width: 12),
-            const Text('Importing Data'),
+            Text(context.l10n.settings_import_dialog_title),
           ],
         ),
         content: Column(
@@ -56,7 +62,7 @@ class ImportProgressDialog extends ConsumerWidget {
           children: [
             // Phase indicator
             Text(
-              _getPhaseLabel(state.importPhase),
+              _getPhaseLabel(context, state.importPhase),
               style: theme.textTheme.titleMedium?.copyWith(
                 color: colorScheme.onSurface,
               ),
@@ -66,8 +72,9 @@ class ImportProgressDialog extends ConsumerWidget {
             // Progress bar
             if (state.totalItems > 0) ...[
               Semantics(
-                label:
-                    'Import progress: ${(state.progress * 100).toStringAsFixed(0)} percent',
+                label: context.l10n.settings_import_progressPercent(
+                  (state.progress * 100).toStringAsFixed(0),
+                ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: LinearProgressIndicator(
@@ -82,7 +89,10 @@ class ImportProgressDialog extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                '${state.currentItem} of ${state.totalItems}',
+                context.l10n.settings_import_itemCount(
+                  state.currentItem,
+                  state.totalItems,
+                ),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -104,7 +114,7 @@ class ImportProgressDialog extends ConsumerWidget {
 
             const SizedBox(height: 8),
             Text(
-              'Please do not close the app',
+              context.l10n.settings_import_doNotClose,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
                 fontStyle: FontStyle.italic,
@@ -116,34 +126,34 @@ class ImportProgressDialog extends ConsumerWidget {
     );
   }
 
-  String _getPhaseLabel(ImportPhase? phase) {
+  String _getPhaseLabel(BuildContext context, ImportPhase? phase) {
     switch (phase) {
       case ImportPhase.parsing:
-        return 'Parsing file...';
+        return context.l10n.settings_import_phase_parsing;
       case ImportPhase.trips:
-        return 'Importing trips...';
+        return context.l10n.settings_import_phase_trips;
       case ImportPhase.equipment:
-        return 'Importing equipment...';
+        return context.l10n.settings_import_phase_equipment;
       case ImportPhase.equipmentSets:
-        return 'Importing equipment sets...';
+        return context.l10n.settings_import_phase_equipmentSets;
       case ImportPhase.buddies:
-        return 'Importing buddies...';
+        return context.l10n.settings_import_phase_buddies;
       case ImportPhase.diveCenters:
-        return 'Importing dive centers...';
+        return context.l10n.settings_import_phase_diveCenters;
       case ImportPhase.certifications:
-        return 'Importing certifications...';
+        return context.l10n.settings_import_phase_certifications;
       case ImportPhase.diveTypes:
-        return 'Importing dive types...';
+        return context.l10n.settings_import_phase_diveTypes;
       case ImportPhase.tags:
-        return 'Importing tags...';
+        return context.l10n.settings_import_phase_tags;
       case ImportPhase.sites:
-        return 'Importing dive sites...';
+        return context.l10n.settings_import_phase_sites;
       case ImportPhase.dives:
-        return 'Importing dives...';
+        return context.l10n.settings_import_phase_dives;
       case ImportPhase.complete:
-        return 'Finalizing...';
+        return context.l10n.settings_import_phase_complete;
       case null:
-        return 'Preparing...';
+        return context.l10n.settings_import_phase_preparing;
     }
   }
 }

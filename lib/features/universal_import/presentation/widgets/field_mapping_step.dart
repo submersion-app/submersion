@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/universal_import/data/models/field_mapping.dart';
 import 'package:submersion/features/universal_import/data/services/field_mapping_engine.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
@@ -74,14 +75,17 @@ class _FieldMappingStepState extends ConsumerState<FieldMappingStep> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Column Mapping',
+                context.l10n.universalImport_label_columnMapping,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
-                '${_mapping.columns.length} of ${headers.length} columns mapped',
+                context.l10n.universalImport_label_columnsMapped(
+                  _mapping.columns.length,
+                  headers.length,
+                ),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -125,7 +129,7 @@ class _FieldMappingStepState extends ConsumerState<FieldMappingStep> {
                           .confirmFieldMapping();
                     }
                   : null,
-              child: const Text('Continue'),
+              child: Text(context.l10n.universalImport_action_continue),
             ),
           ),
         ),
@@ -202,16 +206,19 @@ class _ColumnMappingRow extends StatelessWidget {
               key: ValueKey('$sourceColumn-$currentTarget'),
               initialValue: currentTarget,
               isDense: true,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(
+              decoration: InputDecoration(
+                border: const OutlineInputBorder(),
+                contentPadding: const EdgeInsets.symmetric(
                   horizontal: 12,
                   vertical: 8,
                 ),
-                hintText: 'Skip',
+                hintText: context.l10n.universalImport_label_skip,
               ),
               items: [
-                const DropdownMenuItem(value: null, child: Text('Skip')),
+                DropdownMenuItem(
+                  value: null,
+                  child: Text(context.l10n.universalImport_label_skip),
+                ),
                 for (final field in targetFields)
                   DropdownMenuItem(
                     value: field,

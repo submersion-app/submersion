@@ -7,6 +7,7 @@ import 'package:submersion/features/settings/presentation/providers/storage_prov
 import 'package:submersion/features/settings/presentation/widgets/existing_database_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/migration_confirmation_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/migration_progress_dialog.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 class StorageSettingsPage extends ConsumerStatefulWidget {
   const StorageSettingsPage({super.key});
@@ -52,7 +53,7 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
     final currentPathAsync = ref.watch(currentDatabasePathProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Database Storage')),
+      appBar: AppBar(title: Text(context.l10n.settings_storage_appBar_title)),
       body: storageState.isMigrating
           ? const _MigrationInProgressView()
           : ListView(
@@ -67,14 +68,17 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
                 const Divider(),
 
                 // Storage location options
-                _buildSectionHeader(context, 'Storage Location'),
+                _buildSectionHeader(
+                  context,
+                  context.l10n.settings_storage_header_storageLocation,
+                ),
 
                 // App Default option
                 _buildStorageOption(
                   context,
                   theme,
-                  title: 'App Default',
-                  subtitle: 'Standard app storage location',
+                  title: context.l10n.settings_storage_appDefault,
+                  subtitle: context.l10n.settings_storage_appDefault_subtitle,
                   icon: Icons.phone_android,
                   isSelected:
                       storageState.config.mode ==
@@ -87,12 +91,12 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
                   _buildStorageOption(
                     context,
                     theme,
-                    title: 'Custom Folder',
+                    title: context.l10n.settings_storage_customFolder,
                     subtitle:
                         storageState.config.mode ==
                             StorageLocationMode.customFolder
                         ? _truncatePath(storageState.config.customFolderPath)
-                        : 'Choose a synced folder (Dropbox, Google Drive, etc.)',
+                        : context.l10n.settings_storage_customFolder_subtitle,
                     icon: Icons.folder,
                     isSelected:
                         storageState.config.mode ==
@@ -104,7 +108,9 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
                         ? TextButton(
                             onPressed: () =>
                                 _handleChangeCustomFolder(storageState),
-                            child: const Text('Change'),
+                            child: Text(
+                              context.l10n.settings_storage_customFolder_change,
+                            ),
                           )
                         : null,
                   ),
@@ -173,7 +179,7 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Current Location',
+                    context.l10n.settings_storage_currentLocation,
                     style: theme.textTheme.titleMedium,
                   ),
                 ),
@@ -188,8 +194,8 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-              loading: () => const Text('Loading...'),
-              error: (e, _) => Text('Error: $e'),
+              loading: () => Text(context.l10n.settings_storage_loading),
+              error: (e, _) => Text('${context.l10n.common_label_error}: $e'),
             ),
             if (_currentDbInfo != null) ...[
               const SizedBox(height: 8),
@@ -270,8 +276,8 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
           Expanded(
             child: Text(
               isCustomFolder
-                  ? 'App-managed cloud sync is disabled. Your folder\'s sync service (Dropbox, Google Drive, etc.) handles synchronization.'
-                  : 'Using a custom folder disables app-managed cloud sync. Your folder\'s sync service will handle synchronization instead.',
+                  ? context.l10n.settings_storage_info_customActive
+                  : context.l10n.settings_storage_info_customAvailable,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -306,7 +312,7 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
           ),
           IconButton(
             icon: const Icon(Icons.close),
-            tooltip: 'Dismiss error',
+            tooltip: context.l10n.settings_storage_dismissError_tooltip,
             onPressed: () {
               ref.read(storageConfigNotifierProvider.notifier).clearError();
             },
@@ -337,9 +343,9 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Database moved successfully',
-                  style: TextStyle(
+                Text(
+                  context.l10n.settings_storage_success_moved,
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.green,
                   ),
@@ -347,7 +353,9 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
                 if (result.backupPath != null) ...[
                   const SizedBox(height: 4),
                   Text(
-                    'Original kept as backup at:\n${result.backupPath}',
+                    context.l10n.settings_storage_success_backupAt(
+                      result.backupPath!,
+                    ),
                     style: theme.textTheme.bodySmall,
                   ),
                 ],
@@ -356,7 +364,7 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
           ),
           IconButton(
             icon: const Icon(Icons.close),
-            tooltip: 'Dismiss success message',
+            tooltip: context.l10n.settings_storage_dismissSuccess_tooltip,
             onPressed: () {
               ref
                   .read(storageConfigNotifierProvider.notifier)
@@ -369,7 +377,7 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
   }
 
   String _truncatePath(String? path) {
-    if (path == null) return 'Not set';
+    if (path == null) return context.l10n.settings_storage_notSet;
     if (path.length <= 40) return path;
 
     // Show last 40 characters with ellipsis
@@ -385,8 +393,10 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => MigrationConfirmationDialog(
-        fromPath: currentState.config.customFolderPath ?? 'Custom folder',
-        toPath: 'App default location',
+        fromPath:
+            currentState.config.customFolderPath ??
+            context.l10n.settings_data_customFolder,
+        toPath: context.l10n.settings_data_appDefaultLocation,
         isMovingToCustom: false,
       ),
     );
@@ -450,7 +460,7 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (context) => MigrationConfirmationDialog(
-          fromPath: 'Current location',
+          fromPath: context.l10n.settings_storage_currentLocation_label,
           toPath: folderPath,
           isMovingToCustom: true,
         ),
@@ -464,7 +474,9 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
 
   Future<void> _performMigrationToDefault() async {
     // Show progress dialog
-    _showProgressDialog('Moving to app default...');
+    _showProgressDialog(
+      context.l10n.settings_storage_migrating_movingToAppDefault,
+    );
 
     final notifier = ref.read(storageConfigNotifierProvider.notifier);
     final result = await notifier.migrateToDefault();
@@ -486,7 +498,7 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
   }
 
   Future<void> _performMigrationToCustom(String folderPath) async {
-    _showProgressDialog('Moving database...');
+    _showProgressDialog(context.l10n.settings_storage_migrating_movingDatabase);
 
     final notifier = ref.read(storageConfigNotifierProvider.notifier);
     final result = await notifier.migrateToCustomFolder(folderPath);
@@ -507,7 +519,9 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
   }
 
   Future<void> _performSwitchToExisting(String folderPath) async {
-    _showProgressDialog('Switching to existing database...');
+    _showProgressDialog(
+      context.l10n.settings_storage_migrating_switchingToExisting,
+    );
 
     final notifier = ref.read(storageConfigNotifierProvider.notifier);
     final result = await notifier.switchToExistingDatabase(folderPath);
@@ -528,7 +542,9 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
   }
 
   Future<void> _performReplaceExisting(String folderPath) async {
-    _showProgressDialog('Replacing existing database...');
+    _showProgressDialog(
+      context.l10n.settings_storage_migrating_replacingExisting,
+    );
 
     final notifier = ref.read(storageConfigNotifierProvider.notifier);
     final result = await notifier.replaceExistingDatabase(folderPath);
@@ -563,17 +579,17 @@ class _MigrationInProgressView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(),
-          SizedBox(height: 24),
-          Text('Moving database...'),
-          SizedBox(height: 8),
+          const CircularProgressIndicator(),
+          const SizedBox(height: 24),
+          Text(context.l10n.settings_storage_migrating_movingDatabase),
+          const SizedBox(height: 8),
           Text(
-            'Please do not close the app',
-            style: TextStyle(color: Colors.grey),
+            context.l10n.settings_migrationProgress_doNotClose,
+            style: const TextStyle(color: Colors.grey),
           ),
         ],
       ),

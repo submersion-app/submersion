@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
+
 /// Planning hub page displaying all dive planning tools.
 ///
 /// Provides easy navigation to:
@@ -17,7 +19,7 @@ class PlanningPage extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Planning')),
+      appBar: AppBar(title: Text(context.l10n.planning_appBar_title)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -25,11 +27,9 @@ class PlanningPage extends StatelessWidget {
           _PlanningCard(
             icon: Icons.edit_calendar,
             iconColor: colorScheme.primary,
-            title: 'Dive Planner',
-            subtitle: 'Create multi-level dive plans',
-            description:
-                'Plan complex dives with multiple depth levels, gas switches, '
-                'and automatic decompression stop calculations.',
+            title: context.l10n.planning_card_divePlanner_title,
+            subtitle: context.l10n.planning_card_divePlanner_subtitle,
+            description: context.l10n.planning_card_divePlanner_description,
             onTap: () => context.go('/planning/dive-planner'),
           ),
           const SizedBox(height: 12),
@@ -38,11 +38,9 @@ class PlanningPage extends StatelessWidget {
           _PlanningCard(
             icon: Icons.calculate,
             iconColor: colorScheme.secondary,
-            title: 'Deco Calculator',
-            subtitle: 'Plan dives with decompression stops',
-            description:
-                'Calculate no-decompression limits, required deco stops, '
-                'and CNS/OTU exposure for multi-level dive profiles.',
+            title: context.l10n.planning_card_decoCalculator_title,
+            subtitle: context.l10n.planning_card_decoCalculator_subtitle,
+            description: context.l10n.planning_card_decoCalculator_description,
             onTap: () => context.go('/planning/deco-calculator'),
           ),
           const SizedBox(height: 12),
@@ -51,14 +49,9 @@ class PlanningPage extends StatelessWidget {
           _PlanningCard(
             icon: Icons.science,
             iconColor: colorScheme.tertiary,
-            title: 'Gas Calculators',
-            subtitle: 'MOD, Best Mix, Consumption, Rock Bottom',
-            description:
-                'Four specialized gas calculators:\n'
-                '• MOD - Maximum operating depth for a gas mix\n'
-                '• Best Mix - Ideal O₂% for a target depth\n'
-                '• Consumption - Gas usage estimation\n'
-                '• Rock Bottom - Emergency reserve calculation',
+            title: context.l10n.planning_card_gasCalculators_title,
+            subtitle: context.l10n.planning_card_gasCalculators_subtitle,
+            description: context.l10n.planning_card_gasCalculators_description,
             onTap: () => context.go('/planning/gas-calculators'),
           ),
           const SizedBox(height: 12),
@@ -67,11 +60,10 @@ class PlanningPage extends StatelessWidget {
           _PlanningCard(
             icon: Icons.fitness_center,
             iconColor: colorScheme.primary.withValues(alpha: 0.8),
-            title: 'Weight Calculator',
-            subtitle: 'Recommended weight for your setup',
+            title: context.l10n.planning_card_weightCalculator_title,
+            subtitle: context.l10n.planning_card_weightCalculator_subtitle,
             description:
-                'Estimate the weight you need based on your exposure suit, '
-                'tank material, water type, and body weight.',
+                context.l10n.planning_card_weightCalculator_description,
             onTap: () => context.go('/planning/weight-calculator'),
           ),
           const SizedBox(height: 12),
@@ -80,12 +72,9 @@ class PlanningPage extends StatelessWidget {
           _PlanningCard(
             icon: Icons.timer,
             iconColor: Colors.teal,
-            title: 'Surface Interval',
-            subtitle: 'Plan repetitive dive intervals',
-            description:
-                'Calculate the minimum surface interval needed between dives '
-                'based on tissue loading. Visualize how your 16 tissue '
-                'compartments off-gas over time.',
+            title: context.l10n.planning_card_surfaceInterval_title,
+            subtitle: context.l10n.planning_card_surfaceInterval_subtitle,
+            description: context.l10n.planning_card_surfaceInterval_description,
             onTap: () => context.go('/planning/surface-interval'),
           ),
           const SizedBox(height: 24),
@@ -107,8 +96,7 @@ class PlanningPage extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'These tools are for planning purposes only. '
-                      'Always verify calculations and follow your dive training.',
+                      context.l10n.planning_info_disclaimer,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),

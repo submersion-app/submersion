@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
@@ -144,9 +145,9 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error loading diver: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.divers_edit_errorLoading('$e'))),
+        );
       }
     }
   }
@@ -184,29 +185,46 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Personal Info Section
-                  _buildSectionHeader(context, 'Personal Information'),
+                  _buildSectionHeader(
+                    context,
+                    context.l10n.divers_edit_personalInfoSection,
+                  ),
                   _buildPersonalInfoSection(),
                   const SizedBox(height: 24),
 
                   // Emergency Contacts Section
-                  _buildSectionHeader(context, 'Emergency Contacts'),
-                  _buildEmergencyContactSection('Primary Contact'),
+                  _buildSectionHeader(
+                    context,
+                    context.l10n.divers_edit_emergencyContactsSection,
+                  ),
+                  _buildEmergencyContactSection(
+                    context.l10n.divers_edit_primaryContactTitle,
+                  ),
                   const SizedBox(height: 12),
                   _buildSecondaryEmergencyContactSection(),
                   const SizedBox(height: 24),
 
                   // Medical Info Section
-                  _buildSectionHeader(context, 'Medical Information'),
+                  _buildSectionHeader(
+                    context,
+                    context.l10n.divers_edit_medicalInfoSection,
+                  ),
                   _buildMedicalInfoSection(),
                   const SizedBox(height: 24),
 
                   // Insurance Section
-                  _buildSectionHeader(context, 'Dive Insurance'),
+                  _buildSectionHeader(
+                    context,
+                    context.l10n.divers_edit_insuranceSection,
+                  ),
                   _buildInsuranceSection(),
                   const SizedBox(height: 24),
 
                   // Notes Section
-                  _buildSectionHeader(context, 'Notes'),
+                  _buildSectionHeader(
+                    context,
+                    context.l10n.divers_edit_notesSection,
+                  ),
                   _buildNotesSection(),
                   const SizedBox(height: 32),
 
@@ -219,7 +237,11 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
                             height: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : Text(isEditing ? 'Update Diver' : 'Add Diver'),
+                        : Text(
+                            isEditing
+                                ? context.l10n.divers_edit_updateButton
+                                : context.l10n.divers_edit_addButton,
+                          ),
                   ),
                   const SizedBox(height: 16),
                 ],
@@ -261,7 +283,11 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(isEditing ? 'Edit Diver' : 'Add Diver'),
+          title: Text(
+            isEditing
+                ? context.l10n.divers_edit_editTitle
+                : context.l10n.divers_edit_addTitle,
+          ),
           actions: [
             if (_isSaving)
               const Center(
@@ -275,7 +301,10 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
                 ),
               )
             else
-              TextButton(onPressed: _saveDiver, child: const Text('Save')),
+              TextButton(
+                onPressed: _saveDiver,
+                child: Text(context.l10n.divers_edit_saveButton),
+              ),
           ],
         ),
         body: body,
@@ -304,7 +333,9 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              isEditing ? 'Edit Diver' : 'Add Diver',
+              isEditing
+                  ? context.l10n.divers_edit_editTitle
+                  : context.l10n.divers_edit_addTitle,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -317,9 +348,15 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
               child: CircularProgressIndicator(strokeWidth: 2),
             )
           else ...[
-            TextButton(onPressed: _handleCancel, child: const Text('Cancel')),
+            TextButton(
+              onPressed: _handleCancel,
+              child: Text(context.l10n.divers_edit_cancelButton),
+            ),
             const SizedBox(width: 8),
-            FilledButton(onPressed: _saveDiver, child: const Text('Save')),
+            FilledButton(
+              onPressed: _saveDiver,
+              child: Text(context.l10n.divers_edit_saveButton),
+            ),
           ],
         ],
       ),
@@ -358,14 +395,14 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
           children: [
             TextFormField(
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Name *',
-                prefixIcon: Icon(Icons.person),
+              decoration: InputDecoration(
+                labelText: context.l10n.divers_edit_nameLabel,
+                prefixIcon: const Icon(Icons.person),
               ),
               textCapitalization: TextCapitalization.words,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Name is required';
+                  return context.l10n.divers_edit_nameError;
                 }
                 return null;
               },
@@ -373,15 +410,15 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _emailController,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                prefixIcon: Icon(Icons.email),
+              decoration: InputDecoration(
+                labelText: context.l10n.divers_edit_emailLabel,
+                prefixIcon: const Icon(Icons.email),
               ),
               keyboardType: TextInputType.emailAddress,
               validator: (value) {
                 if (value != null && value.isNotEmpty) {
                   if (!value.contains('@') || !value.contains('.')) {
-                    return 'Enter a valid email';
+                    return context.l10n.divers_edit_emailError;
                   }
                 }
                 return null;
@@ -390,9 +427,9 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _phoneController,
-              decoration: const InputDecoration(
-                labelText: 'Phone',
-                prefixIcon: Icon(Icons.phone),
+              decoration: InputDecoration(
+                labelText: context.l10n.divers_edit_phoneLabel,
+                prefixIcon: const Icon(Icons.phone),
               ),
               keyboardType: TextInputType.phone,
             ),
@@ -418,28 +455,28 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
             const SizedBox(height: 12),
             TextFormField(
               controller: _emergencyNameController,
-              decoration: const InputDecoration(
-                labelText: 'Contact Name',
-                prefixIcon: Icon(Icons.person_outline),
+              decoration: InputDecoration(
+                labelText: context.l10n.divers_edit_contactNameLabel,
+                prefixIcon: const Icon(Icons.person_outline),
               ),
               textCapitalization: TextCapitalization.words,
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _emergencyPhoneController,
-              decoration: const InputDecoration(
-                labelText: 'Contact Phone',
-                prefixIcon: Icon(Icons.phone),
+              decoration: InputDecoration(
+                labelText: context.l10n.divers_edit_contactPhoneLabel,
+                prefixIcon: const Icon(Icons.phone),
               ),
               keyboardType: TextInputType.phone,
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _emergencyRelationController,
-              decoration: const InputDecoration(
-                labelText: 'Relationship',
-                prefixIcon: Icon(Icons.people),
-                hintText: 'e.g., Spouse, Parent, Friend',
+              decoration: InputDecoration(
+                labelText: context.l10n.divers_edit_relationshipLabel,
+                prefixIcon: const Icon(Icons.people),
+                hintText: context.l10n.divers_edit_relationshipHint,
               ),
               textCapitalization: TextCapitalization.words,
             ),
@@ -457,7 +494,7 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Secondary Contact',
+              context.l10n.divers_edit_secondaryContactTitle,
               style: Theme.of(
                 context,
               ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
@@ -465,28 +502,28 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
             const SizedBox(height: 12),
             TextFormField(
               controller: _emergency2NameController,
-              decoration: const InputDecoration(
-                labelText: 'Contact Name',
-                prefixIcon: Icon(Icons.person_outline),
+              decoration: InputDecoration(
+                labelText: context.l10n.divers_edit_contactNameLabel,
+                prefixIcon: const Icon(Icons.person_outline),
               ),
               textCapitalization: TextCapitalization.words,
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _emergency2PhoneController,
-              decoration: const InputDecoration(
-                labelText: 'Contact Phone',
-                prefixIcon: Icon(Icons.phone),
+              decoration: InputDecoration(
+                labelText: context.l10n.divers_edit_contactPhoneLabel,
+                prefixIcon: const Icon(Icons.phone),
               ),
               keyboardType: TextInputType.phone,
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _emergency2RelationController,
-              decoration: const InputDecoration(
-                labelText: 'Relationship',
-                prefixIcon: Icon(Icons.people),
-                hintText: 'e.g., Spouse, Parent, Friend',
+              decoration: InputDecoration(
+                labelText: context.l10n.divers_edit_relationshipLabel,
+                prefixIcon: const Icon(Icons.people),
+                hintText: context.l10n.divers_edit_relationshipHint,
               ),
               textCapitalization: TextCapitalization.words,
             ),
@@ -504,29 +541,29 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
           children: [
             TextFormField(
               controller: _bloodTypeController,
-              decoration: const InputDecoration(
-                labelText: 'Blood Type',
-                prefixIcon: Icon(Icons.bloodtype),
-                hintText: 'e.g., O+, A-, B+',
+              decoration: InputDecoration(
+                labelText: context.l10n.divers_edit_bloodTypeLabel,
+                prefixIcon: const Icon(Icons.bloodtype),
+                hintText: context.l10n.divers_edit_bloodTypeHint,
               ),
               textCapitalization: TextCapitalization.characters,
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _allergiesController,
-              decoration: const InputDecoration(
-                labelText: 'Allergies',
-                prefixIcon: Icon(Icons.warning_amber),
-                hintText: 'e.g., Penicillin, Shellfish',
+              decoration: InputDecoration(
+                labelText: context.l10n.divers_edit_allergiesLabel,
+                prefixIcon: const Icon(Icons.warning_amber),
+                hintText: context.l10n.divers_edit_allergiesHint,
               ),
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _medicationsController,
-              decoration: const InputDecoration(
-                labelText: 'Medications',
-                prefixIcon: Icon(Icons.medication),
-                hintText: 'e.g., Aspirin daily, EpiPen',
+              decoration: InputDecoration(
+                labelText: context.l10n.divers_edit_medicationsLabel,
+                prefixIcon: const Icon(Icons.medication),
+                hintText: context.l10n.divers_edit_medicationsHint,
               ),
             ),
             const SizedBox(height: 16),
@@ -534,9 +571,9 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _medicalNotesController,
-              decoration: const InputDecoration(
-                labelText: 'Medical Notes',
-                prefixIcon: Icon(Icons.medical_information),
+              decoration: InputDecoration(
+                labelText: context.l10n.divers_edit_medicalNotesLabel,
+                prefixIcon: const Icon(Icons.medical_information),
                 alignLabelWithHint: true,
               ),
               maxLines: 3,
@@ -561,14 +598,14 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: const Icon(Icons.verified_user),
-      title: const Text('Medical Clearance Expiry'),
+      title: Text(context.l10n.divers_edit_medicalClearanceTitle),
       subtitle: Row(
         children: [
           Expanded(
             child: Text(
               _medicalClearanceExpiry != null
                   ? DateFormat.yMMMd().format(_medicalClearanceExpiry!)
-                  : 'Not set',
+                  : context.l10n.divers_edit_medicalClearanceNotSet,
             ),
           ),
           if (isExpired)
@@ -579,7 +616,7 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                'Expired',
+                context.l10n.divers_edit_medicalClearanceExpired,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   color: Theme.of(context).colorScheme.onError,
                 ),
@@ -593,7 +630,7 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                'Expiring Soon',
+                context.l10n.divers_edit_medicalClearanceExpiringSoon,
                 style: Theme.of(
                   context,
                 ).textTheme.labelSmall?.copyWith(color: Colors.white),
@@ -607,7 +644,7 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
           if (_medicalClearanceExpiry != null)
             IconButton(
               icon: const Icon(Icons.clear),
-              tooltip: 'Clear medical clearance date',
+              tooltip: context.l10n.divers_edit_clearMedicalClearanceTooltip,
               onPressed: () {
                 setState(() {
                   _medicalClearanceExpiry = null;
@@ -617,7 +654,7 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
             ),
           IconButton(
             icon: const Icon(Icons.edit_calendar),
-            tooltip: 'Select medical clearance date',
+            tooltip: context.l10n.divers_edit_selectMedicalClearanceTooltip,
             onPressed: _selectMedicalClearanceExpiry,
           ),
         ],
@@ -650,29 +687,29 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
           children: [
             TextFormField(
               controller: _insuranceProviderController,
-              decoration: const InputDecoration(
-                labelText: 'Insurance Provider',
-                prefixIcon: Icon(Icons.verified_user),
-                hintText: 'e.g., DAN, DiveAssure',
+              decoration: InputDecoration(
+                labelText: context.l10n.divers_edit_insuranceProviderLabel,
+                prefixIcon: const Icon(Icons.verified_user),
+                hintText: context.l10n.divers_edit_insuranceProviderHint,
               ),
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _insurancePolicyController,
-              decoration: const InputDecoration(
-                labelText: 'Policy Number',
-                prefixIcon: Icon(Icons.numbers),
+              decoration: InputDecoration(
+                labelText: context.l10n.divers_edit_policyNumberLabel,
+                prefixIcon: const Icon(Icons.numbers),
               ),
             ),
             const SizedBox(height: 16),
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.calendar_today),
-              title: const Text('Expiry Date'),
+              title: Text(context.l10n.divers_edit_expiryDateTitle),
               subtitle: Text(
                 _insuranceExpiry != null
                     ? DateFormat.yMMMd().format(_insuranceExpiry!)
-                    : 'Not set',
+                    : context.l10n.divers_edit_expiryDateNotSet,
               ),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -680,7 +717,8 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
                   if (_insuranceExpiry != null)
                     IconButton(
                       icon: const Icon(Icons.clear),
-                      tooltip: 'Clear insurance expiry date',
+                      tooltip:
+                          context.l10n.divers_edit_clearInsuranceExpiryTooltip,
                       onPressed: () {
                         setState(() {
                           _insuranceExpiry = null;
@@ -690,7 +728,8 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
                     ),
                   IconButton(
                     icon: const Icon(Icons.edit_calendar),
-                    tooltip: 'Select insurance expiry date',
+                    tooltip:
+                        context.l10n.divers_edit_selectInsuranceExpiryTooltip,
                     onPressed: _selectInsuranceExpiry,
                   ),
                 ],
@@ -708,11 +747,11 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
         padding: const EdgeInsets.all(16),
         child: TextFormField(
           controller: _notesController,
-          decoration: const InputDecoration(
-            labelText: 'Notes',
-            prefixIcon: Icon(Icons.notes),
+          decoration: InputDecoration(
+            labelText: context.l10n.divers_edit_notesLabel,
+            prefixIcon: const Icon(Icons.notes),
             alignLabelWithHint: true,
-            border: OutlineInputBorder(),
+            border: const OutlineInputBorder(),
           ),
           maxLines: 4,
         ),
@@ -818,14 +857,20 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
           context.pop();
         }
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(isEditing ? 'Diver updated' : 'Diver added')),
+          SnackBar(
+            content: Text(
+              isEditing
+                  ? context.l10n.divers_edit_diverUpdated
+                  : context.l10n.divers_edit_diverAdded,
+            ),
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error saving diver: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.divers_edit_errorSaving('$e'))),
+        );
       }
     } finally {
       if (mounted) {
@@ -838,18 +883,16 @@ class _DiverEditPageState extends ConsumerState<DiverEditPage> {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Discard Changes?'),
-        content: const Text(
-          'You have unsaved changes. Are you sure you want to discard them?',
-        ),
+        title: Text(context.l10n.divers_edit_discardDialogTitle),
+        content: Text(context.l10n.divers_edit_discardDialogContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Keep Editing'),
+            child: Text(context.l10n.divers_edit_keepEditingButton),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Discard'),
+            child: Text(context.l10n.divers_edit_discardButton),
           ),
         ],
       ),

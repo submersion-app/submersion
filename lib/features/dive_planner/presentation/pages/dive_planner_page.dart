@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/deco_results_panel.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/gas_results_panel.dart';
@@ -70,19 +71,19 @@ class _DivePlannerPageState extends ConsumerState<DivePlannerPage>
           // Quick add button
           IconButton(
             icon: const Icon(Icons.add_chart),
-            tooltip: 'Quick Plan',
+            tooltip: context.l10n.divePlanner_action_quickPlan,
             onPressed: () => _showSimplePlanDialog(context),
           ),
           // Save button
           IconButton(
             icon: Icon(planState.isDirty ? Icons.save : Icons.save_outlined),
-            tooltip: 'Save Plan',
+            tooltip: context.l10n.divePlanner_action_savePlan,
             onPressed: planState.isDirty ? _savePlan : null,
           ),
           // Convert to dive button
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
-            tooltip: 'More options',
+            tooltip: context.l10n.divePlanner_action_moreOptions,
             onSelected: (value) {
               switch (value) {
                 case 'convert':
@@ -97,27 +98,27 @@ class _DivePlannerPageState extends ConsumerState<DivePlannerPage>
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'convert',
                 child: ListTile(
-                  leading: Icon(Icons.scuba_diving),
-                  title: Text('Convert to Dive'),
+                  leading: const Icon(Icons.scuba_diving),
+                  title: Text(context.l10n.divePlanner_action_convertToDive),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'rename',
                 child: ListTile(
-                  leading: Icon(Icons.edit),
-                  title: Text('Rename Plan'),
+                  leading: const Icon(Icons.edit),
+                  title: Text(context.l10n.divePlanner_action_renamePlan),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'reset',
                 child: ListTile(
-                  leading: Icon(Icons.refresh),
-                  title: Text('Reset Plan'),
+                  leading: const Icon(Icons.refresh),
+                  title: Text(context.l10n.divePlanner_action_resetPlan),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
@@ -127,13 +128,18 @@ class _DivePlannerPageState extends ConsumerState<DivePlannerPage>
         bottom: TabBar(
           controller: _tabController,
           tabs: [
-            const Tab(text: 'Plan', icon: Icon(Icons.edit_note)),
             Tab(
-              text: 'Results',
+              text: context.l10n.divePlanner_tab_plan,
+              icon: const Icon(Icons.edit_note),
+            ),
+            Tab(
+              text: context.l10n.divePlanner_tab_results,
               icon: Semantics(
                 label: hasWarnings
-                    ? 'Results, ${results.warnings.length} warnings'
-                    : 'Results',
+                    ? context.l10n.divePlanner_label_resultsWithWarnings(
+                        results.warnings.length,
+                      )
+                    : context.l10n.divePlanner_tab_results,
                 child: Badge(
                   isLabelVisible: hasWarnings,
                   label: Text('${results.warnings.length}'),
@@ -141,7 +147,10 @@ class _DivePlannerPageState extends ConsumerState<DivePlannerPage>
                 ),
               ),
             ),
-            const Tab(text: 'Profile', icon: Icon(Icons.show_chart)),
+            Tab(
+              text: context.l10n.divePlanner_tab_profile,
+              icon: const Icon(Icons.show_chart),
+            ),
           ],
         ),
       ),
@@ -195,17 +204,17 @@ class _DivePlannerPageState extends ConsumerState<DivePlannerPage>
   void _savePlan() {
     // TODO: Implement save to database
     ref.read(divePlanNotifierProvider.notifier).markSaved();
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Plan saved')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.l10n.divePlanner_message_planSaved)),
+    );
   }
 
   void _convertToDive() {
     final isValid = ref.read(planIsValidProvider);
     if (!isValid) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Cannot convert: plan has critical warnings'),
+        SnackBar(
+          content: Text(context.l10n.divePlanner_error_cannotConvert),
           backgroundColor: Colors.red,
         ),
       );
@@ -213,30 +222,28 @@ class _DivePlannerPageState extends ConsumerState<DivePlannerPage>
     }
 
     // TODO: Implement convert to dive
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Converting plan to dive...')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.l10n.divePlanner_message_convertingPlan)),
+    );
   }
 
   void _resetPlan() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Reset Plan'),
-        content: const Text(
-          'Are you sure you want to reset this plan? All segments and settings will be cleared.',
-        ),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(context.l10n.divePlanner_action_resetPlan),
+        content: Text(context.l10n.divePlanner_message_resetConfirmation),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(context.l10n.common_action_cancel),
           ),
           FilledButton(
             onPressed: () {
               ref.read(divePlanNotifierProvider.notifier).newPlan();
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
             },
-            child: const Text('Reset'),
+            child: Text(context.l10n.divePlanner_action_reset),
           ),
         ],
       ),
@@ -249,26 +256,28 @@ class _DivePlannerPageState extends ConsumerState<DivePlannerPage>
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Rename Plan'),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(context.l10n.divePlanner_action_renamePlan),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(labelText: 'Plan Name'),
+          decoration: InputDecoration(
+            labelText: context.l10n.divePlanner_field_planName,
+          ),
           autofocus: true,
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(context.l10n.common_action_cancel),
           ),
           FilledButton(
             onPressed: () {
               ref
                   .read(divePlanNotifierProvider.notifier)
                   .updateName(controller.text);
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
             },
-            child: const Text('Save'),
+            child: Text(context.l10n.common_action_save),
           ),
         ],
       ),

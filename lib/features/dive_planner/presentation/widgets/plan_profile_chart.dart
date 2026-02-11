@@ -6,6 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Visual chart showing the planned dive profile.
 ///
@@ -42,12 +43,12 @@ class PlanProfileChart extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'No profile to display',
+                  context.l10n.divePlanner_message_noProfile,
                   style: theme.textTheme.titleMedium,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Add segments to see the dive profile',
+                  context.l10n.divePlanner_message_addSegmentsForProfile,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.outline,
                   ),
@@ -76,19 +77,19 @@ class PlanProfileChart extends ConsumerWidget {
                 Icon(Icons.show_chart, color: theme.colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
-                  'Dive Profile',
+                  context.l10n.divePlanner_label_diveProfile,
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: theme.colorScheme.primary,
                   ),
                 ),
                 const Spacer(),
                 _StatChip(
-                  label: 'Max',
+                  label: context.l10n.divePlanner_label_max,
                   value: units.formatDepth(maxDepthMeters),
                 ),
                 const SizedBox(width: 8),
                 _StatChip(
-                  label: 'Time',
+                  label: context.l10n.divePlanner_label_time,
                   value: '${maxTime.toStringAsFixed(0)}min',
                 ),
               ],
@@ -98,12 +99,13 @@ class PlanProfileChart extends ConsumerWidget {
             // Chart
             Expanded(
               child: Semantics(
-                label:
-                    'Dive profile chart showing depth over time, '
-                    'max depth ${units.formatDepth(planState.maxDepth)}, '
-                    'total time ${(planState.totalTimeSeconds / 60).toStringAsFixed(0)} minutes',
+                label: context.l10n.divePlanner_semantics_profileChart(
+                  units.formatDepth(planState.maxDepth),
+                  (planState.totalTimeSeconds / 60).toStringAsFixed(0),
+                ),
                 child: LineChart(
                   _buildChartData(
+                    context,
                     profilePoints,
                     maxDepthDisplay,
                     maxTime,
@@ -116,7 +118,7 @@ class PlanProfileChart extends ConsumerWidget {
 
             // Legend
             const SizedBox(height: 16),
-            _buildLegend(theme),
+            _buildLegend(context, theme),
           ],
         ),
       ),
@@ -124,6 +126,7 @@ class PlanProfileChart extends ConsumerWidget {
   }
 
   LineChartData _buildChartData(
+    BuildContext context,
     List<DiveProfilePoint> points,
     double maxDepthDisplay,
     double maxTime,
@@ -163,7 +166,10 @@ class PlanProfileChart extends ConsumerWidget {
         ),
         topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
         bottomTitles: AxisTitles(
-          axisNameWidget: Text('Time (min)', style: theme.textTheme.labelSmall),
+          axisNameWidget: Text(
+            context.l10n.divePlanner_label_timeAxis,
+            style: theme.textTheme.labelSmall,
+          ),
           sideTitles: SideTitles(
             showTitles: true,
             reservedSize: 30,
@@ -181,7 +187,7 @@ class PlanProfileChart extends ConsumerWidget {
         ),
         leftTitles: AxisTitles(
           axisNameWidget: Text(
-            'Depth (${units.depthSymbol})',
+            context.l10n.divePlanner_label_depthAxis(units.depthSymbol),
             style: theme.textTheme.labelSmall,
           ),
           sideTitles: SideTitles(
@@ -267,16 +273,31 @@ class PlanProfileChart extends ConsumerWidget {
     return 30;
   }
 
-  Widget _buildLegend(ThemeData theme) {
+  Widget _buildLegend(BuildContext context, ThemeData theme) {
     return Wrap(
       spacing: 16,
       runSpacing: 8,
       children: [
-        const _LegendItem(color: Colors.blue, label: 'Descent'),
-        _LegendItem(color: theme.colorScheme.primary, label: 'Bottom'),
-        const _LegendItem(color: Colors.green, label: 'Ascent'),
-        const _LegendItem(color: Colors.orange, label: 'Deco'),
-        const _LegendItem(color: Colors.teal, label: 'Safety'),
+        _LegendItem(
+          color: Colors.blue,
+          label: context.l10n.divePlanner_legend_descent,
+        ),
+        _LegendItem(
+          color: theme.colorScheme.primary,
+          label: context.l10n.divePlanner_legend_bottom,
+        ),
+        _LegendItem(
+          color: Colors.green,
+          label: context.l10n.divePlanner_legend_ascent,
+        ),
+        _LegendItem(
+          color: Colors.orange,
+          label: context.l10n.divePlanner_legend_deco,
+        ),
+        _LegendItem(
+          color: Colors.teal,
+          label: context.l10n.divePlanner_legend_safety,
+        ),
       ],
     );
   }

@@ -4,6 +4,7 @@ import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
@@ -134,7 +135,7 @@ class _DiveCenterMapContentState extends ConsumerState<DiveCenterMapContent>
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
               child: IconButton(
                 icon: const Icon(Icons.my_location, size: 20),
-                tooltip: 'Fit All Centers',
+                tooltip: context.l10n.diveCenters_tooltip_fitAllCenters,
                 onPressed: () => _fitAllCenters(centers),
               ),
             ),
@@ -233,7 +234,9 @@ class _DiveCenterMapContentState extends ConsumerState<DiveCenterMapContent>
                     height: isSelected ? 50 : 40,
                     child: Semantics(
                       button: true,
-                      label: 'Dive center: ${diveCenter.name}',
+                      label: context.l10n.diveCenters_accessibility_markerLabel(
+                        diveCenter.name,
+                      ),
                       child: GestureDetector(
                         onTap: () => _onMarkerTapped(diveCenter),
                         child: _buildMarker(context, diveCenter, isSelected),
@@ -272,12 +275,12 @@ class _DiveCenterMapContentState extends ConsumerState<DiveCenterMapContent>
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'No dive centers with coordinates',
+                      context.l10n.diveCenters_map_noCoordinates,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Add coordinates to your dive centers to see them on the map',
+                      context.l10n.diveCenters_map_addCoordinatesHint,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -511,12 +514,12 @@ class _DiveCenterMapContentState extends ConsumerState<DiveCenterMapContent>
         children: [
           const Icon(Icons.error_outline, size: 48, color: Colors.red),
           const SizedBox(height: 16),
-          Text('Error loading dive centers: $error'),
+          Text(context.l10n.diveCenters_error_loading(error.toString())),
           const SizedBox(height: 16),
           FilledButton(
             onPressed: () =>
                 ref.read(diveCenterListNotifierProvider.notifier).refresh(),
-            child: const Text('Retry'),
+            child: Text(context.l10n.diveCenters_action_retry),
           ),
         ],
       ),

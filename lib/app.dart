@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/theme/app_theme.dart';
@@ -49,10 +51,16 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     ref.read(syncStateProvider.notifier).performSync();
   }
 
+  Locale? _resolveLocale(String localeSetting) {
+    if (localeSetting == 'system') return null;
+    return Locale(localeSetting);
+  }
+
   @override
   Widget build(BuildContext context) {
     final router = ref.watch(appRouterProvider);
     final themeMode = ref.watch(themeModeProvider);
+    final localeSetting = ref.watch(localeProvider);
 
     // Restore the last used cloud sync provider on app startup
     ref.watch(restoreLastProviderProvider);
@@ -63,7 +71,14 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: themeMode,
+      locale: _resolveLocale(localeSetting),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: router,
+      builder: (context, child) {
+        Intl.defaultLocale = Localizations.localeOf(context).toLanguageTag();
+        return child!;
+      },
     );
   }
 }

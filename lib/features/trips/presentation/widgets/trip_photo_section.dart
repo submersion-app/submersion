@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_media_providers.dart';
@@ -34,7 +35,10 @@ class TripPhotoSection extends ConsumerWidget {
               children: [
                 Icon(Icons.photo_library, size: 20, color: colorScheme.primary),
                 const SizedBox(width: 8),
-                Text('Photos', style: textTheme.titleMedium),
+                Text(
+                  context.l10n.trips_photos_sectionTitle,
+                  style: textTheme.titleMedium,
+                ),
                 const SizedBox(width: 8),
                 // Count badge
                 mediaCountAsync.when(
@@ -71,7 +75,7 @@ class TripPhotoSection extends ConsumerWidget {
                         color: colorScheme.primary,
                       ),
                       visualDensity: VisualDensity.compact,
-                      tooltip: 'Scan device gallery',
+                      tooltip: context.l10n.trips_photos_tooltip_scan,
                       onPressed: onScanPressed,
                     );
                   },
@@ -94,7 +98,7 @@ class TripPhotoSection extends ConsumerWidget {
                 child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
               ),
               error: (error, stack) => Text(
-                'Error loading photos',
+                context.l10n.trips_photos_error_loading,
                 style: textTheme.bodyMedium?.copyWith(color: colorScheme.error),
               ),
             ),
@@ -133,7 +137,7 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'No photos yet',
+            context.l10n.trips_photos_empty_title,
             style: textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
@@ -143,7 +147,7 @@ class _EmptyState extends StatelessWidget {
             OutlinedButton.icon(
               onPressed: onScanPressed,
               icon: const Icon(Icons.photo_library_outlined),
-              label: const Text('Scan device gallery'),
+              label: Text(context.l10n.trips_photos_empty_scanButton),
             ),
           ],
         ],
@@ -198,10 +202,10 @@ class _PhotoRow extends StatelessWidget {
         const SizedBox(height: 12),
         // View All button
         Align(
-          alignment: Alignment.centerRight,
+          alignment: AlignmentDirectional.centerEnd,
           child: TextButton(
             onPressed: () => context.push('/trips/$tripId/gallery'),
-            child: const Text('View All'),
+            child: Text(context.l10n.trips_photos_viewAll),
           ),
         ),
       ],
@@ -320,7 +324,7 @@ class _MoreIndicator extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Semantics(
-      label: '$count more photos',
+      label: context.l10n.trips_photos_moreIndicator_semanticLabel(count),
       child: Container(
         width: 80,
         height: 80,

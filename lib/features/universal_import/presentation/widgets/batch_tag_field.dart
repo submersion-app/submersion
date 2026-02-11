@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
+
 /// Editable field for the import batch tag.
 ///
 /// Displays a text field with a tag icon and clear button. The batch tag
@@ -48,7 +50,7 @@ class _BatchTagFieldState extends State<BatchTagField> {
             Icon(Icons.label_outline, size: 18, color: colorScheme.primary),
             const SizedBox(width: 8),
             Text(
-              'Import Tag',
+              context.l10n.universalImport_label_importTag,
               style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -67,7 +69,7 @@ class _BatchTagFieldState extends State<BatchTagField> {
         ),
         const SizedBox(height: 4),
         Text(
-          'Tag all imported dives for easy filtering',
+          context.l10n.universalImport_hint_tagDescription,
           style: theme.textTheme.bodySmall?.copyWith(
             color: colorScheme.onSurfaceVariant,
           ),
@@ -77,12 +79,12 @@ class _BatchTagFieldState extends State<BatchTagField> {
           TextField(
             controller: _controller,
             decoration: InputDecoration(
-              hintText: 'e.g., MacDive Import 2026-02-09',
+              hintText: context.l10n.universalImport_hint_tagExample,
               border: const OutlineInputBorder(),
               isDense: true,
               suffixIcon: IconButton(
                 icon: const Icon(Icons.clear, size: 18),
-                tooltip: 'Clear tag',
+                tooltip: context.l10n.universalImport_tooltip_clearTag,
                 onPressed: () {
                   _controller.clear();
                   widget.onChanged('');

@@ -9,6 +9,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart'
     show CloudProviderType;
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/conflict_resolution_dialog.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 class CloudSyncPage extends ConsumerWidget {
   const CloudSyncPage({super.key});
@@ -23,7 +24,7 @@ class CloudSyncPage extends ConsumerWidget {
     final behaviorSettings = ref.watch(syncBehaviorProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Cloud Sync')),
+      appBar: AppBar(title: Text(context.l10n.settings_cloudSync_appBar_title)),
       body: ListView(
         children: [
           // Show banner when custom folder mode is active
@@ -71,7 +72,7 @@ class CloudSyncPage extends ConsumerWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Cloud Sync Disabled',
+                  context.l10n.settings_cloudSync_disabledBanner_title,
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: Colors.orange.shade800,
                     fontWeight: FontWeight.bold,
@@ -82,8 +83,7 @@ class CloudSyncPage extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'App-managed cloud sync is disabled because you\'re using a custom storage folder. '
-            'Your folder\'s sync service (Dropbox, Google Drive, OneDrive, etc.) handles synchronization.',
+            context.l10n.settings_cloudSync_disabledBanner_content,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurface,
             ),

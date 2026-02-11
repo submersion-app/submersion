@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/gas_calculators_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Rock Bottom calculator.
 ///
@@ -73,7 +74,9 @@ class RockBottomCalculator extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Emergency Scenario',
+                        context
+                            .l10n
+                            .gasCalculators_rockBottom_emergencyScenario,
                         style: textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -84,7 +87,8 @@ class RockBottomCalculator extends ConsumerWidget {
                       _buildSliderSection(
                         context,
                         icon: Icons.arrow_downward,
-                        label: 'Maximum Depth',
+                        label:
+                            context.l10n.gasCalculators_rockBottom_maximumDepth,
                         value: displayDepth,
                         unit: depthSymbol,
                         min: minDepthDisplay,
@@ -101,7 +105,8 @@ class RockBottomCalculator extends ConsumerWidget {
                       _buildSliderSection(
                         context,
                         icon: Icons.arrow_upward,
-                        label: 'Ascent Rate',
+                        label:
+                            context.l10n.gasCalculators_rockBottom_ascentRate,
                         value: displayAscentRate,
                         unit: '$depthSymbol/min',
                         min: minAscentDisplay,
@@ -133,7 +138,9 @@ class RockBottomCalculator extends ConsumerWidget {
                           Icon(Icons.air, size: 20, color: colorScheme.primary),
                           const SizedBox(width: 8),
                           Text(
-                            'Stressed SAC Rates',
+                            context
+                                .l10n
+                                .gasCalculators_rockBottom_stressedSacRates,
                             style: textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
@@ -142,7 +149,7 @@ class RockBottomCalculator extends ConsumerWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Use higher SAC rates to account for stress during emergency',
+                        context.l10n.gasCalculators_rockBottom_stressedSacHint,
                         style: textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -153,7 +160,7 @@ class RockBottomCalculator extends ConsumerWidget {
                       _buildSliderSection(
                         context,
                         icon: Icons.person,
-                        label: 'Your SAC',
+                        label: context.l10n.gasCalculators_rockBottom_yourSac,
                         value: sac,
                         unit: '$volumeSymbol/min',
                         min: 15,
@@ -170,7 +177,7 @@ class RockBottomCalculator extends ConsumerWidget {
                       _buildSliderSection(
                         context,
                         icon: Icons.people,
-                        label: 'Buddy SAC',
+                        label: context.l10n.gasCalculators_rockBottom_buddySac,
                         value: buddySac,
                         unit: '$volumeSymbol/min',
                         min: 15,
@@ -195,7 +202,7 @@ class RockBottomCalculator extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Tank Size',
+                        context.l10n.gasCalculators_rockBottom_tankSize,
                         style: textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w500,
                         ),
@@ -220,9 +227,17 @@ class RockBottomCalculator extends ConsumerWidget {
                       const SizedBox(height: 16),
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
-                        title: const Text('Include Safety Stop'),
+                        title: Text(
+                          context
+                              .l10n
+                              .gasCalculators_rockBottom_includeSafetyStop,
+                        ),
                         subtitle: Text(
-                          '3 minutes at ${safetyStopDepthDisplay.toStringAsFixed(0)}$depthSymbol',
+                          context.l10n
+                              .gasCalculators_rockBottom_safetyStopDuration(
+                                safetyStopDepthDisplay.toStringAsFixed(0),
+                                depthSymbol,
+                              ),
                         ),
                         value: includeSafetyStop,
                         onChanged: (value) {
@@ -240,10 +255,12 @@ class RockBottomCalculator extends ConsumerWidget {
 
               // Result card
               Semantics(
-                label:
-                    'Minimum reserve: ${displayPressure.toStringAsFixed(0)} $pressureSymbol, '
-                    '${displayVolume.toStringAsFixed(0)} $volumeSymbol. '
-                    'Turn the dive when reaching ${displayPressure.toStringAsFixed(0)} $pressureSymbol remaining',
+                label: context.l10n.gasCalculators_rockBottom_resultSemantics(
+                  displayPressure.toStringAsFixed(0),
+                  pressureSymbol,
+                  displayVolume.toStringAsFixed(0),
+                  volumeSymbol,
+                ),
                 child: Card(
                   color: colorScheme.errorContainer,
                   child: Padding(
@@ -261,7 +278,9 @@ class RockBottomCalculator extends ConsumerWidget {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              'Minimum Reserve',
+                              context
+                                  .l10n
+                                  .gasCalculators_rockBottom_minimumReserve,
                               style: textTheme.titleMedium?.copyWith(
                                 color: colorScheme.onErrorContainer,
                                 fontWeight: FontWeight.w600,
@@ -295,7 +314,10 @@ class RockBottomCalculator extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            'Turn the dive when reaching ${displayPressure.toStringAsFixed(0)} $pressureSymbol remaining',
+                            context.l10n.gasCalculators_rockBottom_turnDive(
+                              displayPressure.toStringAsFixed(0),
+                              pressureSymbol,
+                            ),
                             textAlign: TextAlign.center,
                             style: textTheme.bodyMedium?.copyWith(
                               color: colorScheme.onErrorContainer,
@@ -326,7 +348,9 @@ class RockBottomCalculator extends ConsumerWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Emergency Ascent Breakdown',
+                            context
+                                .l10n
+                                .gasCalculators_rockBottom_emergencyAscentBreakdown,
                             style: textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
@@ -336,31 +360,48 @@ class RockBottomCalculator extends ConsumerWidget {
                       const SizedBox(height: 12),
                       _buildBreakdownRow(
                         context,
-                        'Combined stressed SAC',
+                        context
+                            .l10n
+                            .gasCalculators_rockBottom_combinedStressedSac,
                         '${(sac + buddySac).toStringAsFixed(0)} $volumeSymbol/min',
                       ),
                       _buildBreakdownRow(
                         context,
-                        'Ascent time to ${includeSafetyStop ? '${safetyStopDepthDisplay.toStringAsFixed(0)}$depthSymbol' : 'surface'}',
+                        includeSafetyStop
+                            ? context.l10n
+                                  .gasCalculators_rockBottom_ascentTimeToDepth(
+                                    safetyStopDepthDisplay.toStringAsFixed(0),
+                                    depthSymbol,
+                                  )
+                            : context
+                                  .l10n
+                                  .gasCalculators_rockBottom_ascentTimeToSurface,
                         '${((depth - (includeSafetyStop ? 5 : 0)) / ascentRate).toStringAsFixed(1)} min',
                       ),
                       _buildBreakdownRow(
                         context,
-                        'Ascent gas required',
+                        context
+                            .l10n
+                            .gasCalculators_rockBottom_ascentGasRequired,
                         '${units.convertVolume(result.ascentGas).toStringAsFixed(0)} $volumeSymbol',
                       ),
                       if (includeSafetyStop)
                         _buildBreakdownRow(
                           context,
-                          'Safety stop gas (3 min @ ${safetyStopDepthDisplay.toStringAsFixed(0)}$depthSymbol)',
+                          context.l10n.gasCalculators_rockBottom_safetyStopGas(
+                            safetyStopDepthDisplay.toStringAsFixed(0),
+                            depthSymbol,
+                          ),
                           '${units.convertVolume(result.safetyStopGas).toStringAsFixed(0)} $volumeSymbol',
                         ),
                       const Divider(height: 24),
                       _buildBreakdownRow(
                         context,
-                        'Total reserve needed',
+                        context
+                            .l10n
+                            .gasCalculators_rockBottom_totalReserveNeeded,
                         '${displayVolume.toStringAsFixed(0)} $volumeSymbol = '
-                            '${displayPressure.toStringAsFixed(0)} $pressureSymbol',
+                        '${displayPressure.toStringAsFixed(0)} $pressureSymbol',
                         isHighlight: true,
                       ),
                     ],
@@ -385,7 +426,7 @@ class RockBottomCalculator extends ConsumerWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'About Rock Bottom',
+                            context.l10n.gasCalculators_rockBottom_aboutTitle,
                             style: textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
@@ -394,12 +435,7 @@ class RockBottomCalculator extends ConsumerWidget {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Rock bottom is the minimum gas reserve for an emergency ascent '
-                        'while sharing air with your buddy.\n\n'
-                        '• Uses stressed SAC rates (2-3x normal)\n'
-                        '• Assumes both divers on one tank\n'
-                        '• Includes safety stop when enabled\n\n'
-                        'Always turn the dive BEFORE reaching rock bottom!',
+                        context.l10n.gasCalculators_rockBottom_aboutDescription,
                         style: textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),

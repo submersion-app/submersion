@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
+
 /// Badge indicating an entity is a potential duplicate.
 ///
 /// Used in import entity cards and dive cards to show match confidence.
@@ -18,10 +20,16 @@ class DuplicateBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final badgeColor = isProbable ? colorScheme.error : colorScheme.tertiary;
-    final displayLabel = label ?? (isProbable ? 'Duplicate' : 'Possible match');
+    final displayLabel =
+        label ??
+        (isProbable
+            ? context.l10n.universalImport_label_duplicate
+            : context.l10n.universalImport_label_possibleMatch);
 
     return Semantics(
-      label: isProbable ? 'Probable duplicate' : 'Possible duplicate',
+      label: isProbable
+          ? context.l10n.universalImport_semantics_probableDuplicate
+          : context.l10n.universalImport_semantics_possibleDuplicate,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(

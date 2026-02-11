@@ -8,6 +8,7 @@ import 'package:submersion/features/signatures/presentation/providers/signature_
 import 'package:submersion/features/signatures/presentation/widgets/buddy_signature_card.dart';
 import 'package:submersion/features/signatures/presentation/widgets/buddy_signature_request_sheet.dart';
 import 'package:submersion/features/signatures/presentation/widgets/signature_display_widget.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Section displaying buddy signatures for a dive
 class BuddySignaturesSection extends ConsumerWidget {
@@ -77,15 +78,17 @@ class BuddySignaturesSection extends ConsumerWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Signatures',
+                      context.l10n.signatures_title,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                   ],
                 ),
                 if (signedCount > 0)
                   Semantics(
-                    label:
-                        '$signedCount of ${buddies.length} buddies have signed',
+                    label: context.l10n.signatures_signedCountSemantics(
+                      signedCount,
+                      buddies.length,
+                    ),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,

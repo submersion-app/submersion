@@ -59,6 +59,7 @@ import 'package:submersion/features/statistics/presentation/pages/statistics_equ
 import 'package:submersion/features/statistics/presentation/pages/statistics_profile_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/appearance_page.dart';
+import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/cloud_sync_page.dart';
 import 'package:submersion/features/settings/presentation/pages/storage_settings_page.dart';
 import 'package:submersion/features/transfer/presentation/pages/transfer_page.dart';
@@ -685,6 +686,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'appearance',
                 name: 'appearance',
                 builder: (context, state) => const AppearancePage(),
+              ),
+              GoRoute(
+                path: 'language',
+                name: 'language',
+                builder: (context, state) => const LanguageSettingsPage(),
               ),
               GoRoute(
                 path: 'offline-maps',

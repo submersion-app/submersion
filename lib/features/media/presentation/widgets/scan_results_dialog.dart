@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Result returned from the scan results dialog.
 class ScanDialogResult {
@@ -110,7 +111,9 @@ class _ScanResultsDialogState extends State<ScanResultsDialog> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
-              'Found ${scanResult.totalNewPhotos} new photos',
+              context.l10n.media_scanResults_foundNewPhotos(
+                scanResult.totalNewPhotos,
+              ),
               style: textTheme.titleLarge,
             ),
           ),
@@ -121,7 +124,9 @@ class _ScanResultsDialogState extends State<ScanResultsDialog> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
-                '${scanResult.alreadyLinkedCount} photos already linked',
+                context.l10n.media_scanResults_alreadyLinked(
+                  scanResult.alreadyLinkedCount,
+                ),
                 style: textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -183,7 +188,8 @@ class _ScanResultsDialogState extends State<ScanResultsDialog> {
       final isSelected = _selectedDives[dive] == true;
 
       // Build dive subtitle
-      final siteName = dive.site?.name ?? 'Unknown site';
+      final siteName =
+          dive.site?.name ?? context.l10n.media_scanResults_unknownSite;
       final dateStr = dateFormat.format(dive.dateTime);
       final timeStr = timeFormat.format(dive.effectiveEntryTime);
 
@@ -195,7 +201,9 @@ class _ScanResultsDialogState extends State<ScanResultsDialog> {
           });
         },
         title: Text(
-          dive.diveNumber != null ? 'Dive #${dive.diveNumber}' : siteName,
+          dive.diveNumber != null
+              ? context.l10n.media_scanResults_diveNumber(dive.diveNumber!)
+              : siteName,
           style: textTheme.titleMedium,
         ),
         subtitle: Column(
@@ -266,8 +274,7 @@ class _ScanResultsDialogState extends State<ScanResultsDialog> {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                '$unmatchedCount photos could not be matched to any dive '
-                '(taken outside dive times)',
+                context.l10n.media_scanResults_unmatchedWarning(unmatchedCount),
                 style: textTheme.bodySmall?.copyWith(
                   color: colorScheme.tertiary,
                 ),
@@ -290,14 +297,20 @@ class _ScanResultsDialogState extends State<ScanResultsDialog> {
           Expanded(
             child: OutlinedButton(
               onPressed: _onCancel,
-              child: const Text('Cancel'),
+              child: Text(context.l10n.media_scanResults_cancelButton),
             ),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: FilledButton(
               onPressed: hasSelection ? _onLink : null,
-              child: Text(hasSelection ? 'Link $selectedCount photos' : 'Link'),
+              child: Text(
+                hasSelection
+                    ? context.l10n.media_scanResults_linkCountButton(
+                        selectedCount,
+                      )
+                    : context.l10n.media_scanResults_linkButton,
+              ),
             ),
           ),
         ],
@@ -308,8 +321,8 @@ class _ScanResultsDialogState extends State<ScanResultsDialog> {
   Widget _buildEmptyState(ColorScheme colorScheme, TextTheme textTheme) {
     final hasAlreadyLinked = widget.scanResult.alreadyLinkedCount > 0;
     final message = hasAlreadyLinked
-        ? 'All photos already linked'
-        : 'No photos found';
+        ? context.l10n.media_scanResults_allPhotosLinked
+        : context.l10n.media_scanResults_noPhotosFound;
 
     return SafeArea(
       child: Column(
@@ -343,8 +356,9 @@ class _ScanResultsDialogState extends State<ScanResultsDialog> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(
-                'All ${widget.scanResult.alreadyLinkedCount} photos from this '
-                'trip are already linked to dives.',
+                context.l10n.media_scanResults_allPhotosLinkedDescription(
+                  widget.scanResult.alreadyLinkedCount,
+                ),
                 textAlign: TextAlign.center,
                 style: textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
@@ -362,7 +376,7 @@ class _ScanResultsDialogState extends State<ScanResultsDialog> {
               child: FilledButton(
                 onPressed: () =>
                     Navigator.of(context).pop(ScanDialogResult.cancelled),
-                child: const Text('OK'),
+                child: Text(context.l10n.media_scanResults_okButton),
               ),
             ),
           ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/universal_import/presentation/widgets/duplicate_badge.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Card displaying an entity for selection in the universal import wizard.
 ///
@@ -39,7 +40,7 @@ class ImportEntityCard extends StatelessWidget {
           : null,
       child: Semantics(
         button: true,
-        label: 'Toggle selection for $name',
+        label: context.l10n.universalImport_semantics_toggleSelection(name),
         child: InkWell(
           onTap: onToggle,
           borderRadius: BorderRadius.circular(12),

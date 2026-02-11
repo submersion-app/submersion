@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/theme/app_colors.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
 
@@ -144,14 +145,14 @@ class DiveProfileLegend extends ConsumerWidget {
                 _buildLegendItem(
                   context,
                   color: AppColors.chartDepth,
-                  label: 'Depth',
+                  label: context.l10n.diveLog_legend_label_depth,
                 ),
                 // Temperature toggle (primary)
                 if (config.hasTemperatureData)
                   _buildMetricToggle(
                     context,
                     color: colorScheme.tertiary,
-                    label: 'Temp',
+                    label: context.l10n.diveLog_legend_label_temp,
                     isEnabled: legendState.showTemperature,
                     onTap: legendNotifier.toggleTemperature,
                   ),
@@ -160,7 +161,7 @@ class DiveProfileLegend extends ConsumerWidget {
                   _buildMetricToggle(
                     context,
                     color: Colors.orange,
-                    label: 'Pressure',
+                    label: context.l10n.diveLog_legend_label_pressure,
                     isEnabled: legendState.showPressure,
                     onTap: legendNotifier.togglePressure,
                   ),
@@ -169,7 +170,7 @@ class DiveProfileLegend extends ConsumerWidget {
                   _buildMetricToggle(
                     context,
                     color: const Color(0xFFD32F2F), // Red 700
-                    label: 'Ceiling',
+                    label: context.l10n.diveLog_legend_label_ceiling,
                     isEnabled: legendState.showCeiling,
                     onTap: legendNotifier.toggleCeiling,
                   ),
@@ -330,7 +331,7 @@ class _MoreOptionsButton extends StatelessWidget {
         ),
         child: const Icon(Icons.tune, size: 20),
       ),
-      tooltip: 'More chart options',
+      tooltip: context.l10n.diveLog_profile_tooltip_moreOptions,
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
       style: IconButton.styleFrom(
@@ -369,7 +370,7 @@ class _MoreOptionsButton extends StatelessWidget {
       items.add(
         _buildToggleMenuItem(
           context,
-          label: 'Heart Rate',
+          label: context.l10n.diveLog_legend_label_heartRate,
           color: Colors.red,
           isEnabled: legendState.showHeartRate,
           onTap: legendNotifier.toggleHeartRate,
@@ -382,7 +383,7 @@ class _MoreOptionsButton extends StatelessWidget {
       items.add(
         _buildToggleMenuItem(
           context,
-          label: 'SAC Rate',
+          label: context.l10n.diveLog_legend_label_sacRate,
           color: Colors.teal,
           isEnabled: legendState.showSac,
           onTap: legendNotifier.toggleSac,
@@ -395,7 +396,7 @@ class _MoreOptionsButton extends StatelessWidget {
       items.add(
         _buildToggleMenuItem(
           context,
-          label: 'Ascent Rate',
+          label: context.l10n.diveLog_legend_label_ascentRate,
           color: Colors.lime.shade700,
           isEnabled: legendState.showAscentRateColors,
           onTap: legendNotifier.toggleAscentRateColors,
@@ -408,7 +409,7 @@ class _MoreOptionsButton extends StatelessWidget {
       items.add(
         _buildToggleMenuItem(
           context,
-          label: 'Events',
+          label: context.l10n.diveLog_legend_label_events,
           color: Colors.amber,
           isEnabled: legendState.showEvents,
           onTap: legendNotifier.toggleEvents,
@@ -429,7 +430,7 @@ class _MoreOptionsButton extends StatelessWidget {
       items.add(
         _buildToggleMenuItem(
           context,
-          label: 'Max Depth',
+          label: context.l10n.diveLog_legend_label_maxDepth,
           color: Colors.red,
           isEnabled: legendState.showMaxDepthMarker,
           onTap: legendNotifier.toggleMaxDepthMarker,
@@ -442,7 +443,7 @@ class _MoreOptionsButton extends StatelessWidget {
       items.add(
         _buildToggleMenuItem(
           context,
-          label: 'Pressure Thresholds',
+          label: context.l10n.diveLog_legend_label_pressureThresholds,
           color: Colors.orange,
           isEnabled: legendState.showPressureMarkers,
           onTap: legendNotifier.togglePressureMarkers,
@@ -455,7 +456,7 @@ class _MoreOptionsButton extends StatelessWidget {
       items.add(
         _buildToggleMenuItem(
           context,
-          label: 'Gas Switches',
+          label: context.l10n.diveLog_legend_label_gasSwitches,
           color: GasColors.nitrox,
           isEnabled: legendState.showGasSwitchMarkers,
           onTap: legendNotifier.toggleGasSwitchMarkers,
@@ -476,7 +477,7 @@ class _MoreOptionsButton extends StatelessWidget {
         final color = tank != null
             ? GasColors.forGasMix(tank.gasMix)
             : _getTankColor(i);
-        final label = tank?.name ?? 'Tank ${i + 1}';
+        final label = tank?.name ?? context.l10n.diveLog_tank_title(i + 1);
 
         items.add(
           _buildToggleMenuItem(
@@ -512,7 +513,7 @@ class _MoreOptionsButton extends StatelessWidget {
       items.add(
         _buildToggleMenuItem(
           context,
-          label: 'NDL',
+          label: context.l10n.diveLog_legend_label_ndl,
           color: Colors.lightGreen.shade700,
           isEnabled: legendState.showNdl,
           onTap: legendNotifier.toggleNdl,
@@ -525,7 +526,7 @@ class _MoreOptionsButton extends StatelessWidget {
       items.add(
         _buildToggleMenuItem(
           context,
-          label: 'ppO2',
+          label: context.l10n.diveLog_legend_label_ppO2,
           color: const Color(0xFF00ACC1), // Cyan 600
           isEnabled: legendState.showPpO2,
           onTap: legendNotifier.togglePpO2,
@@ -538,7 +539,7 @@ class _MoreOptionsButton extends StatelessWidget {
       items.add(
         _buildToggleMenuItem(
           context,
-          label: 'ppN2',
+          label: context.l10n.diveLog_legend_label_ppN2,
           color: Colors.indigo,
           isEnabled: legendState.showPpN2,
           onTap: legendNotifier.togglePpN2,
@@ -551,7 +552,7 @@ class _MoreOptionsButton extends StatelessWidget {
       items.add(
         _buildToggleMenuItem(
           context,
-          label: 'ppHe',
+          label: context.l10n.diveLog_legend_label_ppHe,
           color: Colors.pink.shade300,
           isEnabled: legendState.showPpHe,
           onTap: legendNotifier.togglePpHe,
@@ -564,7 +565,7 @@ class _MoreOptionsButton extends StatelessWidget {
       items.add(
         _buildToggleMenuItem(
           context,
-          label: 'MOD',
+          label: context.l10n.diveLog_legend_label_mod,
           color: Colors.deepOrange,
           isEnabled: legendState.showMod,
           onTap: legendNotifier.toggleMod,
@@ -577,7 +578,7 @@ class _MoreOptionsButton extends StatelessWidget {
       items.add(
         _buildToggleMenuItem(
           context,
-          label: 'Gas Density',
+          label: context.l10n.diveLog_legend_label_gasDensity,
           color: Colors.brown,
           isEnabled: legendState.showDensity,
           onTap: legendNotifier.toggleDensity,
@@ -590,7 +591,7 @@ class _MoreOptionsButton extends StatelessWidget {
       items.add(
         _buildToggleMenuItem(
           context,
-          label: 'GF%',
+          label: context.l10n.diveLog_legend_label_gfPercent,
           color: Colors.deepPurple,
           isEnabled: legendState.showGf,
           onTap: legendNotifier.toggleGf,
@@ -603,7 +604,7 @@ class _MoreOptionsButton extends StatelessWidget {
       items.add(
         _buildToggleMenuItem(
           context,
-          label: 'Surface GF',
+          label: context.l10n.diveLog_legend_label_surfaceGf,
           color: Colors.purple.shade300,
           isEnabled: legendState.showSurfaceGf,
           onTap: legendNotifier.toggleSurfaceGf,
@@ -616,7 +617,7 @@ class _MoreOptionsButton extends StatelessWidget {
       items.add(
         _buildToggleMenuItem(
           context,
-          label: 'Mean Depth',
+          label: context.l10n.diveLog_legend_label_meanDepth,
           color: Colors.blueGrey,
           isEnabled: legendState.showMeanDepth,
           onTap: legendNotifier.toggleMeanDepth,
@@ -629,7 +630,7 @@ class _MoreOptionsButton extends StatelessWidget {
       items.add(
         _buildToggleMenuItem(
           context,
-          label: 'TTS',
+          label: context.l10n.diveLog_legend_label_tts,
           color: const Color(0xFFAD1457), // Pink 800
           isEnabled: legendState.showTts,
           onTap: legendNotifier.toggleTts,
@@ -743,7 +744,7 @@ class _ZoomControls extends StatelessWidget {
           iconSize: 18,
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-          tooltip: 'Zoom out',
+          tooltip: context.l10n.diveLog_profile_tooltip_zoomOut,
         ),
         // Zoom level indicator
         Container(
@@ -765,7 +766,7 @@ class _ZoomControls extends StatelessWidget {
           iconSize: 18,
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-          tooltip: 'Zoom in',
+          tooltip: context.l10n.diveLog_profile_tooltip_zoomIn,
         ),
         // Reset zoom / fit button
         if (isZoomed)
@@ -775,7 +776,7 @@ class _ZoomControls extends StatelessWidget {
             iconSize: 18,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-            tooltip: 'Reset zoom',
+            tooltip: context.l10n.diveLog_profile_tooltip_resetZoom,
           ),
       ],
     );

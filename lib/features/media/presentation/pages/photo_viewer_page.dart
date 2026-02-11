@@ -19,6 +19,7 @@ import 'package:submersion/features/media/presentation/providers/photo_picker_pr
 import 'package:submersion/features/media/presentation/widgets/write_metadata_dialog.dart';
 import 'package:submersion/features/media/presentation/widgets/mini_dive_profile_overlay.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Full-screen photo viewer with pinch-to-zoom and swipe navigation.
 ///
@@ -80,10 +81,10 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
       body: mediaAsync.when(
         data: (mediaList) {
           if (mediaList.isEmpty) {
-            return const Center(
+            return Center(
               child: Text(
-                'No photos available',
-                style: TextStyle(color: Colors.white),
+                context.l10n.media_photoViewer_noPhotosAvailable,
+                style: const TextStyle(color: Colors.white),
               ),
             );
           }
@@ -134,7 +135,7 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
                 if (!currentItem.isVideo)
                   Positioned.fill(
                     child: Semantics(
-                      label: 'Toggle photo overlay',
+                      label: context.l10n.media_photoViewer_toggleOverlayLabel,
                       child: GestureDetector(
                         behavior: HitTestBehavior.translucent,
                         onTap: () =>
@@ -185,7 +186,7 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
             const Center(child: CircularProgressIndicator(color: Colors.white)),
         error: (error, stack) => Center(
           child: Text(
-            'Error loading photos: $error',
+            context.l10n.media_photoViewer_errorLoadingPhotos(error.toString()),
             style: const TextStyle(color: Colors.white),
           ),
         ),
@@ -194,8 +195,10 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
   }
 
   Future<void> _shareCurrentPhoto(MediaItem item) async {
+    final l10n = context.l10n;
+
     if (item.platformAssetId == null) {
-      _showError('Cannot share this photo');
+      _showError(l10n.media_photoViewer_cannotShare);
       return;
     }
 
@@ -231,7 +234,7 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
       );
     } catch (e) {
       if (mounted) Navigator.of(context, rootNavigator: true).pop();
-      _showError('Failed to share: $e');
+      _showError(l10n.media_photoViewer_failedToShare(e.toString()));
     }
   }
 
@@ -246,9 +249,10 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
   }
 
   Future<void> _writeMetadataToPhoto(MediaItem item) async {
+    final l10n = context.l10n;
     debugPrint('[PhotoViewerPage] _writeMetadataToPhoto called');
     if (item.platformAssetId == null) {
-      _showError('Cannot write metadata - media not linked to library');
+      _showError(l10n.media_photoViewer_cannotWriteMetadata);
       return;
     }
 
@@ -317,7 +321,9 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
       if (success) {
         debugPrint('[PhotoViewerPage] Calling _showSuccess...');
         _showSuccess(
-          isVideo ? 'Dive data written to video' : 'Dive data written to photo',
+          isVideo
+              ? l10n.media_photoViewer_diveDataWrittenToVideo
+              : l10n.media_photoViewer_diveDataWrittenToPhoto,
         );
         debugPrint('[PhotoViewerPage] _showSuccess completed');
 
@@ -325,7 +331,7 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
         debugPrint('[PhotoViewerPage] Invalidating asset provider...');
         ref.invalidate(assetFullResolutionProvider(item.platformAssetId!));
       } else {
-        _showError('Failed to write metadata');
+        _showError(l10n.media_photoViewer_failedToWriteMetadata);
       }
       debugPrint(
         '[PhotoViewerPage] _writeMetadataToPhoto completed successfully',
@@ -337,7 +343,9 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
     } catch (e) {
       debugPrint('[PhotoViewerPage] Exception: $e');
       if (mounted) Navigator.of(context, rootNavigator: true).pop();
-      _showError('Failed to write metadata: $e');
+      _showError(
+        l10n.media_photoViewer_failedToWriteMetadataError(e.toString()),
+      );
     }
   }
 
@@ -452,7 +460,7 @@ class _PhotoItem extends ConsumerWidget {
             const Icon(Icons.error_outline, color: Colors.white54, size: 64),
             const SizedBox(height: 16),
             Text(
-              'Failed to load image',
+              context.l10n.media_photoViewer_failedToLoadImage,
               style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
             ),
           ],
@@ -503,7 +511,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
   Future<void> _initializeVideo() async {
     if (widget.item.platformAssetId == null) {
       setState(() {
-        _error = 'Video not linked to library';
+        _error = 'videoNotLinked';
         _isLoading = false;
       });
       return;
@@ -516,7 +524,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
 
       if (path == null) {
         setState(() {
-          _error = 'Video file not found';
+          _error = 'videoFileNotFound';
           _isLoading = false;
         });
         return;
@@ -538,7 +546,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = 'Failed to load video';
+          _error = 'failedToLoadVideo';
           _isLoading = false;
         });
       }
@@ -572,6 +580,19 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
     widget.onSetOverlay(wasPlaying);
   }
 
+  String _resolveVideoError(BuildContext context, String errorKey) {
+    switch (errorKey) {
+      case 'videoNotLinked':
+        return context.l10n.media_photoViewer_videoNotLinked;
+      case 'videoFileNotFound':
+        return context.l10n.media_photoViewer_videoFileNotFound;
+      case 'failedToLoadVideo':
+        return context.l10n.media_photoViewer_failedToLoadVideo;
+      default:
+        return errorKey;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -588,7 +609,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
             const Icon(Icons.videocam_off, color: Colors.white54, size: 64),
             const SizedBox(height: 16),
             Text(
-              _error!,
+              _resolveVideoError(context, _error!),
               style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
             ),
           ],
@@ -615,7 +636,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
           // Video player - tap anywhere on video to play/pause
           Semantics(
             button: true,
-            label: 'Play or pause video',
+            label: context.l10n.media_photoViewer_playPauseVideoLabel,
             child: GestureDetector(
               onTap: _togglePlayPause,
               behavior: HitTestBehavior.opaque,
@@ -739,7 +760,7 @@ class _VideoControlsOverlayState extends State<_VideoControlsOverlay> {
             child: LayoutBuilder(
               builder: (context, constraints) {
                 return Semantics(
-                  label: 'Seek video position',
+                  label: context.l10n.media_photoViewer_seekVideoLabel,
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTapDown: (details) {
@@ -853,13 +874,16 @@ class _TopOverlay extends StatelessWidget {
               children: [
                 IconButton(
                   icon: const Icon(Icons.close, color: Colors.white),
-                  tooltip: 'Close photo viewer',
+                  tooltip: context.l10n.media_photoViewer_closeTooltip,
                   onPressed: onClose,
                 ),
                 Expanded(
                   child: Center(
                     child: Text(
-                      '${currentIndex + 1} / $totalCount',
+                      context.l10n.media_photoViewer_pageIndicator(
+                        currentIndex + 1,
+                        totalCount,
+                      ),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 16,
@@ -872,12 +896,13 @@ class _TopOverlay extends StatelessWidget {
                 if (hasEnrichment)
                   IconButton(
                     icon: const Icon(Icons.edit_note, color: Colors.white),
-                    tooltip: 'Write dive data to photo',
+                    tooltip:
+                        context.l10n.media_photoViewer_writeDiveDataTooltip,
                     onPressed: onWriteMetadata,
                   ),
                 IconButton(
                   icon: const Icon(Icons.share, color: Colors.white),
-                  tooltip: 'Share photo',
+                  tooltip: context.l10n.media_photoViewer_shareTooltip,
                   onPressed: onShare,
                 ),
               ],

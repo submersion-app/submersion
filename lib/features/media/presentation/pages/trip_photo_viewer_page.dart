@@ -16,6 +16,7 @@ import 'package:submersion/features/media/presentation/providers/photo_picker_pr
 import 'package:submersion/features/media/presentation/widgets/mini_dive_profile_overlay.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_media_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Full-screen photo viewer for trip galleries with dive context overlays.
 ///
@@ -96,10 +97,10 @@ class _TripPhotoViewerPageState extends ConsumerState<TripPhotoViewerPage> {
       body: flatMediaAsync.when(
         data: (mediaList) {
           if (mediaList.isEmpty) {
-            return const Center(
+            return Center(
               child: Text(
-                'No photos available',
-                style: TextStyle(color: Colors.white),
+                context.l10n.media_photoViewer_noPhotosAvailable,
+                style: const TextStyle(color: Colors.white),
               ),
             );
           }
@@ -143,7 +144,7 @@ class _TripPhotoViewerPageState extends ConsumerState<TripPhotoViewerPage> {
                 // Transparent tap target to toggle overlays
                 Positioned.fill(
                   child: Semantics(
-                    label: 'Toggle photo overlay',
+                    label: context.l10n.media_photoViewer_toggleOverlayLabel,
                     child: GestureDetector(
                       behavior: HitTestBehavior.translucent,
                       onTap: () => setState(() => _showOverlay = !_showOverlay),
@@ -188,7 +189,7 @@ class _TripPhotoViewerPageState extends ConsumerState<TripPhotoViewerPage> {
             const Center(child: CircularProgressIndicator(color: Colors.white)),
         error: (error, stack) => Center(
           child: Text(
-            'Error loading photos: $error',
+            context.l10n.media_photoViewer_errorLoadingPhotos(error.toString()),
             style: const TextStyle(color: Colors.white),
           ),
         ),
@@ -197,8 +198,10 @@ class _TripPhotoViewerPageState extends ConsumerState<TripPhotoViewerPage> {
   }
 
   Future<void> _shareCurrentPhoto(MediaItem item) async {
+    final l10n = context.l10n;
+
     if (item.platformAssetId == null) {
-      _showError('Cannot share this photo');
+      _showError(l10n.media_photoViewer_cannotShare);
       return;
     }
 
@@ -234,7 +237,7 @@ class _TripPhotoViewerPageState extends ConsumerState<TripPhotoViewerPage> {
       );
     } catch (e) {
       if (mounted) Navigator.of(context, rootNavigator: true).pop();
-      _showError('Failed to share: $e');
+      _showError(l10n.media_photoViewer_failedToShare(e.toString()));
     }
   }
 
@@ -330,7 +333,7 @@ class _PhotoItem extends ConsumerWidget {
             const Icon(Icons.error_outline, color: Colors.white54, size: 64),
             const SizedBox(height: 16),
             Text(
-              'Failed to load image',
+              context.l10n.media_photoViewer_failedToLoadImage,
               style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
             ),
           ],
@@ -376,13 +379,16 @@ class _TopOverlay extends StatelessWidget {
               children: [
                 IconButton(
                   icon: const Icon(Icons.close, color: Colors.white),
-                  tooltip: 'Close photo viewer',
+                  tooltip: context.l10n.media_photoViewer_closeTooltip,
                   onPressed: onClose,
                 ),
                 Expanded(
                   child: Center(
                     child: Text(
-                      '${currentIndex + 1} / $totalCount',
+                      context.l10n.media_photoViewer_pageIndicator(
+                        currentIndex + 1,
+                        totalCount,
+                      ),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 16,
@@ -393,7 +399,7 @@ class _TopOverlay extends StatelessWidget {
                 ),
                 IconButton(
                   icon: const Icon(Icons.share, color: Colors.white),
-                  tooltip: 'Share photo',
+                  tooltip: context.l10n.media_photoViewer_shareTooltip,
                   onPressed: onShare,
                 ),
               ],

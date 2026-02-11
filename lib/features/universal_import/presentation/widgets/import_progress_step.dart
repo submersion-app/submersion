@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 
 /// Step 4: Import progress indicator.
@@ -16,8 +17,11 @@ class ImportProgressStep extends ConsumerWidget {
         : null;
 
     final progressLabel = state.importTotal > 0
-        ? 'Importing ${state.importCurrent} of ${state.importTotal}'
-        : 'Importing';
+        ? context.l10n.universalImport_label_importingProgress(
+            state.importCurrent,
+            state.importTotal,
+          )
+        : context.l10n.universalImport_label_importing;
     final phaseLabel = state.importPhase.isNotEmpty
         ? ', ${state.importPhase}'
         : '';
@@ -38,7 +42,10 @@ class ImportProgressStep extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 24),
-            Text('Importing...', style: theme.textTheme.headlineMedium),
+            Text(
+              context.l10n.universalImport_label_importingEllipsis,
+              style: theme.textTheme.headlineMedium,
+            ),
             const SizedBox(height: 16),
             if (state.importPhase.isNotEmpty)
               Text(
@@ -50,8 +57,9 @@ class ImportProgressStep extends ConsumerWidget {
             const SizedBox(height: 16),
             if (progress != null)
               Semantics(
-                label:
-                    'Import progress: ${(progress * 100).toStringAsFixed(0)} percent',
+                label: context.l10n.universalImport_semantics_importProgress(
+                  (progress * 100).toStringAsFixed(0),
+                ),
                 child: LinearProgressIndicator(value: progress),
               )
             else
@@ -59,7 +67,10 @@ class ImportProgressStep extends ConsumerWidget {
             if (state.importTotal > 0) ...[
               const SizedBox(height: 8),
               Text(
-                '${state.importCurrent} of ${state.importTotal}',
+                context.l10n.universalImport_label_xOfY(
+                  state.importCurrent,
+                  state.importTotal,
+                ),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -68,7 +79,9 @@ class ImportProgressStep extends ConsumerWidget {
             if (state.error != null) ...[
               const SizedBox(height: 24),
               Semantics(
-                label: 'Import error: ${state.error}',
+                label: context.l10n.universalImport_semantics_importError(
+                  state.error!,
+                ),
                 liveRegion: true,
                 child: Card(
                   color: theme.colorScheme.errorContainer,

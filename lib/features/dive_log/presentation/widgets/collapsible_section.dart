@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
+
 /// A collapsible section widget that wraps content with an expandable header.
 ///
 /// When collapsed, shows only the header bar. When expanded, shows the
@@ -56,7 +58,9 @@ class CollapsibleSection extends StatelessWidget {
           clipBehavior: Clip.antiAlias,
           child: Semantics(
             button: true,
-            label: '${isExpanded ? 'Collapse' : 'Expand'} $title section',
+            label: isExpanded
+                ? context.l10n.diveLog_collapsible_semantics_collapse(title)
+                : context.l10n.diveLog_collapsible_semantics_expand(title),
             child: InkWell(
               onTap: () => onToggle(!isExpanded),
               child: Padding(
@@ -183,7 +187,9 @@ class CollapsibleCardSection extends StatelessWidget {
           // Header row (always visible, clickable)
           Semantics(
             button: true,
-            label: '${isExpanded ? 'Collapse' : 'Expand'} $title section',
+            label: isExpanded
+                ? context.l10n.diveLog_collapsible_semantics_collapse(title)
+                : context.l10n.diveLog_collapsible_semantics_expand(title),
             child: InkWell(
               onTap: () => onToggle(!isExpanded),
               child: Padding(

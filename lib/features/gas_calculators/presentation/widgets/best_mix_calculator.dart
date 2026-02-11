@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -52,7 +53,7 @@ class BestMixCalculator extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Target Dive',
+                        context.l10n.gasCalculators_bestMix_targetDive,
                         style: textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -63,7 +64,7 @@ class BestMixCalculator extends ConsumerWidget {
                       _buildSliderSection(
                         context,
                         icon: Icons.arrow_downward,
-                        label: 'Target Depth',
+                        label: context.l10n.gasCalculators_bestMix_targetDepth,
                         value: displayDepth,
                         unit: depthSymbol,
                         min: minDepthDisplay,
@@ -79,7 +80,7 @@ class BestMixCalculator extends ConsumerWidget {
 
                       // ppO2 limit selector
                       Text(
-                        'ppO₂ Limit',
+                        context.l10n.gasCalculators_ppO2Limit,
                         style: textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w500,
                         ),
@@ -120,7 +121,7 @@ class BestMixCalculator extends ConsumerWidget {
                     child: Column(
                       children: [
                         Text(
-                          'Best Oxygen Mix',
+                          context.l10n.gasCalculators_bestMix_bestOxygenMix,
                           style: textTheme.titleMedium?.copyWith(
                             color: colorScheme.onPrimaryContainer,
                           ),
@@ -170,8 +171,10 @@ class BestMixCalculator extends ConsumerWidget {
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    'Depth exceeds air MOD at ${ppO2.toStringAsFixed(1)} bar. '
-                                    'Consider using air or trimix.',
+                                    context.l10n
+                                        .gasCalculators_bestMix_exceedsAirMod(
+                                          ppO2.toStringAsFixed(1),
+                                        ),
                                     style: textTheme.bodySmall?.copyWith(
                                       color: Colors.orange.shade900,
                                     ),
@@ -204,7 +207,7 @@ class BestMixCalculator extends ConsumerWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Common Mixes Reference',
+                            context.l10n.gasCalculators_bestMix_commonMixesRef,
                             style: textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.w600,
                             ),

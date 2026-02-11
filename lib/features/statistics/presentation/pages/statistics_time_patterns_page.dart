@@ -5,26 +5,35 @@ import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/features/statistics/presentation/widgets/stat_charts.dart';
 import 'package:submersion/features/statistics/presentation/widgets/stat_section_card.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 class StatisticsTimePatternsPage extends ConsumerWidget {
   final bool embedded;
 
   const StatisticsTimePatternsPage({super.key, this.embedded = false});
 
-  static const _dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  static const _monthNames = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
+  List<String> _dayNames(BuildContext context) => [
+    context.l10n.statistics_timePatterns_dayOfWeek_sun,
+    context.l10n.statistics_timePatterns_dayOfWeek_mon,
+    context.l10n.statistics_timePatterns_dayOfWeek_tue,
+    context.l10n.statistics_timePatterns_dayOfWeek_wed,
+    context.l10n.statistics_timePatterns_dayOfWeek_thu,
+    context.l10n.statistics_timePatterns_dayOfWeek_fri,
+    context.l10n.statistics_timePatterns_dayOfWeek_sat,
+  ];
+  List<String> _monthNames(BuildContext context) => [
+    context.l10n.statistics_timePatterns_month_jan,
+    context.l10n.statistics_timePatterns_month_feb,
+    context.l10n.statistics_timePatterns_month_mar,
+    context.l10n.statistics_timePatterns_month_apr,
+    context.l10n.statistics_timePatterns_month_may,
+    context.l10n.statistics_timePatterns_month_jun,
+    context.l10n.statistics_timePatterns_month_jul,
+    context.l10n.statistics_timePatterns_month_aug,
+    context.l10n.statistics_timePatterns_month_sep,
+    context.l10n.statistics_timePatterns_month_oct,
+    context.l10n.statistics_timePatterns_month_nov,
+    context.l10n.statistics_timePatterns_month_dec,
   ];
 
   @override
@@ -50,7 +59,9 @@ class StatisticsTimePatternsPage extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Time Patterns')),
+      appBar: AppBar(
+        title: Text(context.l10n.statistics_timePatterns_appBar_title),
+      ),
       body: content,
     );
   }
@@ -59,23 +70,24 @@ class StatisticsTimePatternsPage extends ConsumerWidget {
     final dayOfWeekAsync = ref.watch(divesByDayOfWeekProvider);
 
     return StatSectionCard(
-      title: 'Dives by Day of Week',
-      subtitle: 'When do you dive most?',
+      title: context.l10n.statistics_timePatterns_dayOfWeek_title,
+      subtitle: context.l10n.statistics_timePatterns_dayOfWeek_subtitle,
       child: dayOfWeekAsync.when(
         data: (data) {
           if (data.isEmpty) {
-            return const StatEmptyState(
+            return StatEmptyState(
               icon: Icons.calendar_today,
-              message: 'No data available',
+              message: context.l10n.statistics_timePatterns_dayOfWeek_empty,
             );
           }
           // Fill in missing days with 0
+          final dayLabels = _dayNames(context);
           final fullData = List.generate(7, (day) {
             final existing = data.firstWhere(
               (d) => d.dayOfWeek == day,
               orElse: () => (dayOfWeek: day, count: 0),
             );
-            return (label: _dayNames[day], count: existing.count);
+            return (label: dayLabels[day], count: existing.count);
           });
           final description = fullData
               .where((d) => d.count > 0)
@@ -93,9 +105,9 @@ class StatisticsTimePatternsPage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, _) => const StatEmptyState(
+        error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: 'Failed to load day of week data',
+          message: context.l10n.statistics_timePatterns_dayOfWeek_error,
         ),
       ),
     );
@@ -105,8 +117,8 @@ class StatisticsTimePatternsPage extends ConsumerWidget {
     final timeOfDayAsync = ref.watch(divesByTimeOfDayProvider);
 
     return StatSectionCard(
-      title: 'Dives by Time of Day',
-      subtitle: 'Morning, afternoon, evening, or night',
+      title: context.l10n.statistics_timePatterns_timeOfDay_title,
+      subtitle: context.l10n.statistics_timePatterns_timeOfDay_subtitle,
       child: timeOfDayAsync.when(
         data: (data) {
           final description = data
@@ -132,9 +144,9 @@ class StatisticsTimePatternsPage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, _) => const StatEmptyState(
+        error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: 'Failed to load time of day data',
+          message: context.l10n.statistics_timePatterns_timeOfDay_error,
         ),
       ),
     );
@@ -144,24 +156,25 @@ class StatisticsTimePatternsPage extends ConsumerWidget {
     final seasonalAsync = ref.watch(divesBySeasonProvider);
 
     return StatSectionCard(
-      title: 'Seasonal Patterns',
-      subtitle: 'Dives by month (all years)',
+      title: context.l10n.statistics_timePatterns_seasonal_title,
+      subtitle: context.l10n.statistics_timePatterns_seasonal_subtitle,
       child: seasonalAsync.when(
         data: (data) {
           if (data.isEmpty) {
-            return const StatEmptyState(
+            return StatEmptyState(
               icon: Icons.calendar_month,
-              message: 'No data available',
+              message: context.l10n.statistics_timePatterns_seasonal_empty,
             );
           }
           // Fill in missing months with 0
+          final monthLabels = _monthNames(context);
           final fullData = List.generate(12, (month) {
             final m = month + 1;
             final existing = data.firstWhere(
               (d) => d.month == m,
               orElse: () => (month: m, count: 0),
             );
-            return (label: _monthNames[month], count: existing.count);
+            return (label: monthLabels[month], count: existing.count);
           });
           final description = fullData
               .where((d) => d.count > 0)
@@ -179,9 +192,9 @@ class StatisticsTimePatternsPage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, _) => const StatEmptyState(
+        error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: 'Failed to load seasonal data',
+          message: context.l10n.statistics_timePatterns_seasonal_error,
         ),
       ),
     );
@@ -191,14 +204,15 @@ class StatisticsTimePatternsPage extends ConsumerWidget {
     final siStatsAsync = ref.watch(surfaceIntervalStatsProvider);
 
     return StatSectionCard(
-      title: 'Surface Interval Statistics',
-      subtitle: 'Time between dives',
+      title: context.l10n.statistics_timePatterns_surfaceInterval_title,
+      subtitle: context.l10n.statistics_timePatterns_surfaceInterval_subtitle,
       child: siStatsAsync.when(
         data: (data) {
           if (data.avgMinutes == null) {
-            return const StatEmptyState(
+            return StatEmptyState(
               icon: Icons.timer,
-              message: 'No surface interval data available',
+              message:
+                  context.l10n.statistics_timePatterns_surfaceInterval_empty,
             );
           }
 
@@ -207,8 +221,8 @@ class StatisticsTimePatternsPage extends ConsumerWidget {
               Expanded(
                 child: _buildSiStat(
                   context,
-                  'Average',
-                  _formatMinutes(data.avgMinutes!),
+                  context.l10n.statistics_timePatterns_surfaceInterval_average,
+                  _formatMinutes(context, data.avgMinutes!),
                   Colors.blue,
                 ),
               ),
@@ -216,8 +230,8 @@ class StatisticsTimePatternsPage extends ConsumerWidget {
               Expanded(
                 child: _buildSiStat(
                   context,
-                  'Minimum',
-                  _formatMinutes(data.minMinutes ?? 0),
+                  context.l10n.statistics_timePatterns_surfaceInterval_minimum,
+                  _formatMinutes(context, data.minMinutes ?? 0),
                   Colors.green,
                 ),
               ),
@@ -225,8 +239,8 @@ class StatisticsTimePatternsPage extends ConsumerWidget {
               Expanded(
                 child: _buildSiStat(
                   context,
-                  'Maximum',
-                  _formatMinutes(data.maxMinutes ?? 0),
+                  context.l10n.statistics_timePatterns_surfaceInterval_maximum,
+                  _formatMinutes(context, data.maxMinutes ?? 0),
                   Colors.orange,
                 ),
               ),
@@ -237,9 +251,9 @@ class StatisticsTimePatternsPage extends ConsumerWidget {
           height: 100,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, _) => const StatEmptyState(
+        error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: 'Failed to load surface interval data',
+          message: context.l10n.statistics_timePatterns_surfaceInterval_error,
         ),
       ),
     );
@@ -281,12 +295,18 @@ class StatisticsTimePatternsPage extends ConsumerWidget {
     );
   }
 
-  String _formatMinutes(double minutes) {
+  String _formatMinutes(BuildContext context, double minutes) {
     if (minutes < 60) {
-      return '${minutes.round()} min';
+      return context.l10n.statistics_timePatterns_surfaceInterval_formatMinutes(
+        minutes.round(),
+      );
     }
     final hours = (minutes / 60).floor();
     final mins = (minutes % 60).round();
-    return '${hours}h ${mins}m';
+    return context.l10n
+        .statistics_timePatterns_surfaceInterval_formatHoursMinutes(
+          hours,
+          mins,
+        );
   }
 }

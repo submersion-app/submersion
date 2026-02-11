@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_list_content.dart';
@@ -24,9 +25,9 @@ class BuddyListPage extends ConsumerWidget {
           context.push('/buddies/new');
         }
       },
-      tooltip: 'Add a new dive buddy',
+      tooltip: context.l10n.buddies_action_addTooltip,
       icon: const Icon(Icons.person_add),
-      label: const Text('Add Buddy'),
+      label: Text(context.l10n.buddies_action_add),
     );
 
     // Desktop: Use master-detail layout

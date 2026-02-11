@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 
@@ -34,10 +35,13 @@ class CertificationPicker extends ConsumerWidget {
               : colorScheme.onPrimaryContainer,
         ),
       ),
-      title: Text(selectedCertification?.name ?? 'No certification selected'),
+      title: Text(
+        selectedCertification?.name ??
+            context.l10n.certifications_picker_noSelection,
+      ),
       subtitle: selectedCertification != null
           ? Text(selectedCertification!.agency.displayName)
-          : const Text('Tap to link to an earned certification'),
+          : Text(context.l10n.certifications_picker_hint),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -45,7 +49,7 @@ class CertificationPicker extends ConsumerWidget {
             IconButton(
               icon: const Icon(Icons.clear),
               onPressed: () => onCertificationSelected(null),
-              tooltip: 'Clear certification selection',
+              tooltip: context.l10n.certifications_picker_clearTooltip,
             ),
           const Icon(Icons.chevron_right),
         ],
@@ -114,7 +118,7 @@ class CertificationPickerSheet extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Link to Certification',
+                context.l10n.certifications_picker_sheetTitle,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               TextButton.icon(
@@ -123,7 +127,7 @@ class CertificationPickerSheet extends ConsumerWidget {
                   context.push('/certifications/new');
                 },
                 icon: const Icon(Icons.add),
-                label: const Text('New Cert'),
+                label: Text(context.l10n.certifications_picker_newCert),
               ),
             ],
           ),
@@ -146,7 +150,7 @@ class CertificationPickerSheet extends ConsumerWidget {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'No certifications yet',
+                        context.l10n.certifications_picker_empty_title,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 8),
@@ -156,7 +160,9 @@ class CertificationPickerSheet extends ConsumerWidget {
                           context.push('/certifications/new');
                         },
                         icon: const Icon(Icons.add),
-                        label: const Text('Add Certification'),
+                        label: Text(
+                          context.l10n.certifications_picker_empty_addButton,
+                        ),
                       ),
                     ],
                   ),
@@ -216,7 +222,7 @@ class CertificationPickerSheet extends ConsumerWidget {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
-                                'Expired',
+                                context.l10n.certifications_picker_expired,
                                 style: Theme.of(context).textTheme.labelSmall
                                     ?.copyWith(
                                       color: colorScheme.onErrorContainer,
@@ -231,8 +237,11 @@ class CertificationPickerSheet extends ConsumerWidget {
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) =>
-                Center(child: Text('Error loading certifications: $error')),
+            error: (error, _) => Center(
+              child: Text(
+                context.l10n.certifications_picker_error(error.toString()),
+              ),
+            ),
           ),
         ),
       ],

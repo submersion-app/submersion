@@ -6,6 +6,7 @@ import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/features/statistics/presentation/widgets/ranking_list.dart';
 import 'package:submersion/features/statistics/presentation/widgets/stat_section_card.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 class StatisticsMarineLifePage extends ConsumerWidget {
   final bool embedded;
@@ -33,7 +34,9 @@ class StatisticsMarineLifePage extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Marine Life')),
+      appBar: AppBar(
+        title: Text(context.l10n.statistics_marineLife_appBar_title),
+      ),
       body: content,
     );
   }
@@ -43,13 +46,16 @@ class StatisticsMarineLifePage extends ConsumerWidget {
 
     return speciesCountAsync.when(
       data: (count) => Semantics(
-        label: statLabel(name: 'Species Spotted', value: count.toString()),
+        label: statLabel(
+          name: context.l10n.statistics_marineLife_speciesSpotted,
+          value: count.toString(),
+        ),
         child: Row(
           children: [
             Expanded(
               child: StatValueCard(
                 icon: Icons.pets,
-                label: 'Species Spotted',
+                label: context.l10n.statistics_marineLife_speciesSpotted,
                 value: count.toString(),
                 iconColor: Colors.teal,
               ),
@@ -71,18 +77,22 @@ class StatisticsMarineLifePage extends ConsumerWidget {
     final sightingsAsync = ref.watch(mostCommonSightingsProvider);
 
     return StatSectionCard(
-      title: 'Most Common Sightings',
-      subtitle: 'Species spotted most often',
+      title: context.l10n.statistics_marineLife_mostCommon_title,
+      subtitle: context.l10n.statistics_marineLife_mostCommon_subtitle,
       child: sightingsAsync.when(
         data: (data) {
           final summary = data.isNotEmpty
-              ? '${data.length} species. Most common: ${data.first.name} with ${data.first.count} sightings'
-              : 'No sighting data';
+              ? context.l10n.statistics_marineLife_mostCommon_summary(
+                  data.length,
+                  data.first.name,
+                  data.first.count,
+                )
+              : context.l10n.statistics_marineLife_mostCommon_empty;
           return Semantics(
             label: summary,
             child: RankingList(
               items: data,
-              countLabel: 'sightings',
+              countLabel: context.l10n.statistics_ranking_countLabel_sightings,
               maxItems: 10,
               onItemTap: (item) => context.push('/species/${item.id}'),
             ),
@@ -92,9 +102,9 @@ class StatisticsMarineLifePage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, _) => const StatEmptyState(
+        error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: 'Failed to load sighting data',
+          message: context.l10n.statistics_marineLife_mostCommon_error,
         ),
       ),
     );
@@ -104,18 +114,22 @@ class StatisticsMarineLifePage extends ConsumerWidget {
     final sitesAsync = ref.watch(bestSitesForMarineLifeProvider);
 
     return StatSectionCard(
-      title: 'Best Sites for Marine Life',
-      subtitle: 'Sites with most species variety',
+      title: context.l10n.statistics_marineLife_bestSites_title,
+      subtitle: context.l10n.statistics_marineLife_bestSites_subtitle,
       child: sitesAsync.when(
         data: (data) {
           final summary = data.isNotEmpty
-              ? '${data.length} sites. Best: ${data.first.name} with ${data.first.count} species'
-              : 'No site data';
+              ? context.l10n.statistics_marineLife_bestSites_summary(
+                  data.length,
+                  data.first.name,
+                  data.first.count,
+                )
+              : context.l10n.statistics_marineLife_bestSites_empty;
           return Semantics(
             label: summary,
             child: RankingList(
               items: data,
-              countLabel: 'species',
+              countLabel: context.l10n.statistics_ranking_countLabel_species,
               maxItems: 10,
               onItemTap: (item) => context.push('/sites/${item.id}'),
             ),
@@ -125,9 +139,9 @@ class StatisticsMarineLifePage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, _) => const StatEmptyState(
+        error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: 'Failed to load site data',
+          message: context.l10n.statistics_marineLife_bestSites_error,
         ),
       ),
     );

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 
@@ -84,9 +85,11 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error loading trip: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.trips_edit_snackBar_errorLoading('$e')),
+          ),
+        );
       }
     }
   }
@@ -125,15 +128,15 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                   // Name field
                   TextFormField(
                     controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Trip Name *',
-                      prefixIcon: Icon(Icons.flight_takeoff),
-                      hintText: 'e.g., Red Sea Safari 2024',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.trips_edit_label_tripName,
+                      prefixIcon: const Icon(Icons.flight_takeoff),
+                      hintText: context.l10n.trips_edit_hint_tripName,
                     ),
                     textCapitalization: TextCapitalization.words,
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Please enter a trip name';
+                        return context.l10n.trips_edit_validation_nameRequired;
                       }
                       return null;
                     },
@@ -142,7 +145,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
 
                   // Date section header
                   Text(
-                    'Trip Dates',
+                    context.l10n.trips_edit_sectionTitle_dates,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -153,10 +156,10 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                   Semantics(
                     button: true,
                     label:
-                        'Start Date: ${dateFormat.format(_startDate)}. Tap to change',
+                        '${context.l10n.trips_edit_label_startDate}: ${dateFormat.format(_startDate)}. Tap to change',
                     child: ListTile(
                       leading: const Icon(Icons.calendar_today),
-                      title: const Text('Start Date'),
+                      title: Text(context.l10n.trips_edit_label_startDate),
                       subtitle: Text(dateFormat.format(_startDate)),
                       onTap: () => _selectDate(context, true),
                       contentPadding: EdgeInsets.zero,
@@ -168,10 +171,10 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                   Semantics(
                     button: true,
                     label:
-                        'End Date: ${dateFormat.format(_endDate)}. Tap to change',
+                        '${context.l10n.trips_edit_label_endDate}: ${dateFormat.format(_endDate)}. Tap to change',
                     child: ListTile(
                       leading: const Icon(Icons.event),
-                      title: const Text('End Date'),
+                      title: Text(context.l10n.trips_edit_label_endDate),
                       subtitle: Text(dateFormat.format(_endDate)),
                       onTap: () => _selectDate(context, false),
                       contentPadding: EdgeInsets.zero,
@@ -181,9 +184,11 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
 
                   // Duration display
                   Padding(
-                    padding: const EdgeInsets.only(left: 40),
+                    padding: const EdgeInsetsDirectional.only(start: 40),
                     child: Text(
-                      '${_endDate.difference(_startDate).inDays + 1} days',
+                      context.l10n.trips_edit_durationDays(
+                        _endDate.difference(_startDate).inDays + 1,
+                      ),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.primary,
                       ),
@@ -193,7 +198,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
 
                   // Location section header
                   Text(
-                    'Location',
+                    context.l10n.trips_edit_sectionTitle_location,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -203,10 +208,10 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                   // Location field
                   TextFormField(
                     controller: _locationController,
-                    decoration: const InputDecoration(
-                      labelText: 'Location',
-                      prefixIcon: Icon(Icons.place),
-                      hintText: 'e.g., Egypt, Red Sea',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.trips_edit_label_location,
+                      prefixIcon: const Icon(Icons.place),
+                      hintText: context.l10n.trips_edit_hint_location,
                     ),
                     textCapitalization: TextCapitalization.words,
                   ),
@@ -215,10 +220,10 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                   // Resort field
                   TextFormField(
                     controller: _resortController,
-                    decoration: const InputDecoration(
-                      labelText: 'Resort Name',
-                      prefixIcon: Icon(Icons.hotel),
-                      hintText: 'e.g., Marsa Shagra',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.trips_edit_label_resortName,
+                      prefixIcon: const Icon(Icons.hotel),
+                      hintText: context.l10n.trips_edit_hint_resortName,
                     ),
                     textCapitalization: TextCapitalization.words,
                   ),
@@ -227,10 +232,10 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                   // Liveaboard field
                   TextFormField(
                     controller: _liveaboardController,
-                    decoration: const InputDecoration(
-                      labelText: 'Liveaboard Name',
-                      prefixIcon: Icon(Icons.sailing),
-                      hintText: 'e.g., MY Blue Force One',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.trips_edit_label_liveaboardName,
+                      prefixIcon: const Icon(Icons.sailing),
+                      hintText: context.l10n.trips_edit_hint_liveaboardName,
                     ),
                     textCapitalization: TextCapitalization.words,
                   ),
@@ -238,7 +243,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
 
                   // Notes section header
                   Text(
-                    'Notes',
+                    context.l10n.trips_edit_sectionTitle_notes,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -248,10 +253,10 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                   // Notes field
                   TextFormField(
                     controller: _notesController,
-                    decoration: const InputDecoration(
-                      labelText: 'Notes',
-                      prefixIcon: Icon(Icons.notes),
-                      hintText: 'Any additional notes about this trip',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.trips_edit_label_notes,
+                      prefixIcon: const Icon(Icons.notes),
+                      hintText: context.l10n.trips_edit_hint_notes,
                       alignLabelWithHint: true,
                     ),
                     maxLines: 4,
@@ -268,14 +273,18 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                               width: 20,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : Text(isEditing ? 'Update Trip' : 'Add Trip'),
+                          : Text(
+                              isEditing
+                                  ? context.l10n.trips_edit_button_update
+                                  : context.l10n.trips_edit_button_add,
+                            ),
                     ),
 
                     // Cancel button
                     const SizedBox(height: 8),
                     OutlinedButton(
                       onPressed: () => _confirmCancel(),
-                      child: const Text('Cancel'),
+                      child: Text(context.l10n.trips_edit_button_cancel),
                     ),
                   ],
                 ],
@@ -315,7 +324,11 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(isEditing ? 'Edit Trip' : 'Add Trip'),
+          title: Text(
+            isEditing
+                ? context.l10n.trips_edit_appBar_edit
+                : context.l10n.trips_edit_appBar_add,
+          ),
           actions: [
             if (_isSaving)
               const Center(
@@ -331,10 +344,10 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
             else
               Semantics(
                 button: true,
-                label: 'Save trip',
+                label: context.l10n.trips_edit_semanticLabel_save,
                 child: TextButton(
                   onPressed: _saveTrip,
-                  child: const Text('Save'),
+                  child: Text(context.l10n.trips_edit_button_save),
                 ),
               ),
           ],
@@ -369,7 +382,9 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              isEditing ? 'Edit Trip' : 'Add Trip',
+              isEditing
+                  ? context.l10n.trips_edit_appBar_edit
+                  : context.l10n.trips_edit_appBar_add,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -386,7 +401,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                 _handleCancel();
               }
             },
-            child: const Text('Cancel'),
+            child: Text(context.l10n.trips_edit_button_cancel),
           ),
           const SizedBox(width: 8),
           FilledButton(
@@ -400,7 +415,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                       color: Colors.white,
                     ),
                   )
-                : const Text('Save'),
+                : Text(context.l10n.trips_edit_button_save),
           ),
         ],
       ),
@@ -456,18 +471,16 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Discard Changes?'),
-        content: const Text(
-          'You have unsaved changes. Are you sure you want to leave?',
-        ),
+        title: Text(context.l10n.trips_edit_dialog_discardTitle),
+        content: Text(context.l10n.trips_edit_dialog_discardContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Keep Editing'),
+            child: Text(context.l10n.trips_edit_dialog_keepEditing),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Discard'),
+            child: Text(context.l10n.trips_edit_dialog_discard),
           ),
         ],
       ),
@@ -524,8 +537,8 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
             SnackBar(
               content: Text(
                 isEditing
-                    ? 'Trip updated successfully'
-                    : 'Trip added successfully',
+                    ? context.l10n.trips_edit_snackBar_updated
+                    : context.l10n.trips_edit_snackBar_added,
               ),
             ),
           );
@@ -536,7 +549,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error saving trip: $e'),
+            content: Text(context.l10n.trips_edit_snackBar_errorSaving('$e')),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );

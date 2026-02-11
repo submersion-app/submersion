@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 class DiveTypesPage extends ConsumerWidget {
   const DiveTypesPage({super.key});
@@ -14,21 +15,22 @@ class DiveTypesPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dive Types'),
+        title: Text(context.l10n.diveTypes_appBar_title),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
-          tooltip: 'Back',
+          tooltip: context.l10n.common_action_back,
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddDiveTypeDialog(context, ref),
-        tooltip: 'Add dive type',
+        tooltip: context.l10n.diveTypes_addTooltip,
         child: const Icon(Icons.add),
       ),
       body: diveTypesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, st) => Center(child: Text('Error: $e')),
+        error: (e, st) =>
+            Center(child: Text('${context.l10n.common_label_error}: $e')),
         data: (diveTypes) {
           final builtInTypes = diveTypes.where((t) => t.isBuiltIn).toList();
           final customTypes = diveTypes.where((t) => !t.isBuiltIn).toList();
@@ -36,14 +38,20 @@ class DiveTypesPage extends ConsumerWidget {
           return ListView(
             children: [
               if (customTypes.isNotEmpty) ...[
-                _buildSectionHeader(context, 'Custom Dive Types'),
+                _buildSectionHeader(
+                  context,
+                  context.l10n.diveTypes_customHeader,
+                ),
                 ...customTypes.map(
                   (type) =>
                       _buildDiveTypeTile(context, ref, type, canDelete: true),
                 ),
                 const Divider(),
               ],
-              _buildSectionHeader(context, 'Built-in Dive Types'),
+              _buildSectionHeader(
+                context,
+                context.l10n.diveTypes_builtInHeader,
+              ),
               ...builtInTypes.map(
                 (type) =>
                     _buildDiveTypeTile(context, ref, type, canDelete: false),
@@ -81,12 +89,14 @@ class DiveTypesPage extends ConsumerWidget {
             : Theme.of(context).colorScheme.primary,
       ),
       title: Text(diveType.name),
-      subtitle: canDelete ? const Text('Custom') : const Text('Built-in'),
+      subtitle: canDelete
+          ? Text(context.l10n.diveTypes_custom)
+          : Text(context.l10n.diveTypes_builtIn),
       trailing: canDelete
           ? IconButton(
               icon: const Icon(Icons.delete_outline),
               onPressed: () => _confirmDelete(context, ref, diveType),
-              tooltip: 'Delete dive type',
+              tooltip: context.l10n.diveTypes_deleteTooltip,
             )
           : null,
     );
@@ -101,21 +111,21 @@ class DiveTypesPage extends ConsumerWidget {
 
     final result = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add Custom Dive Type'),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(dialogContext.l10n.diveTypes_addDialog_title),
         content: Form(
           key: formKey,
           child: TextFormField(
             controller: nameController,
             autofocus: true,
-            decoration: const InputDecoration(
-              labelText: 'Dive Type Name',
-              hintText: 'e.g., Search & Recovery',
+            decoration: InputDecoration(
+              labelText: dialogContext.l10n.diveTypes_addDialog_nameLabel,
+              hintText: dialogContext.l10n.diveTypes_addDialog_nameHint,
             ),
             textCapitalization: TextCapitalization.words,
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
-                return 'Please enter a name';
+                return dialogContext.l10n.diveTypes_addDialog_nameValidation;
               }
               return null;
             },
@@ -123,16 +133,16 @@ class DiveTypesPage extends ConsumerWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(dialogContext.l10n.common_action_cancel),
           ),
           FilledButton(
             onPressed: () {
               if (formKey.currentState!.validate()) {
-                Navigator.of(context).pop(nameController.text.trim());
+                Navigator.of(dialogContext).pop(nameController.text.trim());
               }
             },
-            child: const Text('Add'),
+            child: Text(dialogContext.l10n.diveTypes_addDialog_addButton),
           ),
         ],
       ),
@@ -143,15 +153,19 @@ class DiveTypesPage extends ConsumerWidget {
         final notifier = ref.read(diveTypeListNotifierProvider.notifier);
         await notifier.addDiveTypeByName(result);
         if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Added dive type: $result')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(context.l10n.diveTypes_snackbar_added(result)),
+            ),
+          );
         }
       } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error adding dive type: $e'),
+              content: Text(
+                context.l10n.diveTypes_snackbar_errorAdding(e.toString()),
+              ),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
@@ -175,7 +189,7 @@ class DiveTypesPage extends ConsumerWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Cannot delete "${diveType.name}" - it is used by existing dives',
+            context.l10n.diveTypes_snackbar_cannotDelete(diveType.name),
           ),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
@@ -185,20 +199,22 @@ class DiveTypesPage extends ConsumerWidget {
 
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Dive Type?'),
-        content: Text('Are you sure you want to delete "${diveType.name}"?'),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(dialogContext.l10n.diveTypes_deleteDialog_title),
+        content: Text(
+          dialogContext.l10n.diveTypes_deleteDialog_content(diveType.name),
+        ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(dialogContext.l10n.common_action_cancel),
           ),
           FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
             style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
+              backgroundColor: Theme.of(dialogContext).colorScheme.error,
             ),
-            child: const Text('Delete'),
+            child: Text(dialogContext.l10n.common_action_delete),
           ),
         ],
       ),
@@ -208,15 +224,21 @@ class DiveTypesPage extends ConsumerWidget {
       try {
         await notifier.deleteDiveType(diveType.id);
         if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Deleted "${diveType.name}"')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                context.l10n.diveTypes_snackbar_deleted(diveType.name),
+              ),
+            ),
+          );
         }
       } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error deleting dive type: $e'),
+              content: Text(
+                context.l10n.diveTypes_snackbar_errorDeleting(e.toString()),
+              ),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );

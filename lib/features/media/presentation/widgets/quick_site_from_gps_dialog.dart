@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Dialog for quickly creating a dive site from GPS coordinates extracted
 /// from a photo.
@@ -56,7 +57,7 @@ class _QuickSiteFromGpsDialogState extends State<QuickSiteFromGpsDialog> {
         children: [
           Icon(Icons.add_location_alt, color: colorScheme.primary),
           const SizedBox(width: 8),
-          const Text('Create Dive Site'),
+          Text(context.l10n.media_quickSiteDialog_title),
         ],
       ),
       content: Form(
@@ -66,7 +67,7 @@ class _QuickSiteFromGpsDialogState extends State<QuickSiteFromGpsDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Create a new dive site using GPS coordinates from your photo.',
+              context.l10n.media_quickSiteDialog_description,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -107,16 +108,16 @@ class _QuickSiteFromGpsDialogState extends State<QuickSiteFromGpsDialog> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Site Name',
-                hintText: 'Enter a name for this site',
-                prefixIcon: Icon(Icons.edit),
+              decoration: InputDecoration(
+                labelText: context.l10n.media_quickSiteDialog_siteNameLabel,
+                hintText: context.l10n.media_quickSiteDialog_siteNameHint,
+                prefixIcon: const Icon(Icons.edit),
               ),
               textCapitalization: TextCapitalization.words,
               autofocus: true,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Please enter a site name';
+                  return context.l10n.media_quickSiteDialog_siteNameError;
                 }
                 return null;
               },
@@ -127,9 +128,12 @@ class _QuickSiteFromGpsDialogState extends State<QuickSiteFromGpsDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.media_quickSiteDialog_cancelButton),
         ),
-        FilledButton(onPressed: _createSite, child: const Text('Create Site')),
+        FilledButton(
+          onPressed: _createSite,
+          child: Text(context.l10n.media_quickSiteDialog_createButton),
+        ),
       ],
     );
   }

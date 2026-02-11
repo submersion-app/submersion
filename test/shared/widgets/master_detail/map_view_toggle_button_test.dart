@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
 
 void main() {
   testWidgets('shows map icon', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           appBar: AppBar(
             actions: [MapViewToggleButton(isActive: false, onToggle: () {})],
@@ -20,6 +23,8 @@ void main() {
   testWidgets('shows highlighted style when active', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           appBar: AppBar(
             actions: [MapViewToggleButton(isActive: true, onToggle: () {})],
@@ -36,6 +41,8 @@ void main() {
     var toggleCount = 0;
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           appBar: AppBar(
             actions: [
@@ -56,6 +63,8 @@ void main() {
   testWidgets('has Map View tooltip', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           appBar: AppBar(
             actions: [MapViewToggleButton(isActive: false, onToggle: () {})],

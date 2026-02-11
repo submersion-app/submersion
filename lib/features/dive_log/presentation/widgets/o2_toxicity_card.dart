@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Card displaying oxygen toxicity information (CNS% and OTU).
 class O2ToxicityCard extends StatelessWidget {
@@ -42,7 +43,7 @@ class O2ToxicityCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                'Oxygen Toxicity',
+                context.l10n.diveLog_o2tox_title,
                 style: textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -51,8 +52,8 @@ class O2ToxicityCard extends StatelessWidget {
               if (exposure.cnsWarning || exposure.ppO2Warning)
                 Semantics(
                   label: exposure.cnsCritical || exposure.ppO2Critical
-                      ? 'Critical oxygen toxicity warning'
-                      : 'Oxygen toxicity warning',
+                      ? context.l10n.diveLog_o2tox_semantics_criticalWarning
+                      : context.l10n.diveLog_o2tox_semantics_warning,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 8,
@@ -66,8 +67,8 @@ class O2ToxicityCard extends StatelessWidget {
                     ),
                     child: Text(
                       exposure.cnsCritical || exposure.ppO2Critical
-                          ? 'CRITICAL'
-                          : 'WARNING',
+                          ? context.l10n.diveLog_detail_badge_critical
+                          : context.l10n.diveLog_detail_badge_warning,
                       style: textTheme.labelSmall?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -117,14 +118,20 @@ class O2ToxicityCard extends StatelessWidget {
     }
 
     return Semantics(
-      label: statLabel(name: 'CNS Oxygen Clock', value: exposure.cnsFormatted),
+      label: statLabel(
+        name: context.l10n.diveLog_o2tox_cnsOxygenClock,
+        value: exposure.cnsFormatted,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('CNS Oxygen Clock', style: textTheme.bodyMedium),
+              Text(
+                context.l10n.diveLog_o2tox_cnsOxygenClock,
+                style: textTheme.bodyMedium,
+              ),
               Text(
                 exposure.cnsFormatted,
                 style: textTheme.titleMedium?.copyWith(
@@ -152,13 +159,17 @@ class O2ToxicityCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Start: ${exposure.cnsStart.toStringAsFixed(0)}%',
+                context.l10n.diveLog_o2tox_startPercent(
+                  exposure.cnsStart.toStringAsFixed(0),
+                ),
                 style: textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
               ),
               Text(
-                '+${exposure.cnsDelta.toStringAsFixed(1)}% this dive',
+                context.l10n.diveLog_o2tox_deltaDive(
+                  exposure.cnsDelta.toStringAsFixed(1),
+                ),
                 style: textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -183,15 +194,20 @@ class O2ToxicityCard extends StatelessWidget {
     }
 
     return Semantics(
-      label:
-          'Oxygen Tolerance Units: ${exposure.otuFormatted}, ${exposure.otuPercentOfDaily.toStringAsFixed(0)} percent of daily limit',
+      label: context.l10n.diveLog_o2tox_semantics_otu(
+        exposure.otuFormatted,
+        exposure.otuPercentOfDaily.toStringAsFixed(0),
+      ),
       child: Row(
         children: [
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Oxygen Tolerance Units', style: textTheme.bodyMedium),
+                Text(
+                  context.l10n.diveLog_o2tox_oxygenToleranceUnits,
+                  style: textTheme.bodyMedium,
+                ),
                 const SizedBox(height: 4),
                 Text(
                   exposure.otuFormatted,
@@ -219,7 +235,7 @@ class O2ToxicityCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  'of daily limit',
+                  context.l10n.diveLog_o2tox_ofDailyLimit,
                   style: textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -240,13 +256,13 @@ class O2ToxicityCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Details',
+          context.l10n.diveLog_o2tox_details,
           style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
         _buildDetailRow(
           context,
-          'Max ppO2',
+          context.l10n.diveLog_o2tox_label_maxPpO2,
           exposure.maxPpO2Formatted,
           icon: Icons.trending_up,
           valueColor: exposure.ppO2Critical
@@ -257,14 +273,14 @@ class O2ToxicityCard extends StatelessWidget {
         ),
         _buildDetailRow(
           context,
-          'Max ppO2 Depth',
+          context.l10n.diveLog_o2tox_label_maxPpO2Depth,
           '${exposure.maxPpO2Depth.toStringAsFixed(1)}m',
           icon: Icons.vertical_align_bottom,
         ),
         if (exposure.timeAboveWarning > 0)
           _buildDetailRow(
             context,
-            'Time above 1.4 bar',
+            context.l10n.diveLog_o2tox_label_timeAbove14,
             _formatDuration(exposure.timeAboveWarning),
             icon: Icons.timer,
             valueColor: Colors.orange,
@@ -272,7 +288,7 @@ class O2ToxicityCard extends StatelessWidget {
         if (exposure.timeAboveCritical > 0)
           _buildDetailRow(
             context,
-            'Time above 1.6 bar',
+            context.l10n.diveLog_o2tox_label_timeAbove16,
             _formatDuration(exposure.timeAboveCritical),
             icon: Icons.warning,
             valueColor: colorScheme.error,
@@ -354,7 +370,9 @@ class O2ToxicityBadge extends StatelessWidget {
     }
 
     return Semantics(
-      label: 'CNS oxygen toxicity ${exposure.cnsFormatted}',
+      label: context.l10n.diveLog_o2tox_semantics_cnsBadge(
+        exposure.cnsFormatted,
+      ),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
@@ -370,7 +388,7 @@ class O2ToxicityBadge extends StatelessWidget {
             ),
             const SizedBox(width: 4),
             Text(
-              'CNS ${exposure.cnsFormatted}',
+              context.l10n.diveLog_o2tox_cnsBadgeLabel(exposure.cnsFormatted),
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 color: getBadgeColor(),
                 fontWeight: FontWeight.w600,

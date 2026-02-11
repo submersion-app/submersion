@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
@@ -121,14 +122,14 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
           // Course name
           TextFormField(
             controller: _nameController,
-            decoration: const InputDecoration(
-              labelText: 'Course Name',
-              hintText: 'e.g., Advanced Open Water Diver',
-              prefixIcon: Icon(Icons.school),
+            decoration: InputDecoration(
+              labelText: context.l10n.courses_field_courseName,
+              hintText: context.l10n.courses_field_courseNameHint,
+              prefixIcon: const Icon(Icons.school),
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return 'Please enter a course name';
+                return context.l10n.courses_validation_nameRequired;
               }
               return null;
             },
@@ -139,9 +140,9 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
           // Agency
           DropdownButtonFormField<CertificationAgency>(
             initialValue: _agency,
-            decoration: const InputDecoration(
-              labelText: 'Agency',
-              prefixIcon: Icon(Icons.business),
+            decoration: InputDecoration(
+              labelText: context.l10n.courses_label_agency,
+              prefixIcon: const Icon(Icons.business),
             ),
             items: CertificationAgency.values.map((agency) {
               return DropdownMenuItem(
@@ -160,7 +161,7 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
           // Start date
           ListTile(
             leading: const Icon(Icons.calendar_today),
-            title: const Text('Start Date'),
+            title: Text(context.l10n.courses_label_startDate),
             subtitle: Text(DateFormat.yMMMd().format(_startDate)),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => _selectDate(context, isStart: true),
@@ -170,10 +171,10 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
           // Completion date
           SwitchListTile(
             secondary: const Icon(Icons.check_circle),
-            title: const Text('Completed'),
+            title: Text(context.l10n.courses_label_completed),
             subtitle: _completionDate != null
                 ? Text(DateFormat.yMMMd().format(_completionDate!))
-                : const Text('Course is in progress'),
+                : Text(context.l10n.courses_label_courseInProgress),
             value: _completionDate != null,
             onChanged: (value) {
               setState(() {
@@ -184,7 +185,7 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
           if (_completionDate != null) ...[
             ListTile(
               leading: const SizedBox(width: 24),
-              title: const Text('Completion Date'),
+              title: Text(context.l10n.courses_label_completionDate),
               subtitle: Text(DateFormat.yMMMd().format(_completionDate!)),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => _selectDate(context, isStart: false),
@@ -199,7 +200,7 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
               Icon(Icons.person, size: 20, color: colorScheme.primary),
               const SizedBox(width: 8),
               Text(
-                'Instructor',
+                context.l10n.courses_section_instructor,
                 style: Theme.of(
                   context,
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -222,14 +223,14 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
                 children: [
                   DropdownButtonFormField<String?>(
                     initialValue: _instructorId,
-                    decoration: const InputDecoration(
-                      labelText: 'Select from Buddies (Optional)',
-                      prefixIcon: Icon(Icons.people),
+                    decoration: InputDecoration(
+                      labelText: context.l10n.courses_field_selectFromBuddies,
+                      prefixIcon: const Icon(Icons.people),
                     ),
                     items: [
-                      const DropdownMenuItem(
+                      DropdownMenuItem(
                         value: null,
-                        child: Text('-- None --'),
+                        child: Text(context.l10n.courses_label_none),
                       ),
                       ...instructors.map((buddy) {
                         return DropdownMenuItem(
@@ -261,9 +262,9 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
           // Instructor name (manual)
           TextFormField(
             controller: _instructorNameController,
-            decoration: const InputDecoration(
-              labelText: 'Instructor Name',
-              prefixIcon: Icon(Icons.badge),
+            decoration: InputDecoration(
+              labelText: context.l10n.courses_field_instructorName,
+              prefixIcon: const Icon(Icons.badge),
             ),
             textCapitalization: TextCapitalization.words,
           ),
@@ -272,9 +273,9 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
           // Instructor number
           TextFormField(
             controller: _instructorNumberController,
-            decoration: const InputDecoration(
-              labelText: 'Instructor Number',
-              prefixIcon: Icon(Icons.numbers),
+            decoration: InputDecoration(
+              labelText: context.l10n.courses_field_instructorNumber,
+              prefixIcon: const Icon(Icons.numbers),
             ),
           ),
           const SizedBox(height: 16),
@@ -282,9 +283,9 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
           // Location
           TextFormField(
             controller: _locationController,
-            decoration: const InputDecoration(
-              labelText: 'Location / Dive Center',
-              prefixIcon: Icon(Icons.place),
+            decoration: InputDecoration(
+              labelText: context.l10n.courses_field_location,
+              prefixIcon: const Icon(Icons.place),
             ),
             textCapitalization: TextCapitalization.words,
           ),
@@ -293,9 +294,9 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
           // Notes
           TextFormField(
             controller: _notesController,
-            decoration: const InputDecoration(
-              labelText: 'Notes',
-              prefixIcon: Icon(Icons.notes),
+            decoration: InputDecoration(
+              labelText: context.l10n.courses_field_notes,
+              prefixIcon: const Icon(Icons.notes),
               alignLabelWithHint: true,
             ),
             maxLines: 4,
@@ -309,7 +310,7 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
               Icon(Icons.card_membership, size: 20, color: colorScheme.primary),
               const SizedBox(width: 8),
               Text(
-                'Earned Certification',
+                context.l10n.courses_section_earnedCertification,
                 style: Theme.of(
                   context,
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -318,7 +319,7 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Link this course to the certification you earned',
+            context.l10n.courses_field_linkCertificationHint,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
@@ -343,7 +344,11 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
                       height: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : Text(_isEditing ? 'Save Changes' : 'Create Course'),
+                  : Text(
+                      _isEditing
+                          ? context.l10n.courses_action_saveChanges
+                          : context.l10n.courses_action_create,
+                    ),
             ),
           ),
           const SizedBox(height: 16),
@@ -362,14 +367,18 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? 'Edit Course' : 'New Course'),
+        title: Text(
+          _isEditing
+              ? context.l10n.courses_title_edit
+              : context.l10n.courses_title_new,
+        ),
         actions: [
           Semantics(
             button: true,
-            label: 'Save course',
+            label: context.l10n.courses_action_saveSemantic,
             child: TextButton(
               onPressed: _isLoading ? null : () => _save(existingCourse),
-              child: const Text('Save'),
+              child: Text(context.l10n.common_action_save),
             ),
           ),
         ],
@@ -381,7 +390,7 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
   Widget _buildEmbeddedHeader(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 16, 8, 8),
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 8, 8),
       decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
       ),
@@ -389,15 +398,20 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
         children: [
           Expanded(
             child: Text(
-              _isEditing ? 'Edit Course' : 'New Course',
+              _isEditing
+                  ? context.l10n.courses_title_edit
+                  : context.l10n.courses_title_new,
               style: Theme.of(context).textTheme.titleLarge,
             ),
           ),
           if (widget.onCancel != null)
-            TextButton(onPressed: widget.onCancel, child: const Text('Cancel')),
+            TextButton(
+              onPressed: widget.onCancel,
+              child: Text(context.l10n.common_action_cancel),
+            ),
           TextButton(
             onPressed: _isLoading ? null : () => _save(null),
-            child: const Text('Save'),
+            child: Text(context.l10n.common_action_save),
           ),
         ],
       ),
@@ -505,7 +519,9 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error saving course: $e'),
+            content: Text(
+              context.l10n.courses_message_errorSaving(e.toString()),
+            ),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -522,26 +538,28 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
       return const Center(child: CircularProgressIndicator());
     }
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Course')),
+      appBar: AppBar(title: Text(context.l10n.courses_title_edit)),
       body: const Center(child: CircularProgressIndicator()),
     );
   }
 
   Widget _buildNotFound() {
     if (widget.embedded) {
-      return const Center(child: Text('Course not found'));
+      return Center(child: Text(context.l10n.courses_detail_notFound));
     }
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Course')),
-      body: const Center(child: Text('Course not found')),
+      appBar: AppBar(title: Text(context.l10n.courses_title_edit)),
+      body: Center(child: Text(context.l10n.courses_detail_notFound)),
     );
   }
 
   Widget _buildError(Object error) {
-    final content = Center(child: Text('Error: $error'));
+    final content = Center(
+      child: Text(context.l10n.courses_error_generic(error.toString())),
+    );
     if (widget.embedded) return content;
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Course')),
+      appBar: AppBar(title: Text(context.l10n.courses_title_edit)),
       body: content,
     );
   }

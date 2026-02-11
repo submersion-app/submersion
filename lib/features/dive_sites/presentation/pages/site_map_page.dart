@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -50,7 +51,7 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
 
     return MapListScaffold(
       sectionKey: 'sites',
-      title: 'Dive Sites',
+      title: context.l10n.diveSites_map_appBar_title,
       onBackPressed: () => context.go('/sites'),
       listPane: SiteListContent(
         showAppBar: false,
@@ -81,11 +82,13 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
             children: [
               const Icon(Icons.error_outline, size: 48, color: Colors.red),
               const SizedBox(height: 16),
-              Text('Error loading sites: $error'),
+              Text(
+                context.l10n.diveSites_map_error_loadingSites(error.toString()),
+              ),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => ref.invalidate(sitesWithCountsProvider),
-                child: const Text('Retry'),
+                child: Text(context.l10n.diveSites_map_error_retry),
               ),
             ],
           ),
@@ -97,18 +100,18 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/sites/new'),
         icon: const Icon(Icons.add_location),
-        label: const Text('Add Site'),
+        label: Text(context.l10n.diveSites_fab_label),
       ),
       actions: [
         const HeatMapToggleButton(),
         IconButton(
           icon: const Icon(Icons.list),
-          tooltip: 'List View',
+          tooltip: context.l10n.diveSites_map_tooltip_listView,
           onPressed: () => context.go('/sites'),
         ),
         IconButton(
           icon: const Icon(Icons.my_location),
-          tooltip: 'Fit All Sites',
+          tooltip: context.l10n.diveSites_map_tooltip_fitAllSites,
           onPressed: () =>
               _fitAllSites(sitesAsync.value?.map((s) => s.site).toList() ?? []),
         ),
@@ -129,7 +132,7 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
     String subtitle = site.locationString;
     if (diveCount > 0) {
       subtitle += subtitle.isNotEmpty ? ' \u2022 ' : '';
-      subtitle += '$diveCount ${diveCount == 1 ? 'dive' : 'dives'}';
+      subtitle += context.l10n.diveSites_map_infoCard_diveCount(diveCount);
     }
     if (site.rating != null) {
       subtitle += subtitle.isNotEmpty ? ' \u2022 ' : '';
@@ -257,7 +260,8 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
                     height: isSelected ? 50 : 40,
                     child: Semantics(
                       button: true,
-                      label: 'Dive site: ${site.name}',
+                      label: context.l10n
+                          .diveSites_map_semantics_diveSiteMarker(site.name),
                       child: GestureDetector(
                         onTap: () => _onMarkerTapped(site),
                         child: _buildMarker(
@@ -319,12 +323,12 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'No sites with coordinates',
+                      context.l10n.diveSites_map_empty_title,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Add coordinates to your dive sites to see them on the map',
+                      context.l10n.diveSites_map_empty_description,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),

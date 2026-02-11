@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 
 /// Summary widget shown when no certification is selected.
@@ -23,7 +24,8 @@ class CertificationSummaryWidget extends ConsumerWidget {
             certificationsAsync.when(
               data: (certs) => _buildOverview(context, certs),
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Error: $e')),
+              error: (e, _) =>
+                  Center(child: Text('${context.l10n.common_label_error}: $e')),
             ),
             const SizedBox(height: 24),
             _buildQuickActions(context),
@@ -47,7 +49,7 @@ class CertificationSummaryWidget extends ConsumerWidget {
             ),
             const SizedBox(width: 12),
             Text(
-              'Certifications',
+              context.l10n.certifications_summary_header_title,
               style: Theme.of(
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
@@ -56,7 +58,7 @@ class CertificationSummaryWidget extends ConsumerWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Select a certification from the list to view details',
+          context.l10n.certifications_summary_header_subtitle,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
@@ -84,7 +86,7 @@ class CertificationSummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Overview',
+          context.l10n.certifications_summary_overview_title,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -98,14 +100,14 @@ class CertificationSummaryWidget extends ConsumerWidget {
               context,
               icon: Icons.card_membership,
               value: '${certs.length}',
-              label: 'Total',
+              label: context.l10n.certifications_summary_stat_total,
               color: Colors.blue,
             ),
             _buildStatCard(
               context,
               icon: Icons.check_circle,
               value: '$validCount',
-              label: 'Valid',
+              label: context.l10n.certifications_summary_stat_valid,
               color: Colors.green,
             ),
             if (expiringSoonCount > 0)
@@ -113,7 +115,7 @@ class CertificationSummaryWidget extends ConsumerWidget {
                 context,
                 icon: Icons.schedule,
                 value: '$expiringSoonCount',
-                label: 'Expiring Soon',
+                label: context.l10n.certifications_summary_stat_expiringSoon,
                 color: Colors.orange,
               ),
             if (expiredCount > 0)
@@ -121,7 +123,7 @@ class CertificationSummaryWidget extends ConsumerWidget {
                 context,
                 icon: Icons.warning,
                 value: '$expiredCount',
-                label: 'Expired',
+                label: context.l10n.certifications_summary_stat_expired,
                 color: Colors.red,
               ),
           ],
@@ -190,7 +192,7 @@ class CertificationSummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Recent Certifications',
+          context.l10n.certifications_summary_recentTitle,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -239,7 +241,7 @@ class CertificationSummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Quick Actions',
+          context.l10n.certifications_summary_quickActions_title,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -256,7 +258,7 @@ class CertificationSummaryWidget extends ConsumerWidget {
                 context.go('$currentPath?mode=new');
               },
               icon: const Icon(Icons.add_card),
-              label: const Text('Add Certification'),
+              label: Text(context.l10n.certifications_summary_quickActions_add),
             ),
           ],
         ),

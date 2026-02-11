@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_computer/domain/entities/device_model.d
 import 'package:submersion/features/dive_computer/domain/services/download_manager.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Page for downloading dives from a known/saved dive computer.
 ///
@@ -48,7 +49,7 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
         .value;
     if (computer == null) {
       setState(() {
-        _scanError = 'Computer not found';
+        _scanError = context.l10n.diveComputer_download_computerNotFound;
       });
       return;
     }
@@ -114,15 +115,15 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
         // Timeout - device not found
         setState(() {
           _isScanning = false;
-          _scanError =
-              'Device not found. Make sure your ${computer.name.isNotEmpty ? computer.name : computer.fullName} '
-              'is nearby and in transfer mode.';
+          _scanError = context.l10n.diveComputer_download_deviceNotFoundError(
+            computer.name.isNotEmpty ? computer.name : computer.fullName,
+          );
         });
       }
     } catch (e) {
       setState(() {
         _isScanning = false;
-        _scanError = 'Scan error: $e';
+        _scanError = context.l10n.diveComputer_download_scanError(e.toString());
       });
     }
   }
@@ -204,7 +205,10 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
     if (!importResult.isSuccess) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(importResult.errorMessage ?? 'Import failed'),
+          content: Text(
+            importResult.errorMessage ??
+                context.l10n.diveComputer_download_importFailed,
+          ),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -226,7 +230,7 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Download Dives'),
+        title: Text(context.l10n.diveComputer_download_title),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () {
@@ -235,7 +239,7 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
             }
             context.pop();
           },
-          tooltip: 'Close',
+          tooltip: context.l10n.diveComputer_download_closeTooltip,
         ),
       ),
       body: computerAsync.when(
@@ -246,11 +250,15 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
             children: [
               Icon(Icons.error_outline, size: 64, color: colorScheme.error),
               const SizedBox(height: 16),
-              Text('Error: $error'),
+              Text(
+                context.l10n.diveComputer_download_errorWithMessage(
+                  error.toString(),
+                ),
+              ),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => context.pop(),
-                child: const Text('Go Back'),
+                child: Text(context.l10n.diveComputer_download_goBack),
               ),
             ],
           ),
@@ -263,11 +271,11 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
                 children: [
                   Icon(Icons.error_outline, size: 64, color: colorScheme.error),
                   const SizedBox(height: 16),
-                  const Text('Computer not found'),
+                  Text(context.l10n.diveComputer_download_computerNotFound),
                   const SizedBox(height: 16),
                   FilledButton(
                     onPressed: () => context.pop(),
-                    child: const Text('Go Back'),
+                    child: Text(context.l10n.diveComputer_download_goBack),
                   ),
                 ],
               ),
@@ -301,13 +309,15 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
             ),
             const SizedBox(height: 32),
             Text(
-              'Searching for ${computer.name.isNotEmpty ? computer.name : computer.fullName}...',
+              context.l10n.diveComputer_download_searchingForDevice(
+                computer.name.isNotEmpty ? computer.name : computer.fullName,
+              ),
               style: theme.textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
-              'Make sure the device is nearby and in transfer mode',
+              context.l10n.diveComputer_download_searchingInstructions,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -319,7 +329,7 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
                 ref.read(discoveryNotifierProvider.notifier).stopScan();
                 context.pop();
               },
-              child: const Text('Cancel'),
+              child: Text(context.l10n.diveComputer_download_cancel),
             ),
           ],
         ),
@@ -348,7 +358,10 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
                 ),
               ),
               const SizedBox(height: 32),
-              Text('Device Not Found', style: theme.textTheme.titleLarge),
+              Text(
+                context.l10n.diveComputer_download_deviceNotFoundTitle,
+                style: theme.textTheme.titleLarge,
+              ),
               const SizedBox(height: 16),
               Text(
                 _scanError!,
@@ -366,12 +379,12 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
                   _startScanAndConnect();
                 },
                 icon: const Icon(Icons.refresh),
-                label: const Text('Try Again'),
+                label: Text(context.l10n.diveComputer_download_tryAgain),
               ),
               const SizedBox(height: 12),
               OutlinedButton(
                 onPressed: () => context.pop(),
-                child: const Text('Cancel'),
+                child: Text(context.l10n.diveComputer_download_cancel),
               ),
             ],
           ),
@@ -398,7 +411,8 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
 
           // Status text
           Text(
-            state.progress?.status ?? 'Preparing...',
+            state.progress?.status ??
+                context.l10n.diveComputer_download_preparing,
             style: theme.textTheme.titleMedium,
             textAlign: TextAlign.center,
           ),
@@ -407,7 +421,9 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
           // Progress percentage
           if (state.progress != null && state.progress!.totalDives > 0)
             Text(
-              '${(state.progress!.percentage * 100).toStringAsFixed(0)}%',
+              context.l10n.diveComputer_download_progressPercent(
+                (state.progress!.percentage * 100).toStringAsFixed(0),
+              ),
               style: theme.textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: colorScheme.primary,
@@ -432,14 +448,14 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
                 ref.read(downloadNotifierProvider.notifier).cancelDownload();
               },
               icon: const Icon(Icons.cancel),
-              label: const Text('Cancel'),
+              label: Text(context.l10n.diveComputer_download_cancel),
             ),
 
           if (state.isComplete)
             FilledButton.icon(
               onPressed: () => context.pop(),
               icon: const Icon(Icons.check),
-              label: const Text('Done'),
+              label: Text(context.l10n.diveComputer_download_done),
             ),
 
           // Error state
@@ -456,7 +472,10 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            state.errorMessage ?? 'An error occurred',
+                            state.errorMessage ??
+                                context
+                                    .l10n
+                                    .diveComputer_download_errorOccurred,
                             style: TextStyle(
                               color: colorScheme.onErrorContainer,
                             ),
@@ -472,7 +491,7 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
                   children: [
                     OutlinedButton(
                       onPressed: () => context.pop(),
-                      child: const Text('Cancel'),
+                      child: Text(context.l10n.diveComputer_download_cancel),
                     ),
                     const SizedBox(width: 16),
                     FilledButton.icon(
@@ -485,7 +504,7 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
                         _startScanAndConnect();
                       },
                       icon: const Icon(Icons.refresh),
-                      label: const Text('Retry'),
+                      label: Text(context.l10n.diveComputer_download_retry),
                     ),
                   ],
                 ),
@@ -577,8 +596,8 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
     // During download, show all downloaded dives
     final dives = state.importResult?.importedDives ?? state.downloadedDives;
     final title = state.importResult != null
-        ? 'Imported Dives'
-        : 'Downloaded Dives';
+        ? context.l10n.diveComputer_download_importedDives
+        : context.l10n.diveComputer_download_downloadedDives;
 
     if (dives.isEmpty) {
       return const SizedBox.shrink();
@@ -628,13 +647,17 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
                         ),
                         Expanded(
                           child: Text(
-                            '${dive.maxDepth.toStringAsFixed(1)}m',
+                            context.l10n.diveComputer_download_depthMeters(
+                              dive.maxDepth.toStringAsFixed(1),
+                            ),
                             style: theme.textTheme.bodySmall,
                           ),
                         ),
                         Expanded(
                           child: Text(
-                            '${dive.durationSeconds ~/ 60} min',
+                            context.l10n.diveComputer_download_durationMin(
+                              dive.durationSeconds ~/ 60,
+                            ),
                             style: theme.textTheme.bodySmall,
                             textAlign: TextAlign.end,
                           ),
@@ -671,7 +694,10 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
               children: [
                 Icon(Icons.sync, color: colorScheme.primary),
                 const SizedBox(width: 8),
-                Text('Import Results', style: theme.textTheme.titleSmall),
+                Text(
+                  context.l10n.diveComputer_download_importResults,
+                  style: theme.textTheme.titleSmall,
+                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -679,7 +705,7 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
               _buildImportStatRow(
                 context,
                 Icons.add_circle_outline,
-                'New dives imported',
+                context.l10n.diveComputer_download_newDivesImported,
                 result.imported,
                 colorScheme.primary,
               ),
@@ -687,7 +713,7 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
               _buildImportStatRow(
                 context,
                 Icons.skip_next,
-                'Duplicates skipped',
+                context.l10n.diveComputer_download_duplicatesSkipped,
                 result.skipped,
                 colorScheme.onSurfaceVariant,
               ),
@@ -695,7 +721,7 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
               _buildImportStatRow(
                 context,
                 Icons.update,
-                'Dives updated',
+                context.l10n.diveComputer_download_divesUpdated,
                 result.updated,
                 colorScheme.secondary,
               ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
@@ -46,7 +47,7 @@ class DiveCenterPickerSheet extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Select Dive Center',
+                context.l10n.diveCenters_picker_title,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               TextButton.icon(
@@ -55,7 +56,7 @@ class DiveCenterPickerSheet extends ConsumerWidget {
                   context.push('/dive-centers/new');
                 },
                 icon: const Icon(Icons.add),
-                label: const Text('New Dive Center'),
+                label: Text(context.l10n.diveCenters_picker_newCenter),
               ),
             ],
           ),
@@ -80,7 +81,7 @@ class DiveCenterPickerSheet extends ConsumerWidget {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'No dive centers yet',
+                        context.l10n.diveCenters_empty_title,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 8),
@@ -90,7 +91,7 @@ class DiveCenterPickerSheet extends ConsumerWidget {
                           context.push('/dive-centers/new');
                         },
                         icon: const Icon(Icons.add),
-                        label: const Text('Add Dive Center'),
+                        label: Text(context.l10n.diveCenters_title_add),
                       ),
                     ],
                   ),
@@ -110,7 +111,8 @@ class DiveCenterPickerSheet extends ConsumerWidget {
                       center.name,
                       if (center.displayLocation != null)
                         center.displayLocation!,
-                      if (isSelected) 'selected',
+                      if (isSelected)
+                        context.l10n.diveCenters_accessibility_selected,
                     ].join(', '),
                     child: ListTile(
                       leading: CircleAvatar(
@@ -143,8 +145,11 @@ class DiveCenterPickerSheet extends ConsumerWidget {
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) =>
-                Center(child: Text('Error loading dive centers: $error')),
+            error: (error, _) => Center(
+              child: Text(
+                context.l10n.diveCenters_error_loading(error.toString()),
+              ),
+            ),
           ),
         ),
       ],

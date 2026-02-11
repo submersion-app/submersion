@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Card showing personal dive records in a horizontal scrollable format
 class PersonalRecordsCard extends ConsumerWidget {
@@ -33,7 +34,7 @@ class PersonalRecordsCard extends ConsumerWidget {
           recordWidgets.add(
             _RecordChip(
               icon: Icons.arrow_downward,
-              label: 'Deepest',
+              label: context.l10n.dashboard_personalRecords_deepest,
               value: '${displayDepth.toStringAsFixed(1)}${units.depthSymbol}',
               subtitle: records.deepestDive!.site?.name,
               color: Colors.indigo,
@@ -47,7 +48,7 @@ class PersonalRecordsCard extends ConsumerWidget {
           recordWidgets.add(
             _RecordChip(
               icon: Icons.timer,
-              label: 'Longest',
+              label: context.l10n.dashboard_personalRecords_longest,
               value: '${records.longestDive!.duration!.inMinutes}min',
               subtitle: records.longestDive!.site?.name,
               color: Colors.teal,
@@ -64,7 +65,7 @@ class PersonalRecordsCard extends ConsumerWidget {
           recordWidgets.add(
             _RecordChip(
               icon: Icons.ac_unit,
-              label: 'Coldest',
+              label: context.l10n.dashboard_personalRecords_coldest,
               value:
                   '${displayTemp.toStringAsFixed(0)}${units.temperatureSymbol}',
               subtitle: records.coldestDive!.site?.name,
@@ -82,7 +83,7 @@ class PersonalRecordsCard extends ConsumerWidget {
           recordWidgets.add(
             _RecordChip(
               icon: Icons.whatshot,
-              label: 'Warmest',
+              label: context.l10n.dashboard_personalRecords_warmest,
               value:
                   '${displayTemp.toStringAsFixed(0)}${units.temperatureSymbol}',
               subtitle: records.warmestDive!.site?.name,
@@ -111,7 +112,7 @@ class PersonalRecordsCard extends ConsumerWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Personal Records',
+                      context.l10n.dashboard_personalRecords_sectionTitle,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -125,7 +126,7 @@ class PersonalRecordsCard extends ConsumerWidget {
                     children: recordWidgets
                         .map(
                           (w) => Padding(
-                            padding: const EdgeInsets.only(right: 8),
+                            padding: const EdgeInsetsDirectional.only(end: 8),
                             child: w,
                           ),
                         )

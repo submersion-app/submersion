@@ -7,6 +7,7 @@ import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 
@@ -107,7 +108,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
 
     showSortBottomSheet<TripSortField>(
       context: context,
-      title: 'Sort Trips',
+      title: context.l10n.trips_list_sort_title,
       currentField: sort.field,
       currentDirection: sort.direction,
       fields: TripSortField.values,
@@ -146,18 +147,18 @@ class _TripListContentState extends ConsumerState<TripListContent> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Trips'),
+        title: Text(context.l10n.trips_appBar_title),
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
-            tooltip: 'Search trips',
+            tooltip: context.l10n.trips_list_tooltip_search,
             onPressed: () {
               showSearch(context: context, delegate: TripSearchDelegate());
             },
           ),
           IconButton(
             icon: const Icon(Icons.sort),
-            tooltip: 'Sort',
+            tooltip: context.l10n.trips_list_tooltip_sort,
             onPressed: () => _showSortSheet(context),
           ),
         ],
@@ -183,7 +184,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
         children: [
           const SizedBox(width: 8),
           Text(
-            'Trips',
+            context.l10n.trips_appBar_title,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -191,14 +192,14 @@ class _TripListContentState extends ConsumerState<TripListContent> {
           const Spacer(),
           IconButton(
             icon: const Icon(Icons.search, size: 20),
-            tooltip: 'Search trips',
+            tooltip: context.l10n.trips_list_tooltip_search,
             onPressed: () {
               showSearch(context: context, delegate: TripSearchDelegate());
             },
           ),
           IconButton(
             icon: const Icon(Icons.sort, size: 20),
-            tooltip: 'Sort',
+            tooltip: context.l10n.trips_list_tooltip_sort,
             onPressed: () => _showSortSheet(context),
           ),
         ],
@@ -238,7 +239,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                 children: chips
                     .map(
                       (chip) => Padding(
-                        padding: const EdgeInsets.only(right: 8),
+                        padding: const EdgeInsetsDirectional.only(end: 8),
                         child: chip,
                       ),
                     )
@@ -251,7 +252,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
               ref.read(tripFilterProvider.notifier).state =
                   const TripFilterState();
             },
-            child: const Text('Clear all'),
+            child: Text(context.l10n.trips_list_filters_clearAll),
           ),
         ],
       ),
@@ -307,12 +308,12 @@ class _TripListContentState extends ConsumerState<TripListContent> {
             ),
             const SizedBox(height: 16),
             Text(
-              'No trips match your filters',
+              context.l10n.trips_list_empty_filtered_title,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 8),
             Text(
-              'Try adjusting or clearing your filters',
+              context.l10n.trips_list_empty_filtered_subtitle,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -334,12 +335,12 @@ class _TripListContentState extends ConsumerState<TripListContent> {
           ),
           const SizedBox(height: 16),
           Text(
-            'No trips added yet',
+            context.l10n.trips_list_empty_title,
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 8),
           Text(
-            'Create trips to group your dives by destination',
+            context.l10n.trips_list_empty_subtitle,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -349,7 +350,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
           FilledButton.icon(
             onPressed: () => context.push('/trips/new'),
             icon: const Icon(Icons.add),
-            label: const Text('Add Your First Trip'),
+            label: Text(context.l10n.trips_list_empty_button),
           ),
         ],
       ),
@@ -363,12 +364,12 @@ class _TripListContentState extends ConsumerState<TripListContent> {
         children: [
           const Icon(Icons.error_outline, size: 48, color: Colors.red),
           const SizedBox(height: 16),
-          Text('Error loading trips: $error'),
+          Text(context.l10n.trips_list_error_loading('$error')),
           const SizedBox(height: 16),
           FilledButton(
             onPressed: () =>
                 ref.read(tripListNotifierProvider.notifier).refresh(),
-            child: const Text('Retry'),
+            child: Text(context.l10n.trips_list_button_retry),
           ),
         ],
       ),
@@ -444,7 +445,9 @@ class TripListTile extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    '${tripWithStats.diveCount} dives',
+                    context.l10n.trips_list_tile_diveCount(
+                      tripWithStats.diveCount,
+                    ),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.primary,
                     ),
@@ -489,7 +492,7 @@ class TripSearchDelegate extends SearchDelegate<Trip?> {
       if (query.isNotEmpty)
         IconButton(
           icon: const Icon(Icons.clear),
-          tooltip: 'Clear search',
+          tooltip: context.l10n.trips_search_tooltip_clear,
           onPressed: () => query = '',
         ),
     ];
@@ -499,7 +502,7 @@ class TripSearchDelegate extends SearchDelegate<Trip?> {
   Widget buildLeading(BuildContext context) {
     return IconButton(
       icon: const Icon(Icons.arrow_back),
-      tooltip: 'Back',
+      tooltip: context.l10n.trips_search_tooltip_back,
       onPressed: () => close(context, null),
     );
   }
@@ -525,7 +528,7 @@ class TripSearchDelegate extends SearchDelegate<Trip?> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Search by name, location, or resort',
+              context.l10n.trips_search_empty_hint,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -558,7 +561,7 @@ class TripSearchDelegate extends SearchDelegate<Trip?> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'No trips found for "$query"',
+                      context.l10n.trips_search_noResults(query),
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -596,7 +599,8 @@ class TripSearchDelegate extends SearchDelegate<Trip?> {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => Center(child: Text('Error: $error')),
+          error: (error, _) =>
+              Center(child: Text('${context.l10n.common_label_error}: $error')),
         );
       },
     );

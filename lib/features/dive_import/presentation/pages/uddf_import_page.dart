@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/features/dive_import/presentation/providers/uddf_import_providers.dart';
 import 'package:submersion/features/dive_import/presentation/widgets/uddf_entity_card.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Import wizard for UDDF files.
 ///
@@ -23,10 +24,10 @@ class UddfImportPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Import from UDDF'),
+        title: Text(context.l10n.diveImport_uddf_title),
         leading: IconButton(
           icon: const Icon(Icons.close),
-          tooltip: 'Close UDDF import',
+          tooltip: context.l10n.diveImport_uddf_closeTooltip,
           onPressed: () {
             ref.read(uddfImportNotifierProvider.notifier).reset();
             context.pop();
@@ -80,7 +81,12 @@ class _StepIndicator extends StatelessWidget {
               ),
             _StepDot(
               step: i + 1,
-              label: ['Select', 'Review', 'Import', 'Done'][i],
+              label: [
+                context.l10n.diveImport_step_select,
+                context.l10n.diveImport_step_review,
+                context.l10n.diveImport_uddf_stepImport,
+                context.l10n.diveImport_step_done,
+              ][i],
               isActive: i == currentStep,
               isCompleted: i < currentStep,
             ),
@@ -183,7 +189,11 @@ class _StepFileSelection extends ConsumerWidget {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.file_open),
-              label: Text(state.isLoading ? 'Parsing...' : 'Select UDDF File'),
+              label: Text(
+                state.isLoading
+                    ? context.l10n.diveImport_uddf_parsing
+                    : context.l10n.diveImport_uddf_selectFile,
+              ),
               onPressed: state.isLoading
                   ? null
                   : () => ref
@@ -204,11 +214,13 @@ class _StepFileSelection extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Text('No File Selected', style: theme.textTheme.titleLarge),
+          Text(
+            context.l10n.diveImport_uddf_noFileSelected,
+            style: theme.textTheme.titleLarge,
+          ),
           const SizedBox(height: 8),
           Text(
-            'Select a .uddf or .xml file exported from another dive log '
-            'application.',
+            context.l10n.diveImport_uddf_noFileDescription,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -268,8 +280,9 @@ class _StepReviewSelect extends ConsumerWidget {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          '${state.duplicateCheckResult!.totalDuplicates} '
-                          'duplicates found and auto-deselected.',
+                          context.l10n.diveImport_uddf_duplicatesFound(
+                            state.duplicateCheckResult!.totalDuplicates,
+                          ),
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.colorScheme.onTertiaryContainer,
                           ),
@@ -284,7 +297,7 @@ class _StepReviewSelect extends ConsumerWidget {
           TabBar(
             isScrollable: tabs.length > 4,
             tabs: tabs
-                .map((t) => Tab(text: '${t.label} (${t.count})'))
+                .map((t) => Tab(text: '${t.label(context)} (${t.count})'))
                 .toList(),
           ),
           // Tab content
@@ -302,7 +315,7 @@ class _StepReviewSelect extends ConsumerWidget {
               child: Row(
                 children: [
                   Text(
-                    '${state.totalSelected} selected',
+                    context.l10n.diveImport_selectedCount(state.totalSelected),
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -314,7 +327,7 @@ class _StepReviewSelect extends ConsumerWidget {
                               .read(uddfImportNotifierProvider.notifier)
                               .performImport()
                         : null,
-                    child: const Text('Import'),
+                    child: Text(context.l10n.diveImport_import),
                   ),
                 ],
               ),
@@ -351,7 +364,10 @@ class _EntityList extends ConsumerWidget {
           child: Row(
             children: [
               Text(
-                '${selection.length} of ${items.length} selected',
+                context.l10n.diveImport_uddf_selectedOfTotal(
+                  selection.length,
+                  items.length,
+                ),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -367,8 +383,8 @@ class _EntityList extends ConsumerWidget {
                           .selectAll(type),
                 child: Text(
                   selection.length == items.length
-                      ? 'Deselect All'
-                      : 'Select All',
+                      ? context.l10n.diveImport_deselectAll
+                      : context.l10n.diveImport_selectAll,
                 ),
               ),
             ],
@@ -434,7 +450,7 @@ class _EntityList extends ConsumerWidget {
           : null,
       child: Semantics(
         button: true,
-        label: 'Toggle selection for dive',
+        label: context.l10n.diveImport_uddf_toggleDiveSelection,
         child: InkWell(
           onTap: () => ref
               .read(uddfImportNotifierProvider.notifier)
@@ -487,7 +503,7 @@ class _EntityList extends ConsumerWidget {
                       ),
                       if (isDuplicate) ...[
                         const SizedBox(height: 8),
-                        _buildDiveDuplicateBadge(colorScheme),
+                        _buildDiveDuplicateBadge(context, colorScheme),
                       ],
                     ],
                   ),
@@ -529,14 +545,17 @@ class _EntityList extends ConsumerWidget {
     );
   }
 
-  Widget _buildDiveDuplicateBadge(ColorScheme colorScheme) {
+  Widget _buildDiveDuplicateBadge(
+    BuildContext context,
+    ColorScheme colorScheme,
+  ) {
     final dupResult = state.duplicateCheckResult;
     final matchInfo = dupResult?.diveMatches;
     // Find this dive's index in the diveMatches map
     final score = matchInfo?.values.firstOrNull?.score;
     final label = score != null && score >= 0.7
-        ? 'Likely duplicate'
-        : 'Possible duplicate';
+        ? context.l10n.diveImport_uddf_likelyDuplicate
+        : context.l10n.diveImport_uddf_possibleDuplicate;
     final badgeColor = score != null && score >= 0.7
         ? colorScheme.error
         : colorScheme.tertiary;
@@ -679,7 +698,10 @@ class _StepImporting extends StatelessWidget {
             child: CircularProgressIndicator(strokeWidth: 4),
           ),
           const SizedBox(height: 24),
-          Text('Importing...', style: theme.textTheme.headlineMedium),
+          Text(
+            context.l10n.diveImport_uddf_importing,
+            style: theme.textTheme.headlineMedium,
+          ),
           const SizedBox(height: 16),
           if (state.importPhase.isNotEmpty)
             Text(
@@ -696,7 +718,10 @@ class _StepImporting extends StatelessWidget {
           if (state.importTotal > 0) ...[
             const SizedBox(height: 8),
             Text(
-              '${state.importCurrent} of ${state.importTotal}',
+              context.l10n.diveImport_uddf_importProgress(
+                state.importCurrent,
+                state.importTotal,
+              ),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -739,75 +764,78 @@ class _StepSummary extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 24),
-          Text('Import Complete', style: theme.textTheme.headlineMedium),
+          Text(
+            context.l10n.diveImport_importComplete,
+            style: theme.textTheme.headlineMedium,
+          ),
           const SizedBox(height: 16),
           if (result != null) ...[
             if (result.dives > 0)
               _SummaryRow(
-                label: 'Dives',
+                label: context.l10n.diveImport_uddf_dives,
                 value: result.dives.toString(),
                 icon: Icons.scuba_diving,
                 color: theme.colorScheme.primary,
               ),
             if (result.sites > 0)
               _SummaryRow(
-                label: 'Sites',
+                label: context.l10n.diveImport_uddf_sites,
                 value: result.sites.toString(),
                 icon: Icons.location_on_outlined,
                 color: theme.colorScheme.primary,
               ),
             if (result.trips > 0)
               _SummaryRow(
-                label: 'Trips',
+                label: context.l10n.diveImport_uddf_trips,
                 value: result.trips.toString(),
                 icon: Icons.card_travel,
                 color: theme.colorScheme.primary,
               ),
             if (result.equipment > 0)
               _SummaryRow(
-                label: 'Equipment',
+                label: context.l10n.diveImport_uddf_equipment,
                 value: result.equipment.toString(),
                 icon: Icons.build_outlined,
                 color: theme.colorScheme.primary,
               ),
             if (result.buddies > 0)
               _SummaryRow(
-                label: 'Buddies',
+                label: context.l10n.diveImport_uddf_buddies,
                 value: result.buddies.toString(),
                 icon: Icons.person_outline,
                 color: theme.colorScheme.primary,
               ),
             if (result.diveCenters > 0)
               _SummaryRow(
-                label: 'Dive Centers',
+                label: context.l10n.diveImport_uddf_diveCenters,
                 value: result.diveCenters.toString(),
                 icon: Icons.store_outlined,
                 color: theme.colorScheme.primary,
               ),
             if (result.certifications > 0)
               _SummaryRow(
-                label: 'Certifications',
+                label: context.l10n.diveImport_uddf_certifications,
                 value: result.certifications.toString(),
                 icon: Icons.workspace_premium_outlined,
                 color: theme.colorScheme.primary,
               ),
             if (result.tags > 0)
               _SummaryRow(
-                label: 'Tags',
+                label: context.l10n.diveImport_uddf_tags,
                 value: result.tags.toString(),
                 icon: Icons.label_outline,
                 color: theme.colorScheme.primary,
               ),
             if (result.diveTypes > 0)
               _SummaryRow(
-                label: 'Dive Types',
+                label: context.l10n.diveImport_uddf_diveTypes,
                 value: result.diveTypes.toString(),
                 icon: Icons.category_outlined,
                 color: theme.colorScheme.primary,
               ),
             if (result.equipmentSets > 0)
               _SummaryRow(
-                label: 'Equipment Sets',
+                label: context.l10n.diveImport_uddf_equipmentSets,
                 value: result.equipmentSets.toString(),
                 icon: Icons.inventory_2_outlined,
                 color: theme.colorScheme.primary,
@@ -819,7 +847,7 @@ class _StepSummary extends ConsumerWidget {
               ref.read(uddfImportNotifierProvider.notifier).reset();
               context.pop();
             },
-            child: const Text('Done'),
+            child: Text(context.l10n.diveImport_done),
           ),
         ],
       ),
@@ -912,17 +940,17 @@ class _EntityTab {
 
   const _EntityTab({required this.type, required this.count});
 
-  String get label => switch (type) {
-    UddfEntityType.trips => 'Trips',
-    UddfEntityType.equipment => 'Equipment',
-    UddfEntityType.buddies => 'Buddies',
-    UddfEntityType.diveCenters => 'Centers',
-    UddfEntityType.certifications => 'Certs',
-    UddfEntityType.courses => 'Courses',
-    UddfEntityType.tags => 'Tags',
-    UddfEntityType.diveTypes => 'Types',
-    UddfEntityType.sites => 'Sites',
-    UddfEntityType.equipmentSets => 'Sets',
-    UddfEntityType.dives => 'Dives',
+  String label(BuildContext context) => switch (type) {
+    UddfEntityType.trips => context.l10n.diveImport_uddf_tabTrips,
+    UddfEntityType.equipment => context.l10n.diveImport_uddf_tabEquipment,
+    UddfEntityType.buddies => context.l10n.diveImport_uddf_tabBuddies,
+    UddfEntityType.diveCenters => context.l10n.diveImport_uddf_tabCenters,
+    UddfEntityType.certifications => context.l10n.diveImport_uddf_tabCerts,
+    UddfEntityType.courses => context.l10n.diveImport_uddf_tabCourses,
+    UddfEntityType.tags => context.l10n.diveImport_uddf_tabTags,
+    UddfEntityType.diveTypes => context.l10n.diveImport_uddf_tabTypes,
+    UddfEntityType.sites => context.l10n.diveImport_uddf_tabSites,
+    UddfEntityType.equipmentSets => context.l10n.diveImport_uddf_tabSets,
+    UddfEntityType.dives => context.l10n.diveImport_uddf_tabDives,
   };
 }

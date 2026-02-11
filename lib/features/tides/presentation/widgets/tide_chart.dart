@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
 import 'package:submersion/core/tide/entities/tide_prediction.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Interactive tide chart showing water height over time.
 ///
@@ -184,7 +185,10 @@ class _TideChartState extends State<TideChart> {
     final nowHeightStr = currentHeight != null
         ? '${DepthUnit.meters.convert(currentHeight, widget.depthUnit).toStringAsFixed(1)}${widget.depthUnit.symbol}'
         : '';
-    final nowLabelText = ' Now $nowTimeStr $nowHeightStr ';
+    final nowLabelText = context.l10n.tides_chart_nowLabel(
+      nowTimeStr,
+      nowHeightStr,
+    );
 
     // Constant for chart layout (must match titlesData reservedSize for left axis)
     const leftAxisWidth = 45.0;
@@ -195,8 +199,8 @@ class _TideChartState extends State<TideChart> {
         ? widget.extremes!
               .map((e) {
                 final typeLabel = e.type == TideExtremeType.high
-                    ? 'High'
-                    : 'Low';
+                    ? context.l10n.tides_label_high
+                    : context.l10n.tides_label_low;
                 final displayHeight = DepthUnit.meters.convert(
                   e.heightMeters,
                   widget.depthUnit,
@@ -204,13 +208,18 @@ class _TideChartState extends State<TideChart> {
                 final timeStr = DateFormat(
                   widget.timeFormat.pattern,
                 ).format(e.time.toLocal());
-                return '$typeLabel tide at $timeStr, ${displayHeight.toStringAsFixed(1)}${widget.depthUnit.symbol}';
+                return context.l10n.tides_semantic_extremeItem(
+                  typeLabel,
+                  timeStr,
+                  displayHeight.toStringAsFixed(1),
+                  widget.depthUnit.symbol,
+                );
               })
               .join('. ')
-        : 'No extremes data';
+        : context.l10n.tides_noExtremesData;
 
     return Semantics(
-      label: 'Tide chart. $extremesSummary',
+      label: context.l10n.tides_semantic_tideChart(extremesSummary),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -264,7 +273,9 @@ class _TideChartState extends State<TideChart> {
                         titlesData: FlTitlesData(
                           leftTitles: AxisTitles(
                             axisNameWidget: Text(
-                              'Height (${widget.depthUnit.symbol})',
+                              context.l10n.tides_chart_heightAxis(
+                                widget.depthUnit.symbol,
+                              ),
                               style: Theme.of(context).textTheme.labelSmall,
                             ),
                             sideTitles: SideTitles(
@@ -277,7 +288,9 @@ class _TideChartState extends State<TideChart> {
                                   widget.depthUnit,
                                 );
                                 return Padding(
-                                  padding: const EdgeInsets.only(right: 4),
+                                  padding: const EdgeInsetsDirectional.only(
+                                    end: 4,
+                                  ),
                                   child: Text(
                                     displayValue.toStringAsFixed(1),
                                     style: Theme.of(
@@ -400,7 +413,8 @@ class _TideChartState extends State<TideChart> {
                                     color: colorScheme.onSurfaceVariant,
                                     fontSize: 10,
                                   ),
-                                  labelResolver: (line) => 'MSL',
+                                  labelResolver: (line) =>
+                                      context.l10n.tides_chart_msl,
                                 ),
                               ),
                           ],
@@ -537,7 +551,7 @@ class _TideChartState extends State<TideChart> {
             ),
             const SizedBox(height: 8),
             Text(
-              'No tide data available',
+              context.l10n.tides_noDataAvailable,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -558,25 +572,25 @@ class _TideChartState extends State<TideChart> {
         _buildLegendItem(
           context,
           color: colorScheme.primary,
-          label: 'Tide Level',
+          label: context.l10n.tides_legend_tideLevel,
         ),
         if (widget.showExtremeMarkers) ...[
           _buildLegendItem(
             context,
             color: Colors.red.shade600,
-            label: 'High Tide',
+            label: context.l10n.tides_legend_highTide,
           ),
           _buildLegendItem(
             context,
             color: Colors.blue.shade600,
-            label: 'Low Tide',
+            label: context.l10n.tides_legend_lowTide,
           ),
         ],
         if (widget.showNowMarker)
           _buildLegendItem(
             context,
             color: colorScheme.primary,
-            label: 'Now',
+            label: context.l10n.tides_legend_now,
             isDashed: true,
           ),
       ],

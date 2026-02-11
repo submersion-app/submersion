@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -46,7 +47,7 @@ class ModCalculator extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Input Parameters',
+                        context.l10n.gasCalculators_mod_inputParameters,
                         style: textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -56,7 +57,7 @@ class ModCalculator extends ConsumerWidget {
                       // O2 percentage slider
                       _buildSliderSection(
                         context,
-                        label: 'Oxygen (O₂)',
+                        label: context.l10n.gasCalculators_mod_oxygenO2,
                         value: o2,
                         unit: '%',
                         min: 21,
@@ -70,7 +71,7 @@ class ModCalculator extends ConsumerWidget {
 
                       // ppO2 limit selector
                       Text(
-                        'ppO₂ Limit',
+                        context.l10n.gasCalculators_ppO2Limit,
                         style: textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w500,
                         ),
@@ -96,7 +97,7 @@ class ModCalculator extends ConsumerWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        _getPpO2Description(ppO2),
+                        _getPpO2Description(context, ppO2),
                         style: textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -119,7 +120,7 @@ class ModCalculator extends ConsumerWidget {
                     child: Column(
                       children: [
                         Text(
-                          'Maximum Operating Depth',
+                          context.l10n.gasCalculators_mod_maximumOperatingDepth,
                           style: textTheme.titleMedium?.copyWith(
                             color: colorScheme.onPrimaryContainer,
                           ),
@@ -180,7 +181,7 @@ class ModCalculator extends ConsumerWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'About MOD',
+                            context.l10n.gasCalculators_mod_aboutMod,
                             style: textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
@@ -189,12 +190,7 @@ class ModCalculator extends ConsumerWidget {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'MOD is the deepest you can safely dive on a specific gas mix '
-                        'without exceeding oxygen toxicity limits.\n\n'
-                        '• 1.4 bar ppO₂: Recommended working limit\n'
-                        '• 1.6 bar ppO₂: Maximum deco/emergency limit\n\n'
-                        'Higher O₂ = shallower MOD = longer NDL\n'
-                        'Lower O₂ = deeper MOD = shorter NDL',
+                        context.l10n.gasCalculators_mod_aboutModBody,
                         style: textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -319,13 +315,13 @@ class ModCalculator extends ConsumerWidget {
     );
   }
 
-  String _getPpO2Description(double ppO2) {
+  String _getPpO2Description(BuildContext context, double ppO2) {
     if (ppO2 <= 1.2) {
-      return 'Conservative limit for extended bottom time';
+      return context.l10n.gasCalculators_mod_ppO2Conservative;
     } else if (ppO2 <= 1.4) {
-      return 'Standard working limit for recreational diving';
+      return context.l10n.gasCalculators_mod_ppO2Standard;
     } else {
-      return 'Maximum limit for decompression stops only';
+      return context.l10n.gasCalculators_mod_ppO2Maximum;
     }
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
@@ -52,7 +53,7 @@ class DiverSummaryWidget extends ConsumerWidget {
             ),
             const SizedBox(width: 12),
             Text(
-              'Diver Profiles',
+              context.l10n.divers_summary_title,
               style: Theme.of(
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
@@ -61,7 +62,7 @@ class DiverSummaryWidget extends ConsumerWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Select a diver from the list to view details',
+          context.l10n.divers_summary_subtitle,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
@@ -91,7 +92,7 @@ class DiverSummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Overview',
+          context.l10n.divers_summary_overviewTitle,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -105,7 +106,7 @@ class DiverSummaryWidget extends ConsumerWidget {
               context,
               icon: Icons.people,
               value: '${divers.length}',
-              label: 'Total Divers',
+              label: context.l10n.divers_summary_totalDiversLabel,
               color: Colors.blue,
             ),
           ],
@@ -178,7 +179,7 @@ class DiverSummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Active Diver',
+          context.l10n.divers_summary_activeDiverTitle,
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -236,7 +237,7 @@ class DiverSummaryWidget extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        'Active',
+                        context.l10n.divers_list_activeBadge,
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: theme.colorScheme.onPrimary,
                         ),
@@ -267,7 +268,7 @@ class DiverSummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Other Divers',
+          context.l10n.divers_summary_otherDiversTitle,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -311,7 +312,7 @@ class DiverSummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Quick Actions',
+          context.l10n.divers_summary_quickActionsTitle,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -328,7 +329,7 @@ class DiverSummaryWidget extends ConsumerWidget {
                 context.go('$currentPath?mode=new');
               },
               icon: const Icon(Icons.person_add),
-              label: const Text('Add Diver'),
+              label: Text(context.l10n.divers_list_addDiverButton),
             ),
           ],
         ),

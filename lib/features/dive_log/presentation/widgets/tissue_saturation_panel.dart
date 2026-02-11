@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_saturation_chart.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Panel showing tissue saturation with header and context information.
 ///
@@ -45,13 +46,13 @@ class TissueSaturationPanel extends StatelessWidget {
           child: Icon(Icons.blur_linear, color: colorScheme.primary),
         ),
         title: Text(
-          'Tissue Loading',
+          context.l10n.diveLog_tissue_title,
           style: Theme.of(context).textTheme.titleSmall,
         ),
         subtitle: Text(
           timestampLabel != null
-              ? '$timestampLabel • Leading: TC${leadingComp.compartmentNumber} (${leadingComp.percentLoading.toStringAsFixed(0)}%)'
-              : 'Leading: TC${leadingComp.compartmentNumber} (${leadingComp.percentLoading.toStringAsFixed(0)}%)',
+              ? '$timestampLabel • ${context.l10n.diveLog_deco_label_leading}: TC${leadingComp.compartmentNumber} (${leadingComp.percentLoading.toStringAsFixed(0)}%)'
+              : '${context.l10n.diveLog_deco_label_leading}: TC${leadingComp.compartmentNumber} (${leadingComp.percentLoading.toStringAsFixed(0)}%)',
           style: Theme.of(
             context,
           ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
@@ -87,7 +88,7 @@ class TissueSaturationPanel extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _StatChip(
-            label: 'Ceiling',
+            label: context.l10n.diveLog_tissue_label_ceiling,
             value: status.ceilingMeters > 0
                 ? '${status.ceilingMeters.toStringAsFixed(0)}m'
                 : '-',
@@ -96,17 +97,19 @@ class TissueSaturationPanel extends StatelessWidget {
                 : colorScheme.primary,
           ),
           _StatChip(
-            label: 'NDL',
-            value: status.inDeco ? 'DECO' : status.ndlFormatted,
+            label: context.l10n.diveLog_tissue_label_ndl,
+            value: status.inDeco
+                ? context.l10n.diveLog_deco_badge_deco
+                : status.ndlFormatted,
             color: status.inDeco ? Colors.red : Colors.green,
           ),
           _StatChip(
-            label: 'TTS',
+            label: context.l10n.diveLog_tissue_label_tts,
             value: status.ttsFormatted,
             color: colorScheme.tertiary,
           ),
           _StatChip(
-            label: 'GF',
+            label: context.l10n.diveLog_tissue_label_gf,
             value:
                 '${(status.gfLow * 100).toInt()}/${(status.gfHigh * 100).toInt()}',
             color: colorScheme.onSurfaceVariant,
@@ -200,7 +203,7 @@ class CompactTissueSaturation extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  'Tissue Loading',
+                  context.l10n.diveLog_tissue_title,
                   style: Theme.of(
                     context,
                   ).textTheme.labelSmall?.copyWith(color: colorScheme.primary),

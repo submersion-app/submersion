@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
@@ -46,7 +47,10 @@ class SiteMarineLifeSection extends ConsumerWidget {
       children: [
         Icon(Icons.water, size: 20, color: colorScheme.primary),
         const SizedBox(width: 8),
-        Text('Marine Life', style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          context.l10n.marineLife_siteSection_title,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
       ],
     );
   }
@@ -70,7 +74,7 @@ class SiteMarineLifeSection extends ConsumerWidget {
             ),
             const SizedBox(width: 6),
             Text(
-              'Spotted Here',
+              context.l10n.marineLife_siteSection_spottedHere,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -82,7 +86,7 @@ class SiteMarineLifeSection extends ConsumerWidget {
           data: (spotted) {
             if (spotted.isEmpty) {
               return Text(
-                'No marine life spotted yet',
+                context.l10n.marineLife_siteSection_noSpotted,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                   fontStyle: FontStyle.italic,
@@ -109,7 +113,7 @@ class SiteMarineLifeSection extends ConsumerWidget {
             child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
           ),
           error: (error, stack) => Text(
-            'Error loading sightings',
+            context.l10n.marineLife_siteSection_errorLoadingSightings,
             style: Theme.of(
               context,
             ).textTheme.bodyMedium?.copyWith(color: colorScheme.error),
@@ -139,7 +143,7 @@ class SiteMarineLifeSection extends ConsumerWidget {
             const SizedBox(width: 6),
             Expanded(
               child: Text(
-                'Expected Species',
+                context.l10n.marineLife_siteSection_expectedSpecies,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -149,7 +153,8 @@ class SiteMarineLifeSection extends ConsumerWidget {
               IconButton(
                 icon: Icon(Icons.edit, size: 18, color: colorScheme.primary),
                 visualDensity: VisualDensity.compact,
-                tooltip: 'Edit expected species',
+                tooltip:
+                    context.l10n.marineLife_siteSection_editExpectedTooltip,
                 onPressed: () => _showSpeciesPicker(context, ref),
               ),
           ],
@@ -159,7 +164,7 @@ class SiteMarineLifeSection extends ConsumerWidget {
           data: (expected) {
             if (expected.isEmpty) {
               return Text(
-                'No expected species added',
+                context.l10n.marineLife_siteSection_noExpected,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                   fontStyle: FontStyle.italic,
@@ -185,7 +190,7 @@ class SiteMarineLifeSection extends ConsumerWidget {
             child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
           ),
           error: (error, stack) => Text(
-            'Error loading expected species',
+            context.l10n.marineLife_siteSection_errorLoadingExpected,
             style: Theme.of(
               context,
             ).textTheme.bodyMedium?.copyWith(color: colorScheme.error),
@@ -228,7 +233,11 @@ class SiteMarineLifeSection extends ConsumerWidget {
                 runSpacing: 4,
                 children: entry.value.map((s) {
                   final chipLabel = showCount && s.count != null
-                      ? '${s.name}, spotted ${s.count} times'
+                      ? context.l10n
+                            .marineLife_siteSection_spottedCountSemantics(
+                              s.name,
+                              s.count!,
+                            )
                       : s.name;
                   return Semantics(
                     label: chipLabel,

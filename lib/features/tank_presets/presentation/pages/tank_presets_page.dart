@@ -6,6 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 class TankPresetsPage extends ConsumerWidget {
   const TankPresetsPage({super.key});
@@ -18,33 +19,37 @@ class TankPresetsPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tank Presets'),
+        title: Text(context.l10n.tankPresets_title),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
-          tooltip: 'Back',
+          tooltip: context.l10n.common_action_back,
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/tank-presets/new'),
-        tooltip: 'Add tank preset',
+        tooltip: context.l10n.tankPresets_addPreset,
         child: const Icon(Icons.add),
       ),
       body: presetsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, st) => Center(child: Text('Error: $e')),
+        error: (e, st) =>
+            Center(child: Text(context.l10n.tankPresets_error(e.toString()))),
         data: (presets) {
           final builtInPresets = presets.where((p) => p.isBuiltIn).toList();
           final customPresets = presets.where((p) => !p.isBuiltIn).toList();
 
           if (presets.isEmpty) {
-            return const Center(child: Text('No tank presets available'));
+            return Center(child: Text(context.l10n.tankPresets_noPresets));
           }
 
           return ListView(
             children: [
               if (customPresets.isNotEmpty) ...[
-                _buildSectionHeader(context, 'Custom Presets'),
+                _buildSectionHeader(
+                  context,
+                  context.l10n.tankPresets_customPresets,
+                ),
                 ...customPresets.map(
                   (preset) => _buildPresetTile(
                     context,
@@ -56,7 +61,10 @@ class TankPresetsPage extends ConsumerWidget {
                 ),
                 const Divider(),
               ],
-              _buildSectionHeader(context, 'Built-in Presets'),
+              _buildSectionHeader(
+                context,
+                context.l10n.tankPresets_builtInPresets,
+              ),
               ...builtInPresets.map(
                 (preset) => _buildPresetTile(
                   context,
@@ -121,12 +129,12 @@ class TankPresetsPage extends ConsumerWidget {
                   icon: const Icon(Icons.edit_outlined),
                   onPressed: () =>
                       context.push('/tank-presets/${preset.id}/edit'),
-                  tooltip: 'Edit preset',
+                  tooltip: context.l10n.tankPresets_editPreset,
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline),
                   onPressed: () => _confirmDelete(context, ref, preset),
-                  tooltip: 'Delete preset',
+                  tooltip: context.l10n.tankPresets_deletePreset,
                 ),
               ],
             )
@@ -142,21 +150,21 @@ class TankPresetsPage extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Tank Preset?'),
+        title: Text(context.l10n.tankPresets_deleteTitle),
         content: Text(
-          'Are you sure you want to delete "${preset.displayName}"?',
+          context.l10n.tankPresets_deleteMessage(preset.displayName),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.common_action_cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('Delete'),
+            child: Text(context.l10n.common_action_delete),
           ),
         ],
       ),
@@ -168,14 +176,20 @@ class TankPresetsPage extends ConsumerWidget {
         await notifier.deletePreset(preset.id);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Deleted "${preset.displayName}"')),
+            SnackBar(
+              content: Text(
+                context.l10n.tankPresets_deleted(preset.displayName),
+              ),
+            ),
           );
         }
       } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error deleting preset: $e'),
+              content: Text(
+                context.l10n.tankPresets_errorDeleting(e.toString()),
+              ),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );

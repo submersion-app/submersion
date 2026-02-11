@@ -22,6 +22,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_c
 import 'package:submersion/features/dive_log/presentation/widgets/dive_summary_widget.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Compute a single OSM tile URL for the given lat/lng at [zoom].
 ///
@@ -105,7 +106,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
         }
       },
       icon: const Icon(Icons.add),
-      label: const Text('Log Dive'),
+      label: Text(context.l10n.diveLog_listPage_fab_logDive),
     );
 
     if (showMasterDetail) {
@@ -156,16 +157,16 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
     if (_isMapView) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Dive Map'),
+          title: Text(context.l10n.diveLog_listPage_appBar_diveMap),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            tooltip: 'Back to dive list',
+            tooltip: context.l10n.diveLog_listPage_tooltip_backToDiveList,
             onPressed: () => context.go('/dives'),
           ),
           actions: [
             IconButton(
               icon: const Icon(Icons.list),
-              tooltip: 'List View',
+              tooltip: context.l10n.diveLog_listPage_tooltip_listView,
               onPressed: _toggleMapView,
             ),
           ],
@@ -192,6 +193,7 @@ class DiveSearchDelegate extends SearchDelegate<Dive?> {
 
   DiveSearchDelegate(this.ref);
 
+  // TODO: l10n - needs context (SearchDelegate.searchFieldLabel has no BuildContext)
   @override
   String get searchFieldLabel => 'Search dives...';
 
@@ -201,7 +203,7 @@ class DiveSearchDelegate extends SearchDelegate<Dive?> {
       if (query.isNotEmpty)
         IconButton(
           icon: const Icon(Icons.clear),
-          tooltip: 'Clear search',
+          tooltip: context.l10n.diveLog_listPage_tooltip_clearSearch,
           onPressed: () => query = '',
         ),
     ];
@@ -211,7 +213,7 @@ class DiveSearchDelegate extends SearchDelegate<Dive?> {
   Widget buildLeading(BuildContext context) {
     return IconButton(
       icon: const Icon(Icons.arrow_back),
-      tooltip: 'Back',
+      tooltip: context.l10n.diveLog_listPage_tooltip_back,
       onPressed: () => close(context, null),
     );
   }
@@ -239,7 +241,7 @@ class DiveSearchDelegate extends SearchDelegate<Dive?> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Search by site, buddy, or notes',
+              context.l10n.diveLog_listPage_searchSuggestion,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -272,7 +274,7 @@ class DiveSearchDelegate extends SearchDelegate<Dive?> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'No dives found for "$query"',
+                  context.l10n.diveLog_listPage_searchNoResults(query),
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -322,7 +324,11 @@ class DiveSearchDelegate extends SearchDelegate<Dive?> {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(child: Text('Error: $error')),
+      error: (error, _) => Center(
+        child: Text(
+          context.l10n.diveLog_listPage_errorLoading(error.toString()),
+        ),
+      ),
     );
   }
 }
@@ -496,7 +502,8 @@ class DiveListTile extends ConsumerWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              siteName ?? 'Unknown Site',
+                              siteName ??
+                                  context.l10n.diveLog_listPage_unknownSite,
                               style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(
                                     fontWeight: FontWeight.w600,
@@ -549,7 +556,7 @@ class DiveListTile extends ConsumerWidget {
                       const SizedBox(height: 4),
                       // Date and time
                       Text(
-                        units.formatDateTime(dateTime),
+                        units.formatDateTime(dateTime, l10n: context.l10n),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: secondaryTextColor,
                         ),
@@ -642,7 +649,7 @@ class DiveListTile extends ConsumerWidget {
                 // Dive profile mini chart (right side)
                 if (profile.isNotEmpty)
                   Padding(
-                    padding: const EdgeInsets.only(left: 8),
+                    padding: const EdgeInsetsDirectional.only(start: 8),
                     child: SizedBox(
                       width: chartWidth,
                       height: 50,
@@ -848,7 +855,7 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
               const SizedBox(height: 8),
               // Link to advanced search
               Align(
-                alignment: Alignment.centerLeft,
+                alignment: AlignmentDirectional.centerStart,
                 child: TextButton.icon(
                   onPressed: () {
                     Navigator.of(context).pop();
@@ -897,7 +904,7 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
               ),
               if (_startDate != null || _endDate != null)
                 Align(
-                  alignment: Alignment.centerRight,
+                  alignment: AlignmentDirectional.centerEnd,
                   child: TextButton(
                     onPressed: () {
                       setState(() {
@@ -1177,7 +1184,7 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
               ),
               if (_minRating != null)
                 Align(
-                  alignment: Alignment.centerLeft,
+                  alignment: AlignmentDirectional.centerStart,
                   child: TextButton(
                     onPressed: () => setState(() => _minRating = null),
                     child: const Text('Clear rating filter'),

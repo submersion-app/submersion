@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/sort_options.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A reusable bottom sheet for selecting sort field and direction.
 ///
@@ -112,8 +113,10 @@ class _SortBottomSheetState<T extends Enum> extends State<SortBottomSheet<T>> {
                 button: true,
                 selected: isSelected,
                 label: isSelected
-                    ? 'Sort by $displayName, currently selected'
-                    : 'Sort by $displayName',
+                    ? context.l10n.accessibility_sort_selectedLabel(displayName)
+                    : context.l10n.accessibility_sort_unselectedLabel(
+                        displayName,
+                      ),
                 child: ListTile(
                   leading: Icon(
                     widget.getFieldIcon(field),

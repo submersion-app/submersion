@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 
 /// Step 0: File selection with drag-and-drop area and file picker button.
@@ -26,7 +27,11 @@ class FileSelectionStep extends ConsumerWidget {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.file_open),
-              label: Text(state.isLoading ? 'Detecting...' : 'Select File'),
+              label: Text(
+                state.isLoading
+                    ? context.l10n.universalImport_label_detecting
+                    : context.l10n.universalImport_action_selectFile,
+              ),
               onPressed: state.isLoading
                   ? null
                   : () => ref
@@ -47,11 +52,13 @@ class FileSelectionStep extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Text('Import Data', style: theme.textTheme.titleLarge),
+          Text(
+            context.l10n.universalImport_title,
+            style: theme.textTheme.titleLarge,
+          ),
           const SizedBox(height: 8),
           Text(
-            'Select a dive log file to import. Supported formats include '
-            'CSV, UDDF, Subsurface XML, and Garmin FIT.',
+            context.l10n.universalImport_description_supportedFormats,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),

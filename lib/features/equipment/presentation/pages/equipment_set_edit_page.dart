@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -56,9 +57,11 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
         data: (set) {
           if (set == null) {
             return Scaffold(
-              appBar: AppBar(title: const Text('Set Not Found')),
-              body: const Center(
-                child: Text('This equipment set no longer exists.'),
+              appBar: AppBar(
+                title: Text(context.l10n.equipment_setEdit_notFoundTitle),
+              ),
+              body: Center(
+                child: Text(context.l10n.equipment_setEdit_notFoundMessage),
               ),
             );
           }
@@ -66,12 +69,18 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
           return _buildForm(context, allEquipmentAsync, set);
         },
         loading: () => Scaffold(
-          appBar: AppBar(title: const Text('Loading...')),
+          appBar: AppBar(
+            title: Text(context.l10n.equipment_setEdit_loadingTitle),
+          ),
           body: const Center(child: CircularProgressIndicator()),
         ),
         error: (error, _) => Scaffold(
-          appBar: AppBar(title: const Text('Error')),
-          body: Center(child: Text('Error: $error')),
+          appBar: AppBar(
+            title: Text(context.l10n.equipment_setEdit_errorTitle),
+          ),
+          body: Center(
+            child: Text(context.l10n.equipment_setEdit_errorMessage('$error')),
+          ),
         ),
       );
     }
@@ -86,7 +95,11 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
   ) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isEditing ? 'Edit Set' : 'New Equipment Set'),
+        title: Text(
+          widget.isEditing
+              ? context.l10n.equipment_setEdit_appBar_editTitle
+              : context.l10n.equipment_setEdit_appBar_newTitle,
+        ),
       ),
       body: Form(
         key: _formKey,
@@ -96,14 +109,14 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
             // Name
             TextFormField(
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Set Name *',
-                prefixIcon: Icon(Icons.folder),
-                hintText: 'e.g., Warm Water Setup',
+              decoration: InputDecoration(
+                labelText: context.l10n.equipment_setEdit_nameLabel,
+                prefixIcon: const Icon(Icons.folder),
+                hintText: context.l10n.equipment_setEdit_nameHint,
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter a name';
+                  return context.l10n.equipment_setEdit_nameValidation;
                 }
                 return null;
               },
@@ -113,10 +126,10 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
             // Description
             TextFormField(
               controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                prefixIcon: Icon(Icons.description),
-                hintText: 'Optional description...',
+              decoration: InputDecoration(
+                labelText: context.l10n.equipment_setEdit_descriptionLabel,
+                prefixIcon: const Icon(Icons.description),
+                hintText: context.l10n.equipment_setEdit_descriptionHint,
               ),
               maxLines: 2,
             ),
@@ -124,12 +137,12 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
 
             // Equipment selection
             Text(
-              'Select Equipment',
+              context.l10n.equipment_setEdit_selectEquipmentTitle,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             Text(
-              'Choose the equipment items to include in this set.',
+              context.l10n.equipment_setEdit_selectEquipmentSubtitle,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -157,7 +170,9 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'No equipment available',
+                              context
+                                  .l10n
+                                  .equipment_setEdit_noEquipmentAvailable,
                               style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(
                                     color: Theme.of(
@@ -167,7 +182,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Add equipment first before creating a set.',
+                              context.l10n.equipment_setEdit_addEquipmentFirst,
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
                                     color: Theme.of(
@@ -218,7 +233,11 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) => Center(child: Text('Error: $error')),
+              error: (error, _) => Center(
+                child: Text(
+                  context.l10n.equipment_setEdit_errorMessage('$error'),
+                ),
+              ),
             ),
 
             const SizedBox(height: 32),
@@ -226,8 +245,8 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
             // Save Button
             Tooltip(
               message: widget.isEditing
-                  ? 'Save equipment set changes'
-                  : 'Create new equipment set',
+                  ? context.l10n.equipment_setEdit_saveTooltip_edit
+                  : context.l10n.equipment_setEdit_saveTooltip_new,
               child: FilledButton(
                 onPressed: _isLoading ? null : () => _saveSet(existingSet),
                 child: _isLoading
@@ -236,7 +255,11 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
                         width: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : Text(widget.isEditing ? 'Save Changes' : 'Create Set'),
+                    : Text(
+                        widget.isEditing
+                            ? context.l10n.equipment_setEdit_saveButton_edit
+                            : context.l10n.equipment_setEdit_saveButton_new,
+                      ),
               ),
             ),
           ],
@@ -304,8 +327,8 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
           SnackBar(
             content: Text(
               widget.isEditing
-                  ? 'Equipment set updated'
-                  : 'Equipment set created',
+                  ? context.l10n.equipment_setEdit_snackbar_updated
+                  : context.l10n.equipment_setEdit_snackbar_created,
             ),
           ),
         );
@@ -314,7 +337,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error saving equipment set: $e'),
+            content: Text(context.l10n.equipment_setEdit_snackbar_error('$e')),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );

@@ -7,6 +7,7 @@ import 'package:submersion/features/media/presentation/pages/photo_viewer_page.d
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Section widget displaying media (photos/videos) for a dive
 class DiveMediaSection extends ConsumerWidget {
@@ -34,7 +35,10 @@ class DiveMediaSection extends ConsumerWidget {
                 Icon(Icons.photo_library, size: 20, color: colorScheme.primary),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text('Photos & Video', style: textTheme.titleMedium),
+                  child: Text(
+                    context.l10n.media_diveMediaSection_title,
+                    style: textTheme.titleMedium,
+                  ),
                 ),
                 if (onAddPressed != null)
                   IconButton(
@@ -43,7 +47,7 @@ class DiveMediaSection extends ConsumerWidget {
                       color: colorScheme.primary,
                     ),
                     visualDensity: VisualDensity.compact,
-                    tooltip: 'Add photo or video',
+                    tooltip: context.l10n.media_diveMediaSection_addTooltip,
                     onPressed: onAddPressed,
                   ),
               ],
@@ -66,7 +70,7 @@ class DiveMediaSection extends ConsumerWidget {
                 child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
               ),
               error: (error, stack) => Text(
-                'Error loading media',
+                context.l10n.media_diveMediaSection_errorLoading,
                 style: textTheme.bodyMedium?.copyWith(color: colorScheme.error),
               ),
             ),
@@ -103,7 +107,7 @@ class _EmptyMediaState extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'No photos yet',
+            context.l10n.media_diveMediaSection_emptyState,
             style: textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
@@ -167,7 +171,7 @@ class _MediaThumbnail extends ConsumerWidget {
 
     return Semantics(
       button: true,
-      label: 'View photo. Long press to unlink',
+      label: context.l10n.media_diveMediaSection_thumbnailLabel,
       child: GestureDetector(
         onTap: () {
           Navigator.of(context).push(
@@ -283,18 +287,16 @@ class _MediaThumbnail extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Unlink Photo'),
-        content: const Text(
-          'Remove this photo from the dive? The photo will remain in your gallery.',
-        ),
+        title: Text(context.l10n.media_diveMediaSection_unlinkDialogTitle),
+        content: Text(context.l10n.media_diveMediaSection_unlinkDialogContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.media_diveMediaSection_cancelButton),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Unlink'),
+            child: Text(context.l10n.media_diveMediaSection_unlinkButton),
           ),
         ],
       ),
@@ -307,15 +309,19 @@ class _MediaThumbnail extends ConsumerWidget {
             .deleteMedia(item.id);
 
         if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Photo unlinked')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(context.l10n.media_diveMediaSection_unlinkSuccess),
+            ),
+          );
         }
       } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Failed to unlink: $e'),
+              content: Text(
+                context.l10n.media_diveMediaSection_unlinkError(e.toString()),
+              ),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );

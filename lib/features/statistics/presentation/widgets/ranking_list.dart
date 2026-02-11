@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A widget for displaying ranked items with progress bars
 class RankingList extends StatelessWidget {
@@ -36,7 +37,7 @@ class RankingList extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'No data yet',
+                context.l10n.statistics_ranking_emptyState,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -69,7 +70,9 @@ class RankingList extends StatelessWidget {
           const SizedBox(height: 8),
           Center(
             child: Text(
-              'and ${items.length - maxItems!} more',
+              context.l10n.statistics_ranking_moreItems(
+                items.length - maxItems!,
+              ),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -175,7 +178,10 @@ class _RankingTile extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        '${item.count} $countLabel',
+                        context.l10n.statistics_ranking_itemCount(
+                          item.count,
+                          countLabel,
+                        ),
                         style: TextStyle(
                           color: Theme.of(
                             context,
@@ -221,7 +227,12 @@ class _RankingTile extends StatelessWidget {
     if (onTap != null) {
       tile = Semantics(
         button: true,
-        label: '${item.name}, rank $rank, ${item.count} $countLabel',
+        label: context.l10n.statistics_ranking_semanticLabel(
+          item.name,
+          rank,
+          item.count,
+          countLabel,
+        ),
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(8),

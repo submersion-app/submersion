@@ -10,6 +10,7 @@ import 'package:submersion/features/statistics/presentation/providers/statistics
 import 'package:submersion/features/statistics/presentation/widgets/ranking_list.dart';
 import 'package:submersion/features/statistics/presentation/widgets/stat_charts.dart';
 import 'package:submersion/features/statistics/presentation/widgets/stat_section_card.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 class StatisticsGasPage extends ConsumerWidget {
   final bool embedded;
@@ -42,7 +43,7 @@ class StatisticsGasPage extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Air Consumption')),
+      appBar: AppBar(title: Text(context.l10n.statistics_gas_appBar_title)),
       body: content,
     );
   }
@@ -61,8 +62,8 @@ class StatisticsGasPage extends ConsumerWidget {
         : '${units.pressureSymbol}/min';
 
     return StatSectionCard(
-      title: 'SAC Rate Trend',
-      subtitle: 'Monthly average over 5 years',
+      title: context.l10n.statistics_gas_sacTrend_title,
+      subtitle: context.l10n.statistics_gas_sacTrend_subtitle,
       child: sacTrendAsync.when(
         data: (data) => TrendLineChart(
           data: data,
@@ -73,9 +74,9 @@ class StatisticsGasPage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, _) => const StatEmptyState(
+        error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: 'Failed to load SAC trend',
+          message: context.l10n.statistics_gas_sacTrend_error,
         ),
       ),
     );
@@ -85,8 +86,8 @@ class StatisticsGasPage extends ConsumerWidget {
     final gasMixAsync = ref.watch(gasMixDistributionProvider);
 
     return StatSectionCard(
-      title: 'Gas Mix Distribution',
-      subtitle: 'Dives by gas type',
+      title: context.l10n.statistics_gas_gasMix_title,
+      subtitle: context.l10n.statistics_gas_gasMix_subtitle,
       child: gasMixAsync.when(
         data: (data) => DistributionPieChart(
           data: data,
@@ -100,9 +101,9 @@ class StatisticsGasPage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, _) => const StatEmptyState(
+        error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: 'Failed to load gas mix data',
+          message: context.l10n.statistics_gas_gasMix_error,
         ),
       ),
     );
@@ -124,28 +125,28 @@ class StatisticsGasPage extends ConsumerWidget {
     // Map tank role keys to display names
     String getRoleDisplayName(String role) {
       return switch (role) {
-        'backGas' => 'Back Gas',
-        'stage' => 'Stage',
-        'deco' => 'Deco',
-        'bailout' => 'Bailout',
-        'sidemountLeft' => 'Sidemount L',
-        'sidemountRight' => 'Sidemount R',
-        'pony' => 'Pony',
-        'diluent' => 'Diluent',
-        'oxygenSupply' => 'O₂ Supply',
+        'backGas' => context.l10n.statistics_gas_tankRole_backGas,
+        'stage' => context.l10n.statistics_gas_tankRole_stage,
+        'deco' => context.l10n.statistics_gas_tankRole_deco,
+        'bailout' => context.l10n.statistics_gas_tankRole_bailout,
+        'sidemountLeft' => context.l10n.statistics_gas_tankRole_sidemountLeft,
+        'sidemountRight' => context.l10n.statistics_gas_tankRole_sidemountRight,
+        'pony' => context.l10n.statistics_gas_tankRole_pony,
+        'diluent' => context.l10n.statistics_gas_tankRole_diluent,
+        'oxygenSupply' => context.l10n.statistics_gas_tankRole_oxygenSupply,
         _ => role,
       };
     }
 
     return StatSectionCard(
-      title: 'SAC by Tank Role',
-      subtitle: 'Average consumption by tank type',
+      title: context.l10n.statistics_gas_sacByRole_title,
+      subtitle: context.l10n.statistics_gas_sacByRole_subtitle,
       child: sacByRoleAsync.when(
         data: (data) {
           if (data.isEmpty) {
-            return const StatEmptyState(
+            return StatEmptyState(
               icon: Icons.propane_tank,
-              message: 'No multi-tank data available',
+              message: context.l10n.statistics_gas_sacByRole_empty,
             );
           }
 
@@ -195,9 +196,9 @@ class StatisticsGasPage extends ConsumerWidget {
           height: 100,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, _) => const StatEmptyState(
+        error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: 'Failed to load SAC by role',
+          message: context.l10n.statistics_gas_sacByRole_error,
         ),
       ),
     );
@@ -217,14 +218,14 @@ class StatisticsGasPage extends ConsumerWidget {
         : '${units.pressureSymbol}/min';
 
     return StatSectionCard(
-      title: 'SAC Rate Records',
-      subtitle: 'Best and worst air consumption',
+      title: context.l10n.statistics_gas_sacRecords_title,
+      subtitle: context.l10n.statistics_gas_sacRecords_subtitle,
       child: sacRecordsAsync.when(
         data: (records) {
           if (records.best == null && records.worst == null) {
-            return const StatEmptyState(
+            return StatEmptyState(
               icon: Icons.air,
-              message: 'No SAC data available yet',
+              message: context.l10n.statistics_gas_sacRecords_empty,
             );
           }
 
@@ -232,7 +233,7 @@ class StatisticsGasPage extends ConsumerWidget {
             children: [
               if (records.best != null)
                 ValueRankingCard(
-                  title: 'Best SAC Rate',
+                  title: context.l10n.statistics_gas_sacRecords_best,
                   value:
                       '${records.best!.value?.toStringAsFixed(1)} $unitSymbol',
                   subtitle: records.best!.subtitle,
@@ -244,7 +245,7 @@ class StatisticsGasPage extends ConsumerWidget {
                 const SizedBox(height: 8),
               if (records.worst != null)
                 ValueRankingCard(
-                  title: 'Highest SAC Rate',
+                  title: context.l10n.statistics_gas_sacRecords_highest,
                   value:
                       '${records.worst!.value?.toStringAsFixed(1)} $unitSymbol',
                   subtitle: records.worst!.subtitle,
@@ -259,9 +260,9 @@ class StatisticsGasPage extends ConsumerWidget {
           height: 120,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, _) => const StatEmptyState(
+        error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: 'Failed to load SAC records',
+          message: context.l10n.statistics_gas_sacRecords_error,
         ),
       ),
     );

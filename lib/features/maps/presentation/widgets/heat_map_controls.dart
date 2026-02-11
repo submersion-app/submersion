@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/maps/presentation/providers/heat_map_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Simple toggle button for enabling/disabling heat map overlay.
 class HeatMapToggleButton extends ConsumerWidget {
@@ -13,15 +14,17 @@ class HeatMapToggleButton extends ConsumerWidget {
 
     return Semantics(
       label: settings.isVisible
-          ? 'Heat map overlay is on'
-          : 'Heat map overlay is off',
+          ? context.l10n.maps_heatMap_overlayOn
+          : context.l10n.maps_heatMap_overlayOff,
       toggled: settings.isVisible,
       child: IconButton(
         icon: Icon(
           settings.isVisible ? Icons.blur_on : Icons.blur_off,
           color: settings.isVisible ? colorScheme.primary : null,
         ),
-        tooltip: settings.isVisible ? 'Hide Heat Map' : 'Show Heat Map',
+        tooltip: settings.isVisible
+            ? context.l10n.maps_heatMap_hide
+            : context.l10n.maps_heatMap_show,
         onPressed: () {
           ref.read(heatMapSettingsProvider.notifier).state = settings.copyWith(
             isVisible: !settings.isVisible,

@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -29,7 +30,7 @@ class EquipmentListPage extends ConsumerWidget {
         }
       },
       icon: const Icon(Icons.add),
-      label: const Text('Add Equipment'),
+      label: Text(context.l10n.equipment_fab_addEquipment),
     );
 
     if (ResponsiveBreakpoints.isMasterDetail(context)) {
@@ -69,7 +70,7 @@ class EquipmentListPage extends ConsumerWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddEquipmentDialog(context, ref),
         icon: const Icon(Icons.add),
-        label: const Text('Add Equipment'),
+        label: Text(context.l10n.equipment_fab_addEquipment),
       ),
     );
   }
@@ -144,22 +145,22 @@ class _AddEquipmentSheetState extends ConsumerState<AddEquipmentSheet> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Add Equipment',
+                      context.l10n.equipment_addSheet_title,
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
                       icon: const Icon(Icons.close),
-                      tooltip: 'Close',
+                      tooltip: context.l10n.equipment_addSheet_closeTooltip,
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<EquipmentType>(
                   initialValue: _selectedType,
-                  decoration: const InputDecoration(
-                    labelText: 'Type',
-                    prefixIcon: Icon(Icons.category),
+                  decoration: InputDecoration(
+                    labelText: context.l10n.equipment_addSheet_typeLabel,
+                    prefixIcon: const Icon(Icons.category),
                   ),
                   items: EquipmentType.values.map((type) {
                     return DropdownMenuItem(
@@ -176,14 +177,14 @@ class _AddEquipmentSheetState extends ConsumerState<AddEquipmentSheet> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Name',
-                    prefixIcon: Icon(Icons.label),
-                    hintText: 'e.g., My Primary Regulator',
+                  decoration: InputDecoration(
+                    labelText: context.l10n.equipment_addSheet_nameLabel,
+                    prefixIcon: const Icon(Icons.label),
+                    hintText: context.l10n.equipment_addSheet_nameHint,
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter a name';
+                      return context.l10n.equipment_addSheet_nameValidation;
                     }
                     return null;
                   },
@@ -191,19 +192,19 @@ class _AddEquipmentSheetState extends ConsumerState<AddEquipmentSheet> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _brandController,
-                  decoration: const InputDecoration(
-                    labelText: 'Brand',
-                    prefixIcon: Icon(Icons.business),
-                    hintText: 'e.g., Scubapro',
+                  decoration: InputDecoration(
+                    labelText: context.l10n.equipment_addSheet_brandLabel,
+                    prefixIcon: const Icon(Icons.business),
+                    hintText: context.l10n.equipment_addSheet_brandHint,
                   ),
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _modelController,
-                  decoration: const InputDecoration(
-                    labelText: 'Model',
-                    prefixIcon: Icon(Icons.info_outline),
-                    hintText: 'e.g., MK25 EVO',
+                  decoration: InputDecoration(
+                    labelText: context.l10n.equipment_addSheet_modelLabel,
+                    prefixIcon: const Icon(Icons.info_outline),
+                    hintText: context.l10n.equipment_addSheet_modelHint,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -212,9 +213,10 @@ class _AddEquipmentSheetState extends ConsumerState<AddEquipmentSheet> {
                     Expanded(
                       child: TextFormField(
                         controller: _serialController,
-                        decoration: const InputDecoration(
-                          labelText: 'Serial Number',
-                          prefixIcon: Icon(Icons.numbers),
+                        decoration: InputDecoration(
+                          labelText:
+                              context.l10n.equipment_addSheet_serialNumberLabel,
+                          prefixIcon: const Icon(Icons.numbers),
                         ),
                       ),
                     ),
@@ -222,10 +224,10 @@ class _AddEquipmentSheetState extends ConsumerState<AddEquipmentSheet> {
                     Expanded(
                       child: TextFormField(
                         controller: _sizeController,
-                        decoration: const InputDecoration(
-                          labelText: 'Size',
-                          prefixIcon: Icon(Icons.straighten),
-                          hintText: 'e.g., M, L, 42',
+                        decoration: InputDecoration(
+                          labelText: context.l10n.equipment_addSheet_sizeLabel,
+                          prefixIcon: const Icon(Icons.straighten),
+                          hintText: context.l10n.equipment_addSheet_sizeHint,
                         ),
                       ),
                     ),
@@ -234,7 +236,7 @@ class _AddEquipmentSheetState extends ConsumerState<AddEquipmentSheet> {
                 const SizedBox(height: 24),
                 // Purchase Information
                 Text(
-                  'Purchase Information',
+                  context.l10n.equipment_addSheet_purchaseInfoTitle,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -250,7 +252,7 @@ class _AddEquipmentSheetState extends ConsumerState<AddEquipmentSheet> {
                         label: Text(
                           _purchaseDate != null
                               ? '${_purchaseDate!.month}/${_purchaseDate!.day}/${_purchaseDate!.year}'
-                              : 'Date',
+                              : context.l10n.equipment_addSheet_dateLabel,
                           style: TextStyle(
                             color: _purchaseDate != null
                                 ? null
@@ -265,7 +267,9 @@ class _AddEquipmentSheetState extends ConsumerState<AddEquipmentSheet> {
                     Expanded(
                       child: TextFormField(
                         controller: _purchasePriceController,
-                        decoration: const InputDecoration(labelText: 'Price'),
+                        decoration: InputDecoration(
+                          labelText: context.l10n.equipment_addSheet_priceLabel,
+                        ),
                         keyboardType: const TextInputType.numberWithOptions(
                           decimal: true,
                         ),
@@ -276,8 +280,9 @@ class _AddEquipmentSheetState extends ConsumerState<AddEquipmentSheet> {
                       width: 90,
                       child: TextFormField(
                         controller: _purchaseCurrencyController,
-                        decoration: const InputDecoration(
-                          labelText: 'Currency',
+                        decoration: InputDecoration(
+                          labelText:
+                              context.l10n.equipment_addSheet_currencyLabel,
                         ),
                       ),
                     ),
@@ -287,10 +292,12 @@ class _AddEquipmentSheetState extends ConsumerState<AddEquipmentSheet> {
                 // Service Interval
                 TextFormField(
                   controller: _serviceIntervalController,
-                  decoration: const InputDecoration(
-                    labelText: 'Service Interval (days)',
-                    prefixIcon: Icon(Icons.schedule),
-                    hintText: 'e.g., 365 for yearly',
+                  decoration: InputDecoration(
+                    labelText:
+                        context.l10n.equipment_addSheet_serviceIntervalLabel,
+                    prefixIcon: const Icon(Icons.schedule),
+                    hintText:
+                        context.l10n.equipment_addSheet_serviceIntervalHint,
                   ),
                   keyboardType: TextInputType.number,
                 ),
@@ -298,10 +305,10 @@ class _AddEquipmentSheetState extends ConsumerState<AddEquipmentSheet> {
                 // Notes
                 TextFormField(
                   controller: _notesController,
-                  decoration: const InputDecoration(
-                    labelText: 'Notes',
-                    prefixIcon: Icon(Icons.notes),
-                    hintText: 'Additional notes...',
+                  decoration: InputDecoration(
+                    labelText: context.l10n.equipment_addSheet_notesLabel,
+                    prefixIcon: const Icon(Icons.notes),
+                    hintText: context.l10n.equipment_addSheet_notesHint,
                   ),
                   maxLines: 2,
                 ),
@@ -314,7 +321,7 @@ class _AddEquipmentSheetState extends ConsumerState<AddEquipmentSheet> {
                           width: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Add Equipment'),
+                      : Text(context.l10n.equipment_addSheet_submitButton),
                 ),
               ],
             ),
@@ -383,14 +390,16 @@ class _AddEquipmentSheetState extends ConsumerState<AddEquipmentSheet> {
       if (mounted) {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Equipment added successfully')),
+          SnackBar(
+            content: Text(context.l10n.equipment_addSheet_successSnackbar),
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error adding equipment: $e'),
+            content: Text(context.l10n.equipment_addSheet_errorSnackbar('$e')),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );

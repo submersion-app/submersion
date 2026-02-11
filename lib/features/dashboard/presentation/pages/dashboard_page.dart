@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_wallet_card.dart';
@@ -104,37 +105,49 @@ class DashboardPage extends ConsumerWidget {
         : '-';
     final cards = [
       Semantics(
-        label: statLabel(name: 'Total Dives', value: '${stats.totalDives}'),
+        label: statLabel(
+          name: context.l10n.dashboard_stats_totalDives,
+          value: '${stats.totalDives}',
+        ),
         child: StatSummaryCard(
           icon: Icons.waves,
-          label: 'Total Dives',
+          label: context.l10n.dashboard_stats_totalDives,
           value: '${stats.totalDives}',
           iconColor: Colors.blue,
         ),
       ),
       Semantics(
-        label: statLabel(name: 'Hours Logged', value: hoursValue),
+        label: statLabel(
+          name: context.l10n.dashboard_stats_hoursLogged,
+          value: hoursValue,
+        ),
         child: StatSummaryCard(
           icon: Icons.timer,
-          label: 'Hours Logged',
+          label: context.l10n.dashboard_stats_hoursLogged,
           value: hoursValue,
           iconColor: Colors.teal,
         ),
       ),
       Semantics(
-        label: statLabel(name: 'Max Depth', value: maxDepthValue),
+        label: statLabel(
+          name: context.l10n.dashboard_stats_maxDepth,
+          value: maxDepthValue,
+        ),
         child: StatSummaryCard(
           icon: Icons.arrow_downward,
-          label: 'Max Depth',
+          label: context.l10n.dashboard_stats_maxDepth,
           value: maxDepthValue,
           iconColor: Colors.indigo,
         ),
       ),
       Semantics(
-        label: statLabel(name: 'Sites Visited', value: '${stats.totalSites}'),
+        label: statLabel(
+          name: context.l10n.dashboard_stats_sitesVisited,
+          value: '${stats.totalSites}',
+        ),
         child: StatSummaryCard(
           icon: Icons.location_on,
-          label: 'Sites Visited',
+          label: context.l10n.dashboard_stats_sitesVisited,
           value: '${stats.totalSites}',
           iconColor: Colors.orange,
         ),
@@ -182,7 +195,7 @@ class DashboardPage extends ConsumerWidget {
   Widget _buildStatsGridError(BuildContext context) {
     final theme = Theme.of(context);
     return Semantics(
-      label: 'Error: Failed to load statistics',
+      label: context.l10n.dashboard_semantics_errorLoadingStatistics,
       child: Card(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -198,7 +211,7 @@ class DashboardPage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Failed to load statistics',
+                  context.l10n.dashboard_stats_errorLoadingStatistics,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.error,
                   ),

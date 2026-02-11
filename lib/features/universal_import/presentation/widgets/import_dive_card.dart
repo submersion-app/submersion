@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/universal_import/presentation/widgets/duplicate_badge.dart';
 
 /// Card displaying a dive entry for selection in the import wizard.
@@ -38,13 +39,15 @@ class ImportDiveCard extends StatelessWidget {
 
     final dateStr = dateTime != null
         ? DateFormat('MMM d, y - HH:mm').format(dateTime)
-        : 'Unknown date';
+        : context.l10n.universalImport_label_unknownDate;
 
     final depthStr = maxDepth != null ? '${maxDepth.toStringAsFixed(1)}m' : '';
     final durationMin = (runtime ?? duration)?.inMinutes;
     final durationStr = durationMin != null ? '${durationMin}min' : '';
 
-    final title = diveNumber != null ? 'Dive #$diveNumber' : dateStr;
+    final title = diveNumber != null
+        ? context.l10n.universalImport_label_diveNumber(diveNumber)
+        : dateStr;
     final subtitle = diveNumber != null
         ? dateStr
         : [
@@ -60,7 +63,7 @@ class ImportDiveCard extends StatelessWidget {
           : null,
       child: Semantics(
         button: true,
-        label: 'Toggle selection for $title',
+        label: context.l10n.universalImport_semantics_toggleSelection(title),
         child: InkWell(
           onTap: onToggle,
           borderRadius: BorderRadius.circular(12),
@@ -108,8 +111,9 @@ class ImportDiveCard extends StatelessWidget {
                   const SizedBox(width: 8),
                   DuplicateBadge(
                     isProbable: matchResult!.score >= 0.7,
-                    label:
-                        '${(matchResult!.score * 100).toStringAsFixed(0)}% match',
+                    label: context.l10n.universalImport_label_percentMatch(
+                      (matchResult!.score * 100).toStringAsFixed(0),
+                    ),
                   ),
                 ],
               ],

@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:intl/intl.dart';
 
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
@@ -30,6 +31,7 @@ class CertificationCardRenderer {
   static Future<Uint8List?> generateCardImage({
     required Certification certification,
     required String diverName,
+    required AppLocalizations l10n,
   }) async {
     try {
       const width = 800.0;
@@ -140,7 +142,7 @@ class CertificationCardRenderer {
         );
         _drawTextRightAligned(
           canvas: canvas,
-          text: 'ISSUED',
+          text: l10n.certifications_card_issued,
           x: width - 32,
           y: height - 70,
           fontSize: 12,
@@ -268,6 +270,7 @@ class CertificationCardRenderer {
   static Future<Uint8List?> generateCertificateImage({
     required Certification certification,
     required String diverName,
+    required AppLocalizations l10n,
   }) async {
     try {
       const width = 1200.0;
@@ -337,7 +340,7 @@ class CertificationCardRenderer {
       // Draw "This certifies that"
       _drawCenteredText(
         canvas: canvas,
-        text: 'This certifies that',
+        text: l10n.certifications_certificate_thisCertifies,
         y: 180,
         width: width,
         fontSize: 24,
@@ -359,7 +362,7 @@ class CertificationCardRenderer {
       // Draw "has completed training as"
       _drawCenteredText(
         canvas: canvas,
-        text: 'has completed training as',
+        text: l10n.certifications_certificate_hasCompletedTraining,
         y: 330,
         width: width,
         fontSize: 24,
@@ -392,15 +395,11 @@ class CertificationCardRenderer {
       }
 
       // Draw issue date and card number at bottom
-      final dateFormat = DateFormat('MMMM d, yyyy');
-      final issueDateStr = certification.issueDate != null
-          ? 'Issued: ${dateFormat.format(certification.issueDate!)}'
-          : '';
-      final cardNumberStr = certification.cardNumber != null
-          ? 'Card #: ${certification.cardNumber}'
-          : '';
-
-      if (issueDateStr.isNotEmpty) {
+      if (certification.issueDate != null) {
+        final dateFormat = DateFormat('MMMM d, yyyy');
+        final issueDateStr = l10n.certifications_certificate_issued(
+          dateFormat.format(certification.issueDate!),
+        );
         _drawCenteredText(
           canvas: canvas,
           text: issueDateStr,
@@ -412,7 +411,10 @@ class CertificationCardRenderer {
         );
       }
 
-      if (cardNumberStr.isNotEmpty) {
+      if (certification.cardNumber != null) {
+        final cardNumberStr = l10n.certifications_certificate_cardNumber(
+          certification.cardNumber!,
+        );
         _drawCenteredText(
           canvas: canvas,
           text: cardNumberStr,
@@ -426,12 +428,11 @@ class CertificationCardRenderer {
 
       // Draw instructor info if available
       if (certification.instructorName != null) {
-        final instructorText = certification.instructorNumber != null
-            ? 'Instructor: ${certification.instructorName} (${certification.instructorNumber})'
-            : 'Instructor: ${certification.instructorName}';
         _drawCenteredText(
           canvas: canvas,
-          text: instructorText,
+          text: l10n.certifications_certificate_instructor(
+            certification.instructorName!,
+          ),
           y: 640,
           width: width,
           fontSize: 18,
@@ -447,10 +448,10 @@ class CertificationCardRenderer {
         linePaint,
       );
 
-      // Draw "Submersion Dive Log" footer
+      // Draw footer
       _drawCenteredText(
         canvas: canvas,
-        text: 'Submersion Dive Log',
+        text: l10n.certifications_certificate_footer,
         y: 730,
         width: width,
         fontSize: 16,

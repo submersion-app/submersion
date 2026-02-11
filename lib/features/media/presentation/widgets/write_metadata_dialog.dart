@@ -4,6 +4,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/media/data/services/metadata_write_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Result from the write metadata dialog.
 class WriteMetadataResult {
@@ -56,8 +57,9 @@ class _WriteMetadataDialogState extends State<WriteMetadataDialog> {
       siteName: widget.siteName,
     );
 
-    final mediaType = _isVideo ? 'video' : 'photo';
-    final title = 'Write Dive Data to ${_isVideo ? 'Video' : 'Photo'}';
+    final title = _isVideo
+        ? context.l10n.media_writeMetadata_titleVideo
+        : context.l10n.media_writeMetadata_titlePhoto;
 
     return AlertDialog(
       title: Text(title),
@@ -67,7 +69,9 @@ class _WriteMetadataDialogState extends State<WriteMetadataDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'The following metadata will be written to the $mediaType:',
+              _isVideo
+                  ? context.l10n.media_writeMetadata_descriptionVideo
+                  : context.l10n.media_writeMetadata_descriptionPhoto,
               style: textTheme.bodyMedium,
             ),
             const SizedBox(height: 16),
@@ -85,7 +89,7 @@ class _WriteMetadataDialogState extends State<WriteMetadataDialog> {
                   if (enrichment?.depthMeters != null)
                     _MetadataRow(
                       icon: Icons.arrow_downward,
-                      label: 'Depth',
+                      label: context.l10n.media_writeMetadata_depthLabel,
                       value: formatter.formatDepth(
                         enrichment!.depthMeters,
                         decimals: 1,
@@ -97,7 +101,7 @@ class _WriteMetadataDialogState extends State<WriteMetadataDialog> {
                     const SizedBox(height: 8),
                     _MetadataRow(
                       icon: Icons.thermostat,
-                      label: 'Temperature',
+                      label: context.l10n.media_writeMetadata_temperatureLabel,
                       value: formatter.formatTemperature(
                         enrichment!.temperatureCelsius,
                         decimals: 0,
@@ -111,7 +115,7 @@ class _WriteMetadataDialogState extends State<WriteMetadataDialog> {
                     const SizedBox(height: 8),
                     _MetadataRow(
                       icon: Icons.location_on,
-                      label: 'GPS',
+                      label: context.l10n.media_writeMetadata_gpsLabel,
                       value:
                           '${widget.item.latitude!.toStringAsFixed(4)}, '
                           '${widget.item.longitude!.toStringAsFixed(4)}',
@@ -123,7 +127,7 @@ class _WriteMetadataDialogState extends State<WriteMetadataDialog> {
                     const SizedBox(height: 8),
                     _MetadataRow(
                       icon: Icons.timer_outlined,
-                      label: 'Dive time',
+                      label: context.l10n.media_writeMetadata_diveTimeLabel,
                       value: _formatElapsedTime(enrichment!.elapsedSeconds!),
                     ),
                   ],
@@ -134,7 +138,7 @@ class _WriteMetadataDialogState extends State<WriteMetadataDialog> {
                     const SizedBox(height: 8),
                     _MetadataRow(
                       icon: Icons.place,
-                      label: 'Site',
+                      label: context.l10n.media_writeMetadata_siteLabel,
                       value: widget.siteName!,
                     ),
                   ],
@@ -144,7 +148,7 @@ class _WriteMetadataDialogState extends State<WriteMetadataDialog> {
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: Text(
-                        'No dive data available to write.',
+                        context.l10n.media_writeMetadata_noDataAvailable,
                         style: textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                           fontStyle: FontStyle.italic,
@@ -173,7 +177,7 @@ class _WriteMetadataDialogState extends State<WriteMetadataDialog> {
           onPressed: () => Navigator.of(
             context,
           ).pop(const WriteMetadataResult(confirmed: false)),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.media_writeMetadata_cancelButton),
         ),
         FilledButton(
           onPressed: metadata.hasData
@@ -184,7 +188,7 @@ class _WriteMetadataDialogState extends State<WriteMetadataDialog> {
                   ),
                 )
               : null,
-          child: const Text('Write'),
+          child: Text(context.l10n.media_writeMetadata_writeButton),
         ),
       ],
     );
@@ -195,12 +199,10 @@ class _WriteMetadataDialogState extends State<WriteMetadataDialog> {
     final IconData warningIcon;
 
     if (_isVideo) {
-      warningText =
-          'A new video will be created with the metadata. '
-          'Video metadata cannot be modified in-place.';
+      warningText = context.l10n.media_writeMetadata_warningVideoText;
       warningIcon = Icons.info_outline;
     } else {
-      warningText = 'This will modify the original photo.';
+      warningText = context.l10n.media_writeMetadata_warningPhotoText;
       warningIcon = Icons.warning_amber_rounded;
     }
 
@@ -246,7 +248,10 @@ class _WriteMetadataDialogState extends State<WriteMetadataDialog> {
       child: Row(
         children: [
           Expanded(
-            child: Text('Keep original video', style: textTheme.bodyMedium),
+            child: Text(
+              context.l10n.media_writeMetadata_keepOriginalVideo,
+              style: textTheme.bodyMedium,
+            ),
           ),
           Switch(
             value: _keepOriginal,

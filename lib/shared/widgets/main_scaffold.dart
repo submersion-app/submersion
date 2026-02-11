@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
+
 class MainScaffold extends StatefulWidget {
   final Widget child;
 
@@ -136,7 +138,7 @@ class _MainScaffoldState extends State<MainScaffold> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (context) => SafeArea(
+      builder: (sheetContext) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -145,12 +147,15 @@ class _MainScaffoldState extends State<MainScaffold> {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  Text('More', style: Theme.of(context).textTheme.titleLarge),
+                  Text(
+                    sheetContext.l10n.nav_more,
+                    style: Theme.of(sheetContext).textTheme.titleLarge,
+                  ),
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.close),
-                    tooltip: 'Close menu',
-                    onPressed: () => Navigator.pop(context),
+                    tooltip: sheetContext.l10n.nav_tooltip_closeMenu,
+                    onPressed: () => Navigator.pop(sheetContext),
                   ),
                 ],
               ),
@@ -163,75 +168,75 @@ class _MainScaffoldState extends State<MainScaffold> {
                 children: [
                   ListTile(
                     leading: const Icon(Icons.backpack),
-                    title: const Text('Equipment'),
+                    title: Text(sheetContext.l10n.nav_equipment),
                     onTap: () {
-                      Navigator.pop(context);
+                      Navigator.pop(sheetContext);
                       context.go('/equipment');
                     },
                   ),
                   ListTile(
                     leading: const Icon(Icons.people),
-                    title: const Text('Buddies'),
+                    title: Text(sheetContext.l10n.nav_buddies),
                     onTap: () {
-                      Navigator.pop(context);
+                      Navigator.pop(sheetContext);
                       context.go('/buddies');
                     },
                   ),
                   ListTile(
                     leading: const Icon(Icons.store),
-                    title: const Text('Dive Centers'),
+                    title: Text(sheetContext.l10n.nav_diveCenters),
                     onTap: () {
-                      Navigator.pop(context);
+                      Navigator.pop(sheetContext);
                       context.go('/dive-centers');
                     },
                   ),
                   ListTile(
                     leading: const Icon(Icons.card_membership),
-                    title: const Text('Certifications'),
+                    title: Text(sheetContext.l10n.nav_certifications),
                     onTap: () {
-                      Navigator.pop(context);
+                      Navigator.pop(sheetContext);
                       context.go('/certifications');
                     },
                   ),
                   ListTile(
                     leading: const Icon(Icons.school),
-                    title: const Text('Courses'),
-                    subtitle: const Text('Training & Education'),
+                    title: Text(sheetContext.l10n.nav_courses),
+                    subtitle: Text(sheetContext.l10n.nav_coursesSubtitle),
                     onTap: () {
-                      Navigator.pop(context);
+                      Navigator.pop(sheetContext);
                       context.go('/courses');
                     },
                   ),
                   ListTile(
                     leading: const Icon(Icons.bar_chart),
-                    title: const Text('Statistics'),
+                    title: Text(sheetContext.l10n.nav_statistics),
                     onTap: () {
-                      Navigator.pop(context);
+                      Navigator.pop(sheetContext);
                       context.go('/statistics');
                     },
                   ),
                   ListTile(
                     leading: const Icon(Icons.edit_calendar),
-                    title: const Text('Planning'),
-                    subtitle: const Text('Dive Planner, Calculators'),
+                    title: Text(sheetContext.l10n.nav_planning),
+                    subtitle: Text(sheetContext.l10n.nav_planningSubtitle),
                     onTap: () {
-                      Navigator.pop(context);
+                      Navigator.pop(sheetContext);
                       context.go('/planning');
                     },
                   ),
                   ListTile(
                     leading: const Icon(Icons.sync_alt),
-                    title: const Text('Transfer'),
+                    title: Text(sheetContext.l10n.nav_transfer),
                     onTap: () {
-                      Navigator.pop(context);
+                      Navigator.pop(sheetContext);
                       context.go('/transfer');
                     },
                   ),
                   ListTile(
                     leading: const Icon(Icons.settings),
-                    title: const Text('Settings'),
+                    title: Text(sheetContext.l10n.nav_settings),
                     onTap: () {
-                      Navigator.pop(context);
+                      Navigator.pop(sheetContext);
                       context.go('/settings');
                     },
                   ),
@@ -273,7 +278,9 @@ class _MainScaffoldState extends State<MainScaffold> {
                             ? Icons.keyboard_double_arrow_right
                             : Icons.keyboard_double_arrow_left,
                       ),
-                      tooltip: _isCollapsed ? 'Expand menu' : 'Collapse menu',
+                      tooltip: _isCollapsed
+                          ? context.l10n.nav_tooltip_expandMenu
+                          : context.l10n.nav_tooltip_collapseMenu,
                       onPressed: () {
                         setState(() {
                           _isCollapsed = !_isCollapsed;
@@ -284,71 +291,71 @@ class _MainScaffoldState extends State<MainScaffold> {
               selectedIndex: selectedIndex,
               onDestinationSelected: (index) =>
                   _onDestinationSelected(context, index, isWideScreen: true),
-              destinations: const [
+              destinations: [
                 NavigationRailDestination(
-                  icon: Icon(Icons.home_outlined),
-                  selectedIcon: Icon(Icons.home),
-                  label: Text('Home'),
+                  icon: const Icon(Icons.home_outlined),
+                  selectedIcon: const Icon(Icons.home),
+                  label: Text(context.l10n.nav_home),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.scuba_diving_outlined),
-                  selectedIcon: Icon(Icons.scuba_diving),
-                  label: Text('Dives'),
+                  icon: const Icon(Icons.scuba_diving_outlined),
+                  selectedIcon: const Icon(Icons.scuba_diving),
+                  label: Text(context.l10n.nav_dives),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.location_on_outlined),
-                  selectedIcon: Icon(Icons.location_on),
-                  label: Text('Sites'),
+                  icon: const Icon(Icons.location_on_outlined),
+                  selectedIcon: const Icon(Icons.location_on),
+                  label: Text(context.l10n.nav_sites),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.flight_outlined),
-                  selectedIcon: Icon(Icons.flight),
-                  label: Text('Trips'),
+                  icon: const Icon(Icons.flight_outlined),
+                  selectedIcon: const Icon(Icons.flight),
+                  label: Text(context.l10n.nav_trips),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.backpack_outlined),
-                  selectedIcon: Icon(Icons.backpack),
-                  label: Text('Equipment'),
+                  icon: const Icon(Icons.backpack_outlined),
+                  selectedIcon: const Icon(Icons.backpack),
+                  label: Text(context.l10n.nav_equipment),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.people_outlined),
-                  selectedIcon: Icon(Icons.people),
-                  label: Text('Buddies'),
+                  icon: const Icon(Icons.people_outlined),
+                  selectedIcon: const Icon(Icons.people),
+                  label: Text(context.l10n.nav_buddies),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.store_outlined),
-                  selectedIcon: Icon(Icons.store),
-                  label: Text('Dive Centers'),
+                  icon: const Icon(Icons.store_outlined),
+                  selectedIcon: const Icon(Icons.store),
+                  label: Text(context.l10n.nav_diveCenters),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.card_membership_outlined),
-                  selectedIcon: Icon(Icons.card_membership),
-                  label: Text('Certifications'),
+                  icon: const Icon(Icons.card_membership_outlined),
+                  selectedIcon: const Icon(Icons.card_membership),
+                  label: Text(context.l10n.nav_certifications),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.school_outlined),
-                  selectedIcon: Icon(Icons.school),
-                  label: Text('Courses'),
+                  icon: const Icon(Icons.school_outlined),
+                  selectedIcon: const Icon(Icons.school),
+                  label: Text(context.l10n.nav_courses),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.bar_chart_outlined),
-                  selectedIcon: Icon(Icons.bar_chart),
-                  label: Text('Statistics'),
+                  icon: const Icon(Icons.bar_chart_outlined),
+                  selectedIcon: const Icon(Icons.bar_chart),
+                  label: Text(context.l10n.nav_statistics),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.edit_calendar_outlined),
-                  selectedIcon: Icon(Icons.edit_calendar),
-                  label: Text('Planning'),
+                  icon: const Icon(Icons.edit_calendar_outlined),
+                  selectedIcon: const Icon(Icons.edit_calendar),
+                  label: Text(context.l10n.nav_planning),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.sync_alt_outlined),
-                  selectedIcon: Icon(Icons.sync_alt),
-                  label: Text('Transfer'),
+                  icon: const Icon(Icons.sync_alt_outlined),
+                  selectedIcon: const Icon(Icons.sync_alt),
+                  label: Text(context.l10n.nav_transfer),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.settings_outlined),
-                  selectedIcon: Icon(Icons.settings),
-                  label: Text('Settings'),
+                  icon: const Icon(Icons.settings_outlined),
+                  selectedIcon: const Icon(Icons.settings),
+                  label: Text(context.l10n.nav_settings),
                 ),
               ],
             ),
@@ -366,31 +373,31 @@ class _MainScaffoldState extends State<MainScaffold> {
         selectedIndex: selectedIndex,
         onDestinationSelected: (index) =>
             _onDestinationSelected(context, index, isWideScreen: false),
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
+            icon: const Icon(Icons.home_outlined),
+            selectedIcon: const Icon(Icons.home),
+            label: context.l10n.nav_home,
           ),
           NavigationDestination(
-            icon: Icon(Icons.scuba_diving_outlined),
-            selectedIcon: Icon(Icons.scuba_diving),
-            label: 'Dives',
+            icon: const Icon(Icons.scuba_diving_outlined),
+            selectedIcon: const Icon(Icons.scuba_diving),
+            label: context.l10n.nav_dives,
           ),
           NavigationDestination(
-            icon: Icon(Icons.location_on_outlined),
-            selectedIcon: Icon(Icons.location_on),
-            label: 'Sites',
+            icon: const Icon(Icons.location_on_outlined),
+            selectedIcon: const Icon(Icons.location_on),
+            label: context.l10n.nav_sites,
           ),
           NavigationDestination(
-            icon: Icon(Icons.flight_outlined),
-            selectedIcon: Icon(Icons.flight),
-            label: 'Trips',
+            icon: const Icon(Icons.flight_outlined),
+            selectedIcon: const Icon(Icons.flight),
+            label: context.l10n.nav_trips,
           ),
           NavigationDestination(
-            icon: Icon(Icons.more_horiz_outlined),
-            selectedIcon: Icon(Icons.more_horiz),
-            label: 'More',
+            icon: const Icon(Icons.more_horiz_outlined),
+            selectedIcon: const Icon(Icons.more_horiz),
+            label: context.l10n.nav_more,
           ),
         ],
       ),

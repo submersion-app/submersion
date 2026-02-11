@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A 16-bar chart showing tissue compartment saturation levels.
 ///
@@ -277,11 +278,17 @@ class TissueSaturationLegend extends StatelessWidget {
       spacing: 16,
       runSpacing: 8,
       children: [
-        const _LegendItem(color: Colors.blue, label: 'N₂'),
-        const _LegendItem(color: Colors.purple, label: 'He'),
+        _LegendItem(
+          color: Colors.blue,
+          label: context.l10n.diveLog_tissue_legend_n2,
+        ),
+        _LegendItem(
+          color: Colors.purple,
+          label: context.l10n.diveLog_tissue_legend_he,
+        ),
         _LegendItem(
           color: colorScheme.error.withValues(alpha: 0.5),
-          label: '100% M-value',
+          label: context.l10n.diveLog_tissue_legend_mValue,
           isLine: true,
         ),
       ],

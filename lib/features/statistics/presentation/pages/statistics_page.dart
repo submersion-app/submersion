@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/statistics/presentation/widgets/statistics_list_content.dart';
@@ -81,21 +82,21 @@ class StatisticsMobileContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Statistics'),
+        title: Text(context.l10n.statistics_appBar_title),
         actions: [
           IconButton(
             icon: const Icon(Icons.emoji_events),
-            tooltip: 'Dive Records',
+            tooltip: context.l10n.statistics_tooltip_diveRecords,
             onPressed: () => context.push('/records'),
           ),
         ],
       ),
       body: ListView.separated(
         padding: const EdgeInsets.symmetric(vertical: 8),
-        itemCount: statisticsCategories.length,
+        itemCount: statisticsCategoriesOf(context).length,
         separatorBuilder: (context, index) => const Divider(height: 1),
         itemBuilder: (context, index) {
-          final category = statisticsCategories[index];
+          final category = statisticsCategoriesOf(context)[index];
           return _StatisticsCategoryTile(
             category: category,
             onTap: () => context.push('/statistics/${category.id}'),

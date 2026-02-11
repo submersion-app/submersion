@@ -9,6 +9,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 class TankPresetEditPage extends ConsumerStatefulWidget {
   final String? presetId;
@@ -81,7 +82,9 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error loading preset: $e'),
+            content: Text(
+              context.l10n.tankPresets_edit_errorLoading(e.toString()),
+            ),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -109,16 +112,20 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isEditing ? 'Edit Tank Preset' : 'New Tank Preset'),
+        title: Text(
+          widget.isEditing
+              ? context.l10n.tankPresets_edit_title
+              : context.l10n.tankPresets_new_title,
+        ),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => context.pop(),
-          tooltip: 'Close',
+          tooltip: context.l10n.common_action_close,
         ),
         actions: [
           TextButton(
             onPressed: _isLoading ? null : _savePreset,
-            child: const Text('Save'),
+            child: Text(context.l10n.common_action_save),
           ),
         ],
       ),
@@ -132,15 +139,15 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
                   // Display Name
                   TextFormField(
                     controller: _displayNameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Name',
-                      hintText: 'e.g., My AL80',
-                      helperText: 'A friendly name for this tank preset',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.tankPresets_edit_name,
+                      hintText: context.l10n.tankPresets_edit_nameHint,
+                      helperText: context.l10n.tankPresets_edit_nameHelper,
                     ),
                     textCapitalization: TextCapitalization.words,
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Please enter a name';
+                        return context.l10n.tankPresets_edit_nameRequired;
                       }
                       return null;
                     },
@@ -155,23 +162,25 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
                         child: TextFormField(
                           controller: _volumeController,
                           decoration: InputDecoration(
-                            labelText: 'Volume',
+                            labelText: context.l10n.tankPresets_edit_volume,
                             suffixText: units.volumeSymbol,
                             helperText:
                                 settings.volumeUnit == VolumeUnit.cubicFeet
-                                ? 'Gas capacity (cuft)'
-                                : 'Water volume (L)',
+                                ? context.l10n.tankPresets_edit_volumeHelperCuft
+                                : context
+                                      .l10n
+                                      .tankPresets_edit_volumeHelperLiters,
                           ),
                           keyboardType: const TextInputType.numberWithOptions(
                             decimal: true,
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Required';
+                              return context.l10n.tankPresets_edit_required;
                             }
                             final parsed = double.tryParse(value);
                             if (parsed == null || parsed <= 0) {
-                              return 'Enter a valid volume';
+                              return context.l10n.tankPresets_edit_validVolume;
                             }
                             return null;
                           },
@@ -182,18 +191,22 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
                         child: TextFormField(
                           controller: _workingPressureController,
                           decoration: InputDecoration(
-                            labelText: 'Working Pressure',
+                            labelText:
+                                context.l10n.tankPresets_edit_workingPressure,
                             suffixText: units.pressureSymbol,
-                            helperText: 'Rated pressure',
+                            helperText:
+                                context.l10n.tankPresets_edit_ratedPressure,
                           ),
                           keyboardType: TextInputType.number,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Required';
+                              return context.l10n.tankPresets_edit_required;
                             }
                             final parsed = int.tryParse(value);
                             if (parsed == null || parsed <= 0) {
-                              return 'Enter a valid pressure';
+                              return context
+                                  .l10n
+                                  .tankPresets_edit_validPressure;
                             }
                             return null;
                           },
@@ -207,7 +220,9 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
                   DropdownButtonFormField<TankMaterial>(
                     key: ValueKey(_material),
                     initialValue: _material,
-                    decoration: const InputDecoration(labelText: 'Material'),
+                    decoration: InputDecoration(
+                      labelText: context.l10n.tankPresets_edit_material,
+                    ),
                     items: TankMaterial.values.map((material) {
                       return DropdownMenuItem(
                         value: material,
@@ -225,9 +240,10 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
                   // Description
                   TextFormField(
                     controller: _descriptionController,
-                    decoration: const InputDecoration(
-                      labelText: 'Description (optional)',
-                      hintText: 'e.g., My rental tank from dive shop',
+                    decoration: InputDecoration(
+                      labelText:
+                          context.l10n.tankPresets_edit_descriptionOptional,
+                      hintText: context.l10n.tankPresets_edit_descriptionHint,
                     ),
                     maxLines: 2,
                   ),
@@ -269,20 +285,24 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Tank Specifications',
+              context.l10n.tankPresets_edit_tankSpecifications,
               style: Theme.of(context).textTheme.titleSmall,
             ),
             const SizedBox(height: 8),
             Text(
-              '• Water volume: ${volumeLiters.toStringAsFixed(1)} L',
+              context.l10n.tankPresets_edit_waterVolume(
+                volumeLiters.toStringAsFixed(1),
+              ),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             Text(
-              '• Gas capacity: ${volumeCuft.toStringAsFixed(0)} cuft',
+              context.l10n.tankPresets_edit_gasCapacity(
+                volumeCuft.toStringAsFixed(0),
+              ),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             Text(
-              '• Working pressure: $pressureBar bar',
+              context.l10n.tankPresets_edit_workingPressureBar(pressureBar),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],
@@ -352,8 +372,8 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
           SnackBar(
             content: Text(
               widget.isEditing
-                  ? 'Updated "$displayName"'
-                  : 'Created "$displayName"',
+                  ? context.l10n.tankPresets_edit_updated(displayName)
+                  : context.l10n.tankPresets_edit_created(displayName),
             ),
           ),
         );
@@ -362,7 +382,9 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error saving preset: $e'),
+            content: Text(
+              context.l10n.tankPresets_edit_errorSaving(e.toString()),
+            ),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );

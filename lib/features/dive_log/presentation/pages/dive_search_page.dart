@@ -10,6 +10,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Advanced search page with all filter options in collapsible sections.
 ///
@@ -142,9 +143,12 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Advanced Search'),
+        title: Text(context.l10n.diveLog_search_appBar),
         actions: [
-          TextButton(onPressed: _clearAll, child: const Text('Clear All')),
+          TextButton(
+            onPressed: _clearAll,
+            child: Text(context.l10n.diveLog_search_clearAll),
+          ),
         ],
       ),
       body: ListView(
@@ -153,7 +157,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
           // Date Range Section
           _buildSection(
             key: 'date',
-            title: 'Date Range',
+            title: context.l10n.diveLog_search_section_dateRange,
             icon: Icons.calendar_today,
             child: _buildDateRangeContent(units),
           ),
@@ -161,7 +165,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
           // Location Section
           _buildSection(
             key: 'location',
-            title: 'Location',
+            title: context.l10n.diveLog_search_section_location,
             icon: Icons.location_on,
             child: _buildLocationContent(),
           ),
@@ -169,7 +173,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
           // Conditions Section
           _buildSection(
             key: 'conditions',
-            title: 'Conditions',
+            title: context.l10n.diveLog_search_section_conditions,
             icon: Icons.waves,
             child: _buildConditionsContent(),
           ),
@@ -177,7 +181,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
           // Gas & Equipment Section
           _buildSection(
             key: 'gas',
-            title: 'Gas & Equipment',
+            title: context.l10n.diveLog_search_section_gasEquipment,
             icon: Icons.propane_tank,
             child: _buildGasEquipmentContent(),
           ),
@@ -185,7 +189,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
           // Social Section
           _buildSection(
             key: 'social',
-            title: 'Social',
+            title: context.l10n.diveLog_search_section_social,
             icon: Icons.people,
             child: _buildSocialContent(),
           ),
@@ -193,7 +197,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
           // Organization Section
           _buildSection(
             key: 'organization',
-            title: 'Organization',
+            title: context.l10n.diveLog_search_section_organization,
             icon: Icons.label,
             child: _buildOrganizationContent(),
           ),
@@ -209,7 +213,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
               Expanded(
                 child: OutlinedButton(
                   onPressed: () => context.pop(),
-                  child: const Text('Cancel'),
+                  child: Text(context.l10n.diveLog_search_cancel),
                 ),
               ),
               const SizedBox(width: 16),
@@ -218,7 +222,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
                 child: FilledButton.icon(
                   onPressed: _applyAndSearch,
                   icon: const Icon(Icons.search),
-                  label: const Text('Search'),
+                  label: Text(context.l10n.diveLog_search_search),
                 ),
               ),
             ],
@@ -276,20 +280,24 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
                 onPressed: () => _selectDate(isStart: true),
                 icon: const Icon(Icons.calendar_today, size: 18),
                 label: Text(
-                  _startDate != null ? units.formatDate(_startDate) : 'Start',
+                  _startDate != null
+                      ? units.formatDate(_startDate)
+                      : context.l10n.diveLog_search_start,
                 ),
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8),
-              child: Text('to'),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text(context.l10n.diveLog_filter_dateSeparator),
             ),
             Expanded(
               child: OutlinedButton.icon(
                 onPressed: () => _selectDate(isStart: false),
                 icon: const Icon(Icons.calendar_today, size: 18),
                 label: Text(
-                  _endDate != null ? units.formatDate(_endDate) : 'End',
+                  _endDate != null
+                      ? units.formatDate(_endDate)
+                      : context.l10n.diveLog_search_end,
                 ),
               ),
             ),
@@ -298,7 +306,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
         if (_startDate != null || _endDate != null) ...[
           const SizedBox(height: 8),
           Align(
-            alignment: Alignment.centerRight,
+            alignment: AlignmentDirectional.centerEnd,
             child: TextButton(
               onPressed: () {
                 setState(() {
@@ -306,7 +314,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
                   _endDate = null;
                 });
               },
-              child: const Text('Clear dates'),
+              child: Text(context.l10n.diveLog_filter_clearDates),
             ),
           ),
         ],
@@ -326,12 +334,15 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
         sites.when(
           data: (siteList) => DropdownButtonFormField<String?>(
             initialValue: _siteId,
-            decoration: const InputDecoration(
-              labelText: 'Dive Site',
-              prefixIcon: Icon(Icons.location_on),
+            decoration: InputDecoration(
+              labelText: context.l10n.diveLog_search_label_diveSite,
+              prefixIcon: const Icon(Icons.location_on),
             ),
             items: [
-              const DropdownMenuItem(value: null, child: Text('All sites')),
+              DropdownMenuItem(
+                value: null,
+                child: Text(context.l10n.diveLog_filter_allSites),
+              ),
               ...siteList.map((site) {
                 return DropdownMenuItem(value: site.id, child: Text(site.name));
               }),
@@ -339,7 +350,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
             onChanged: (value) => setState(() => _siteId = value),
           ),
           loading: () => const LinearProgressIndicator(),
-          error: (_, _) => const Text('Error loading sites'),
+          error: (_, _) => Text(context.l10n.diveLog_filter_errorLoadingSites),
         ),
         const SizedBox(height: 16),
 
@@ -347,12 +358,15 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
         trips.when(
           data: (tripList) => DropdownButtonFormField<String?>(
             initialValue: _tripId,
-            decoration: const InputDecoration(
-              labelText: 'Trip',
-              prefixIcon: Icon(Icons.flight),
+            decoration: InputDecoration(
+              labelText: context.l10n.diveLog_search_label_trip,
+              prefixIcon: const Icon(Icons.flight),
             ),
             items: [
-              const DropdownMenuItem(value: null, child: Text('All trips')),
+              DropdownMenuItem(
+                value: null,
+                child: Text(context.l10n.diveLog_search_allTrips),
+              ),
               ...tripList.map((trip) {
                 return DropdownMenuItem(value: trip.id, child: Text(trip.name));
               }),
@@ -360,7 +374,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
             onChanged: (value) => setState(() => _tripId = value),
           ),
           loading: () => const LinearProgressIndicator(),
-          error: (_, _) => const Text('Error loading trips'),
+          error: (_, _) => Text(context.l10n.diveLog_search_errorLoadingTrips),
         ),
         const SizedBox(height: 16),
 
@@ -368,12 +382,15 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
         diveCenters.when(
           data: (centerList) => DropdownButtonFormField<String?>(
             initialValue: _diveCenterId,
-            decoration: const InputDecoration(
-              labelText: 'Dive Center',
-              prefixIcon: Icon(Icons.store),
+            decoration: InputDecoration(
+              labelText: context.l10n.diveLog_search_label_diveCenter,
+              prefixIcon: const Icon(Icons.store),
             ),
             items: [
-              const DropdownMenuItem(value: null, child: Text('All centers')),
+              DropdownMenuItem(
+                value: null,
+                child: Text(context.l10n.diveLog_search_allCenters),
+              ),
               ...centerList.map((center) {
                 return DropdownMenuItem(
                   value: center.id,
@@ -384,7 +401,8 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
             onChanged: (value) => setState(() => _diveCenterId = value),
           ),
           loading: () => const LinearProgressIndicator(),
-          error: (_, _) => const Text('Error loading dive centers'),
+          error: (_, _) =>
+              Text(context.l10n.diveLog_search_errorLoadingCenters),
         ),
       ],
     );
@@ -395,16 +413,19 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Depth Range
-        Text('Depth Range (m)', style: Theme.of(context).textTheme.bodyLarge),
+        Text(
+          context.l10n.diveLog_search_label_depthRange,
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
         const SizedBox(height: 8),
         Row(
           children: [
             Expanded(
               child: TextField(
                 controller: _minDepthController,
-                decoration: const InputDecoration(
-                  labelText: 'Min',
-                  prefixIcon: Icon(Icons.arrow_downward),
+                decoration: InputDecoration(
+                  labelText: context.l10n.diveLog_filter_min,
+                  prefixIcon: const Icon(Icons.arrow_downward),
                   suffixText: 'm',
                 ),
                 keyboardType: TextInputType.number,
@@ -415,9 +436,9 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
             Expanded(
               child: TextField(
                 controller: _maxDepthController,
-                decoration: const InputDecoration(
-                  labelText: 'Max',
-                  prefixIcon: Icon(Icons.arrow_downward),
+                decoration: InputDecoration(
+                  labelText: context.l10n.diveLog_filter_max,
+                  prefixIcon: const Icon(Icons.arrow_downward),
                   suffixText: 'm',
                 ),
                 keyboardType: TextInputType.number,
@@ -430,7 +451,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
 
         // Duration Range
         Text(
-          'Duration Range (min)',
+          context.l10n.diveLog_search_label_durationRange,
           style: Theme.of(context).textTheme.bodyLarge,
         ),
         const SizedBox(height: 8),
@@ -439,9 +460,9 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
             Expanded(
               child: TextField(
                 controller: _minDurationController,
-                decoration: const InputDecoration(
-                  labelText: 'Min',
-                  prefixIcon: Icon(Icons.timer),
+                decoration: InputDecoration(
+                  labelText: context.l10n.diveLog_filter_min,
+                  prefixIcon: const Icon(Icons.timer),
                   suffixText: 'min',
                 ),
                 keyboardType: TextInputType.number,
@@ -452,9 +473,9 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
             Expanded(
               child: TextField(
                 controller: _maxDurationController,
-                decoration: const InputDecoration(
-                  labelText: 'Max',
-                  prefixIcon: Icon(Icons.timer),
+                decoration: InputDecoration(
+                  labelText: context.l10n.diveLog_filter_max,
+                  prefixIcon: const Icon(Icons.timer),
                   suffixText: 'min',
                 ),
                 keyboardType: TextInputType.number,
@@ -477,12 +498,15 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
         diveTypesAsync.when(
           data: (diveTypes) => DropdownButtonFormField<String?>(
             initialValue: _diveTypeId,
-            decoration: const InputDecoration(
-              labelText: 'Dive Type',
-              prefixIcon: Icon(Icons.category),
+            decoration: InputDecoration(
+              labelText: context.l10n.diveLog_search_label_diveType,
+              prefixIcon: const Icon(Icons.category),
             ),
             items: [
-              const DropdownMenuItem(value: null, child: Text('All types')),
+              DropdownMenuItem(
+                value: null,
+                child: Text(context.l10n.diveLog_filter_allTypes),
+              ),
               ...diveTypes.map((type) {
                 return DropdownMenuItem(value: type.id, child: Text(type.name));
               }),
@@ -490,19 +514,23 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
             onChanged: (value) => setState(() => _diveTypeId = value),
           ),
           loading: () => const LinearProgressIndicator(),
-          error: (_, _) => const Text('Error loading dive types'),
+          error: (_, _) =>
+              Text(context.l10n.diveLog_search_errorLoadingDiveTypes),
         ),
         const SizedBox(height: 24),
 
         // Gas Mix
-        Text('Gas Mix (O₂%)', style: Theme.of(context).textTheme.bodyLarge),
+        Text(
+          context.l10n.diveLog_filter_sectionGasMix,
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: [
             ChoiceChip(
-              label: const Text('All'),
+              label: Text(context.l10n.diveLog_filter_gasAll),
               selected: _minO2Percent == null && _maxO2Percent == null,
               onSelected: (selected) {
                 if (selected) {
@@ -514,7 +542,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
               },
             ),
             ChoiceChip(
-              label: const Text('Air (21%)'),
+              label: Text(context.l10n.diveLog_filter_gasAir),
               selected: _minO2Percent == 20 && _maxO2Percent == 22,
               onSelected: (selected) {
                 if (selected) {
@@ -526,7 +554,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
               },
             ),
             ChoiceChip(
-              label: const Text('Nitrox (>21%)'),
+              label: Text(context.l10n.diveLog_filter_gasNitrox),
               selected: _minO2Percent == 22 && _maxO2Percent == null,
               onSelected: (selected) {
                 if (selected) {
@@ -538,7 +566,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
               },
             ),
             ChoiceChip(
-              label: const Text('Trimix (<21% O₂)'),
+              label: Text(context.l10n.diveLog_search_gasTrimix),
               selected: _maxO2Percent == 21 && _minO2Percent == null,
               onSelected: (selected) {
                 if (selected) {
@@ -558,10 +586,10 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
   Widget _buildSocialContent() {
     return TextField(
       controller: _buddyNameController,
-      decoration: const InputDecoration(
-        labelText: 'Buddy Name',
-        hintText: 'Search by buddy name',
-        prefixIcon: Icon(Icons.person),
+      decoration: InputDecoration(
+        labelText: context.l10n.diveLog_filter_buddyName,
+        hintText: context.l10n.diveLog_filter_buddyHint,
+        prefixIcon: const Icon(Icons.person),
       ),
       onChanged: (value) {
         _buddyNameFilter = value.isEmpty ? null : value;
@@ -575,7 +603,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
       children: [
         // Favorites
         SwitchListTile(
-          title: const Text('Favorites Only'),
+          title: Text(context.l10n.diveLog_filter_favoritesOnly),
           secondary: Icon(
             Icons.favorite,
             color: _favoritesOnly ? Colors.red : null,
@@ -587,7 +615,10 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
         const SizedBox(height: 16),
 
         // Minimum Rating
-        Text('Minimum Rating', style: Theme.of(context).textTheme.bodyLarge),
+        Text(
+          context.l10n.diveLog_filter_sectionMinRating,
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
         const SizedBox(height: 8),
         Row(
           children: List.generate(5, (index) {
@@ -615,16 +646,19 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
         const SizedBox(height: 16),
 
         // Tags
-        Text('Tags', style: Theme.of(context).textTheme.bodyLarge),
+        Text(
+          context.l10n.diveLog_filter_sectionTags,
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
         const SizedBox(height: 8),
         ref
             .watch(tagListNotifierProvider)
             .when(
               data: (allTags) {
                 if (allTags.isEmpty) {
-                  return const Text(
-                    'No tags created yet',
-                    style: TextStyle(fontStyle: FontStyle.italic),
+                  return Text(
+                    context.l10n.diveLog_filter_noTagsYet,
+                    style: const TextStyle(fontStyle: FontStyle.italic),
                   );
                 }
                 return Wrap(
@@ -654,7 +688,8 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
                 );
               },
               loading: () => const CircularProgressIndicator(),
-              error: (_, _) => const Text('Error loading tags'),
+              error: (_, _) =>
+                  Text(context.l10n.diveLog_filter_errorLoadingTags),
             ),
       ],
     );

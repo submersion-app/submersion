@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 
@@ -24,7 +25,9 @@ class CourseSummaryWidget extends ConsumerWidget {
             coursesAsync.when(
               data: (courses) => _buildOverview(context, courses),
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Error: $e')),
+              error: (e, _) => Center(
+                child: Text(context.l10n.courses_error_generic(e.toString())),
+              ),
             ),
             const SizedBox(height: 24),
             _buildQuickActions(context),
@@ -48,7 +51,7 @@ class CourseSummaryWidget extends ConsumerWidget {
             ),
             const SizedBox(width: 12),
             Text(
-              'Training Courses',
+              context.l10n.courses_summary_title,
               style: Theme.of(
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
@@ -57,7 +60,7 @@ class CourseSummaryWidget extends ConsumerWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Select a course from the list to view details',
+          context.l10n.courses_summary_selectHint,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
@@ -74,7 +77,7 @@ class CourseSummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Overview',
+          context.l10n.courses_summary_overview,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -88,21 +91,21 @@ class CourseSummaryWidget extends ConsumerWidget {
               context,
               icon: Icons.school,
               value: '${courses.length}',
-              label: 'Total',
+              label: context.l10n.courses_summary_total,
               color: Colors.blue,
             ),
             _buildStatCard(
               context,
               icon: Icons.pending,
               value: '$inProgressCount',
-              label: 'In Progress',
+              label: context.l10n.courses_status_inProgress,
               color: Colors.orange,
             ),
             _buildStatCard(
               context,
               icon: Icons.check_circle,
               value: '$completedCount',
-              label: 'Completed',
+              label: context.l10n.courses_status_completed,
               color: Colors.green,
             ),
           ],
@@ -180,7 +183,7 @@ class CourseSummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Recent Courses',
+          context.l10n.courses_summary_recentCourses,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -234,7 +237,7 @@ class CourseSummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Quick Actions',
+          context.l10n.courses_summary_quickActions,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -251,7 +254,7 @@ class CourseSummaryWidget extends ConsumerWidget {
                 context.go('$currentPath?mode=new');
               },
               icon: const Icon(Icons.add),
-              label: const Text('Add Course'),
+              label: Text(context.l10n.courses_action_add),
             ),
           ],
         ),

@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A row of quick stat cards showing top buddy, countries visited, and species discovered
 class QuickStatsRow extends ConsumerWidget {
@@ -29,7 +30,7 @@ class QuickStatsRow extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'At a Glance',
+                  context.l10n.dashboard_quickStats_sectionTitle,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -42,10 +43,12 @@ class QuickStatsRow extends ConsumerWidget {
                       child: _QuickStatTile(
                         icon: Icons.person,
                         iconColor: Colors.blue,
-                        label: 'Top Buddy',
+                        label: context.l10n.dashboard_quickStats_topBuddy,
                         value: stats.topBuddyName ?? '-',
                         subtitle: stats.topBuddyDiveCount != null
-                            ? '${stats.topBuddyDiveCount} dives'
+                            ? context.l10n.dashboard_quickStats_topBuddyDives(
+                                stats.topBuddyDiveCount!,
+                              )
                             : null,
                         onTap: () => context.go('/statistics'),
                       ),
@@ -56,9 +59,10 @@ class QuickStatsRow extends ConsumerWidget {
                       child: _QuickStatTile(
                         icon: Icons.public,
                         iconColor: Colors.green,
-                        label: 'Countries',
+                        label: context.l10n.dashboard_quickStats_countries,
                         value: stats.countriesVisited.toString(),
-                        subtitle: 'visited',
+                        subtitle:
+                            context.l10n.dashboard_quickStats_countriesSubtitle,
                         onTap: () => context.go('/statistics'),
                       ),
                     ),
@@ -68,9 +72,10 @@ class QuickStatsRow extends ConsumerWidget {
                       child: _QuickStatTile(
                         icon: Icons.set_meal,
                         iconColor: Colors.orange,
-                        label: 'Species',
+                        label: context.l10n.dashboard_quickStats_species,
                         value: stats.speciesDiscovered.toString(),
-                        subtitle: 'discovered',
+                        subtitle:
+                            context.l10n.dashboard_quickStats_speciesSubtitle,
                         onTap: () => context.go('/statistics'),
                       ),
                     ),

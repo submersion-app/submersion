@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
@@ -250,9 +251,11 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error saving dive center: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.diveCenters_error_saving(e.toString())),
+          ),
+        );
       }
     } finally {
       if (mounted) {
@@ -280,22 +283,38 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
         loading: () => widget.embedded
             ? const Center(child: CircularProgressIndicator())
             : Scaffold(
-                appBar: AppBar(title: const Text('Edit Dive Center')),
+                appBar: AppBar(
+                  title: Text(context.l10n.diveCenters_title_edit),
+                ),
                 body: const Center(child: CircularProgressIndicator()),
               ),
         error: (error, _) => widget.embedded
-            ? Center(child: Text('Error: $error'))
+            ? Center(
+                child: Text(
+                  context.l10n.diveCenters_error_generic(error.toString()),
+                ),
+              )
             : Scaffold(
-                appBar: AppBar(title: const Text('Edit Dive Center')),
-                body: Center(child: Text('Error: $error')),
+                appBar: AppBar(
+                  title: Text(context.l10n.diveCenters_title_edit),
+                ),
+                body: Center(
+                  child: Text(
+                    context.l10n.diveCenters_error_generic(error.toString()),
+                  ),
+                ),
               ),
         data: (center) {
           if (center == null) {
             return widget.embedded
-                ? const Center(child: Text('Dive center not found'))
+                ? Center(child: Text(context.l10n.diveCenters_error_notFound))
                 : Scaffold(
-                    appBar: AppBar(title: const Text('Edit Dive Center')),
-                    body: const Center(child: Text('Dive center not found')),
+                    appBar: AppBar(
+                      title: Text(context.l10n.diveCenters_title_edit),
+                    ),
+                    body: Center(
+                      child: Text(context.l10n.diveCenters_error_notFound),
+                    ),
                   );
           }
           _initializeFromCenter(center);
@@ -320,20 +339,20 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
         children: [
           // Basic Info Section
           Text(
-            'Basic Information',
+            context.l10n.diveCenters_section_basicInfo,
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 16),
           TextFormField(
             controller: _nameController,
-            decoration: const InputDecoration(
-              labelText: 'Name *',
-              hintText: 'Enter dive center name',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: context.l10n.diveCenters_field_nameRequired,
+              hintText: context.l10n.diveCenters_hint_name,
+              border: const OutlineInputBorder(),
             ),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
-                return 'Name is required';
+                return context.l10n.diveCenters_validation_nameRequired;
               }
               return null;
             },
@@ -346,10 +365,13 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
           const SizedBox(height: 24),
 
           // Address Section
-          Text('Address', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            context.l10n.diveCenters_section_address,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 8),
           Text(
-            'Optional street address for navigation',
+            context.l10n.diveCenters_hint_addressDescription,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.outline,
             ),
@@ -358,10 +380,10 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
           TextFormField(
             controller: _streetController,
             focusNode: _streetFocusNode,
-            decoration: const InputDecoration(
-              labelText: 'Street Address',
-              hintText: 'e.g., 123 Beach Road',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: context.l10n.diveCenters_field_street,
+              hintText: context.l10n.diveCenters_hint_street,
+              border: const OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 16),
@@ -372,10 +394,10 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
                 child: TextFormField(
                   controller: _cityController,
                   focusNode: _cityFocusNode,
-                  decoration: const InputDecoration(
-                    labelText: 'City',
-                    hintText: 'e.g., Phuket',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: context.l10n.diveCenters_field_city,
+                    hintText: context.l10n.diveCenters_hint_city,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
               ),
@@ -384,10 +406,10 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
                 child: TextFormField(
                   controller: _stateProvinceController,
                   focusNode: _stateProvinceFocusNode,
-                  decoration: const InputDecoration(
-                    labelText: 'State/Province',
-                    hintText: 'e.g., Phuket',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: context.l10n.diveCenters_field_stateProvince,
+                    hintText: context.l10n.diveCenters_hint_stateProvince,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
               ),
@@ -400,10 +422,10 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
                 child: TextFormField(
                   controller: _postalCodeController,
                   focusNode: _postalCodeFocusNode,
-                  decoration: const InputDecoration(
-                    labelText: 'Postal Code',
-                    hintText: 'e.g., 83100',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: context.l10n.diveCenters_field_postalCode,
+                    hintText: context.l10n.diveCenters_hint_postalCode,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
               ),
@@ -413,10 +435,10 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
                 child: TextFormField(
                   controller: _countryController,
                   focusNode: _countryFocusNode,
-                  decoration: const InputDecoration(
-                    labelText: 'Country',
-                    hintText: 'e.g., Thailand',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: context.l10n.diveCenters_field_country,
+                    hintText: context.l10n.diveCenters_hint_country,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
               ),
@@ -426,10 +448,13 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
           const SizedBox(height: 24),
 
           // Affiliations Section
-          Text('Affiliations', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            context.l10n.diveCenters_section_affiliations,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 8),
           Text(
-            'Select training agencies this center is affiliated with',
+            context.l10n.diveCenters_hint_affiliationsDescription,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.outline,
             ),
@@ -461,28 +486,28 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
 
           // Contact Section
           Text(
-            'Contact Information',
+            context.l10n.diveCenters_section_contactInfo,
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 16),
           TextFormField(
             controller: _phoneController,
-            decoration: const InputDecoration(
-              labelText: 'Phone',
-              hintText: '+1 234 567 890',
-              prefixIcon: Icon(Icons.phone_outlined),
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: context.l10n.diveCenters_label_phone,
+              hintText: context.l10n.diveCenters_hint_phone,
+              prefixIcon: const Icon(Icons.phone_outlined),
+              border: const OutlineInputBorder(),
             ),
             keyboardType: TextInputType.phone,
           ),
           const SizedBox(height: 16),
           TextFormField(
             controller: _emailController,
-            decoration: const InputDecoration(
-              labelText: 'Email',
-              hintText: 'info@divecenter.com',
-              prefixIcon: Icon(Icons.email_outlined),
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: context.l10n.diveCenters_label_email,
+              hintText: context.l10n.diveCenters_hint_email,
+              prefixIcon: const Icon(Icons.email_outlined),
+              border: const OutlineInputBorder(),
             ),
             keyboardType: TextInputType.emailAddress,
             validator: (value) {
@@ -491,7 +516,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
                   !RegExp(
                     r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
                   ).hasMatch(value)) {
-                return 'Please enter a valid email';
+                return context.l10n.diveCenters_validation_invalidEmail;
               }
               return null;
             },
@@ -499,11 +524,11 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
           const SizedBox(height: 16),
           TextFormField(
             controller: _websiteController,
-            decoration: const InputDecoration(
-              labelText: 'Website',
-              hintText: 'www.divecenter.com',
-              prefixIcon: Icon(Icons.language_outlined),
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: context.l10n.diveCenters_label_website,
+              hintText: context.l10n.diveCenters_hint_website,
+              prefixIcon: const Icon(Icons.language_outlined),
+              border: const OutlineInputBorder(),
             ),
             keyboardType: TextInputType.url,
           ),
@@ -516,14 +541,17 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
           const SizedBox(height: 24),
 
           // Notes Section
-          Text('Notes', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            context.l10n.diveCenters_section_notes,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 16),
           TextFormField(
             controller: _notesController,
-            decoration: const InputDecoration(
-              labelText: 'Notes',
-              hintText: 'Any additional information...',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: context.l10n.diveCenters_section_notes,
+              hintText: context.l10n.diveCenters_hint_notes,
+              border: const OutlineInputBorder(),
               alignLabelWithHint: true,
             ),
             maxLines: 4,
@@ -552,7 +580,11 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditing ? 'Edit Dive Center' : 'Add Dive Center'),
+        title: Text(
+          isEditing
+              ? context.l10n.diveCenters_title_edit
+              : context.l10n.diveCenters_title_add,
+        ),
         actions: [
           TextButton(
             onPressed: _isLoading ? null : _save,
@@ -562,7 +594,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Text('Save'),
+                : Text(context.l10n.common_action_save),
           ),
         ],
       ),
@@ -598,13 +630,18 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              isEditing ? 'Edit Dive Center' : 'Add Dive Center',
+              isEditing
+                  ? context.l10n.diveCenters_title_edit
+                  : context.l10n.diveCenters_title_add,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
-          TextButton(onPressed: _handleCancel, child: const Text('Cancel')),
+          TextButton(
+            onPressed: _handleCancel,
+            child: Text(context.l10n.common_action_cancel),
+          ),
           const SizedBox(width: 8),
           FilledButton(
             onPressed: _isLoading ? null : _save,
@@ -617,7 +654,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
                       color: Colors.white,
                     ),
                   )
-                : const Text('Save'),
+                : Text(context.l10n.common_action_save),
           ),
         ],
       ),
@@ -628,18 +665,16 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
     final discard = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Discard Changes?'),
-        content: const Text(
-          'You have unsaved changes. Are you sure you want to discard them?',
-        ),
+        title: Text(context.l10n.diveCenters_dialog_discardTitle),
+        content: Text(context.l10n.diveCenters_dialog_discardMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Keep Editing'),
+            child: Text(context.l10n.diveCenters_dialog_keepEditing),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Discard'),
+            child: Text(context.l10n.diveCenters_dialog_discard),
           ),
         ],
       ),
@@ -664,14 +699,14 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
                 const Icon(Icons.gps_fixed),
                 const SizedBox(width: 8),
                 Text(
-                  'GPS Coordinates',
+                  context.l10n.diveCenters_section_gpsCoordinates,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ],
             ),
             const SizedBox(height: 8),
             Text(
-              'Choose a location method or enter coordinates manually',
+              context.l10n.diveCenters_hint_gpsDescription,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -694,13 +729,15 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
                         )
                       : const Icon(Icons.my_location, size: 18),
                   label: Text(
-                    _isGettingLocation ? 'Getting...' : 'Use My Location',
+                    _isGettingLocation
+                        ? context.l10n.diveCenters_action_gettingLocation
+                        : context.l10n.diveCenters_action_useMyLocation,
                   ),
                 ),
                 OutlinedButton.icon(
                   onPressed: _pickFromMap,
                   icon: const Icon(Icons.map, size: 18),
-                  label: const Text('Pick from Map'),
+                  label: Text(context.l10n.diveCenters_action_pickFromMap),
                 ),
                 OutlinedButton.icon(
                   onPressed: _isGeocoding ? null : _geocodeFromAddress,
@@ -715,7 +752,9 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
                         )
                       : const Icon(Icons.search, size: 18),
                   label: Text(
-                    _isGeocoding ? 'Looking up...' : 'Lookup from Address',
+                    _isGeocoding
+                        ? context.l10n.diveCenters_action_lookingUp
+                        : context.l10n.diveCenters_action_lookupFromAddress,
                   ),
                 ),
               ],
@@ -726,10 +765,10 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
                 Expanded(
                   child: TextFormField(
                     controller: _latitudeController,
-                    decoration: const InputDecoration(
-                      labelText: 'Latitude',
-                      hintText: 'e.g., 10.4613',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: context.l10n.diveCenters_field_latitude,
+                      hintText: context.l10n.diveCenters_hint_latitude,
+                      border: const OutlineInputBorder(),
                     ),
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
@@ -739,7 +778,9 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
                       if (value != null && value.isNotEmpty) {
                         final lat = double.tryParse(value);
                         if (lat == null || lat < -90 || lat > 90) {
-                          return 'Invalid latitude';
+                          return context
+                              .l10n
+                              .diveCenters_validation_invalidLatitude;
                         }
                       }
                       return null;
@@ -750,10 +791,10 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
                 Expanded(
                   child: TextFormField(
                     controller: _longitudeController,
-                    decoration: const InputDecoration(
-                      labelText: 'Longitude',
-                      hintText: 'e.g., 99.8359',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: context.l10n.diveCenters_field_longitude,
+                      hintText: context.l10n.diveCenters_hint_longitude,
+                      border: const OutlineInputBorder(),
                     ),
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
@@ -763,7 +804,9 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
                       if (value != null && value.isNotEmpty) {
                         final lng = double.tryParse(value);
                         if (lng == null || lng < -180 || lng > 180) {
-                          return 'Invalid longitude';
+                          return context
+                              .l10n
+                              .diveCenters_validation_invalidLongitude;
                         }
                       }
                       return null;
@@ -782,7 +825,10 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Rating', style: Theme.of(context).textTheme.bodyMedium),
+        Text(
+          context.l10n.diveCenters_field_rating,
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
         const SizedBox(height: 8),
         Row(
           children: [
@@ -821,7 +867,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
                   _rating = null;
                   _hasChanges = true;
                 }),
-                child: const Text('Clear'),
+                child: Text(context.l10n.diveCenters_action_clearRating),
               ),
             ],
           ],
@@ -846,12 +892,12 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
             SnackBar(
               content: Text(
                 isMobile
-                    ? 'Unable to get location. Please check permissions.'
-                    : 'Unable to get location. Location services may not be available.',
+                    ? context.l10n.diveCenters_error_locationPermission
+                    : context.l10n.diveCenters_error_locationUnavailable,
               ),
               action: isMobile
                   ? SnackBarAction(
-                      label: 'Settings',
+                      label: context.l10n.diveCenters_action_settings,
                       onPressed: () => locationService.openAppSettings(),
                     )
                   : null,
@@ -871,7 +917,12 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Location captured${result.accuracy != null ? ' (±${result.accuracy!.toStringAsFixed(0)}m)' : ''}',
+              result.accuracy != null
+                  ? context.l10n
+                        .diveCenters_snackbar_locationCapturedWithAccuracy(
+                          result.accuracy!.toStringAsFixed(0),
+                        )
+                  : context.l10n.diveCenters_snackbar_locationCaptured,
             ),
           ),
         );
@@ -906,7 +957,11 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Location selected from map')),
+        SnackBar(
+          content: Text(
+            context.l10n.diveCenters_snackbar_locationSelectedFromMap,
+          ),
+        ),
       );
     }
   }
@@ -936,8 +991,8 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
     final address = _buildFullAddress();
     if (address.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter an address to look up coordinates'),
+        SnackBar(
+          content: Text(context.l10n.diveCenters_error_noAddressForLookup),
         ),
       );
       return;
@@ -951,8 +1006,8 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
       if (result == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Could not find coordinates for this address'),
+            SnackBar(
+              content: Text(context.l10n.diveCenters_error_geocodeFailed),
             ),
           );
         }
@@ -967,7 +1022,9 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Coordinates found from address')),
+          SnackBar(
+            content: Text(context.l10n.diveCenters_snackbar_coordinatesFound),
+          ),
         );
       }
     } finally {

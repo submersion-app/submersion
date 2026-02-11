@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 import 'package:submersion/features/deco_calculator/presentation/providers/deco_calculator_providers.dart';
 
@@ -31,7 +32,7 @@ class _GasMixSelectorState extends ConsumerState<GasMixSelector> {
             Icon(Icons.air, size: 20, color: colorScheme.primary),
             const SizedBox(width: 8),
             Text(
-              'Gas Mix',
+              context.l10n.decoCalculator_field_gasMix,
               style: textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w500,
               ),
@@ -76,8 +77,8 @@ class _GasMixSelectorState extends ConsumerState<GasMixSelector> {
         Semantics(
           button: true,
           label: _showAdvanced
-              ? 'Hide custom mix options'
-              : 'Show custom mix and trimix options',
+              ? context.l10n.decoCalculator_hideCustomMixSemantics
+              : context.l10n.decoCalculator_showCustomMixSemantics,
           child: InkWell(
             onTap: () => setState(() => _showAdvanced = !_showAdvanced),
             borderRadius: BorderRadius.circular(8),
@@ -94,7 +95,9 @@ class _GasMixSelectorState extends ConsumerState<GasMixSelector> {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    _showAdvanced ? 'Hide custom mix' : 'Custom mix / Trimix',
+                    _showAdvanced
+                        ? context.l10n.decoCalculator_hideCustomMix
+                        : context.l10n.decoCalculator_customMixTrimix,
                     style: textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),

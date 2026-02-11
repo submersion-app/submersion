@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 class SpeciesEditPage extends ConsumerStatefulWidget {
   final String? speciesId;
@@ -61,7 +62,9 @@ class _SpeciesEditPageState extends ConsumerState<SpeciesEditPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error loading species: $e'),
+            content: Text(
+              context.l10n.marineLife_speciesEdit_errorLoading(e.toString()),
+            ),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -86,10 +89,14 @@ class _SpeciesEditPageState extends ConsumerState<SpeciesEditPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isEditing ? 'Edit Species' : 'Add Species'),
+        title: Text(
+          widget.isEditing
+              ? context.l10n.marineLife_speciesEdit_editTitle
+              : context.l10n.marineLife_speciesEdit_addTitle,
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          tooltip: 'Back',
+          tooltip: context.l10n.marineLife_speciesEdit_backTooltip,
           onPressed: () => context.pop(),
         ),
         actions: [
@@ -101,7 +108,7 @@ class _SpeciesEditPageState extends ConsumerState<SpeciesEditPage> {
                     height: 16,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Text('Save'),
+                : Text(context.l10n.marineLife_speciesEdit_saveButton),
           ),
         ],
       ),
@@ -116,14 +123,18 @@ class _SpeciesEditPageState extends ConsumerState<SpeciesEditPage> {
                   children: [
                     TextFormField(
                       controller: _commonNameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Common Name',
-                        hintText: 'e.g., Ocellaris Clownfish',
+                      decoration: InputDecoration(
+                        labelText:
+                            context.l10n.marineLife_speciesEdit_commonNameLabel,
+                        hintText:
+                            context.l10n.marineLife_speciesEdit_commonNameHint,
                       ),
                       textCapitalization: TextCapitalization.words,
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'Please enter a common name';
+                          return context
+                              .l10n
+                              .marineLife_speciesEdit_commonNameError;
                         }
                         return null;
                       },
@@ -131,15 +142,22 @@ class _SpeciesEditPageState extends ConsumerState<SpeciesEditPage> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _scientificNameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Scientific Name',
-                        hintText: 'e.g., Amphiprion ocellaris',
+                      decoration: InputDecoration(
+                        labelText: context
+                            .l10n
+                            .marineLife_speciesEdit_scientificNameLabel,
+                        hintText: context
+                            .l10n
+                            .marineLife_speciesEdit_scientificNameHint,
                       ),
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<SpeciesCategory>(
                       initialValue: _category,
-                      decoration: const InputDecoration(labelText: 'Category'),
+                      decoration: InputDecoration(
+                        labelText:
+                            context.l10n.marineLife_speciesEdit_categoryLabel,
+                      ),
                       items: SpeciesCategory.values.map((category) {
                         return DropdownMenuItem(
                           value: category,
@@ -155,17 +173,24 @@ class _SpeciesEditPageState extends ConsumerState<SpeciesEditPage> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _taxonomyClassController,
-                      decoration: const InputDecoration(
-                        labelText: 'Taxonomy Class',
-                        hintText: 'e.g., Actinopterygii',
+                      decoration: InputDecoration(
+                        labelText: context
+                            .l10n
+                            .marineLife_speciesEdit_taxonomyClassLabel,
+                        hintText: context
+                            .l10n
+                            .marineLife_speciesEdit_taxonomyClassHint,
                       ),
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _descriptionController,
-                      decoration: const InputDecoration(
-                        labelText: 'Description',
-                        hintText: 'Brief description of the species...',
+                      decoration: InputDecoration(
+                        labelText: context
+                            .l10n
+                            .marineLife_speciesEdit_descriptionLabel,
+                        hintText:
+                            context.l10n.marineLife_speciesEdit_descriptionHint,
                         alignLabelWithHint: true,
                       ),
                       maxLines: 4,
@@ -218,8 +243,12 @@ class _SpeciesEditPageState extends ConsumerState<SpeciesEditPage> {
           SnackBar(
             content: Text(
               widget.isEditing
-                  ? 'Updated "$commonName"'
-                  : 'Added "$commonName"',
+                  ? context.l10n.marineLife_speciesEdit_updatedSnackbar(
+                      commonName,
+                    )
+                  : context.l10n.marineLife_speciesEdit_addedSnackbar(
+                      commonName,
+                    ),
             ),
           ),
         );
@@ -229,7 +258,9 @@ class _SpeciesEditPageState extends ConsumerState<SpeciesEditPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error saving species: $e'),
+            content: Text(
+              context.l10n.marineLife_speciesEdit_errorSaving(e.toString()),
+            ),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );

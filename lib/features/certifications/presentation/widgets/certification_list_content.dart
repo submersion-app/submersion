@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
@@ -130,21 +131,21 @@ class _CertificationListContentState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Certifications'),
+        title: Text(context.l10n.certifications_appBar_title),
         actions: [
           IconButton(
             icon: const Icon(Icons.wallet),
-            tooltip: 'Wallet View',
+            tooltip: context.l10n.certifications_list_tooltip_walletView,
             onPressed: () => context.push('/certifications/wallet'),
           ),
           IconButton(
             icon: const Icon(Icons.sort),
-            tooltip: 'Sort',
+            tooltip: context.l10n.certifications_list_tooltip_sort,
             onPressed: () => _showSortSheet(context),
           ),
           IconButton(
             icon: const Icon(Icons.search),
-            tooltip: 'Search certifications',
+            tooltip: context.l10n.certifications_list_tooltip_search,
             onPressed: () {
               showSearch(
                 context: context,
@@ -175,7 +176,7 @@ class _CertificationListContentState
         children: [
           const SizedBox(width: 8),
           Text(
-            'Certifications',
+            context.l10n.certifications_appBar_title,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -183,17 +184,17 @@ class _CertificationListContentState
           const Spacer(),
           IconButton(
             icon: const Icon(Icons.wallet, size: 20),
-            tooltip: 'Wallet View',
+            tooltip: context.l10n.certifications_list_tooltip_walletView,
             onPressed: () => context.push('/certifications/wallet'),
           ),
           IconButton(
             icon: const Icon(Icons.sort, size: 20),
-            tooltip: 'Sort',
+            tooltip: context.l10n.certifications_list_tooltip_sort,
             onPressed: () => _showSortSheet(context),
           ),
           IconButton(
             icon: const Icon(Icons.search, size: 20),
-            tooltip: 'Search certifications',
+            tooltip: context.l10n.certifications_list_tooltip_search,
             onPressed: () {
               showSearch(
                 context: context,
@@ -210,7 +211,7 @@ class _CertificationListContentState
     final sort = ref.read(certificationSortProvider);
     showSortBottomSheet<CertificationSortField>(
       context: context,
-      title: 'Sort Certifications',
+      title: context.l10n.certifications_list_sort_title,
       currentField: sort.field,
       currentDirection: sort.direction,
       fields: CertificationSortField.values,
@@ -254,7 +255,11 @@ class _CertificationListContentState
         padding: const EdgeInsets.only(bottom: 80),
         children: [
           if (expired.isNotEmpty) ...[
-            _buildSectionHeader(context, 'Expired', Colors.red),
+            _buildSectionHeader(
+              context,
+              context.l10n.certifications_list_section_expired,
+              Colors.red,
+            ),
             ...expired.map(
               (cert) => CertificationListTile(
                 certification: cert,
@@ -264,7 +269,11 @@ class _CertificationListContentState
             ),
           ],
           if (expiringSoon.isNotEmpty) ...[
-            _buildSectionHeader(context, 'Expiring Soon', Colors.orange),
+            _buildSectionHeader(
+              context,
+              context.l10n.certifications_list_section_expiringSoon,
+              Colors.orange,
+            ),
             ...expiringSoon.map(
               (cert) => CertificationListTile(
                 certification: cert,
@@ -274,7 +283,11 @@ class _CertificationListContentState
             ),
           ],
           if (valid.isNotEmpty) ...[
-            _buildSectionHeader(context, 'Valid', Colors.green),
+            _buildSectionHeader(
+              context,
+              context.l10n.certifications_list_section_valid,
+              Colors.green,
+            ),
             ...valid.map(
               (cert) => CertificationListTile(
                 certification: cert,
@@ -323,12 +336,12 @@ class _CertificationListContentState
           ),
           const SizedBox(height: 16),
           Text(
-            'No certifications added yet',
+            context.l10n.certifications_list_empty_title,
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 8),
           Text(
-            'Add your dive certifications to keep track\nof your training and qualifications',
+            context.l10n.certifications_list_empty_subtitle,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -338,7 +351,7 @@ class _CertificationListContentState
           FilledButton.icon(
             onPressed: () => context.push('/certifications/new'),
             icon: const Icon(Icons.add_card),
-            label: const Text('Add Your First Certification'),
+            label: Text(context.l10n.certifications_list_empty_button),
           ),
         ],
       ),
@@ -352,12 +365,14 @@ class _CertificationListContentState
         children: [
           const Icon(Icons.error_outline, size: 48, color: Colors.red),
           const SizedBox(height: 16),
-          Text('Error loading certifications: $error'),
+          Text(
+            context.l10n.certifications_list_error_loading(error.toString()),
+          ),
           const SizedBox(height: 16),
           FilledButton(
             onPressed: () =>
                 ref.read(certificationListNotifierProvider.notifier).refresh(),
-            child: const Text('Retry'),
+            child: Text(context.l10n.certifications_list_button_retry),
           ),
         ],
       ),
@@ -453,9 +468,9 @@ class CertificationListTile extends StatelessWidget {
           color: Colors.red.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: const Text(
-          'Expired',
-          style: TextStyle(
+        child: Text(
+          context.l10n.certifications_list_tile_expired,
+          style: const TextStyle(
             color: Colors.red,
             fontSize: 12,
             fontWeight: FontWeight.bold,
@@ -471,7 +486,7 @@ class CertificationListTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
         ),
         child: Text(
-          '${days}d',
+          context.l10n.certifications_list_tile_expiringDays(days ?? 0),
           style: const TextStyle(
             color: Colors.orange,
             fontSize: 12,
@@ -491,7 +506,7 @@ class CertificationSearchDelegate extends SearchDelegate<Certification?> {
   CertificationSearchDelegate(this.ref);
 
   @override
-  String get searchFieldLabel => 'Search certifications...';
+  String get searchFieldLabel => 'Search certifications...'; // TODO: l10n - searchFieldLabel getter has no context
 
   @override
   List<Widget> buildActions(BuildContext context) {
@@ -499,7 +514,7 @@ class CertificationSearchDelegate extends SearchDelegate<Certification?> {
       if (query.isNotEmpty)
         IconButton(
           icon: const Icon(Icons.clear),
-          tooltip: 'Clear search',
+          tooltip: context.l10n.certifications_search_tooltip_clear,
           onPressed: () => query = '',
         ),
     ];
@@ -509,7 +524,7 @@ class CertificationSearchDelegate extends SearchDelegate<Certification?> {
   Widget buildLeading(BuildContext context) {
     return IconButton(
       icon: const Icon(Icons.arrow_back),
-      tooltip: 'Back',
+      tooltip: context.l10n.certifications_search_tooltip_back,
       onPressed: () => close(context, null),
     );
   }
@@ -535,7 +550,7 @@ class CertificationSearchDelegate extends SearchDelegate<Certification?> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Search by name, agency, or card number',
+              context.l10n.certifications_search_empty_hint,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -566,7 +581,7 @@ class CertificationSearchDelegate extends SearchDelegate<Certification?> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'No certifications found for "$query"',
+                  context.l10n.certifications_search_noResults(query),
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),

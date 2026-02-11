@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
@@ -130,7 +131,7 @@ class _DiverListContentState extends ConsumerState<DiverListContent> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Diver Profiles')),
+      appBar: AppBar(title: Text(context.l10n.divers_list_appBarTitle)),
       body: content,
       floatingActionButton: widget.floatingActionButton,
     );
@@ -152,7 +153,7 @@ class _DiverListContentState extends ConsumerState<DiverListContent> {
         children: [
           const SizedBox(width: 8),
           Text(
-            'Divers',
+            context.l10n.divers_list_compactTitle,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -193,7 +194,9 @@ class _DiverListContentState extends ConsumerState<DiverListContent> {
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Switched to ${diver.name}'),
+                    content: Text(
+                      context.l10n.divers_detail_switchedTo(diver.name),
+                    ),
                     duration: const Duration(seconds: 2),
                   ),
                 );
@@ -217,12 +220,12 @@ class _DiverListContentState extends ConsumerState<DiverListContent> {
           ),
           const SizedBox(height: 16),
           Text(
-            'No divers yet',
+            context.l10n.divers_list_emptyTitle,
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 8),
           Text(
-            'Add diver profiles to track dive logs for multiple people',
+            context.l10n.divers_list_emptySubtitle,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -232,7 +235,7 @@ class _DiverListContentState extends ConsumerState<DiverListContent> {
           FilledButton.icon(
             onPressed: () => context.push('/divers/new'),
             icon: const Icon(Icons.person_add),
-            label: const Text('Add Diver'),
+            label: Text(context.l10n.divers_list_addDiverButton),
           ),
         ],
       ),
@@ -246,12 +249,12 @@ class _DiverListContentState extends ConsumerState<DiverListContent> {
         children: [
           const Icon(Icons.error_outline, size: 48, color: Colors.red),
           const SizedBox(height: 16),
-          Text('Error loading divers: $error'),
+          Text(context.l10n.divers_list_errorLoading('$error')),
           const SizedBox(height: 16),
           FilledButton(
             onPressed: () =>
                 ref.read(diverListNotifierProvider.notifier).refresh(),
-            child: const Text('Retry'),
+            child: Text(context.l10n.divers_list_retryButton),
           ),
         ],
       ),
@@ -290,7 +293,7 @@ class DiverListTile extends ConsumerWidget {
           : null,
       child: Semantics(
         button: true,
-        label: 'View diver ${diver.name}',
+        label: context.l10n.divers_list_viewDiverLabel(diver.name),
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
@@ -366,7 +369,7 @@ class DiverListTile extends ConsumerWidget {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
-                                'Active',
+                                context.l10n.divers_list_activeBadge,
                                 style: theme.textTheme.labelSmall?.copyWith(
                                   color: theme.colorScheme.onPrimary,
                                 ),
@@ -377,19 +380,24 @@ class DiverListTile extends ConsumerWidget {
                       const SizedBox(height: 4),
                       statsAsync.when(
                         data: (stats) => Text(
-                          '${stats.diveCount} dives${stats.totalBottomTimeSeconds > 0 ? ' - ${stats.formattedBottomTime}' : ''}',
+                          context.l10n.divers_list_diverStats(
+                            stats.diveCount,
+                            stats.totalBottomTimeSeconds > 0
+                                ? ' - ${stats.formattedBottomTime}'
+                                : '',
+                          ),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
                         loading: () => Text(
-                          'Loading...',
+                          context.l10n.divers_list_loadingStats,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
                         error: (e, st) => Text(
-                          'Error loading stats',
+                          context.l10n.divers_list_errorLoadingStats,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.error,
                           ),
@@ -413,7 +421,7 @@ class DiverListTile extends ConsumerWidget {
                   IconButton(
                     onPressed: onSwitchTo,
                     icon: const Icon(Icons.switch_account),
-                    tooltip: 'Switch to this diver',
+                    tooltip: context.l10n.divers_detail_switchToTooltip,
                   )
                 else
                   const ExcludeSemantics(child: Icon(Icons.chevron_right)),

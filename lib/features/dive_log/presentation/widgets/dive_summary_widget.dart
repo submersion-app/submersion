@@ -6,6 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Summary widget shown in the detail pane when no dive is selected.
 ///
@@ -64,7 +65,7 @@ class DiveSummaryWidget extends ConsumerWidget {
             ),
             const SizedBox(width: 12),
             Text(
-              'Dive Log Summary',
+              context.l10n.diveLog_summary_title,
               style: Theme.of(
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
@@ -73,7 +74,7 @@ class DiveSummaryWidget extends ConsumerWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Select a dive from the list to view details',
+          context.l10n.diveLog_summary_selectDive,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
@@ -95,7 +96,7 @@ class DiveSummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Overview',
+          context.l10n.diveLog_summary_overview,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -109,28 +110,28 @@ class DiveSummaryWidget extends ConsumerWidget {
               context,
               icon: Icons.tag,
               value: '${stats.totalDives}',
-              label: 'Total Dives',
+              label: context.l10n.diveLog_summary_stat_totalDives,
               color: Colors.blue,
             ),
             _buildStatCard(
               context,
               icon: Icons.timer,
               value: timeString,
-              label: 'Dive Time',
+              label: context.l10n.diveLog_summary_stat_diveTime,
               color: Colors.teal,
             ),
             _buildStatCard(
               context,
               icon: Icons.arrow_downward,
               value: units.formatDepth(stats.maxDepth),
-              label: 'Max Depth',
+              label: context.l10n.diveLog_summary_stat_maxDepth,
               color: Colors.indigo,
             ),
             _buildStatCard(
               context,
               icon: Icons.location_on,
               value: '${stats.totalSites}',
-              label: 'Dive Sites',
+              label: context.l10n.diveLog_summary_stat_diveSites,
               color: Colors.orange,
             ),
             if (stats.avgMaxDepth > 0)
@@ -138,7 +139,7 @@ class DiveSummaryWidget extends ConsumerWidget {
                 context,
                 icon: Icons.straighten,
                 value: units.formatDepth(stats.avgMaxDepth),
-                label: 'Avg Max Depth',
+                label: context.l10n.diveLog_summary_stat_avgMaxDepth,
                 color: Colors.purple,
               ),
             if (stats.avgTemperature != null)
@@ -146,7 +147,7 @@ class DiveSummaryWidget extends ConsumerWidget {
                 context,
                 icon: Icons.thermostat,
                 value: units.formatTemperature(stats.avgTemperature),
-                label: 'Avg Water Temp',
+                label: context.l10n.diveLog_summary_stat_avgWaterTemp,
                 color: Colors.cyan,
               ),
           ],
@@ -210,7 +211,7 @@ class DiveSummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Most Visited Sites',
+          context.l10n.diveLog_summary_section_mostVisited,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -234,7 +235,7 @@ class DiveSummaryWidget extends ConsumerWidget {
                 ),
                 title: Text(site.siteName),
                 subtitle: Text(
-                  '${site.diveCount} ${site.diveCount == 1 ? 'dive' : 'dives'}',
+                  context.l10n.diveLog_summary_diveCount(site.diveCount),
                 ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => context.push('/sites/${site.siteId}'),
@@ -259,7 +260,7 @@ class DiveSummaryWidget extends ConsumerWidget {
           context,
           units,
           icon: Icons.arrow_downward,
-          title: 'Deepest Dive',
+          title: context.l10n.diveLog_summary_record_deepest,
           value: units.formatDepth(records.deepestDive!.maxDepth),
           diveId: records.deepestDive!.diveId,
           date: records.deepestDive!.dateTime,
@@ -274,7 +275,7 @@ class DiveSummaryWidget extends ConsumerWidget {
           context,
           units,
           icon: Icons.timer,
-          title: 'Longest Dive',
+          title: context.l10n.diveLog_summary_record_longest,
           value: '$minutes min',
           diveId: records.longestDive!.diveId,
           date: records.longestDive!.dateTime,
@@ -288,7 +289,7 @@ class DiveSummaryWidget extends ConsumerWidget {
           context,
           units,
           icon: Icons.ac_unit,
-          title: 'Coldest Dive',
+          title: context.l10n.diveLog_summary_record_coldest,
           value: units.formatTemperature(records.coldestDive!.waterTemp),
           diveId: records.coldestDive!.diveId,
           date: records.coldestDive!.dateTime,
@@ -302,7 +303,7 @@ class DiveSummaryWidget extends ConsumerWidget {
           context,
           units,
           icon: Icons.wb_sunny,
-          title: 'Warmest Dive',
+          title: context.l10n.diveLog_summary_record_warmest,
           value: units.formatTemperature(records.warmestDive!.waterTemp),
           diveId: records.warmestDive!.diveId,
           date: records.warmestDive!.dateTime,
@@ -318,7 +319,7 @@ class DiveSummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Personal Records',
+          context.l10n.diveLog_summary_section_records,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -370,7 +371,7 @@ class DiveSummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Quick Actions',
+          context.l10n.diveLog_summary_section_quickActions,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -388,17 +389,17 @@ class DiveSummaryWidget extends ConsumerWidget {
                 context.go('$currentPath?mode=new');
               },
               icon: const Icon(Icons.add),
-              label: const Text('Log Dive'),
+              label: Text(context.l10n.diveLog_summary_action_logDive),
             ),
             OutlinedButton.icon(
               onPressed: () => context.go('/dive-computers'),
               icon: const Icon(Icons.download),
-              label: const Text('Import from Computer'),
+              label: Text(context.l10n.diveLog_summary_action_importComputer),
             ),
             OutlinedButton.icon(
               onPressed: () => context.go('/statistics'),
               icon: const Icon(Icons.bar_chart),
-              label: const Text('View Statistics'),
+              label: Text(context.l10n.diveLog_summary_action_viewStats),
             ),
           ],
         ),

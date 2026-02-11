@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A section showing recent dives with the same tile format as the dive list
 class RecentDivesCard extends ConsumerWidget {
@@ -26,17 +27,17 @@ class RecentDivesCard extends ConsumerWidget {
               Semantics(
                 header: true,
                 child: Text(
-                  'Recent Dives',
+                  context.l10n.dashboard_recentDives_sectionTitle,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
               Tooltip(
-                message: 'View all dives',
+                message: context.l10n.dashboard_recentDives_viewAllTooltip,
                 child: TextButton(
                   onPressed: () => context.go('/dives'),
-                  child: const Text('View All'),
+                  child: Text(context.l10n.dashboard_recentDives_viewAll),
                 ),
               ),
             ],
@@ -91,12 +92,12 @@ class RecentDivesCard extends ConsumerWidget {
             ),
           ),
           error: (error, _) => Semantics(
-            label: 'Error: Failed to load recent dives',
+            label: context.l10n.dashboard_semantics_errorLoadingRecentDives,
             child: Center(
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Text(
-                  'Failed to load dives',
+                  context.l10n.dashboard_recentDives_errorLoading,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.error,
                   ),
@@ -125,7 +126,7 @@ class RecentDivesCard extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'No dives logged yet',
+              context.l10n.dashboard_recentDives_empty,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -134,7 +135,7 @@ class RecentDivesCard extends ConsumerWidget {
             FilledButton.icon(
               onPressed: () => context.go('/dives/new'),
               icon: const Icon(Icons.add),
-              label: const Text('Log Your First Dive'),
+              label: Text(context.l10n.dashboard_recentDives_logFirst),
             ),
           ],
         ),

@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_import/presentation/providers/dive_import_providers.dart';
 import 'package:submersion/features/dive_import/presentation/widgets/imported_dive_card.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Import wizard for Garmin FIT dive files.
 ///
@@ -38,10 +39,10 @@ class _FitImportPageState extends ConsumerState<FitImportPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Import from FIT File'),
+        title: Text(context.l10n.diveImport_fit_title),
         leading: IconButton(
           icon: const Icon(Icons.close),
-          tooltip: 'Close FIT import',
+          tooltip: context.l10n.diveImport_fit_closeTooltip,
           onPressed: () {
             ref.read(fitImportProvider.notifier).reset();
             context.pop();
@@ -83,7 +84,11 @@ class _FitImportPageState extends ConsumerState<FitImportPage> {
               ),
             _StepDot(
               step: i + 1,
-              label: ['Select', 'Review', 'Done'][i],
+              label: [
+                context.l10n.diveImport_step_select,
+                context.l10n.diveImport_step_review,
+                context.l10n.diveImport_step_done,
+              ][i],
               isActive: i == _currentStep,
               isCompleted: i < _currentStep,
             ),
@@ -116,7 +121,11 @@ class _FitImportPageState extends ConsumerState<FitImportPage> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.file_open),
-              label: Text(_isParsing ? 'Parsing...' : 'Select FIT Files'),
+              label: Text(
+                _isParsing
+                    ? context.l10n.diveImport_fit_parsing
+                    : context.l10n.diveImport_fit_selectFiles,
+              ),
               onPressed: _isParsing ? null : _pickAndParseFiles,
             ),
           ),
@@ -129,15 +138,15 @@ class _FitImportPageState extends ConsumerState<FitImportPage> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
               _skippedFileCount > 0
-                  ? 'Parsed ${importState.availableDives.length} '
-                        '${importState.availableDives.length == 1 ? 'dive' : 'dives'} '
-                        'from $_totalFileCount '
-                        '${_totalFileCount == 1 ? 'file' : 'files'} '
-                        '($_skippedFileCount skipped)'
-                  : 'Parsed ${importState.availableDives.length} '
-                        '${importState.availableDives.length == 1 ? 'dive' : 'dives'} '
-                        'from $_totalFileCount '
-                        '${_totalFileCount == 1 ? 'file' : 'files'}',
+                  ? context.l10n.diveImport_fit_parsedWithSkipped(
+                      importState.availableDives.length,
+                      _totalFileCount,
+                      _skippedFileCount,
+                    )
+                  : context.l10n.diveImport_fit_parsed(
+                      importState.availableDives.length,
+                      _totalFileCount,
+                    ),
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -173,12 +182,16 @@ class _FitImportPageState extends ConsumerState<FitImportPage> {
                         : () =>
                               ref.read(fitImportProvider.notifier).selectAll(),
                     child: Text(
-                      importState.hasSelection ? 'Deselect All' : 'Select All',
+                      importState.hasSelection
+                          ? context.l10n.diveImport_deselectAll
+                          : context.l10n.diveImport_selectAll,
                     ),
                   ),
                   const Spacer(),
                   Text(
-                    '${importState.selectedCount} selected',
+                    context.l10n.diveImport_selectedCount(
+                      importState.selectedCount,
+                    ),
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -188,7 +201,7 @@ class _FitImportPageState extends ConsumerState<FitImportPage> {
                     onPressed: importState.hasSelection
                         ? _checkDuplicatesAndAdvance
                         : null,
-                    child: const Text('Next'),
+                    child: Text(context.l10n.diveImport_next),
                   ),
                 ],
               ),
@@ -252,14 +265,16 @@ class _FitImportPageState extends ConsumerState<FitImportPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Review Selected Dives',
+                  context.l10n.diveImport_reviewSelectedDives,
                   style: theme.textTheme.titleLarge,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '$newCount new'
-                  '${possibleCount > 0 ? ', $possibleCount possible duplicates' : ''}'
-                  '${skipCount > 0 ? ', $skipCount will be skipped' : ''}',
+                  context.l10n.diveImport_reviewSummary(
+                    newCount,
+                    possibleCount,
+                    skipCount,
+                  ),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -297,7 +312,7 @@ class _FitImportPageState extends ConsumerState<FitImportPage> {
               children: [
                 OutlinedButton(
                   onPressed: () => setState(() => _currentStep = 0),
-                  child: const Text('Back'),
+                  child: Text(context.l10n.diveImport_back),
                 ),
                 const Spacer(),
                 FilledButton(
@@ -308,7 +323,7 @@ class _FitImportPageState extends ConsumerState<FitImportPage> {
                           height: 16,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Import'),
+                      : Text(context.l10n.diveImport_import),
                 ),
               ],
             ),
@@ -339,24 +354,27 @@ class _FitImportPageState extends ConsumerState<FitImportPage> {
             ),
           ),
           const SizedBox(height: 24),
-          Text('Import Complete', style: theme.textTheme.headlineMedium),
+          Text(
+            context.l10n.diveImport_importComplete,
+            style: theme.textTheme.headlineMedium,
+          ),
           const SizedBox(height: 16),
           _SummaryRow(
-            label: 'Dives imported',
+            label: context.l10n.diveImport_divesImported,
             value: importState.importedCount.toString(),
             icon: Icons.add_circle_outline,
             color: theme.colorScheme.primary,
           ),
           const SizedBox(height: 8),
           _SummaryRow(
-            label: 'Dives merged',
+            label: context.l10n.diveImport_divesMerged,
             value: importState.mergedCount.toString(),
             icon: Icons.merge,
             color: theme.colorScheme.tertiary,
           ),
           const SizedBox(height: 8),
           _SummaryRow(
-            label: 'Dives skipped',
+            label: context.l10n.diveImport_divesSkipped,
             value: importState.skippedCount.toString(),
             icon: Icons.skip_next,
             color: theme.colorScheme.outline,
@@ -367,7 +385,7 @@ class _FitImportPageState extends ConsumerState<FitImportPage> {
               ref.read(fitImportProvider.notifier).reset();
               context.pop();
             },
-            child: const Text('Done'),
+            child: Text(context.l10n.diveImport_done),
           ),
         ],
       ),
@@ -394,11 +412,13 @@ class _FitImportPageState extends ConsumerState<FitImportPage> {
               ),
             ),
             const SizedBox(height: 16),
-            Text('No Dives Loaded', style: theme.textTheme.titleLarge),
+            Text(
+              context.l10n.diveImport_fit_noDivesLoaded,
+              style: theme.textTheme.titleLarge,
+            ),
             const SizedBox(height: 8),
             Text(
-              'Select one or more .fit files exported from Garmin Connect '
-              'or copied from a Garmin Descent device.',
+              context.l10n.diveImport_fit_noDivesDescription,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),

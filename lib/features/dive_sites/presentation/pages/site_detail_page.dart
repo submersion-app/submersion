@@ -16,6 +16,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/marine_life/presentation/widgets/site_marine_life_section.dart';
 import 'package:submersion/features/tides/presentation/widgets/tide_section.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 class SiteDetailPage extends ConsumerStatefulWidget {
   final String siteId;
@@ -56,11 +57,17 @@ class _SiteDetailPageState extends ConsumerState<SiteDetailPage> {
       data: (site) {
         if (site == null) {
           if (widget.embedded) {
-            return const Center(child: Text('This site no longer exists.'));
+            return Center(
+              child: Text(context.l10n.diveSites_detail_siteNotFound_body),
+            );
           }
           return Scaffold(
-            appBar: AppBar(title: const Text('Site Not Found')),
-            body: const Center(child: Text('This site no longer exists.')),
+            appBar: AppBar(
+              title: Text(context.l10n.diveSites_detail_siteNotFound_title),
+            ),
+            body: Center(
+              child: Text(context.l10n.diveSites_detail_siteNotFound_body),
+            ),
           );
         }
         return _SiteDetailContent(
@@ -75,17 +82,25 @@ class _SiteDetailPageState extends ConsumerState<SiteDetailPage> {
           return const Center(child: CircularProgressIndicator());
         }
         return Scaffold(
-          appBar: AppBar(title: const Text('Loading...')),
+          appBar: AppBar(
+            title: Text(context.l10n.diveSites_detail_loading_title),
+          ),
           body: const Center(child: CircularProgressIndicator()),
         );
       },
       error: (error, _) {
         if (widget.embedded) {
-          return Center(child: Text('Error: $error'));
+          return Center(
+            child: Text(context.l10n.diveSites_detail_error_body('$error')),
+          );
         }
         return Scaffold(
-          appBar: AppBar(title: const Text('Error')),
-          body: Center(child: Text('Error: $error')),
+          appBar: AppBar(
+            title: Text(context.l10n.diveSites_detail_error_title),
+          ),
+          body: Center(
+            child: Text(context.l10n.diveSites_detail_error_body('$error')),
+          ),
         );
       },
     );
@@ -198,7 +213,7 @@ class _SiteDetailContent extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
-            tooltip: 'Edit Site',
+            tooltip: context.l10n.diveSites_detail_editTooltip,
             onPressed: () => context.push('/sites/$siteId/edit'),
           ),
         ],
@@ -257,7 +272,7 @@ class _SiteDetailContent extends ConsumerWidget {
           ),
           IconButton(
             icon: const Icon(Icons.edit, size: 20),
-            tooltip: 'Edit',
+            tooltip: context.l10n.diveSites_detail_editTooltipShort,
             onPressed: () {
               final state = GoRouterState.of(context);
               final currentPath = state.uri.path;
@@ -268,11 +283,14 @@ class _SiteDetailContent extends ConsumerWidget {
             icon: const Icon(Icons.more_vert, size: 20),
             onSelected: (value) => _handleMenuAction(context, ref, value, site),
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'delete',
                 child: ListTile(
-                  leading: Icon(Icons.delete, color: Colors.red),
-                  title: Text('Delete', style: TextStyle(color: Colors.red)),
+                  leading: const Icon(Icons.delete, color: Colors.red),
+                  title: Text(
+                    context.l10n.diveSites_detail_deleteMenu_label,
+                    style: const TextStyle(color: Colors.red),
+                  ),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
@@ -293,21 +311,19 @@ class _SiteDetailContent extends ConsumerWidget {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Delete Site'),
-          content: const Text(
-            'Are you sure you want to delete this site? This action cannot be undone.',
-          ),
+          title: Text(context.l10n.diveSites_detail_deleteDialog_title),
+          content: Text(context.l10n.diveSites_detail_deleteDialog_content),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
+              child: Text(context.l10n.diveSites_detail_deleteDialog_cancel),
             ),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
               style: FilledButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.error,
               ),
-              child: const Text('Delete'),
+              child: Text(context.l10n.diveSites_detail_deleteDialog_confirm),
             ),
           ],
         ),
@@ -324,9 +340,11 @@ class _SiteDetailContent extends ConsumerWidget {
           } else {
             context.go('/sites');
           }
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Site deleted')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(context.l10n.diveSites_detail_deleteSnackbar),
+            ),
+          );
         }
       }
     }
@@ -410,7 +428,8 @@ class _SiteDetailContent extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(4),
                 child: Semantics(
                   button: true,
-                  label: 'View fullscreen map',
+                  label:
+                      context.l10n.diveSites_detail_semantics_viewFullscreenMap,
                   child: InkWell(
                     borderRadius: BorderRadius.circular(4),
                     onTap: () => _showFullscreenMap(context, site),
@@ -560,7 +579,9 @@ class _SiteDetailContent extends ConsumerWidget {
           clipBehavior: Clip.antiAlias,
           child: Semantics(
             button: diveCount > 0,
-            label: diveCount > 0 ? 'View dives at this site' : null,
+            label: diveCount > 0
+                ? context.l10n.diveSites_detail_semantics_viewDivesAtSite
+                : null,
             child: InkWell(
               onTap: diveCount > 0
                   ? () {
@@ -590,16 +611,18 @@ class _SiteDetailContent extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Dives at this Site',
+                            context.l10n.diveSites_detail_section_divesAtSite,
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           const SizedBox(height: 4),
                           Text(
                             diveCount == 0
-                                ? 'No dives logged yet'
+                                ? context.l10n.diveSites_detail_diveCount_zero
                                 : diveCount == 1
-                                ? '1 dive logged'
-                                : '$diveCount dives logged',
+                                ? context.l10n.diveSites_detail_diveCount_one
+                                : context.l10n.diveSites_detail_diveCount_other(
+                                    diveCount,
+                                  ),
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(color: colorScheme.onSurfaceVariant),
                           ),
@@ -663,14 +686,16 @@ class _SiteDetailContent extends ConsumerWidget {
                 Icon(Icons.description, size: 20, color: colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
-                  'Description',
+                  context.l10n.diveSites_detail_section_description,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ],
             ),
             const SizedBox(height: 12),
             Text(
-              hasDescription ? site.description : 'No description',
+              hasDescription
+                  ? site.description
+                  : context.l10n.diveSites_detail_noDescription,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: hasDescription ? null : colorScheme.onSurfaceVariant,
                 fontStyle: hasDescription ? null : FontStyle.italic,
@@ -696,7 +721,7 @@ class _SiteDetailContent extends ConsumerWidget {
                 Icon(Icons.map, size: 20, color: colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
-                  'Location',
+                  context.l10n.diveSites_detail_section_location,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ],
@@ -705,22 +730,28 @@ class _SiteDetailContent extends ConsumerWidget {
             _buildDetailRow(
               context,
               Icons.flag,
-              'Country',
-              site.country?.isNotEmpty == true ? site.country! : 'Not set',
+              context.l10n.diveSites_detail_location_country,
+              site.country?.isNotEmpty == true
+                  ? site.country!
+                  : context.l10n.diveSites_detail_location_notSet,
               isEmpty: site.country?.isNotEmpty != true,
             ),
             _buildDetailRow(
               context,
               Icons.place,
-              'Region',
-              site.region?.isNotEmpty == true ? site.region! : 'Not set',
+              context.l10n.diveSites_detail_location_region,
+              site.region?.isNotEmpty == true
+                  ? site.region!
+                  : context.l10n.diveSites_detail_location_notSet,
               isEmpty: site.region?.isNotEmpty != true,
             ),
             _buildDetailRow(
               context,
               Icons.gps_fixed,
-              'GPS Coordinates',
-              site.hasCoordinates ? site.location.toString() : 'Not set',
+              context.l10n.diveSites_detail_location_gpsCoordinates,
+              site.hasCoordinates
+                  ? site.location.toString()
+                  : context.l10n.diveSites_detail_location_notSet,
               isEmpty: !site.hasCoordinates,
               onTap: site.hasCoordinates
                   ? () {
@@ -728,9 +759,11 @@ class _SiteDetailContent extends ConsumerWidget {
                         ClipboardData(text: site.location.toString()),
                       );
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Coordinates copied to clipboard'),
-                          duration: Duration(seconds: 2),
+                        SnackBar(
+                          content: Text(
+                            context.l10n.diveSites_detail_coordinatesCopied,
+                          ),
+                          duration: const Duration(seconds: 2),
                         ),
                       );
                     }
@@ -787,7 +820,7 @@ class _SiteDetailContent extends ConsumerWidget {
     if (onTap != null) {
       return Semantics(
         button: true,
-        label: 'Copy $label to clipboard',
+        label: context.l10n.diveSites_detail_semantics_copyToClipboard(label),
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(8),
@@ -848,7 +881,7 @@ class _SiteDetailContent extends ConsumerWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Depth Range',
+                  context.l10n.diveSites_detail_section_depthRange,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ],
@@ -857,7 +890,7 @@ class _SiteDetailContent extends ConsumerWidget {
             if (!hasDepthInfo)
               Center(
                 child: Text(
-                  'No depth information',
+                  context.l10n.diveSites_detail_noDepthInfo,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                     fontStyle: FontStyle.italic,
@@ -872,7 +905,7 @@ class _SiteDetailContent extends ConsumerWidget {
                       child: Column(
                         children: [
                           Text(
-                            'Minimum',
+                            context.l10n.diveSites_detail_depth_minimum,
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(color: colorScheme.onSurfaceVariant),
                           ),
@@ -904,7 +937,7 @@ class _SiteDetailContent extends ConsumerWidget {
                       child: Column(
                         children: [
                           Text(
-                            'Maximum',
+                            context.l10n.diveSites_detail_depth_maximum,
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(color: colorScheme.onSurfaceVariant),
                           ),
@@ -1003,7 +1036,7 @@ class _SiteDetailContent extends ConsumerWidget {
                 Icon(Icons.terrain, size: 20, color: colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
-                  'Altitude',
+                  context.l10n.diveSites_detail_section_altitude,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ],
@@ -1015,7 +1048,7 @@ class _SiteDetailContent extends ConsumerWidget {
                   child: Column(
                     children: [
                       Text(
-                        'Elevation',
+                        context.l10n.diveSites_detail_altitude_elevation,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -1041,7 +1074,7 @@ class _SiteDetailContent extends ConsumerWidget {
                   child: Column(
                     children: [
                       Text(
-                        'Pressure',
+                        context.l10n.diveSites_detail_altitude_pressure,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -1160,7 +1193,7 @@ class _SiteDetailContent extends ConsumerWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Difficulty Level',
+                  context.l10n.diveSites_detail_section_difficultyLevel,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ],
@@ -1223,7 +1256,7 @@ class _SiteDetailContent extends ConsumerWidget {
                 Icon(Icons.warning_amber, size: 20, color: colorScheme.error),
                 const SizedBox(width: 8),
                 Text(
-                  'Hazards & Safety',
+                  context.l10n.diveSites_detail_section_hazards,
                   style: Theme.of(
                     context,
                   ).textTheme.titleMedium?.copyWith(color: colorScheme.error),
@@ -1252,7 +1285,7 @@ class _SiteDetailContent extends ConsumerWidget {
                 Icon(Icons.directions, size: 20, color: colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
-                  'Access & Logistics',
+                  context.l10n.diveSites_detail_section_access,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ],
@@ -1262,7 +1295,7 @@ class _SiteDetailContent extends ConsumerWidget {
               _buildDetailRow(
                 context,
                 Icons.info_outline,
-                'Access Notes',
+                context.l10n.diveSites_detail_access_accessNotes,
                 site.accessNotes!,
               ),
             ],
@@ -1271,7 +1304,7 @@ class _SiteDetailContent extends ConsumerWidget {
               _buildDetailRow(
                 context,
                 Icons.anchor,
-                'Mooring',
+                context.l10n.diveSites_detail_access_mooring,
                 site.mooringNumber!,
               ),
             ],
@@ -1279,7 +1312,7 @@ class _SiteDetailContent extends ConsumerWidget {
               _buildDetailRow(
                 context,
                 Icons.local_parking,
-                'Parking',
+                context.l10n.diveSites_detail_access_parking,
                 site.parkingInfo!,
               ),
             ],
@@ -1304,7 +1337,10 @@ class _SiteDetailContent extends ConsumerWidget {
               children: [
                 Icon(Icons.star, size: 20, color: colorScheme.primary),
                 const SizedBox(width: 8),
-                Text('Rating', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  context.l10n.diveSites_detail_section_rating,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -1327,8 +1363,10 @@ class _SiteDetailContent extends ConsumerWidget {
             Center(
               child: Text(
                 hasRating
-                    ? '${rating.toStringAsFixed(1)} out of 5'
-                    : 'Not rated',
+                    ? context.l10n.diveSites_detail_rating_value(
+                        rating.toStringAsFixed(1),
+                      )
+                    : context.l10n.diveSites_detail_rating_notRated,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                   fontStyle: hasRating ? null : FontStyle.italic,
@@ -1355,12 +1393,15 @@ class _SiteDetailContent extends ConsumerWidget {
               children: [
                 Icon(Icons.notes, size: 20, color: colorScheme.primary),
                 const SizedBox(width: 8),
-                Text('Notes', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  context.l10n.diveSites_detail_section_notes,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
               ],
             ),
             const SizedBox(height: 12),
             Text(
-              hasNotes ? site.notes : 'No notes',
+              hasNotes ? site.notes : context.l10n.diveSites_detail_noNotes,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: hasNotes ? null : colorScheme.onSurfaceVariant,
                 fontStyle: hasNotes ? null : FontStyle.italic,

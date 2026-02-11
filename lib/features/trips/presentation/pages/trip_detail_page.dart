@@ -18,6 +18,7 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_media_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_photo_section.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
 class TripDetailPage extends ConsumerStatefulWidget {
@@ -64,14 +65,20 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
       loading: () => widget.embedded
           ? const Center(child: CircularProgressIndicator())
           : Scaffold(
-              appBar: AppBar(title: const Text('Trip')),
+              appBar: AppBar(
+                title: Text(context.l10n.trips_detail_appBar_title),
+              ),
               body: const Center(child: CircularProgressIndicator()),
             ),
       error: (error, stack) => widget.embedded
-          ? Center(child: Text('Error: $error'))
+          ? Center(child: Text('${context.l10n.common_label_error}: $error'))
           : Scaffold(
-              appBar: AppBar(title: const Text('Trip')),
-              body: Center(child: Text('Error: $error')),
+              appBar: AppBar(
+                title: Text(context.l10n.trips_detail_appBar_title),
+              ),
+              body: Center(
+                child: Text('${context.l10n.common_label_error}: $error'),
+              ),
             ),
     );
   }
@@ -149,7 +156,7 @@ class _TripDetailContent extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.map_outlined),
-            tooltip: 'View on Map',
+            tooltip: context.l10n.trips_detail_tooltip_viewOnMap,
             onPressed: () {
               ref.read(diveFilterProvider.notifier).state = DiveFilterState(
                 tripId: trip.id,
@@ -159,7 +166,7 @@ class _TripDetailContent extends ConsumerWidget {
           ),
           IconButton(
             icon: const Icon(Icons.edit),
-            tooltip: 'Edit trip',
+            tooltip: context.l10n.trips_detail_tooltip_edit,
             onPressed: () => context.push('/trips/${trip.id}/edit'),
           ),
           _buildMoreMenu(context, ref, trip),
@@ -217,7 +224,7 @@ class _TripDetailContent extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.map_outlined, size: 20),
             visualDensity: VisualDensity.compact,
-            tooltip: 'View on Map',
+            tooltip: context.l10n.trips_detail_tooltip_viewOnMap,
             onPressed: () {
               ref.read(diveFilterProvider.notifier).state = DiveFilterState(
                 tripId: trip.id,
@@ -233,7 +240,7 @@ class _TripDetailContent extends ConsumerWidget {
               final currentPath = state.uri.path;
               context.go('$currentPath?selected=${trip.id}&mode=edit');
             },
-            tooltip: 'Edit',
+            tooltip: context.l10n.trips_detail_tooltip_editShort,
           ),
           _buildMoreMenu(context, ref, trip),
         ],
@@ -243,7 +250,7 @@ class _TripDetailContent extends ConsumerWidget {
 
   Widget _buildMoreMenu(BuildContext context, WidgetRef ref, Trip trip) {
     return PopupMenuButton<String>(
-      tooltip: 'More options',
+      tooltip: context.l10n.trips_detail_tooltip_moreOptions,
       onSelected: (value) async {
         if (value == 'delete') {
           final confirmed = await _showDeleteConfirmation(context);
@@ -257,9 +264,11 @@ class _TripDetailContent extends ConsumerWidget {
               } else {
                 context.pop();
               }
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('Trip deleted')));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(context.l10n.trips_detail_snackBar_deleted),
+                ),
+              );
             }
           }
         } else if (value == 'export') {
@@ -267,13 +276,13 @@ class _TripDetailContent extends ConsumerWidget {
         }
       },
       itemBuilder: (context) => [
-        const PopupMenuItem(
+        PopupMenuItem(
           value: 'export',
           child: Row(
             children: [
-              Icon(Icons.file_download),
-              SizedBox(width: 8),
-              Text('Export'),
+              const Icon(Icons.file_download),
+              const SizedBox(width: 8),
+              Text(context.l10n.trips_detail_action_export),
             ],
           ),
         ),
@@ -284,7 +293,7 @@ class _TripDetailContent extends ConsumerWidget {
               Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
               const SizedBox(width: 8),
               Text(
-                'Delete',
+                context.l10n.trips_detail_action_delete,
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ],
@@ -332,7 +341,7 @@ class _TripDetailContent extends ConsumerWidget {
               ),
             ),
             Text(
-              '${trip.durationDays} days',
+              context.l10n.trips_detail_durationDays(trip.durationDays),
               style: Theme.of(
                 context,
               ).textTheme.bodyMedium?.copyWith(color: colorScheme.primary),
@@ -477,7 +486,7 @@ class _TripDetailContent extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Trip Details',
+              context.l10n.trips_detail_sectionTitle_details,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -486,21 +495,21 @@ class _TripDetailContent extends ConsumerWidget {
             if (trip.location != null)
               ListTile(
                 leading: const Icon(Icons.place),
-                title: const Text('Location'),
+                title: Text(context.l10n.trips_detail_label_location),
                 subtitle: Text(trip.location!),
                 contentPadding: EdgeInsets.zero,
               ),
             if (trip.resortName != null)
               ListTile(
                 leading: const Icon(Icons.hotel),
-                title: const Text('Resort'),
+                title: Text(context.l10n.trips_detail_label_resort),
                 subtitle: Text(trip.resortName!),
                 contentPadding: EdgeInsets.zero,
               ),
             if (trip.liveaboardName != null)
               ListTile(
                 leading: const Icon(Icons.sailing),
-                title: const Text('Liveaboard'),
+                title: Text(context.l10n.trips_detail_label_liveaboard),
                 subtitle: Text(trip.liveaboardName!),
                 contentPadding: EdgeInsets.zero,
               ),
@@ -518,7 +527,7 @@ class _TripDetailContent extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Trip Statistics',
+              context.l10n.trips_detail_sectionTitle_statistics,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -526,24 +535,24 @@ class _TripDetailContent extends ConsumerWidget {
             const SizedBox(height: 12),
             _StatRow(
               icon: Icons.scuba_diving,
-              label: 'Total Dives',
+              label: context.l10n.trips_detail_stat_totalDives,
               value: tripWithStats.diveCount.toString(),
             ),
             _StatRow(
               icon: Icons.timer,
-              label: 'Total Bottom Time',
+              label: context.l10n.trips_detail_stat_totalBottomTime,
               value: tripWithStats.formattedBottomTime,
             ),
             if (tripWithStats.maxDepth != null)
               _StatRow(
                 icon: Icons.arrow_downward,
-                label: 'Max Depth',
+                label: context.l10n.trips_detail_stat_maxDepth,
                 value: '${tripWithStats.maxDepth!.toStringAsFixed(1)} m',
               ),
             if (tripWithStats.avgDepth != null)
               _StatRow(
                 icon: Icons.trending_flat,
-                label: 'Avg Depth',
+                label: context.l10n.trips_detail_stat_avgDepth,
                 value: '${tripWithStats.avgDepth!.toStringAsFixed(1)} m',
               ),
           ],
@@ -560,7 +569,7 @@ class _TripDetailContent extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Notes',
+              context.l10n.trips_detail_sectionTitle_notes,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -591,7 +600,7 @@ class _TripDetailContent extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Dives',
+                  context.l10n.trips_detail_sectionTitle_dives,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -605,7 +614,9 @@ class _TripDetailContent extends ConsumerWidget {
                                 DiveFilterState(tripId: tripWithStats.trip.id);
                             context.go('/dives');
                           },
-                    child: Text('View All (${dives.length})'),
+                    child: Text(
+                      context.l10n.trips_detail_dives_viewAll(dives.length),
+                    ),
                   ),
                   loading: () => const SizedBox.shrink(),
                   error: (e, st) => const SizedBox.shrink(),
@@ -616,9 +627,11 @@ class _TripDetailContent extends ConsumerWidget {
             divesAsync.when(
               data: (dives) {
                 if (dives.isEmpty) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    child: Center(child: Text('No dives in this trip yet')),
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Center(
+                      child: Text(context.l10n.trips_detail_dives_empty),
+                    ),
                   );
                 }
                 final sortedDives = List<Dive>.from(dives)
@@ -626,7 +639,9 @@ class _TripDetailContent extends ConsumerWidget {
                 final displayDives = sortedDives.take(5).toList();
                 return Column(
                   children: displayDives.map((dive) {
-                    final siteName = dive.site?.name ?? 'Unknown Site';
+                    final siteName =
+                        dive.site?.name ??
+                        context.l10n.trips_detail_dives_unknownSite;
                     final diveNum = dive.diveNumber ?? '-';
                     final depthStr = dive.maxDepth != null
                         ? ', ${dive.maxDepth!.toStringAsFixed(1)}m'
@@ -670,7 +685,10 @@ class _TripDetailContent extends ConsumerWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      dive.site?.name ?? 'Unknown Site',
+                                      dive.site?.name ??
+                                          context
+                                              .l10n
+                                              .trips_detail_dives_unknownSite,
                                       style: theme.textTheme.bodyMedium
                                           ?.copyWith(
                                             fontWeight: FontWeight.w500,
@@ -734,7 +752,8 @@ class _TripDetailContent extends ConsumerWidget {
                   child: CircularProgressIndicator.adaptive(),
                 ),
               ),
-              error: (e, st) => const Text('Unable to load dives'),
+              error: (e, st) =>
+                  Text(context.l10n.trips_detail_dives_errorLoading),
             ),
           ],
         ),
@@ -746,21 +765,23 @@ class _TripDetailContent extends ConsumerWidget {
     return await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Delete Trip?'),
+            title: Text(context.l10n.trips_detail_dialog_deleteTitle),
             content: Text(
-              'Are you sure you want to delete "${tripWithStats.trip.name}"? This will remove the trip but keep the dives.',
+              context.l10n.trips_detail_dialog_deleteContent(
+                tripWithStats.trip.name,
+              ),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Cancel'),
+                child: Text(context.l10n.trips_detail_dialog_cancel),
               ),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(true),
                 style: FilledButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.error,
                 ),
-                child: const Text('Delete'),
+                child: Text(context.l10n.trips_detail_dialog_deleteConfirm),
               ),
             ],
           ),
@@ -777,30 +798,40 @@ class _TripDetailContent extends ConsumerWidget {
           children: [
             Semantics(
               button: true,
-              label: 'Export to CSV. All dives in this trip',
+              label:
+                  '${context.l10n.trips_detail_export_csv_title}. ${context.l10n.trips_detail_export_csv_subtitle}',
               child: ListTile(
                 leading: const Icon(Icons.description),
-                title: const Text('Export to CSV'),
-                subtitle: const Text('All dives in this trip'),
+                title: Text(context.l10n.trips_detail_export_csv_title),
+                subtitle: Text(context.l10n.trips_detail_export_csv_subtitle),
                 onTap: () {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('CSV export coming soon')),
+                    SnackBar(
+                      content: Text(
+                        context.l10n.trips_detail_export_csv_comingSoon,
+                      ),
+                    ),
                   );
                 },
               ),
             ),
             Semantics(
               button: true,
-              label: 'Export to PDF. Trip summary with dive details',
+              label:
+                  '${context.l10n.trips_detail_export_pdf_title}. ${context.l10n.trips_detail_export_pdf_subtitle}',
               child: ListTile(
                 leading: const Icon(Icons.picture_as_pdf),
-                title: const Text('Export to PDF'),
-                subtitle: const Text('Trip summary with dive details'),
+                title: Text(context.l10n.trips_detail_export_pdf_title),
+                subtitle: Text(context.l10n.trips_detail_export_pdf_subtitle),
                 onTap: () {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('PDF export coming soon')),
+                    SnackBar(
+                      content: Text(
+                        context.l10n.trips_detail_export_pdf_comingSoon,
+                      ),
+                    ),
                   );
                 },
               ),
@@ -832,7 +863,9 @@ class _TripDetailContent extends ConsumerWidget {
         if (context.mounted) Navigator.of(context).pop();
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Add dives first to link photos')),
+            SnackBar(
+              content: Text(context.l10n.trips_detail_scan_addDivesFirst),
+            ),
           );
         }
         return;
@@ -864,7 +897,7 @@ class _TripDetailContent extends ConsumerWidget {
 
       if (result == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Photo library access denied')),
+          SnackBar(content: Text(context.l10n.trips_detail_scan_accessDenied)),
         );
         return;
       }
@@ -883,9 +916,11 @@ class _TripDetailContent extends ConsumerWidget {
     } catch (e) {
       if (context.mounted) Navigator.of(context).pop();
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error scanning: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.trips_detail_scan_errorScanning('$e')),
+          ),
+        );
       }
     }
   }
@@ -900,12 +935,12 @@ class _TripDetailContent extends ConsumerWidget {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const AlertDialog(
+      builder: (_) => AlertDialog(
         content: Row(
           children: [
-            CircularProgressIndicator(),
-            SizedBox(width: 16),
-            Text('Linking photos...'),
+            const CircularProgressIndicator(),
+            const SizedBox(width: 16),
+            Text(context.l10n.trips_detail_scan_linkingPhotos),
           ],
         ),
       ),
@@ -939,15 +974,21 @@ class _TripDetailContent extends ConsumerWidget {
       if (!context.mounted) return;
       Navigator.of(context).pop(); // Dismiss progress
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Linked $totalImported photos')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.l10n.trips_detail_scan_linkedPhotos(totalImported),
+          ),
+        ),
+      );
     } catch (e) {
       if (context.mounted) Navigator.of(context).pop();
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error linking photos: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.trips_detail_scan_errorLinking('$e')),
+          ),
+        );
       }
     }
   }

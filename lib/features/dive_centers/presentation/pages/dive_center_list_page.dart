@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_list_content.dart';
@@ -58,9 +59,9 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage> {
           context.push('/dive-centers/new');
         }
       },
-      tooltip: 'Add a new dive center',
+      tooltip: context.l10n.diveCenters_tooltip_addNew,
       icon: const Icon(Icons.add),
-      label: const Text('Add Dive Center'),
+      label: Text(context.l10n.diveCenters_title_add),
     );
 
     // Desktop: Use master-detail layout

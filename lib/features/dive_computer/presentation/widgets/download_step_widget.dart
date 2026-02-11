@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/domain/services/download_manager.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Widget for the download step of the discovery wizard.
 class DownloadStepWidget extends ConsumerStatefulWidget {
@@ -39,6 +40,7 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
     _hasStarted = true;
 
     final notifier = ref.read(downloadNotifierProvider.notifier);
+    final l10n = context.l10n;
 
     // Set dialog context for PIN entry (Aqualung devices)
     notifier.setDialogContext(context);
@@ -48,7 +50,9 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
     if (result.success) {
       widget.onComplete();
     } else {
-      widget.onError(result.errorMessage ?? 'Download failed');
+      widget.onError(
+        result.errorMessage ?? l10n.diveComputer_downloadStep_downloadFailed,
+      );
     }
   }
 
@@ -58,14 +62,21 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final statusText = downloadState.progress?.status ?? 'Preparing...';
+    final statusText =
+        downloadState.progress?.status ??
+        context.l10n.diveComputer_downloadStep_preparing;
     final percentText =
         downloadState.progress != null && downloadState.progress!.totalDives > 0
-        ? ', ${(downloadState.progress!.percentage * 100).toStringAsFixed(0)} percent'
+        ? context.l10n.diveComputer_downloadStep_percentAccessibility(
+            (downloadState.progress!.percentage * 100).toStringAsFixed(0),
+          )
         : '';
 
     return Semantics(
-      label: 'Download progress: $statusText$percentText',
+      label: context.l10n.diveComputer_downloadStep_progressSemanticLabel(
+        statusText,
+        percentText,
+      ),
       liveRegion: downloadState.isDownloading,
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -90,7 +101,9 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
             if (downloadState.progress != null &&
                 downloadState.progress!.totalDives > 0)
               Text(
-                '${(downloadState.progress!.percentage * 100).toStringAsFixed(0)}%',
+                context.l10n.diveComputer_downloadStep_progressPercent(
+                  (downloadState.progress!.percentage * 100).toStringAsFixed(0),
+                ),
                 style: theme.textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: colorScheme.primary,
@@ -112,7 +125,7 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
                   ref.read(downloadNotifierProvider.notifier).cancelDownload();
                 },
                 icon: const Icon(Icons.cancel),
-                label: const Text('Cancel'),
+                label: Text(context.l10n.diveComputer_downloadStep_cancel),
               ),
 
             // Error state
@@ -120,8 +133,13 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
               Column(
                 children: [
                   Semantics(
-                    label:
-                        'Download error: ${downloadState.errorMessage ?? 'An error occurred'}',
+                    label: context.l10n
+                        .diveComputer_downloadStep_errorSemanticLabel(
+                          downloadState.errorMessage ??
+                              context
+                                  .l10n
+                                  .diveComputer_downloadStep_errorOccurred,
+                        ),
                     liveRegion: true,
                     child: Card(
                       color: colorScheme.errorContainer,
@@ -139,7 +157,9 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
                             Expanded(
                               child: Text(
                                 downloadState.errorMessage ??
-                                    'An error occurred',
+                                    context
+                                        .l10n
+                                        .diveComputer_downloadStep_errorOccurred,
                                 style: TextStyle(
                                   color: colorScheme.onErrorContainer,
                                 ),
@@ -157,7 +177,7 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
                       _startDownload();
                     },
                     icon: const Icon(Icons.refresh),
-                    label: const Text('Retry'),
+                    label: Text(context.l10n.diveComputer_downloadStep_retry),
                   ),
                 ],
               ),
@@ -254,7 +274,10 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
               children: [
                 Icon(Icons.scuba_diving, color: colorScheme.primary),
                 const SizedBox(width: 8),
-                Text('Downloaded Dives', style: theme.textTheme.titleSmall),
+                Text(
+                  context.l10n.diveComputer_downloadStep_downloadedDives,
+                  style: theme.textTheme.titleSmall,
+                ),
                 const Spacer(),
                 Text(
                   '${state.downloadedDives.length}',
@@ -278,12 +301,16 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
                     ),
                     const SizedBox(width: 16),
                     Text(
-                      '${dive.maxDepth.toStringAsFixed(1)}m',
+                      context.l10n.diveComputer_downloadStep_depthMeters(
+                        dive.maxDepth.toStringAsFixed(1),
+                      ),
                       style: theme.textTheme.bodySmall,
                     ),
                     const SizedBox(width: 16),
                     Text(
-                      '${dive.durationSeconds ~/ 60} min',
+                      context.l10n.diveComputer_downloadStep_durationMin(
+                        dive.durationSeconds ~/ 60,
+                      ),
                       style: theme.textTheme.bodySmall,
                     ),
                   ],
@@ -292,7 +319,9 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
             }),
             if (state.downloadedDives.length > 3)
               Text(
-                '... and ${state.downloadedDives.length - 3} more',
+                context.l10n.diveComputer_downloadStep_andMoreDives(
+                  state.downloadedDives.length - 3,
+                ),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),

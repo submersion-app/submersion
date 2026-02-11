@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -51,11 +52,11 @@ class _DiverDetailPageState extends ConsumerState<DiverDetailPage> {
       data: (diver) {
         if (diver == null) {
           if (widget.embedded) {
-            return const Center(child: Text('Diver not found'));
+            return Center(child: Text(context.l10n.divers_detail_notFound));
           }
           return Scaffold(
-            appBar: AppBar(title: const Text('Diver')),
-            body: const Center(child: Text('Diver not found')),
+            appBar: AppBar(title: Text(context.l10n.divers_detail_appBarTitle)),
+            body: Center(child: Text(context.l10n.divers_detail_notFound)),
           );
         }
         return _DiverDetailContent(
@@ -69,17 +70,21 @@ class _DiverDetailPageState extends ConsumerState<DiverDetailPage> {
           return const Center(child: CircularProgressIndicator());
         }
         return Scaffold(
-          appBar: AppBar(title: const Text('Diver')),
+          appBar: AppBar(title: Text(context.l10n.divers_detail_appBarTitle)),
           body: const Center(child: CircularProgressIndicator()),
         );
       },
       error: (error, stack) {
         if (widget.embedded) {
-          return Center(child: Text('Error: $error'));
+          return Center(
+            child: Text(context.l10n.divers_detail_errorPrefix('$error')),
+          );
         }
         return Scaffold(
-          appBar: AppBar(title: const Text('Diver')),
-          body: Center(child: Text('Error: $error')),
+          appBar: AppBar(title: Text(context.l10n.divers_detail_appBarTitle)),
+          body: Center(
+            child: Text(context.l10n.divers_detail_errorPrefix('$error')),
+          ),
         );
       },
     );
@@ -176,21 +181,25 @@ class _DiverDetailContent extends ConsumerWidget {
       if (!isCurrentDiver)
         IconButton(
           icon: const Icon(Icons.switch_account),
-          tooltip: 'Switch to this diver',
+          tooltip: context.l10n.divers_detail_switchToTooltip,
           onPressed: () async {
             await ref
                 .read(currentDiverIdProvider.notifier)
                 .setCurrentDiver(diver.id);
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Switched to ${diver.name}')),
+                SnackBar(
+                  content: Text(
+                    context.l10n.divers_detail_switchedTo(diver.name),
+                  ),
+                ),
               );
             }
           },
         ),
       IconButton(
         icon: const Icon(Icons.edit),
-        tooltip: 'Edit diver',
+        tooltip: context.l10n.divers_detail_editTooltip,
         onPressed: () => context.push('/divers/${diver.id}/edit'),
       ),
       PopupMenuButton<String>(
@@ -203,30 +212,37 @@ class _DiverDetailContent extends ConsumerWidget {
                 .setAsDefault(diver.id);
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('${diver.name} set as default diver')),
+                SnackBar(
+                  content: Text(
+                    context.l10n.divers_detail_setAsDefaultSnackbar(diver.name),
+                  ),
+                ),
               );
             }
           }
         },
         itemBuilder: (context) => [
           if (!diver.isDefault)
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'set_default',
               child: Row(
                 children: [
-                  Icon(Icons.star),
-                  SizedBox(width: 8),
-                  Text('Set as Default'),
+                  const Icon(Icons.star),
+                  const SizedBox(width: 8),
+                  Text(context.l10n.divers_detail_setAsDefault),
                 ],
               ),
             ),
-          const PopupMenuItem(
+          PopupMenuItem(
             value: 'delete',
             child: Row(
               children: [
-                Icon(Icons.delete, color: Colors.red),
-                SizedBox(width: 8),
-                Text('Delete', style: TextStyle(color: Colors.red)),
+                const Icon(Icons.delete, color: Colors.red),
+                const SizedBox(width: 8),
+                Text(
+                  context.l10n.divers_detail_deleteMenuItem,
+                  style: const TextStyle(color: Colors.red),
+                ),
               ],
             ),
           ),
@@ -279,7 +295,7 @@ class _DiverDetailContent extends ConsumerWidget {
                 ),
                 if (isCurrentDiver)
                   Text(
-                    'Active Diver',
+                    context.l10n.divers_detail_activeDiver,
                     style: Theme.of(
                       context,
                     ).textTheme.bodySmall?.copyWith(color: colorScheme.primary),
@@ -291,14 +307,18 @@ class _DiverDetailContent extends ConsumerWidget {
             IconButton(
               icon: const Icon(Icons.switch_account, size: 20),
               visualDensity: VisualDensity.compact,
-              tooltip: 'Switch to this diver',
+              tooltip: context.l10n.divers_detail_switchToTooltip,
               onPressed: () async {
                 await ref
                     .read(currentDiverIdProvider.notifier)
                     .setCurrentDiver(diver.id);
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Switched to ${diver.name}')),
+                    SnackBar(
+                      content: Text(
+                        context.l10n.divers_detail_switchedTo(diver.name),
+                      ),
+                    ),
                   );
                 }
               },
@@ -306,7 +326,7 @@ class _DiverDetailContent extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.edit, size: 20),
             visualDensity: VisualDensity.compact,
-            tooltip: 'Edit diver',
+            tooltip: context.l10n.divers_detail_editTooltip,
             onPressed: () {
               final state = GoRouterState.of(context);
               final currentPath = state.uri.path;
@@ -325,7 +345,11 @@ class _DiverDetailContent extends ConsumerWidget {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('${diver.name} set as default diver'),
+                      content: Text(
+                        context.l10n.divers_detail_setAsDefaultSnackbar(
+                          diver.name,
+                        ),
+                      ),
                     ),
                   );
                 }
@@ -333,23 +357,26 @@ class _DiverDetailContent extends ConsumerWidget {
             },
             itemBuilder: (context) => [
               if (!diver.isDefault)
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'set_default',
                   child: Row(
                     children: [
-                      Icon(Icons.star),
-                      SizedBox(width: 8),
-                      Text('Set as Default'),
+                      const Icon(Icons.star),
+                      const SizedBox(width: 8),
+                      Text(context.l10n.divers_detail_setAsDefault),
                     ],
                   ),
                 ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'delete',
                 child: Row(
                   children: [
-                    Icon(Icons.delete, color: Colors.red),
-                    SizedBox(width: 8),
-                    Text('Delete', style: TextStyle(color: Colors.red)),
+                    const Icon(Icons.delete, color: Colors.red),
+                    const SizedBox(width: 8),
+                    Text(
+                      context.l10n.divers_detail_deleteMenuItem,
+                      style: const TextStyle(color: Colors.red),
+                    ),
                   ],
                 ),
               ),
@@ -373,15 +400,17 @@ class _DiverDetailContent extends ConsumerWidget {
           } else {
             context.pop();
           }
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Diver deleted')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(context.l10n.divers_detail_deletedSnackbar)),
+          );
         }
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Failed to delete: $e')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(context.l10n.divers_detail_deleteError('$e')),
+            ),
+          );
         }
       }
     }
@@ -452,7 +481,7 @@ class _DiverDetailContent extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  'Active Diver',
+                  context.l10n.divers_detail_activeDiver,
                   style: theme.textTheme.labelMedium?.copyWith(
                     color: theme.colorScheme.onPrimaryContainer,
                   ),
@@ -468,7 +497,7 @@ class _DiverDetailContent extends ConsumerWidget {
                   Icon(Icons.star, size: 14, color: theme.colorScheme.primary),
                   const SizedBox(width: 4),
                   Text(
-                    'Default',
+                    context.l10n.divers_detail_defaultLabel,
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -492,7 +521,7 @@ class _DiverDetailContent extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Dive Statistics',
+              context.l10n.divers_detail_diveStatisticsTitle,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -504,7 +533,7 @@ class _DiverDetailContent extends ConsumerWidget {
                   Expanded(
                     child: _StatCard(
                       icon: Icons.scuba_diving,
-                      label: 'Total Dives',
+                      label: context.l10n.divers_detail_totalDivesLabel,
                       value: stats.diveCount.toString(),
                     ),
                   ),
@@ -512,7 +541,7 @@ class _DiverDetailContent extends ConsumerWidget {
                   Expanded(
                     child: _StatCard(
                       icon: Icons.timer,
-                      label: 'Bottom Time',
+                      label: context.l10n.divers_detail_bottomTimeLabel,
                       value: stats.formattedBottomTime,
                     ),
                   ),
@@ -520,7 +549,8 @@ class _DiverDetailContent extends ConsumerWidget {
               ),
               loading: () =>
                   const Center(child: CircularProgressIndicator.adaptive()),
-              error: (error, _) => const Text('Unable to load stats'),
+              error: (error, _) =>
+                  Text(context.l10n.divers_detail_unableToLoadStats),
             ),
           ],
         ),
@@ -536,7 +566,7 @@ class _DiverDetailContent extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Contact',
+              context.l10n.divers_detail_contactTitle,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -584,7 +614,7 @@ class _DiverDetailContent extends ConsumerWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Emergency Contact',
+                  context.l10n.divers_detail_emergencyContactTitle,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -627,7 +657,7 @@ class _DiverDetailContent extends ConsumerWidget {
                 const Icon(Icons.medical_information),
                 const SizedBox(width: 8),
                 Text(
-                  'Medical Information',
+                  context.l10n.divers_detail_medicalInfoTitle,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -636,13 +666,19 @@ class _DiverDetailContent extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             if (diver.bloodType != null)
-              _InfoRow(label: 'Blood Type', value: diver.bloodType!),
+              _InfoRow(
+                label: context.l10n.divers_detail_bloodTypeLabel,
+                value: diver.bloodType!,
+              ),
             if (diver.allergies != null && diver.allergies!.isNotEmpty)
-              _InfoRow(label: 'Allergies', value: diver.allergies!),
+              _InfoRow(
+                label: context.l10n.divers_detail_allergiesLabel,
+                value: diver.allergies!,
+              ),
             if (diver.medicalNotes.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(
-                'Notes',
+                context.l10n.divers_detail_medicalNotesLabel,
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -671,7 +707,7 @@ class _DiverDetailContent extends ConsumerWidget {
                 const Icon(Icons.verified_user),
                 const SizedBox(width: 8),
                 Text(
-                  'Dive Insurance',
+                  context.l10n.divers_detail_diveInsuranceTitle,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -688,7 +724,7 @@ class _DiverDetailContent extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      'Expired',
+                      context.l10n.divers_detail_expiredBadge,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: Theme.of(context).colorScheme.onError,
                       ),
@@ -699,12 +735,18 @@ class _DiverDetailContent extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             if (insurance.provider != null)
-              _InfoRow(label: 'Provider', value: insurance.provider!),
+              _InfoRow(
+                label: context.l10n.divers_detail_providerLabel,
+                value: insurance.provider!,
+              ),
             if (insurance.policyNumber != null)
-              _InfoRow(label: 'Policy #', value: insurance.policyNumber!),
+              _InfoRow(
+                label: context.l10n.divers_detail_policyNumberLabel,
+                value: insurance.policyNumber!,
+              ),
             if (insurance.expiryDate != null)
               _InfoRow(
-                label: 'Expires',
+                label: context.l10n.divers_detail_expiresLabel,
                 value: DateFormat.yMMMd().format(insurance.expiryDate!),
                 valueColor: isExpired
                     ? Theme.of(context).colorScheme.error
@@ -724,7 +766,7 @@ class _DiverDetailContent extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Notes',
+              context.l10n.divers_detail_notesTitle,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -741,21 +783,21 @@ class _DiverDetailContent extends ConsumerWidget {
     return await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Delete Diver?'),
+            title: Text(context.l10n.divers_detail_deleteDialogTitle),
             content: Text(
-              'Are you sure you want to delete ${diver.name}? All associated dive logs will be unassigned.',
+              context.l10n.divers_detail_deleteDialogContent(diver.name),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Cancel'),
+                child: Text(context.l10n.divers_detail_cancelButton),
               ),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(true),
                 style: FilledButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.error,
                 ),
-                child: const Text('Delete'),
+                child: Text(context.l10n.divers_detail_deleteButton),
               ),
             ],
           ),

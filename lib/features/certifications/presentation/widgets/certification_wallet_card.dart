@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 
@@ -17,7 +18,7 @@ class CertificationWalletCard extends ConsumerWidget {
 
     return Semantics(
       button: true,
-      label: 'Certification Wallet. Tap to view all certifications',
+      label: context.l10n.certifications_walletCard_semanticLabel,
       child: Card(
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -28,7 +29,7 @@ class CertificationWalletCard extends ConsumerWidget {
               data: (certifications) =>
                   _buildContent(context, theme, certifications),
               loading: () => _buildLoadingState(theme),
-              error: (error, _) => _buildErrorState(theme),
+              error: (error, _) => _buildErrorState(context, theme),
             ),
           ),
         ),
@@ -62,7 +63,7 @@ class CertificationWalletCard extends ConsumerWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Certification Wallet',
+                context.l10n.certifications_walletCard_title,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -100,8 +101,14 @@ class CertificationWalletCard extends ConsumerWidget {
             Expanded(
               child: Text(
                 certifications.isEmpty
-                    ? 'Add your first certification'
-                    : '${certifications.length} certification${certifications.length == 1 ? '' : 's'}',
+                    ? context.l10n.certifications_walletCard_emptyFooter
+                    : certifications.length == 1
+                    ? context.l10n.certifications_walletCard_countSingular(
+                        certifications.length,
+                      )
+                    : context.l10n.certifications_walletCard_countPlural(
+                        certifications.length,
+                      ),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -147,7 +154,7 @@ class CertificationWalletCard extends ConsumerWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'Tap to add',
+                context.l10n.certifications_walletCard_tapToAdd,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -175,7 +182,7 @@ class CertificationWalletCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildErrorState(ThemeData theme) {
+  Widget _buildErrorState(BuildContext context, ThemeData theme) {
     return SizedBox(
       height: 140,
       child: Center(
@@ -185,7 +192,7 @@ class CertificationWalletCard extends ConsumerWidget {
             Icon(Icons.error_outline, color: theme.colorScheme.error, size: 32),
             const SizedBox(height: 8),
             Text(
-              'Failed to load certifications',
+              context.l10n.certifications_walletCard_error,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.error,
               ),

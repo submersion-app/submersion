@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Panel showing real-time dive statistics at the current playback position.
 ///
@@ -60,7 +61,7 @@ class PlaybackStatsPanel extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                'Live Stats',
+                context.l10n.diveLog_playbackStats_header,
                 style: Theme.of(
                   context,
                 ).textTheme.titleSmall?.copyWith(color: colorScheme.primary),
@@ -82,35 +83,37 @@ class PlaybackStatsPanel extends StatelessWidget {
             runSpacing: 8,
             children: [
               _StatItem(
-                label: 'Depth',
+                label: context.l10n.diveLog_playbackStats_depth,
                 value: units.formatDepth(pointData.depth),
                 icon: Icons.arrow_downward,
                 color: colorScheme.primary,
               ),
               if (pointData.temperature != null)
                 _StatItem(
-                  label: 'Temp',
+                  label: context.l10n.diveLog_playbackStats_temp,
                   value: units.formatTemperature(pointData.temperature!),
                   icon: Icons.thermostat,
                   color: colorScheme.tertiary,
                 ),
               if (pointData.pressure != null)
                 _StatItem(
-                  label: 'Pressure',
+                  label: context.l10n.diveLog_playbackStats_pressure,
                   value: '${pointData.pressure!.toStringAsFixed(0)} bar',
                   icon: Icons.speed,
                   color: Colors.orange,
                 ),
               if (pointData.heartRate != null)
                 _StatItem(
-                  label: 'Heart Rate',
+                  label: context.l10n.diveLog_playbackStats_heartRate,
                   value: '${pointData.heartRate} bpm',
                   icon: Icons.favorite,
                   color: Colors.red,
                 ),
               if (pointData.ndl != null)
                 _StatItem(
-                  label: pointData.ndl! < 0 ? 'DECO' : 'NDL',
+                  label: pointData.ndl! < 0
+                      ? context.l10n.diveLog_playbackStats_deco
+                      : context.l10n.diveLog_playbackStats_ndl,
                   value: pointData.ndl! < 0
                       ? _formatCeiling(pointData.ceiling)
                       : _formatNdl(pointData.ndl!),
@@ -119,7 +122,7 @@ class PlaybackStatsPanel extends StatelessWidget {
                 ),
               if (pointData.ppO2 != null)
                 _StatItem(
-                  label: 'ppO₂',
+                  label: context.l10n.diveLog_playbackStats_ppO2,
                   value: '${pointData.ppO2!.toStringAsFixed(2)} bar',
                   icon: Icons.air,
                   color: _getPpO2Color(pointData.ppO2!),

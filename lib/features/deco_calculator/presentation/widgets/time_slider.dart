@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 import 'package:submersion/features/deco_calculator/presentation/providers/deco_calculator_providers.dart';
 
@@ -30,7 +31,7 @@ class TimeSlider extends ConsumerWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Bottom Time',
+                  context.l10n.decoCalculator_field_bottomTime,
                   style: textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w500,
                   ),
@@ -44,7 +45,7 @@ class TimeSlider extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Text(
-                '$time min',
+                context.l10n.decoCalculator_timeValueMin(time.toString()),
                 style: textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: colorScheme.onPrimaryContainer,
@@ -62,7 +63,9 @@ class TimeSlider extends ConsumerWidget {
             overlayColor: colorScheme.primary.withValues(alpha: 0.12),
           ),
           child: Semantics(
-            label: 'Bottom time: $time minutes',
+            label: context.l10n.decoCalculator_bottomTimeSemantics(
+              time.toString(),
+            ),
             child: Slider(
               value: time.toDouble(),
               min: 0,
@@ -80,13 +83,13 @@ class TimeSlider extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '0 min',
+                context.l10n.decoCalculator_timeValueMin('0'),
                 style: textTheme.labelSmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
               ),
               Text(
-                '120 min',
+                context.l10n.decoCalculator_timeValueMin('120'),
                 style: textTheme.labelSmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),

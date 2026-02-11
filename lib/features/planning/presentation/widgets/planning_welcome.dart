@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
+
 /// Welcome placeholder shown in the detail area when no planning tool
 /// is selected on wide screens.
 class PlanningWelcome extends StatelessWidget {
@@ -31,7 +33,7 @@ class PlanningWelcome extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              'Planning Tools',
+              context.l10n.planning_welcome_title,
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: colorScheme.onSurface,
@@ -39,7 +41,7 @@ class PlanningWelcome extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Select a tool from the sidebar to get started',
+              context.l10n.planning_welcome_subtitle,
               style: theme.textTheme.bodyLarge?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -65,7 +67,7 @@ class PlanningWelcome extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Quick Tips',
+                        context.l10n.planning_welcome_quickTips_title,
                         style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: colorScheme.tertiary,
@@ -74,24 +76,24 @@ class PlanningWelcome extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  const _TipItem(
+                  _TipItem(
                     icon: Icons.edit_calendar,
-                    text: 'Dive Planner for multi-level dive planning',
+                    text: context.l10n.planning_welcome_tip_divePlanner,
                   ),
                   const SizedBox(height: 8),
-                  const _TipItem(
+                  _TipItem(
                     icon: Icons.calculate,
-                    text: 'Deco Calculator for NDL and stop times',
+                    text: context.l10n.planning_welcome_tip_decoCalculator,
                   ),
                   const SizedBox(height: 8),
-                  const _TipItem(
+                  _TipItem(
                     icon: Icons.science,
-                    text: 'Gas Calculators for MOD and gas planning',
+                    text: context.l10n.planning_welcome_tip_gasCalculators,
                   ),
                   const SizedBox(height: 8),
-                  const _TipItem(
+                  _TipItem(
                     icon: Icons.fitness_center,
-                    text: 'Weight Calculator for buoyancy setup',
+                    text: context.l10n.planning_welcome_tip_weightCalculator,
                   ),
                 ],
               ),

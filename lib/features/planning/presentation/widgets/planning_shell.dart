@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
+
 /// Shell widget that provides master/detail layout for Planning section.
 ///
 /// On wide screens (>=900px), displays a sidebar with planning tools
@@ -46,7 +48,7 @@ class _PlanningSidebar extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Planning'),
+        title: Text(context.l10n.planning_sidebar_appBar_title),
         automaticallyImplyLeading: false,
       ),
       body: ListView(
@@ -55,8 +57,8 @@ class _PlanningSidebar extends StatelessWidget {
           _SidebarTile(
             icon: Icons.edit_calendar,
             iconColor: colorScheme.primary,
-            title: 'Dive Planner',
-            subtitle: 'Multi-level dive plans',
+            title: context.l10n.planning_sidebar_divePlanner_title,
+            subtitle: context.l10n.planning_sidebar_divePlanner_subtitle,
             isSelected: location.contains('/dive-planner'),
             onTap: () => context.go('/planning/dive-planner'),
           ),
@@ -64,8 +66,8 @@ class _PlanningSidebar extends StatelessWidget {
           _SidebarTile(
             icon: Icons.calculate,
             iconColor: colorScheme.secondary,
-            title: 'Deco Calculator',
-            subtitle: 'NDL & deco stops',
+            title: context.l10n.planning_sidebar_decoCalculator_title,
+            subtitle: context.l10n.planning_sidebar_decoCalculator_subtitle,
             isSelected: location.contains('/deco-calculator'),
             onTap: () => context.go('/planning/deco-calculator'),
           ),
@@ -73,8 +75,8 @@ class _PlanningSidebar extends StatelessWidget {
           _SidebarTile(
             icon: Icons.science,
             iconColor: colorScheme.tertiary,
-            title: 'Gas Calculators',
-            subtitle: 'MOD, Best Mix, more',
+            title: context.l10n.planning_sidebar_gasCalculators_title,
+            subtitle: context.l10n.planning_sidebar_gasCalculators_subtitle,
             isSelected: location.contains('/gas-calculators'),
             onTap: () => context.go('/planning/gas-calculators'),
           ),
@@ -82,8 +84,8 @@ class _PlanningSidebar extends StatelessWidget {
           _SidebarTile(
             icon: Icons.fitness_center,
             iconColor: colorScheme.primary.withValues(alpha: 0.8),
-            title: 'Weight Calculator',
-            subtitle: 'Recommended weight',
+            title: context.l10n.planning_sidebar_weightCalculator_title,
+            subtitle: context.l10n.planning_sidebar_weightCalculator_subtitle,
             isSelected: location.contains('/weight-calculator'),
             onTap: () => context.go('/planning/weight-calculator'),
           ),
@@ -91,8 +93,8 @@ class _PlanningSidebar extends StatelessWidget {
           _SidebarTile(
             icon: Icons.timer,
             iconColor: Colors.teal,
-            title: 'Surface Interval',
-            subtitle: 'Repetitive dive planning',
+            title: context.l10n.planning_sidebar_surfaceInterval_title,
+            subtitle: context.l10n.planning_sidebar_surfaceInterval_subtitle,
             isSelected: location.contains('/surface-interval'),
             onTap: () => context.go('/planning/surface-interval'),
           ),
@@ -115,7 +117,7 @@ class _PlanningSidebar extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Planning tools are for reference only. Always verify calculations.',
+                      context.l10n.planning_sidebar_info_disclaimer,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),

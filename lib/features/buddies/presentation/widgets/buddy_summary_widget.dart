@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 
 /// Summary widget shown in the detail pane when no buddy is selected.
@@ -49,7 +50,7 @@ class BuddySummaryWidget extends ConsumerWidget {
             ),
             const SizedBox(width: 12),
             Text(
-              'Dive Buddies',
+              context.l10n.buddies_summary_title,
               style: Theme.of(
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
@@ -58,7 +59,7 @@ class BuddySummaryWidget extends ConsumerWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Select a buddy from the list to view details',
+          context.l10n.buddies_summary_selectHint,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
@@ -77,7 +78,7 @@ class BuddySummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Overview',
+          context.l10n.buddies_summary_overview,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -91,14 +92,14 @@ class BuddySummaryWidget extends ConsumerWidget {
               context,
               icon: Icons.people,
               value: '${buddies.length}',
-              label: 'Total Buddies',
+              label: context.l10n.buddies_summary_totalBuddies,
               color: Colors.blue,
             ),
             _buildStatCard(
               context,
               icon: Icons.card_membership,
               value: '$certifiedCount',
-              label: 'With Certification',
+              label: context.l10n.buddies_summary_withCertification,
               color: Colors.green,
             ),
           ],
@@ -162,7 +163,7 @@ class BuddySummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Recent Buddies',
+          context.l10n.buddies_summary_recentBuddies,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -209,7 +210,7 @@ class BuddySummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Quick Actions',
+          context.l10n.buddies_summary_quickActions,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -226,7 +227,7 @@ class BuddySummaryWidget extends ConsumerWidget {
                 context.go('$currentPath?mode=new');
               },
               icon: const Icon(Icons.person_add),
-              label: const Text('Add Buddy'),
+              label: Text(context.l10n.buddies_action_add),
             ),
           ],
         ),

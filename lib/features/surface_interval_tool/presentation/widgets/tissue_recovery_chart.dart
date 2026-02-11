@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/surface_interval_tool/presentation/providers/surface_interval_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Interactive chart showing tissue saturation recovery over time.
 /// Displays 16 tissue compartments as colored lines decreasing toward
@@ -68,7 +69,7 @@ class TissueRecoveryChart extends ConsumerWidget {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  'Tissue Recovery',
+                  context.l10n.surfaceInterval_tissueRecovery_title,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -77,7 +78,7 @@ class TissueRecoveryChart extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Showing how each of 16 tissue compartments off-gas during the surface interval',
+              context.l10n.surfaceInterval_tissueRecovery_description,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -95,7 +96,10 @@ class TissueRecoveryChart extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text('Surface Interval', style: theme.textTheme.bodyMedium),
+                Text(
+                  context.l10n.surfaceInterval_title,
+                  style: theme.textTheme.bodyMedium,
+                ),
                 const Spacer(),
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -131,8 +135,14 @@ class TissueRecoveryChart extends ConsumerWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('0 min', style: theme.textTheme.bodySmall),
-                  Text('4 hours', style: theme.textTheme.bodySmall),
+                  Text(
+                    context.l10n.surfaceInterval_format_minutes(0),
+                    style: theme.textTheme.bodySmall,
+                  ),
+                  Text(
+                    context.l10n.surfaceInterval_format_hours(4),
+                    style: theme.textTheme.bodySmall,
+                  ),
                 ],
               ),
             ),
@@ -140,9 +150,9 @@ class TissueRecoveryChart extends ConsumerWidget {
 
             // Chart
             Semantics(
-              label:
-                  'Tissue recovery chart showing 16 compartment off-gassing '
-                  'over a ${_formatInterval(currentInterval)} surface interval',
+              label: context.l10n.surfaceInterval_tissueRecovery_chartSemantics(
+                _formatInterval(currentInterval),
+              ),
               child: SizedBox(
                 height: 250,
                 child: LineChart(
@@ -170,7 +180,7 @@ class TissueRecoveryChart extends ConsumerWidget {
                       show: true,
                       bottomTitles: AxisTitles(
                         axisNameWidget: Text(
-                          'Surface Interval',
+                          context.l10n.surfaceInterval_title,
                           style: theme.textTheme.bodySmall,
                         ),
                         sideTitles: SideTitles(
@@ -191,7 +201,9 @@ class TissueRecoveryChart extends ConsumerWidget {
                       ),
                       leftTitles: AxisTitles(
                         axisNameWidget: Text(
-                          'Loading %',
+                          context
+                              .l10n
+                              .surfaceInterval_tissueRecovery_loadingPercent,
                           style: theme.textTheme.bodySmall,
                         ),
                         sideTitles: SideTitles(
@@ -249,7 +261,8 @@ class TissueRecoveryChart extends ConsumerWidget {
                           label: VerticalLineLabel(
                             show: true,
                             alignment: Alignment.topRight,
-                            labelResolver: (line) => 'Now',
+                            labelResolver: (line) =>
+                                context.l10n.surfaceInterval_tissueRecovery_now,
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: colorScheme.primary,
                               fontWeight: FontWeight.bold,
@@ -266,7 +279,9 @@ class TissueRecoveryChart extends ConsumerWidget {
                             label: VerticalLineLabel(
                               show: true,
                               alignment: Alignment.topLeft,
-                              labelResolver: (line) => 'Min',
+                              labelResolver: (line) => context
+                                  .l10n
+                                  .surfaceInterval_tissueRecovery_min,
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: Colors.green,
                                 fontWeight: FontWeight.bold,
@@ -335,7 +350,7 @@ class TissueRecoveryChart extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Compartments (by half-time speed)',
+          context.l10n.surfaceInterval_tissueRecovery_compartmentsLabel,
           style: theme.textTheme.bodySmall?.copyWith(
             color: colorScheme.onSurfaceVariant,
           ),
@@ -347,17 +362,17 @@ class TissueRecoveryChart extends ConsumerWidget {
           children: [
             _buildLegendItem(
               context: context,
-              label: 'Fast (C1-5)',
+              label: context.l10n.surfaceInterval_tissueRecovery_fast,
               color: Color(compartmentColorValues[2]),
             ),
             _buildLegendItem(
               context: context,
-              label: 'Medium (C6-10)',
+              label: context.l10n.surfaceInterval_tissueRecovery_medium,
               color: Color(compartmentColorValues[7]),
             ),
             _buildLegendItem(
               context: context,
-              label: 'Slow (C11-16)',
+              label: context.l10n.surfaceInterval_tissueRecovery_slow,
               color: Color(compartmentColorValues[12]),
             ),
           ],
@@ -375,7 +390,9 @@ class TissueRecoveryChart extends ConsumerWidget {
             ),
             const SizedBox(width: 8),
             Text(
-              'Leading compartment: C${leadingCompartment + 1}',
+              context.l10n.surfaceInterval_tissueRecovery_leadingCompartment(
+                leadingCompartment + 1,
+              ),
               style: theme.textTheme.bodySmall?.copyWith(
                 fontWeight: FontWeight.w600,
               ),

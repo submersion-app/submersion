@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/constants/sort_options.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -194,21 +195,19 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Sites'),
-        content: Text(
-          'Are you sure you want to delete $count ${count == 1 ? 'site' : 'sites'}? This action can be undone within 5 seconds.',
-        ),
+        title: Text(context.l10n.diveSites_list_bulkDelete_title),
+        content: Text(context.l10n.diveSites_list_bulkDelete_content(count)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.diveSites_list_bulkDelete_cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('Delete'),
+            child: Text(context.l10n.diveSites_list_bulkDelete_confirm),
           ),
         ],
       ),
@@ -230,12 +229,14 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
         scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text(
-              'Deleted ${deletedSites.length} ${deletedSites.length == 1 ? 'site' : 'sites'}',
+              context.l10n.diveSites_list_bulkDelete_snackbar(
+                deletedSites.length,
+              ),
             ),
             duration: const Duration(seconds: 5),
             showCloseIcon: true,
             action: SnackBarAction(
-              label: 'Undo',
+              label: context.l10n.diveSites_list_bulkDelete_undo,
               onPressed: () async {
                 if (_deletedSites != null && _deletedSites!.isNotEmpty) {
                   await ref
@@ -244,9 +245,11 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                   _deletedSites = null;
                   if (mounted) {
                     scaffoldMessenger.showSnackBar(
-                      const SnackBar(
-                        content: Text('Sites restored'),
-                        duration: Duration(seconds: 2),
+                      SnackBar(
+                        content: Text(
+                          context.l10n.diveSites_list_bulkDelete_restored,
+                        ),
+                        duration: const Duration(seconds: 2),
                       ),
                     );
                   }
@@ -264,7 +267,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
 
     showSortBottomSheet<SiteSortField>(
       context: context,
-      title: 'Sort Sites',
+      title: context.l10n.diveSites_list_sort_title,
       currentField: sort.field,
       currentDirection: sort.direction,
       fields: SiteSortField.values,
@@ -320,16 +323,16 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
       appBar: _isSelectionMode
           ? _buildSelectionAppBar(sitesAsync.valueOrNull ?? [])
           : AppBar(
-              title: const Text('Dive Sites'),
+              title: Text(context.l10n.diveSites_list_appBar_title),
               actions: [
                 IconButton(
                   icon: const Icon(Icons.map),
-                  tooltip: 'Map View',
+                  tooltip: context.l10n.diveSites_list_tooltip_mapView,
                   onPressed: () => context.push('/sites/map'),
                 ),
                 IconButton(
                   icon: const Icon(Icons.search),
-                  tooltip: 'Search Sites',
+                  tooltip: context.l10n.diveSites_list_tooltip_searchSites,
                   onPressed: () {
                     showSearch(
                       context: context,
@@ -342,7 +345,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                     isLabelVisible: filter.hasActiveFilters,
                     child: const Icon(Icons.filter_list),
                   ),
-                  tooltip: 'Filter Sites',
+                  tooltip: context.l10n.diveSites_list_tooltip_filterSites,
                   onPressed: () {
                     showModalBottomSheet(
                       context: context,
@@ -353,7 +356,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.sort),
-                  tooltip: 'Sort',
+                  tooltip: context.l10n.diveSites_list_tooltip_sort,
                   onPressed: () => _showSortSheet(context),
                 ),
                 PopupMenuButton<String>(
@@ -365,11 +368,11 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                     }
                   },
                   itemBuilder: (context) => [
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'import',
                       child: ListTile(
-                        leading: Icon(Icons.download),
-                        title: Text('Import'),
+                        leading: const Icon(Icons.download),
+                        title: Text(context.l10n.diveSites_list_menu_import),
                         contentPadding: EdgeInsets.zero,
                       ),
                     ),
@@ -402,7 +405,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
         children: [
           const SizedBox(width: 8),
           Text(
-            'Dive Sites',
+            context.l10n.diveSites_list_appBar_title,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -416,12 +419,12 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           else
             IconButton(
               icon: const Icon(Icons.map, size: 20),
-              tooltip: 'Map View',
+              tooltip: context.l10n.diveSites_list_tooltip_mapView,
               onPressed: () => context.push('/sites/map'),
             ),
           IconButton(
             icon: const Icon(Icons.search, size: 20),
-            tooltip: 'Search Sites',
+            tooltip: context.l10n.diveSites_list_tooltip_searchSites,
             onPressed: () {
               showSearch(context: context, delegate: SiteSearchDelegate(ref));
             },
@@ -431,7 +434,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
               isLabelVisible: filter.hasActiveFilters,
               child: const Icon(Icons.filter_list, size: 20),
             ),
-            tooltip: 'Filter Sites',
+            tooltip: context.l10n.diveSites_list_tooltip_filterSites,
             visualDensity: VisualDensity.compact,
             onPressed: () {
               showModalBottomSheet(
@@ -443,7 +446,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           ),
           IconButton(
             icon: const Icon(Icons.sort, size: 20),
-            tooltip: 'Sort',
+            tooltip: context.l10n.diveSites_list_tooltip_sort,
             onPressed: () => _showSortSheet(context),
           ),
           PopupMenuButton<String>(
@@ -454,7 +457,10 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(value: 'import', child: Text('Import')),
+              PopupMenuItem(
+                value: 'import',
+                child: Text(context.l10n.diveSites_list_menu_import),
+              ),
             ],
           ),
         ],
@@ -481,11 +487,11 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
         children: [
           IconButton(
             icon: const Icon(Icons.close, size: 20),
-            tooltip: 'Close Selection',
+            tooltip: context.l10n.diveSites_list_selection_closeTooltip,
             onPressed: _exitSelectionMode,
           ),
           Text(
-            '${_selectedIds.length} selected',
+            context.l10n.diveSites_list_selection_count(_selectedIds.length),
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -494,13 +500,13 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           if (_selectedIds.length < sites.length)
             IconButton(
               icon: const Icon(Icons.select_all, size: 20),
-              tooltip: 'Select All',
+              tooltip: context.l10n.diveSites_list_selection_selectAllTooltip,
               onPressed: () => _selectAll(sites),
             ),
           if (_selectedIds.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.deselect, size: 20),
-              tooltip: 'Deselect All',
+              tooltip: context.l10n.diveSites_list_selection_deselectAllTooltip,
               onPressed: _deselectAll,
             ),
           if (_selectedIds.isNotEmpty)
@@ -510,7 +516,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                 size: 20,
                 color: Theme.of(context).colorScheme.error,
               ),
-              tooltip: 'Delete Selected',
+              tooltip: context.l10n.diveSites_list_selection_deleteTooltip,
               onPressed: _confirmAndDelete,
             ),
         ],
@@ -522,21 +528,23 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     return AppBar(
       leading: IconButton(
         icon: const Icon(Icons.close),
-        tooltip: 'Close Selection',
+        tooltip: context.l10n.diveSites_list_selection_closeTooltip,
         onPressed: _exitSelectionMode,
       ),
-      title: Text('${_selectedIds.length} selected'),
+      title: Text(
+        context.l10n.diveSites_list_selection_count(_selectedIds.length),
+      ),
       actions: [
         if (_selectedIds.length < sites.length)
           IconButton(
             icon: const Icon(Icons.select_all),
-            tooltip: 'Select All',
+            tooltip: context.l10n.diveSites_list_selection_selectAllTooltip,
             onPressed: () => _selectAll(sites),
           ),
         if (_selectedIds.isNotEmpty)
           IconButton(
             icon: const Icon(Icons.deselect),
-            tooltip: 'Deselect All',
+            tooltip: context.l10n.diveSites_list_selection_deselectAllTooltip,
             onPressed: _deselectAll,
           ),
         if (_selectedIds.isNotEmpty)
@@ -545,7 +553,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
               Icons.delete,
               color: Theme.of(context).colorScheme.error,
             ),
-            tooltip: 'Delete Selected',
+            tooltip: context.l10n.diveSites_list_selection_deleteTooltip,
             onPressed: _confirmAndDelete,
           ),
       ],
@@ -611,12 +619,12 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
             ),
             const SizedBox(height: 16),
             Text(
-              'No sites match your filters',
+              context.l10n.diveSites_list_emptyFiltered_title,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 8),
             Text(
-              'Try adjusting or clearing your filters',
+              context.l10n.diveSites_list_emptyFiltered_subtitle,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -628,7 +636,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                     const SiteFilterState();
               },
               icon: const Icon(Icons.clear_all),
-              label: const Text('Clear All Filters'),
+              label: Text(context.l10n.diveSites_list_emptyFiltered_clearAll),
             ),
           ],
         ),
@@ -646,12 +654,12 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           ),
           const SizedBox(height: 16),
           Text(
-            'No dive sites yet',
+            context.l10n.diveSites_list_empty_title,
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 8),
           Text(
-            'Add dive sites to track your favorite locations',
+            context.l10n.diveSites_list_empty_subtitle,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -660,13 +668,13 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           FilledButton.icon(
             onPressed: () => context.push('/sites/new'),
             icon: const Icon(Icons.add_location),
-            label: const Text('Add Your First Site'),
+            label: Text(context.l10n.diveSites_list_empty_addFirstSite),
           ),
           const SizedBox(height: 12),
           OutlinedButton.icon(
             onPressed: () => context.push('/sites/import'),
             icon: const Icon(Icons.download),
-            label: const Text('Import'),
+            label: Text(context.l10n.diveSites_list_empty_import),
           ),
         ],
       ),
@@ -691,7 +699,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
             // Clear all button
             ActionChip(
               avatar: const Icon(Icons.clear_all, size: 18),
-              label: const Text('Clear'),
+              label: Text(context.l10n.diveSites_list_activeFilter_clear),
               onPressed: () {
                 ref.read(siteFilterProvider.notifier).state =
                     const SiteFilterState();
@@ -701,13 +709,15 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
             // Individual filter chips
             if (filter.country != null)
               _buildFilterChip(
-                'Country: ${filter.country}',
+                context.l10n.diveSites_list_activeFilter_country(
+                  filter.country!,
+                ),
                 () => ref.read(siteFilterProvider.notifier).state = filter
                     .copyWith(clearCountry: true),
               ),
             if (filter.region != null)
               _buildFilterChip(
-                'Region: ${filter.region}',
+                context.l10n.diveSites_list_activeFilter_region(filter.region!),
                 () => ref.read(siteFilterProvider.notifier).state = filter
                     .copyWith(clearRegion: true),
               ),
@@ -725,19 +735,21 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
               ),
             if (filter.minRating != null)
               _buildFilterChip(
-                '${filter.minRating!.toInt()}+ stars',
+                context.l10n.diveSites_filter_rating_starsPlus(
+                  filter.minRating!.toInt(),
+                ),
                 () => ref.read(siteFilterProvider.notifier).state = filter
                     .copyWith(clearMinRating: true),
               ),
             if (filter.hasCoordinates == true)
               _buildFilterChip(
-                'Has coordinates',
+                context.l10n.diveSites_list_activeFilter_hasCoordinates,
                 () => ref.read(siteFilterProvider.notifier).state = filter
                     .copyWith(clearHasCoordinates: true),
               ),
             if (filter.hasDives == true)
               _buildFilterChip(
-                'Has dives',
+                context.l10n.diveSites_list_activeFilter_hasDives,
                 () => ref.read(siteFilterProvider.notifier).state = filter
                     .copyWith(clearHasDives: true),
               ),
@@ -749,7 +761,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
 
   Widget _buildFilterChip(String label, VoidCallback onDeleted) {
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsetsDirectional.only(end: 8),
       child: InputChip(
         label: Text(label),
         onDeleted: onDeleted,
@@ -760,11 +772,18 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
 
   String _formatDepthRange(double? min, double? max) {
     if (min != null && max != null) {
-      return '${min.toInt()}-${max.toInt()}m';
+      return context.l10n.diveSites_list_activeFilter_depthRangeBoth(
+        min.toInt(),
+        max.toInt(),
+      );
     } else if (min != null) {
-      return '${min.toInt()}m+';
+      return context.l10n.diveSites_list_activeFilter_depthRangeMin(
+        min.toInt(),
+      );
     } else if (max != null) {
-      return 'Up to ${max.toInt()}m';
+      return context.l10n.diveSites_list_activeFilter_depthRangeMax(
+        max.toInt(),
+      );
     }
     return '';
   }
@@ -776,11 +795,13 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
         children: [
           const Icon(Icons.error_outline, size: 48, color: Colors.red),
           const SizedBox(height: 16),
-          Text('Error loading sites: $error'),
+          Text(
+            context.l10n.diveSites_list_error_loadingSites(error.toString()),
+          ),
           const SizedBox(height: 16),
           FilledButton(
             onPressed: () => ref.invalidate(sortedSitesWithCountsProvider),
-            child: const Text('Retry'),
+            child: Text(context.l10n.diveSites_list_error_retry),
           ),
         ],
       ),
@@ -803,7 +824,7 @@ class SiteSearchDelegate extends SearchDelegate<DiveSite?> {
       if (query.isNotEmpty)
         IconButton(
           icon: const Icon(Icons.clear),
-          tooltip: 'Clear Search',
+          tooltip: context.l10n.diveSites_list_search_clearTooltip,
           onPressed: () => query = '',
         ),
     ];
@@ -813,7 +834,7 @@ class SiteSearchDelegate extends SearchDelegate<DiveSite?> {
   Widget buildLeading(BuildContext context) {
     return IconButton(
       icon: const Icon(Icons.arrow_back),
-      tooltip: 'Back',
+      tooltip: context.l10n.diveSites_list_search_backTooltip,
       onPressed: () => close(context, null),
     );
   }
@@ -839,7 +860,7 @@ class SiteSearchDelegate extends SearchDelegate<DiveSite?> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Search by site name, country, or region',
+              context.l10n.diveSites_list_search_emptyHint,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -870,7 +891,7 @@ class SiteSearchDelegate extends SearchDelegate<DiveSite?> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'No sites found for "$query"',
+                  context.l10n.diveSites_list_search_noResults(query),
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -904,7 +925,9 @@ class SiteSearchDelegate extends SearchDelegate<DiveSite?> {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(child: Text('Error: $error')),
+      error: (error, _) => Center(
+        child: Text(context.l10n.diveSites_list_search_error(error.toString())),
+      ),
     );
   }
 }
@@ -1035,7 +1058,7 @@ class SiteListTile extends ConsumerWidget {
                   ),
                 if (diveCount > 0)
                   Text(
-                    '$diveCount ${diveCount == 1 ? 'dive' : 'dives'}',
+                    context.l10n.diveSites_list_tile_diveCount(diveCount),
                     style: Theme.of(
                       context,
                     ).textTheme.bodySmall?.copyWith(color: secondaryTextColor),
@@ -1067,7 +1090,7 @@ class SiteListTile extends ConsumerWidget {
         clipBehavior: Clip.antiAlias,
         child: Semantics(
           button: true,
-          label: 'Dive site: $name',
+          label: context.l10n.diveSites_list_tile_semantics(name),
           child: InkWell(
             onTap: onTap,
             onLongPress: onLongPress,
@@ -1129,7 +1152,7 @@ class SiteListTile extends ConsumerWidget {
           : null,
       child: Semantics(
         button: true,
-        label: 'Dive site: $name',
+        label: context.l10n.diveSites_list_tile_semantics(name),
         child: InkWell(
           onTap: onTap,
           onLongPress: onLongPress,

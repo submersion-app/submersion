@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Specification for a single animated bubble.
 class _BubbleSpec {
@@ -101,7 +102,7 @@ class _HeroHeaderState extends ConsumerState<HeroHeader>
     final causticOpacity = isDark ? 0.06 : 0.12;
 
     return Semantics(
-      label: 'Dashboard greeting banner',
+      label: context.l10n.dashboard_semantics_greetingBanner,
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
@@ -152,10 +153,15 @@ class _HeroHeaderState extends ConsumerState<HeroHeader>
                     // Greeting
                     diverAsync.when(
                       data: (diver) {
-                        final greeting = _getGreeting();
-                        final name = diver?.name.split(' ').first ?? 'Diver';
+                        final greeting = _getGreeting(context);
+                        final name =
+                            diver?.name.split(' ').first ??
+                            context.l10n.dashboard_defaultDiverName;
                         return Text(
-                          '$greeting, $name!',
+                          context.l10n.dashboard_greeting_withName(
+                            greeting,
+                            name,
+                          ),
                           style: theme.textTheme.headlineSmall?.copyWith(
                             color: textColor,
                             fontWeight: FontWeight.bold,
@@ -163,14 +169,18 @@ class _HeroHeaderState extends ConsumerState<HeroHeader>
                         );
                       },
                       loading: () => Text(
-                        '${_getGreeting()}!',
+                        context.l10n.dashboard_greeting_withoutName(
+                          _getGreeting(context),
+                        ),
                         style: theme.textTheme.headlineSmall?.copyWith(
                           color: textColor,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       error: (_, _) => Text(
-                        '${_getGreeting()}!',
+                        context.l10n.dashboard_greeting_withoutName(
+                          _getGreeting(context),
+                        ),
                         style: theme.textTheme.headlineSmall?.copyWith(
                           color: textColor,
                           fontWeight: FontWeight.bold,
@@ -186,20 +196,24 @@ class _HeroHeaderState extends ConsumerState<HeroHeader>
                         final screenWidth = MediaQuery.sizeOf(context).width;
                         final showHours = screenWidth >= 600;
                         return Text(
-                          _buildHeadlineStats(stats, showHours: showHours),
+                          _buildHeadlineStats(
+                            context,
+                            stats,
+                            showHours: showHours,
+                          ),
                           style: theme.textTheme.bodyLarge?.copyWith(
                             color: textColor.withValues(alpha: 0.9),
                           ),
                         );
                       },
                       loading: () => Text(
-                        'Loading your dive stats...',
+                        context.l10n.dashboard_hero_loading,
                         style: theme.textTheme.bodyLarge?.copyWith(
                           color: textColor.withValues(alpha: 0.9),
                         ),
                       ),
                       error: (_, _) => Text(
-                        'Ready to explore the depths?',
+                        context.l10n.dashboard_hero_error,
                         style: theme.textTheme.bodyLarge?.copyWith(
                           color: textColor.withValues(alpha: 0.9),
                         ),
@@ -215,33 +229,37 @@ class _HeroHeaderState extends ConsumerState<HeroHeader>
     );
   }
 
-  String _getGreeting() {
+  String _getGreeting(BuildContext context) {
     final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
+    if (hour < 12) return context.l10n.dashboard_greeting_morning;
+    if (hour < 17) return context.l10n.dashboard_greeting_afternoon;
+    return context.l10n.dashboard_greeting_evening;
   }
 
-  String _buildHeadlineStats(DiveStatistics stats, {bool showHours = true}) {
-    if (stats.totalDives == 0) return 'Ready to log your first dive?';
+  String _buildHeadlineStats(
+    BuildContext context,
+    DiveStatistics stats, {
+    bool showHours = true,
+  }) {
+    if (stats.totalDives == 0) return context.l10n.dashboard_hero_noDives;
 
     final parts = <String>[];
 
     final diveText = stats.totalDives == 1
-        ? '1 dive logged'
-        : '${stats.totalDives} dives logged';
+        ? context.l10n.dashboard_hero_divesLoggedOne
+        : context.l10n.dashboard_hero_divesLoggedOther(stats.totalDives);
     parts.add(diveText);
 
     if (showHours) {
       final hours = stats.totalTimeSeconds / 3600;
       if (hours >= 1) {
-        final hoursText = hours < 10
-            ? '${hours.toStringAsFixed(1)} hours underwater'
-            : '${hours.round()} hours underwater';
-        parts.add(hoursText);
+        final hoursStr = hours < 10
+            ? hours.toStringAsFixed(1)
+            : '${hours.round()}';
+        parts.add(context.l10n.dashboard_hero_hoursUnderwater(hoursStr));
       } else if (stats.totalTimeSeconds > 0) {
         final minutes = stats.totalTimeSeconds ~/ 60;
-        parts.add('$minutes minutes underwater');
+        parts.add(context.l10n.dashboard_hero_minutesUnderwater(minutes));
       }
     }
 

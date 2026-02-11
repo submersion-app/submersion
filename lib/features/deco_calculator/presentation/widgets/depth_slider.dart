@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -42,7 +43,7 @@ class DepthSlider extends ConsumerWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Depth',
+                  context.l10n.decoCalculator_field_depth,
                   style: textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w500,
                   ),
@@ -74,7 +75,10 @@ class DepthSlider extends ConsumerWidget {
             overlayColor: colorScheme.primary.withValues(alpha: 0.12),
           ),
           child: Semantics(
-            label: 'Depth: ${displayDepth.toStringAsFixed(0)} $depthSymbol',
+            label: context.l10n.decoCalculator_depthSemantics(
+              displayDepth.toStringAsFixed(0),
+              depthSymbol,
+            ),
             child: Slider(
               value: displayDepth,
               min: minDisplay,

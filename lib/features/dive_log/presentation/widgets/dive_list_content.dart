@@ -20,6 +20,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Content widget for the dive list, used in master-detail layout.
 ///
@@ -211,21 +212,19 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Dives'),
-        content: Text(
-          'Are you sure you want to delete $count ${count == 1 ? 'dive' : 'dives'}? This action can be undone within 5 seconds.',
-        ),
+        title: Text(context.l10n.diveLog_bulkDelete_title),
+        content: Text(context.l10n.diveLog_bulkDelete_confirm(count)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.common_action_cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('Delete'),
+            child: Text(context.l10n.common_action_delete),
           ),
         ],
       ),
@@ -254,12 +253,12 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text(
-              'Deleted ${deletedDives.length} ${deletedDives.length == 1 ? 'dive' : 'dives'}',
+              context.l10n.diveLog_bulkDelete_snackbar(deletedDives.length),
             ),
             duration: const Duration(seconds: 5),
             showCloseIcon: true,
             action: SnackBarAction(
-              label: 'Undo',
+              label: context.l10n.diveLog_bulkDelete_undo,
               onPressed: () async {
                 if (_deletedDives != null && _deletedDives!.isNotEmpty) {
                   await ref
@@ -268,9 +267,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   _deletedDives = null;
                   if (mounted) {
                     scaffoldMessenger.showSnackBar(
-                      const SnackBar(
-                        content: Text('Dives restored'),
-                        duration: Duration(seconds: 2),
+                      SnackBar(
+                        content: Text(context.l10n.diveLog_bulkDelete_restored),
+                        duration: const Duration(seconds: 2),
                       ),
                     );
                   }
@@ -297,13 +296,13 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               child: Row(
                 children: [
                   Text(
-                    'Export $count ${count == 1 ? 'Dive' : 'Dives'}',
+                    context.l10n.diveLog_bulkExport_title(count),
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.close),
-                    tooltip: 'Close',
+                    tooltip: context.l10n.common_action_close,
                     onPressed: () => Navigator.pop(sheetContext),
                   ),
                 ],
@@ -312,8 +311,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             const Divider(height: 1),
             ListTile(
               leading: const Icon(Icons.picture_as_pdf),
-              title: const Text('PDF Logbook'),
-              subtitle: const Text('Printable dive log pages'),
+              title: Text(context.l10n.diveLog_bulkExport_pdf),
+              subtitle: Text(context.l10n.diveLog_bulkExport_pdfDescription),
               onTap: () {
                 Navigator.pop(sheetContext);
                 _exportSelectedAs('pdf');
@@ -321,8 +320,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             ),
             ListTile(
               leading: const Icon(Icons.table_chart),
-              title: const Text('CSV'),
-              subtitle: const Text('Spreadsheet format'),
+              title: Text(context.l10n.diveLog_bulkExport_csv),
+              subtitle: Text(context.l10n.diveLog_bulkExport_csvDescription),
               onTap: () {
                 Navigator.pop(sheetContext);
                 _exportSelectedAs('csv');
@@ -330,8 +329,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             ),
             ListTile(
               leading: const Icon(Icons.code),
-              title: const Text('UDDF'),
-              subtitle: const Text('Universal Dive Data Format'),
+              title: Text(context.l10n.diveLog_bulkExport_uddf),
+              subtitle: Text(context.l10n.diveLog_bulkExport_uddfDescription),
               onTap: () {
                 Navigator.pop(sheetContext);
                 _exportSelectedAs('uddf');
@@ -348,12 +347,12 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => const AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         content: Row(
           children: [
-            CircularProgressIndicator(),
-            SizedBox(width: 24),
-            Text('Exporting...'),
+            const CircularProgressIndicator(),
+            const SizedBox(width: 24),
+            Text(context.l10n.diveLog_export_exporting),
           ],
         ),
       ),
@@ -389,7 +388,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Exported ${selectedDives.length} ${selectedDives.length == 1 ? 'dive' : 'dives'} successfully',
+              context.l10n.diveLog_bulkExport_success(selectedDives.length),
             ),
             backgroundColor: Colors.green,
           ),
@@ -400,7 +399,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Export failed: $e'),
+            content: Text(context.l10n.diveLog_bulkExport_failed(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -422,13 +421,13 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               child: Row(
                 children: [
                   Text(
-                    'Edit $count ${count == 1 ? 'Dive' : 'Dives'}',
+                    context.l10n.diveLog_bulkEdit_title(count),
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.close),
-                    tooltip: 'Close',
+                    tooltip: context.l10n.common_action_close,
                     onPressed: () => Navigator.pop(sheetContext),
                   ),
                 ],
@@ -437,8 +436,10 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             const Divider(height: 1),
             ListTile(
               leading: const Icon(Icons.flight),
-              title: const Text('Change Trip'),
-              subtitle: const Text('Move selected dives to a trip'),
+              title: Text(context.l10n.diveLog_bulkEdit_changeTrip),
+              subtitle: Text(
+                context.l10n.diveLog_bulkEdit_changeTripDescription,
+              ),
               onTap: () {
                 Navigator.pop(sheetContext);
                 _showTripSelector();
@@ -446,8 +447,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             ),
             ListTile(
               leading: const Icon(Icons.label),
-              title: const Text('Add Tags'),
-              subtitle: const Text('Add tags to selected dives'),
+              title: Text(context.l10n.diveLog_bulkEdit_addTags),
+              subtitle: Text(context.l10n.diveLog_bulkEdit_addTagsDescription),
               onTap: () {
                 Navigator.pop(sheetContext);
                 _showAddTagsDialog();
@@ -455,8 +456,10 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             ),
             ListTile(
               leading: const Icon(Icons.label_off),
-              title: const Text('Remove Tags'),
-              subtitle: const Text('Remove tags from selected dives'),
+              title: Text(context.l10n.diveLog_bulkEdit_removeTags),
+              subtitle: Text(
+                context.l10n.diveLog_bulkEdit_removeTagsDescription,
+              ),
               onTap: () {
                 Navigator.pop(sheetContext);
                 _showRemoveTagsDialog();
@@ -475,7 +478,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Select Trip'),
+        title: Text(context.l10n.diveLog_bulkEdit_selectTrip),
         content: SizedBox(
           width: double.maxFinite,
           child: trips.when(
@@ -484,8 +487,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               children: [
                 ListTile(
                   leading: const Icon(Icons.clear),
-                  title: const Text('No Trip'),
-                  subtitle: const Text('Remove from trip'),
+                  title: Text(context.l10n.diveLog_bulkEdit_noTrip),
+                  subtitle: Text(context.l10n.diveLog_bulkEdit_removeFromTrip),
                   onTap: () {
                     Navigator.pop(dialogContext);
                     _bulkUpdateTrip(null);
@@ -505,13 +508,14 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               ],
             ),
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, _) => const Text('Error loading trips'),
+            error: (_, _) =>
+                Text(context.l10n.diveLog_bulkEdit_errorLoadingTrips),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.common_action_cancel),
           ),
         ],
       ),
@@ -534,8 +538,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           SnackBar(
             content: Text(
               tripId == null
-                  ? 'Removed $count ${count == 1 ? 'dive' : 'dives'} from trip'
-                  : 'Moved $count ${count == 1 ? 'dive' : 'dives'} to trip',
+                  ? context.l10n.diveLog_bulkEdit_removedFromTrip(count)
+                  : context.l10n.diveLog_bulkEdit_movedToTrip(count),
             ),
             backgroundColor: Colors.green,
           ),
@@ -545,7 +549,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to update trip: $e'),
+            content: Text(
+              context.l10n.diveLog_bulkEdit_failedUpdateTrip(e.toString()),
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -559,8 +565,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     tagsAsync.whenData((allTags) {
       if (allTags.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No tags available. Create tags first.'),
+          SnackBar(
+            content: Text(context.l10n.diveLog_bulkEdit_noTagsAvailableCreate),
           ),
         );
         return;
@@ -572,7 +578,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         context: context,
         builder: (dialogContext) => StatefulBuilder(
           builder: (context, setDialogState) => AlertDialog(
-            title: const Text('Add Tags'),
+            title: Text(context.l10n.diveLog_bulkEdit_addTags),
             content: Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -598,7 +604,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Cancel'),
+                child: Text(context.l10n.common_action_cancel),
               ),
               FilledButton(
                 onPressed: selectedTagIds.isEmpty
@@ -607,7 +613,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                         Navigator.pop(dialogContext);
                         _bulkAddTags(selectedTagIds.toList());
                       },
-                child: const Text('Add'),
+                child: Text(context.l10n.diveLog_edit_add),
               ),
             ],
           ),
@@ -631,7 +637,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Added ${tagIds.length} ${tagIds.length == 1 ? 'tag' : 'tags'} to $count ${count == 1 ? 'dive' : 'dives'}',
+              context.l10n.diveLog_bulkEdit_addedTags(tagIds.length, count),
             ),
             backgroundColor: Colors.green,
           ),
@@ -641,7 +647,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to add tags: $e'),
+            content: Text(
+              context.l10n.diveLog_bulkEdit_failedAddTags(e.toString()),
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -654,9 +662,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
     tagsAsync.whenData((allTags) {
       if (allTags.isEmpty) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('No tags available.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.diveLog_bulkEdit_noTagsAvailable),
+          ),
+        );
         return;
       }
 
@@ -666,7 +676,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         context: context,
         builder: (dialogContext) => StatefulBuilder(
           builder: (context, setDialogState) => AlertDialog(
-            title: const Text('Remove Tags'),
+            title: Text(context.l10n.diveLog_bulkEdit_removeTags),
             content: Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -692,7 +702,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Cancel'),
+                child: Text(context.l10n.common_action_cancel),
               ),
               FilledButton(
                 onPressed: selectedTagIds.isEmpty
@@ -704,7 +714,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 style: FilledButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.error,
                 ),
-                child: const Text('Remove'),
+                child: Text(context.l10n.diveLog_bulkEdit_removeTags),
               ),
             ],
           ),
@@ -728,7 +738,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Removed ${tagIds.length} ${tagIds.length == 1 ? 'tag' : 'tags'} from $count ${count == 1 ? 'dive' : 'dives'}',
+              'Removed ${tagIds.length} ${tagIds.length == 1 ? 'tag' : 'tags'} from $count ${count == 1 ? 'dive' : 'dives'}', // TODO: l10n
             ),
             backgroundColor: Colors.green,
           ),
@@ -738,7 +748,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to remove tags: $e'),
+            content: Text('Failed to remove tags: $e'), // TODO: l10n
             backgroundColor: Colors.red,
           ),
         );
@@ -779,7 +789,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
     showSortBottomSheet<DiveSortField>(
       context: context,
-      title: 'Sort Dives',
+      title: context.l10n.diveLog_sort_title,
       currentField: sort.field,
       currentDirection: sort.direction,
       fields: DiveSortField.values,
@@ -836,16 +846,16 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
   AppBar _buildAppBar(BuildContext context, DiveFilterState filter) {
     return AppBar(
-      title: const Text('Dive Log'),
+      title: Text(context.l10n.diveLog_listPage_title),
       actions: [
         IconButton(
           icon: const Icon(Icons.map),
-          tooltip: 'Map View',
+          tooltip: context.l10n.diveLog_listPage_tooltip_mapView,
           onPressed: () => context.push('/dives/activity'),
         ),
         IconButton(
           icon: const Icon(Icons.search),
-          tooltip: 'Search dives',
+          tooltip: context.l10n.diveLog_listPage_tooltip_searchDives,
           onPressed: () {
             showSearch(context: context, delegate: DiveSearchDelegate(ref));
           },
@@ -855,7 +865,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             isLabelVisible: filter.hasActiveFilters,
             child: const Icon(Icons.filter_list),
           ),
-          tooltip: 'Filter dives',
+          tooltip: context.l10n.diveLog_listPage_tooltip_filterDives,
           onPressed: () {
             showModalBottomSheet(
               context: context,
@@ -866,7 +876,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         ),
         IconButton(
           icon: const Icon(Icons.sort),
-          tooltip: 'Sort',
+          tooltip: context.l10n.diveLog_listPage_tooltip_sort,
           onPressed: () => _showSortSheet(context),
         ),
         PopupMenuButton<String>(
@@ -878,23 +888,23 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             }
           },
           itemBuilder: (context) => [
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'advanced_search',
               child: Row(
                 children: [
-                  Icon(Icons.manage_search),
-                  SizedBox(width: 12),
-                  Text('Advanced Search'),
+                  const Icon(Icons.manage_search),
+                  const SizedBox(width: 12),
+                  Text(context.l10n.diveLog_listPage_menuAdvancedSearch),
                 ],
               ),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'numbering',
               child: Row(
                 children: [
-                  Icon(Icons.format_list_numbered),
-                  SizedBox(width: 12),
-                  Text('Dive Numbering'),
+                  const Icon(Icons.format_list_numbered),
+                  const SizedBox(width: 12),
+                  Text(context.l10n.diveLog_listPage_menuDiveNumbering),
                 ],
               ),
             ),
@@ -921,7 +931,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         children: [
           const SizedBox(width: 8),
           Text(
-            'Dives',
+            context.l10n.diveLog_listPage_compactTitle,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -936,13 +946,13 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             IconButton(
               icon: const Icon(Icons.map, size: 20),
               visualDensity: VisualDensity.compact,
-              tooltip: 'Map View',
+              tooltip: context.l10n.diveLog_listPage_tooltip_mapView,
               onPressed: () => context.push('/dives/activity'),
             ),
           IconButton(
             icon: const Icon(Icons.search, size: 20),
             visualDensity: VisualDensity.compact,
-            tooltip: 'Search dives',
+            tooltip: context.l10n.diveLog_listPage_tooltip_searchDives,
             onPressed: () {
               showSearch(context: context, delegate: DiveSearchDelegate(ref));
             },
@@ -953,7 +963,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               child: const Icon(Icons.filter_list, size: 20),
             ),
             visualDensity: VisualDensity.compact,
-            tooltip: 'Filter dives',
+            tooltip: context.l10n.diveLog_listPage_tooltip_filterDives,
             onPressed: () {
               showModalBottomSheet(
                 context: context,
@@ -965,7 +975,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           IconButton(
             icon: const Icon(Icons.sort, size: 20),
             visualDensity: VisualDensity.compact,
-            tooltip: 'Sort',
+            tooltip: context.l10n.diveLog_listPage_tooltip_sort,
             onPressed: () => _showSortSheet(context),
           ),
           PopupMenuButton<String>(
@@ -978,23 +988,23 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'advanced_search',
                 child: Row(
                   children: [
-                    Icon(Icons.manage_search, size: 20),
-                    SizedBox(width: 12),
-                    Text('Advanced Search'),
+                    const Icon(Icons.manage_search, size: 20),
+                    const SizedBox(width: 12),
+                    Text(context.l10n.diveLog_listPage_menuAdvancedSearch),
                   ],
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'numbering',
                 child: Row(
                   children: [
-                    Icon(Icons.format_list_numbered, size: 20),
-                    SizedBox(width: 12),
-                    Text('Dive Numbering'),
+                    const Icon(Icons.format_list_numbered, size: 20),
+                    const SizedBox(width: 12),
+                    Text(context.l10n.diveLog_listPage_menuDiveNumbering),
                   ],
                 ),
               ),
@@ -1009,33 +1019,35 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     return AppBar(
       leading: IconButton(
         icon: const Icon(Icons.close),
-        tooltip: 'Exit selection',
+        tooltip: context.l10n.diveLog_selection_tooltip_exit,
         onPressed: _exitSelectionMode,
       ),
-      title: Text('${_selectedIds.length} selected'),
+      title: Text(
+        context.l10n.diveLog_selection_countSelected(_selectedIds.length),
+      ),
       actions: [
         if (_selectedIds.length < dives.length)
           IconButton(
             icon: const Icon(Icons.select_all),
-            tooltip: 'Select All',
+            tooltip: context.l10n.diveLog_selection_tooltip_selectAll,
             onPressed: () => _selectAll(dives),
           ),
         if (_selectedIds.isNotEmpty)
           IconButton(
             icon: const Icon(Icons.deselect),
-            tooltip: 'Deselect All',
+            tooltip: context.l10n.diveLog_selection_tooltip_deselectAll,
             onPressed: _deselectAll,
           ),
         if (_selectedIds.isNotEmpty)
           IconButton(
             icon: const Icon(Icons.upload),
-            tooltip: 'Export Selected',
+            tooltip: context.l10n.diveLog_selection_tooltip_export,
             onPressed: _showExportDialog,
           ),
         if (_selectedIds.isNotEmpty)
           IconButton(
             icon: const Icon(Icons.edit),
-            tooltip: 'Edit Selected',
+            tooltip: context.l10n.diveLog_selection_tooltip_edit,
             onPressed: _showBulkEditSheet,
           ),
         if (_selectedIds.isNotEmpty)
@@ -1044,7 +1056,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               Icons.delete,
               color: Theme.of(context).colorScheme.error,
             ),
-            tooltip: 'Delete Selected',
+            tooltip: context.l10n.diveLog_selection_tooltip_delete,
             onPressed: _confirmAndDelete,
           ),
       ],
@@ -1069,11 +1081,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           IconButton(
             icon: const Icon(Icons.close, size: 20),
             visualDensity: VisualDensity.compact,
-            tooltip: 'Exit selection',
+            tooltip: context.l10n.diveLog_selection_tooltip_exit,
             onPressed: _exitSelectionMode,
           ),
           Text(
-            '${_selectedIds.length} selected',
+            context.l10n.diveLog_selection_countSelected(_selectedIds.length),
             style: Theme.of(context).textTheme.titleSmall,
           ),
           const Spacer(),
@@ -1081,21 +1093,21 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             IconButton(
               icon: const Icon(Icons.select_all, size: 20),
               visualDensity: VisualDensity.compact,
-              tooltip: 'Select All',
+              tooltip: context.l10n.diveLog_selection_tooltip_selectAll,
               onPressed: () => _selectAll(dives),
             ),
           if (_selectedIds.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.upload, size: 20),
               visualDensity: VisualDensity.compact,
-              tooltip: 'Export Selected',
+              tooltip: context.l10n.diveLog_selection_tooltip_export,
               onPressed: _showExportDialog,
             ),
           if (_selectedIds.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.edit, size: 20),
               visualDensity: VisualDensity.compact,
-              tooltip: 'Edit Selected',
+              tooltip: context.l10n.diveLog_selection_tooltip_edit,
               onPressed: _showBulkEditSheet,
             ),
           if (_selectedIds.isNotEmpty)
@@ -1106,7 +1118,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 color: Theme.of(context).colorScheme.error,
               ),
               visualDensity: VisualDensity.compact,
-              tooltip: 'Delete Selected',
+              tooltip: context.l10n.diveLog_selection_tooltip_delete,
               onPressed: _confirmAndDelete,
             ),
         ],
@@ -1202,9 +1214,13 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         dateText =
             '${units.formatMonthDay(filter.startDate)} - ${units.formatMonthDay(filter.endDate)}';
       } else if (filter.startDate != null) {
-        dateText = 'From ${units.formatMonthDay(filter.startDate)}';
+        dateText = context.l10n.diveLog_filterChip_from(
+          units.formatMonthDay(filter.startDate),
+        );
       } else {
-        dateText = 'Until ${units.formatMonthDay(filter.endDate)}';
+        dateText = context.l10n.diveLog_filterChip_until(
+          units.formatMonthDay(filter.endDate),
+        );
       }
       chips.add(
         _buildFilterChip(context, dateText, () {
@@ -1304,11 +1320,15 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
     if (filter.favoritesOnly == true) {
       chips.add(
-        _buildFilterChip(context, 'Favorites', () {
-          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-            clearFavoritesOnly: true,
-          );
-        }),
+        _buildFilterChip(
+          context,
+          context.l10n.diveLog_filterChip_favorites,
+          () {
+            ref.read(diveFilterProvider.notifier).state = filter.copyWith(
+              clearFavoritesOnly: true,
+            );
+          },
+        ),
       );
     }
 
@@ -1342,7 +1362,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               ref.read(diveFilterProvider.notifier).state =
                   const DiveFilterState();
             },
-            child: const Text('Clear all'),
+            child: Text(context.l10n.diveLog_filterChip_clearAll),
           ),
         ],
       ),
@@ -1355,7 +1375,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     VoidCallback onRemove,
   ) {
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsetsDirectional.only(end: 8),
       child: Chip(
         label: Text(label, style: const TextStyle(fontSize: 12)),
         deleteIcon: const Icon(Icons.close, size: 16),
@@ -1381,12 +1401,12 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             ),
             const SizedBox(height: 16),
             Text(
-              'No dives match your filters',
+              context.l10n.diveLog_emptyFiltered_title,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 8),
             Text(
-              'Try adjusting or clearing your filters',
+              context.l10n.diveLog_emptyFiltered_subtitle,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -1398,7 +1418,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     const DiveFilterState();
               },
               icon: const Icon(Icons.clear_all),
-              label: const Text('Clear Filters'),
+              label: Text(context.l10n.diveLog_emptyFiltered_clearFilters),
             ),
           ],
         ),
@@ -1416,12 +1436,12 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           ),
           const SizedBox(height: 16),
           Text(
-            'No dives logged yet',
+            context.l10n.diveLog_empty_title,
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 8),
           Text(
-            'Tap the button below to log your first dive',
+            context.l10n.diveLog_empty_subtitle,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -1430,7 +1450,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           FilledButton.icon(
             onPressed: () => context.go('/dives/new'),
             icon: const Icon(Icons.add),
-            label: const Text('Log Your First Dive'),
+            label: Text(context.l10n.diveLog_empty_logFirstDive),
           ),
         ],
       ),
@@ -1451,7 +1471,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Error loading dives',
+              context.l10n.diveLog_error_loadingDives,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
@@ -1465,7 +1485,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               onPressed: () =>
                   ref.read(paginatedDiveListProvider.notifier).refresh(),
               icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
+              label: Text(context.l10n.diveLog_error_retry),
             ),
           ],
         ),

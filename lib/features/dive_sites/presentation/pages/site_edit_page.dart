@@ -17,6 +17,7 @@ import 'package:submersion/features/dive_sites/presentation/widgets/location_pic
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/species_picker_dialog.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 class SiteEditPage extends ConsumerStatefulWidget {
   final String? siteId;
@@ -181,11 +182,17 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
         data: (site) {
           if (site == null) {
             if (widget.embedded) {
-              return const Center(child: Text('This site no longer exists.'));
+              return Center(
+                child: Text(context.l10n.diveSites_detail_siteNotFound_body),
+              );
             }
             return Scaffold(
-              appBar: AppBar(title: const Text('Site Not Found')),
-              body: const Center(child: Text('This site no longer exists.')),
+              appBar: AppBar(
+                title: Text(context.l10n.diveSites_detail_siteNotFound_title),
+              ),
+              body: Center(
+                child: Text(context.l10n.diveSites_detail_siteNotFound_body),
+              ),
             );
           }
           _initializeFromSite(site, units);
@@ -196,17 +203,25 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             return const Center(child: CircularProgressIndicator());
           }
           return Scaffold(
-            appBar: AppBar(title: const Text('Loading...')),
+            appBar: AppBar(
+              title: Text(context.l10n.diveSites_detail_loading_title),
+            ),
             body: const Center(child: CircularProgressIndicator()),
           );
         },
         error: (error, _) {
           if (widget.embedded) {
-            return Center(child: Text('Error: $error'));
+            return Center(
+              child: Text(context.l10n.diveSites_detail_error_body('$error')),
+            );
           }
           return Scaffold(
-            appBar: AppBar(title: const Text('Error')),
-            body: Center(child: Text('Error: $error')),
+            appBar: AppBar(
+              title: Text(context.l10n.diveSites_detail_error_title),
+            ),
+            body: Center(
+              child: Text(context.l10n.diveSites_detail_error_body('$error')),
+            ),
           );
         },
       );
@@ -229,14 +244,14 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           // Name
           TextFormField(
             controller: _nameController,
-            decoration: const InputDecoration(
-              labelText: 'Site Name *',
-              prefixIcon: Icon(Icons.location_on),
-              hintText: 'e.g., Blue Hole',
+            decoration: InputDecoration(
+              labelText: context.l10n.diveSites_edit_field_siteName_label,
+              prefixIcon: const Icon(Icons.location_on),
+              hintText: context.l10n.diveSites_edit_field_siteName_hint,
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return 'Please enter a site name';
+                return context.l10n.diveSites_edit_field_siteName_validation;
               }
               return null;
             },
@@ -246,10 +261,10 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           // Description
           TextFormField(
             controller: _descriptionController,
-            decoration: const InputDecoration(
-              labelText: 'Description',
-              prefixIcon: Icon(Icons.description),
-              hintText: 'Brief description of the site',
+            decoration: InputDecoration(
+              labelText: context.l10n.diveSites_edit_field_description_label,
+              prefixIcon: const Icon(Icons.description),
+              hintText: context.l10n.diveSites_edit_field_description_hint,
             ),
             maxLines: 3,
           ),
@@ -261,9 +276,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
               Expanded(
                 child: TextFormField(
                   controller: _countryController,
-                  decoration: const InputDecoration(
-                    labelText: 'Country',
-                    prefixIcon: Icon(Icons.flag),
+                  decoration: InputDecoration(
+                    labelText: context.l10n.diveSites_edit_field_country_label,
+                    prefixIcon: const Icon(Icons.flag),
                   ),
                 ),
               ),
@@ -271,9 +286,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
               Expanded(
                 child: TextFormField(
                   controller: _regionController,
-                  decoration: const InputDecoration(
-                    labelText: 'Region',
-                    prefixIcon: Icon(Icons.map),
+                  decoration: InputDecoration(
+                    labelText: context.l10n.diveSites_edit_field_region_label,
+                    prefixIcon: const Icon(Icons.map),
                   ),
                 ),
               ),
@@ -316,10 +331,10 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           // Notes
           TextFormField(
             controller: _notesController,
-            decoration: const InputDecoration(
-              labelText: 'General Notes',
-              prefixIcon: Icon(Icons.notes),
-              hintText: 'Any other information about this site',
+            decoration: InputDecoration(
+              labelText: context.l10n.diveSites_edit_field_notes_label,
+              prefixIcon: const Icon(Icons.notes),
+              hintText: context.l10n.diveSites_edit_field_notes_hint,
             ),
             maxLines: 4,
           ),
@@ -335,7 +350,11 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                       width: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : Text(widget.isEditing ? 'Save Changes' : 'Add Site'),
+                  : Text(
+                      widget.isEditing
+                          ? context.l10n.diveSites_edit_button_saveChanges
+                          : context.l10n.diveSites_edit_button_addSite,
+                    ),
             ),
           ],
         ],
@@ -374,12 +393,16 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(widget.isEditing ? 'Edit Site' : 'New Site'),
+          title: Text(
+            widget.isEditing
+                ? context.l10n.diveSites_edit_appBar_editSite
+                : context.l10n.diveSites_edit_appBar_newSite,
+          ),
           actions: [
             if (widget.isEditing)
               IconButton(
                 icon: const Icon(Icons.delete),
-                tooltip: 'Delete Site',
+                tooltip: context.l10n.diveSites_edit_appBar_deleteSiteTooltip,
                 onPressed: _confirmDelete,
               ),
             if (_isLoading)
@@ -394,7 +417,10 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                 ),
               )
             else
-              TextButton(onPressed: _saveSite, child: const Text('Save')),
+              TextButton(
+                onPressed: _saveSite,
+                child: Text(context.l10n.diveSites_edit_appBar_save),
+              ),
           ],
         ),
         body: body,
@@ -427,7 +453,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              widget.isEditing ? 'Edit Site' : 'New Site',
+              widget.isEditing
+                  ? context.l10n.diveSites_edit_appBar_editSite
+                  : context.l10n.diveSites_edit_appBar_newSite,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -444,7 +472,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                 _handleCancel();
               }
             },
-            child: const Text('Cancel'),
+            child: Text(context.l10n.diveSites_edit_cancel),
           ),
           const SizedBox(width: 8),
           FilledButton(
@@ -458,7 +486,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                       color: Colors.white,
                     ),
                   )
-                : const Text('Save'),
+                : Text(context.l10n.diveSites_edit_appBar_save),
           ),
         ],
       ),
@@ -469,18 +497,16 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Discard Changes?'),
-        content: const Text(
-          'You have unsaved changes. Are you sure you want to leave?',
-        ),
+        title: Text(context.l10n.diveSites_edit_discardDialog_title),
+        content: Text(context.l10n.diveSites_edit_discardDialog_content),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Keep Editing'),
+            child: Text(context.l10n.diveSites_edit_discardDialog_keepEditing),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Discard'),
+            child: Text(context.l10n.diveSites_edit_discardDialog_discard),
           ),
         ],
       ),
@@ -494,7 +520,10 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Rating', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              context.l10n.diveSites_edit_section_rating,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -505,7 +534,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                     color: Colors.amber,
                     size: 32,
                   ),
-                  tooltip: '${index + 1} star${index == 0 ? '' : 's'}',
+                  tooltip: context.l10n.diveSites_edit_rating_starTooltip(
+                    index + 1,
+                  ),
                   onPressed: () {
                     setState(() {
                       _rating = index + 1.0;
@@ -522,7 +553,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                     _rating = 0;
                     _hasChanges = true;
                   }),
-                  child: const Text('Clear Rating'),
+                  child: Text(context.l10n.diveSites_edit_rating_clear),
                 ),
               ),
           ],
@@ -544,14 +575,14 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                 const Icon(Icons.arrow_downward),
                 const SizedBox(width: 8),
                 Text(
-                  'Depth Range',
+                  context.l10n.diveSites_edit_section_depthRange,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ],
             ),
             const SizedBox(height: 8),
             Text(
-              'From the shallowest to the deepest point',
+              context.l10n.diveSites_edit_depth_helperText,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -563,24 +594,28 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                   child: TextFormField(
                     controller: _minDepthController,
                     decoration: InputDecoration(
-                      labelText: 'Minimum Depth ($depthSymbol)',
-                      hintText: 'e.g., 5',
+                      labelText: context.l10n.diveSites_edit_depth_minLabel(
+                        depthSymbol,
+                      ),
+                      hintText: context.l10n.diveSites_edit_depth_minHint,
                     ),
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
                   ),
                 ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12),
-                  child: Text('to'),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Text(context.l10n.diveSites_edit_depth_separator),
                 ),
                 Expanded(
                   child: TextFormField(
                     controller: _maxDepthController,
                     decoration: InputDecoration(
-                      labelText: 'Maximum Depth ($depthSymbol)',
-                      hintText: 'e.g., 30',
+                      labelText: context.l10n.diveSites_edit_depth_maxLabel(
+                        depthSymbol,
+                      ),
+                      hintText: context.l10n.diveSites_edit_depth_maxHint,
                     ),
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
@@ -607,7 +642,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                 const Icon(Icons.fitness_center),
                 const SizedBox(width: 8),
                 Text(
-                  'Difficulty Level',
+                  context.l10n.diveSites_edit_section_difficultyLevel,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ],
@@ -653,12 +688,17 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             SnackBar(
               content: Text(
                 isMobile
-                    ? 'Unable to get location. Please check permissions.'
-                    : 'Unable to get location. Location services may not be available.',
+                    ? context
+                          .l10n
+                          .diveSites_edit_snackbar_locationUnavailableMobile
+                    : context
+                          .l10n
+                          .diveSites_edit_snackbar_locationUnavailableDesktop,
               ),
               action: isMobile
                   ? SnackBarAction(
-                      label: 'Settings',
+                      label:
+                          context.l10n.diveSites_edit_snackbar_locationSettings,
                       onPressed: () => locationService.openAppSettings(),
                     )
                   : null,
@@ -685,7 +725,12 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Location captured${result.accuracy != null ? ' (±${result.accuracy!.toStringAsFixed(0)}m)' : ''}',
+              result.accuracy != null
+                  ? context.l10n
+                        .diveSites_edit_snackbar_locationCapturedWithAccuracy(
+                          result.accuracy!.toStringAsFixed(0),
+                        )
+                  : context.l10n.diveSites_edit_snackbar_locationCaptured,
             ),
           ),
         );
@@ -727,7 +772,11 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Location selected from map')),
+        SnackBar(
+          content: Text(
+            context.l10n.diveSites_edit_snackbar_locationSelectedFromMap,
+          ),
+        ),
       );
     }
   }
@@ -746,14 +795,14 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                 const Icon(Icons.gps_fixed),
                 const SizedBox(width: 8),
                 Text(
-                  'GPS Coordinates',
+                  context.l10n.diveSites_edit_section_gpsCoordinates,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ],
             ),
             const SizedBox(height: 8),
             Text(
-              'Choose a location method - coordinates will auto-fill country and region',
+              context.l10n.diveSites_edit_gps_helperText,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -776,13 +825,15 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                         )
                       : const Icon(Icons.my_location, size: 18),
                   label: Text(
-                    _isGettingLocation ? 'Getting...' : 'Use My Location',
+                    _isGettingLocation
+                        ? context.l10n.diveSites_edit_gps_gettingLocation
+                        : context.l10n.diveSites_edit_gps_useMyLocation,
                   ),
                 ),
                 OutlinedButton.icon(
                   onPressed: _pickFromMap,
                   icon: const Icon(Icons.map, size: 18),
-                  label: const Text('Pick from Map'),
+                  label: Text(context.l10n.diveSites_edit_gps_pickFromMap),
                 ),
               ],
             ),
@@ -792,9 +843,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                 Expanded(
                   child: TextFormField(
                     controller: _latitudeController,
-                    decoration: const InputDecoration(
-                      labelText: 'Latitude',
-                      hintText: 'e.g., 21.4225',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.diveSites_edit_gps_latitude_label,
+                      hintText: context.l10n.diveSites_edit_gps_latitude_hint,
                     ),
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
@@ -804,7 +855,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                       if (value != null && value.isNotEmpty) {
                         final lat = double.tryParse(value);
                         if (lat == null || lat < -90 || lat > 90) {
-                          return 'Invalid latitude';
+                          return context
+                              .l10n
+                              .diveSites_edit_gps_latitude_validation;
                         }
                       }
                       return null;
@@ -815,9 +868,10 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                 Expanded(
                   child: TextFormField(
                     controller: _longitudeController,
-                    decoration: const InputDecoration(
-                      labelText: 'Longitude',
-                      hintText: 'e.g., -86.7542',
+                    decoration: InputDecoration(
+                      labelText:
+                          context.l10n.diveSites_edit_gps_longitude_label,
+                      hintText: context.l10n.diveSites_edit_gps_longitude_hint,
                     ),
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
@@ -827,7 +881,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                       if (value != null && value.isNotEmpty) {
                         final lng = double.tryParse(value);
                         if (lng == null || lng < -180 || lng > 180) {
-                          return 'Invalid longitude';
+                          return context
+                              .l10n
+                              .diveSites_edit_gps_longitude_validation;
                         }
                       }
                       return null;
@@ -864,14 +920,14 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                 const Icon(Icons.terrain),
                 const SizedBox(width: 8),
                 Text(
-                  'Altitude',
+                  context.l10n.diveSites_edit_section_altitude,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ],
             ),
             const SizedBox(height: 8),
             Text(
-              'Site elevation above sea level (for altitude diving)',
+              context.l10n.diveSites_edit_altitude_helperText,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -880,8 +936,10 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             TextFormField(
               controller: _altitudeController,
               decoration: InputDecoration(
-                labelText: 'Altitude ($altitudeSymbol)',
-                hintText: 'e.g., 2000',
+                labelText: context.l10n.diveSites_edit_altitude_label(
+                  altitudeSymbol,
+                ),
+                hintText: context.l10n.diveSites_edit_altitude_hint,
                 prefixIcon: const Icon(Icons.terrain),
               ),
               keyboardType: const TextInputType.numberWithOptions(
@@ -892,7 +950,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                 if (value != null && value.isNotEmpty) {
                   final altitude = double.tryParse(value);
                   if (altitude == null || altitude < 0) {
-                    return 'Invalid altitude';
+                    return context.l10n.diveSites_edit_altitude_validation;
                   }
                 }
                 return null;
@@ -991,7 +1049,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                 const Icon(Icons.directions),
                 const SizedBox(width: 8),
                 Text(
-                  'Access & Logistics',
+                  context.l10n.diveSites_edit_section_access,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ],
@@ -999,10 +1057,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _accessNotesController,
-              decoration: const InputDecoration(
-                labelText: 'Access Notes',
-                hintText:
-                    'How to get to the site, entry/exit points, shore/boat access',
+              decoration: InputDecoration(
+                labelText: context.l10n.diveSites_edit_access_accessNotes_label,
+                hintText: context.l10n.diveSites_edit_access_accessNotes_hint,
               ),
               maxLines: 3,
             ),
@@ -1012,10 +1069,13 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                 Expanded(
                   child: TextFormField(
                     controller: _mooringNumberController,
-                    decoration: const InputDecoration(
-                      labelText: 'Mooring Number',
-                      hintText: 'e.g., Buoy #12',
-                      prefixIcon: Icon(Icons.anchor),
+                    decoration: InputDecoration(
+                      labelText: context
+                          .l10n
+                          .diveSites_edit_access_mooringNumber_label,
+                      hintText:
+                          context.l10n.diveSites_edit_access_mooringNumber_hint,
+                      prefixIcon: const Icon(Icons.anchor),
                     ),
                   ),
                 ),
@@ -1024,10 +1084,10 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _parkingInfoController,
-              decoration: const InputDecoration(
-                labelText: 'Parking Information',
-                hintText: 'Parking availability, fees, tips',
-                prefixIcon: Icon(Icons.local_parking),
+              decoration: InputDecoration(
+                labelText: context.l10n.diveSites_edit_access_parkingInfo_label,
+                hintText: context.l10n.diveSites_edit_access_parkingInfo_hint,
+                prefixIcon: const Icon(Icons.local_parking),
               ),
               maxLines: 2,
             ),
@@ -1052,14 +1112,14 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Hazards & Safety',
+                  context.l10n.diveSites_edit_section_hazards,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ],
             ),
             const SizedBox(height: 8),
             Text(
-              'List any hazards or safety considerations',
+              context.l10n.diveSites_edit_hazards_helperText,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -1067,10 +1127,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _hazardsController,
-              decoration: const InputDecoration(
-                labelText: 'Hazards',
-                hintText:
-                    'e.g., Strong currents, boat traffic, jellyfish, sharp coral',
+              decoration: InputDecoration(
+                labelText: context.l10n.diveSites_edit_hazards_label,
+                hintText: context.l10n.diveSites_edit_hazards_hint,
               ),
               maxLines: 3,
             ),
@@ -1095,20 +1154,20 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Expected Marine Life',
+                    context.l10n.diveSites_edit_section_expectedMarineLife,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
                 FilledButton.tonalIcon(
                   onPressed: _showSpeciesPicker,
                   icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Add'),
+                  label: Text(context.l10n.diveSites_edit_marineLife_addButton),
                 ),
               ],
             ),
             const SizedBox(height: 8),
             Text(
-              'Species you expect to see at this site',
+              context.l10n.diveSites_edit_marineLife_helperText,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -1142,7 +1201,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
               const SizedBox(height: 16),
               Center(
                 child: Text(
-                  'No expected species added',
+                  context.l10n.diveSites_edit_marineLife_empty,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                     fontStyle: FontStyle.italic,
@@ -1304,7 +1363,11 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           context.pop();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(widget.isEditing ? 'Site updated' : 'Site added'),
+              content: Text(
+                widget.isEditing
+                    ? context.l10n.diveSites_edit_snackbar_siteUpdated
+                    : context.l10n.diveSites_edit_snackbar_siteAdded,
+              ),
             ),
           );
         }
@@ -1313,7 +1376,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error saving site: $e'),
+            content: Text(
+              context.l10n.diveSites_edit_snackbar_errorSaving('$e'),
+            ),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -1329,21 +1394,19 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Site'),
-        content: const Text(
-          'Are you sure you want to delete this site? This action cannot be undone.',
-        ),
+        title: Text(context.l10n.diveSites_detail_deleteDialog_title),
+        content: Text(context.l10n.diveSites_detail_deleteDialog_content),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.diveSites_detail_deleteDialog_cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('Delete'),
+            child: Text(context.l10n.diveSites_detail_deleteDialog_confirm),
           ),
         ],
       ),
@@ -1366,15 +1429,17 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
 
       if (mounted) {
         context.go('/sites');
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Site deleted')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.diveSites_detail_deleteSnackbar)),
+        );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error deleting site: $e'),
+            content: Text(
+              context.l10n.diveSites_edit_snackbar_errorDeleting('$e'),
+            ),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );

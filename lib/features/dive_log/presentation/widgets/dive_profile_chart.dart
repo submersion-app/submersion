@@ -19,6 +19,7 @@ import 'package:submersion/features/dive_log/domain/entities/profile_event.dart'
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_legend.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Interactive dive profile chart showing depth over time with zoom/pan support
 class DiveProfileChart extends ConsumerStatefulWidget {
@@ -497,7 +498,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           Padding(
             padding: const EdgeInsets.only(top: 4),
             child: Text(
-              'Zoom: ${_zoomLevel.toStringAsFixed(1)}x • Pinch or scroll to zoom, drag to pan',
+              context.l10n.diveLog_profile_zoomHint(
+                _zoomLevel.toStringAsFixed(1),
+              ),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -517,7 +520,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     return LayoutBuilder(
       builder: (context, constraints) {
         return Semantics(
-          label: 'Dive profile chart, pinch to zoom',
+          label: context.l10n.diveLog_profile_semantics_chart,
           child: GestureDetector(
             onScaleStart: (details) {
               _previousZoom = _zoomLevel;
@@ -623,7 +626,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             ),
             const SizedBox(height: 8),
             Text(
-              'No dive profile data',
+              context.l10n.diveLog_profile_emptyState,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -767,7 +770,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             titlesData: FlTitlesData(
               leftTitles: AxisTitles(
                 axisNameWidget: Text(
-                  'Depth (${units.depthSymbol})',
+                  context.l10n.diveLog_profile_axisDepth(units.depthSymbol),
                   style: Theme.of(context).textTheme.labelSmall,
                 ),
                 sideTitles: SideTitles(
@@ -785,7 +788,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               ),
               bottomTitles: AxisTitles(
                 axisNameWidget: Text(
-                  'Time (min)',
+                  context.l10n.diveLog_profile_axisTime,
                   style: Theme.of(context).textTheme.labelSmall,
                 ),
                 sideTitles: SideTitles(
@@ -1071,11 +1074,15 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     // Time (always shown)
                     final timeValue =
                         '$minutes:${seconds.toString().padLeft(2, '0')}';
-                    addRow('Time', timeValue, onSurface.withValues(alpha: 0.5));
+                    addRow(
+                      context.l10n.diveLog_tooltip_time,
+                      timeValue,
+                      onSurface.withValues(alpha: 0.5),
+                    );
 
                     // Depth (always shown) - use same color as depth line
                     addRow(
-                      'Depth',
+                      context.l10n.diveLog_tooltip_depth,
                       units.formatDepth(point.depth),
                       AppColors.chartDepth,
                     );
@@ -1085,7 +1092,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       final tempValue = point.temperature != null
                           ? units.formatTemperature(point.temperature)
                           : '—';
-                      addRow('Temp', tempValue, colorScheme.tertiary);
+                      addRow(
+                        context.l10n.diveLog_tooltip_temp,
+                        tempValue,
+                        colorScheme.tertiary,
+                      );
                     }
 
                     // Pressure (if enabled - always show row)
@@ -1093,7 +1104,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       final pressValue = point.pressure != null
                           ? units.formatPressure(point.pressure)
                           : '—';
-                      addRow('Press', pressValue, Colors.orange);
+                      addRow(
+                        context.l10n.diveLog_tooltip_press,
+                        pressValue,
+                        Colors.orange,
+                      );
                     }
 
                     // Heart rate (if enabled - always show row)
@@ -1101,7 +1116,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       final hrValue = point.heartRate != null
                           ? '${point.heartRate} bpm'
                           : '—';
-                      addRow('HR', hrValue, Colors.red);
+                      addRow(
+                        context.l10n.diveLog_tooltip_hr,
+                        hrValue,
+                        Colors.red,
+                      );
                     }
 
                     // SAC (if enabled - always show row)
@@ -1126,7 +1145,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                           }
                         }
                       }
-                      addRow('SAC', sacValue, Colors.teal);
+                      addRow(
+                        context.l10n.diveLog_tooltip_sac,
+                        sacValue,
+                        Colors.teal,
+                      );
                     }
 
                     // Ceiling (if enabled - always show row)
@@ -1139,7 +1162,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                           ceilingValue = units.formatDepth(ceiling);
                         }
                       }
-                      addRow('Ceiling', ceilingValue, const Color(0xFFD32F2F));
+                      addRow(
+                        context.l10n.diveLog_tooltip_ceiling,
+                        ceilingValue,
+                        const Color(0xFFD32F2F),
+                      );
                     }
 
                     // Ascent rate (if enabled - always show row with fixed format)
@@ -1175,7 +1202,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                           .padLeft(5);
                       final rateValue =
                           '$arrow$rateNum ${units.depthSymbol}/min';
-                      addRow('Rate', rateValue, rateColor);
+                      addRow(
+                        context.l10n.diveLog_tooltip_rate,
+                        rateValue,
+                        rateColor,
+                      );
                     }
 
                     // NDL (if enabled)
@@ -1185,7 +1216,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                           spot.spotIndex < widget.ndlCurve!.length) {
                         final ndl = widget.ndlCurve![spot.spotIndex];
                         if (ndl < 0) {
-                          ndlValue = 'DECO';
+                          ndlValue = context.l10n.diveLog_playbackStats_deco;
                         } else if (ndl < 3600) {
                           final min = ndl ~/ 60;
                           final sec = ndl % 60;
@@ -1194,7 +1225,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                           ndlValue = '>60 min';
                         }
                       }
-                      addRow('NDL', ndlValue, Colors.lightGreen.shade700);
+                      addRow(
+                        context.l10n.diveLog_tooltip_ndl,
+                        ndlValue,
+                        Colors.lightGreen.shade700,
+                      );
                     }
 
                     // ppO2 (if enabled)
@@ -1205,7 +1240,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                         final ppO2 = widget.ppO2Curve![spot.spotIndex];
                         ppO2Value = '${ppO2.toStringAsFixed(2)} bar';
                       }
-                      addRow('ppO2', ppO2Value, const Color(0xFF00ACC1));
+                      addRow(
+                        context.l10n.diveLog_tooltip_ppO2,
+                        ppO2Value,
+                        const Color(0xFF00ACC1),
+                      );
                     }
 
                     // ppN2 (if enabled)
@@ -1216,7 +1255,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                         final ppN2 = widget.ppN2Curve![spot.spotIndex];
                         ppN2Value = '${ppN2.toStringAsFixed(2)} bar';
                       }
-                      addRow('ppN2', ppN2Value, Colors.indigo);
+                      addRow(
+                        context.l10n.diveLog_tooltip_ppN2,
+                        ppN2Value,
+                        Colors.indigo,
+                      );
                     }
 
                     // ppHe (if enabled)
@@ -1229,7 +1272,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                           ppHeValue = '${ppHe.toStringAsFixed(2)} bar';
                         }
                       }
-                      addRow('ppHe', ppHeValue, Colors.pink.shade300);
+                      addRow(
+                        context.l10n.diveLog_tooltip_ppHe,
+                        ppHeValue,
+                        Colors.pink.shade300,
+                      );
                     }
 
                     // MOD (if enabled)
@@ -1242,7 +1289,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                           modValue = units.formatDepth(mod);
                         }
                       }
-                      addRow('MOD', modValue, Colors.deepOrange);
+                      addRow(
+                        context.l10n.diveLog_tooltip_mod,
+                        modValue,
+                        Colors.deepOrange,
+                      );
                     }
 
                     // Gas density (if enabled)
@@ -1253,7 +1304,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                         final density = widget.densityCurve![spot.spotIndex];
                         densityValue = '${density.toStringAsFixed(2)} g/L';
                       }
-                      addRow('Density', densityValue, Colors.brown);
+                      addRow(
+                        context.l10n.diveLog_tooltip_density,
+                        densityValue,
+                        Colors.brown,
+                      );
                     }
 
                     // GF% (if enabled)
@@ -1264,7 +1319,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                         final gf = widget.gfCurve![spot.spotIndex];
                         gfValue = '${gf.toStringAsFixed(0)}%';
                       }
-                      addRow('GF%', gfValue, Colors.deepPurple);
+                      addRow(
+                        context.l10n.diveLog_tooltip_gfPercent,
+                        gfValue,
+                        Colors.deepPurple,
+                      );
                     }
 
                     // Surface GF (if enabled)
@@ -1276,7 +1335,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                             widget.surfaceGfCurve![spot.spotIndex];
                         surfaceGfValue = '${surfaceGf.toStringAsFixed(0)}%';
                       }
-                      addRow('SrfGF', surfaceGfValue, Colors.purple.shade300);
+                      addRow(
+                        context.l10n.diveLog_tooltip_srfGf,
+                        surfaceGfValue,
+                        Colors.purple.shade300,
+                      );
                     }
 
                     // Mean depth (if enabled)
@@ -1288,7 +1351,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                             widget.meanDepthCurve![spot.spotIndex];
                         meanDepthValue = units.formatDepth(meanDepth);
                       }
-                      addRow('Mean', meanDepthValue, Colors.blueGrey);
+                      addRow(
+                        context.l10n.diveLog_tooltip_mean,
+                        meanDepthValue,
+                        Colors.blueGrey,
+                      );
                     }
 
                     // TTS (if enabled)
@@ -1304,7 +1371,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                           ttsValue = '0 min';
                         }
                       }
-                      addRow('TTS', ttsValue, const Color(0xFFAD1457));
+                      addRow(
+                        context.l10n.diveLog_tooltip_tts,
+                        ttsValue,
+                        const Color(0xFFAD1457),
+                      );
                     }
 
                     // Per-tank pressure (if any tanks are enabled)
@@ -1331,7 +1402,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                         final color = tank != null
                             ? GasColors.forGasMix(tank.gasMix)
                             : _getTankColor(i);
-                        final tankLabel = tank?.name ?? 'Tank ${i + 1}';
+                        final tankLabel =
+                            tank?.name ??
+                            context.l10n.diveLog_tank_title(i + 1);
                         final pressValue = pressure != null
                             ? units.formatPressure(pressure)
                             : '—';
@@ -1362,7 +1435,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                             timestampThreshold) {
                           final markerColor = marker.getColor();
                           addRow(
-                            'Marker',
+                            context.l10n.diveLog_tooltip_marker,
                             marker.chartLabel,
                             markerColor,
                             bullet: '◆',
@@ -1376,7 +1449,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       '', // Empty base text, using children instead
                       TextStyle(color: onSurface),
                       children: lines,
-                      textAlign: TextAlign.left,
+                      textAlign: TextAlign.start,
                     );
                   }).toList();
                 },
@@ -1393,7 +1466,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             width: 50, // Match reservedSize of right axis
             child: Semantics(
               button: true,
-              label: 'Change right axis metric',
+              label: context.l10n.diveLog_profile_semantics_changeRightAxis,
               child: GestureDetector(
                 behavior: HitTestBehavior.translucent,
                 onTap: () => _showRightAxisMetricSelector(
@@ -1435,7 +1508,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               color: colorScheme.onSurfaceVariant,
             ),
             const SizedBox(width: 8),
-            const Text('None'),
+            Text(context.l10n.diveLog_profile_rightAxis_none),
           ],
         ),
       ),

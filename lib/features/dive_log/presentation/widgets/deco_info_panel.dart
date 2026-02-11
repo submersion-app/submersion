@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Panel displaying decompression status and tissue loading.
 class DecoInfoPanel extends StatelessWidget {
@@ -51,7 +52,7 @@ class DecoInfoPanel extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                'Decompression Status',
+                context.l10n.diveLog_deco_title,
                 style: textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -59,8 +60,8 @@ class DecoInfoPanel extends StatelessWidget {
               const Spacer(),
               Semantics(
                 label: status.inDeco
-                    ? 'Decompression required'
-                    : 'No decompression required',
+                    ? context.l10n.diveLog_deco_semantics_required
+                    : context.l10n.diveLog_deco_semantics_notRequired,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
@@ -73,7 +74,9 @@ class DecoInfoPanel extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    status.inDeco ? 'DECO' : 'NO DECO',
+                    status.inDeco
+                        ? context.l10n.diveLog_deco_badge_deco
+                        : context.l10n.diveLog_deco_badge_noDeco,
                     style: textTheme.labelSmall?.copyWith(
                       color: status.inDeco ? Colors.orange : Colors.green,
                       fontWeight: FontWeight.bold,
@@ -139,7 +142,9 @@ class DecoInfoPanel extends StatelessWidget {
         Expanded(
           child: _buildMetricTile(
             context,
-            label: status.inDeco ? 'Ceiling' : 'NDL',
+            label: status.inDeco
+                ? context.l10n.diveLog_deco_label_ceiling
+                : context.l10n.diveLog_deco_label_ndl,
             value: status.inDeco
                 ? '${status.ceilingMeters.toStringAsFixed(1)}m'
                 : status.ndlFormatted,
@@ -153,7 +158,7 @@ class DecoInfoPanel extends StatelessWidget {
         Expanded(
           child: _buildMetricTile(
             context,
-            label: 'TTS',
+            label: context.l10n.diveLog_deco_label_tts,
             value: status.ttsFormatted,
             icon: Icons.schedule,
             color: colorScheme.primary,
@@ -165,7 +170,7 @@ class DecoInfoPanel extends StatelessWidget {
         Expanded(
           child: _buildMetricTile(
             context,
-            label: 'Leading',
+            label: context.l10n.diveLog_deco_label_leading,
             value: '#${status.leadingCompartmentNumber}',
             subtitle: '${status.leadingCompartmentLoading.toStringAsFixed(0)}%',
             icon: Icons.show_chart,
@@ -233,7 +238,7 @@ class DecoInfoPanel extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Tissue Loading',
+          context.l10n.diveLog_deco_sectionTissueLoading,
           style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
@@ -263,13 +268,13 @@ class DecoInfoPanel extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Fast',
+              context.l10n.diveLog_deco_tissueFast,
               style: textTheme.labelSmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
             ),
             Text(
-              'Slow',
+              context.l10n.diveLog_deco_tissueSlow,
               style: textTheme.labelSmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -319,14 +324,14 @@ class DecoInfoPanel extends StatelessWidget {
         Row(
           children: [
             Text(
-              'Deco Stops',
+              context.l10n.diveLog_deco_sectionDecoStops,
               style: textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
             ),
             const Spacer(),
             Text(
-              'Total: ${_formatTotalDecoTime()}',
+              context.l10n.diveLog_deco_totalDecoTime(_formatTotalDecoTime()),
               style: textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
                 fontWeight: FontWeight.w500,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_templates.dart';
@@ -246,7 +247,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Tank ${widget.tankNumber}',
+                context.l10n.diveLog_tank_title(widget.tankNumber),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               Text(
@@ -264,7 +265,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             icon: const Icon(Icons.delete_outline),
             color: Theme.of(context).colorScheme.error,
             onPressed: widget.onRemove,
-            tooltip: 'Remove tank',
+            tooltip: context.l10n.diveLog_tank_tooltip_remove,
           ),
       ],
     );
@@ -296,14 +297,14 @@ class _TankEditorState extends ConsumerState<TankEditor> {
               return DropdownButtonFormField<TankPresetEntity?>(
                 key: ValueKey(matchingPreset?.id ?? 'no-preset'),
                 initialValue: matchingPreset,
-                decoration: const InputDecoration(
-                  labelText: 'Tank Preset',
+                decoration: InputDecoration(
+                  labelText: context.l10n.diveLog_tank_label_tankPreset,
                   isDense: true,
                 ),
                 items: [
-                  const DropdownMenuItem<TankPresetEntity?>(
+                  DropdownMenuItem<TankPresetEntity?>(
                     value: null,
-                    child: Text('Select Preset...'),
+                    child: Text(context.l10n.diveLog_tank_selectPreset),
                   ),
                   // Custom presets first (shown with a star icon)
                   ...customPresets.map(
@@ -345,7 +346,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         Expanded(
           child: DropdownButtonFormField<TankRole>(
             initialValue: _role,
-            decoration: const InputDecoration(labelText: 'Role', isDense: true),
+            decoration: InputDecoration(
+              labelText: context.l10n.diveLog_tank_label_role,
+              isDense: true,
+            ),
             items: TankRole.values
                 .map(
                   (role) => DropdownMenuItem(
@@ -374,7 +378,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
           child: TextFormField(
             controller: _volumeController,
             decoration: InputDecoration(
-              labelText: 'Volume',
+              labelText: context.l10n.diveLog_tank_label_volume,
               suffixText: units.volumeSymbol,
               isDense: true,
             ),
@@ -391,14 +395,14 @@ class _TankEditorState extends ConsumerState<TankEditor> {
           child: DropdownButtonFormField<TankMaterial?>(
             key: ValueKey(_material?.name),
             initialValue: _material,
-            decoration: const InputDecoration(
-              labelText: 'Material',
+            decoration: InputDecoration(
+              labelText: context.l10n.diveLog_tank_label_material,
               isDense: true,
             ),
             items: [
-              const DropdownMenuItem<TankMaterial?>(
+              DropdownMenuItem<TankMaterial?>(
                 value: null,
-                child: Text('Not specified'),
+                child: Text(context.l10n.diveLog_edit_notSpecified),
               ),
               ...TankMaterial.values.map(
                 (mat) =>
@@ -418,7 +422,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
           child: TextFormField(
             controller: _workingPressureController,
             decoration: InputDecoration(
-              labelText: 'Working P',
+              labelText: context.l10n.diveLog_tank_label_workingPressure,
               suffixText: units.pressureSymbol,
               isDense: true,
             ),
@@ -437,7 +441,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Gas Mix', style: Theme.of(context).textTheme.titleSmall),
+        Text(
+          context.l10n.diveLog_tank_section_gasMix,
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
         const SizedBox(height: 8),
         // Gas template chips
         Wrap(
@@ -456,8 +463,8 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             Expanded(
               child: TextFormField(
                 controller: _o2Controller,
-                decoration: const InputDecoration(
-                  labelText: 'O2',
+                decoration: InputDecoration(
+                  labelText: context.l10n.diveLog_tank_label_o2,
                   suffixText: '%',
                   isDense: true,
                 ),
@@ -474,8 +481,8 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             Expanded(
               child: TextFormField(
                 controller: _heController,
-                decoration: const InputDecoration(
-                  labelText: 'He',
+                decoration: InputDecoration(
+                  labelText: context.l10n.diveLog_tank_label_he,
                   suffixText: '%',
                   isDense: true,
                 ),
@@ -492,8 +499,8 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             // N2 display (computed)
             Expanded(
               child: InputDecorator(
-                decoration: const InputDecoration(
-                  labelText: 'N2',
+                decoration: InputDecoration(
+                  labelText: context.l10n.diveLog_tank_label_n2,
                   suffixText: '%',
                   isDense: true,
                 ),
@@ -530,7 +537,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
           child: TextFormField(
             controller: _startPressureController,
             decoration: InputDecoration(
-              labelText: 'Start Pressure',
+              labelText: context.l10n.diveLog_tank_label_startPressure,
               suffixText: units.pressureSymbol,
               isDense: true,
             ),
@@ -543,7 +550,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
           child: TextFormField(
             controller: _endPressureController,
             decoration: InputDecoration(
-              labelText: 'End Pressure',
+              labelText: context.l10n.diveLog_tank_label_endPressure,
               suffixText: units.pressureSymbol,
               isDense: true,
             ),
@@ -572,7 +579,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
           Semantics(
             label: 'Maximum operating depth: $modDepth at ppO2 1.4',
             child: Text(
-              'MOD: $modDepth (ppO2 1.4)',
+              context.l10n.diveLog_tank_modInfo(modDepth),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.tertiary,
               ),

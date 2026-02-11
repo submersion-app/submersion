@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 
 /// Widget for selecting and creating tags
@@ -107,14 +108,14 @@ class _TagInputWidgetState extends ConsumerState<TagInputWidget> {
               focusNode: _focusNode,
               decoration: InputDecoration(
                 hintText: widget.selectedTags.isEmpty
-                    ? 'Add tags...'
-                    : 'Add more tags...',
+                    ? context.l10n.tags_hint_addTags
+                    : context.l10n.tags_hint_addMoreTags,
                 prefixIcon: const Icon(Icons.label_outline),
                 suffixIcon: _textController.text.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.add),
                         onPressed: () => _createAndAddTag(_textController.text),
-                        tooltip: 'Create tag',
+                        tooltip: context.l10n.tags_action_createTag,
                       )
                     : null,
                 border: const OutlineInputBorder(),
@@ -202,7 +203,11 @@ class _TagInputWidgetState extends ConsumerState<TagInputWidget> {
                               color: Colors.white,
                             ),
                           ),
-                          title: Text('Create "${_textController.text}"'),
+                          title: Text(
+                            context.l10n.tags_action_createNamed(
+                              _textController.text,
+                            ),
+                          ),
                           onTap: () => _createAndAddTag(_textController.text),
                         ),
                     ],
@@ -279,16 +284,14 @@ class TagManagementDialog extends ConsumerWidget {
     final tagsAsync = ref.watch(tagListNotifierProvider);
 
     return AlertDialog(
-      title: const Text('Manage Tags'),
+      title: Text(context.l10n.tags_title_manageTags),
       content: SizedBox(
         width: 300,
         height: 400,
         child: tagsAsync.when(
           data: (tags) {
             if (tags.isEmpty) {
-              return const Center(
-                child: Text('No tags yet. Create tags when editing dives.'),
-              );
+              return Center(child: Text(context.l10n.tags_empty));
             }
             return ListView.builder(
               itemCount: tags.length,
@@ -300,7 +303,7 @@ class TagManagementDialog extends ConsumerWidget {
                   trailing: IconButton(
                     icon: const Icon(Icons.delete_outline),
                     onPressed: () => _confirmDelete(context, ref, tag),
-                    tooltip: 'Delete tag',
+                    tooltip: context.l10n.tags_action_deleteTag,
                   ),
                   onTap: () => _editTag(context, ref, tag),
                 );
@@ -324,14 +327,12 @@ class TagManagementDialog extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Tag?'),
-        content: Text(
-          'Are you sure you want to delete "${tag.name}"? This will remove it from all dives.',
-        ),
+        title: Text(context.l10n.tags_dialog_deleteTitle),
+        content: Text(context.l10n.tags_dialog_deleteMessage(tag.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.common_action_cancel),
           ),
           TextButton(
             onPressed: () {
@@ -339,7 +340,7 @@ class TagManagementDialog extends ConsumerWidget {
               Navigator.pop(context);
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(context.l10n.common_action_delete),
           ),
         ],
       ),

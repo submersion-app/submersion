@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
@@ -161,16 +162,16 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dive Centers'),
+        title: Text(context.l10n.diveCenters_title),
         actions: [
           IconButton(
             icon: const Icon(Icons.map),
-            tooltip: 'Map View',
+            tooltip: context.l10n.diveCenters_tooltip_mapView,
             onPressed: () => context.go('/dive-centers/map'),
           ),
           IconButton(
             icon: const Icon(Icons.search),
-            tooltip: 'Search dive centers',
+            tooltip: context.l10n.diveCenters_tooltip_search,
             onPressed: () {
               showSearch(
                 context: context,
@@ -180,23 +181,23 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
           ),
           IconButton(
             icon: const Icon(Icons.sort),
-            tooltip: 'Sort',
+            tooltip: context.l10n.diveCenters_tooltip_sort,
             onPressed: () => _showSortSheet(context),
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
-            tooltip: 'More options',
+            tooltip: context.l10n.diveCenters_tooltip_moreOptions,
             onSelected: (value) {
               if (value == 'import') {
                 context.push('/dive-centers/import');
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'import',
                 child: ListTile(
-                  leading: Icon(Icons.download),
-                  title: Text('Import'),
+                  leading: const Icon(Icons.download),
+                  title: Text(context.l10n.diveCenters_action_import),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
@@ -225,7 +226,7 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
         children: [
           const SizedBox(width: 8),
           Text(
-            'Dive Centers',
+            context.l10n.diveCenters_title,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -239,12 +240,12 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
           else
             IconButton(
               icon: const Icon(Icons.map, size: 20),
-              tooltip: 'Map View',
+              tooltip: context.l10n.diveCenters_tooltip_mapView,
               onPressed: () => context.go('/dive-centers/map'),
             ),
           IconButton(
             icon: const Icon(Icons.search, size: 20),
-            tooltip: 'Search dive centers',
+            tooltip: context.l10n.diveCenters_tooltip_search,
             onPressed: () {
               showSearch(
                 context: context,
@@ -254,19 +255,22 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
           ),
           IconButton(
             icon: const Icon(Icons.sort, size: 20),
-            tooltip: 'Sort',
+            tooltip: context.l10n.diveCenters_tooltip_sort,
             onPressed: () => _showSortSheet(context),
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, size: 20),
-            tooltip: 'More options',
+            tooltip: context.l10n.diveCenters_tooltip_moreOptions,
             onSelected: (value) {
               if (value == 'import') {
                 context.push('/dive-centers/import');
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(value: 'import', child: Text('Import')),
+              PopupMenuItem(
+                value: 'import',
+                child: Text(context.l10n.diveCenters_action_import),
+              ),
             ],
           ),
         ],
@@ -278,7 +282,7 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
     final sort = ref.read(diveCenterSortProvider);
     showSortBottomSheet<DiveCenterSortField>(
       context: context,
-      title: 'Sort Dive Centers',
+      title: context.l10n.diveCenters_sort_title,
       currentField: sort.field,
       currentDirection: sort.direction,
       fields: DiveCenterSortField.values,
@@ -330,14 +334,14 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
           ),
           const SizedBox(height: 16),
           Text(
-            'No dive centers yet',
+            context.l10n.diveCenters_empty_title,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
               color: Theme.of(context).colorScheme.outline,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Add your favorite dive shops and operators',
+            context.l10n.diveCenters_empty_subtitle,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.outline,
             ),
@@ -349,13 +353,13 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
               FilledButton.icon(
                 onPressed: () => context.push('/dive-centers/new'),
                 icon: const Icon(Icons.add),
-                label: const Text('Add New'),
+                label: Text(context.l10n.diveCenters_action_addNew),
               ),
               const SizedBox(width: 12),
               OutlinedButton.icon(
                 onPressed: () => context.push('/dive-centers/import'),
                 icon: const Icon(Icons.download),
-                label: const Text('Import'),
+                label: Text(context.l10n.diveCenters_action_import),
               ),
             ],
           ),
@@ -371,12 +375,12 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
         children: [
           const Icon(Icons.error_outline, size: 48, color: Colors.red),
           const SizedBox(height: 16),
-          Text('Error: $error'),
+          Text(context.l10n.diveCenters_error_generic(error.toString())),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () =>
                 ref.read(diveCenterListNotifierProvider.notifier).refresh(),
-            child: const Text('Retry'),
+            child: Text(context.l10n.diveCenters_action_retry),
           ),
         ],
       ),
@@ -490,7 +494,7 @@ class DiveCenterListTile extends ConsumerWidget {
                   const SizedBox(height: 4),
                   diveCountAsync.when(
                     data: (count) => Text(
-                      '$count ${count == 1 ? 'dive' : 'dives'}',
+                      context.l10n.diveCenters_label_diveCount(count),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.outline,
                       ),
@@ -531,7 +535,7 @@ class DiveCenterSearchDelegate extends SearchDelegate<DiveCenter?> {
       if (query.isNotEmpty)
         IconButton(
           icon: const Icon(Icons.clear),
-          tooltip: 'Clear search',
+          tooltip: context.l10n.diveCenters_tooltip_clearSearch,
           onPressed: () => query = '',
         ),
     ];
@@ -541,7 +545,7 @@ class DiveCenterSearchDelegate extends SearchDelegate<DiveCenter?> {
   Widget? buildLeading(BuildContext context) {
     return IconButton(
       icon: const Icon(Icons.arrow_back),
-      tooltip: 'Back',
+      tooltip: context.l10n.common_action_back,
       onPressed: () => close(context, null),
     );
   }
@@ -557,7 +561,9 @@ class DiveCenterSearchDelegate extends SearchDelegate<DiveCenter?> {
 
     return resultsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(child: Text('Error: $error')),
+      error: (error, _) => Center(
+        child: Text(context.l10n.diveCenters_error_generic(error.toString())),
+      ),
       data: (centers) {
         if (centers.isEmpty) {
           return Center(
@@ -572,8 +578,8 @@ class DiveCenterSearchDelegate extends SearchDelegate<DiveCenter?> {
                 const SizedBox(height: 16),
                 Text(
                   query.isEmpty
-                      ? 'Search dive centers'
-                      : 'No results for "$query"',
+                      ? context.l10n.diveCenters_search_prompt
+                      : context.l10n.diveCenters_search_noResults(query),
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: Theme.of(context).colorScheme.outline,
                   ),

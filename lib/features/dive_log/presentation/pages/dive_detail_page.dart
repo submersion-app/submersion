@@ -55,6 +55,7 @@ import 'package:submersion/features/signatures/presentation/providers/signature_
 import 'package:submersion/features/signatures/presentation/widgets/signature_capture_widget.dart';
 import 'package:submersion/features/signatures/presentation/widgets/signature_display_widget.dart';
 import 'package:submersion/features/signatures/presentation/widgets/buddy_signatures_section.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Calculate normalization factor to align profile-based SAC with tank-based SAC.
 /// The segments are calculated from profile pressure data, but dive.sacPressure
@@ -147,18 +148,18 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       data: (dive) {
         if (dive == null) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Dive Details')),
-            body: const Center(child: Text('Dive not found')),
+            appBar: AppBar(title: Text(context.l10n.diveLog_detail_appBar)),
+            body: Center(child: Text(context.l10n.diveLog_detail_notFound)),
           );
         }
         return _buildContent(context, ref, dive);
       },
       loading: () => Scaffold(
-        appBar: AppBar(title: const Text('Dive Details')),
+        appBar: AppBar(title: Text(context.l10n.diveLog_detail_appBar)),
         body: const Center(child: CircularProgressIndicator()),
       ),
       error: (error, stack) => Scaffold(
-        appBar: AppBar(title: const Text('Dive Details')),
+        appBar: AppBar(title: Text(context.l10n.diveLog_detail_appBar)),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -172,7 +173,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Error loading dive',
+                context.l10n.diveLog_detail_errorLoading,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 8),
@@ -265,7 +266,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     // Standalone mode: Full Scaffold with AppBar
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dive Details'),
+        title: Text(context.l10n.diveLog_detail_appBar),
         actions: [
           IconButton(
             icon: Icon(
@@ -273,8 +274,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               color: dive.isFavorite ? Colors.red : null,
             ),
             tooltip: dive.isFavorite
-                ? 'Remove from favorites'
-                : 'Add to favorites',
+                ? context.l10n.diveLog_detail_tooltip_removeFromFavorites
+                : context.l10n.diveLog_detail_tooltip_addToFavorites,
             onPressed: () {
               ref
                   .read(paginatedDiveListProvider.notifier)
@@ -283,7 +284,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           ),
           IconButton(
             icon: const Icon(Icons.edit),
-            tooltip: 'Edit dive',
+            tooltip: context.l10n.diveLog_detail_tooltip_editDive,
             onPressed: () => context.go('/dives/$diveId/edit'),
           ),
           PopupMenuButton<String>(
@@ -298,19 +299,22 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'export',
                 child: ListTile(
-                  leading: Icon(Icons.download),
-                  title: Text('Export'),
+                  leading: const Icon(Icons.download),
+                  title: Text(context.l10n.diveLog_detail_menu_export),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'delete',
                 child: ListTile(
-                  leading: Icon(Icons.delete, color: Colors.red),
-                  title: Text('Delete', style: TextStyle(color: Colors.red)),
+                  leading: const Icon(Icons.delete, color: Colors.red),
+                  title: Text(
+                    context.l10n.diveLog_detail_menu_delete,
+                    style: const TextStyle(color: Colors.red),
+                  ),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
@@ -357,7 +361,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  dive.site?.name ?? 'Unknown Site',
+                  dive.site?.name ?? context.l10n.diveLog_listPage_unknownSite,
                   style: Theme.of(
                     context,
                   ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
@@ -383,8 +387,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             ),
             visualDensity: VisualDensity.compact,
             tooltip: dive.isFavorite
-                ? 'Remove from favorites'
-                : 'Add to favorites',
+                ? context.l10n.diveLog_detail_tooltip_removeFromFavorites
+                : context.l10n.diveLog_detail_tooltip_addToFavorites,
             onPressed: () {
               ref
                   .read(paginatedDiveListProvider.notifier)
@@ -395,7 +399,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           IconButton(
             icon: const Icon(Icons.edit, size: 20),
             visualDensity: VisualDensity.compact,
-            tooltip: 'Edit',
+            tooltip: context.l10n.diveLog_detail_tooltip_edit,
             onPressed: () {
               final state = GoRouterState.of(context);
               final currentPath = state.uri.path;
@@ -421,27 +425,30 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'open',
                 child: ListTile(
-                  leading: Icon(Icons.open_in_new),
-                  title: Text('Open Full Page'),
+                  leading: const Icon(Icons.open_in_new),
+                  title: Text(context.l10n.diveLog_detail_menu_openFullPage),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'export',
                 child: ListTile(
-                  leading: Icon(Icons.download),
-                  title: Text('Export'),
+                  leading: const Icon(Icons.download),
+                  title: Text(context.l10n.diveLog_detail_menu_export),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'delete',
                 child: ListTile(
-                  leading: Icon(Icons.delete, color: Colors.red),
-                  title: Text('Delete', style: TextStyle(color: Colors.red)),
+                  leading: const Icon(Icons.delete, color: Colors.red),
+                  title: Text(
+                    context.l10n.diveLog_detail_menu_delete,
+                    style: const TextStyle(color: Colors.red),
+                  ),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
@@ -486,7 +493,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      dive.site?.name ?? 'Unknown Site',
+                      dive.site?.name ??
+                          context.l10n.diveLog_listPage_unknownSite,
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     if (dive.site?.locationString.isNotEmpty == true)
@@ -497,14 +505,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         ),
                       ),
                     Text(
-                      'Entry: ${units.formatDateTimeBullet(dive.effectiveEntryTime)}',
+                      '${context.l10n.diveLog_detail_label_entry} ${units.formatDateTimeBullet(dive.effectiveEntryTime)}',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
                     ),
                     if (dive.exitTime != null)
                       Text(
-                        'Exit: ${units.formatDateTimeBullet(dive.exitTime!)}',
+                        '${context.l10n.diveLog_detail_label_exit} ${units.formatDateTimeBullet(dive.exitTime!)}',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -539,13 +547,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 context,
                 Icons.arrow_downward,
                 units.formatDepth(dive.maxDepth),
-                'Max Depth',
+                context.l10n.diveLog_detail_stat_maxDepth,
               ),
               _buildStatItem(
                 context,
                 Icons.timelapse,
                 _formatRuntime(dive),
-                'Runtime',
+                context.l10n.diveLog_detail_stat_runtime,
               ),
               _buildStatItem(
                 context,
@@ -553,13 +561,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 dive.duration != null
                     ? '${dive.duration!.inMinutes} min'
                     : '--',
-                'Bottom Time',
+                context.l10n.diveLog_detail_stat_bottomTime,
               ),
               _buildStatItem(
                 context,
                 Icons.thermostat,
                 units.formatTemperature(dive.waterTemp),
-                'Water Temp',
+                context.l10n.diveLog_detail_stat_waterTemp,
               ),
             ],
           ),
@@ -581,7 +589,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       clipBehavior: Clip.antiAlias,
       child: Semantics(
         button: true,
-        label: 'View dive site ${site.name}',
+        label: '${context.l10n.diveLog_detail_viewSite} ${site.name}',
         child: InkWell(
           onTap: () => context.push('/sites/${site.id}'),
           child: Stack(
@@ -685,7 +693,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'View Site',
+                        context.l10n.diveLog_detail_viewSite,
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           color: colorScheme.onPrimaryContainer,
                           fontWeight: FontWeight.w600,
@@ -806,13 +814,15 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Dive Profile',
+                  context.l10n.diveLog_detail_section_diveProfile,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 Row(
                   children: [
                     Text(
-                      '${dive.profile.length} points',
+                      context.l10n.diveLog_detail_profilePoints(
+                        dive.profile.length,
+                      ),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -826,7 +836,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : const Icon(Icons.share),
-                      tooltip: 'Export profile as image',
+                      tooltip: context
+                          .l10n
+                          .diveLog_detail_tooltip_exportProfileImage,
                       visualDensity: VisualDensity.compact,
                       onPressed: _isExportingProfile
                           ? null
@@ -834,7 +846,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     ),
                     IconButton(
                       icon: const Icon(Icons.fullscreen),
-                      tooltip: 'View fullscreen',
+                      tooltip:
+                          context.l10n.diveLog_detail_tooltip_viewFullscreen,
                       visualDensity: VisualDensity.compact,
                       onPressed: () =>
                           _showFullscreenProfile(context, ref, dive),
@@ -931,7 +944,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                           .togglePlaybackMode();
                     },
                     icon: const Icon(Icons.play_circle_outline, size: 18),
-                    label: const Text('Playback'),
+                    label: Text(context.l10n.diveLog_detail_button_playback),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
@@ -948,7 +961,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                           .enableRangeMode();
                     },
                     icon: const Icon(Icons.straighten, size: 18),
-                    label: const Text('Range Analysis'),
+                    label: Text(
+                      context.l10n.diveLog_detail_button_rangeAnalysis,
+                    ),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
@@ -1042,7 +1057,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
-        status.inDeco ? 'DECO' : 'NO DECO',
+        status.inDeco
+            ? context.l10n.diveLog_detail_badge_deco
+            : context.l10n.diveLog_detail_badge_noDeco,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
           color: status.inDeco ? Colors.orange : Colors.green,
           fontWeight: FontWeight.bold,
@@ -1056,7 +1073,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       showEndButton = TextButton.icon(
         onPressed: () => setState(() => _selectedPointIndex = null),
         icon: const Icon(Icons.last_page, size: 16),
-        label: const Text('Show end'),
+        label: Text(context.l10n.diveLog_detail_button_showEnd),
         style: TextButton.styleFrom(
           visualDensity: VisualDensity.compact,
           padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -1066,14 +1083,19 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
     // Collapsed subtitle showing key info and time if a point is selected
     final baseInfo = status.inDeco
-        ? 'Ceiling: ${status.ceilingMeters.toStringAsFixed(1)}m'
-        : 'NDL: ${status.ndlFormatted}';
+        ? context.l10n.diveLog_detail_collapsed_ceiling(
+            '${status.ceilingMeters.toStringAsFixed(1)}m',
+          )
+        : context.l10n.diveLog_detail_collapsed_ndl(status.ndlFormatted);
     final collapsedSubtitle = _selectedPointIndex != null
-        ? 'At ${_formatTimestamp(dive.profile[_selectedPointIndex!].timestamp)} • $baseInfo'
+        ? context.l10n.diveLog_detail_collapsed_atTimeInfo(
+            _formatTimestamp(dive.profile[_selectedPointIndex!].timestamp),
+            baseInfo,
+          )
         : baseInfo;
 
     return CollapsibleCardSection(
-      title: 'Decompression Status',
+      title: context.l10n.diveLog_detail_section_decoStatus,
       icon: status.inDeco ? Icons.warning : Icons.check_circle,
       iconColor: status.inDeco ? Colors.orange : Colors.green,
       trailing: statusBadge, // Always show the DECO/NO DECO badge
@@ -1099,7 +1121,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'At ${_formatTimestamp(dive.profile[_selectedPointIndex!].timestamp)}',
+                    context.l10n.diveLog_detail_collapsed_atTime(
+                      _formatTimestamp(
+                        dive.profile[_selectedPointIndex!].timestamp,
+                      ),
+                    ),
                     style: Theme.of(context).textTheme.labelMedium?.copyWith(
                       color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.w600,
@@ -1109,7 +1135,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   TextButton.icon(
                     onPressed: () => setState(() => _selectedPointIndex = null),
                     icon: const Icon(Icons.clear, size: 16),
-                    label: const Text('Show end'),
+                    label: Text(context.l10n.diveLog_detail_button_showEnd),
                     style: TextButton.styleFrom(
                       visualDensity: VisualDensity.compact,
                     ),
@@ -1172,8 +1198,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         ),
         child: Text(
           exposure.cnsCritical || exposure.ppO2Critical
-              ? 'CRITICAL'
-              : 'WARNING',
+              ? context.l10n.diveLog_detail_badge_critical
+              : context.l10n.diveLog_detail_badge_warning,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -1186,19 +1212,23 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     final String collapsedSubtitle;
     if (selectedPpO2 != null && _selectedPointIndex != null) {
       // Show CNS first, then max ppO2, then ppO2 at selected time
-      collapsedSubtitle =
-          'CNS: ${exposure.cnsFormatted} • '
-          'Max ppO₂: ${exposure.maxPpO2Formatted} • '
-          'At ${_formatTimestamp(dive.profile[_selectedPointIndex!].timestamp)}: '
-          '${selectedPpO2.toStringAsFixed(2)} bar';
+      collapsedSubtitle = context.l10n
+          .diveLog_detail_collapsed_cnsMaxPpO2AtTime(
+            exposure.cnsFormatted,
+            exposure.maxPpO2Formatted,
+            _formatTimestamp(dive.profile[_selectedPointIndex!].timestamp),
+            '${selectedPpO2.toStringAsFixed(2)} bar',
+          );
     } else {
       // Show CNS and max ppO2
-      collapsedSubtitle =
-          'CNS: ${exposure.cnsFormatted} • Max ppO₂: ${exposure.maxPpO2Formatted}';
+      collapsedSubtitle = context.l10n.diveLog_detail_collapsed_cnsMaxPpO2(
+        exposure.cnsFormatted,
+        exposure.maxPpO2Formatted,
+      );
     }
 
     return CollapsibleCardSection(
-      title: 'Oxygen Toxicity',
+      title: context.l10n.diveLog_detail_section_oxygenToxicity,
       icon: Icons.air,
       trailing:
           trailingBadge, // Always show warning/critical badge if applicable
@@ -1233,7 +1263,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      'ppO₂ at selected point:',
+                      context.l10n.diveLog_detail_label_ppO2AtPoint,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     const Spacer(),
@@ -1369,7 +1399,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CollapsibleCardSection(
-          title: 'SAC Rate by Segment',
+          title: context.l10n.diveLog_detail_section_sacRateBySegment,
           icon: Icons.air,
           collapsedSubtitle: getSubtitle(),
           isExpanded: isExpanded,
@@ -1465,7 +1495,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                             formatSacValue(segment.sacRate),
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(fontWeight: FontWeight.bold),
-                            textAlign: TextAlign.right,
+                            textAlign: TextAlign.end,
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -1479,7 +1509,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                                     context,
                                   ).colorScheme.onSurfaceVariant,
                                 ),
-                            textAlign: TextAlign.right,
+                            textAlign: TextAlign.end,
                           ),
                         ),
                       ],
@@ -1573,9 +1603,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     final textTheme = Theme.of(context).textTheme;
 
     return CollapsibleCardSection(
-      title: 'SAC by Cylinder',
+      title: context.l10n.diveLog_detail_section_sacByCylinder,
       icon: Icons.propane_tank,
-      collapsedSubtitle: '${cylinderSacs.length} tanks',
+      collapsedSubtitle: context.l10n.diveLog_detail_tankCount(
+        cylinderSacs.length,
+      ),
       isExpanded: isExpanded,
       onToggle: (expanded) {
         ref.read(cylinderSacExpandedProvider.notifier).state = expanded;
@@ -1700,7 +1732,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         borderRadius: BorderRadius.circular(6),
       ),
       child: FractionallySizedBox(
-        alignment: Alignment.centerLeft,
+        alignment: AlignmentDirectional.centerStart,
         widthFactor: percentage,
         child: Container(
           decoration: BoxDecoration(
@@ -1732,28 +1764,32 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Export Profile Image',
+              context.l10n.diveLog_exportImage_titleProfile,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('Save to Photos'),
-              subtitle: const Text('Save image to your photo library'),
+              title: Text(context.l10n.diveLog_exportImage_saveToPhotos),
+              subtitle: Text(
+                context.l10n.diveLog_exportImage_saveToPhotosDescription,
+              ),
               onTap: () =>
                   Navigator.pop(context, _ProfileExportAction.saveToPhotos),
             ),
             ListTile(
               leading: const Icon(Icons.folder),
-              title: const Text('Save to Files'),
-              subtitle: const Text('Choose a location to save the file'),
+              title: Text(context.l10n.diveLog_exportImage_saveToFiles),
+              subtitle: Text(
+                context.l10n.diveLog_exportImage_saveToFilesDescription,
+              ),
               onTap: () =>
                   Navigator.pop(context, _ProfileExportAction.saveToFile),
             ),
             ListTile(
               leading: const Icon(Icons.share),
-              title: const Text('Share'),
-              subtitle: const Text('Share via other apps'),
+              title: Text(context.l10n.diveLog_exportImage_share),
+              subtitle: Text(context.l10n.diveLog_exportImage_shareDescription),
               onTap: () => Navigator.pop(context, _ProfileExportAction.share),
             ),
             const SizedBox(height: 8),
@@ -1777,7 +1813,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       if (boundary == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Could not capture profile chart')),
+            SnackBar(
+              content: Text(context.l10n.diveLog_exportImage_captureFailed),
+            ),
           );
         }
         return;
@@ -1790,7 +1828,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       if (byteData == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Could not generate image')),
+            SnackBar(
+              content: Text(context.l10n.diveLog_exportImage_generateFailed),
+            ),
           );
         }
         return;
@@ -1811,7 +1851,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           await exportService.saveImageToPhotos(pngBytes, fileName);
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Image saved to Photos')),
+              SnackBar(
+                content: Text(context.l10n.diveLog_exportImage_savedToPhotos),
+              ),
             );
           }
         case _ProfileExportAction.saveToFile:
@@ -1820,18 +1862,22 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             fileName,
           );
           if (mounted && savedPath != null) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text('Image saved')));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(context.l10n.diveLog_exportImage_savedToFiles),
+              ),
+            );
           }
         case _ProfileExportAction.share:
           await exportService.exportImageAsPng(pngBytes, fileName);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Export failed: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.diveLog_export_failed(e.toString())),
+          ),
+        );
       }
     } finally {
       if (mounted) {
@@ -1860,28 +1906,32 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Export Dive Details Image',
+              context.l10n.diveLog_exportImage_titleDetails,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('Save to Photos'),
-              subtitle: const Text('Save image to your photo library'),
+              title: Text(context.l10n.diveLog_exportImage_saveToPhotos),
+              subtitle: Text(
+                context.l10n.diveLog_exportImage_saveToPhotosDescription,
+              ),
               onTap: () =>
                   Navigator.pop(context, _ProfileExportAction.saveToPhotos),
             ),
             ListTile(
               leading: const Icon(Icons.folder),
-              title: const Text('Save to Files'),
-              subtitle: const Text('Choose a location to save the file'),
+              title: Text(context.l10n.diveLog_exportImage_saveToFiles),
+              subtitle: Text(
+                context.l10n.diveLog_exportImage_saveToFilesDescription,
+              ),
               onTap: () =>
                   Navigator.pop(context, _ProfileExportAction.saveToFile),
             ),
             ListTile(
               leading: const Icon(Icons.share),
-              title: const Text('Share'),
-              subtitle: const Text('Share via other apps'),
+              title: Text(context.l10n.diveLog_exportImage_share),
+              subtitle: Text(context.l10n.diveLog_exportImage_shareDescription),
               onTap: () => Navigator.pop(context, _ProfileExportAction.share),
             ),
             const SizedBox(height: 8),
@@ -1905,7 +1955,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       if (boundary == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Could not capture dive details')),
+            SnackBar(
+              content: Text(context.l10n.diveLog_exportImage_captureFailed),
+            ),
           );
         }
         return;
@@ -1918,7 +1970,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       if (byteData == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Could not generate image')),
+            SnackBar(
+              content: Text(context.l10n.diveLog_exportImage_generateFailed),
+            ),
           );
         }
         return;
@@ -1939,7 +1993,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           await exportService.saveImageToPhotos(pngBytes, fileName);
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Image saved to Photos')),
+              SnackBar(
+                content: Text(context.l10n.diveLog_exportImage_savedToPhotos),
+              ),
             );
           }
         case _ProfileExportAction.saveToFile:
@@ -1948,18 +2004,22 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             fileName,
           );
           if (mounted && savedPath != null) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text('Image saved')));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(context.l10n.diveLog_exportImage_savedToFiles),
+              ),
+            );
           }
         case _ProfileExportAction.share:
           await exportService.exportImageAsPng(pngBytes, fileName);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Export failed: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.diveLog_export_failed(e.toString())),
+          ),
+        );
       }
     } finally {
       if (mounted) {
@@ -1987,18 +2047,23 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               ),
             ),
             const SizedBox(height: 16),
-            Text('Export PDF', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              context.l10n.diveLog_exportImage_titlePdf,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 8),
             ListTile(
               leading: const Icon(Icons.folder),
-              title: const Text('Save to Files'),
-              subtitle: const Text('Choose a location to save the file'),
+              title: Text(context.l10n.diveLog_exportImage_saveToFiles),
+              subtitle: Text(
+                context.l10n.diveLog_exportImage_saveToFilesDescription,
+              ),
               onTap: () => Navigator.pop(context, _PdfExportAction.saveToFile),
             ),
             ListTile(
               leading: const Icon(Icons.share),
-              title: const Text('Share'),
-              subtitle: const Text('Share via other apps'),
+              title: Text(context.l10n.diveLog_exportImage_share),
+              subtitle: Text(context.l10n.diveLog_exportImage_shareDescription),
               onTap: () => Navigator.pop(context, _PdfExportAction.share),
             ),
             const SizedBox(height: 8),
@@ -2014,12 +2079,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => const AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         content: Row(
           children: [
-            CircularProgressIndicator(),
-            SizedBox(width: 24),
-            Text('Generating PDF...'),
+            const CircularProgressIndicator(),
+            const SizedBox(width: 24),
+            Text(context.l10n.diveLog_exportImage_generatingPdf),
           ],
         ),
       ),
@@ -2043,9 +2108,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             result.fileName,
           );
           if (mounted && savedPath != null) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text('PDF saved')));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(context.l10n.diveLog_exportImage_pdfSaved),
+              ),
+            );
           }
         case _PdfExportAction.share:
           await exportService.sharePdfBytes(result.bytes, result.fileName);
@@ -2058,9 +2125,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         } catch (_) {
           // Dialog may already be closed
         }
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Export failed: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.diveLog_export_failed(e.toString())),
+          ),
+        );
       }
     }
   }
@@ -2095,46 +2164,61 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Details', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              context.l10n.diveLog_detail_section_details,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const Divider(),
-            _buildDetailRow(context, 'Dive Type', dive.diveTypeName),
+            _buildDetailRow(
+              context,
+              context.l10n.diveLog_detail_label_diveType,
+              dive.diveTypeName,
+            ),
             if (dive.trip != null) _buildTripRow(context, dive),
             if (dive.diveCenter != null) _buildDiveCenterRow(context, dive),
             if (dive.visibility != null)
               _buildDetailRow(
                 context,
-                'Visibility',
+                context.l10n.diveLog_detail_label_visibility,
                 dive.visibility!.displayName,
               ),
             if (dive.avgDepth != null)
               _buildDetailRow(
                 context,
-                'Avg Depth',
+                context.l10n.diveLog_detail_label_avgDepth,
                 units.formatDepth(dive.avgDepth),
               ),
             if (dive.airTemp != null)
               _buildDetailRow(
                 context,
-                'Air Temp',
+                context.l10n.diveLog_detail_label_airTemp,
                 units.formatTemperature(dive.airTemp),
               ),
             if (dive.waterType != null)
               _buildDetailRow(
                 context,
-                'Water Type',
+                context.l10n.diveLog_detail_label_waterType,
                 dive.waterType!.displayName,
               ),
             if (dive.buddy != null && dive.buddy!.isNotEmpty)
-              _buildDetailRow(context, 'Buddy', dive.buddy!),
+              _buildDetailRow(
+                context,
+                context.l10n.diveLog_detail_label_buddy,
+                dive.buddy!,
+              ),
             if (dive.diveMaster != null && dive.diveMaster!.isNotEmpty)
-              _buildDetailRow(context, 'Dive Master', dive.diveMaster!),
+              _buildDetailRow(
+                context,
+                context.l10n.diveLog_detail_label_diveMaster,
+                dive.diveMaster!,
+              ),
             _buildSacRow(context, ref, dive, units),
             // Gradient factors (from dive computer)
             if (dive.gradientFactorLow != null &&
                 dive.gradientFactorHigh != null)
               _buildDetailRow(
                 context,
-                'Gradient Factors',
+                context.l10n.diveLog_detail_label_gradientFactors,
                 'GF ${dive.gradientFactorLow}/${dive.gradientFactorHigh}',
               ),
             // Dive computer info
@@ -2142,7 +2226,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 dive.diveComputerModel!.isNotEmpty)
               _buildDetailRow(
                 context,
-                'Dive Computer',
+                context.l10n.diveLog_detail_label_diveComputer,
                 dive.diveComputerSerial != null &&
                         dive.diveComputerSerial!.isNotEmpty
                     ? '${dive.diveComputerModel} (${dive.diveComputerSerial})'
@@ -2160,7 +2244,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                       : '${minutes}m';
                   return _buildDetailRow(
                     context,
-                    'Surface Interval',
+                    context.l10n.diveLog_detail_label_surfaceInterval,
                     intervalText,
                   );
                 },
@@ -2176,7 +2260,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                       : '${minutes}m';
                   return _buildDetailRow(
                     context,
-                    'Surface Interval',
+                    context.l10n.diveLog_detail_label_surfaceInterval,
                     intervalText,
                   );
                 },
@@ -2251,36 +2335,39 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Conditions', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              context.l10n.diveLog_detail_section_conditions,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const Divider(),
             if (dive.currentDirection != null)
               _buildDetailRow(
                 context,
-                'Current Direction',
+                context.l10n.diveLog_detail_label_currentDirection,
                 dive.currentDirection!.displayName,
               ),
             if (dive.currentStrength != null)
               _buildDetailRow(
                 context,
-                'Current Strength',
+                context.l10n.diveLog_detail_label_currentStrength,
                 dive.currentStrength!.displayName,
               ),
             if (dive.swellHeight != null)
               _buildDetailRow(
                 context,
-                'Swell Height',
+                context.l10n.diveLog_detail_label_swellHeight,
                 '${dive.swellHeight!.toStringAsFixed(1)}m',
               ),
             if (dive.entryMethod != null)
               _buildDetailRow(
                 context,
-                'Entry Method',
+                context.l10n.diveLog_detail_label_entryMethod,
                 dive.entryMethod!.displayName,
               ),
             if (dive.exitMethod != null)
               _buildDetailRow(
                 context,
-                'Exit Method',
+                context.l10n.diveLog_detail_label_exitMethod,
                 dive.exitMethod!.displayName,
               ),
           ],
@@ -2359,7 +2446,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 Icon(Icons.terrain, size: 20, color: colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
-                  'Altitude Dive',
+                  context.l10n.diveLog_detail_section_altitudeDive,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ],
@@ -2371,7 +2458,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   child: Column(
                     children: [
                       Text(
-                        'Elevation',
+                        context.l10n.diveLog_detail_label_elevation,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -2396,7 +2483,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   child: Column(
                     children: [
                       Text(
-                        'Surface Pressure',
+                        context.l10n.diveLog_detail_label_surfacePressure,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -2566,12 +2653,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         '${record.tideState.displayName} • ${DepthUnit.meters.convert(record.heightMeters, settings.depthUnit).toStringAsFixed(1)}${settings.depthUnit.symbol}';
 
     return CollapsibleCardSection(
-      title: 'Tide',
+      title: context.l10n.diveLog_detail_section_tide,
       icon: Icons.waves,
       collapsedSubtitle: collapsedSubtitle,
       trailing: isCalculated
           ? Tooltip(
-              message: 'Calculated from tide model',
+              message: context.l10n.diveLog_detail_tideCalculated,
               child: Icon(
                 Icons.calculate_outlined,
                 size: 16,
@@ -2608,7 +2695,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 Expanded(
                   child: _buildDetailRow(
                     context,
-                    'State',
+                    context.l10n.diveLog_detail_label_state,
                     record.tideState.displayName,
                   ),
                 ),
@@ -2616,25 +2703,25 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             ),
             _buildDetailRow(
               context,
-              'Height',
+              context.l10n.diveLog_detail_label_height,
               '${DepthUnit.meters.convert(record.heightMeters, settings.depthUnit).toStringAsFixed(2)}${settings.depthUnit.symbol}',
             ),
             if (record.rateOfChange != null)
               _buildDetailRow(
                 context,
-                'Rate of Change',
+                context.l10n.diveLog_detail_label_rateOfChange,
                 '${record.rateOfChange! > 0 ? '+' : ''}${DepthUnit.meters.convert(record.rateOfChange!, settings.depthUnit).toStringAsFixed(2)} ${settings.depthUnit.symbol}/hr',
               ),
             if (record.highTideTime != null && record.highTideHeight != null)
               _buildDetailRow(
                 context,
-                'High Tide',
+                context.l10n.diveLog_detail_label_highTide,
                 '${DepthUnit.meters.convert(record.highTideHeight!, settings.depthUnit).toStringAsFixed(2)}${settings.depthUnit.symbol} at ${_formatTime(record.highTideTime!, settings.timeFormat)}',
               ),
             if (record.lowTideTime != null && record.lowTideHeight != null)
               _buildDetailRow(
                 context,
-                'Low Tide',
+                context.l10n.diveLog_detail_label_lowTide,
                 '${DepthUnit.meters.convert(record.lowTideHeight!, settings.depthUnit).toStringAsFixed(2)}${settings.depthUnit.symbol} at ${_formatTime(record.lowTideTime!, settings.timeFormat)}',
               ),
           ],
@@ -2676,7 +2763,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     if (!hasWeights && hasLegacyWeight) {
       displayWeights.add(
         _WeightDisplay(
-          type: dive.weightType?.displayName ?? 'Weight',
+          type:
+              dive.weightType?.displayName ??
+              context.l10n.diveLog_detail_section_weight,
           amount: dive.weightAmount!,
         ),
       );
@@ -2693,9 +2782,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Weight', style: Theme.of(context).textTheme.titleMedium),
                 Text(
-                  'Total: ${units.formatWeight(totalWeight)}',
+                  context.l10n.diveLog_detail_section_weight,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                Text(
+                  '${context.l10n.diveLog_detail_label_total} ${units.formatWeight(totalWeight)}',
                   style: Theme.of(
                     context,
                   ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -2733,9 +2825,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Tags', style: Theme.of(context).textTheme.titleMedium),
                 Text(
-                  '${dive.tags.length} ${dive.tags.length == 1 ? 'tag' : 'tags'}',
+                  context.l10n.diveLog_detail_section_tags,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                Text(
+                  context.l10n.diveLog_detail_tagCount(dive.tags.length),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -2778,13 +2873,21 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       if (dive.sac == null) return const SizedBox.shrink();
       final value =
           '${units.convertVolume(dive.sac!).toStringAsFixed(1)} ${units.volumeSymbol}/min';
-      return _buildDetailRow(context, 'SAC Rate', value);
+      return _buildDetailRow(
+        context,
+        context.l10n.diveLog_detail_label_sacRate,
+        value,
+      );
     } else {
       // Pressure-based SAC (bar/min or psi/min) - doesn't require tank volume
       if (dive.sacPressure == null) return const SizedBox.shrink();
       final value =
           '${units.convertPressure(dive.sacPressure!).toStringAsFixed(1)} ${units.pressureSymbol}/min';
-      return _buildDetailRow(context, 'SAC Rate', value);
+      return _buildDetailRow(
+        context,
+        context.l10n.diveLog_detail_label_sacRate,
+        value,
+      );
     }
   }
 
@@ -2819,7 +2922,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Trip',
+                context.l10n.diveLog_edit_section_trip,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -2881,7 +2984,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Dive Center',
+                context.l10n.diveLog_edit_section_diveCenter,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -2924,12 +3027,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Buddies',
+                      context.l10n.diveLog_detail_section_buddies,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     if (buddies.isNotEmpty)
                       Text(
-                        '${buddies.length} ${buddies.length == 1 ? 'buddy' : 'buddies'}',
+                        context.l10n.diveLog_detail_buddyCount(buddies.length),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
@@ -2941,7 +3044,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Text(
-                      'Solo dive or no buddies recorded',
+                      context.l10n.diveLog_detail_soloDive,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                         fontStyle: FontStyle.italic,
@@ -2996,7 +3099,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Tanks', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              context.l10n.diveLog_detail_section_tanks,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const Divider(),
             ...dive.tanks.map((tank) {
               final startP = units.formatPressureValue(
@@ -3046,11 +3152,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     final isExpanded = ref.watch(equipmentSectionExpandedProvider);
 
     // Collapsed subtitle showing item count
-    final collapsedSubtitle =
-        '${dive.equipment.length} ${dive.equipment.length == 1 ? 'item' : 'items'}';
+    final collapsedSubtitle = context.l10n.diveLog_detail_equipmentCount(
+      dive.equipment.length,
+    );
 
     return CollapsibleCardSection(
-      title: 'Equipment',
+      title: context.l10n.diveLog_detail_section_equipment,
       icon: Icons.backpack,
       collapsedSubtitle: collapsedSubtitle,
       isExpanded: isExpanded,
@@ -3150,11 +3257,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Marine Life',
+                          context.l10n.diveLog_detail_section_marineLife,
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         Text(
-                          '${sightings.length} species',
+                          context.l10n.diveLog_detail_speciesCount(
+                            sightings.length,
+                          ),
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
                                 color: Theme.of(
@@ -3317,10 +3426,15 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Notes', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              context.l10n.diveLog_detail_section_notes,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const Divider(),
             Text(
-              dive.notes.isNotEmpty ? dive.notes : 'No notes for this dive.',
+              dive.notes.isNotEmpty
+                  ? dive.notes
+                  : context.l10n.diveLog_detail_noNotes,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: dive.notes.isEmpty
                     ? Theme.of(context).colorScheme.onSurfaceVariant
@@ -3352,7 +3466,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             Row(
               children: [
                 Text(
-                  'Training Signature',
+                  context.l10n.diveLog_detail_section_trainingSignature,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const Spacer(),
@@ -3449,7 +3563,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
     return Semantics(
       button: true,
-      label: 'Capture instructor signature',
+      label: context.l10n.diveLog_detail_captureSignature,
       child: InkWell(
         onTap: () => _showSignatureCapture(context, ref, dive, instructorName),
         borderRadius: BorderRadius.circular(12),
@@ -3467,14 +3581,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               Icon(Icons.draw_outlined, size: 48, color: colorScheme.primary),
               const SizedBox(height: 12),
               Text(
-                'Capture Instructor Signature',
+                context.l10n.diveLog_detail_captureSignature,
                 style: Theme.of(
                   context,
                 ).textTheme.titleMedium?.copyWith(color: colorScheme.primary),
               ),
               const SizedBox(height: 4),
               Text(
-                'Tap to add instructor verification for this training dive',
+                context.l10n.diveLog_detail_signatureDescription,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -3528,14 +3642,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete Dive?'),
-        content: const Text(
-          'This action cannot be undone. Are you sure you want to delete this dive?',
-        ),
+        title: Text(context.l10n.diveLog_delete_title),
+        content: Text(context.l10n.diveLog_delete_confirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.diveLog_delete_cancel),
           ),
           FilledButton(
             onPressed: () async {
@@ -3556,7 +3668,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('Delete'),
+            child: Text(context.l10n.diveLog_delete_delete),
           ),
         ],
       ),
@@ -3573,15 +3685,17 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
-                'Export Dive #${dive.diveNumber ?? ""}',
+                context.l10n.diveLog_export_titleDiveNumber(
+                  dive.diveNumber ?? 0,
+                ),
                 style: Theme.of(context).textTheme.titleLarge,
               ),
             ),
             const Divider(height: 1),
             ListTile(
               leading: const Icon(Icons.picture_as_pdf),
-              title: const Text('PDF Logbook Entry'),
-              subtitle: const Text('Printable dive log page'),
+              title: Text(context.l10n.diveLog_export_pdfLogbookEntry),
+              subtitle: Text(context.l10n.diveLog_export_pdfDescription),
               onTap: () {
                 Navigator.of(sheetContext).pop();
                 _exportDivePdf(dive);
@@ -3589,8 +3703,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             ),
             ListTile(
               leading: const Icon(Icons.table_chart),
-              title: const Text('CSV'),
-              subtitle: const Text('Spreadsheet format'),
+              title: Text(context.l10n.diveLog_export_csv),
+              subtitle: Text(context.l10n.diveLog_export_csvDescription),
               onTap: () {
                 Navigator.of(sheetContext).pop();
                 _handleSingleDiveExport(
@@ -3603,8 +3717,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             ),
             ListTile(
               leading: const Icon(Icons.code),
-              title: const Text('UDDF'),
-              subtitle: const Text('Universal Dive Data Format'),
+              title: Text(context.l10n.diveLog_export_uddf),
+              subtitle: Text(context.l10n.diveLog_export_uddfDescription),
               onTap: () {
                 Navigator.of(sheetContext).pop();
                 _handleSingleDiveExport(
@@ -3619,8 +3733,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             const Divider(height: 1),
             ListTile(
               leading: const Icon(Icons.image),
-              title: const Text('Page as Image'),
-              subtitle: const Text('Screenshot of entire dive details'),
+              title: Text(context.l10n.diveLog_export_pageAsImage),
+              subtitle: Text(
+                context.l10n.diveLog_export_pageAsImageDescription,
+              ),
               trailing: _isExportingPage
                   ? const SizedBox(
                       width: 20,
@@ -3650,12 +3766,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => const AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         content: Row(
           children: [
-            CircularProgressIndicator(),
-            SizedBox(width: 24),
-            Text('Exporting...'),
+            const CircularProgressIndicator(),
+            const SizedBox(width: 24),
+            Text(context.l10n.diveLog_export_exporting),
           ],
         ),
       ),
@@ -3666,8 +3782,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       if (context.mounted) {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Dive exported successfully'),
+          SnackBar(
+            content: Text(context.l10n.diveLog_export_success),
             backgroundColor: Colors.green,
           ),
         );
@@ -3677,7 +3793,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Export failed: $e'),
+            content: Text(context.l10n.diveLog_export_failed(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -3753,10 +3869,14 @@ class _FullscreenProfilePageState
       appBar: isLandscape
           ? null
           : AppBar(
-              title: Text('Dive #${dive.diveNumber ?? "-"} Profile'),
+              title: Text(
+                context.l10n.diveLog_fullscreenProfile_title(
+                  dive.diveNumber ?? 0,
+                ),
+              ),
               leading: IconButton(
                 icon: const Icon(Icons.close),
-                tooltip: 'Close fullscreen',
+                tooltip: context.l10n.diveLog_fullscreenProfile_close,
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ),
@@ -3778,7 +3898,9 @@ class _FullscreenProfilePageState
                     Padding(
                       padding: const EdgeInsets.only(bottom: 8),
                       child: Text(
-                        'Dive #${dive.diveNumber ?? "-"} Profile',
+                        context.l10n.diveLog_fullscreenProfile_title(
+                          dive.diveNumber ?? 0,
+                        ),
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                     ),
@@ -3845,7 +3967,7 @@ class _FullscreenProfilePageState
                 left: 8,
                 child: IconButton(
                   icon: const Icon(Icons.close),
-                  tooltip: 'Close fullscreen',
+                  tooltip: context.l10n.diveLog_fullscreenProfile_close,
                   onPressed: () => Navigator.of(context).pop(),
                   style: IconButton.styleFrom(
                     backgroundColor: Theme.of(
@@ -3922,7 +4044,9 @@ class _FullscreenProfilePageState
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  point == null ? 'Touch chart' : 'Sample Data',
+                  point == null
+                      ? context.l10n.diveLog_detail_fullscreen_touchChart
+                      : context.l10n.diveLog_detail_fullscreen_sampleData,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                     fontSize: compact ? 12 : null,
@@ -3935,8 +4059,8 @@ class _FullscreenProfilePageState
           if (point == null)
             Text(
               compact
-                  ? 'Tap chart to see sample data'
-                  : 'Tap or drag on the dive profile to see detailed metrics for each sample point.',
+                  ? context.l10n.diveLog_detail_fullscreen_tapChartCompact
+                  : context.l10n.diveLog_detail_fullscreen_tapChartFull,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -3970,8 +4094,8 @@ class _FullscreenProfilePageState
     // Basic metrics row
     rows.add(
       _buildMetricRow(context, [
-        ('Time', _formatTime(point.timestamp)),
-        ('Depth', units.formatDepth(point.depth)),
+        (context.l10n.diveLog_tooltip_time, _formatTime(point.timestamp)),
+        (context.l10n.diveLog_tooltip_depth, units.formatDepth(point.depth)),
       ]),
     );
 
@@ -3979,10 +4103,16 @@ class _FullscreenProfilePageState
     if (point.temperature != null || point.pressure != null) {
       final items = <(String, String)>[];
       if (point.temperature != null) {
-        items.add(('Temp', units.formatTemperature(point.temperature)));
+        items.add((
+          context.l10n.diveLog_legend_label_temp,
+          units.formatTemperature(point.temperature),
+        ));
       }
       if (point.pressure != null) {
-        items.add(('Pressure', units.formatPressure(point.pressure)));
+        items.add((
+          context.l10n.diveLog_legend_label_pressure,
+          units.formatPressure(point.pressure),
+        ));
       }
       rows.add(_buildMetricRow(context, items));
     }
@@ -3990,20 +4120,29 @@ class _FullscreenProfilePageState
     // Heart rate
     if (point.heartRate != null) {
       rows.add(
-        _buildMetricRow(context, [('Heart Rate', '${point.heartRate!} bpm')]),
+        _buildMetricRow(context, [
+          (
+            context.l10n.diveLog_legend_label_heartRate,
+            '${point.heartRate!} bpm',
+          ),
+        ]),
       );
     }
 
     // NDL
     final ndlValue = getCurveValue(analysis?.ndlCurve, (ndl) {
-      if (ndl < 0) return 'DECO';
+      if (ndl < 0) return context.l10n.diveLog_playbackStats_deco;
       if (ndl >= 3600) return '>60 min';
       final min = ndl ~/ 60;
       final sec = ndl % 60;
       return '$min:${sec.toString().padLeft(2, '0')}';
     });
     if (ndlValue != null) {
-      rows.add(_buildMetricRow(context, [('NDL', ndlValue)]));
+      rows.add(
+        _buildMetricRow(context, [
+          (context.l10n.diveLog_legend_label_ndl, ndlValue),
+        ]),
+      );
     }
 
     // Partial pressures row
@@ -4012,13 +4151,17 @@ class _FullscreenProfilePageState
       analysis?.ppO2Curve,
       (v) => '${v.toStringAsFixed(2)} bar',
     );
-    if (ppO2Value != null) ppItems.add(('ppO2', ppO2Value));
+    if (ppO2Value != null) {
+      ppItems.add((context.l10n.diveLog_legend_label_ppO2, ppO2Value));
+    }
 
     final ppN2Value = getCurveValue(
       analysis?.ppN2Curve,
       (v) => '${v.toStringAsFixed(2)} bar',
     );
-    if (ppN2Value != null) ppItems.add(('ppN2', ppN2Value));
+    if (ppN2Value != null) {
+      ppItems.add((context.l10n.diveLog_legend_label_ppN2, ppN2Value));
+    }
 
     final ppHeRaw =
         (index != null &&
@@ -4027,7 +4170,10 @@ class _FullscreenProfilePageState
         ? analysis.ppHeCurve![index]
         : null;
     if (ppHeRaw != null && ppHeRaw > 0.001) {
-      ppItems.add(('ppHe', '${ppHeRaw.toStringAsFixed(2)} bar'));
+      ppItems.add((
+        context.l10n.diveLog_legend_label_ppHe,
+        '${ppHeRaw.toStringAsFixed(2)} bar',
+      ));
     }
 
     if (ppItems.isNotEmpty) {
@@ -4043,14 +4189,22 @@ class _FullscreenProfilePageState
         ? analysis.modCurve![index]
         : null;
     if (modRaw != null && modRaw > 0 && modRaw < 200) {
-      modDensityItems.add(('MOD', units.formatDepth(modRaw)));
+      modDensityItems.add((
+        context.l10n.diveLog_legend_label_mod,
+        units.formatDepth(modRaw),
+      ));
     }
 
     final densityValue = getCurveValue(
       analysis?.densityCurve,
       (v) => '${v.toStringAsFixed(2)} g/L',
     );
-    if (densityValue != null) modDensityItems.add(('Density', densityValue));
+    if (densityValue != null) {
+      modDensityItems.add((
+        context.l10n.diveLog_legend_label_gasDensity,
+        densityValue,
+      ));
+    }
 
     if (modDensityItems.isNotEmpty) {
       rows.add(_buildMetricRow(context, modDensityItems));
@@ -4062,13 +4216,20 @@ class _FullscreenProfilePageState
       analysis?.gfCurve,
       (v) => '${v.toStringAsFixed(0)}%',
     );
-    if (gfValue != null) gfItems.add(('GF%', gfValue));
+    if (gfValue != null) {
+      gfItems.add((context.l10n.diveLog_legend_label_gfPercent, gfValue));
+    }
 
     final surfaceGfValue = getCurveValue(
       analysis?.surfaceGfCurve,
       (v) => '${v.toStringAsFixed(0)}%',
     );
-    if (surfaceGfValue != null) gfItems.add(('Surface GF', surfaceGfValue));
+    if (surfaceGfValue != null) {
+      gfItems.add((
+        context.l10n.diveLog_legend_label_surfaceGf,
+        surfaceGfValue,
+      ));
+    }
 
     if (gfItems.isNotEmpty) {
       rows.add(_buildMetricRow(context, gfItems));
@@ -4081,14 +4242,19 @@ class _FullscreenProfilePageState
       (v) => units.formatDepth(v),
     );
     if (meanDepthValue != null) {
-      depthTimeItems.add(('Mean Depth', meanDepthValue));
+      depthTimeItems.add((
+        context.l10n.diveLog_legend_label_meanDepth,
+        meanDepthValue,
+      ));
     }
 
     final ttsValue = getCurveValue(analysis?.ttsCurve, (v) {
       if (v <= 0) return '0 min';
       return '${(v / 60).ceil()} min';
     });
-    if (ttsValue != null) depthTimeItems.add(('TTS', ttsValue));
+    if (ttsValue != null) {
+      depthTimeItems.add((context.l10n.diveLog_legend_label_tts, ttsValue));
+    }
 
     if (depthTimeItems.isNotEmpty) {
       rows.add(_buildMetricRow(context, depthTimeItems));
@@ -4145,15 +4311,23 @@ class _FullscreenProfilePageState
 
     // Build list of metric widgets
     final metrics = <Widget>[
-      _buildCompactMetricRow(context, 'Time', _formatTime(point.timestamp)),
-      _buildCompactMetricRow(context, 'Depth', units.formatDepth(point.depth)),
+      _buildCompactMetricRow(
+        context,
+        context.l10n.diveLog_tooltip_time,
+        _formatTime(point.timestamp),
+      ),
+      _buildCompactMetricRow(
+        context,
+        context.l10n.diveLog_tooltip_depth,
+        units.formatDepth(point.depth),
+      ),
     ];
 
     if (point.temperature != null) {
       metrics.add(
         _buildCompactMetricRow(
           context,
-          'Temp',
+          context.l10n.diveLog_tooltip_temp,
           units.formatTemperature(point.temperature),
         ),
       );
@@ -4163,7 +4337,7 @@ class _FullscreenProfilePageState
       metrics.add(
         _buildCompactMetricRow(
           context,
-          'Pressure',
+          context.l10n.diveLog_tooltip_press,
           units.formatPressure(point.pressure),
         ),
       );
@@ -4171,18 +4345,28 @@ class _FullscreenProfilePageState
 
     if (point.heartRate != null) {
       metrics.add(
-        _buildCompactMetricRow(context, 'HR', '${point.heartRate!} bpm'),
+        _buildCompactMetricRow(
+          context,
+          context.l10n.diveLog_tooltip_hr,
+          '${point.heartRate!} bpm',
+        ),
       );
     }
 
     // NDL
     final ndlValue = getCurveValue(analysis?.ndlCurve, (v) {
-      if (v < 0) return 'DECO';
+      if (v < 0) return context.l10n.diveLog_playbackStats_deco;
       if (v >= 3600) return '>60 min';
       return '${v ~/ 60}:${(v % 60).toString().padLeft(2, '0')}';
     });
     if (ndlValue != null) {
-      metrics.add(_buildCompactMetricRow(context, 'NDL', ndlValue));
+      metrics.add(
+        _buildCompactMetricRow(
+          context,
+          context.l10n.diveLog_tooltip_ndl,
+          ndlValue,
+        ),
+      );
     }
 
     // ppO2
@@ -4191,7 +4375,13 @@ class _FullscreenProfilePageState
       (v) => '${v.toStringAsFixed(2)} bar',
     );
     if (ppO2Value != null) {
-      metrics.add(_buildCompactMetricRow(context, 'ppO2', ppO2Value));
+      metrics.add(
+        _buildCompactMetricRow(
+          context,
+          context.l10n.diveLog_tooltip_ppO2,
+          ppO2Value,
+        ),
+      );
     }
 
     // ppN2
@@ -4200,7 +4390,13 @@ class _FullscreenProfilePageState
       (v) => '${v.toStringAsFixed(2)} bar',
     );
     if (ppN2Value != null) {
-      metrics.add(_buildCompactMetricRow(context, 'ppN2', ppN2Value));
+      metrics.add(
+        _buildCompactMetricRow(
+          context,
+          context.l10n.diveLog_tooltip_ppN2,
+          ppN2Value,
+        ),
+      );
     }
 
     // ppHe
@@ -4214,7 +4410,7 @@ class _FullscreenProfilePageState
       metrics.add(
         _buildCompactMetricRow(
           context,
-          'ppHe',
+          context.l10n.diveLog_tooltip_ppHe,
           '${ppHeRaw.toStringAsFixed(2)} bar',
         ),
       );
@@ -4229,7 +4425,11 @@ class _FullscreenProfilePageState
         : null;
     if (modRaw != null && modRaw > 0 && modRaw < 200) {
       metrics.add(
-        _buildCompactMetricRow(context, 'MOD', units.formatDepth(modRaw)),
+        _buildCompactMetricRow(
+          context,
+          context.l10n.diveLog_tooltip_mod,
+          units.formatDepth(modRaw),
+        ),
       );
     }
 
@@ -4239,7 +4439,13 @@ class _FullscreenProfilePageState
       (v) => '${v.toStringAsFixed(2)} g/L',
     );
     if (densityValue != null) {
-      metrics.add(_buildCompactMetricRow(context, 'Density', densityValue));
+      metrics.add(
+        _buildCompactMetricRow(
+          context,
+          context.l10n.diveLog_tooltip_density,
+          densityValue,
+        ),
+      );
     }
 
     // GF%
@@ -4248,7 +4454,13 @@ class _FullscreenProfilePageState
       (v) => '${v.toStringAsFixed(0)}%',
     );
     if (gfValue != null) {
-      metrics.add(_buildCompactMetricRow(context, 'GF%', gfValue));
+      metrics.add(
+        _buildCompactMetricRow(
+          context,
+          context.l10n.diveLog_tooltip_gfPercent,
+          gfValue,
+        ),
+      );
     }
 
     // Surface GF
@@ -4257,7 +4469,13 @@ class _FullscreenProfilePageState
       (v) => '${v.toStringAsFixed(0)}%',
     );
     if (surfaceGfValue != null) {
-      metrics.add(_buildCompactMetricRow(context, 'SrfGF', surfaceGfValue));
+      metrics.add(
+        _buildCompactMetricRow(
+          context,
+          context.l10n.diveLog_tooltip_srfGf,
+          surfaceGfValue,
+        ),
+      );
     }
 
     // Mean Depth
@@ -4266,7 +4484,13 @@ class _FullscreenProfilePageState
       (v) => units.formatDepth(v),
     );
     if (meanDepthValue != null) {
-      metrics.add(_buildCompactMetricRow(context, 'Mean', meanDepthValue));
+      metrics.add(
+        _buildCompactMetricRow(
+          context,
+          context.l10n.diveLog_tooltip_mean,
+          meanDepthValue,
+        ),
+      );
     }
 
     // TTS
@@ -4275,7 +4499,13 @@ class _FullscreenProfilePageState
       return '${(v / 60).ceil()} min';
     });
     if (ttsValue != null) {
-      metrics.add(_buildCompactMetricRow(context, 'TTS', ttsValue));
+      metrics.add(
+        _buildCompactMetricRow(
+          context,
+          context.l10n.diveLog_tooltip_tts,
+          ttsValue,
+        ),
+      );
     }
 
     return Column(

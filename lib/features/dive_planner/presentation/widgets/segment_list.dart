@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_planner/domain/entities/plan_segment.da
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/segment_editor.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/simple_plan_dialog.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Widget for displaying and managing plan segments.
 class SegmentList extends ConsumerWidget {
@@ -31,7 +32,7 @@ class SegmentList extends ConsumerWidget {
                 Icon(Icons.timeline, color: theme.colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
-                  'Dive Segments',
+                  context.l10n.divePlanner_segmentList_title,
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: theme.colorScheme.primary,
                   ),
@@ -39,7 +40,7 @@ class SegmentList extends ConsumerWidget {
                 const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.add),
-                  tooltip: 'Add Segment',
+                  tooltip: context.l10n.divePlanner_segmentList_addSegment,
                   onPressed: () => _showAddSegmentDialog(context, ref),
                 ),
               ],
@@ -155,12 +156,12 @@ class _SegmentTile extends StatelessWidget {
         children: [
           IconButton(
             icon: const Icon(Icons.edit, size: 20),
-            tooltip: 'Edit segment',
+            tooltip: context.l10n.divePlanner_segmentList_editSegment,
             onPressed: onEdit,
           ),
           IconButton(
             icon: const Icon(Icons.delete, size: 20),
-            tooltip: 'Delete segment',
+            tooltip: context.l10n.divePlanner_segmentList_deleteSegment,
             onPressed: onDelete,
           ),
           ReorderableDragStartListener(
@@ -261,12 +262,12 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'No segments yet',
+              context.l10n.divePlanner_segmentList_emptyTitle,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             Text(
-              'Add segments manually or create a quick plan',
+              context.l10n.divePlanner_segmentList_emptyMessage,
               style: Theme.of(context).textTheme.bodySmall,
               textAlign: TextAlign.center,
             ),
@@ -274,7 +275,7 @@ class _EmptyState extends StatelessWidget {
             FilledButton.icon(
               onPressed: onAddSimplePlan,
               icon: const Icon(Icons.add_chart),
-              label: const Text('Quick Plan'),
+              label: Text(context.l10n.divePlanner_segmentList_quickPlan),
             ),
           ],
         ),

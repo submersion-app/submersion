@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 
 /// Summary widget shown when no trip is selected.
@@ -24,7 +25,8 @@ class TripSummaryWidget extends ConsumerWidget {
             tripsAsync.when(
               data: (trips) => _buildOverview(context, trips),
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Error: $e')),
+              error: (e, _) =>
+                  Center(child: Text('${context.l10n.common_label_error}: $e')),
             ),
             const SizedBox(height: 24),
             _buildQuickActions(context),
@@ -48,7 +50,7 @@ class TripSummaryWidget extends ConsumerWidget {
             ),
             const SizedBox(width: 12),
             Text(
-              'Trips',
+              context.l10n.trips_summary_header_title,
               style: Theme.of(
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
@@ -57,7 +59,7 @@ class TripSummaryWidget extends ConsumerWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Select a trip from the list to view details',
+          context.l10n.trips_summary_header_subtitle,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
@@ -94,7 +96,7 @@ class TripSummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Overview',
+          context.l10n.trips_summary_overview_title,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -108,21 +110,21 @@ class TripSummaryWidget extends ConsumerWidget {
               context,
               icon: Icons.flight_takeoff,
               value: '${trips.length}',
-              label: 'Total Trips',
+              label: context.l10n.trips_summary_stat_totalTrips,
               color: Colors.blue,
             ),
             _buildStatCard(
               context,
               icon: Icons.scuba_diving,
               value: '$totalDives',
-              label: 'Total Dives',
+              label: context.l10n.trips_summary_stat_totalDives,
               color: Colors.teal,
             ),
             _buildStatCard(
               context,
               icon: Icons.calendar_today,
               value: '$totalDays',
-              label: 'Days Diving',
+              label: context.l10n.trips_summary_stat_daysDiving,
               color: Colors.green,
             ),
             if (liveaboardCount > 0)
@@ -130,7 +132,7 @@ class TripSummaryWidget extends ConsumerWidget {
                 context,
                 icon: Icons.sailing,
                 value: '$liveaboardCount',
-                label: 'Liveaboards',
+                label: context.l10n.trips_summary_stat_liveaboards,
                 color: Colors.indigo,
               ),
           ],
@@ -207,7 +209,7 @@ class TripSummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Recent Trips',
+          context.l10n.trips_summary_recentTitle,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -254,7 +256,7 @@ class TripSummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Upcoming',
+          context.l10n.trips_summary_upcomingTitle,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -305,7 +307,7 @@ class TripSummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Quick Actions',
+          context.l10n.trips_summary_quickActions_title,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -322,7 +324,7 @@ class TripSummaryWidget extends ConsumerWidget {
                 context.go('$currentPath?mode=new');
               },
               icon: const Icon(Icons.add),
-              label: const Text('Add Trip'),
+              label: Text(context.l10n.trips_summary_quickActions_add),
             ),
           ],
         ),

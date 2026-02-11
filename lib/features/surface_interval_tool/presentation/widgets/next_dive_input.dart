@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/surface_interval_tool/presentation/providers/surface_interval_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Input card for the second (planned) dive parameters.
 /// Allows setting depth and time for the planned repetitive dive.
@@ -48,14 +49,14 @@ class NextDiveInput extends ConsumerWidget {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  'Second Dive',
+                  context.l10n.surfaceInterval_secondDive_title,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 const Spacer(),
                 Text(
-                  '(Air)',
+                  context.l10n.surfaceInterval_secondDive_gasAir,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -67,12 +68,14 @@ class NextDiveInput extends ConsumerWidget {
             // Depth Slider
             _buildSliderRow(
               context: context,
-              label: 'Depth',
+              label: context.l10n.surfaceInterval_field_depth,
               icon: Icons.arrow_downward,
               value: '${displayDepth.toStringAsFixed(0)} $depthSymbol',
               slider: Semantics(
-                label:
-                    'Second dive depth: ${displayDepth.toStringAsFixed(0)} $depthSymbol',
+                label: context.l10n.surfaceInterval_secondDive_depthSemantics(
+                  displayDepth.toStringAsFixed(0),
+                  depthSymbol,
+                ),
                 child: Slider(
                   value: depth,
                   min: 6,
@@ -92,11 +95,13 @@ class NextDiveInput extends ConsumerWidget {
             // Time Slider
             _buildSliderRow(
               context: context,
-              label: 'Time',
+              label: context.l10n.surfaceInterval_field_time,
               icon: Icons.timer,
-              value: '$time min',
+              value: context.l10n.surfaceInterval_format_minutes(time),
               slider: Semantics(
-                label: 'Second dive time: $time minutes',
+                label: context.l10n.surfaceInterval_secondDive_timeSemantics(
+                  time,
+                ),
                 child: Slider(
                   value: time.toDouble(),
                   min: 5,
@@ -108,8 +113,8 @@ class NextDiveInput extends ConsumerWidget {
                   },
                 ),
               ),
-              minLabel: '5 min',
-              maxLabel: '120 min',
+              minLabel: context.l10n.surfaceInterval_format_minutes(5),
+              maxLabel: context.l10n.surfaceInterval_format_minutes(120),
             ),
           ],
         ),

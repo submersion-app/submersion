@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
+
 /// A widget for capturing hand-drawn signatures
 ///
 /// Provides a canvas area for drawing with touch/stylus input,
@@ -69,15 +71,15 @@ class _SignatureCaptureWidgetState extends State<SignatureCaptureWidget> {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter the signer name')),
+        SnackBar(content: Text(context.l10n.signatures_error_enterSignerName)),
       );
       return;
     }
 
     if (_strokes.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please draw a signature')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.signatures_error_drawSignature)),
+      );
       return;
     }
 
@@ -99,11 +101,11 @@ class _SignatureCaptureWidgetState extends State<SignatureCaptureWidget> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: TextField(
             controller: _nameController,
-            decoration: const InputDecoration(
-              labelText: 'Instructor Name',
-              hintText: 'Enter instructor name',
-              prefixIcon: Icon(Icons.person_outline),
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: context.l10n.signatures_field_instructorName,
+              hintText: context.l10n.signatures_field_instructorNameHint,
+              prefixIcon: const Icon(Icons.person_outline),
+              border: const OutlineInputBorder(),
             ),
             textCapitalization: TextCapitalization.words,
           ),
@@ -115,7 +117,7 @@ class _SignatureCaptureWidgetState extends State<SignatureCaptureWidget> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
-            'Instructor Signature',
+            context.l10n.signatures_instructorSignature,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
@@ -139,7 +141,7 @@ class _SignatureCaptureWidgetState extends State<SignatureCaptureWidget> {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(11),
               child: Semantics(
-                label: 'Draw signature',
+                label: context.l10n.signatures_drawSignatureSemantics,
                 child: GestureDetector(
                   onPanStart: (details) {
                     setState(() {
@@ -180,7 +182,7 @@ class _SignatureCaptureWidgetState extends State<SignatureCaptureWidget> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
-            'Draw signature above using finger or stylus',
+            context.l10n.signatures_drawSignatureHintDetailed,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
@@ -200,13 +202,13 @@ class _SignatureCaptureWidgetState extends State<SignatureCaptureWidget> {
                     ? null
                     : _clear,
                 icon: const Icon(Icons.clear),
-                label: const Text('Clear'),
+                label: Text(context.l10n.signatures_action_clear),
               ),
               const Spacer(),
               // Cancel button
               TextButton(
                 onPressed: widget.onCancel,
-                child: const Text('Cancel'),
+                child: Text(context.l10n.common_action_cancel),
               ),
               const SizedBox(width: 8),
               // Save button
@@ -215,7 +217,7 @@ class _SignatureCaptureWidgetState extends State<SignatureCaptureWidget> {
                     ? null
                     : _handleSave,
                 icon: const Icon(Icons.check),
-                label: const Text('Save Signature'),
+                label: Text(context.l10n.signatures_action_saveSignature),
               ),
             ],
           ),
@@ -319,7 +321,7 @@ class SignatureCaptureSheet extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
-                'Capture Instructor Signature',
+                context.l10n.signatures_captureInstructorSignature,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
             ),

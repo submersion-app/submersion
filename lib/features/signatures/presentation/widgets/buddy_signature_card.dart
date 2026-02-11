@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/signatures/domain/entities/signature.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Card displaying a buddy's signature status
 class BuddySignatureCard extends StatelessWidget {
@@ -30,8 +31,9 @@ class BuddySignatureCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 4),
       child: Semantics(
         button: hasSigned,
-        label:
-            '${buddy.name} signature${hasSigned ? ", signed" : ", not signed"}',
+        label: hasSigned
+            ? context.l10n.signatures_buddyCard_signedSemantics(buddy.name)
+            : context.l10n.signatures_buddyCard_notSignedSemantics(buddy.name),
         child: InkWell(
           onTap: hasSigned ? onViewSignature : null,
           borderRadius: BorderRadius.circular(12),
@@ -77,7 +79,9 @@ class BuddySignatureCard extends StatelessWidget {
                       if (hasSigned && signature != null) ...[
                         const SizedBox(height: 4),
                         Text(
-                          'Signed ${DateFormat.yMMMd().format(signature!.signedAt)}',
+                          context.l10n.signatures_signedDate(
+                            DateFormat.yMMMd().format(signature!.signedAt),
+                          ),
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(color: colorScheme.primary),
                         ),
@@ -92,7 +96,7 @@ class BuddySignatureCard extends StatelessWidget {
                 else
                   FilledButton.tonal(
                     onPressed: onRequestSignature,
-                    child: const Text('Request'),
+                    child: Text(context.l10n.signatures_action_request),
                   ),
               ],
             ),

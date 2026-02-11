@@ -6,6 +6,7 @@ import 'package:intl/intl.dart' show DateFormat;
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
 import 'package:submersion/features/tides/domain/entities/tide_record.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Compact visualization showing where a tide is in its cycle.
 ///
@@ -71,8 +72,10 @@ class TideCycleGraph extends StatelessWidget {
         .convert(record.heightMeters, depthUnit)
         .toStringAsFixed(1);
     final stateLabel = record.tideState.name;
-    final chartSummary =
-        'Tide cycle: $stateLabel, current height $displayHeight${depthUnit.symbol}';
+    final chartSummary = context.l10n.tides_semantic_tideCycle(
+      stateLabel,
+      '$displayHeight${depthUnit.symbol}',
+    );
 
     return Semantics(
       label: chartSummary,

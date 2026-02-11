@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/surface_interval_tool/presentation/providers/surface_interval_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/surface_interval_tool/presentation/widgets/next_dive_input.dart';
 import 'package:submersion/features/surface_interval_tool/presentation/widgets/previous_dive_input.dart';
 import 'package:submersion/features/surface_interval_tool/presentation/widgets/surface_interval_result.dart';
@@ -24,11 +25,11 @@ class SurfaceIntervalToolPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Surface Interval'),
+        title: Text(context.l10n.surfaceInterval_title),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            tooltip: 'Reset to defaults',
+            tooltip: context.l10n.surfaceInterval_action_resetDefaults,
             onPressed: () => resetSurfaceIntervalInputs(ref),
           ),
         ],
@@ -70,7 +71,7 @@ class SurfaceIntervalToolPage extends ConsumerWidget {
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        'About Tissue Loading',
+                        context.l10n.surfaceInterval_aboutTissueLoading_title,
                         style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -79,14 +80,7 @@ class SurfaceIntervalToolPage extends ConsumerWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Your body has 16 tissue compartments that absorb and release '
-                    'nitrogen at different rates. Fast tissues (like blood) saturate '
-                    'quickly but also off-gas quickly. Slow tissues (like bone and fat) '
-                    'take longer to both load and unload.\n\n'
-                    'The "leading compartment" is whichever tissue is most saturated '
-                    'and typically controls your no-decompression limit (NDL). '
-                    'During a surface interval, all tissues off-gas toward surface '
-                    'saturation levels (~40% loading).',
+                    context.l10n.surfaceInterval_aboutTissueLoading_body,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -111,10 +105,7 @@ class SurfaceIntervalToolPage extends ConsumerWidget {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'This tool is for planning purposes only. Always use a '
-                            'dive computer and follow your training. Results are based '
-                            'on the Bühlmann ZH-L16C algorithm and may differ from '
-                            'your computer.',
+                            context.l10n.surfaceInterval_disclaimer,
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),

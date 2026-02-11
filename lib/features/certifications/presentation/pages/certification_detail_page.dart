@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
@@ -52,11 +53,17 @@ class _CertificationDetailPageState
       data: (certification) {
         if (certification == null) {
           if (widget.embedded) {
-            return const Center(child: Text('Certification not found'));
+            return Center(
+              child: Text(context.l10n.certifications_detail_notFound),
+            );
           }
           return Scaffold(
-            appBar: AppBar(title: const Text('Certification')),
-            body: const Center(child: Text('Certification not found')),
+            appBar: AppBar(
+              title: Text(context.l10n.certifications_detail_appBar_title),
+            ),
+            body: Center(
+              child: Text(context.l10n.certifications_detail_notFound),
+            ),
           );
         }
         return _CertificationDetailContent(
@@ -70,7 +77,9 @@ class _CertificationDetailPageState
           return const Center(child: CircularProgressIndicator());
         }
         return Scaffold(
-          appBar: AppBar(title: const Text('Certification')),
+          appBar: AppBar(
+            title: Text(context.l10n.certifications_detail_appBar_title),
+          ),
           body: const Center(child: CircularProgressIndicator()),
         );
       },
@@ -79,7 +88,9 @@ class _CertificationDetailPageState
           return Center(child: Text('Error: $error'));
         }
         return Scaffold(
-          appBar: AppBar(title: const Text('Certification')),
+          appBar: AppBar(
+            title: Text(context.l10n.certifications_detail_appBar_title),
+          ),
           body: Center(child: Text('Error: $error')),
         );
       },
@@ -158,25 +169,28 @@ class _CertificationDetailContent extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
-            tooltip: 'Edit certification',
+            tooltip: context.l10n.certifications_detail_tooltip_edit,
             onPressed: () =>
                 context.push('/certifications/${certification.id}/edit'),
           ),
           PopupMenuButton<String>(
-            tooltip: 'More options',
+            tooltip: context.l10n.certifications_detail_tooltip_moreOptions,
             onSelected: (value) async {
               if (value == 'delete') {
                 await _handleDelete(context, ref);
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'delete',
                 child: Row(
                   children: [
-                    Icon(Icons.delete, color: Colors.red),
-                    SizedBox(width: 8),
-                    Text('Delete', style: TextStyle(color: Colors.red)),
+                    const Icon(Icons.delete, color: Colors.red),
+                    const SizedBox(width: 8),
+                    Text(
+                      context.l10n.certifications_detail_action_delete,
+                      style: const TextStyle(color: Colors.red),
+                    ),
                   ],
                 ),
               ),
@@ -243,7 +257,7 @@ class _CertificationDetailContent extends ConsumerWidget {
           ),
           IconButton(
             icon: const Icon(Icons.edit, size: 20),
-            tooltip: 'Edit',
+            tooltip: context.l10n.certifications_detail_tooltip_editShort,
             onPressed: () {
               final state = GoRouterState.of(context);
               context.go(
@@ -253,20 +267,23 @@ class _CertificationDetailContent extends ConsumerWidget {
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, size: 20),
-            tooltip: 'More options',
+            tooltip: context.l10n.certifications_detail_tooltip_moreOptions,
             onSelected: (value) async {
               if (value == 'delete') {
                 await _handleDelete(context, ref);
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'delete',
                 child: Row(
                   children: [
-                    Icon(Icons.delete, color: Colors.red, size: 20),
-                    SizedBox(width: 8),
-                    Text('Delete', style: TextStyle(color: Colors.red)),
+                    const Icon(Icons.delete, color: Colors.red, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      context.l10n.certifications_detail_action_delete,
+                      style: const TextStyle(color: Colors.red),
+                    ),
                   ],
                 ),
               ),
@@ -289,9 +306,11 @@ class _CertificationDetailContent extends ConsumerWidget {
         } else {
           context.pop();
         }
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Certification deleted')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.certifications_detail_snackBar_deleted),
+          ),
+        );
       }
     }
   }
@@ -317,16 +336,18 @@ class _CertificationDetailContent extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'This certification has expired',
-                      style: TextStyle(
+                    Text(
+                      context.l10n.certifications_detail_status_expired,
+                      style: const TextStyle(
                         color: Colors.red,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     if (certification.expiryDate != null)
                       Text(
-                        'Expired on ${DateFormat.yMMMd().format(certification.expiryDate!)}',
+                        context.l10n.certifications_detail_status_expiredOn(
+                          DateFormat.yMMMd().format(certification.expiryDate!),
+                        ),
                         style: TextStyle(
                           color: Colors.red.withValues(alpha: 0.8),
                           fontSize: 12,
@@ -361,7 +382,9 @@ class _CertificationDetailContent extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Expires in $days days',
+                      context.l10n.certifications_detail_status_expiresInDays(
+                        days,
+                      ),
                       style: const TextStyle(
                         color: Colors.orange,
                         fontWeight: FontWeight.bold,
@@ -369,7 +392,9 @@ class _CertificationDetailContent extends ConsumerWidget {
                     ),
                     if (certification.expiryDate != null)
                       Text(
-                        'Expires on ${DateFormat.yMMMd().format(certification.expiryDate!)}',
+                        context.l10n.certifications_detail_status_expiresOn(
+                          DateFormat.yMMMd().format(certification.expiryDate!),
+                        ),
                         style: TextStyle(
                           color: Colors.orange.withValues(alpha: 0.8),
                           fontSize: 12,
@@ -439,7 +464,7 @@ class _CertificationDetailContent extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Certification Details',
+              context.l10n.certifications_detail_sectionTitle_details,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -447,24 +472,24 @@ class _CertificationDetailContent extends ConsumerWidget {
             const SizedBox(height: 12),
             _InfoRow(
               icon: Icons.card_membership,
-              label: 'Type',
+              label: context.l10n.certifications_detail_label_type,
               value: certification.name,
             ),
             _InfoRow(
               icon: Icons.business,
-              label: 'Agency',
+              label: context.l10n.certifications_detail_label_agency,
               value: certification.agency.displayName,
             ),
             if (certification.level != null)
               _InfoRow(
                 icon: Icons.stairs,
-                label: 'Level',
+                label: context.l10n.certifications_detail_label_level,
                 value: certification.level!.displayName,
               ),
             if (certification.cardNumber != null)
               _InfoRow(
                 icon: Icons.numbers,
-                label: 'Card Number',
+                label: context.l10n.certifications_detail_label_cardNumber,
                 value: certification.cardNumber!,
               ),
           ],
@@ -481,7 +506,7 @@ class _CertificationDetailContent extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Dates',
+              context.l10n.certifications_detail_sectionTitle_dates,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -490,13 +515,13 @@ class _CertificationDetailContent extends ConsumerWidget {
             if (certification.issueDate != null)
               _InfoRow(
                 icon: Icons.event_available,
-                label: 'Issue Date',
+                label: context.l10n.certifications_detail_label_issueDate,
                 value: DateFormat.yMMMd().format(certification.issueDate!),
               ),
             if (certification.expiryDate != null)
               _InfoRow(
                 icon: Icons.event_busy,
-                label: 'Expiry Date',
+                label: context.l10n.certifications_detail_label_expiryDate,
                 value: DateFormat.yMMMd().format(certification.expiryDate!),
                 valueColor: certification.isExpired
                     ? Colors.red
@@ -505,10 +530,10 @@ class _CertificationDetailContent extends ConsumerWidget {
                     : null,
               ),
             if (certification.expiryDate == null)
-              const _InfoRow(
+              _InfoRow(
                 icon: Icons.all_inclusive,
-                label: 'Validity',
-                value: 'No Expiration',
+                label: context.l10n.certifications_detail_label_validity,
+                value: context.l10n.certifications_detail_noExpiration,
               ),
           ],
         ),
@@ -524,7 +549,7 @@ class _CertificationDetailContent extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Instructor',
+              context.l10n.certifications_detail_sectionTitle_instructor,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -533,13 +558,14 @@ class _CertificationDetailContent extends ConsumerWidget {
             if (certification.instructorName != null)
               _InfoRow(
                 icon: Icons.person,
-                label: 'Name',
+                label: context.l10n.certifications_detail_label_instructorName,
                 value: certification.instructorName!,
               ),
             if (certification.instructorNumber != null)
               _InfoRow(
                 icon: Icons.badge,
-                label: 'Instructor #',
+                label:
+                    context.l10n.certifications_detail_label_instructorNumber,
                 value: certification.instructorNumber!,
               ),
           ],
@@ -570,7 +596,9 @@ class _CertificationDetailContent extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Training Course',
+                      context
+                          .l10n
+                          .certifications_detail_sectionTitle_trainingCourse,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -602,7 +630,7 @@ class _CertificationDetailContent extends ConsumerWidget {
                         style: Theme.of(context).textTheme.bodyLarge,
                       ),
                       subtitle: Text(
-                        '${course.agency.displayName} - ${course.isCompleted ? 'Completed' : 'In Progress'}',
+                        '${course.agency.displayName} - ${course.isCompleted ? context.l10n.certifications_detail_courseCompleted : context.l10n.certifications_detail_courseInProgress}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -645,7 +673,7 @@ class _CertificationDetailContent extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Card Photos',
+              context.l10n.certifications_detail_sectionTitle_cardPhotos,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -658,7 +686,8 @@ class _CertificationDetailContent extends ConsumerWidget {
                     child: _buildPhotoThumbnail(
                       context,
                       imageData: certification.photoFront!,
-                      label: 'Front',
+                      label:
+                          context.l10n.certifications_detail_photoLabel_front,
                     ),
                   ),
                 if (certification.photoFront != null &&
@@ -669,7 +698,7 @@ class _CertificationDetailContent extends ConsumerWidget {
                     child: _buildPhotoThumbnail(
                       context,
                       imageData: certification.photoBack!,
-                      label: 'Back',
+                      label: context.l10n.certifications_detail_photoLabel_back,
                     ),
                   ),
               ],
@@ -689,8 +718,11 @@ class _CertificationDetailContent extends ConsumerWidget {
       children: [
         Semantics(
           button: true,
-          label:
-              '$label photo of ${certification.name}. Tap to view full screen',
+          label: context.l10n
+              .certifications_detail_semanticLabel_photoTapToView(
+                label,
+                certification.name,
+              ),
           child: GestureDetector(
             onTap: () => _showFullscreenPhoto(context, imageData, label),
             child: AspectRatio(
@@ -718,7 +750,9 @@ class _CertificationDetailContent extends ConsumerWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Unable to load image',
+                            context
+                                .l10n
+                                .certifications_detail_photo_unableToLoad,
                             style: TextStyle(
                               fontSize: 10,
                               color: Theme.of(
@@ -753,7 +787,12 @@ class _CertificationDetailContent extends ConsumerWidget {
           appBar: AppBar(
             backgroundColor: Colors.black,
             foregroundColor: Colors.white,
-            title: Text('$label - ${certification.name}'),
+            title: Text(
+              context.l10n.certifications_detail_photo_fullscreenTitle(
+                label,
+                certification.name,
+              ),
+            ),
           ),
           body: InteractiveViewer(
             minScale: 0.5,
@@ -763,19 +802,19 @@ class _CertificationDetailContent extends ConsumerWidget {
                 imageData,
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) {
-                  return const Center(
+                  return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.broken_image_outlined,
                           size: 64,
                           color: Colors.white54,
                         ),
-                        SizedBox(height: 16),
+                        const SizedBox(height: 16),
                         Text(
-                          'Unable to load image',
-                          style: TextStyle(color: Colors.white54),
+                          context.l10n.certifications_detail_photo_unableToLoad,
+                          style: const TextStyle(color: Colors.white54),
                         ),
                       ],
                     ),
@@ -797,7 +836,7 @@ class _CertificationDetailContent extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Notes',
+              context.l10n.certifications_detail_sectionTitle_notes,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -814,21 +853,25 @@ class _CertificationDetailContent extends ConsumerWidget {
     return await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Delete Certification?'),
+            title: Text(context.l10n.certifications_detail_dialog_deleteTitle),
             content: Text(
-              'Are you sure you want to delete "${certification.name}"?',
+              context.l10n.certifications_detail_dialog_deleteContent(
+                certification.name,
+              ),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Cancel'),
+                child: Text(context.l10n.certifications_detail_dialog_cancel),
               ),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(true),
                 style: FilledButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.error,
                 ),
-                child: const Text('Delete'),
+                child: Text(
+                  context.l10n.certifications_detail_dialog_deleteConfirm,
+                ),
               ),
             ],
           ),

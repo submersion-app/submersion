@@ -41,6 +41,7 @@ import 'package:submersion/features/courses/presentation/widgets/course_picker.d
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/photo_gps_suggestion_banner.dart';
 import 'package:submersion/features/media/presentation/widgets/quick_site_from_gps_dialog.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 class DiveEditPage extends ConsumerStatefulWidget {
   final String? diveId;
@@ -399,7 +400,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       }
       return Scaffold(
         appBar: AppBar(
-          title: Text(widget.isEditing ? 'Edit Dive' : 'Log Dive'),
+          title: Text(
+            widget.isEditing
+                ? context.l10n.diveLog_edit_appBarEdit
+                : context.l10n.diveLog_edit_appBarNew,
+          ),
         ),
         body: const Center(child: CircularProgressIndicator()),
       );
@@ -459,7 +464,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     // Standalone mode: Full Scaffold with AppBar
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isEditing ? 'Edit Dive' : 'Log Dive'),
+        title: Text(
+          widget.isEditing
+              ? context.l10n.diveLog_edit_appBarEdit
+              : context.l10n.diveLog_edit_appBarNew,
+        ),
         actions: [
           _isSaving
               ? const Padding(
@@ -472,7 +481,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 )
               : TextButton(
                   onPressed: () => _saveDive(units),
-                  child: const Text('Save'),
+                  child: Text(context.l10n.diveLog_edit_save),
                 ),
         ],
       ),
@@ -483,7 +492,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// Compact header bar for embedded mode in master-detail layout.
   Widget _buildEmbeddedHeader(BuildContext context, UnitFormatter units) {
     final colorScheme = Theme.of(context).colorScheme;
-    final title = widget.isEditing ? 'Edit Dive' : 'Log New Dive';
+    final title = widget.isEditing
+        ? context.l10n.diveLog_edit_appBarEdit
+        : context.l10n.diveLog_edit_headerNew;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -511,7 +522,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             ),
           ),
           // Cancel button
-          TextButton(onPressed: widget.onCancel, child: const Text('Cancel')),
+          TextButton(
+            onPressed: widget.onCancel,
+            child: Text(context.l10n.diveLog_edit_cancel),
+          ),
           const SizedBox(width: 8),
           // Save button
           _isSaving
@@ -522,7 +536,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 )
               : FilledButton(
                   onPressed: () => _saveDive(units),
-                  child: const Text('Save'),
+                  child: Text(context.l10n.diveLog_edit_save),
                 ),
         ],
       ),
@@ -536,7 +550,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Tags', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              context.l10n.diveLog_edit_section_tags,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 16),
             TagInputWidget(
               selectedTags: _selectedTags,
@@ -581,7 +598,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Entry Time', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              context.l10n.diveLog_edit_section_entryTime,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -603,7 +623,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               ],
             ),
             const SizedBox(height: 16),
-            Text('Exit Time', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              context.l10n.diveLog_edit_section_exitTime,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -614,7 +637,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                     label: Text(
                       _exitDate != null
                           ? units.formatDate(_exitDate)
-                          : 'Select',
+                          : context.l10n.diveLog_edit_select,
                     ),
                   ),
                 ),
@@ -623,7 +646,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   child: OutlinedButton.icon(
                     onPressed: _selectExitTime,
                     icon: const Icon(Icons.logout, size: 18),
-                    label: Text(_exitTime?.format(context) ?? 'Select'),
+                    label: Text(
+                      _exitTime?.format(context) ??
+                          context.l10n.diveLog_edit_select,
+                    ),
                   ),
                 ),
               ],
@@ -649,7 +675,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Duration: ${calculatedDuration.inMinutes} min',
+                      context.l10n.diveLog_edit_durationMinutes(
+                        calculatedDuration.inMinutes,
+                      ),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Theme.of(context).colorScheme.onPrimaryContainer,
@@ -701,7 +729,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Surface Interval: $intervalText',
+                  context.l10n.diveLog_edit_surfaceInterval(intervalText),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).colorScheme.onSecondaryContainer,
@@ -729,7 +757,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             Row(
               children: [
                 Text(
-                  'Dive Site',
+                  context.l10n.diveLog_edit_section_diveSite,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 if (_isCapturingLocation) ...[
@@ -744,7 +772,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    'Getting location...',
+                    context.l10n.diveLog_edit_gettingLocation,
                     style: Theme.of(
                       context,
                     ).textTheme.bodySmall?.copyWith(color: colorScheme.primary),
@@ -754,7 +782,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   Icon(Icons.my_location, size: 14, color: colorScheme.primary),
                   const SizedBox(width: 4),
                   Text(
-                    'Nearby sites first',
+                    context.l10n.diveLog_edit_nearbySitesFirst,
                     style: Theme.of(
                       context,
                     ).textTheme.bodySmall?.copyWith(color: colorScheme.primary),
@@ -770,7 +798,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                     onPressed: _showSitePicker,
                     icon: const Icon(Icons.location_on),
                     label: Text(
-                      _selectedSite?.name ?? 'Select Dive Site',
+                      _selectedSite?.name ??
+                          context.l10n.diveLog_edit_selectDiveSite,
                       overflow: TextOverflow.ellipsis,
                     ),
                     style: OutlinedButton.styleFrom(
@@ -783,7 +812,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   IconButton(
                     icon: const Icon(Icons.clear),
                     onPressed: () => setState(() => _selectedSite = null),
-                    tooltip: 'Clear site',
+                    tooltip: context.l10n.diveLog_edit_tooltip_clearSite,
                   ),
                 ],
               ],
@@ -838,7 +867,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Created site: ${createdSite.name}'),
+            content: Text(
+              context.l10n.diveLog_edit_createdSite(createdSite.name),
+            ),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -863,7 +894,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Added GPS to ${updatedSite.name}'),
+          content: Text(context.l10n.diveLog_edit_addedGps(updatedSite.name)),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -910,7 +941,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Trip', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              context.l10n.diveLog_edit_section_trip,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -919,7 +953,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                     onPressed: _showTripPicker,
                     icon: const Icon(Icons.flight_takeoff),
                     label: Text(
-                      _selectedTrip?.name ?? 'Select Trip',
+                      _selectedTrip?.name ??
+                          context.l10n.diveLog_edit_selectTrip,
                       overflow: TextOverflow.ellipsis,
                     ),
                     style: OutlinedButton.styleFrom(
@@ -932,7 +967,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   IconButton(
                     icon: const Icon(Icons.clear),
                     onPressed: () => setState(() => _selectedTrip = null),
-                    tooltip: 'Clear trip',
+                    tooltip: context.l10n.diveLog_edit_tooltip_clearTrip,
                   ),
                 ],
               ],
@@ -944,6 +979,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   units.formatDateRange(
                     _selectedTrip!.startDate,
                     _selectedTrip!.endDate,
+                    l10n: context.l10n,
                   ),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -982,7 +1018,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Suggested: ${suggestedTrip.name}',
+                      context.l10n.diveLog_edit_tripSuggested(
+                        suggestedTrip.name,
+                      ),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.primary,
                       ),
@@ -991,7 +1029,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   TextButton(
                     onPressed: () =>
                         setState(() => _selectedTrip = suggestedTrip),
-                    child: const Text('Use'),
+                    child: Text(context.l10n.diveLog_edit_tripUse),
                   ),
                 ],
               ),
@@ -1032,7 +1070,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Dive Center', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              context.l10n.diveLog_edit_section_diveCenter,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -1041,7 +1082,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                     onPressed: _showDiveCenterPicker,
                     icon: const Icon(Icons.store),
                     label: Text(
-                      _selectedDiveCenter?.name ?? 'Select Dive Center',
+                      _selectedDiveCenter?.name ??
+                          context.l10n.diveLog_edit_selectDiveCenter,
                       overflow: TextOverflow.ellipsis,
                     ),
                     style: OutlinedButton.styleFrom(
@@ -1054,7 +1096,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   IconButton(
                     icon: const Icon(Icons.clear),
                     onPressed: () => setState(() => _selectedDiveCenter = null),
-                    tooltip: 'Clear dive center',
+                    tooltip: context.l10n.diveLog_edit_tooltip_clearDiveCenter,
                   ),
                 ],
               ],
@@ -1104,12 +1146,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Training Course',
+              context.l10n.diveLog_edit_section_trainingCourse,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             Text(
-              'Link this dive to a training course',
+              context.l10n.diveLog_edit_trainingCourseHint,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -1135,7 +1177,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Depth & Duration',
+              context.l10n.diveLog_edit_section_depthDuration,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 16),
@@ -1145,7 +1187,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   child: TextFormField(
                     controller: _maxDepthController,
                     decoration: InputDecoration(
-                      labelText: 'Max Depth',
+                      labelText: context.l10n.diveLog_edit_label_maxDepth,
                       suffixText: units.depthSymbol,
                     ),
                     keyboardType: const TextInputType.numberWithOptions(
@@ -1158,7 +1200,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   child: TextFormField(
                     controller: _avgDepthController,
                     decoration: InputDecoration(
-                      labelText: 'Avg Depth',
+                      labelText: context.l10n.diveLog_edit_label_avgDepth,
                       suffixText: units.depthSymbol,
                     ),
                     keyboardType: const TextInputType.numberWithOptions(
@@ -1175,12 +1217,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   child: TextFormField(
                     controller: _durationController,
                     decoration: InputDecoration(
-                      labelText: 'Bottom Time',
+                      labelText: context.l10n.diveLog_edit_label_bottomTime,
                       suffixText: 'min',
                       suffixIcon: _existingDive?.profile.isNotEmpty == true
                           ? IconButton(
                               icon: const Icon(Icons.calculate_outlined),
-                              tooltip: 'Calculate from dive profile',
+                              tooltip: context
+                                  .l10n
+                                  .diveLog_edit_tooltip_calculateFromProfile,
                               onPressed: _calculateBottomTimeFromProfile,
                             )
                           : null,
@@ -1192,8 +1236,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 Expanded(
                   child: TextFormField(
                     controller: _runtimeController,
-                    decoration: const InputDecoration(
-                      labelText: 'Runtime',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.diveLog_edit_label_runtime,
                       suffixText: 'min',
                     ),
                     keyboardType: TextInputType.number,
@@ -1324,13 +1368,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Tanks (${_tanks.length})',
+                context.l10n.diveLog_edit_section_tanks(_tanks.length),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               TextButton.icon(
                 onPressed: _addTank,
                 icon: const Icon(Icons.add, size: 18),
-                label: const Text('Add Tank'),
+                label: Text(context.l10n.diveLog_edit_addTank),
               ),
             ],
           ),
@@ -1362,7 +1406,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   void _calculateBottomTimeFromProfile() {
     if (_existingDive == null || _existingDive!.profile.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No dive profile data available')),
+        SnackBar(
+          content: Text(context.l10n.diveLog_edit_snackbar_noProfileData),
+        ),
       );
       return;
     }
@@ -1371,8 +1417,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
     if (calculatedDuration == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Unable to calculate bottom time from profile'),
+        SnackBar(
+          content: Text(context.l10n.diveLog_edit_snackbar_unableToCalculate),
         ),
       );
       return;
@@ -1385,7 +1431,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Bottom time calculated: ${calculatedDuration.inMinutes} min',
+          context.l10n.diveLog_edit_snackbar_bottomTimeCalculated(
+            calculatedDuration.inMinutes,
+          ),
         ),
       ),
     );
@@ -1427,7 +1475,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Equipment',
+                  context.l10n.diveLog_edit_section_equipment,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 Row(
@@ -1436,12 +1484,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                     TextButton.icon(
                       onPressed: _showEquipmentSetPicker,
                       icon: const Icon(Icons.folder_special, size: 18),
-                      label: const Text('Use Set'),
+                      label: Text(context.l10n.diveLog_edit_useSet),
                     ),
                     TextButton.icon(
                       onPressed: _showEquipmentPicker,
                       icon: const Icon(Icons.add, size: 18),
-                      label: const Text('Add'),
+                      label: Text(context.l10n.diveLog_edit_add),
                     ),
                   ],
                 ),
@@ -1463,14 +1511,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'No equipment selected',
+                        context.l10n.diveLog_edit_noEquipmentSelected,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Tap "Use Set" or "Add" to select equipment',
+                        context.l10n.diveLog_edit_equipmentHint,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
@@ -1499,7 +1547,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   subtitle: Text(item.type.displayName),
                   trailing: IconButton(
                     icon: const Icon(Icons.close, size: 18),
-                    tooltip: 'Remove equipment',
+                    tooltip: context.l10n.diveLog_edit_tooltip_removeEquipment,
                     onPressed: () {
                       setState(() {
                         _selectedEquipment.removeAt(index);
@@ -1516,7 +1564,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                     TextButton.icon(
                       onPressed: _saveEquipmentAsSet,
                       icon: const Icon(Icons.save_alt, size: 18),
-                      label: const Text('Save as Set'),
+                      label: Text(context.l10n.diveLog_edit_saveAsSet),
                     ),
                     const SizedBox(width: 8),
                     TextButton(
@@ -1525,7 +1573,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                           _selectedEquipment.clear();
                         });
                       },
-                      child: const Text('Clear All'),
+                      child: Text(context.l10n.diveLog_edit_clearAllEquipment),
                     ),
                   ],
                 ),
@@ -1640,22 +1688,24 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Save as Equipment Set'),
+        title: Text(context.l10n.diveLog_edit_saveAsSetDialog_title),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Save ${_selectedEquipment.length} item(s) as a new equipment set.',
+              context.l10n.diveLog_edit_saveAsSetDialog_content(
+                _selectedEquipment.length,
+              ),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 16),
             TextField(
               controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'Set Name',
-                hintText: 'e.g., Tropical Diving',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: context.l10n.diveLog_edit_saveAsSetDialog_setName,
+                hintText: context.l10n.diveLog_edit_saveAsSetDialog_setNameHint,
+                border: const OutlineInputBorder(),
               ),
               autofocus: true,
               textCapitalization: TextCapitalization.words,
@@ -1663,10 +1713,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             const SizedBox(height: 12),
             TextField(
               controller: descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description (optional)',
-                hintText: 'e.g., Light gear for warm water',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText:
+                    context.l10n.diveLog_edit_saveAsSetDialog_description,
+                hintText:
+                    context.l10n.diveLog_edit_saveAsSetDialog_descriptionHint,
+                border: const OutlineInputBorder(),
               ),
               maxLines: 2,
             ),
@@ -1675,14 +1727,18 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.diveLog_edit_cancel),
           ),
           FilledButton(
             onPressed: () async {
               final name = nameController.text.trim();
               if (name.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Please enter a set name')),
+                  SnackBar(
+                    content: Text(
+                      context.l10n.diveLog_edit_saveAsSetDialog_validation,
+                    ),
+                  ),
                 );
                 return;
               }
@@ -1706,18 +1762,28 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 if (context.mounted) {
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Equipment set "$name" created')),
+                    SnackBar(
+                      content: Text(
+                        context.l10n.diveLog_edit_saveAsSetDialog_success(name),
+                      ),
+                    ),
                   );
                 }
               } catch (e) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error creating set: $e')),
+                    SnackBar(
+                      content: Text(
+                        context.l10n.diveLog_edit_saveAsSetDialog_error(
+                          e.toString(),
+                        ),
+                      ),
+                    ),
                   );
                 }
               }
             },
-            child: const Text('Save'),
+            child: Text(context.l10n.diveLog_edit_save),
           ),
         ],
       ),
@@ -1731,14 +1797,21 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Conditions', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              context.l10n.diveLog_edit_section_conditions,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 16),
             Consumer(
               builder: (context, ref, child) {
                 final diveTypesAsync = ref.watch(diveTypeListNotifierProvider);
                 return diveTypesAsync.when(
                   loading: () => const LinearProgressIndicator(),
-                  error: (e, st) => Text('Error loading dive types: $e'),
+                  error: (e, st) => Text(
+                    context.l10n.diveLog_edit_errorLoadingDiveTypes(
+                      e.toString(),
+                    ),
+                  ),
                   data: (diveTypes) {
                     // Ensure selected dive type exists in the list
                     final selectedExists = diveTypes.any(
@@ -1753,7 +1826,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                         'dive_type_${diveTypes.length}_$effectiveValue',
                       ),
                       initialValue: effectiveValue,
-                      decoration: const InputDecoration(labelText: 'Dive Type'),
+                      decoration: InputDecoration(
+                        labelText: context.l10n.diveLog_edit_label_diveType,
+                      ),
                       items: diveTypes.map((type) {
                         return DropdownMenuItem(
                           value: type.id,
@@ -1773,7 +1848,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             const SizedBox(height: 16),
             DropdownButtonFormField<Visibility>(
               initialValue: _selectedVisibility,
-              decoration: const InputDecoration(labelText: 'Visibility'),
+              decoration: InputDecoration(
+                labelText: context.l10n.diveLog_edit_label_visibility,
+              ),
               items: Visibility.values.map((vis) {
                 return DropdownMenuItem(
                   value: vis,
@@ -1793,7 +1870,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   child: TextFormField(
                     controller: _waterTempController,
                     decoration: InputDecoration(
-                      labelText: 'Water Temp',
+                      labelText: context.l10n.diveLog_edit_label_waterTemp,
                       suffixText: units.temperatureSymbol,
                     ),
                     keyboardType: const TextInputType.numberWithOptions(
@@ -1806,7 +1883,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   child: TextFormField(
                     controller: _airTempController,
                     decoration: InputDecoration(
-                      labelText: 'Air Temp',
+                      labelText: context.l10n.diveLog_edit_label_airTemp,
                       suffixText: units.temperatureSymbol,
                     ),
                     keyboardType: const TextInputType.numberWithOptions(
@@ -1819,11 +1896,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             const SizedBox(height: 16),
             DropdownButtonFormField<WaterType>(
               initialValue: _waterType,
-              decoration: const InputDecoration(labelText: 'Water Type'),
+              decoration: InputDecoration(
+                labelText: context.l10n.diveLog_edit_label_waterType,
+              ),
               items: [
-                const DropdownMenuItem<WaterType>(
+                DropdownMenuItem<WaterType>(
                   value: null,
-                  child: Text('Not specified'),
+                  child: Text(context.l10n.diveLog_edit_notSpecified),
                 ),
                 ...WaterType.values.map((type) {
                   return DropdownMenuItem(
@@ -1842,14 +1921,15 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 Expanded(
                   child: DropdownButtonFormField<CurrentDirection>(
                     initialValue: _currentDirection,
-                    decoration: const InputDecoration(
-                      labelText: 'Current Direction',
+                    decoration: InputDecoration(
+                      labelText:
+                          context.l10n.diveLog_edit_label_currentDirection,
                     ),
                     isExpanded: true,
                     items: [
-                      const DropdownMenuItem<CurrentDirection>(
+                      DropdownMenuItem<CurrentDirection>(
                         value: null,
-                        child: Text('Not specified'),
+                        child: Text(context.l10n.diveLog_edit_notSpecified),
                       ),
                       ...CurrentDirection.values.map((dir) {
                         return DropdownMenuItem(
@@ -1867,14 +1947,15 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 Expanded(
                   child: DropdownButtonFormField<CurrentStrength>(
                     initialValue: _currentStrength,
-                    decoration: const InputDecoration(
-                      labelText: 'Current Strength',
+                    decoration: InputDecoration(
+                      labelText:
+                          context.l10n.diveLog_edit_label_currentStrength,
                     ),
                     isExpanded: true,
                     items: [
-                      const DropdownMenuItem<CurrentStrength>(
+                      DropdownMenuItem<CurrentStrength>(
                         value: null,
-                        child: Text('Not specified'),
+                        child: Text(context.l10n.diveLog_edit_notSpecified),
                       ),
                       ...CurrentStrength.values.map((str) {
                         return DropdownMenuItem(
@@ -1897,7 +1978,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   child: TextFormField(
                     controller: _swellHeightController,
                     decoration: InputDecoration(
-                      labelText: 'Swell Height',
+                      labelText: context.l10n.diveLog_edit_label_swellHeight,
                       suffixText: units.depthSymbol,
                     ),
                     keyboardType: const TextInputType.numberWithOptions(
@@ -1910,7 +1991,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   child: TextFormField(
                     controller: _altitudeController,
                     decoration: InputDecoration(
-                      labelText: 'Altitude',
+                      labelText: context.l10n.diveLog_edit_label_altitude,
                       suffixText: units.altitudeSymbol,
                       helperText: _getAltitudeWarning(units),
                       helperStyle: TextStyle(
@@ -1929,12 +2010,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             // Surface Pressure field (always in mbar)
             TextFormField(
               controller: _surfacePressureController,
-              decoration: const InputDecoration(
-                labelText: 'Surface Pressure',
+              decoration: InputDecoration(
+                labelText: context.l10n.diveLog_edit_label_surfacePressure,
                 suffixText: 'mbar',
-                helperText: 'Standard: 1013 mbar at sea level',
-                hintText: '1013',
-                prefixIcon: Icon(Icons.speed),
+                helperText: context.l10n.diveLog_edit_surfacePressureHint,
+                hintText: context.l10n.diveLog_edit_surfacePressureDefault,
+                prefixIcon: const Icon(Icons.speed),
               ),
               keyboardType: TextInputType.number,
             ),
@@ -1944,14 +2025,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 Expanded(
                   child: DropdownButtonFormField<EntryMethod>(
                     initialValue: _entryMethod,
-                    decoration: const InputDecoration(
-                      labelText: 'Entry Method',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.diveLog_edit_label_entryMethod,
                     ),
                     isExpanded: true,
                     items: [
-                      const DropdownMenuItem<EntryMethod>(
+                      DropdownMenuItem<EntryMethod>(
                         value: null,
-                        child: Text('Not specified'),
+                        child: Text(context.l10n.diveLog_edit_notSpecified),
                       ),
                       ...EntryMethod.values.map((method) {
                         return DropdownMenuItem(
@@ -1969,12 +2050,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 Expanded(
                   child: DropdownButtonFormField<EntryMethod>(
                     initialValue: _exitMethod,
-                    decoration: const InputDecoration(labelText: 'Exit Method'),
+                    decoration: InputDecoration(
+                      labelText: context.l10n.diveLog_edit_label_exitMethod,
+                    ),
                     isExpanded: true,
                     items: [
-                      const DropdownMenuItem<EntryMethod>(
+                      DropdownMenuItem<EntryMethod>(
                         value: null,
-                        child: Text('Not specified'),
+                        child: Text(context.l10n.diveLog_edit_notSpecified),
                       ),
                       ...EntryMethod.values.map((method) {
                         return DropdownMenuItem(
@@ -2007,10 +2090,15 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Weight', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  context.l10n.diveLog_edit_section_weight,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 if (_weights.isNotEmpty)
                   Text(
-                    'Total: ${units.formatWeight(totalWeight)}',
+                    context.l10n.diveLog_edit_weightTotal(
+                      units.formatWeight(totalWeight),
+                    ),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -2038,7 +2126,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 });
               },
               icon: const Icon(Icons.add),
-              label: const Text('Add Weight Entry'),
+              label: Text(context.l10n.diveLog_edit_addWeightEntry),
             ),
           ],
         ),
@@ -2061,8 +2149,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             flex: 2,
             child: DropdownButtonFormField<WeightType>(
               initialValue: weight.weightType,
-              decoration: const InputDecoration(
-                labelText: 'Type',
+              decoration: InputDecoration(
+                labelText: context.l10n.diveLog_edit_label_type,
                 isDense: true,
               ),
               isExpanded: true,
@@ -2110,7 +2198,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 _weights.removeAt(index);
               });
             },
-            tooltip: 'Remove',
+            tooltip: context.l10n.diveLog_edit_tooltip_removeWeight,
           ),
         ],
       ),
@@ -2139,7 +2227,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Rating', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              context.l10n.diveLog_edit_section_rating,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -2175,13 +2266,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Marine Life',
+                  context.l10n.diveLog_edit_section_marineLife,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 TextButton.icon(
                   onPressed: _showSpeciesPicker,
                   icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Add'),
+                  label: Text(context.l10n.diveLog_edit_add),
                 ),
               ],
             ),
@@ -2201,14 +2292,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'No marine life logged',
+                        context.l10n.diveLog_edit_noMarineLife,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Tap "Add" to record sightings',
+                        context.l10n.diveLog_edit_marineLifeHint,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
@@ -2268,7 +2359,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                         ),
                       IconButton(
                         icon: const Icon(Icons.close, size: 18),
-                        tooltip: 'Remove sighting',
+                        tooltip:
+                            context.l10n.diveLog_edit_tooltip_removeSighting,
                         onPressed: () {
                           setState(() {
                             _sightings.removeAt(index);
@@ -2397,13 +2489,16 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Notes', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              context.l10n.diveLog_edit_section_notes,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _notesController,
-              decoration: const InputDecoration(
-                hintText: 'Add notes about this dive...',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                hintText: context.l10n.diveLog_edit_notesHint,
+                border: const OutlineInputBorder(),
               ),
               maxLines: 4,
             ),
@@ -2751,7 +2846,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error saving dive: $e'),
+            content: Text(
+              context.l10n.diveLog_edit_snackbar_errorSaving(e.toString()),
+            ),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -2855,7 +2952,7 @@ class _SitePickerSheet extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Select Dive Site',
+                    context.l10n.diveLog_sitePicker_title,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   if (currentLocation != null)
@@ -2868,7 +2965,7 @@ class _SitePickerSheet extends ConsumerWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'Sorted by distance',
+                          context.l10n.diveLog_sitePicker_sortedByDistance,
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(color: colorScheme.primary),
                         ),
@@ -2882,7 +2979,7 @@ class _SitePickerSheet extends ConsumerWidget {
                   context.push('/sites/new');
                 },
                 icon: const Icon(Icons.add),
-                label: const Text('New Dive Site'),
+                label: Text(context.l10n.diveLog_sitePicker_newDiveSite),
               ),
             ],
           ),
@@ -2903,7 +3000,7 @@ class _SitePickerSheet extends ConsumerWidget {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'No dive sites yet',
+                        context.l10n.diveLog_sitePicker_noSites,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 8),
@@ -2913,7 +3010,9 @@ class _SitePickerSheet extends ConsumerWidget {
                           context.push('/sites/new');
                         },
                         icon: const Icon(Icons.add),
-                        label: const Text('Add Dive Site'),
+                        label: Text(
+                          context.l10n.diveLog_sitePicker_addDiveSite,
+                        ),
                       ),
                     ],
                   ),
@@ -2994,8 +3093,11 @@ class _SitePickerSheet extends ConsumerWidget {
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) =>
-                Center(child: Text('Error loading sites: $error')),
+            error: (error, _) => Center(
+              child: Text(
+                context.l10n.diveLog_sitePicker_errorLoading(error.toString()),
+              ),
+            ),
           ),
         ),
       ],
@@ -3054,12 +3156,12 @@ class _SpeciesPickerSheetState extends ConsumerState<_SpeciesPickerSheet> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Add Marine Life',
+                context.l10n.diveLog_speciesPicker_title,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               IconButton(
                 icon: const Icon(Icons.close),
-                tooltip: 'Close',
+                tooltip: context.l10n.common_action_close,
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ],
@@ -3070,12 +3172,14 @@ class _SpeciesPickerSheetState extends ConsumerState<_SpeciesPickerSheet> {
           child: TextField(
             controller: _searchController,
             decoration: InputDecoration(
-              hintText: 'Search species...',
+              hintText: context.l10n.diveLog_speciesPicker_searchHint,
               prefixIcon: const Icon(Icons.search),
               suffixIcon: _searchQuery.isNotEmpty
                   ? IconButton(
                       icon: const Icon(Icons.clear),
-                      tooltip: 'Clear search',
+                      tooltip: context
+                          .l10n
+                          .diveLog_speciesPicker_tooltip_clearSearch,
                       onPressed: () {
                         _searchController.clear();
                         setState(() => _searchQuery = '');
@@ -3126,15 +3230,19 @@ class _SpeciesPickerSheetState extends ConsumerState<_SpeciesPickerSheet> {
                       const SizedBox(height: 16),
                       Text(
                         _searchQuery.isNotEmpty
-                            ? 'No species found'
-                            : 'No species available',
+                            ? context.l10n.diveLog_speciesPicker_noResults
+                            : context.l10n.diveLog_speciesPicker_noSpecies,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       if (_searchQuery.isNotEmpty) ...[
                         const SizedBox(height: 8),
                         FilledButton.tonal(
                           onPressed: () => _addCustomSpecies(_searchQuery),
-                          child: Text('Add "$_searchQuery" as new species'),
+                          child: Text(
+                            context.l10n.diveLog_speciesPicker_addNew(
+                              _searchQuery,
+                            ),
+                          ),
                         ),
                       ],
                     ],
@@ -3184,7 +3292,7 @@ class _SpeciesPickerSheetState extends ConsumerState<_SpeciesPickerSheet> {
   Widget _buildCategoryChip(SpeciesCategory? category, String label) {
     final isSelected = _selectedCategory == category && _searchQuery.isEmpty;
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsetsDirectional.only(end: 8),
       child: FilterChip(
         label: Text(label),
         selected: isSelected,
@@ -3295,10 +3403,10 @@ class _SpeciesPickerSheetState extends ConsumerState<_SpeciesPickerSheet> {
               const SizedBox(height: 16),
               TextField(
                 controller: notesController,
-                decoration: const InputDecoration(
-                  labelText: 'Notes (optional)',
-                  hintText: 'e.g., size, behavior, location...',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: context.l10n.diveLog_sighting_notesOptional,
+                  hintText: context.l10n.diveLog_sighting_notesHint,
+                  border: const OutlineInputBorder(),
                 ),
                 maxLines: 2,
               ),
@@ -3307,14 +3415,14 @@ class _SpeciesPickerSheetState extends ConsumerState<_SpeciesPickerSheet> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Cancel'),
+              child: Text(context.l10n.diveLog_sighting_cancel),
             ),
             FilledButton(
               onPressed: () {
                 Navigator.of(dialogContext).pop();
                 widget.onSpeciesSelected(species, count, notesController.text);
               },
-              child: const Text('Add'),
+              child: Text(context.l10n.diveLog_sighting_add),
             ),
           ],
         ),
@@ -3389,19 +3497,23 @@ class _EditSightingSheetState extends State<_EditSightingSheet> {
               ),
               IconButton(
                 icon: const Icon(Icons.delete_outline, color: Colors.red),
-                tooltip: 'Delete sighting',
+                tooltip: context.l10n.diveLog_editSighting_remove,
                 onPressed: () {
                   showDialog(
                     context: context,
                     builder: (dialogContext) => AlertDialog(
-                      title: const Text('Remove Sighting?'),
+                      title: Text(
+                        context.l10n.diveLog_editSighting_removeTitle,
+                      ),
                       content: Text(
-                        'Remove ${widget.sighting.speciesName} from this dive?',
+                        context.l10n.diveLog_editSighting_removeConfirm(
+                          widget.sighting.speciesName,
+                        ),
                       ),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.of(dialogContext).pop(),
-                          child: const Text('Cancel'),
+                          child: Text(context.l10n.common_action_cancel),
                         ),
                         FilledButton(
                           onPressed: () {
@@ -3413,7 +3525,7 @@ class _EditSightingSheetState extends State<_EditSightingSheet> {
                               context,
                             ).colorScheme.error,
                           ),
-                          child: const Text('Remove'),
+                          child: Text(context.l10n.diveLog_editSighting_remove),
                         ),
                       ],
                     ),
@@ -3423,7 +3535,10 @@ class _EditSightingSheetState extends State<_EditSightingSheet> {
             ],
           ),
           const SizedBox(height: 24),
-          Text('Count', style: Theme.of(context).textTheme.labelLarge),
+          Text(
+            context.l10n.diveLog_editSighting_count,
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -3458,10 +3573,10 @@ class _EditSightingSheetState extends State<_EditSightingSheet> {
           const SizedBox(height: 24),
           TextField(
             controller: _notesController,
-            decoration: const InputDecoration(
-              labelText: 'Notes',
-              hintText: 'Size, behavior, location...',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: context.l10n.diveLog_editSighting_notes,
+              hintText: context.l10n.diveLog_editSighting_notesHint,
+              border: const OutlineInputBorder(),
             ),
             maxLines: 3,
           ),
@@ -3475,7 +3590,7 @@ class _EditSightingSheetState extends State<_EditSightingSheet> {
                 ),
               );
             },
-            child: const Text('Save Changes'),
+            child: Text(context.l10n.diveLog_editSighting_save),
           ),
         ],
       ),
@@ -3507,12 +3622,12 @@ class _EquipmentPickerSheet extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Add Equipment',
+                context.l10n.diveLog_equipmentPicker_title,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               IconButton(
                 icon: const Icon(Icons.close),
-                tooltip: 'Close',
+                tooltip: context.l10n.common_action_close,
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ],
@@ -3540,15 +3655,15 @@ class _EquipmentPickerSheet extends ConsumerWidget {
                       const SizedBox(height: 16),
                       Text(
                         equipmentList.isEmpty
-                            ? 'No equipment yet'
-                            : 'All equipment already selected',
+                            ? context.l10n.diveLog_equipmentPicker_noEquipment
+                            : context.l10n.diveLog_equipmentPicker_allSelected,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 8),
                       Text(
                         equipmentList.isEmpty
-                            ? 'Add equipment from the Equipment tab'
-                            : 'Remove items to add different ones',
+                            ? context.l10n.diveLog_equipmentPicker_addFromTab
+                            : context.l10n.diveLog_equipmentPicker_removeToAdd,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
@@ -3581,8 +3696,13 @@ class _EquipmentPickerSheet extends ConsumerWidget {
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) =>
-                Center(child: Text('Error loading equipment: $error')),
+            error: (error, _) => Center(
+              child: Text(
+                context.l10n.diveLog_equipmentPicker_errorLoading(
+                  error.toString(),
+                ),
+              ),
+            ),
           ),
         ),
       ],
@@ -3653,12 +3773,12 @@ class _EquipmentSetPickerSheet extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Use Equipment Set',
+                context.l10n.diveLog_equipmentSetPicker_title,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               IconButton(
                 icon: const Icon(Icons.close),
-                tooltip: 'Close',
+                tooltip: context.l10n.common_action_close,
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ],
@@ -3680,12 +3800,12 @@ class _EquipmentSetPickerSheet extends ConsumerWidget {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'No equipment sets yet',
+                        context.l10n.diveLog_equipmentSetPicker_noSets,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Create sets in Equipment > Sets',
+                        context.l10n.diveLog_equipmentSetPicker_createHint,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
@@ -3708,8 +3828,13 @@ class _EquipmentSetPickerSheet extends ConsumerWidget {
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) =>
-                Center(child: Text('Error loading equipment sets: $error')),
+            error: (error, _) => Center(
+              child: Text(
+                context.l10n.diveLog_equipmentSetPicker_errorLoading(
+                  error.toString(),
+                ),
+              ),
+            ),
           ),
         ),
       ],
@@ -3745,7 +3870,7 @@ class _EquipmentSetTile extends ConsumerWidget {
           title: Text(set.name),
           subtitle: Text(
             items.isEmpty
-                ? 'Empty set'
+                ? context.l10n.diveLog_equipmentSetPicker_emptySet
                 : '${items.length} item${items.length == 1 ? '' : 's'}: ${items.map((e) => e.name).join(', ')}',
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -3766,7 +3891,7 @@ class _EquipmentSetTile extends ConsumerWidget {
           ),
         ),
         title: Text(set.name),
-        subtitle: const Text('Loading...'),
+        subtitle: Text(context.l10n.diveLog_equipmentSetPicker_loading),
       ),
       error: (_, _) => ListTile(
         leading: CircleAvatar(
@@ -3777,7 +3902,7 @@ class _EquipmentSetTile extends ConsumerWidget {
           ),
         ),
         title: Text(set.name),
-        subtitle: const Text('Error loading items'),
+        subtitle: Text(context.l10n.diveLog_equipmentSetPicker_errorItems),
       ),
     );
   }

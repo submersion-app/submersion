@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Compact indicator showing current tide state.
 ///
@@ -42,10 +43,14 @@ class CurrentTideIndicator extends StatelessWidget {
         .convert(status.currentHeight, depthUnit)
         .toStringAsFixed(2);
     final nextExtremeLabel = status.nextExtreme != null
-        ? ', ${status.nextExtreme!.type == TideExtremeType.high ? 'high' : 'low'} tide in ${_formatDuration(status.timeToNextExtreme!)}'
+        ? ', ${status.nextExtreme!.type == TideExtremeType.high ? context.l10n.tides_label_high : context.l10n.tides_label_low} ${context.l10n.tides_label_tideIn(_formatDuration(status.timeToNextExtreme!))}'
         : '';
-    final semanticLabel =
-        '${status.state.displayName} tide, $currentHeightStr${depthUnit.symbol}$nextExtremeLabel';
+    final semanticLabel = context.l10n.tides_semantic_currentTide(
+      status.state.displayName,
+      currentHeightStr,
+      depthUnit.symbol,
+      nextExtremeLabel,
+    );
 
     return Semantics(
       label: semanticLabel,
@@ -87,7 +92,10 @@ class CurrentTideIndicator extends StatelessWidget {
                               ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     Text(
-                      'Current: $currentHeightStr${depthUnit.symbol}',
+                      context.l10n.tides_label_currentHeight(
+                        currentHeightStr,
+                        depthUnit.symbol,
+                      ),
                       style:
                           (compact ? textTheme.bodySmall : textTheme.bodyMedium)
                               ?.copyWith(color: colorScheme.onSurfaceVariant),
@@ -111,8 +119,8 @@ class CurrentTideIndicator extends StatelessWidget {
                   children: [
                     Text(
                       status.nextExtreme!.type == TideExtremeType.high
-                          ? 'High in'
-                          : 'Low in',
+                          ? context.l10n.tides_label_highIn
+                          : context.l10n.tides_label_lowIn,
                       style: textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -187,7 +195,7 @@ class TideStateBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: 'Tide state: ${state.displayName}',
+      label: context.l10n.tides_semantic_tideState(state.displayName),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(

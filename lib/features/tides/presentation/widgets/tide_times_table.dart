@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Table widget displaying high and low tide times.
 ///
@@ -96,7 +97,7 @@ class TideTimesTable extends StatelessWidget {
                 ),
                 SizedBox(width: compact ? 8 : 12),
                 Text(
-                  'Tide Times',
+                  context.l10n.tides_label_tideTimes,
                   style:
                       (compact ? textTheme.titleSmall : textTheme.titleMedium)
                           ?.copyWith(fontWeight: FontWeight.bold),
@@ -130,7 +131,7 @@ class TideTimesTable extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'No tide data available',
+                context.l10n.tides_noDataAvailable,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -163,9 +164,9 @@ class TideTimesTable extends StatelessWidget {
 
     String dateLabel;
     if (isToday) {
-      dateLabel = 'Today';
+      dateLabel = context.l10n.tides_label_today;
     } else if (isTomorrow) {
-      dateLabel = 'Tomorrow';
+      dateLabel = context.l10n.tides_label_tomorrow;
     } else {
       dateLabel = dateFormat.format(extreme.time.toLocal());
     }
@@ -176,11 +177,13 @@ class TideTimesTable extends StatelessWidget {
 
     final heightDisplay =
         '${DepthUnit.meters.convert(extreme.heightMeters, depthUnit).toStringAsFixed(2)}${depthUnit.symbol}';
-    final tideTypeLabel = isHigh ? 'High tide' : 'Low tide';
+    final tideTypeLabel = isHigh
+        ? context.l10n.tides_label_highTide
+        : context.l10n.tides_label_lowTide;
     final timeLabel = timeFormatter.format(extreme.time.toLocal());
     final durationLabel = isPast
-        ? '${_formatDuration(duration)} ago'
-        : '${_formatDuration(duration)} from now';
+        ? context.l10n.tides_label_ago(_formatDuration(duration))
+        : context.l10n.tides_label_fromNow(_formatDuration(duration));
 
     return Semantics(
       label:
@@ -289,7 +292,9 @@ class TideTimesTable extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        isPast ? 'ago' : 'from now',
+                        isPast
+                            ? context.l10n.tides_label_agoSuffix
+                            : context.l10n.tides_label_fromNowSuffix,
                         style: textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),

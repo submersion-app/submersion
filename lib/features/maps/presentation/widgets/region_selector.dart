@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' hide Path;
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Callback for when a region is selected.
 typedef RegionSelectedCallback =
@@ -97,7 +98,7 @@ class _RegionSelectorState extends State<RegionSelector> {
         // Gesture detector for drawing
         Positioned.fill(
           child: Semantics(
-            label: 'Select region on map',
+            label: context.l10n.maps_regionSelector_selectRegion,
             child: GestureDetector(
               behavior: HitTestBehavior.translucent,
               onPanStart: _onPanStart,
@@ -135,8 +136,8 @@ class _RegionSelectorState extends State<RegionSelector> {
                   Expanded(
                     child: Text(
                       hasSelection
-                          ? 'Drag to adjust selection'
-                          : 'Drag on the map to select a region',
+                          ? context.l10n.maps_regionSelector_dragToAdjust
+                          : context.l10n.maps_regionSelector_dragToSelect,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
@@ -156,14 +157,16 @@ class _RegionSelectorState extends State<RegionSelector> {
               Expanded(
                 child: OutlinedButton(
                   onPressed: _clearSelection,
-                  child: const Text('Cancel'),
+                  child: Text(context.l10n.common_action_cancel),
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: FilledButton(
                   onPressed: hasSelection ? _confirmSelection : null,
-                  child: const Text('Select Region'),
+                  child: Text(
+                    context.l10n.maps_regionSelector_selectRegionButton,
+                  ),
                 ),
               ),
             ],

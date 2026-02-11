@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
@@ -81,11 +82,11 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Training Courses'),
+        title: Text(context.l10n.courses_title),
         actions: [
           IconButton(
             icon: const Icon(Icons.sort),
-            tooltip: 'Sort',
+            tooltip: context.l10n.courses_action_sort,
             onPressed: () => _showSortSheet(context),
           ),
         ],
@@ -102,11 +103,11 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
 
   Widget _buildCompactAppBar(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 8, 0),
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 8, 0),
       child: Row(
         children: [
           Text(
-            'Training Courses',
+            context.l10n.courses_title,
             style: Theme.of(
               context,
             ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
@@ -114,7 +115,7 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
           const Spacer(),
           IconButton(
             icon: const Icon(Icons.sort),
-            tooltip: 'Sort',
+            tooltip: context.l10n.courses_action_sort,
             onPressed: () => _showSortSheet(context),
           ),
         ],
@@ -132,7 +133,7 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
         child: Row(
           children: [
             FilterChip(
-              label: const Text('All'),
+              label: Text(context.l10n.courses_filter_all),
               selected: _filterStatus == 'all',
               onSelected: (selected) {
                 if (selected) setState(() => _filterStatus = 'all');
@@ -147,7 +148,7 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
                     ? colorScheme.onPrimaryContainer
                     : null,
               ),
-              label: const Text('In Progress'),
+              label: Text(context.l10n.courses_status_inProgress),
               selected: _filterStatus == 'in_progress',
               onSelected: (selected) {
                 if (selected) setState(() => _filterStatus = 'in_progress');
@@ -162,7 +163,7 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
                     ? colorScheme.onPrimaryContainer
                     : null,
               ),
-              label: const Text('Completed'),
+              label: Text(context.l10n.courses_status_completed),
               selected: _filterStatus == 'completed',
               onSelected: (selected) {
                 if (selected) setState(() => _filterStatus = 'completed');
@@ -201,10 +202,10 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
   Widget _buildEmptyState(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final message = _filterStatus == 'in_progress'
-        ? 'No courses in progress'
+        ? context.l10n.courses_empty_noInProgress
         : _filterStatus == 'completed'
-        ? 'No completed courses'
-        : 'No training courses yet';
+        ? context.l10n.courses_empty_noCompleted
+        : context.l10n.courses_empty_title;
 
     return Center(
       child: Column(
@@ -224,7 +225,7 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Add your first course to get started',
+            context.l10n.courses_empty_subtitle,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
             ),
@@ -242,13 +243,16 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
         children: [
           Icon(Icons.error_outline, size: 48, color: colorScheme.error),
           const SizedBox(height: 16),
-          Text('Error: $error', style: TextStyle(color: colorScheme.error)),
+          Text(
+            context.l10n.courses_error_generic(error.toString()),
+            style: TextStyle(color: colorScheme.error),
+          ),
           const SizedBox(height: 16),
           FilledButton(
             onPressed: () {
               ref.read(courseListNotifierProvider.notifier).refresh();
             },
-            child: const Text('Retry'),
+            child: Text(context.l10n.courses_action_retry),
           ),
         ],
       ),
@@ -259,7 +263,7 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
     final sort = ref.read(courseSortProvider);
     showSortBottomSheet<CourseSortField>(
       context: context,
-      title: 'Sort Courses',
+      title: context.l10n.courses_action_sortTitle,
       currentField: sort.field,
       currentDirection: sort.direction,
       fields: CourseSortField.values,

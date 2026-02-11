@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/presentation/pages/photo_picker_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Helper for importing photos for a dive.
 ///
@@ -98,7 +99,9 @@ class PhotoImportHelper {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to import photos: $e'),
+            content: Text(
+              context.l10n.media_import_failedToImportError(e.toString()),
+            ),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -128,9 +131,7 @@ class PhotoImportHelper {
             const CircularProgressIndicator(),
             const SizedBox(width: 24),
             Expanded(
-              child: Text(
-                'Importing $count ${count == 1 ? 'photo' : 'photos'}...',
-              ),
+              child: Text(context.l10n.media_import_importingPhotos(count)),
             ),
           ],
         ),
@@ -145,11 +146,11 @@ class PhotoImportHelper {
   ) {
     String message;
     if (failed == 0) {
-      message = 'Imported $imported ${imported == 1 ? 'photo' : 'photos'}';
+      message = context.l10n.media_import_importedPhotos(imported);
     } else if (imported == 0) {
-      message = 'Failed to import ${failed == 1 ? 'photo' : 'photos'}';
+      message = context.l10n.media_import_failedToImport(failed);
     } else {
-      message = 'Imported $imported, failed $failed';
+      message = context.l10n.media_import_importedAndFailed(imported, failed);
     }
 
     ScaffoldMessenger.of(

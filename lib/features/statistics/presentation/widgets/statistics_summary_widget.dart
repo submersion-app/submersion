@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Summary widget displayed when no statistics category is selected.
 /// Shows overview cards and charts.
@@ -31,11 +32,11 @@ class StatisticsSummaryWidget extends ConsumerWidget {
               color: Theme.of(context).colorScheme.error,
             ),
             const SizedBox(height: 16),
-            const Text('Error loading statistics'),
+            Text(context.l10n.statistics_error_loadingStatistics),
             const SizedBox(height: 8),
             FilledButton(
               onPressed: () => ref.invalidate(diveStatisticsProvider),
-              child: const Text('Retry'),
+              child: Text(context.l10n.statistics_records_retry),
             ),
           ],
         ),
@@ -72,11 +73,11 @@ class StatisticsSummaryWidget extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Statistics Overview',
+                      context.l10n.statistics_summary_header_title,
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
                     Text(
-                      'Select a category to explore detailed statistics',
+                      context.l10n.statistics_summary_header_subtitle,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -86,7 +87,7 @@ class StatisticsSummaryWidget extends ConsumerWidget {
               ),
               IconButton(
                 icon: const Icon(Icons.refresh),
-                tooltip: 'Refresh statistics',
+                tooltip: context.l10n.statistics_tooltip_refreshStatistics,
                 onPressed: () => ref.invalidate(diveStatisticsProvider),
               ),
             ],
@@ -124,28 +125,28 @@ class StatisticsSummaryWidget extends ConsumerWidget {
         _buildStatCard(
           context,
           icon: Icons.waves,
-          label: 'Total Dives',
+          label: context.l10n.statistics_summary_totalDives,
           value: '${stats.totalDives}',
           color: Theme.of(context).colorScheme.primary,
         ),
         _buildStatCard(
           context,
           icon: Icons.timer,
-          label: 'Total Time',
+          label: context.l10n.statistics_summary_totalTime,
           value: stats.totalTimeFormatted,
           color: Theme.of(context).colorScheme.secondary,
         ),
         _buildStatCard(
           context,
           icon: Icons.arrow_downward,
-          label: 'Max Depth',
+          label: context.l10n.statistics_summary_maxDepth,
           value: stats.maxDepth > 0 ? units.formatDepth(stats.maxDepth) : '--',
           color: Theme.of(context).colorScheme.tertiary,
         ),
         _buildStatCard(
           context,
           icon: Icons.location_on,
-          label: 'Sites Visited',
+          label: context.l10n.statistics_summary_sitesVisited,
           value: '${stats.totalSites}',
           color: Theme.of(context).colorScheme.error,
         ),
@@ -210,12 +211,12 @@ class StatisticsSummaryWidget extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Dives by Month',
+              context.l10n.statistics_summary_divesByMonth_title,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 16),
             Semantics(
-              label: 'Bar chart showing dives by month',
+              label: context.l10n.statistics_summary_divesByMonth_semanticLabel,
               child: SizedBox(
                 height: 200,
                 child: hasData
@@ -225,19 +226,22 @@ class StatisticsSummaryWidget extends ConsumerWidget {
                           maxY: maxCount + 1,
                           barTouchData: BarTouchData(
                             touchTooltipData: BarTouchTooltipData(
-                              getTooltipItem:
-                                  (group, groupIndex, rod, rodIndex) {
-                                    final data = stats.divesByMonth[groupIndex];
-                                    return BarTooltipItem(
-                                      '${data.fullLabel}\n${data.count} dives',
-                                      TextStyle(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onPrimary,
-                                        fontWeight: FontWeight.bold,
+                              getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                                final data = stats.divesByMonth[groupIndex];
+                                return BarTooltipItem(
+                                  context.l10n
+                                      .statistics_summary_divesByMonth_tooltip(
+                                        data.fullLabel,
+                                        data.count,
                                       ),
-                                    );
-                                  },
+                                  TextStyle(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onPrimary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                );
+                              },
                             ),
                           ),
                           titlesData: FlTitlesData(
@@ -332,7 +336,9 @@ class StatisticsSummaryWidget extends ConsumerWidget {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Chart will appear when you log dives',
+                              context
+                                  .l10n
+                                  .statistics_summary_divesByMonth_empty,
                               style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(
                                     color: Theme.of(
@@ -375,12 +381,13 @@ class StatisticsSummaryWidget extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Dive Types',
+                  context.l10n.statistics_summary_diveTypes_title,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 16),
                 Semantics(
-                  label: 'Pie chart showing dive type distribution',
+                  label:
+                      context.l10n.statistics_summary_diveTypes_semanticLabel,
                   child: SizedBox(
                     height: 200,
                     child: hasData
@@ -470,7 +477,9 @@ class StatisticsSummaryWidget extends ConsumerWidget {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Chart will appear when you log dives',
+                                  context
+                                      .l10n
+                                      .statistics_summary_diveTypes_empty,
                                   style: Theme.of(context).textTheme.bodyMedium
                                       ?.copyWith(
                                         color: Theme.of(
@@ -487,7 +496,9 @@ class StatisticsSummaryWidget extends ConsumerWidget {
                   const SizedBox(height: 8),
                   Center(
                     child: Text(
-                      'and ${data.length - 6} more types',
+                      context.l10n.statistics_summary_diveTypes_moreTypes(
+                        data.length - 6,
+                      ),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -530,12 +541,14 @@ class StatisticsSummaryWidget extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Depth Distribution',
+              context.l10n.statistics_summary_depthDistribution_title,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 16),
             Semantics(
-              label: 'Pie chart showing depth distribution',
+              label: context
+                  .l10n
+                  .statistics_summary_depthDistribution_semanticLabel,
               child: SizedBox(
                 height: 200,
                 child: hasData
@@ -635,7 +648,9 @@ class StatisticsSummaryWidget extends ConsumerWidget {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Chart will appear when you log dives',
+                              context
+                                  .l10n
+                                  .statistics_summary_depthDistribution_empty,
                               style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(
                                     color: Theme.of(
@@ -655,13 +670,13 @@ class StatisticsSummaryWidget extends ConsumerWidget {
                 children: [
                   _buildMiniStat(
                     context,
-                    'Avg Depth',
+                    context.l10n.statistics_summary_avgDepth,
                     units.formatDepth(stats.avgMaxDepth),
                   ),
                   if (stats.avgTemperature != null)
                     _buildMiniStat(
                       context,
-                      'Avg Temp',
+                      context.l10n.statistics_summary_avgTemp,
                       units.formatTemperature(stats.avgTemperature),
                     ),
                 ],
@@ -705,12 +720,14 @@ class StatisticsSummaryWidget extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Top Dive Sites',
+                  context.l10n.statistics_summary_topDiveSites_title,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 if (stats.totalSites > 0)
                   Text(
-                    '${stats.totalSites} total',
+                    context.l10n.statistics_summary_topDiveSites_totalCount(
+                      stats.totalSites,
+                    ),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -744,7 +761,7 @@ class StatisticsSummaryWidget extends ConsumerWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'No dive sites yet',
+                        context.l10n.statistics_summary_topDiveSites_empty,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
@@ -812,7 +829,7 @@ class StatisticsSummaryWidget extends ConsumerWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              '$diveCount dives',
+              context.l10n.statistics_summary_topDiveSites_diveCount(diveCount),
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onPrimaryContainer,
                 fontSize: 12,
@@ -838,7 +855,7 @@ class StatisticsSummaryWidget extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Tag Usage',
+                    context.l10n.statistics_summary_tagUsage_title,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const Divider(),
@@ -856,7 +873,7 @@ class StatisticsSummaryWidget extends ConsumerWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'No tags created yet',
+                            context.l10n.statistics_summary_tagUsage_empty,
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(
                                   color: Theme.of(
@@ -866,7 +883,7 @@ class StatisticsSummaryWidget extends ConsumerWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Add tags to dives to see statistics',
+                            context.l10n.statistics_summary_tagUsage_emptyHint,
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
                                   color: Theme.of(
@@ -898,11 +915,13 @@ class StatisticsSummaryWidget extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Tag Usage',
+                      context.l10n.statistics_summary_tagUsage_title,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     Text(
-                      '${tagStats.length} tags',
+                      context.l10n.statistics_summary_tagUsage_tagCount(
+                        tagStats.length,
+                      ),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -925,7 +944,9 @@ class StatisticsSummaryWidget extends ConsumerWidget {
                   const SizedBox(height: 8),
                   Center(
                     child: Text(
-                      'and ${tagStats.length - 10} more tags',
+                      context.l10n.statistics_summary_tagUsage_moreTags(
+                        tagStats.length - 10,
+                      ),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -981,7 +1002,9 @@ class StatisticsSummaryWidget extends ConsumerWidget {
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     Text(
-                      '$diveCount ${diveCount == 1 ? 'dive' : 'dives'}',
+                      context.l10n.statistics_summary_tagUsage_diveCount(
+                        diveCount,
+                      ),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),

@@ -6,6 +6,7 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -126,9 +127,9 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
     if (!_isContactImportSupported) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-              'Contact import is only available on iOS and Android',
+              context.l10n.buddies_message_contactImportUnavailable,
             ),
           ),
         );
@@ -140,8 +141,10 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
       if (!await FlutterContacts.requestPermission(readonly: true)) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Contact permission is required to import buddies'),
+            SnackBar(
+              content: Text(
+                context.l10n.buddies_message_contactPermissionRequired,
+              ),
             ),
           );
         }
@@ -155,7 +158,9 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
       if (fullContact == null) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Could not load contact details')),
+            SnackBar(
+              content: Text(context.l10n.buddies_message_contactLoadFailed),
+            ),
           );
         }
         return;
@@ -183,9 +188,13 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error importing contact: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              context.l10n.buddies_message_errorImportingContact(e.toString()),
+            ),
+          ),
+        );
       }
     }
   }
@@ -217,33 +226,33 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Buddies'),
+        title: Text(context.l10n.buddies_title),
         actions: [
           IconButton(
             icon: const Icon(Icons.sort),
-            tooltip: 'Sort',
+            tooltip: context.l10n.buddies_action_sort,
             onPressed: () => _showSortSheet(context),
           ),
           IconButton(
             icon: const Icon(Icons.search),
-            tooltip: 'Search buddies',
+            tooltip: context.l10n.buddies_action_search,
             onPressed: () {
               showSearch(context: context, delegate: BuddySearchDelegate(ref));
             },
           ),
           PopupMenuButton<String>(
-            tooltip: 'More options',
+            tooltip: context.l10n.buddies_action_moreOptions,
             onSelected: (value) {
               if (value == 'import') {
                 _importFromContacts(context);
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'import',
                 child: ListTile(
-                  leading: Icon(Icons.contacts),
-                  title: Text('Import from Contacts'),
+                  leading: const Icon(Icons.contacts),
+                  title: Text(context.l10n.buddies_action_importFromContacts),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
@@ -272,7 +281,7 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
         children: [
           const SizedBox(width: 8),
           Text(
-            'Buddies',
+            context.l10n.buddies_title,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -280,30 +289,30 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
           const Spacer(),
           IconButton(
             icon: const Icon(Icons.sort, size: 20),
-            tooltip: 'Sort',
+            tooltip: context.l10n.buddies_action_sort,
             onPressed: () => _showSortSheet(context),
           ),
           IconButton(
             icon: const Icon(Icons.search, size: 20),
-            tooltip: 'Search buddies',
+            tooltip: context.l10n.buddies_action_search,
             onPressed: () {
               showSearch(context: context, delegate: BuddySearchDelegate(ref));
             },
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, size: 20),
-            tooltip: 'More options',
+            tooltip: context.l10n.buddies_action_moreOptions,
             onSelected: (value) {
               if (value == 'import') {
                 _importFromContacts(context);
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'import',
                 child: ListTile(
-                  leading: Icon(Icons.contacts),
-                  title: Text('Import from Contacts'),
+                  leading: const Icon(Icons.contacts),
+                  title: Text(context.l10n.buddies_action_importFromContacts),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
@@ -318,7 +327,7 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
     final sort = ref.read(buddySortProvider);
     showSortBottomSheet<BuddySortField>(
       context: context,
-      title: 'Sort Buddies',
+      title: context.l10n.buddies_action_sortTitle,
       currentField: sort.field,
       currentDirection: sort.direction,
       fields: BuddySortField.values,
@@ -372,12 +381,12 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
           ),
           const SizedBox(height: 16),
           Text(
-            'No buddies added yet',
+            context.l10n.buddies_empty_title,
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 8),
           Text(
-            'Add your dive buddies to track who you dive with',
+            context.l10n.buddies_empty_subtitle,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -387,7 +396,7 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
           FilledButton.icon(
             onPressed: () => context.push('/buddies/new'),
             icon: const Icon(Icons.person_add),
-            label: const Text('Add Your First Buddy'),
+            label: Text(context.l10n.buddies_action_addFirst),
           ),
         ],
       ),
@@ -401,11 +410,11 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
         children: [
           const Icon(Icons.error_outline, size: 48, color: Colors.red),
           const SizedBox(height: 16),
-          Text('Error loading buddies: $error'),
+          Text(context.l10n.buddies_error_loading(error.toString())),
           const SizedBox(height: 16),
           FilledButton(
             onPressed: () => ref.invalidate(allBuddiesWithDiveCountProvider),
-            child: const Text('Retry'),
+            child: Text(context.l10n.buddies_action_retry),
           ),
         ],
       ),
@@ -461,7 +470,7 @@ class BuddyListTile extends StatelessWidget {
           children: [
             if (diveCount != null)
               Text(
-                '$diveCount ${diveCount == 1 ? 'dive' : 'dives'}',
+                context.l10n.buddies_label_diveCount(diveCount!),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -512,7 +521,7 @@ class BuddySearchDelegate extends SearchDelegate<Buddy?> {
       if (query.isNotEmpty)
         IconButton(
           icon: const Icon(Icons.clear),
-          tooltip: 'Clear search',
+          tooltip: context.l10n.buddies_action_clearSearch,
           onPressed: () => query = '',
         ),
     ];
@@ -522,7 +531,7 @@ class BuddySearchDelegate extends SearchDelegate<Buddy?> {
   Widget buildLeading(BuildContext context) {
     return IconButton(
       icon: const Icon(Icons.arrow_back),
-      tooltip: 'Back',
+      tooltip: context.l10n.common_action_back,
       onPressed: () => close(context, null),
     );
   }
@@ -548,7 +557,7 @@ class BuddySearchDelegate extends SearchDelegate<Buddy?> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Search by name, email, or phone',
+              context.l10n.buddies_search_hint,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -579,7 +588,7 @@ class BuddySearchDelegate extends SearchDelegate<Buddy?> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'No buddies found for "$query"',
+                  context.l10n.buddies_search_noResults(query),
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),

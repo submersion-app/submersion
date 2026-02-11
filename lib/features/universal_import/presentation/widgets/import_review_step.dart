@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart' as enums;
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/features/universal_import/presentation/widgets/batch_tag_field.dart';
@@ -40,8 +41,9 @@ class ImportReviewStep extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Semantics(
-                label:
-                    '${state.duplicateResult!.totalDuplicates} duplicates found and auto-deselected',
+                label: context.l10n.universalImport_label_duplicatesFound(
+                  state.duplicateResult!.totalDuplicates,
+                ),
                 child: Card(
                   color: theme.colorScheme.tertiaryContainer,
                   child: Padding(
@@ -57,8 +59,9 @@ class ImportReviewStep extends ConsumerWidget {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            '${state.duplicateResult!.totalDuplicates} '
-                            'duplicates found and auto-deselected.',
+                            context.l10n.universalImport_label_duplicatesFound(
+                              state.duplicateResult!.totalDuplicates,
+                            ),
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: theme.colorScheme.onTertiaryContainer,
                             ),
@@ -107,9 +110,13 @@ class ImportReviewStep extends ConsumerWidget {
               child: Row(
                 children: [
                   Semantics(
-                    label: '${state.totalSelected} items selected for import',
+                    label: context.l10n.universalImport_semantics_itemsSelected(
+                      state.totalSelected,
+                    ),
                     child: Text(
-                      '${state.totalSelected} selected',
+                      context.l10n.universalImport_label_selected(
+                        state.totalSelected,
+                      ),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -122,7 +129,7 @@ class ImportReviewStep extends ConsumerWidget {
                               .read(universalImportNotifierProvider.notifier)
                               .performImport()
                         : null,
-                    child: const Text('Import'),
+                    child: Text(context.l10n.universalImport_action_import),
                   ),
                 ],
               ),
@@ -156,10 +163,16 @@ class _EntityTypeList extends ConsumerWidget {
           child: Row(
             children: [
               Semantics(
-                label:
-                    '${selection.length} of ${items.length} ${type.shortName} selected',
+                label: context.l10n.universalImport_semantics_entitySelection(
+                  selection.length,
+                  items.length,
+                  type.shortName,
+                ),
                 child: Text(
-                  '${selection.length} of ${items.length} selected',
+                  context.l10n.universalImport_label_xOfYSelected(
+                    selection.length,
+                    items.length,
+                  ),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -172,8 +185,8 @@ class _EntityTypeList extends ConsumerWidget {
                     : () => notifier.selectAll(type),
                 child: Text(
                   selection.length == items.length
-                      ? 'Deselect All'
-                      : 'Select All',
+                      ? context.l10n.universalImport_action_deselectAll
+                      : context.l10n.universalImport_action_selectAll,
                 ),
               ),
             ],
@@ -202,7 +215,7 @@ class _EntityTypeList extends ConsumerWidget {
               final isDuplicate = dupResult?.isDuplicate(type, index) ?? false;
 
               return ImportEntityCard(
-                name: _getName(item),
+                name: _getName(context, item),
                 subtitle: _getSubtitle(item),
                 icon: _iconFor(type),
                 isSelected: isSelected,
@@ -216,8 +229,9 @@ class _EntityTypeList extends ConsumerWidget {
     );
   }
 
-  String _getName(Map<String, dynamic> item) {
-    return (item['name'] as String?) ?? 'Unnamed';
+  String _getName(BuildContext context, Map<String, dynamic> item) {
+    return (item['name'] as String?) ??
+        context.l10n.universalImport_label_unnamed;
   }
 
   String? _getSubtitle(Map<String, dynamic> item) {

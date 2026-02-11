@@ -522,6 +522,8 @@ class DiverSettings extends Table {
   TextColumn get dateFormat => text().withDefault(const Constant('mmmDYYYY'))();
   // Theme
   TextColumn get themeMode => text().withDefault(const Constant('system'))();
+  // Locale (language preference: 'system', 'en', 'es', 'fr', etc.)
+  TextColumn get locale => text().withDefault(const Constant('system'))();
   // Defaults
   TextColumn get defaultDiveType =>
       text().withDefault(const Constant('recreational'))();
@@ -1059,7 +1061,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 32;
+  int get schemaVersion => 33;
 
   @override
   MigrationStrategy get migration {
@@ -1766,6 +1768,12 @@ class AppDatabase extends _$AppDatabase {
           );
           await customStatement(
             'ALTER TABLE species ADD COLUMN is_built_in INTEGER NOT NULL DEFAULT 0',
+          );
+        }
+        if (from < 33) {
+          // Add locale column for i18n language preference
+          await customStatement(
+            "ALTER TABLE diver_settings ADD COLUMN locale TEXT NOT NULL DEFAULT 'system'",
           );
         }
       },

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_ecard.dart';
 
@@ -230,14 +231,14 @@ class _CertificationEcardStackState extends State<CertificationEcardStack> {
             ),
             const SizedBox(height: 16),
             Text(
-              'No certifications yet',
+              context.l10n.certifications_ecardStack_empty_title,
               style: theme.textTheme.titleLarge?.copyWith(
                 color: theme.colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Add your first certification to see it here',
+              context.l10n.certifications_ecardStack_empty_subtitle,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),

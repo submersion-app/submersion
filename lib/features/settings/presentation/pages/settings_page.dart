@@ -20,6 +20,7 @@ import 'package:submersion/features/settings/presentation/providers/sync_provide
 import 'package:submersion/features/settings/presentation/widgets/import_progress_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_summary_widget.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Main settings page with master-detail layout on desktop.
 ///
@@ -101,7 +102,7 @@ class SettingsMobileContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(title: Text(context.l10n.settings_appBar_title)),
       body: ListView.separated(
         padding: const EdgeInsets.symmetric(vertical: 8),
         itemCount: settingsSections.length,
@@ -138,7 +139,7 @@ class _SettingsSectionDetailPage extends ConsumerWidget {
         title: Text(title),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          tooltip: 'Back to settings',
+          tooltip: context.l10n.settings_backToSettings_tooltip,
           onPressed: () => context.go('/settings'),
         ),
       ),
@@ -247,7 +248,10 @@ class _ProfileSectionContent extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader(context, 'Active Diver'),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_profile_header_activeDiver,
+          ),
           const SizedBox(height: 8),
           currentDiverAsync.when(
             data: (diver) =>
@@ -256,28 +260,33 @@ class _ProfileSectionContent extends ConsumerWidget {
             error: (error, _) => Card(
               child: ListTile(
                 leading: const Icon(Icons.error, color: Colors.red),
-                title: const Text('Error loading diver'),
+                title: Text(context.l10n.settings_profile_error_loadingDiver),
                 subtitle: Text('$error'),
               ),
             ),
           ),
           const SizedBox(height: 24),
-          _buildSectionHeader(context, 'Manage Divers'),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_profile_header_manageDivers,
+          ),
           const SizedBox(height: 8),
           Card(
             child: Column(
               children: [
                 ListTile(
                   leading: const Icon(Icons.manage_accounts),
-                  title: const Text('View All Divers'),
-                  subtitle: const Text('Add or edit diver profiles'),
+                  title: Text(context.l10n.settings_profile_viewAllDivers),
+                  subtitle: Text(
+                    context.l10n.settings_profile_viewAllDivers_subtitle,
+                  ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/divers'),
                 ),
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.person_add),
-                  title: const Text('Add New Diver'),
+                  title: Text(context.l10n.settings_profile_addNewDiver),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/divers/new'),
                 ),
@@ -302,8 +311,8 @@ class _ProfileSectionContent extends ConsumerWidget {
             backgroundColor: Theme.of(context).colorScheme.primaryContainer,
             child: const Icon(Icons.person_add),
           ),
-          title: const Text('No diver profile'),
-          subtitle: const Text('Tap to create your profile'),
+          title: Text(context.l10n.settings_profile_noDiverProfile),
+          subtitle: Text(context.l10n.settings_profile_noDiverProfile_subtitle),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => context.push('/divers/new'),
         ),
@@ -328,7 +337,7 @@ class _ProfileSectionContent extends ConsumerWidget {
               : null,
         ),
         title: Text(diver.name),
-        subtitle: const Text('Active diver - tap to switch'),
+        subtitle: Text(context.l10n.settings_profile_activeDiver_subtitle),
         trailing: const Icon(Icons.swap_horiz),
         onTap: () => _showDiverSwitcher(context, ref, allDiversAsync),
       ),
@@ -351,7 +360,7 @@ class _ProfileSectionContent extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
-                'Switch Diver',
+                context.l10n.settings_profile_switchDiver_title,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
             ),
@@ -407,7 +416,11 @@ class _ProfileSectionContent extends ConsumerWidget {
                         if (context.mounted && !isCurrentDiver) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Switched to ${diver.name}'),
+                              content: Text(
+                                context.l10n.settings_profile_switchedTo(
+                                  diver.name,
+                                ),
+                              ),
                             ),
                           );
                         }
@@ -434,7 +447,7 @@ class _ProfileSectionContent extends ConsumerWidget {
                   context.push('/divers/new');
                 },
                 icon: const Icon(Icons.person_add),
-                label: const Text('Add New Diver'),
+                label: Text(context.l10n.settings_profile_addNewDiver),
               ),
             ),
             const SizedBox(height: 8),
@@ -460,18 +473,24 @@ class _UnitsSectionContent extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader(context, 'Unit System'),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_units_header_unitSystem,
+          ),
           const SizedBox(height: 8),
           _buildUnitPresetSelector(context, ref, settings),
           const SizedBox(height: 24),
-          _buildSectionHeader(context, 'Individual Units'),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_units_header_individualUnits,
+          ),
           const SizedBox(height: 8),
           Card(
             child: Column(
               children: [
                 _buildUnitTile(
                   context,
-                  title: 'Depth',
+                  title: context.l10n.settings_units_depth,
                   value: settings.depthUnit.symbol,
                   onTap: () =>
                       _showDepthUnitPicker(context, ref, settings.depthUnit),
@@ -479,7 +498,7 @@ class _UnitsSectionContent extends ConsumerWidget {
                 const Divider(height: 1),
                 _buildUnitTile(
                   context,
-                  title: 'Temperature',
+                  title: context.l10n.settings_units_temperature,
                   value: '°${settings.temperatureUnit.symbol}',
                   onTap: () => _showTempUnitPicker(
                     context,
@@ -490,7 +509,7 @@ class _UnitsSectionContent extends ConsumerWidget {
                 const Divider(height: 1),
                 _buildUnitTile(
                   context,
-                  title: 'Pressure',
+                  title: context.l10n.settings_units_pressure,
                   value: settings.pressureUnit.symbol,
                   onTap: () => _showPressureUnitPicker(
                     context,
@@ -501,7 +520,7 @@ class _UnitsSectionContent extends ConsumerWidget {
                 const Divider(height: 1),
                 _buildUnitTile(
                   context,
-                  title: 'Volume',
+                  title: context.l10n.settings_units_volume,
                   value: settings.volumeUnit.symbol,
                   onTap: () =>
                       _showVolumeUnitPicker(context, ref, settings.volumeUnit),
@@ -509,7 +528,7 @@ class _UnitsSectionContent extends ConsumerWidget {
                 const Divider(height: 1),
                 _buildUnitTile(
                   context,
-                  title: 'Weight',
+                  title: context.l10n.settings_units_weight,
                   value: settings.weightUnit.symbol,
                   onTap: () =>
                       _showWeightUnitPicker(context, ref, settings.weightUnit),
@@ -517,7 +536,7 @@ class _UnitsSectionContent extends ConsumerWidget {
                 const Divider(height: 1),
                 _buildUnitTile(
                   context,
-                  title: 'SAC Rate',
+                  title: context.l10n.settings_units_sacRate,
                   value: settings.sacUnit == SacUnit.litersPerMin
                       ? '${settings.volumeUnit.symbol}/min'
                       : '${settings.pressureUnit.symbol}/min',
@@ -528,14 +547,17 @@ class _UnitsSectionContent extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 24),
-          _buildSectionHeader(context, 'Time & Date Format'),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_units_header_timeDateFormat,
+          ),
           const SizedBox(height: 8),
           Card(
             child: Column(
               children: [
                 _buildUnitTile(
                   context,
-                  title: 'Time Format',
+                  title: context.l10n.settings_units_timeFormat,
                   value: settings.timeFormat.displayName,
                   onTap: () =>
                       _showTimeFormatPicker(context, ref, settings.timeFormat),
@@ -543,7 +565,7 @@ class _UnitsSectionContent extends ConsumerWidget {
                 const Divider(height: 1),
                 _buildUnitTile(
                   context,
-                  title: 'Date Format',
+                  title: context.l10n.settings_units_dateFormat,
                   value: settings.dateFormat.example,
                   onTap: () =>
                       _showDateFormatPicker(context, ref, settings.dateFormat),
@@ -567,16 +589,25 @@ class _UnitsSectionContent extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Quick Select', style: Theme.of(context).textTheme.titleSmall),
+            Text(
+              context.l10n.settings_units_quickSelect,
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
             const SizedBox(height: 12),
             SegmentedButton<UnitPreset>(
-              segments: const [
-                ButtonSegment(value: UnitPreset.metric, label: Text('Metric')),
+              segments: [
+                ButtonSegment(
+                  value: UnitPreset.metric,
+                  label: Text(context.l10n.settings_units_metric),
+                ),
                 ButtonSegment(
                   value: UnitPreset.imperial,
-                  label: Text('Imperial'),
+                  label: Text(context.l10n.settings_units_imperial),
                 ),
-                ButtonSegment(value: UnitPreset.custom, label: Text('Custom')),
+                ButtonSegment(
+                  value: UnitPreset.custom,
+                  label: Text(context.l10n.settings_units_custom),
+                ),
               ],
               selected: {settings.unitPreset},
               onSelectionChanged: (selected) {
@@ -631,14 +662,16 @@ class _UnitsSectionContent extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Depth Unit'),
+        title: Text(context.l10n.settings_units_dialog_depthUnit),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: DepthUnit.values.map((unit) {
             final isSelected = unit == currentUnit;
             return ListTile(
               title: Text(
-                unit == DepthUnit.meters ? 'Meters (m)' : 'Feet (ft)',
+                unit == DepthUnit.meters
+                    ? context.l10n.settings_units_depth_meters
+                    : context.l10n.settings_units_depth_feet,
               ),
               trailing: isSelected
                   ? Icon(
@@ -665,7 +698,7 @@ class _UnitsSectionContent extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Temperature Unit'),
+        title: Text(context.l10n.settings_units_dialog_temperatureUnit),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: TemperatureUnit.values.map((unit) {
@@ -673,8 +706,8 @@ class _UnitsSectionContent extends ConsumerWidget {
             return ListTile(
               title: Text(
                 unit == TemperatureUnit.celsius
-                    ? 'Celsius (°C)'
-                    : 'Fahrenheit (°F)',
+                    ? context.l10n.settings_units_temperature_celsius
+                    : context.l10n.settings_units_temperature_fahrenheit,
               ),
               trailing: isSelected
                   ? Icon(
@@ -701,13 +734,17 @@ class _UnitsSectionContent extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Pressure Unit'),
+        title: Text(context.l10n.settings_units_dialog_pressureUnit),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: PressureUnit.values.map((unit) {
             final isSelected = unit == currentUnit;
             return ListTile(
-              title: Text(unit == PressureUnit.bar ? 'Bar' : 'PSI'),
+              title: Text(
+                unit == PressureUnit.bar
+                    ? context.l10n.settings_units_pressure_bar
+                    : context.l10n.settings_units_pressure_psi,
+              ),
               trailing: isSelected
                   ? Icon(
                       Icons.check,
@@ -733,14 +770,16 @@ class _UnitsSectionContent extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Volume Unit'),
+        title: Text(context.l10n.settings_units_dialog_volumeUnit),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: VolumeUnit.values.map((unit) {
             final isSelected = unit == currentUnit;
             return ListTile(
               title: Text(
-                unit == VolumeUnit.liters ? 'Liters (L)' : 'Cubic Feet (cuft)',
+                unit == VolumeUnit.liters
+                    ? context.l10n.settings_units_volume_liters
+                    : context.l10n.settings_units_volume_cubicFeet,
               ),
               trailing: isSelected
                   ? Icon(
@@ -767,7 +806,7 @@ class _UnitsSectionContent extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Weight Unit'),
+        title: Text(context.l10n.settings_units_dialog_weightUnit),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: WeightUnit.values.map((unit) {
@@ -775,8 +814,8 @@ class _UnitsSectionContent extends ConsumerWidget {
             return ListTile(
               title: Text(
                 unit == WeightUnit.kilograms
-                    ? 'Kilograms (kg)'
-                    : 'Pounds (lbs)',
+                    ? context.l10n.settings_units_weight_kilograms
+                    : context.l10n.settings_units_weight_pounds,
               ),
               trailing: isSelected
                   ? Icon(
@@ -803,13 +842,15 @@ class _UnitsSectionContent extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('SAC Rate Unit'),
+        title: Text(context.l10n.settings_units_dialog_sacRateUnit),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              title: const Text('Volume per minute'),
-              subtitle: const Text('Requires tank volume (L/min or cuft/min)'),
+              title: Text(context.l10n.settings_units_sac_volumePerMinute),
+              subtitle: Text(
+                context.l10n.settings_units_sac_volumePerMinute_subtitle,
+              ),
               trailing: currentUnit == SacUnit.litersPerMin
                   ? Icon(
                       Icons.check,
@@ -824,9 +865,9 @@ class _UnitsSectionContent extends ConsumerWidget {
               },
             ),
             ListTile(
-              title: const Text('Pressure per minute'),
-              subtitle: const Text(
-                'No tank volume needed (bar/min or psi/min)',
+              title: Text(context.l10n.settings_units_sac_pressurePerMinute),
+              subtitle: Text(
+                context.l10n.settings_units_sac_pressurePerMinute_subtitle,
               ),
               trailing: currentUnit == SacUnit.pressurePerMin
                   ? Icon(
@@ -855,7 +896,7 @@ class _UnitsSectionContent extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Time Format'),
+        title: Text(context.l10n.settings_units_dialog_timeFormat),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: TimeFormat.values.map((format) {
@@ -888,7 +929,7 @@ class _UnitsSectionContent extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Date Format'),
+        title: Text(context.l10n.settings_units_dialog_dateFormat),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -931,13 +972,21 @@ class _DecompressionSectionContent extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader(context, 'Gradient Factors'),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_decompression_header_gradientFactors,
+          ),
           const SizedBox(height: 8),
           Card(
             child: ListTile(
               leading: const Icon(Icons.timeline),
-              title: const Text('Current Settings'),
-              subtitle: Text('GF ${settings.gfLow}/${settings.gfHigh}'),
+              title: Text(context.l10n.settings_decompression_currentSettings),
+              subtitle: Text(
+                context.l10n.settings_decompression_gfValue(
+                  settings.gfLow,
+                  settings.gfHigh,
+                ),
+              ),
               trailing: const Icon(Icons.edit),
               onTap: () => _showGradientFactorPicker(context, ref, settings),
             ),
@@ -945,11 +994,8 @@ class _DecompressionSectionContent extends ConsumerWidget {
           const SizedBox(height: 16),
           _buildInfoCard(
             context,
-            'About Gradient Factors',
-            'Gradient Factors (GF) control how conservative your decompression calculations are. '
-                'GF Low affects deep stops, while GF High affects shallow stops.\n\n'
-                'Lower values = more conservative = longer deco stops\n'
-                'Higher values = less conservative = shorter deco stops',
+            context.l10n.settings_decompression_aboutTitle,
+            context.l10n.settings_decompression_aboutContent,
           ),
         ],
       ),
@@ -989,7 +1035,10 @@ class _AppearanceSectionContent extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader(context, 'Theme'),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_appearance_header_theme,
+          ),
           const SizedBox(height: 8),
           Card(
             child: Column(
@@ -997,7 +1046,7 @@ class _AppearanceSectionContent extends ConsumerWidget {
                 final isSelected = mode == settings.themeMode;
                 return ListTile(
                   leading: Icon(_getThemeModeIcon(mode)),
-                  title: Text(_getThemeModeName(mode)),
+                  title: Text(_getThemeModeName(context, mode)),
                   trailing: isSelected
                       ? Icon(
                           Icons.check,
@@ -1012,15 +1061,20 @@ class _AppearanceSectionContent extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 24),
-          _buildSectionHeader(context, 'Dive Log'),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_appearance_header_diveLog,
+          ),
           const SizedBox(height: 8),
           Card(
             child: Column(
               children: [
                 SwitchListTile(
-                  title: const Text('Depth-colored dive cards'),
-                  subtitle: const Text(
-                    'Show dive cards with ocean-colored backgrounds based on depth',
+                  title: Text(
+                    context.l10n.settings_appearance_depthColoredCards,
+                  ),
+                  subtitle: Text(
+                    context.l10n.settings_appearance_depthColoredCards_subtitle,
                   ),
                   secondary: const Icon(Icons.gradient),
                   value: settings.showDepthColoredDiveCards,
@@ -1032,9 +1086,13 @@ class _AppearanceSectionContent extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 SwitchListTile(
-                  title: const Text('Map background on dive cards'),
-                  subtitle: const Text(
-                    'Show dive site map as background on dive cards',
+                  title: Text(
+                    context.l10n.settings_appearance_mapBackgroundDiveCards,
+                  ),
+                  subtitle: Text(
+                    context
+                        .l10n
+                        .settings_appearance_mapBackgroundDiveCards_subtitle,
                   ),
                   secondary: const Icon(Icons.map),
                   value: settings.showMapBackgroundOnDiveCards,
@@ -1048,12 +1106,21 @@ class _AppearanceSectionContent extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 24),
-          _buildSectionHeader(context, 'Dive Sites'),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_appearance_header_diveSites,
+          ),
           const SizedBox(height: 8),
           Card(
             child: SwitchListTile(
-              title: const Text('Map background on site cards'),
-              subtitle: const Text('Show map as background on dive site cards'),
+              title: Text(
+                context.l10n.settings_appearance_mapBackgroundSiteCards,
+              ),
+              subtitle: Text(
+                context
+                    .l10n
+                    .settings_appearance_mapBackgroundSiteCards_subtitle,
+              ),
               secondary: const Icon(Icons.map),
               value: settings.showMapBackgroundOnSiteCards,
               onChanged: (value) {
@@ -1064,7 +1131,10 @@ class _AppearanceSectionContent extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 24),
-          _buildSectionHeader(context, 'Dive Profile'),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_appearance_header_diveProfile,
+          ),
           const SizedBox(height: 8),
           Card(
             child: Column(
@@ -1072,8 +1142,12 @@ class _AppearanceSectionContent extends ConsumerWidget {
                 // Right Y-Axis Metric Selector
                 ListTile(
                   leading: const Icon(Icons.show_chart),
-                  title: const Text('Right Y-axis metric'),
-                  subtitle: const Text('Default metric shown on right axis'),
+                  title: Text(
+                    context.l10n.settings_appearance_rightYAxisMetric,
+                  ),
+                  subtitle: Text(
+                    context.l10n.settings_appearance_rightYAxisMetric_subtitle,
+                  ),
                   trailing: DropdownButton<ProfileRightAxisMetric>(
                     value: settings.defaultRightAxisMetric,
                     underline: const SizedBox(),
@@ -1095,9 +1169,9 @@ class _AppearanceSectionContent extends ConsumerWidget {
                 const Divider(height: 1),
                 // Markers section
                 SwitchListTile(
-                  title: const Text('Max depth marker'),
-                  subtitle: const Text(
-                    'Show a marker at the maximum depth point',
+                  title: Text(context.l10n.settings_appearance_maxDepthMarker),
+                  subtitle: Text(
+                    context.l10n.settings_appearance_maxDepthMarker_subtitle,
                   ),
                   secondary: const Icon(Icons.vertical_align_bottom),
                   value: settings.showMaxDepthMarker,
@@ -1109,9 +1183,13 @@ class _AppearanceSectionContent extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 SwitchListTile(
-                  title: const Text('Pressure threshold markers'),
-                  subtitle: const Text(
-                    'Show markers when tank pressure crosses thresholds',
+                  title: Text(
+                    context.l10n.settings_appearance_pressureThresholdMarkers,
+                  ),
+                  subtitle: Text(
+                    context
+                        .l10n
+                        .settings_appearance_pressureThresholdMarkers_subtitle,
                   ),
                   secondary: const Icon(Icons.propane_tank),
                   value: settings.showPressureThresholdMarkers,
@@ -1123,8 +1201,12 @@ class _AppearanceSectionContent extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 SwitchListTile(
-                  title: const Text('Gas switch markers'),
-                  subtitle: const Text('Show markers for gas switches'),
+                  title: Text(
+                    context.l10n.settings_appearance_gasSwitchMarkers,
+                  ),
+                  subtitle: Text(
+                    context.l10n.settings_appearance_gasSwitchMarkers_subtitle,
+                  ),
                   secondary: const Icon(Icons.swap_horiz),
                   value: settings.defaultShowGasSwitchMarkers,
                   onChanged: (value) {
@@ -1138,14 +1220,19 @@ class _AppearanceSectionContent extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           // Default Metrics Visibility
-          _buildSubsectionHeader(context, 'Default Visible Metrics'),
+          _buildSubsectionHeader(
+            context,
+            context.l10n.settings_appearance_subsection_defaultVisibleMetrics,
+          ),
           const SizedBox(height: 8),
           Card(
             child: Column(
               children: [
                 // Primary metrics
                 SwitchListTile(
-                  title: const Text('Temperature'),
+                  title: Text(
+                    context.l10n.settings_appearance_metric_temperature,
+                  ),
                   dense: true,
                   value: settings.defaultShowTemperature,
                   onChanged: (value) {
@@ -1156,7 +1243,7 @@ class _AppearanceSectionContent extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 SwitchListTile(
-                  title: const Text('Pressure'),
+                  title: Text(context.l10n.settings_appearance_metric_pressure),
                   dense: true,
                   value: settings.defaultShowPressure,
                   onChanged: (value) {
@@ -1167,7 +1254,9 @@ class _AppearanceSectionContent extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 SwitchListTile(
-                  title: const Text('Heart Rate'),
+                  title: Text(
+                    context.l10n.settings_appearance_metric_heartRate,
+                  ),
                   dense: true,
                   value: settings.defaultShowHeartRate,
                   onChanged: (value) {
@@ -1178,7 +1267,7 @@ class _AppearanceSectionContent extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 SwitchListTile(
-                  title: const Text('SAC Rate'),
+                  title: Text(context.l10n.settings_appearance_metric_sacRate),
                   dense: true,
                   value: settings.defaultShowSac,
                   onChanged: (value) {
@@ -1189,7 +1278,7 @@ class _AppearanceSectionContent extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 SwitchListTile(
-                  title: const Text('Events'),
+                  title: Text(context.l10n.settings_appearance_metric_events),
                   dense: true,
                   value: settings.defaultShowEvents,
                   onChanged: (value) {
@@ -1203,13 +1292,16 @@ class _AppearanceSectionContent extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           // Decompression metrics
-          _buildSubsectionHeader(context, 'Decompression Metrics'),
+          _buildSubsectionHeader(
+            context,
+            context.l10n.settings_appearance_subsection_decompressionMetrics,
+          ),
           const SizedBox(height: 8),
           Card(
             child: Column(
               children: [
                 SwitchListTile(
-                  title: const Text('Ceiling'),
+                  title: Text(context.l10n.settings_appearance_metric_ceiling),
                   dense: true,
                   value: settings.showCeilingOnProfile,
                   onChanged: (value) {
@@ -1220,7 +1312,9 @@ class _AppearanceSectionContent extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 SwitchListTile(
-                  title: const Text('Ascent Rate Colors'),
+                  title: Text(
+                    context.l10n.settings_appearance_metric_ascentRateColors,
+                  ),
                   dense: true,
                   value: settings.showAscentRateColors,
                   onChanged: (value) {
@@ -1231,7 +1325,7 @@ class _AppearanceSectionContent extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 SwitchListTile(
-                  title: const Text('NDL'),
+                  title: Text(context.l10n.settings_appearance_metric_ndl),
                   dense: true,
                   value: settings.showNdlOnProfile,
                   onChanged: (value) {
@@ -1242,7 +1336,7 @@ class _AppearanceSectionContent extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 SwitchListTile(
-                  title: const Text('TTS (Time to Surface)'),
+                  title: Text(context.l10n.settings_appearance_metric_tts),
                   dense: true,
                   value: settings.defaultShowTts,
                   onChanged: (value) {
@@ -1256,13 +1350,16 @@ class _AppearanceSectionContent extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           // Gas analysis metrics
-          _buildSubsectionHeader(context, 'Gas Analysis Metrics'),
+          _buildSubsectionHeader(
+            context,
+            context.l10n.settings_appearance_subsection_gasAnalysisMetrics,
+          ),
           const SizedBox(height: 8),
           Card(
             child: Column(
               children: [
                 SwitchListTile(
-                  title: const Text('ppO2'),
+                  title: Text(context.l10n.settings_appearance_metric_ppO2),
                   dense: true,
                   value: settings.defaultShowPpO2,
                   onChanged: (value) {
@@ -1273,7 +1370,7 @@ class _AppearanceSectionContent extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 SwitchListTile(
-                  title: const Text('ppN2'),
+                  title: Text(context.l10n.settings_appearance_metric_ppN2),
                   dense: true,
                   value: settings.defaultShowPpN2,
                   onChanged: (value) {
@@ -1284,7 +1381,7 @@ class _AppearanceSectionContent extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 SwitchListTile(
-                  title: const Text('ppHe'),
+                  title: Text(context.l10n.settings_appearance_metric_ppHe),
                   dense: true,
                   value: settings.defaultShowPpHe,
                   onChanged: (value) {
@@ -1295,7 +1392,9 @@ class _AppearanceSectionContent extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 SwitchListTile(
-                  title: const Text('Gas Density'),
+                  title: Text(
+                    context.l10n.settings_appearance_metric_gasDensity,
+                  ),
                   dense: true,
                   value: settings.defaultShowGasDensity,
                   onChanged: (value) {
@@ -1309,13 +1408,18 @@ class _AppearanceSectionContent extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           // Gradient factor metrics
-          _buildSubsectionHeader(context, 'Gradient Factor Metrics'),
+          _buildSubsectionHeader(
+            context,
+            context.l10n.settings_appearance_subsection_gradientFactorMetrics,
+          ),
           const SizedBox(height: 8),
           Card(
             child: Column(
               children: [
                 SwitchListTile(
-                  title: const Text('GF%'),
+                  title: Text(
+                    context.l10n.settings_appearance_metric_gfPercent,
+                  ),
                   dense: true,
                   value: settings.defaultShowGf,
                   onChanged: (value) {
@@ -1324,7 +1428,9 @@ class _AppearanceSectionContent extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 SwitchListTile(
-                  title: const Text('Surface GF'),
+                  title: Text(
+                    context.l10n.settings_appearance_metric_surfaceGf,
+                  ),
                   dense: true,
                   value: settings.defaultShowSurfaceGf,
                   onChanged: (value) {
@@ -1335,7 +1441,9 @@ class _AppearanceSectionContent extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 SwitchListTile(
-                  title: const Text('Mean Depth'),
+                  title: Text(
+                    context.l10n.settings_appearance_metric_meanDepth,
+                  ),
                   dense: true,
                   value: settings.defaultShowMeanDepth,
                   onChanged: (value) {
@@ -1369,15 +1477,22 @@ class _NotificationsSectionContent extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader(context, 'Service Reminders'),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_notifications_header_serviceReminders,
+          ),
           const SizedBox(height: 8),
           Card(
             child: Column(
               children: [
                 SwitchListTile(
-                  title: const Text('Enable Service Reminders'),
-                  subtitle: const Text(
-                    'Get notified when equipment service is due',
+                  title: Text(
+                    context.l10n.settings_notifications_enableServiceReminders,
+                  ),
+                  subtitle: Text(
+                    context
+                        .l10n
+                        .settings_notifications_enableServiceReminders_subtitle,
                   ),
                   secondary: const Icon(Icons.notifications_active),
                   value: settings.notificationsEnabled,
@@ -1388,9 +1503,11 @@ class _NotificationsSectionContent extends ConsumerWidget {
                           .requestPermission();
                       if (!granted && context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
+                          SnackBar(
                             content: Text(
-                              'Please enable notifications in system settings',
+                              context
+                                  .l10n
+                                  .settings_notifications_permissionRequired,
                             ),
                           ),
                         );
@@ -1412,9 +1529,13 @@ class _NotificationsSectionContent extends ConsumerWidget {
                             Icons.warning,
                             color: Colors.orange,
                           ),
-                          title: const Text('Notifications Disabled'),
-                          subtitle: const Text(
-                            'Enable in system settings to receive reminders',
+                          title: Text(
+                            context.l10n.settings_notifications_disabled_title,
+                          ),
+                          subtitle: Text(
+                            context
+                                .l10n
+                                .settings_notifications_disabled_subtitle,
                           ),
                           trailing: TextButton(
                             onPressed: () async {
@@ -1422,7 +1543,11 @@ class _NotificationsSectionContent extends ConsumerWidget {
                                   .requestPermission();
                               ref.invalidate(notificationPermissionProvider);
                             },
-                            child: const Text('Enable'),
+                            child: Text(
+                              context
+                                  .l10n
+                                  .settings_notifications_disabled_enableButton,
+                            ),
                           ),
                         );
                       }
@@ -1437,7 +1562,10 @@ class _NotificationsSectionContent extends ConsumerWidget {
           ),
           if (settings.notificationsEnabled) ...[
             const SizedBox(height: 24),
-            _buildSectionHeader(context, 'Reminder Schedule'),
+            _buildSectionHeader(
+              context,
+              context.l10n.settings_notifications_header_reminderSchedule,
+            ),
             const SizedBox(height: 8),
             Card(
               child: Padding(
@@ -1446,7 +1574,7 @@ class _NotificationsSectionContent extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Remind me before service is due:',
+                      context.l10n.settings_notifications_remindBeforeDue,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     const SizedBox(height: 12),
@@ -1456,7 +1584,9 @@ class _NotificationsSectionContent extends ConsumerWidget {
                         final isSelected = settings.serviceReminderDays
                             .contains(days);
                         return FilterChip(
-                          label: Text('$days days'),
+                          label: Text(
+                            context.l10n.settings_notifications_days(days),
+                          ),
                           selected: isSelected,
                           onSelected: (_) {
                             ref
@@ -1474,7 +1604,7 @@ class _NotificationsSectionContent extends ConsumerWidget {
             Card(
               child: ListTile(
                 leading: const Icon(Icons.access_time),
-                title: const Text('Reminder Time'),
+                title: Text(context.l10n.settings_notifications_reminderTime),
                 subtitle: Text(
                   '${settings.reminderTime.hour.toString().padLeft(2, '0')}:${settings.reminderTime.minute.toString().padLeft(2, '0')}',
                 ),
@@ -1485,10 +1615,8 @@ class _NotificationsSectionContent extends ConsumerWidget {
             const SizedBox(height: 16),
             _buildInfoCard(
               context,
-              'How it works',
-              'Notifications are scheduled when the app launches and refresh '
-                  'periodically in the background. You can customize reminders '
-                  'for individual equipment items in their edit screen.',
+              context.l10n.settings_notifications_howItWorks_title,
+              context.l10n.settings_notifications_howItWorks_content,
             ),
           ],
         ],
@@ -1522,31 +1650,38 @@ class _ManageSectionContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader(context, 'Manage Data'),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_manage_header_manageData,
+          ),
           const SizedBox(height: 8),
           Card(
             child: Column(
               children: [
                 ListTile(
                   leading: const Icon(Icons.label),
-                  title: const Text('Dive Types'),
-                  subtitle: const Text('Manage custom dive types'),
+                  title: Text(context.l10n.settings_manage_diveTypes),
+                  subtitle: Text(
+                    context.l10n.settings_manage_diveTypes_subtitle,
+                  ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/dive-types'),
                 ),
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.propane_tank),
-                  title: const Text('Tank Presets'),
-                  subtitle: const Text('Manage custom tank configurations'),
+                  title: Text(context.l10n.settings_manage_tankPresets),
+                  subtitle: Text(
+                    context.l10n.settings_manage_tankPresets_subtitle,
+                  ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/tank-presets'),
                 ),
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.pets),
-                  title: const Text('Species'),
-                  subtitle: const Text('Manage marine life species catalog'),
+                  title: Text(context.l10n.settings_manage_species),
+                  subtitle: Text(context.l10n.settings_manage_species_subtitle),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/species'),
                 ),
@@ -1577,16 +1712,21 @@ class _DataSectionContent extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader(context, 'Storage'),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_data_header_storage,
+          ),
           const SizedBox(height: 8),
           Card(
             child: Column(
               children: [
                 ListTile(
                   leading: const Icon(Icons.folder),
-                  title: const Text('Database Storage'),
+                  title: Text(context.l10n.settings_data_databaseStorage),
                   subtitle: Text(
-                    isCustomFolder ? 'Custom folder' : 'App default location',
+                    isCustomFolder
+                        ? context.l10n.settings_data_customFolder
+                        : context.l10n.settings_data_appDefaultLocation,
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/settings/storage'),
@@ -1594,8 +1734,10 @@ class _DataSectionContent extends ConsumerWidget {
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.cloud_download),
-                  title: const Text('Offline Maps'),
-                  subtitle: const Text('Download maps for offline use'),
+                  title: Text(context.l10n.settings_data_offlineMaps),
+                  subtitle: Text(
+                    context.l10n.settings_data_offlineMaps_subtitle,
+                  ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/settings/offline-maps'),
                 ),
@@ -1603,15 +1745,18 @@ class _DataSectionContent extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          _buildSectionHeader(context, 'Backup & Sync'),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_data_header_backupSync,
+          ),
           const SizedBox(height: 8),
           Card(
             child: Column(
               children: [
                 ListTile(
                   leading: const Icon(Icons.cloud_sync),
-                  title: const Text('Cloud Sync'),
-                  subtitle: Text(_getSyncSubtitle(syncState)),
+                  title: Text(context.l10n.settings_data_cloudSync),
+                  subtitle: Text(_getSyncSubtitle(context, syncState)),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -1641,8 +1786,8 @@ class _DataSectionContent extends ConsumerWidget {
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.backup),
-                  title: const Text('Backup'),
-                  subtitle: const Text('Create a backup of your data'),
+                  title: Text(context.l10n.settings_data_backup),
+                  subtitle: Text(context.l10n.settings_data_backup_subtitle),
                   onTap: () => _handleExport(
                     context,
                     ref,
@@ -1654,8 +1799,8 @@ class _DataSectionContent extends ConsumerWidget {
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.restore),
-                  title: const Text('Restore'),
-                  subtitle: const Text('Restore from backup'),
+                  title: Text(context.l10n.settings_data_restore),
+                  subtitle: Text(context.l10n.settings_data_restore_subtitle),
                   onTap: () => _showRestoreConfirmation(context, ref),
                 ),
               ],
@@ -1666,29 +1811,27 @@ class _DataSectionContent extends ConsumerWidget {
     );
   }
 
-  String _getSyncSubtitle(SyncState syncState) {
+  String _getSyncSubtitle(BuildContext context, SyncState syncState) {
     if (syncState.status == SyncStatus.syncing) {
-      return 'Syncing...';
+      return context.l10n.settings_data_sync_syncing;
     } else if (syncState.lastSync != null) {
-      return 'Last synced: ${_formatSyncTime(syncState.lastSync!)}';
+      return context.l10n.settings_data_sync_lastSynced(
+        _formatSyncTime(context, syncState.lastSync!),
+      );
     }
-    return 'Not configured';
+    return context.l10n.settings_data_sync_notConfigured;
   }
 
   void _showRestoreConfirmation(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Restore Backup'),
-        content: const Text(
-          'Warning: Restoring from a backup will replace ALL current data with the backup data. '
-          'This action cannot be undone.\n\n'
-          'Are you sure you want to continue?',
-        ),
+        title: Text(context.l10n.settings_data_restoreDialog_title),
+        content: Text(context.l10n.settings_data_restoreDialog_content),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.settings_data_restoreDialog_cancel),
           ),
           FilledButton(
             onPressed: () {
@@ -1702,7 +1845,7 @@ class _DataSectionContent extends ConsumerWidget {
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('Restore'),
+            child: Text(context.l10n.settings_data_restoreDialog_restore),
           ),
         ],
       ),
@@ -1718,12 +1861,12 @@ class _DataSectionContent extends ConsumerWidget {
       context: context,
       barrierDismissible: false,
       useRootNavigator: true,
-      builder: (dialogContext) => const AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         content: Row(
           children: [
-            CircularProgressIndicator(),
-            SizedBox(width: 24),
-            Text('Exporting...'),
+            const CircularProgressIndicator(),
+            const SizedBox(width: 24),
+            Text(context.l10n.settings_data_export_exporting),
           ],
         ),
       ),
@@ -1738,7 +1881,9 @@ class _DataSectionContent extends ConsumerWidget {
             final state = ref.read(exportNotifierProvider);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(state.message ?? 'Export completed'),
+                content: Text(
+                  state.message ?? context.l10n.settings_data_export_completed,
+                ),
                 backgroundColor: state.status == ExportStatus.success
                     ? Colors.green
                     : Colors.red,
@@ -1755,7 +1900,9 @@ class _DataSectionContent extends ConsumerWidget {
             Navigator.of(context, rootNavigator: true).pop();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Export failed: $e'),
+                content: Text(
+                  context.l10n.settings_data_export_failed(e.toString()),
+                ),
                 backgroundColor: Colors.red,
               ),
             );
@@ -1800,7 +1947,9 @@ class _DataSectionContent extends ConsumerWidget {
         if (state.status != ExportStatus.idle) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message ?? 'Operation completed'),
+              content: Text(
+                state.message ?? context.l10n.settings_data_import_completed,
+              ),
               backgroundColor: state.status == ExportStatus.success
                   ? Colors.green
                   : Colors.red,
@@ -1813,7 +1962,9 @@ class _DataSectionContent extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Operation failed: $e'),
+            content: Text(
+              context.l10n.settings_data_import_failed(e.toString()),
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -1833,36 +1984,38 @@ class _AboutSectionContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader(context, 'About'),
+          _buildSectionHeader(context, context.l10n.settings_about_header),
           const SizedBox(height: 8),
           Card(
             child: Column(
               children: [
                 ListTile(
                   leading: const Icon(Icons.info_outline),
-                  title: const Text('About Submersion'),
+                  title: Text(context.l10n.settings_about_aboutSubmersion),
                   onTap: () => _showAboutDialog(context),
                 ),
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.code),
-                  title: const Text('Open Source Licenses'),
+                  title: Text(context.l10n.settings_about_openSourceLicenses),
                   onTap: () {
                     showLicensePage(
                       context: context,
-                      applicationName: 'Submersion',
-                      applicationVersion: '0.1.0',
+                      applicationName: context.l10n.settings_about_appName,
+                      applicationVersion: context.l10n.settings_about_version,
                     );
                   },
                 ),
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.bug_report),
-                  title: const Text('Report an Issue'),
+                  title: Text(context.l10n.settings_about_reportIssue),
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Visit github.com/submersion/submersion'),
+                      SnackBar(
+                        content: Text(
+                          context.l10n.settings_about_reportIssue_snackbar,
+                        ),
                       ),
                     );
                   },
@@ -1885,12 +2038,12 @@ class _AboutSectionContent extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Submersion',
+                  context.l10n.settings_about_appName,
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Version 0.1.0',
+                  context.l10n.settings_about_version,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -1906,15 +2059,13 @@ class _AboutSectionContent extends StatelessWidget {
   void _showAboutDialog(BuildContext context) {
     showAboutDialog(
       context: context,
-      applicationName: 'Submersion',
-      applicationVersion: '0.1.0',
+      applicationName: context.l10n.settings_about_appName,
+      applicationVersion: context.l10n.settings_about_version,
       applicationIcon: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: Image.asset('assets/icon/icon.png', width: 64, height: 64),
       ),
-      children: const [
-        Text('Track your dives, manage gear, and explore dive sites.'),
-      ],
+      children: [Text(context.l10n.settings_about_description)],
     );
   }
 }
@@ -1977,14 +2128,14 @@ Widget _buildInfoCard(BuildContext context, String title, String content) {
   );
 }
 
-String _getThemeModeName(ThemeMode mode) {
+String _getThemeModeName(BuildContext context, ThemeMode mode) {
   switch (mode) {
     case ThemeMode.system:
-      return 'System default';
+      return context.l10n.settings_appearance_theme_system;
     case ThemeMode.light:
-      return 'Light';
+      return context.l10n.settings_appearance_theme_light;
     case ThemeMode.dark:
-      return 'Dark';
+      return context.l10n.settings_appearance_theme_dark;
   }
 }
 
@@ -1999,18 +2150,18 @@ IconData _getThemeModeIcon(ThemeMode mode) {
   }
 }
 
-String _formatSyncTime(DateTime dateTime) {
+String _formatSyncTime(BuildContext context, DateTime dateTime) {
   final now = DateTime.now();
   final difference = now.difference(dateTime);
 
   if (difference.inMinutes < 1) {
-    return 'Just now';
+    return context.l10n.settings_data_syncTime_justNow;
   } else if (difference.inHours < 1) {
-    return '${difference.inMinutes}m ago';
+    return context.l10n.settings_data_syncTime_minutesAgo(difference.inMinutes);
   } else if (difference.inDays < 1) {
-    return '${difference.inHours}h ago';
+    return context.l10n.settings_data_syncTime_hoursAgo(difference.inHours);
   } else if (difference.inDays < 7) {
-    return '${difference.inDays}d ago';
+    return context.l10n.settings_data_syncTime_daysAgo(difference.inDays);
   } else {
     return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
   }
@@ -2103,13 +2254,39 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
     });
   }
 
+  String _getPresetName(BuildContext context, GfPreset preset) {
+    switch (preset) {
+      case GfPreset.high:
+        return context.l10n.settings_gfPreset_high_name;
+      case GfPreset.medium:
+        return context.l10n.settings_gfPreset_medium_name;
+      case GfPreset.low:
+        return context.l10n.settings_gfPreset_low_name;
+      case GfPreset.custom:
+        return context.l10n.settings_gfPreset_custom_name;
+    }
+  }
+
+  String _getPresetDescription(BuildContext context, GfPreset preset) {
+    switch (preset) {
+      case GfPreset.high:
+        return context.l10n.settings_gfPreset_high_description;
+      case GfPreset.medium:
+        return context.l10n.settings_gfPreset_medium_description;
+      case GfPreset.low:
+        return context.l10n.settings_gfPreset_low_description;
+      case GfPreset.custom:
+        return context.l10n.settings_gfPreset_custom_description;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     return AlertDialog(
-      title: const Text('Gradient Factors'),
+      title: Text(context.l10n.settings_decompression_dialog_title),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -2131,7 +2308,7 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'GF Low/High control how conservative your NDL and deco calculations are.',
+                      context.l10n.settings_decompression_dialog_info,
                       style: textTheme.bodySmall,
                     ),
                   ),
@@ -2140,7 +2317,7 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Presets',
+              context.l10n.settings_decompression_dialog_presets,
               style: textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -2152,7 +2329,9 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Semantics(
                   button: true,
-                  label: 'Select ${preset.name} conservatism preset',
+                  label: context.l10n.settings_decompression_preset_selectLabel(
+                    _getPresetName(context, preset),
+                  ),
                   child: InkWell(
                     onTap: () => _selectPreset(preset),
                     borderRadius: BorderRadius.circular(8),
@@ -2177,13 +2356,13 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  preset.name,
+                                  _getPresetName(context, preset),
                                   style: textTheme.bodyMedium?.copyWith(
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
                                 Text(
-                                  preset.description,
+                                  _getPresetDescription(context, preset),
                                   style: textTheme.bodySmall?.copyWith(
                                     color: colorScheme.onSurfaceVariant,
                                   ),
@@ -2225,7 +2404,7 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
             Row(
               children: [
                 Text(
-                  'Custom Values',
+                  context.l10n.settings_decompression_dialog_customValues,
                   style: textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -2255,7 +2434,10 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
               children: [
                 SizedBox(
                   width: 60,
-                  child: Text('GF Low', style: textTheme.bodyMedium),
+                  child: Text(
+                    context.l10n.settings_decompression_dialog_gfLow,
+                    style: textTheme.bodyMedium,
+                  ),
                 ),
                 Expanded(
                   child: Slider(
@@ -2274,7 +2456,7 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
                     style: textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
-                    textAlign: TextAlign.right,
+                    textAlign: TextAlign.end,
                   ),
                 ),
               ],
@@ -2283,7 +2465,10 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
               children: [
                 SizedBox(
                   width: 60,
-                  child: Text('GF High', style: textTheme.bodyMedium),
+                  child: Text(
+                    context.l10n.settings_decompression_dialog_gfHigh,
+                    style: textTheme.bodyMedium,
+                  ),
                 ),
                 Expanded(
                   child: Slider(
@@ -2302,14 +2487,14 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
                     style: textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
-                    textAlign: TextAlign.right,
+                    textAlign: TextAlign.end,
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 8),
             Text(
-              'Lower values = more conservative (longer NDL/more deco)',
+              context.l10n.settings_decompression_dialog_conservatismHint,
               style: textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
                 fontStyle: FontStyle.italic,
@@ -2321,14 +2506,14 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.settings_decompression_dialog_cancel),
         ),
         FilledButton(
           onPressed: () {
             widget.onSave(_gfLow, _gfHigh);
             Navigator.of(context).pop();
           },
-          child: const Text('Save'),
+          child: Text(context.l10n.settings_decompression_dialog_save),
         ),
       ],
     );

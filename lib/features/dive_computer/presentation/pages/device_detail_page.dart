@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
@@ -23,19 +24,23 @@ class DeviceDetailPage extends ConsumerWidget {
       data: (computer) {
         if (computer == null) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Dive Computer')),
-            body: const Center(child: Text('Computer not found')),
+            appBar: AppBar(title: Text(context.l10n.diveComputer_title)),
+            body: Center(child: Text(context.l10n.diveComputer_error_notFound)),
           );
         }
         return _buildContent(context, ref, computer, theme);
       },
       loading: () => Scaffold(
-        appBar: AppBar(title: const Text('Dive Computer')),
+        appBar: AppBar(title: Text(context.l10n.diveComputer_title)),
         body: const Center(child: CircularProgressIndicator()),
       ),
       error: (error, stack) => Scaffold(
-        appBar: AppBar(title: const Text('Dive Computer')),
-        body: Center(child: Text('Error: $error')),
+        appBar: AppBar(title: Text(context.l10n.diveComputer_title)),
+        body: Center(
+          child: Text(
+            context.l10n.diveComputer_error_generic(error.toString()),
+          ),
+        ),
       ),
     );
   }
@@ -56,31 +61,31 @@ class DeviceDetailPage extends ConsumerWidget {
             IconButton(
               icon: const Icon(Icons.star_outline),
               onPressed: () => _setFavorite(ref, computer),
-              tooltip: 'Set as favorite',
+              tooltip: context.l10n.diveComputer_action_setFavorite,
             ),
           if (computer.isFavorite)
             IconButton(
               icon: Icon(Icons.star, color: colorScheme.primary),
               onPressed: () {},
-              tooltip: 'Favorite computer',
+              tooltip: context.l10n.diveComputer_status_favorite,
             ),
           PopupMenuButton<String>(
             onSelected: (action) =>
                 _handleMenuAction(context, ref, action, computer),
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'edit',
                 child: ListTile(
-                  leading: Icon(Icons.edit),
-                  title: Text('Edit'),
+                  leading: const Icon(Icons.edit),
+                  title: Text(context.l10n.common_action_edit),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'delete',
                 child: ListTile(
-                  leading: Icon(Icons.delete),
-                  title: Text('Delete'),
+                  leading: const Icon(Icons.delete),
+                  title: Text(context.l10n.common_action_delete),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),

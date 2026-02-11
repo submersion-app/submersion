@@ -5,6 +5,7 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
   group('TripEditPage - New Trip', () {
@@ -17,7 +18,11 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: const MaterialApp(home: TripEditPage()),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(),
+          ),
         ),
       );
 
@@ -34,7 +39,11 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: const MaterialApp(home: TripEditPage()),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(),
+          ),
         ),
       );
 
@@ -51,7 +60,11 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: const MaterialApp(home: TripEditPage()),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(),
+          ),
         ),
       );
 
@@ -70,7 +83,11 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: const MaterialApp(home: TripEditPage()),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(),
+          ),
         ),
       );
 
@@ -94,7 +111,11 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: const MaterialApp(home: TripEditPage()),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(),
+          ),
         ),
       );
 
@@ -117,7 +138,11 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: const MaterialApp(home: TripEditPage()),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(),
+          ),
         ),
       );
 
@@ -140,7 +165,11 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: const MaterialApp(home: TripEditPage()),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(),
+          ),
         ),
       );
 
@@ -163,7 +192,11 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: const MaterialApp(home: TripEditPage()),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(),
+          ),
         ),
       );
 
@@ -180,7 +213,11 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: const MaterialApp(home: TripEditPage()),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(),
+          ),
         ),
       );
 
@@ -205,7 +242,11 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: const MaterialApp(home: TripEditPage()),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(),
+          ),
         ),
       );
 
@@ -227,7 +268,11 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: const MaterialApp(home: TripEditPage()),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(),
+          ),
         ),
       );
 
@@ -255,7 +300,11 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: const MaterialApp(home: TripEditPage(tripId: 'test-id')),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(tripId: 'test-id'),
+          ),
         ),
       );
 
@@ -274,7 +323,11 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: const MaterialApp(home: TripEditPage(tripId: 'test-id')),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(tripId: 'test-id'),
+          ),
         ),
       );
 

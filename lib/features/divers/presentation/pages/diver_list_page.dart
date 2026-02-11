@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/divers/presentation/widgets/diver_list_content.dart';
@@ -24,9 +25,9 @@ class DiverListPage extends ConsumerWidget {
           context.push('/divers/new');
         }
       },
-      tooltip: 'Add a new diver profile',
+      tooltip: context.l10n.divers_list_addDiverTooltip,
       icon: const Icon(Icons.person_add),
-      label: const Text('Add Diver'),
+      label: Text(context.l10n.divers_list_addDiverButton),
     );
 
     // Desktop: Use master-detail layout

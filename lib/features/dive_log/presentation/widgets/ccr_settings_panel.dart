@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Panel for configuring CCR (Closed Circuit Rebreather) dive settings.
 ///
@@ -159,7 +160,7 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'CCR Settings',
+                  context.l10n.diveLog_ccr_title,
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: theme.colorScheme.primary,
                   ),
@@ -169,15 +170,18 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
             const SizedBox(height: 16),
 
             // Setpoints section
-            Text('Setpoints (bar)', style: theme.textTheme.titleSmall),
+            Text(
+              context.l10n.diveLog_ccr_sectionSetpoints,
+              style: theme.textTheme.titleSmall,
+            ),
             const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
                   child: TextFormField(
                     controller: _setpointLowController,
-                    decoration: const InputDecoration(
-                      labelText: 'Low (Desc/Asc)',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.diveLog_ccr_label_lowDescAsc,
                       suffixText: 'bar',
                       isDense: true,
                       hintText: '0.70',
@@ -192,8 +196,8 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
                 Expanded(
                   child: TextFormField(
                     controller: _setpointHighController,
-                    decoration: const InputDecoration(
-                      labelText: 'High (Bottom)',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.diveLog_ccr_label_highBottom,
                       suffixText: 'bar',
                       isDense: true,
                       hintText: '1.30',
@@ -208,8 +212,8 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
                 Expanded(
                   child: TextFormField(
                     controller: _setpointDecoController,
-                    decoration: const InputDecoration(
-                      labelText: 'Deco',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.diveLog_ccr_label_deco,
                       suffixText: 'bar',
                       isDense: true,
                       hintText: '1.60',
@@ -225,7 +229,10 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
             const SizedBox(height: 16),
 
             // Diluent gas section
-            Text('Diluent Gas', style: theme.textTheme.titleSmall),
+            Text(
+              context.l10n.diveLog_ccr_sectionDiluentGas,
+              style: theme.textTheme.titleSmall,
+            ),
             const SizedBox(height: 8),
             _buildDiluentTemplates(),
             const SizedBox(height: 8),
@@ -234,8 +241,8 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
                 Expanded(
                   child: TextFormField(
                     controller: _diluentO2Controller,
-                    decoration: const InputDecoration(
-                      labelText: 'O₂',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.diveLog_ccr_label_o2,
                       suffixText: '%',
                       isDense: true,
                     ),
@@ -252,8 +259,8 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
                 Expanded(
                   child: TextFormField(
                     controller: _diluentHeController,
-                    decoration: const InputDecoration(
-                      labelText: 'He',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.diveLog_ccr_label_he,
                       suffixText: '%',
                       isDense: true,
                     ),
@@ -271,8 +278,8 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
                   child: Semantics(
                     label: 'Nitrogen: ${_calculateN2()} percent',
                     child: InputDecorator(
-                      decoration: const InputDecoration(
-                        labelText: 'N₂',
+                      decoration: InputDecoration(
+                        labelText: context.l10n.diveLog_ccr_label_n2,
                         suffixText: '%',
                         isDense: true,
                       ),
@@ -285,7 +292,10 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
             const SizedBox(height: 16),
 
             // Scrubber section
-            Text('Scrubber', style: theme.textTheme.titleSmall),
+            Text(
+              context.l10n.diveLog_ccr_sectionScrubber,
+              style: theme.textTheme.titleSmall,
+            ),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -293,10 +303,10 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
                   flex: 2,
                   child: TextFormField(
                     controller: _scrubberTypeController,
-                    decoration: const InputDecoration(
-                      labelText: 'Type',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.diveLog_ccr_label_type,
                       isDense: true,
-                      hintText: 'e.g., Sofnolime',
+                      hintText: context.l10n.diveLog_ccr_hint_type,
                     ),
                     onChanged: (_) => _notifyChange(),
                   ),
@@ -305,8 +315,8 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
                 Expanded(
                   child: TextFormField(
                     controller: _scrubberDurationController,
-                    decoration: const InputDecoration(
-                      labelText: 'Rated',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.diveLog_ccr_label_rated,
                       suffixText: 'min',
                       isDense: true,
                     ),
@@ -318,8 +328,8 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
                 Expanded(
                   child: TextFormField(
                     controller: _scrubberRemainingController,
-                    decoration: const InputDecoration(
-                      labelText: 'Remaining',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.diveLog_ccr_label_remaining,
                       suffixText: 'min',
                       isDense: true,
                     ),
@@ -337,11 +347,11 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
                 Expanded(
                   child: TextFormField(
                     controller: _loopVolumeController,
-                    decoration: const InputDecoration(
-                      labelText: 'Loop Volume',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.diveLog_ccr_label_loopVolume,
                       suffixText: 'L',
                       isDense: true,
-                      hintText: 'e.g., 6.0',
+                      hintText: context.l10n.diveLog_ccr_hint_loopVolume,
                     ),
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
@@ -360,13 +370,14 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
 
   Widget _buildDiluentTemplates() {
     // Common diluent gas presets
+    final l10n = context.l10n;
     final templates = [
-      ('Air', 21.0, 0.0),
-      ('Tx 21/35', 21.0, 35.0),
-      ('Tx 18/45', 18.0, 45.0),
-      ('Tx 15/55', 15.0, 55.0),
-      ('Tx 12/60', 12.0, 60.0),
-      ('Tx 10/70', 10.0, 70.0),
+      (l10n.diveLog_ccr_diluent_air, 21.0, 0.0),
+      (l10n.gas_tmx2135_displayName, 21.0, 35.0),
+      (l10n.gas_tmx1845_displayName, 18.0, 45.0),
+      (l10n.gas_tmx1555_displayName, 15.0, 55.0),
+      (l10n.gas_diluentTx1260_displayName, 12.0, 60.0),
+      (l10n.gas_diluentTx1070_displayName, 10.0, 70.0),
     ];
 
     final currentO2 = double.tryParse(_diluentO2Controller.text) ?? 21.0;

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/features/universal_import/presentation/widgets/field_mapping_step.dart';
 import 'package:submersion/features/universal_import/presentation/widgets/file_selection_step.dart';
@@ -28,10 +29,10 @@ class UniversalImportPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Import Data'),
+        title: Text(context.l10n.universalImport_title),
         leading: IconButton(
           icon: const Icon(Icons.close),
-          tooltip: 'Close import wizard',
+          tooltip: context.l10n.universalImport_tooltip_closeWizard,
           onPressed: () {
             ref.read(universalImportNotifierProvider.notifier).reset();
             context.pop();
@@ -74,7 +75,12 @@ class _StepIndicator extends StatelessWidget {
 
     // Condense 6 steps into 4 visible dots for a cleaner UI:
     // Select(0-1) -> Map(2) -> Review(3) -> Import(4-5)
-    const labels = ['Select', 'Map', 'Review', 'Import'];
+    final labels = [
+      context.l10n.universalImport_step_select,
+      context.l10n.universalImport_step_map,
+      context.l10n.universalImport_step_review,
+      context.l10n.universalImport_step_import,
+    ];
     final mappedStep = switch (currentStep) {
       ImportWizardStep.fileSelection ||
       ImportWizardStep.sourceConfirmation => 0,

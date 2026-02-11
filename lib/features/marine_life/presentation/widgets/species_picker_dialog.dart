@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
@@ -64,13 +65,14 @@ class _SpeciesPickerDialogState extends ConsumerState<SpeciesPickerDialog> {
                       Icon(Icons.pets, color: colorScheme.primary),
                       const SizedBox(width: 8),
                       Text(
-                        'Select Species',
+                        context.l10n.marineLife_speciesPicker_title,
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const Spacer(),
                       IconButton(
                         icon: const Icon(Icons.close),
-                        tooltip: 'Close species picker',
+                        tooltip:
+                            context.l10n.marineLife_speciesPicker_closeTooltip,
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                     ],
@@ -80,12 +82,15 @@ class _SpeciesPickerDialogState extends ConsumerState<SpeciesPickerDialog> {
                   TextField(
                     controller: _searchController,
                     decoration: InputDecoration(
-                      hintText: 'Search species...',
+                      hintText:
+                          context.l10n.marineLife_speciesPicker_searchHint,
                       prefixIcon: const Icon(Icons.search),
                       suffixIcon: _searchQuery.isNotEmpty
                           ? IconButton(
                               icon: const Icon(Icons.clear),
-                              tooltip: 'Clear search',
+                              tooltip: context
+                                  .l10n
+                                  .marineLife_speciesPicker_clearSearchTooltip,
                               onPressed: () {
                                 _searchController.clear();
                                 setState(() => _searchQuery = '');
@@ -113,7 +118,9 @@ class _SpeciesPickerDialogState extends ConsumerState<SpeciesPickerDialog> {
                     child: Row(
                       children: [
                         FilterChip(
-                          label: const Text('All'),
+                          label: Text(
+                            context.l10n.marineLife_speciesPicker_allFilter,
+                          ),
                           selected: _selectedCategory == null,
                           onSelected: (selected) {
                             if (selected) {
@@ -124,7 +131,7 @@ class _SpeciesPickerDialogState extends ConsumerState<SpeciesPickerDialog> {
                         const SizedBox(width: 8),
                         ...SpeciesCategory.values.map((category) {
                           return Padding(
-                            padding: const EdgeInsets.only(right: 8),
+                            padding: const EdgeInsetsDirectional.only(end: 8),
                             child: FilterChip(
                               label: Text(category.displayName),
                               selected: _selectedCategory == category,
@@ -167,7 +174,9 @@ class _SpeciesPickerDialogState extends ConsumerState<SpeciesPickerDialog> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'No species found',
+                            context
+                                .l10n
+                                .marineLife_speciesPicker_noSpeciesFound,
                             style: Theme.of(context).textTheme.bodyLarge
                                 ?.copyWith(color: colorScheme.onSurfaceVariant),
                           ),
@@ -200,7 +209,9 @@ class _SpeciesPickerDialogState extends ConsumerState<SpeciesPickerDialog> {
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (error, _) => Center(
                   child: Text(
-                    'Error: $error',
+                    context.l10n.marineLife_speciesPicker_error(
+                      error.toString(),
+                    ),
                     style: TextStyle(color: colorScheme.error),
                   ),
                 ),
@@ -219,7 +230,9 @@ class _SpeciesPickerDialogState extends ConsumerState<SpeciesPickerDialog> {
               child: Row(
                 children: [
                   Text(
-                    '${_selectedIds.length} selected',
+                    context.l10n.marineLife_speciesPicker_selectedCount(
+                      _selectedIds.length,
+                    ),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -227,12 +240,16 @@ class _SpeciesPickerDialogState extends ConsumerState<SpeciesPickerDialog> {
                   const Spacer(),
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Cancel'),
+                    child: Text(
+                      context.l10n.marineLife_speciesPicker_cancelButton,
+                    ),
                   ),
                   const SizedBox(width: 8),
                   FilledButton(
                     onPressed: () => Navigator.of(context).pop(_selectedIds),
-                    child: const Text('Done'),
+                    child: Text(
+                      context.l10n.marineLife_speciesPicker_doneButton,
+                    ),
                   ),
                 ],
               ),

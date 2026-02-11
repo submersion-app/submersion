@@ -40,13 +40,11 @@ This document contains only the features and tasks that are **not yet completed*
 ### 2.2 Multi-Profile Support
 | Feature | Notes |
 |---------|-------|
-| Profile comparison (buddies) | Side-by-side view |
 | Profile merging | Combine multiple sources |
 | Multi-transmitter support | Track multiple tank transmitters (sidemount) |
 
 **Tasks:**
 - [ ] Side-by-side profile comparison view
-- [ ] Buddy profile import (from shared UDDF)
 
 ### 2.3 Profile Editing
 | Feature | Notes |
@@ -86,21 +84,6 @@ This document contains only the features and tasks that are **not yet completed*
 - [ ] Repetitive dive planner with tissue loading from previous dive
 - [ ] "Extend dive" tool (add 5 mins at depth, recalculate deco)
 - [ ] "Add safety" tool (extend safety stop, add deep stop)
-
----
-
-## Category 5: Locations, Dive Sites & Maps
-
-### 5.4 External Data Sources
-| Feature | Notes |
-|---------|-------|
-| Online dive site database lookup | Import from community sources |
-| Dive site reviews | User-generated content |
-
-**Tasks:**
-- [ ] Integration with public dive site APIs (e.g., Open Dive Sites, PADI Travel)
-- [ ] Import site details from online sources
-- [ ] User reviews and ratings (requires backend)
 
 ---
 
@@ -258,17 +241,12 @@ This document contains only the features and tasks that are **not yet completed*
 ### 13.2 Interoperability
 | Feature | Notes |
 |---------|-------|
-| Upload to divelogs.de | API integration |
-| Garmin Connect integration | Import Garmin watch dives |
 | Shearwater Cloud import | Import from Shearwater cloud |
 | Suunto app import | Import via Suunto cloud/Movescount |
 | Diviac import | Import from Diviac online logbook |
 | Deepblu import | Import from Deepblu platform |
 
 **Tasks:**
-- [ ] divelogs.de API integration (upload/download dives)
-- [ ] Garmin Connect API (import dive activity FIT files)
-- [ ] Automatic conversion from Garmin Descent dive computers
 - [ ] Shearwater Cloud API integration
 - [ ] Suunto app/Movescount API integration
 - [ ] Diviac API integration
@@ -304,19 +282,6 @@ This document contains only the features and tasks that are **not yet completed*
 - [ ] Customizable dive list columns (user selects which fields to show)
 - [ ] Theme editor (custom colors, fonts)
 - [ ] Layout presets (Compact, Detailed, Photo-focused)
-
-### 15.3 Accessibility & Localization
-| Feature | Notes |
-|---------|-------|
-| Multi-language support | i18n with ARB files |
-| High contrast themes | Accessibility feature |
-
-**Tasks:**
-- [ ] flutter_localizations integration
-- [ ] ARB files for: English, Spanish, French, German, Italian, Dutch, Portuguese
-- [ ] Localized date/time/number formats
-- [ ] RTL language support (Arabic, Hebrew)
-- [ ] Translation management workflow (POEditor, Crowdin)
 
 ### 15.4 Gamification & Achievements
 | Feature | Notes |
@@ -368,18 +333,11 @@ This document contains only the features and tasks that are **not yet completed*
 | Feature | Notes |
 |---------|-------|
 | Shearwater Cloud sync | API integration |
-| Garmin Dive sync | Import from Garmin |
 | PADI eCard integration | Display PADI certs |
 
 **Tasks:**
 - [ ] Shearwater Cloud API (import dives from cloud)
-- [ ] Garmin Connect API (import Descent dive activities)
 - [ ] PADI app integration (OAuth, fetch eCards)
-
----
-
-## v2.0 Release Criteria
-- [ ] 7+ language translations
 
 ---
 
@@ -389,14 +347,10 @@ This document contains only the features and tasks that are **not yet completed*
 
 | Phase | Remaining Features | Remaining Tasks |
 |-------|-------------------|-----------------|
-| **v1.5** | 0 features | 1 task (performance testing) |
 | **v2.0** | ~65+ features | ~105+ tasks |
 | **v3.0** | ~4 features | Future scope |
 
-## v1.5 Priority Areas
-1. Performance testing with large datasets (5000+ dives)
-
 ---
 
-**Document Version:** 2.9
-**Updated:** 2026-02-09 (Removed completed 15.3 Accessibility & Keyboard Navigation from v1.5; all v1.5 feature tasks complete)
+**Document Version:** 3.0
+**Updated:** 2026-02-10 (Section 15.3 i18n complete: 10 languages, 3,931 ARB keys, RTL support, locale-aware formatting)

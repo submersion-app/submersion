@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Dialog for managing dive numbering - detecting gaps and renumbering dives
 class DiveNumberingDialog extends ConsumerStatefulWidget {
@@ -40,7 +41,7 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    'Dive Numbering',
+                    context.l10n.diveLog_numbering_title,
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                 ],
@@ -60,7 +61,7 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Close'),
+                    child: Text(context.l10n.diveLog_numbering_close),
                   ),
                 ],
               ),
@@ -83,7 +84,7 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
           // Gaps section
           if (info.hasGaps) ...[
             Text(
-              'Gaps Detected',
+              context.l10n.diveLog_numbering_gapsDetected,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
@@ -110,7 +111,9 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        '${info.unnumberedDives} dive(s) without numbers',
+                        context.l10n.diveLog_numbering_unnumberedDives(
+                          info.unnumberedDives,
+                        ),
                         style: TextStyle(
                           color: Theme.of(
                             context,
@@ -126,7 +129,10 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
           ],
 
           // Actions
-          Text('Actions', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            context.l10n.diveLog_numbering_actions,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 8),
           _buildActionsCard(context, info),
         ],
@@ -161,13 +167,16 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
                 children: [
                   Text(
                     isHealthy
-                        ? 'All dives numbered correctly'
-                        : 'Issues detected',
+                        ? context.l10n.diveLog_numbering_allCorrect
+                        : context.l10n.diveLog_numbering_issuesDetected,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${info.totalDives} total dives • ${info.numberedDives} numbered',
+                    context.l10n.diveLog_numbering_summary(
+                      info.totalDives,
+                      info.numberedDives,
+                    ),
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ],
@@ -186,7 +195,8 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
         child: Column(
           children: gaps.take(10).map((gap) {
             return Semantics(
-              label: '${gap.description}, ${gap.count} missing',
+              label:
+                  '${gap.description}, ${context.l10n.diveLog_numbering_missingCount(gap.count)}',
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Row(
@@ -202,7 +212,7 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
                     Text(gap.description),
                     const Spacer(),
                     Text(
-                      '${gap.count} missing',
+                      context.l10n.diveLog_numbering_missingCount(gap.count),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -229,9 +239,9 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.add_circle_outline),
-                title: const Text('Assign missing numbers'),
-                subtitle: const Text(
-                  'Number unnumbered dives starting after the last numbered dive',
+                title: Text(context.l10n.diveLog_numbering_assignMissing),
+                subtitle: Text(
+                  context.l10n.diveLog_numbering_assignMissingDesc,
                 ),
                 trailing: _isRenumbering
                     ? const SizedBox(
@@ -249,10 +259,8 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.format_list_numbered),
-              title: const Text('Renumber all dives'),
-              subtitle: const Text(
-                'Assign sequential numbers based on dive date/time',
-              ),
+              title: Text(context.l10n.diveLog_numbering_renumberAll),
+              subtitle: Text(context.l10n.diveLog_numbering_renumberAllDesc),
               trailing: _isRenumbering
                   ? const SizedBox(
                       width: 24,
@@ -278,7 +286,9 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
       ref.invalidate(paginatedDiveListProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Missing dive numbers assigned')),
+          SnackBar(
+            content: Text(context.l10n.diveLog_numbering_snackbar_assigned),
+          ),
         );
       }
     } catch (e) {
@@ -296,20 +306,18 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
     final result = await showDialog<int>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Renumber All Dives'),
+        title: Text(context.l10n.diveLog_numbering_renumberDialog_title),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'This will renumber all dives sequentially based on their entry date/time. '
-              'This action cannot be undone.',
-            ),
+            Text(context.l10n.diveLog_numbering_renumberDialog_content),
             const SizedBox(height: 16),
             TextField(
-              decoration: const InputDecoration(
-                labelText: 'Start from number',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText:
+                    context.l10n.diveLog_numbering_renumberDialog_startFrom,
+                border: const OutlineInputBorder(),
               ),
               keyboardType: TextInputType.number,
               controller: TextEditingController(text: _startFrom.toString()),
@@ -325,11 +333,11 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.diveLog_numbering_renumberDialog_cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(_startFrom),
-            child: const Text('Renumber'),
+            child: Text(context.l10n.diveLog_numbering_renumberDialog_renumber),
           ),
         ],
       ),
@@ -351,7 +359,9 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('All dives renumbered starting from #$startFrom'),
+            content: Text(
+              context.l10n.diveLog_numbering_snackbar_renumbered(startFrom),
+            ),
           ),
         );
       }

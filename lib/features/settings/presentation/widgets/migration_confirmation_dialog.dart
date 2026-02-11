@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Dialog to confirm database migration between locations
 class MigrationConfirmationDialog extends StatelessWidget {
@@ -18,14 +19,14 @@ class MigrationConfirmationDialog extends StatelessWidget {
     final theme = Theme.of(context);
 
     return AlertDialog(
-      title: const Text('Move Database?'),
+      title: Text(context.l10n.settings_migration_dialog_title),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Your database will be moved:',
+              context.l10n.settings_migration_dialog_message,
               style: theme.textTheme.bodyMedium,
             ),
             const SizedBox(height: 16),
@@ -33,7 +34,7 @@ class MigrationConfirmationDialog extends StatelessWidget {
             // From path
             _buildPathSection(
               context,
-              label: 'From',
+              label: context.l10n.settings_migration_from,
               path: fromPath,
               icon: Icons.folder_open,
             ),
@@ -50,7 +51,7 @@ class MigrationConfirmationDialog extends StatelessWidget {
             // To path
             _buildPathSection(
               context,
-              label: 'To',
+              label: context.l10n.settings_migration_to,
               path: toPath,
               icon: Icons.folder,
             ),
@@ -77,7 +78,7 @@ class MigrationConfirmationDialog extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'A backup will be created before the move. Your data will not be lost.',
+                      context.l10n.settings_migration_backupInfo,
                       style: theme.textTheme.bodySmall,
                     ),
                   ),
@@ -108,7 +109,7 @@ class MigrationConfirmationDialog extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'App-managed cloud sync will be disabled. Your folder\'s sync service will handle synchronization.',
+                        context.l10n.settings_migration_cloudSyncWarning,
                         style: theme.textTheme.bodySmall,
                       ),
                     ),
@@ -122,11 +123,11 @@ class MigrationConfirmationDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.settings_migration_cancel),
         ),
         FilledButton(
           onPressed: () => Navigator.of(context).pop(true),
-          child: const Text('Move Database'),
+          child: Text(context.l10n.settings_migration_moveDatabase),
         ),
       ],
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_ecard_stack.dart';
@@ -38,7 +39,7 @@ class _CertificationWalletPageState
             children: [
               ListTile(
                 leading: const Icon(Icons.share),
-                title: const Text('Share'),
+                title: Text(context.l10n.certifications_wallet_options_share),
                 onTap: () {
                   Navigator.pop(context);
                   _showShareSheet(context, certification);
@@ -46,7 +47,9 @@ class _CertificationWalletPageState
               ),
               ListTile(
                 leading: const Icon(Icons.visibility),
-                title: const Text('View Details'),
+                title: Text(
+                  context.l10n.certifications_wallet_options_viewDetails,
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   context.push('/certifications/${certification.id}');
@@ -54,7 +57,7 @@ class _CertificationWalletPageState
               ),
               ListTile(
                 leading: const Icon(Icons.edit),
-                title: const Text('Edit'),
+                title: Text(context.l10n.certifications_wallet_options_edit),
                 onTap: () {
                   Navigator.pop(context);
                   context.push('/certifications/${certification.id}/edit');
@@ -87,11 +90,11 @@ class _CertificationWalletPageState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Certification Wallet'),
+        title: Text(context.l10n.certifications_wallet_appBar_title),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            tooltip: 'Add certification',
+            tooltip: context.l10n.certifications_wallet_tooltip_add,
             onPressed: () => context.push('/certifications/new'),
           ),
         ],
@@ -131,7 +134,7 @@ class _CertificationWalletPageState
           if (certifications.isEmpty) return null;
 
           return FloatingActionButton(
-            tooltip: 'Share certification',
+            tooltip: context.l10n.certifications_wallet_tooltip_share,
             onPressed: () {
               final index = _currentIndex.clamp(0, certifications.length - 1);
               _showShareSheet(context, certifications[index]);
@@ -157,7 +160,7 @@ class _CertificationWalletPageState
             Icon(Icons.error_outline, size: 64, color: theme.colorScheme.error),
             const SizedBox(height: 16),
             Text(
-              'Failed to load certifications',
+              context.l10n.certifications_wallet_error_title,
               style: theme.textTheme.titleLarge?.copyWith(
                 color: theme.colorScheme.onSurface,
               ),
@@ -176,7 +179,7 @@ class _CertificationWalletPageState
                 ref.invalidate(certificationListNotifierProvider);
               },
               icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
+              label: Text(context.l10n.certifications_wallet_error_retry),
             ),
           ],
         ),

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A compact dive profile chart overlay for the photo viewer.
 ///
@@ -43,7 +44,7 @@ class MiniDiveProfileOverlay extends StatelessWidget {
     }
 
     return Semantics(
-      label: 'Mini dive profile chart',
+      label: context.l10n.media_miniProfile_semanticLabel,
       child: GestureDetector(
         onTap: onTap,
         child: Container(
@@ -85,7 +86,7 @@ class MiniDiveProfileOverlay extends StatelessWidget {
         ),
         const SizedBox(width: 4),
         Text(
-          'Dive Profile',
+          context.l10n.media_miniProfile_headerLabel,
           style: TextStyle(
             color: Colors.white.withValues(alpha: 0.7),
             fontSize: 10,

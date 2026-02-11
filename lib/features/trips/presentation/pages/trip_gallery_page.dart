@@ -10,6 +10,7 @@ import 'package:submersion/features/media/presentation/pages/trip_photo_viewer_p
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/scan_results_dialog.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_media_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 
@@ -26,11 +27,11 @@ class TripGalleryPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Trip Photos'),
+        title: Text(context.l10n.trips_gallery_appBar_title),
         actions: [
           IconButton(
             icon: const Icon(Icons.photo_camera),
-            tooltip: 'Scan device gallery',
+            tooltip: context.l10n.trips_gallery_tooltip_scan,
             onPressed: () => _showScanDialog(context, ref),
           ),
         ],
@@ -47,8 +48,9 @@ class TripGalleryPage extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) =>
-            Center(child: Text('Error loading photos: $error')),
+        error: (error, stack) => Center(
+          child: Text(context.l10n.trips_gallery_error_loading('$error')),
+        ),
       ),
     );
   }
@@ -67,9 +69,9 @@ class TripGalleryPage extends ConsumerWidget {
       if (trip == null) {
         if (context.mounted) Navigator.of(context).pop();
         if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Trip not found')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(context.l10n.trips_gallery_tripNotFound)),
+          );
         }
         return;
       }
@@ -80,7 +82,7 @@ class TripGalleryPage extends ConsumerWidget {
         if (context.mounted) Navigator.of(context).pop();
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Add dives first to link photos')),
+            SnackBar(content: Text(context.l10n.trips_gallery_addDivesFirst)),
           );
         }
         return;
@@ -112,7 +114,7 @@ class TripGalleryPage extends ConsumerWidget {
 
       if (result == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Photo library access denied')),
+          SnackBar(content: Text(context.l10n.trips_gallery_accessDenied)),
         );
         return;
       }
@@ -131,9 +133,11 @@ class TripGalleryPage extends ConsumerWidget {
     } catch (e) {
       if (context.mounted) Navigator.of(context).pop();
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error scanning: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.trips_gallery_errorScanning('$e')),
+          ),
+        );
       }
     }
   }
@@ -147,12 +151,12 @@ class TripGalleryPage extends ConsumerWidget {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const AlertDialog(
+      builder: (_) => AlertDialog(
         content: Row(
           children: [
-            CircularProgressIndicator(),
-            SizedBox(width: 16),
-            Text('Linking photos...'),
+            const CircularProgressIndicator(),
+            const SizedBox(width: 16),
+            Text(context.l10n.trips_gallery_linkingPhotos),
           ],
         ),
       ),
@@ -186,15 +190,19 @@ class TripGalleryPage extends ConsumerWidget {
       if (!context.mounted) return;
       Navigator.of(context).pop(); // Dismiss progress
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Linked $totalImported photos')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.l10n.trips_gallery_linkedPhotos(totalImported)),
+        ),
+      );
     } catch (e) {
       if (context.mounted) Navigator.of(context).pop();
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error linking photos: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.trips_gallery_errorLinking('$e')),
+          ),
+        );
       }
     }
   }
@@ -222,7 +230,7 @@ class _EmptyGallery extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'No photos in this trip',
+              context.l10n.trips_gallery_empty_title,
               style: textTheme.titleLarge?.copyWith(
                 color: colorScheme.onSurface,
               ),
@@ -230,7 +238,7 @@ class _EmptyGallery extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Tap the camera icon to scan your gallery',
+              context.l10n.trips_gallery_empty_subtitle,
               style: textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -288,7 +296,8 @@ class _DivePhotoSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat.MMMd();
-    final siteName = dive.site?.name ?? 'Unknown Site';
+    final siteName =
+        dive.site?.name ?? context.l10n.trips_detail_dives_unknownSite;
     final diveNumber = dive.diveNumber ?? '-';
     final photoCount = media.length;
     final photoLabel = photoCount == 1 ? 'photo' : 'photos';

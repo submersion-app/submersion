@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
+
 /// A toggle button for switching between list/detail view and map view.
 ///
 /// Shows a map icon that is highlighted when map view is active.
@@ -28,7 +30,9 @@ class MapViewToggleButton extends StatelessWidget {
       toggled: isActive,
       child: IconButton(
         icon: Icon(Icons.map, size: iconSize),
-        tooltip: isActive ? 'Hide Map View' : 'Show Map View',
+        tooltip: isActive
+            ? context.l10n.accessibility_label_hideMapView
+            : context.l10n.accessibility_label_showMapView,
         onPressed: onToggle,
         style: isActive
             ? IconButton.styleFrom(

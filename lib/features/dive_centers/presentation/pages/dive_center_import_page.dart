@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_centers/data/services/dive_center_api_service.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
@@ -56,9 +57,11 @@ class _DiveCenterImportPageState extends ConsumerState<DiveCenterImportPage> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Imported "${center.name}"'),
+          content: Text(
+            context.l10n.diveCenters_snackbar_imported(center.name),
+          ),
           action: SnackBarAction(
-            label: 'View',
+            label: context.l10n.diveCenters_action_view,
             onPressed: () {
               context.push('/centers/${importedCenter.id}');
             },
@@ -68,7 +71,7 @@ class _DiveCenterImportPageState extends ConsumerState<DiveCenterImportPage> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Failed to import dive center'),
+          content: Text(context.l10n.diveCenters_error_importFailed),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -82,7 +85,7 @@ class _DiveCenterImportPageState extends ConsumerState<DiveCenterImportPage> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Import Dive Center')),
+      appBar: AppBar(title: Text(context.l10n.diveCenters_title_import)),
       body: Column(
         children: [
           // Search bar
@@ -92,7 +95,7 @@ class _DiveCenterImportPageState extends ConsumerState<DiveCenterImportPage> {
               controller: _searchController,
               focusNode: _focusNode,
               decoration: InputDecoration(
-                hintText: 'Search dive centers (e.g., "PADI", "Thailand")',
+                hintText: context.l10n.diveCenters_hint_importSearch,
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: searchState.isLoading
                     ? const Padding(
@@ -106,7 +109,7 @@ class _DiveCenterImportPageState extends ConsumerState<DiveCenterImportPage> {
                     : _searchController.text.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear),
-                        tooltip: 'Clear search',
+                        tooltip: context.l10n.diveCenters_tooltip_clearSearch,
                         onPressed: () {
                           _searchController.clear();
                           ref
@@ -202,10 +205,13 @@ class _DiveCenterImportPageState extends ConsumerState<DiveCenterImportPage> {
             children: [
               Icon(Icons.error_outline, size: 64, color: colorScheme.error),
               const SizedBox(height: 16),
-              Text('Search Error', style: theme.textTheme.titleLarge),
+              Text(
+                context.l10n.diveCenters_import_searchError,
+                style: theme.textTheme.titleLarge,
+              ),
               const SizedBox(height: 8),
               Text(
-                state.errorMessage ?? 'Unknown error',
+                state.errorMessage ?? context.l10n.diveCenters_error_unknown,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
@@ -215,7 +221,7 @@ class _DiveCenterImportPageState extends ConsumerState<DiveCenterImportPage> {
               FilledButton.icon(
                 onPressed: _onSearch,
                 icon: const Icon(Icons.refresh),
-                label: const Text('Retry'),
+                label: Text(context.l10n.diveCenters_action_retry),
               ),
             ],
           ),
@@ -242,11 +248,13 @@ class _DiveCenterImportPageState extends ConsumerState<DiveCenterImportPage> {
                 color: colorScheme.primary.withValues(alpha: 0.5),
               ),
               const SizedBox(height: 24),
-              Text('Search Dive Centers', style: theme.textTheme.titleLarge),
+              Text(
+                context.l10n.diveCenters_import_searchTitle,
+                style: theme.textTheme.titleLarge,
+              ),
               const SizedBox(height: 8),
               Text(
-                'Search for dive centers, shops, and clubs from our\n'
-                'database of operators around the world.',
+                context.l10n.diveCenters_import_searchDescription,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
@@ -254,7 +262,7 @@ class _DiveCenterImportPageState extends ConsumerState<DiveCenterImportPage> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Try searching by name, country, or certification agency.',
+                context.l10n.diveCenters_import_searchHint,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
@@ -280,11 +288,13 @@ class _DiveCenterImportPageState extends ConsumerState<DiveCenterImportPage> {
                 color: colorScheme.onSurfaceVariant,
               ),
               const SizedBox(height: 16),
-              Text('No Results', style: theme.textTheme.titleLarge),
+              Text(
+                context.l10n.diveCenters_import_noResults,
+                style: theme.textTheme.titleLarge,
+              ),
               const SizedBox(height: 8),
               Text(
-                'No dive centers found for "${state.query}".\n'
-                'Try a different search term.',
+                context.l10n.diveCenters_import_noResultsMessage(state.query),
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
@@ -309,7 +319,9 @@ class _DiveCenterImportPageState extends ConsumerState<DiveCenterImportPage> {
                 Icon(Icons.folder, size: 20, color: colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
-                  'My Centers (${state.localCenters.length})',
+                  context.l10n.diveCenters_import_myCenters(
+                    state.localCenters.length,
+                  ),
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: colorScheme.primary,
@@ -333,7 +345,9 @@ class _DiveCenterImportPageState extends ConsumerState<DiveCenterImportPage> {
                 Icon(Icons.public, size: 20, color: colorScheme.secondary),
                 const SizedBox(width: 8),
                 Text(
-                  'Import from Database (${state.centers.length})',
+                  context.l10n.diveCenters_import_fromDatabase(
+                    state.centers.length,
+                  ),
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: colorScheme.secondary,
@@ -365,7 +379,7 @@ class _QuickSearchChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsetsDirectional.only(end: 8),
       child: ActionChip(label: Text(label), onPressed: onTap),
     );
   }
@@ -387,7 +401,9 @@ class _LocalCenterCard extends StatelessWidget {
       color: colorScheme.primaryContainer.withValues(alpha: 0.3),
       child: Semantics(
         button: true,
-        label: 'View saved dive center ${center.name}',
+        label: context.l10n.diveCenters_accessibility_viewSavedCenter(
+          center.name,
+        ),
         child: InkWell(
           onTap: () => context.push('/centers/${center.id}'),
           borderRadius: BorderRadius.circular(12),
@@ -421,7 +437,8 @@ class _LocalCenterCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        center.fullLocationString ?? 'Location not set',
+                        center.fullLocationString ??
+                            context.l10n.diveCenters_label_locationNotSet,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -471,7 +488,7 @@ class _LocalCenterCard extends StatelessWidget {
                       Icon(Icons.check, size: 16, color: colorScheme.onPrimary),
                       const SizedBox(width: 4),
                       Text(
-                        'Saved',
+                        context.l10n.diveCenters_label_saved,
                         style: theme.textTheme.labelMedium?.copyWith(
                           color: colorScheme.onPrimary,
                         ),
@@ -508,7 +525,7 @@ class _DiveCenterCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       child: Semantics(
         button: true,
-        label: 'View details for ${center.name}',
+        label: context.l10n.diveCenters_accessibility_viewDetails(center.name),
         child: InkWell(
           onTap: () => _showDetails(context),
           borderRadius: BorderRadius.circular(12),
@@ -548,7 +565,11 @@ class _DiveCenterCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            _buildLocationText(),
+                            _buildLocationText().isNotEmpty
+                                ? _buildLocationText()
+                                : context
+                                      .l10n
+                                      .diveCenters_label_locationUnknown,
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),
@@ -578,7 +599,7 @@ class _DiveCenterCard extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              'Imported',
+                              context.l10n.diveCenters_label_imported,
                               style: theme.textTheme.labelMedium?.copyWith(
                                 color: colorScheme.primary,
                               ),
@@ -589,7 +610,7 @@ class _DiveCenterCard extends StatelessWidget {
                     else
                       FilledButton.tonal(
                         onPressed: onImport,
-                        child: const Text('Import'),
+                        child: Text(context.l10n.diveCenters_action_import),
                       ),
                   ],
                 ),
@@ -686,7 +707,7 @@ class _DiveCenterCard extends StatelessWidget {
     if (center.country != null && center.country!.isNotEmpty) {
       parts.add(center.country!);
     }
-    return parts.isNotEmpty ? parts.join(', ') : 'Location unknown';
+    return parts.isNotEmpty ? parts.join(', ') : '';
   }
 
   void _showDetails(BuildContext context) {
@@ -733,7 +754,9 @@ class _DiveCenterCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    _buildLocationText(),
+                    _buildLocationText().isNotEmpty
+                        ? _buildLocationText()
+                        : context.l10n.diveCenters_label_locationUnknown,
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -767,7 +790,7 @@ class _DiveCenterCard extends StatelessWidget {
                       center.website != null) ...[
                     const SizedBox(height: 24),
                     Text(
-                      'Contact',
+                      context.l10n.diveCenters_section_contact,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -800,7 +823,7 @@ class _DiveCenterCard extends StatelessWidget {
 
                   // Source
                   Text(
-                    'Source: ${center.source}',
+                    context.l10n.diveCenters_label_source(center.source),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -817,7 +840,9 @@ class _DiveCenterCard extends StatelessWidget {
                           onImport();
                         },
                         icon: const Icon(Icons.download),
-                        label: const Text('Import to My Centers'),
+                        label: Text(
+                          context.l10n.diveCenters_action_importToMyCenters,
+                        ),
                       ),
                     )
                   else
@@ -830,7 +855,9 @@ class _DiveCenterCard extends StatelessWidget {
                           children: [
                             Icon(Icons.check, color: colorScheme.primary),
                             const SizedBox(width: 8),
-                            const Text('Already Imported'),
+                            Text(
+                              context.l10n.diveCenters_label_alreadyImported,
+                            ),
                           ],
                         ),
                       ),

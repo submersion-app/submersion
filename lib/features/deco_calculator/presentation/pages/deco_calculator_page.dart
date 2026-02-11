@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -26,18 +27,18 @@ class DecoCalculatorPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Deco Calculator'),
+        title: Text(context.l10n.decoCalculator_title),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () => resetCalculator(ref),
-            tooltip: 'Reset to defaults',
+            tooltip: context.l10n.decoCalculator_resetToDefaults,
           ),
           Tooltip(
-            message: 'Create a dive plan from current parameters',
+            message: context.l10n.decoCalculator_createPlanTooltip,
             child: TextButton.icon(
               icon: const Icon(Icons.edit_calendar),
-              label: const Text('Add to Planner'),
+              label: Text(context.l10n.decoCalculator_addToPlanner),
               onPressed: () => _addToPlan(context, ref),
             ),
           ),
@@ -56,7 +57,7 @@ class DecoCalculatorPage extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Dive Parameters',
+                      context.l10n.decoCalculator_diveParameters,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -117,7 +118,12 @@ class DecoCalculatorPage extends ConsumerWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Created plan: ${displayDepth.toStringAsFixed(0)}${units.depthSymbol} for ${time}min on ${gasMix.name}',
+          context.l10n.decoCalculator_createdPlanSnackbar(
+            displayDepth.toStringAsFixed(0),
+            units.depthSymbol,
+            time.toString(),
+            gasMix.name,
+          ),
         ),
         duration: const Duration(seconds: 2),
       ),

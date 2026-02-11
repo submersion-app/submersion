@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 class SpeciesManagePage extends ConsumerStatefulWidget {
   const SpeciesManagePage({super.key});
@@ -23,10 +24,10 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Species'),
+        title: Text(context.l10n.marineLife_speciesManage_appBarTitle),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          tooltip: 'Back',
+          tooltip: context.l10n.marineLife_speciesManage_backTooltip,
           onPressed: () => context.pop(),
         ),
         actions: [
@@ -37,9 +38,11 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'reset',
-                child: Text('Reset to Defaults'),
+                child: Text(
+                  context.l10n.marineLife_speciesManage_resetToDefaults,
+                ),
               ),
             ],
           ),
@@ -70,14 +73,15 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       child: TextField(
         decoration: InputDecoration(
-          hintText: 'Search species...',
+          hintText: context.l10n.marineLife_speciesManage_searchHint,
           prefixIcon: const Icon(Icons.search),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           isDense: true,
           suffixIcon: _searchQuery.isNotEmpty
               ? IconButton(
                   icon: const Icon(Icons.clear),
-                  tooltip: 'Clear search',
+                  tooltip:
+                      context.l10n.marineLife_speciesManage_clearSearchTooltip,
                   onPressed: () => setState(() => _searchQuery = ''),
                 )
               : null,
@@ -101,7 +105,7 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
           const SizedBox(width: 8),
           ...SpeciesCategory.values.map((category) {
             return Padding(
-              padding: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsetsDirectional.only(end: 8),
               child: FilterChip(
                 label: Text(category.displayName),
                 selected: _selectedCategory == category,

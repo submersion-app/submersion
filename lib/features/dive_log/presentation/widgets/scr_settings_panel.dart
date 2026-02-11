@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Panel for configuring SCR (Semi-Closed Rebreather) dive settings.
 ///
@@ -209,7 +210,7 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'SCR Settings',
+                  context.l10n.diveLog_scr_title,
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: theme.colorScheme.primary,
                   ),
@@ -219,7 +220,10 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
             const SizedBox(height: 16),
 
             // SCR Type selector
-            Text('SCR Type', style: theme.textTheme.titleSmall),
+            Text(
+              context.l10n.diveLog_scr_sectionScrType,
+              style: theme.textTheme.titleSmall,
+            ),
             const SizedBox(height: 8),
             SegmentedButton<ScrType>(
               segments: ScrType.values.map((type) {
@@ -248,7 +252,10 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
             const SizedBox(height: 16),
 
             // Supply gas section (common to all types)
-            Text('Supply Gas', style: theme.textTheme.titleSmall),
+            Text(
+              context.l10n.diveLog_scr_sectionSupplyGas,
+              style: theme.textTheme.titleSmall,
+            ),
             const SizedBox(height: 8),
             _buildSupplyGasTemplates(),
             const SizedBox(height: 8),
@@ -257,8 +264,8 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
                 Expanded(
                   child: TextFormField(
                     controller: _supplyO2Controller,
-                    decoration: const InputDecoration(
-                      labelText: 'O₂',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.diveLog_ccr_label_o2,
                       suffixText: '%',
                       isDense: true,
                     ),
@@ -275,8 +282,8 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
                 Expanded(
                   child: TextFormField(
                     controller: _supplyHeController,
-                    decoration: const InputDecoration(
-                      labelText: 'He',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.diveLog_ccr_label_he,
                       suffixText: '%',
                       isDense: true,
                     ),
@@ -294,8 +301,8 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
                   child: Semantics(
                     label: 'Nitrogen: ${_calculateN2()} percent',
                     child: InputDecorator(
-                      decoration: const InputDecoration(
-                        labelText: 'N₂',
+                      decoration: InputDecoration(
+                        labelText: context.l10n.diveLog_ccr_label_n2,
                         suffixText: '%',
                         isDense: true,
                       ),
@@ -309,7 +316,7 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
 
             // Loop O₂ measurements (optional)
             Text(
-              'Measured Loop O₂ (optional)',
+              context.l10n.diveLog_scr_sectionMeasuredLoopO2,
               style: theme.textTheme.titleSmall,
             ),
             const SizedBox(height: 8),
@@ -318,8 +325,8 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
                 Expanded(
                   child: TextFormField(
                     controller: _loopO2MinController,
-                    decoration: const InputDecoration(
-                      labelText: 'Min',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.diveLog_scr_label_min,
                       suffixText: '%',
                       isDense: true,
                     ),
@@ -333,8 +340,8 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
                 Expanded(
                   child: TextFormField(
                     controller: _loopO2MaxController,
-                    decoration: const InputDecoration(
-                      labelText: 'Max',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.diveLog_scr_label_max,
                       suffixText: '%',
                       isDense: true,
                     ),
@@ -348,8 +355,8 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
                 Expanded(
                   child: TextFormField(
                     controller: _loopO2AvgController,
-                    decoration: const InputDecoration(
-                      labelText: 'Avg',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.diveLog_scr_label_avg,
                       suffixText: '%',
                       isDense: true,
                     ),
@@ -364,7 +371,10 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
             const SizedBox(height: 16),
 
             // Scrubber section
-            Text('Scrubber', style: theme.textTheme.titleSmall),
+            Text(
+              context.l10n.diveLog_ccr_sectionScrubber,
+              style: theme.textTheme.titleSmall,
+            ),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -372,10 +382,10 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
                   flex: 2,
                   child: TextFormField(
                     controller: _scrubberTypeController,
-                    decoration: const InputDecoration(
-                      labelText: 'Type',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.diveLog_ccr_label_type,
                       isDense: true,
-                      hintText: 'e.g., Sofnolime',
+                      hintText: context.l10n.diveLog_ccr_hint_type,
                     ),
                     onChanged: (_) => _notifyChange(),
                   ),
@@ -384,8 +394,8 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
                 Expanded(
                   child: TextFormField(
                     controller: _scrubberDurationController,
-                    decoration: const InputDecoration(
-                      labelText: 'Rated',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.diveLog_ccr_label_rated,
                       suffixText: 'min',
                       isDense: true,
                     ),
@@ -397,8 +407,8 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
                 Expanded(
                   child: TextFormField(
                     controller: _scrubberRemainingController,
-                    decoration: const InputDecoration(
-                      labelText: 'Remaining',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.diveLog_ccr_label_remaining,
                       suffixText: 'min',
                       isDense: true,
                     ),
@@ -418,15 +428,18 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('CMF Parameters', style: theme.textTheme.titleSmall),
+        Text(
+          context.l10n.diveLog_scr_sectionCmf,
+          style: theme.textTheme.titleSmall,
+        ),
         const SizedBox(height: 8),
         Row(
           children: [
             Expanded(
               child: TextFormField(
                 controller: _injectionRateController,
-                decoration: const InputDecoration(
-                  labelText: 'Injection Rate',
+                decoration: InputDecoration(
+                  labelText: context.l10n.diveLog_scr_label_injectionRate,
                   suffixText: 'L/min',
                   isDense: true,
                   hintText: 'e.g., 8.0',
@@ -441,8 +454,8 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
             Expanded(
               child: TextFormField(
                 controller: _assumedVo2Controller,
-                decoration: const InputDecoration(
-                  labelText: 'Assumed VO₂',
+                decoration: InputDecoration(
+                  labelText: context.l10n.diveLog_scr_label_assumedVo2,
                   suffixText: 'L/min',
                   isDense: true,
                   hintText: '1.30',
@@ -468,17 +481,20 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('PASCR Parameters', style: theme.textTheme.titleSmall),
+        Text(
+          context.l10n.diveLog_scr_sectionPascr,
+          style: theme.textTheme.titleSmall,
+        ),
         const SizedBox(height: 8),
         Row(
           children: [
             Expanded(
               child: TextFormField(
                 controller: _additionRatioController,
-                decoration: const InputDecoration(
-                  labelText: 'Addition Ratio',
+                decoration: InputDecoration(
+                  labelText: context.l10n.diveLog_scr_label_additionRatio,
                   isDense: true,
-                  hintText: 'e.g., 0.33 (1:3)',
+                  hintText: context.l10n.diveLog_scr_hint_additionRatio,
                 ),
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
@@ -490,8 +506,8 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
             Expanded(
               child: TextFormField(
                 controller: _assumedVo2Controller,
-                decoration: const InputDecoration(
-                  labelText: 'Assumed VO₂',
+                decoration: InputDecoration(
+                  labelText: context.l10n.diveLog_scr_label_assumedVo2,
                   suffixText: 'L/min',
                   isDense: true,
                   hintText: '1.30',
@@ -512,15 +528,18 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('ESCR Parameters', style: theme.textTheme.titleSmall),
+        Text(
+          context.l10n.diveLog_scr_sectionEscr,
+          style: theme.textTheme.titleSmall,
+        ),
         const SizedBox(height: 8),
         Row(
           children: [
             Expanded(
               child: TextFormField(
                 controller: _orificeSizeController,
-                decoration: const InputDecoration(
-                  labelText: 'Orifice Size',
+                decoration: InputDecoration(
+                  labelText: context.l10n.diveLog_scr_label_orificeSize,
                   isDense: true,
                   hintText: 'e.g., 50',
                 ),
@@ -531,8 +550,8 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
             Expanded(
               child: TextFormField(
                 controller: _assumedVo2Controller,
-                decoration: const InputDecoration(
-                  labelText: 'Assumed VO₂',
+                decoration: InputDecoration(
+                  labelText: context.l10n.diveLog_scr_label_assumedVo2,
                   suffixText: 'L/min',
                   isDense: true,
                   hintText: '1.30',
@@ -620,7 +639,9 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
             ),
             const SizedBox(width: 8),
             Text(
-              'Calculated loop FO₂: ${loopO2Percent.toStringAsFixed(1)}%',
+              context.l10n.diveLog_scr_calculatedLoopFo2(
+                loopO2Percent.toStringAsFixed(1),
+              ),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onTertiaryContainer,
               ),

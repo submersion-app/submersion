@@ -8,6 +8,7 @@ import 'package:submersion/features/statistics/data/repositories/statistics_repo
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/features/statistics/presentation/widgets/stat_charts.dart';
 import 'package:submersion/features/statistics/presentation/widgets/stat_section_card.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 class StatisticsConditionsPage extends ConsumerWidget {
   final bool embedded;
@@ -40,7 +41,9 @@ class StatisticsConditionsPage extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Conditions')),
+      appBar: AppBar(
+        title: Text(context.l10n.statistics_conditions_appBar_title),
+      ),
       body: content,
     );
   }
@@ -49,8 +52,8 @@ class StatisticsConditionsPage extends ConsumerWidget {
     final visibilityAsync = ref.watch(visibilityDistributionProvider);
 
     return StatSectionCard(
-      title: 'Visibility Distribution',
-      subtitle: 'Dives by visibility condition',
+      title: context.l10n.statistics_conditions_visibility_title,
+      subtitle: context.l10n.statistics_conditions_visibility_subtitle,
       child: visibilityAsync.when(
         data: (data) {
           final description = data
@@ -76,9 +79,9 @@ class StatisticsConditionsPage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, _) => const StatEmptyState(
+        error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: 'Failed to load visibility data',
+          message: context.l10n.statistics_conditions_visibility_error,
         ),
       ),
     );
@@ -88,8 +91,8 @@ class StatisticsConditionsPage extends ConsumerWidget {
     final waterTypeAsync = ref.watch(waterTypeDistributionProvider);
 
     return StatSectionCard(
-      title: 'Water Type',
-      subtitle: 'Salt vs Fresh water dives',
+      title: context.l10n.statistics_conditions_waterType_title,
+      subtitle: context.l10n.statistics_conditions_waterType_subtitle,
       child: waterTypeAsync.when(
         data: (data) {
           final description = data
@@ -110,9 +113,9 @@ class StatisticsConditionsPage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, _) => const StatEmptyState(
+        error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: 'Failed to load water type data',
+          message: context.l10n.statistics_conditions_waterType_error,
         ),
       ),
     );
@@ -122,14 +125,14 @@ class StatisticsConditionsPage extends ConsumerWidget {
     final entryMethodAsync = ref.watch(entryMethodDistributionProvider);
 
     return StatSectionCard(
-      title: 'Entry Method',
-      subtitle: 'Shore, boat, etc.',
+      title: context.l10n.statistics_conditions_entryMethod_title,
+      subtitle: context.l10n.statistics_conditions_entryMethod_subtitle,
       child: entryMethodAsync.when(
         data: (data) {
           if (data.isEmpty) {
-            return const StatEmptyState(
+            return StatEmptyState(
               icon: Icons.directions_boat,
-              message: 'No entry method data available',
+              message: context.l10n.statistics_conditions_entryMethod_empty,
             );
           }
           final chartData = data
@@ -150,9 +153,9 @@ class StatisticsConditionsPage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, _) => const StatEmptyState(
+        error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: 'Failed to load entry method data',
+          message: context.l10n.statistics_conditions_entryMethod_error,
         ),
       ),
     );
@@ -166,30 +169,30 @@ class StatisticsConditionsPage extends ConsumerWidget {
     final temperatureAsync = ref.watch(temperatureByMonthProvider);
 
     return StatSectionCard(
-      title: 'Water Temperature by Month',
-      subtitle: 'Min/Avg/Max temperatures',
+      title: context.l10n.statistics_conditions_temperature_title,
+      subtitle: context.l10n.statistics_conditions_temperature_subtitle,
       child: temperatureAsync.when(
         data: (data) {
           if (data.isEmpty) {
-            return const StatEmptyState(
+            return StatEmptyState(
               icon: Icons.thermostat,
-              message: 'No temperature data available',
+              message: context.l10n.statistics_conditions_temperature_empty,
             );
           }
 
           final months = [
-            'Jan',
-            'Feb',
-            'Mar',
-            'Apr',
-            'May',
-            'Jun',
-            'Jul',
-            'Aug',
-            'Sep',
-            'Oct',
-            'Nov',
-            'Dec',
+            context.l10n.statistics_timePatterns_month_jan,
+            context.l10n.statistics_timePatterns_month_feb,
+            context.l10n.statistics_timePatterns_month_mar,
+            context.l10n.statistics_timePatterns_month_apr,
+            context.l10n.statistics_timePatterns_month_may,
+            context.l10n.statistics_timePatterns_month_jun,
+            context.l10n.statistics_timePatterns_month_jul,
+            context.l10n.statistics_timePatterns_month_aug,
+            context.l10n.statistics_timePatterns_month_sep,
+            context.l10n.statistics_timePatterns_month_oct,
+            context.l10n.statistics_timePatterns_month_nov,
+            context.l10n.statistics_timePatterns_month_dec,
           ];
 
           List<TrendDataPoint> toTrendData(double? Function(dynamic) selector) {
@@ -208,7 +211,11 @@ class StatisticsConditionsPage extends ConsumerWidget {
 
           return MultiTrendLineChart(
             dataSeries: [minData, avgData, maxData],
-            seriesLabels: const ['Min', 'Avg', 'Max'],
+            seriesLabels: [
+              context.l10n.statistics_conditions_temperature_seriesMin,
+              context.l10n.statistics_conditions_temperature_seriesAvg,
+              context.l10n.statistics_conditions_temperature_seriesMax,
+            ],
             seriesColors: const [Colors.blue, Colors.green, Colors.red],
             valueFormatter: (value) => units.formatTemperature(value),
           );
@@ -217,9 +224,9 @@ class StatisticsConditionsPage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, _) => const StatEmptyState(
+        error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: 'Failed to load temperature data',
+          message: context.l10n.statistics_conditions_temperature_error,
         ),
       ),
     );

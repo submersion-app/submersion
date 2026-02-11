@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
@@ -20,21 +21,29 @@ class EquipmentSetDetailPage extends ConsumerWidget {
       data: (set) {
         if (set == null) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Set Not Found')),
-            body: const Center(
-              child: Text('This equipment set no longer exists.'),
+            appBar: AppBar(
+              title: Text(context.l10n.equipment_setDetail_notFoundTitle),
+            ),
+            body: Center(
+              child: Text(context.l10n.equipment_setDetail_notFoundMessage),
             ),
           );
         }
         return _buildContent(context, ref, set);
       },
       loading: () => Scaffold(
-        appBar: AppBar(title: const Text('Loading...')),
+        appBar: AppBar(
+          title: Text(context.l10n.equipment_setDetail_loadingTitle),
+        ),
         body: const Center(child: CircularProgressIndicator()),
       ),
       error: (error, _) => Scaffold(
-        appBar: AppBar(title: const Text('Error')),
-        body: Center(child: Text('Error: $error')),
+        appBar: AppBar(
+          title: Text(context.l10n.equipment_setDetail_errorTitle),
+        ),
+        body: Center(
+          child: Text(context.l10n.equipment_setDetail_errorMessage('$error')),
+        ),
       ),
     );
   }
@@ -46,17 +55,20 @@ class EquipmentSetDetailPage extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
-            tooltip: 'Edit Set',
+            tooltip: context.l10n.equipment_setDetail_editTooltip,
             onPressed: () => context.push('/equipment/sets/$setId/edit'),
           ),
           PopupMenuButton<String>(
             onSelected: (value) => _handleMenuAction(context, ref, value, set),
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'delete',
                 child: ListTile(
-                  leading: Icon(Icons.delete, color: Colors.red),
-                  title: Text('Delete', style: TextStyle(color: Colors.red)),
+                  leading: const Icon(Icons.delete, color: Colors.red),
+                  title: Text(
+                    context.l10n.equipment_setDetail_deleteMenuItem,
+                    style: const TextStyle(color: Colors.red),
+                  ),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
@@ -109,7 +121,13 @@ class EquipmentSetDetailPage extends ConsumerWidget {
                           ],
                           const SizedBox(height: 4),
                           Text(
-                            '${set.itemCount} ${set.itemCount == 1 ? 'item' : 'items'}',
+                            set.itemCount == 1
+                                ? context.l10n.equipment_sets_itemCountSingular(
+                                    set.itemCount,
+                                  )
+                                : context.l10n.equipment_sets_itemCountPlural(
+                                    set.itemCount,
+                                  ),
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
                                   color: Theme.of(context).colorScheme.primary,
@@ -126,7 +144,7 @@ class EquipmentSetDetailPage extends ConsumerWidget {
 
             // Equipment items
             Text(
-              'Equipment in This Set',
+              context.l10n.equipment_setDetail_equipmentInSetTitle,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
@@ -146,7 +164,7 @@ class EquipmentSetDetailPage extends ConsumerWidget {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'No equipment in this set',
+                          context.l10n.equipment_setDetail_emptySet,
                           style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(
                                 color: Theme.of(
@@ -159,7 +177,9 @@ class EquipmentSetDetailPage extends ConsumerWidget {
                           onPressed: () =>
                               context.push('/equipment/sets/$setId/edit'),
                           icon: const Icon(Icons.add),
-                          label: const Text('Add Equipment'),
+                          label: Text(
+                            context.l10n.equipment_setDetail_addEquipmentButton,
+                          ),
                         ),
                       ],
                     ),
@@ -205,21 +225,21 @@ class EquipmentSetDetailPage extends ConsumerWidget {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Delete Equipment Set'),
-          content: const Text(
-            'Are you sure you want to delete this equipment set? The equipment items in the set will not be deleted.',
-          ),
+          title: Text(context.l10n.equipment_setDetail_deleteDialog_title),
+          content: Text(context.l10n.equipment_setDetail_deleteDialog_content),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
+              child: Text(context.l10n.equipment_setDetail_deleteDialog_cancel),
             ),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
               style: FilledButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.error,
               ),
-              child: const Text('Delete'),
+              child: Text(
+                context.l10n.equipment_setDetail_deleteDialog_confirm,
+              ),
             ),
           ],
         ),
@@ -232,7 +252,9 @@ class EquipmentSetDetailPage extends ConsumerWidget {
         if (context.mounted) {
           context.go('/equipment/sets');
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Equipment set deleted')),
+            SnackBar(
+              content: Text(context.l10n.equipment_setDetail_snackbar_deleted),
+            ),
           );
         }
       }

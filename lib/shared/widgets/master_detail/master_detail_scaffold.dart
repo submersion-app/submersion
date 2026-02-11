@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
 /// Mode for the detail pane in master-detail layout.
@@ -313,7 +314,7 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
     // For FloatingActionButton.extended, wrap in a GestureDetector
     return Semantics(
       button: true,
-      label: 'Create new item',
+      label: context.l10n.accessibility_label_createNewItem,
       child: GestureDetector(
         onTap: _onCreate,
         child: AbsorbPointer(child: fab),

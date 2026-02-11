@@ -60,6 +60,7 @@ class AppSettings {
   final TimeFormat timeFormat;
   final DateFormatPreference dateFormat;
   final ThemeMode themeMode;
+  final String locale;
   final String defaultDiveType;
   final double defaultTankVolume;
   final int defaultStartPressure;
@@ -180,6 +181,7 @@ class AppSettings {
     this.timeFormat = TimeFormat.twelveHour,
     this.dateFormat = DateFormatPreference.mmmDYYYY,
     this.themeMode = ThemeMode.system,
+    this.locale = 'system',
     this.defaultDiveType = 'recreational',
     this.defaultTankVolume = 12.0,
     this.defaultStartPressure = 200,
@@ -269,6 +271,7 @@ class AppSettings {
     TimeFormat? timeFormat,
     DateFormatPreference? dateFormat,
     ThemeMode? themeMode,
+    String? locale,
     String? defaultDiveType,
     double? defaultTankVolume,
     int? defaultStartPressure,
@@ -319,6 +322,7 @@ class AppSettings {
       timeFormat: timeFormat ?? this.timeFormat,
       dateFormat: dateFormat ?? this.dateFormat,
       themeMode: themeMode ?? this.themeMode,
+      locale: locale ?? this.locale,
       defaultDiveType: defaultDiveType ?? this.defaultDiveType,
       defaultTankVolume: defaultTankVolume ?? this.defaultTankVolume,
       defaultStartPressure: defaultStartPressure ?? this.defaultStartPressure,
@@ -526,6 +530,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setThemeMode(ThemeMode mode) async {
     state = state.copyWith(themeMode: mode);
+    await _saveSettings();
+  }
+
+  Future<void> setLocale(String locale) async {
+    state = state.copyWith(locale: locale);
     await _saveSettings();
   }
 
@@ -817,6 +826,10 @@ final altitudeUnitProvider = Provider<AltitudeUnit>((ref) {
 
 final themeModeProvider = Provider<ThemeMode>((ref) {
   return ref.watch(settingsProvider.select((s) => s.themeMode));
+});
+
+final localeProvider = Provider<String>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.locale));
 });
 
 /// Decompression settings convenience providers

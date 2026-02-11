@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/surface_interval_tool/presentation/providers/surface_interval_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Display card showing the calculated minimum surface interval result.
 /// Shows the minimum time needed between dives and current safety status.
@@ -26,10 +27,10 @@ class SurfaceIntervalResult extends ConsumerWidget {
     // Format NDL for display
     String ndlText;
     if (ndl < 0) {
-      ndlText = 'In deco';
+      ndlText = context.l10n.surfaceInterval_result_inDeco;
     } else {
       final ndlMinutes = ndl ~/ 60;
-      ndlText = '$ndlMinutes min NDL';
+      ndlText = context.l10n.surfaceInterval_result_ndlMinutes(ndlMinutes);
     }
 
     // Current interval display
@@ -40,11 +41,14 @@ class SurfaceIntervalResult extends ConsumerWidget {
         : '$currentMinutes min';
 
     return Semantics(
-      label:
-          'Minimum surface interval: $intervalText. '
-          'Current interval: $currentText. '
-          'NDL for second dive: $ndlText. '
-          '${isSafe ? "Safe to dive" : "Not yet safe, increase surface interval"}',
+      label: context.l10n.surfaceInterval_result_semantics(
+        intervalText,
+        currentText,
+        ndlText,
+        isSafe
+            ? context.l10n.surfaceInterval_result_safeToDive
+            : context.l10n.surfaceInterval_result_notYetSafe,
+      ),
       child: Card(
         color: isSafe
             ? colorScheme.primaryContainer
@@ -67,7 +71,7 @@ class SurfaceIntervalResult extends ConsumerWidget {
 
               // Main Result
               Text(
-                'Minimum Surface Interval',
+                context.l10n.surfaceInterval_result_minimumInterval,
                 style: theme.textTheme.titleSmall?.copyWith(
                   color: isSafe
                       ? colorScheme.onPrimaryContainer
@@ -100,7 +104,7 @@ class SurfaceIntervalResult extends ConsumerWidget {
                 children: [
                   _buildInfoColumn(
                     context: context,
-                    label: 'Current Interval',
+                    label: context.l10n.surfaceInterval_result_currentInterval,
                     value: currentText,
                     isSafe: isSafe,
                   ),
@@ -113,7 +117,7 @@ class SurfaceIntervalResult extends ConsumerWidget {
                   ),
                   _buildInfoColumn(
                     context: context,
-                    label: 'NDL for 2nd Dive',
+                    label: context.l10n.surfaceInterval_result_ndlForSecondDive,
                     value: ndlText,
                     isSafe: isSafe,
                   ),
@@ -138,7 +142,7 @@ class SurfaceIntervalResult extends ConsumerWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Increase surface interval or reduce second dive depth/time',
+                          context.l10n.surfaceInterval_result_increaseInterval,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colorScheme.onErrorContainer,
                           ),

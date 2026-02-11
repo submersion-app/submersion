@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/profile_metrics.dart';
+import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 class AppearancePage extends ConsumerWidget {
   const AppearancePage({super.key});
@@ -12,17 +15,39 @@ class AppearancePage extends ConsumerWidget {
     final settings = ref.watch(settingsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Appearance')),
+      appBar: AppBar(
+        title: Text(context.l10n.settings_section_appearance_title),
+      ),
       body: ListView(
         children: [
-          _buildSectionHeader(context, 'Theme'),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_appearance_header_theme,
+          ),
           _buildThemeSelector(context, ref, settings.themeMode),
           const Divider(),
-          _buildSectionHeader(context, 'Dive Log'),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_appearance_header_language,
+          ),
+          ListTile(
+            leading: const Icon(Icons.language),
+            title: Text(context.l10n.settings_appearance_appLanguage),
+            subtitle: Text(
+              LanguageSettingsPage.getDisplayName(settings.locale),
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.go('/settings/language'),
+          ),
+          const Divider(),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_appearance_header_diveLog,
+          ),
           SwitchListTile(
-            title: const Text('Depth-colored dive cards'),
-            subtitle: const Text(
-              'Show dive cards with ocean-colored backgrounds based on depth',
+            title: Text(context.l10n.settings_appearance_depthColoredCards),
+            subtitle: Text(
+              context.l10n.settings_appearance_depthColoredCards_subtitle,
             ),
             secondary: const Icon(Icons.gradient),
             value: settings.showDepthColoredDiveCards,
@@ -33,9 +58,13 @@ class AppearancePage extends ConsumerWidget {
             },
           ),
           SwitchListTile(
-            title: const Text('Map background on dive cards'),
-            subtitle: const Text(
-              'Show dive site map as background on dive cards (requires site location)',
+            title: Text(
+              context.l10n.settings_appearance_mapBackgroundDiveCards,
+            ),
+            subtitle: Text(
+              context
+                  .l10n
+                  .settings_appearance_mapBackgroundDiveCards_subtitleWithNote,
             ),
             secondary: const Icon(Icons.map),
             value: settings.showMapBackgroundOnDiveCards,
@@ -46,11 +75,18 @@ class AppearancePage extends ConsumerWidget {
             },
           ),
           const SizedBox(height: 8),
-          _buildSectionHeader(context, 'Dive Sites'),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_appearance_header_diveSites,
+          ),
           SwitchListTile(
-            title: const Text('Map background on site cards'),
-            subtitle: const Text(
-              'Show map as background on dive site cards (requires site location)',
+            title: Text(
+              context.l10n.settings_appearance_mapBackgroundSiteCards,
+            ),
+            subtitle: Text(
+              context
+                  .l10n
+                  .settings_appearance_mapBackgroundSiteCards_subtitleWithNote,
             ),
             secondary: const Icon(Icons.map),
             value: settings.showMapBackgroundOnSiteCards,
@@ -61,12 +97,17 @@ class AppearancePage extends ConsumerWidget {
             },
           ),
           const SizedBox(height: 8),
-          _buildSectionHeader(context, 'Dive Profile'),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_appearance_header_diveProfile,
+          ),
           // Right Y-Axis Metric Selector
           ListTile(
             leading: const Icon(Icons.show_chart),
-            title: const Text('Right Y-axis metric'),
-            subtitle: const Text('Default metric shown on right axis'),
+            title: Text(context.l10n.settings_appearance_rightYAxisMetric),
+            subtitle: Text(
+              context.l10n.settings_appearance_rightYAxisMetric_subtitle,
+            ),
             trailing: DropdownButton<ProfileRightAxisMetric>(
               value: settings.defaultRightAxisMetric,
               underline: const SizedBox(),
@@ -86,9 +127,9 @@ class AppearancePage extends ConsumerWidget {
             ),
           ),
           SwitchListTile(
-            title: const Text('Max depth marker'),
-            subtitle: const Text(
-              'Show a marker at the maximum depth point on dive profiles',
+            title: Text(context.l10n.settings_appearance_maxDepthMarker),
+            subtitle: Text(
+              context.l10n.settings_appearance_maxDepthMarker_subtitleFull,
             ),
             secondary: const Icon(Icons.vertical_align_bottom),
             value: settings.showMaxDepthMarker,
@@ -97,9 +138,13 @@ class AppearancePage extends ConsumerWidget {
             },
           ),
           SwitchListTile(
-            title: const Text('Pressure threshold markers'),
-            subtitle: const Text(
-              'Show markers when tank pressure crosses 2/3, 1/2, and 1/3 thresholds',
+            title: Text(
+              context.l10n.settings_appearance_pressureThresholdMarkers,
+            ),
+            subtitle: Text(
+              context
+                  .l10n
+                  .settings_appearance_pressureThresholdMarkers_subtitleFull,
             ),
             secondary: const Icon(Icons.propane_tank),
             value: settings.showPressureThresholdMarkers,
@@ -110,8 +155,10 @@ class AppearancePage extends ConsumerWidget {
             },
           ),
           SwitchListTile(
-            title: const Text('Gas switch markers'),
-            subtitle: const Text('Show markers for gas switches'),
+            title: Text(context.l10n.settings_appearance_gasSwitchMarkers),
+            subtitle: Text(
+              context.l10n.settings_appearance_gasSwitchMarkers_subtitle,
+            ),
             secondary: const Icon(Icons.swap_horiz),
             value: settings.defaultShowGasSwitchMarkers,
             onChanged: (value) {
@@ -121,9 +168,12 @@ class AppearancePage extends ConsumerWidget {
             },
           ),
           const SizedBox(height: 8),
-          _buildSubsectionHeader(context, 'Default Visible Metrics'),
+          _buildSubsectionHeader(
+            context,
+            context.l10n.settings_appearance_subsection_defaultVisibleMetrics,
+          ),
           SwitchListTile(
-            title: const Text('Temperature'),
+            title: Text(context.l10n.settings_appearance_metric_temperature),
             dense: true,
             value: settings.defaultShowTemperature,
             onChanged: (value) {
@@ -133,7 +183,7 @@ class AppearancePage extends ConsumerWidget {
             },
           ),
           SwitchListTile(
-            title: const Text('Pressure'),
+            title: Text(context.l10n.settings_appearance_metric_pressure),
             dense: true,
             value: settings.defaultShowPressure,
             onChanged: (value) {
@@ -141,7 +191,7 @@ class AppearancePage extends ConsumerWidget {
             },
           ),
           SwitchListTile(
-            title: const Text('Heart Rate'),
+            title: Text(context.l10n.settings_appearance_metric_heartRate),
             dense: true,
             value: settings.defaultShowHeartRate,
             onChanged: (value) {
@@ -151,7 +201,7 @@ class AppearancePage extends ConsumerWidget {
             },
           ),
           SwitchListTile(
-            title: const Text('SAC Rate'),
+            title: Text(context.l10n.settings_appearance_metric_sacRate),
             dense: true,
             value: settings.defaultShowSac,
             onChanged: (value) {
@@ -159,7 +209,7 @@ class AppearancePage extends ConsumerWidget {
             },
           ),
           SwitchListTile(
-            title: const Text('Events'),
+            title: Text(context.l10n.settings_appearance_metric_events),
             dense: true,
             value: settings.defaultShowEvents,
             onChanged: (value) {
@@ -167,9 +217,12 @@ class AppearancePage extends ConsumerWidget {
             },
           ),
           const SizedBox(height: 8),
-          _buildSubsectionHeader(context, 'Decompression Metrics'),
+          _buildSubsectionHeader(
+            context,
+            context.l10n.settings_appearance_subsection_decompressionMetrics,
+          ),
           SwitchListTile(
-            title: const Text('Ceiling'),
+            title: Text(context.l10n.settings_appearance_metric_ceiling),
             dense: true,
             value: settings.showCeilingOnProfile,
             onChanged: (value) {
@@ -179,7 +232,9 @@ class AppearancePage extends ConsumerWidget {
             },
           ),
           SwitchListTile(
-            title: const Text('Ascent Rate Colors'),
+            title: Text(
+              context.l10n.settings_appearance_metric_ascentRateColors,
+            ),
             dense: true,
             value: settings.showAscentRateColors,
             onChanged: (value) {
@@ -189,7 +244,7 @@ class AppearancePage extends ConsumerWidget {
             },
           ),
           SwitchListTile(
-            title: const Text('NDL'),
+            title: Text(context.l10n.settings_appearance_metric_ndl),
             dense: true,
             value: settings.showNdlOnProfile,
             onChanged: (value) {
@@ -197,7 +252,7 @@ class AppearancePage extends ConsumerWidget {
             },
           ),
           SwitchListTile(
-            title: const Text('TTS (Time to Surface)'),
+            title: Text(context.l10n.settings_appearance_metric_tts),
             dense: true,
             value: settings.defaultShowTts,
             onChanged: (value) {
@@ -205,9 +260,12 @@ class AppearancePage extends ConsumerWidget {
             },
           ),
           const SizedBox(height: 8),
-          _buildSubsectionHeader(context, 'Gas Analysis Metrics'),
+          _buildSubsectionHeader(
+            context,
+            context.l10n.settings_appearance_subsection_gasAnalysisMetrics,
+          ),
           SwitchListTile(
-            title: const Text('ppO2'),
+            title: Text(context.l10n.settings_appearance_metric_ppO2),
             dense: true,
             value: settings.defaultShowPpO2,
             onChanged: (value) {
@@ -215,7 +273,7 @@ class AppearancePage extends ConsumerWidget {
             },
           ),
           SwitchListTile(
-            title: const Text('ppN2'),
+            title: Text(context.l10n.settings_appearance_metric_ppN2),
             dense: true,
             value: settings.defaultShowPpN2,
             onChanged: (value) {
@@ -223,7 +281,7 @@ class AppearancePage extends ConsumerWidget {
             },
           ),
           SwitchListTile(
-            title: const Text('ppHe'),
+            title: Text(context.l10n.settings_appearance_metric_ppHe),
             dense: true,
             value: settings.defaultShowPpHe,
             onChanged: (value) {
@@ -231,7 +289,7 @@ class AppearancePage extends ConsumerWidget {
             },
           ),
           SwitchListTile(
-            title: const Text('Gas Density'),
+            title: Text(context.l10n.settings_appearance_metric_gasDensity),
             dense: true,
             value: settings.defaultShowGasDensity,
             onChanged: (value) {
@@ -241,9 +299,12 @@ class AppearancePage extends ConsumerWidget {
             },
           ),
           const SizedBox(height: 8),
-          _buildSubsectionHeader(context, 'Gradient Factor Metrics'),
+          _buildSubsectionHeader(
+            context,
+            context.l10n.settings_appearance_subsection_gradientFactorMetrics,
+          ),
           SwitchListTile(
-            title: const Text('GF%'),
+            title: Text(context.l10n.settings_appearance_metric_gfPercent),
             dense: true,
             value: settings.defaultShowGf,
             onChanged: (value) {
@@ -251,7 +312,7 @@ class AppearancePage extends ConsumerWidget {
             },
           ),
           SwitchListTile(
-            title: const Text('Surface GF'),
+            title: Text(context.l10n.settings_appearance_metric_surfaceGf),
             dense: true,
             value: settings.defaultShowSurfaceGf,
             onChanged: (value) {
@@ -261,7 +322,7 @@ class AppearancePage extends ConsumerWidget {
             },
           ),
           SwitchListTile(
-            title: const Text('Mean Depth'),
+            title: Text(context.l10n.settings_appearance_metric_meanDepth),
             dense: true,
             value: settings.defaultShowMeanDepth,
             onChanged: (value) {
@@ -314,12 +375,12 @@ class AppearancePage extends ConsumerWidget {
           selected: isSelected,
           child: ListTile(
             leading: Icon(_getThemeModeIcon(mode)),
-            title: Text(_getThemeModeName(mode)),
+            title: Text(_getThemeModeName(context, mode)),
             trailing: isSelected
                 ? Icon(
                     Icons.check,
                     color: Theme.of(context).colorScheme.primary,
-                    semanticLabel: 'Selected',
+                    semanticLabel: context.l10n.settings_language_selected,
                   )
                 : null,
             onTap: () {
@@ -331,14 +392,14 @@ class AppearancePage extends ConsumerWidget {
     );
   }
 
-  String _getThemeModeName(ThemeMode mode) {
+  String _getThemeModeName(BuildContext context, ThemeMode mode) {
     switch (mode) {
       case ThemeMode.system:
-        return 'System default';
+        return context.l10n.settings_appearance_theme_system;
       case ThemeMode.light:
-        return 'Light';
+        return context.l10n.settings_appearance_theme_light;
       case ThemeMode.dark:
-        return 'Dark';
+        return context.l10n.settings_appearance_theme_dark;
     }
   }
 

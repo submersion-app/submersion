@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A segmented button for selecting the dive mode (OC, CCR, SCR).
 ///
@@ -29,7 +30,10 @@ class DiveModeSelector extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Dive Mode', style: Theme.of(context).textTheme.titleSmall),
+        Text(
+          context.l10n.diveLog_diveMode_title,
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
         const SizedBox(height: 8),
         SegmentedButton<DiveMode>(
           segments: DiveMode.values.map((mode) {
@@ -53,9 +57,9 @@ class DiveModeSelector extends StatelessWidget {
         const SizedBox(height: 4),
         Semantics(
           label:
-              'Selected mode: ${selectedMode.name.toUpperCase()}, ${_getDescriptionForMode(selectedMode)}',
+              'Selected mode: ${selectedMode.name.toUpperCase()}, ${_getDescriptionForMode(context, selectedMode)}',
           child: Text(
-            _getDescriptionForMode(selectedMode),
+            _getDescriptionForMode(context, selectedMode),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -76,14 +80,14 @@ class DiveModeSelector extends StatelessWidget {
     }
   }
 
-  String _getDescriptionForMode(DiveMode mode) {
+  String _getDescriptionForMode(BuildContext context, DiveMode mode) {
     switch (mode) {
       case DiveMode.oc:
-        return 'Standard open circuit scuba with tanks';
+        return context.l10n.diveLog_diveMode_ocDescription;
       case DiveMode.ccr:
-        return 'Closed circuit rebreather with constant ppO₂';
+        return context.l10n.diveLog_diveMode_ccrDescription;
       case DiveMode.scr:
-        return 'Semi-closed rebreather with variable ppO₂';
+        return context.l10n.diveLog_diveMode_scrDescription;
     }
   }
 }

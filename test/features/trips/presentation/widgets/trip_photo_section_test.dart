@@ -9,6 +9,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_media_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_photo_section.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
   group('TripPhotoSection', () {
@@ -24,6 +25,8 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(body: TripPhotoSection(tripId: 'empty-trip')),
           ),
         ),
@@ -62,6 +65,8 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(body: TripPhotoSection(tripId: 'test-trip')),
           ),
         ),
@@ -88,6 +93,8 @@ void main() {
             }),
           ],
           child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
               body: TripPhotoSection(
                 tripId: 'empty-trip',
@@ -127,6 +134,8 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(body: TripPhotoSection(tripId: 'test-trip')),
           ),
         ),
@@ -155,6 +164,8 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(body: TripPhotoSection(tripId: 'test-trip')),
           ),
         ),
@@ -195,6 +206,8 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(body: TripPhotoSection(tripId: 'test-trip')),
           ),
         ),
@@ -222,6 +235,8 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(body: TripPhotoSection(tripId: 'test-trip')),
           ),
         ),

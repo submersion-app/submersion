@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/presentation/pages/records_page.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 typedef Override = riverpod.Override;
 
@@ -48,6 +49,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setThemeMode(ThemeMode mode) async =>
       state = state.copyWith(themeMode: mode);
+  @override
+  Future<void> setLocale(String locale) async =>
+      state = state.copyWith(locale: locale);
   @override
   Future<void> setDefaultDiveType(String diveType) async =>
       state = state.copyWith(defaultDiveType: diveType);
@@ -244,7 +248,11 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: getOverrides(),
-          child: const MaterialApp(home: RecordsPage()),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: RecordsPage(),
+          ),
         ),
       );
 
@@ -257,7 +265,11 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: getOverrides(),
-          child: const MaterialApp(home: RecordsPage()),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: RecordsPage(),
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -273,7 +285,11 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: getOverrides(),
-          child: const MaterialApp(home: RecordsPage()),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: RecordsPage(),
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -304,7 +320,11 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: getOverrides(diveRecordsOverride: (ref) async => records),
-          child: const MaterialApp(home: RecordsPage()),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: RecordsPage(),
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -322,7 +342,11 @@ void main() {
               throw Exception('Failed to load records');
             },
           ),
-          child: const MaterialApp(home: RecordsPage()),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: RecordsPage(),
+          ),
         ),
       );
       await tester.pumpAndSettle();

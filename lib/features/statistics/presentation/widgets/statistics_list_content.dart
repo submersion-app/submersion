@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Statistics category data model.
 class StatisticsCategory {
@@ -20,69 +21,69 @@ class StatisticsCategory {
   });
 }
 
-/// List of all statistics categories.
-const statisticsCategories = [
+/// List of all statistics categories (static structure, titles filled at build time).
+List<StatisticsCategory> statisticsCategoriesOf(BuildContext context) => [
   StatisticsCategory(
     id: 'gas',
     icon: Icons.air,
-    title: 'Air Consumption',
-    subtitle: 'SAC rates & gas mixes',
+    title: context.l10n.statistics_category_gas_title,
+    subtitle: context.l10n.statistics_category_gas_subtitle,
     color: Colors.blue,
   ),
   StatisticsCategory(
     id: 'progression',
     icon: Icons.trending_up,
-    title: 'Progression',
-    subtitle: 'Depth & time trends',
+    title: context.l10n.statistics_category_progression_title,
+    subtitle: context.l10n.statistics_category_progression_subtitle,
     color: Colors.green,
   ),
   StatisticsCategory(
     id: 'conditions',
     icon: Icons.thermostat,
-    title: 'Conditions',
-    subtitle: 'Visibility & temperature',
+    title: context.l10n.statistics_category_conditions_title,
+    subtitle: context.l10n.statistics_category_conditions_subtitle,
     color: Colors.orange,
   ),
   StatisticsCategory(
     id: 'social',
     icon: Icons.people,
-    title: 'Social',
-    subtitle: 'Buddies & dive centers',
+    title: context.l10n.statistics_category_social_title,
+    subtitle: context.l10n.statistics_category_social_subtitle,
     color: Colors.purple,
   ),
   StatisticsCategory(
     id: 'geographic',
     icon: Icons.public,
-    title: 'Geographic',
-    subtitle: 'Countries & regions',
+    title: context.l10n.statistics_category_geographic_title,
+    subtitle: context.l10n.statistics_category_geographic_subtitle,
     color: Colors.teal,
   ),
   StatisticsCategory(
     id: 'marine-life',
     icon: Icons.pets,
-    title: 'Marine Life',
-    subtitle: 'Species sightings',
+    title: context.l10n.statistics_category_marineLife_title,
+    subtitle: context.l10n.statistics_category_marineLife_subtitle,
     color: Colors.cyan,
   ),
   StatisticsCategory(
     id: 'time-patterns',
     icon: Icons.schedule,
-    title: 'Time Patterns',
-    subtitle: 'When you dive',
+    title: context.l10n.statistics_category_timePatterns_title,
+    subtitle: context.l10n.statistics_category_timePatterns_subtitle,
     color: Colors.amber,
   ),
   StatisticsCategory(
     id: 'equipment',
     icon: Icons.build,
-    title: 'Equipment',
-    subtitle: 'Gear usage & weight',
+    title: context.l10n.statistics_category_equipment_title,
+    subtitle: context.l10n.statistics_category_equipment_subtitle,
     color: Colors.brown,
   ),
   StatisticsCategory(
     id: 'profile',
     icon: Icons.show_chart,
-    title: 'Profile Analysis',
-    subtitle: 'Ascent rates & deco',
+    title: context.l10n.statistics_category_profile_title,
+    subtitle: context.l10n.statistics_category_profile_subtitle,
     color: Colors.indigo,
   ),
 ];
@@ -107,11 +108,11 @@ class StatisticsListContent extends StatelessWidget {
     return Scaffold(
       appBar: showAppBar
           ? AppBar(
-              title: const Text('Statistics'),
+              title: Text(context.l10n.statistics_appBar_title),
               actions: [
                 IconButton(
                   icon: const Icon(Icons.emoji_events),
-                  tooltip: 'Dive Records',
+                  tooltip: context.l10n.statistics_tooltip_diveRecords,
                   onPressed: () {
                     // Navigate to records page
                     context.push('/records');
@@ -129,13 +130,13 @@ class StatisticsListContent extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          'Statistics',
+                          context.l10n.statistics_appBar_title,
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                       ),
                       IconButton(
                         icon: const Icon(Icons.emoji_events),
-                        tooltip: 'Dive Records',
+                        tooltip: context.l10n.statistics_tooltip_diveRecords,
                         onPressed: () {
                           context.push('/records');
                         },
@@ -147,10 +148,10 @@ class StatisticsListContent extends StatelessWidget {
             ),
       body: ListView.separated(
         padding: const EdgeInsets.symmetric(vertical: 8),
-        itemCount: statisticsCategories.length,
+        itemCount: statisticsCategoriesOf(context).length,
         separatorBuilder: (context, index) => const Divider(height: 1),
         itemBuilder: (context, index) {
-          final category = statisticsCategories[index];
+          final category = statisticsCategoriesOf(context)[index];
           final isSelected = selectedId == category.id;
 
           return _StatisticsCategoryTile(
@@ -182,7 +183,9 @@ class _StatisticsCategoryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final selectedLabel = isSelected ? ', selected' : '';
+    final selectedLabel = isSelected
+        ? context.l10n.statistics_listContent_selectedSuffix
+        : '';
 
     return Semantics(
       button: true,

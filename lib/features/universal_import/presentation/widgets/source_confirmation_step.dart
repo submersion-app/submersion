@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 
@@ -45,8 +46,12 @@ class _SourceConfirmationStepState
           // Detection result card
           Semantics(
             label: detection.isHighConfidence
-                ? 'Source detected: ${detection.description}'
-                : 'Source uncertain: ${detection.description}',
+                ? context.l10n.universalImport_semantics_sourceDetected(
+                    detection.description,
+                  )
+                : context.l10n.universalImport_semantics_sourceUncertain(
+                    detection.description,
+                  ),
             child: Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -78,8 +83,9 @@ class _SourceConfirmationStepState
                       const SizedBox(height: 12),
                       Text(
                         detection.sourceApp?.exportInstructions ??
-                            'This format is not yet supported. '
-                                'Please export as UDDF or CSV.',
+                            context
+                                .l10n
+                                .universalImport_error_unsupportedFormat,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.error,
                         ),
@@ -112,7 +118,7 @@ class _SourceConfirmationStepState
               onPressed: () => ref
                   .read(universalImportNotifierProvider.notifier)
                   .confirmSource(overrideApp: _selectedOverride),
-              child: const Text('Continue'),
+              child: Text(context.l10n.universalImport_action_continue),
             ),
 
           const SizedBox(height: 12),
@@ -149,7 +155,7 @@ class _OverrideSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Not right? Select the correct source:',
+          context.l10n.universalImport_label_selectCorrectSource,
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),

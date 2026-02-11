@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
+
 /// An animated collapsible container for the list pane in map-list layouts.
 ///
 /// Animates between full width and collapsed (zero width) states.
@@ -34,7 +36,7 @@ class CollapsibleListPane extends StatelessWidget {
           ),
           child: ClipRect(
             child: OverflowBox(
-              alignment: Alignment.centerLeft,
+              alignment: AlignmentDirectional.centerStart,
               maxWidth: width,
               minWidth: width,
               child: child,
@@ -54,7 +56,7 @@ class CollapsibleListPane extends StatelessWidget {
               elevation: 2,
               child: Semantics(
                 button: true,
-                label: 'Hide list',
+                label: context.l10n.accessibility_label_hideList,
                 child: InkWell(
                   onTap: onToggle,
                   borderRadius: const BorderRadius.horizontal(

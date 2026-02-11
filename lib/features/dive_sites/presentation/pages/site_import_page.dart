@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/features/dive_sites/data/services/dive_site_api_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Page for searching and importing dive sites from online sources.
 class SiteImportPage extends ConsumerStatefulWidget {
@@ -55,9 +56,11 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Imported "${site.name}"'),
+          content: Text(
+            context.l10n.diveSites_import_snackbar_imported(site.name),
+          ),
           action: SnackBarAction(
-            label: 'View',
+            label: context.l10n.diveSites_import_snackbar_viewAction,
             onPressed: () {
               context.push('/sites/${importedSite.id}');
             },
@@ -67,7 +70,7 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Failed to import site'),
+          content: Text(context.l10n.diveSites_import_snackbar_failed),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -81,7 +84,7 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Import Dive Site')),
+      appBar: AppBar(title: Text(context.l10n.diveSites_import_appBar_title)),
       body: Column(
         children: [
           // Search bar
@@ -91,7 +94,7 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
               controller: _searchController,
               focusNode: _focusNode,
               decoration: InputDecoration(
-                hintText: 'Search dive sites (e.g., "Blue Hole", "Thailand")',
+                hintText: context.l10n.diveSites_import_search_hint,
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: searchState.isLoading
                     ? const Padding(
@@ -105,7 +108,8 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
                     : _searchController.text.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear),
-                        tooltip: 'Clear search',
+                        tooltip:
+                            context.l10n.diveSites_import_search_clearTooltip,
                         onPressed: () {
                           _searchController.clear();
                           ref.read(externalSiteSearchProvider.notifier).clear();
@@ -129,42 +133,43 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
               child: Row(
                 children: [
                   _QuickSearchChip(
-                    label: 'Caribbean',
+                    label: context.l10n.diveSites_import_quickSearch_caribbean,
                     onTap: () {
                       _searchController.text = 'Caribbean';
                       _onSearch();
                     },
                   ),
                   _QuickSearchChip(
-                    label: 'Red Sea',
+                    label: context.l10n.diveSites_import_quickSearch_redSea,
                     onTap: () {
                       _searchController.text = 'Red Sea';
                       _onSearch();
                     },
                   ),
                   _QuickSearchChip(
-                    label: 'Thailand',
+                    label: context.l10n.diveSites_import_quickSearch_thailand,
                     onTap: () {
                       _searchController.text = 'Thailand';
                       _onSearch();
                     },
                   ),
                   _QuickSearchChip(
-                    label: 'Indonesia',
+                    label: context.l10n.diveSites_import_quickSearch_indonesia,
                     onTap: () {
                       _searchController.text = 'Indonesia';
                       _onSearch();
                     },
                   ),
                   _QuickSearchChip(
-                    label: 'Maldives',
+                    label: context.l10n.diveSites_import_quickSearch_maldives,
                     onTap: () {
                       _searchController.text = 'Maldives';
                       _onSearch();
                     },
                   ),
                   _QuickSearchChip(
-                    label: 'Philippines',
+                    label:
+                        context.l10n.diveSites_import_quickSearch_philippines,
                     onTap: () {
                       _searchController.text = 'Philippines';
                       _onSearch();
@@ -199,10 +204,14 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
             children: [
               Icon(Icons.error_outline, size: 64, color: colorScheme.error),
               const SizedBox(height: 16),
-              Text('Search Error', style: theme.textTheme.titleLarge),
+              Text(
+                context.l10n.diveSites_import_error_title,
+                style: theme.textTheme.titleLarge,
+              ),
               const SizedBox(height: 8),
               Text(
-                state.errorMessage ?? 'Unknown error',
+                state.errorMessage ??
+                    context.l10n.diveSites_import_error_unknown,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
@@ -212,7 +221,7 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
               FilledButton.icon(
                 onPressed: _onSearch,
                 icon: const Icon(Icons.refresh),
-                label: const Text('Retry'),
+                label: Text(context.l10n.diveSites_import_error_retry),
               ),
             ],
           ),
@@ -239,11 +248,13 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
                 color: colorScheme.primary.withValues(alpha: 0.5),
               ),
               const SizedBox(height: 24),
-              Text('Search Dive Sites', style: theme.textTheme.titleLarge),
+              Text(
+                context.l10n.diveSites_import_empty_title,
+                style: theme.textTheme.titleLarge,
+              ),
               const SizedBox(height: 8),
               Text(
-                'Search for dive sites from our database of popular\n'
-                'dive destinations around the world.',
+                context.l10n.diveSites_import_empty_description,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
@@ -251,7 +262,7 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Try searching by site name, country, or region.',
+                context.l10n.diveSites_import_empty_hint,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
@@ -277,11 +288,15 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
                 color: colorScheme.onSurfaceVariant,
               ),
               const SizedBox(height: 16),
-              Text('No Results', style: theme.textTheme.titleLarge),
+              Text(
+                context.l10n.diveSites_import_noResults_title,
+                style: theme.textTheme.titleLarge,
+              ),
               const SizedBox(height: 8),
               Text(
-                'No dive sites found for "${state.query}".\n'
-                'Try a different search term.',
+                context.l10n.diveSites_import_noResults_description(
+                  state.query,
+                ),
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
@@ -306,7 +321,9 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
                 Icon(Icons.folder, size: 20, color: colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
-                  'My Sites (${state.localSites.length})',
+                  context.l10n.diveSites_import_section_mySites(
+                    state.localSites.length,
+                  ),
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: colorScheme.primary,
@@ -328,7 +345,9 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
                 Icon(Icons.public, size: 20, color: colorScheme.secondary),
                 const SizedBox(width: 8),
                 Text(
-                  'Import from Database (${state.sites.length})',
+                  context.l10n.diveSites_import_section_importFromDatabase(
+                    state.sites.length,
+                  ),
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: colorScheme.secondary,
@@ -360,7 +379,7 @@ class _QuickSearchChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsetsDirectional.only(end: 8),
       child: ActionChip(label: Text(label), onPressed: onTap),
     );
   }
@@ -382,7 +401,7 @@ class _LocalSiteCard extends StatelessWidget {
       color: colorScheme.primaryContainer.withValues(alpha: 0.3),
       child: Semantics(
         button: true,
-        label: 'View saved site ${site.name}',
+        label: context.l10n.diveSites_import_semantics_viewSavedSite(site.name),
         child: InkWell(
           onTap: () => context.push('/sites/${site.id}'),
           borderRadius: BorderRadius.circular(12),
@@ -416,7 +435,10 @@ class _LocalSiteCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        _buildLocationText(),
+                        _buildLocationText() ??
+                            context
+                                .l10n
+                                .diveSites_import_localSite_locationNotSet,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -448,7 +470,7 @@ class _LocalSiteCard extends StatelessWidget {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                'GPS',
+                                context.l10n.diveSites_import_label_gps,
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: colorScheme.onSurfaceVariant,
                                 ),
@@ -477,7 +499,7 @@ class _LocalSiteCard extends StatelessWidget {
                       Icon(Icons.check, size: 16, color: colorScheme.onPrimary),
                       const SizedBox(width: 4),
                       Text(
-                        'Saved',
+                        context.l10n.diveSites_import_badge_saved,
                         style: theme.textTheme.labelMedium?.copyWith(
                           color: colorScheme.onPrimary,
                         ),
@@ -493,7 +515,7 @@ class _LocalSiteCard extends StatelessWidget {
     );
   }
 
-  String _buildLocationText() {
+  String? _buildLocationText() {
     final parts = <String>[];
     if (site.region != null && site.region!.isNotEmpty) {
       parts.add(site.region!);
@@ -501,7 +523,7 @@ class _LocalSiteCard extends StatelessWidget {
     if (site.country != null && site.country!.isNotEmpty) {
       parts.add(site.country!);
     }
-    return parts.isNotEmpty ? parts.join(', ') : 'Location not set';
+    return parts.isNotEmpty ? parts.join(', ') : null;
   }
 }
 

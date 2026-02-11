@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_list_content.dart';
@@ -58,9 +59,9 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
           context.push('/sites/new');
         }
       },
-      tooltip: 'Add a new dive site',
+      tooltip: context.l10n.diveSites_fab_tooltip,
       icon: const Icon(Icons.add_location),
-      label: const Text('Add Site'),
+      label: Text(context.l10n.diveSites_fab_label),
     );
 
     // Desktop: Use master-detail layout

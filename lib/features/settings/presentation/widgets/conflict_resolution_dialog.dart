@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Dialog for resolving sync conflicts between local and remote data
 class ConflictResolutionDialog extends ConsumerStatefulWidget {
@@ -33,7 +34,11 @@ class _ConflictResolutionDialogState
           ),
           error: (error, _) => Padding(
             padding: const EdgeInsets.all(32),
-            child: Center(child: Text('Error loading conflicts: $error')),
+            child: Center(
+              child: Text(
+                context.l10n.settings_conflict_errorLoading(error.toString()),
+              ),
+            ),
           ),
         ),
       ),
@@ -51,13 +56,16 @@ class _ConflictResolutionDialogState
               child: Icon(Icons.check_circle, size: 64, color: Colors.green),
             ),
             const SizedBox(height: 16),
-            Text('No Conflicts', style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              context.l10n.settings_conflict_noConflicts_title,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 8),
-            const Text('All sync conflicts have been resolved.'),
+            Text(context.l10n.settings_conflict_noConflicts_message),
             const SizedBox(height: 24),
             FilledButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Close'),
+              child: Text(context.l10n.settings_conflict_close),
             ),
           ],
         ),
@@ -99,11 +107,14 @@ class _ConflictResolutionDialogState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Resolve Conflicts',
+                  context.l10n.settings_conflict_title,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 Text(
-                  'Conflict ${_currentIndex + 1} of ${conflicts.length}',
+                  context.l10n.settings_conflict_counterLabel(
+                    _currentIndex + 1,
+                    conflicts.length,
+                  ),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
@@ -111,7 +122,7 @@ class _ConflictResolutionDialogState
           ),
           IconButton(
             icon: const Icon(Icons.close),
-            tooltip: 'Close conflict dialog',
+            tooltip: context.l10n.settings_conflict_close_tooltip,
             onPressed: () => Navigator.pop(context),
           ),
         ],
@@ -162,7 +173,7 @@ class _ConflictResolutionDialogState
 
         // Local version
         Text(
-          'Local Version',
+          context.l10n.settings_conflict_localVersion,
           style: theme.textTheme.labelLarge?.copyWith(color: Colors.blue),
         ),
         const SizedBox(height: 8),
@@ -178,7 +189,9 @@ class _ConflictResolutionDialogState
                     const Icon(Icons.phone_android, size: 16),
                     const SizedBox(width: 8),
                     Text(
-                      'Modified: ${_formatDateTime(conflict.localModified)}',
+                      context.l10n.settings_conflict_modified(
+                        _formatDateTime(conflict.localModified),
+                      ),
                       style: theme.textTheme.bodySmall,
                     ),
                   ],
@@ -193,7 +206,7 @@ class _ConflictResolutionDialogState
 
         // Remote version
         Text(
-          'Remote Version',
+          context.l10n.settings_conflict_remoteVersion,
           style: theme.textTheme.labelLarge?.copyWith(color: Colors.green),
         ),
         const SizedBox(height: 8),
@@ -209,7 +222,9 @@ class _ConflictResolutionDialogState
                     const Icon(Icons.cloud, size: 16),
                     const SizedBox(width: 8),
                     Text(
-                      'Modified: ${_formatDateTime(conflict.remoteModified)}',
+                      context.l10n.settings_conflict_modified(
+                        _formatDateTime(conflict.remoteModified),
+                      ),
                       style: theme.textTheme.bodySmall,
                     ),
                   ],
@@ -227,7 +242,7 @@ class _ConflictResolutionDialogState
   Widget _buildDataPreview(BuildContext context, Map<String, dynamic> data) {
     if (data.isEmpty) {
       return Text(
-        'No data available',
+        context.l10n.settings_conflict_noDataAvailable,
         style: Theme.of(
           context,
         ).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
@@ -312,7 +327,7 @@ class _ConflictResolutionDialogState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Choose Resolution',
+            context.l10n.settings_conflict_chooseResolution,
             style: Theme.of(context).textTheme.labelLarge,
           ),
           const SizedBox(height: 8),
@@ -321,21 +336,21 @@ class _ConflictResolutionDialogState
             runSpacing: 8,
             children: [
               ChoiceChip(
-                label: const Text('Keep Local'),
+                label: Text(context.l10n.settings_conflict_keepLocal),
                 selected: selected == ConflictResolution.keepLocal,
                 onSelected: (_) =>
                     _selectResolution(key, ConflictResolution.keepLocal),
                 avatar: const Icon(Icons.phone_android, size: 18),
               ),
               ChoiceChip(
-                label: const Text('Keep Remote'),
+                label: Text(context.l10n.settings_conflict_keepRemote),
                 selected: selected == ConflictResolution.keepRemote,
                 onSelected: (_) =>
                     _selectResolution(key, ConflictResolution.keepRemote),
                 avatar: const Icon(Icons.cloud, size: 18),
               ),
               ChoiceChip(
-                label: const Text('Keep Both'),
+                label: Text(context.l10n.settings_conflict_keepBoth),
                 selected: selected == ConflictResolution.keepBoth,
                 onSelected: (_) =>
                     _selectResolution(key, ConflictResolution.keepBoth),
@@ -367,25 +382,25 @@ class _ConflictResolutionDialogState
                 ? () => setState(() => _currentIndex--)
                 : null,
             icon: const Icon(Icons.chevron_left),
-            tooltip: 'Previous conflict',
+            tooltip: context.l10n.settings_conflict_previous_tooltip,
           ),
           IconButton(
             onPressed: _currentIndex < conflicts.length - 1
                 ? () => setState(() => _currentIndex++)
                 : null,
             icon: const Icon(Icons.chevron_right),
-            tooltip: 'Next conflict',
+            tooltip: context.l10n.settings_conflict_next_tooltip,
           ),
           const Spacer(),
           // Action buttons
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.settings_conflict_cancel),
           ),
           const SizedBox(width: 8),
           FilledButton(
             onPressed: allResolved ? () => _applyResolutions(conflicts) : null,
-            child: const Text('Apply All'),
+            child: Text(context.l10n.settings_conflict_applyAll),
           ),
         ],
       ),
@@ -422,7 +437,7 @@ class _ConflictResolutionDialogState
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Resolved ${conflicts.length} conflict${conflicts.length == 1 ? '' : 's'}',
+            context.l10n.settings_conflict_resolved(conflicts.length),
           ),
         ),
       );
@@ -468,13 +483,15 @@ class _ConflictResolutionDialogState
     final difference = now.difference(dateTime);
 
     if (difference.inMinutes < 1) {
-      return 'Just now';
+      return context.l10n.settings_data_syncTime_justNow;
     } else if (difference.inHours < 1) {
-      return '${difference.inMinutes}m ago';
+      return context.l10n.settings_data_syncTime_minutesAgo(
+        difference.inMinutes,
+      );
     } else if (difference.inDays < 1) {
-      return '${difference.inHours}h ago';
+      return context.l10n.settings_data_syncTime_hoursAgo(difference.inHours);
     } else if (difference.inDays < 7) {
-      return '${difference.inDays}d ago';
+      return context.l10n.settings_data_syncTime_daysAgo(difference.inDays);
     } else {
       return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
     }

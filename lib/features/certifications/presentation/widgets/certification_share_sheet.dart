@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/services/certification_card_renderer.dart';
 
@@ -46,7 +47,7 @@ class _CertificationShareSheetState extends State<CertificationShareSheet> {
           children: [
             // Title
             Text(
-              'Share Certification',
+              context.l10n.certifications_share_title,
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -69,16 +70,17 @@ class _CertificationShareSheetState extends State<CertificationShareSheet> {
             // Share options
             _ShareOptionTile(
               icon: Icons.credit_card,
-              title: 'Share as Card',
-              subtitle: 'Credit card-style certification image',
+              title: context.l10n.certifications_share_option_card_title,
+              subtitle: context.l10n.certifications_share_option_card_subtitle,
               onTap: _isExporting ? null : _shareAsCard,
               isLoading: _isExporting,
             ),
             const SizedBox(height: 12),
             _ShareOptionTile(
               icon: Icons.article_outlined,
-              title: 'Share as Certificate',
-              subtitle: 'Formal certificate document',
+              title: context.l10n.certifications_share_option_certificate_title,
+              subtitle:
+                  context.l10n.certifications_share_option_certificate_subtitle,
               onTap: _isExporting ? null : _shareAsCertificate,
               isLoading: _isExporting,
             ),
@@ -96,6 +98,7 @@ class _CertificationShareSheetState extends State<CertificationShareSheet> {
       final bytes = await CertificationCardRenderer.generateCardImage(
         certification: widget.certification,
         diverName: widget.diverName,
+        l10n: context.l10n,
       );
       if (bytes == null) {
         throw Exception('Failed to generate card image');
@@ -118,7 +121,7 @@ class _CertificationShareSheetState extends State<CertificationShareSheet> {
     } catch (e) {
       if (mounted) {
         setState(() => _isExporting = false);
-        _showError('Failed to share card: $e');
+        _showError(context.l10n.certifications_share_error_card('$e'));
       }
     }
   }
@@ -127,9 +130,11 @@ class _CertificationShareSheetState extends State<CertificationShareSheet> {
     setState(() => _isExporting = true);
 
     try {
+      final cert = widget.certification;
       final bytes = await CertificationCardRenderer.generateCertificateImage(
-        certification: widget.certification,
+        certification: cert,
         diverName: widget.diverName,
+        l10n: context.l10n,
       );
       if (bytes == null) {
         throw Exception('Failed to generate certificate image');
@@ -152,7 +157,7 @@ class _CertificationShareSheetState extends State<CertificationShareSheet> {
     } catch (e) {
       if (mounted) {
         setState(() => _isExporting = false);
-        _showError('Failed to share certificate: $e');
+        _showError(context.l10n.certifications_share_error_certificate('$e'));
       }
     }
   }

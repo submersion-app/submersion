@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/providers/map_list_selection_provider.dart';
 import 'package:submersion/shared/widgets/map_list_layout/collapsible_list_pane.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -38,11 +39,11 @@ class MapListScaffold extends ConsumerWidget {
   });
 
   /// Builds the leading back button for the AppBar if onBackPressed is provided.
-  Widget? _buildLeadingButton() {
+  Widget? _buildLeadingButton(BuildContext context) {
     if (onBackPressed == null) return null;
     return IconButton(
       icon: const Icon(Icons.arrow_back),
-      tooltip: 'Back',
+      tooltip: context.l10n.common_action_back,
       onPressed: onBackPressed,
     );
   }
@@ -58,11 +59,11 @@ class MapListScaffold extends ConsumerWidget {
       return Scaffold(
         appBar: AppBar(
           title: Semantics(header: true, child: Text(title)),
-          leading: _buildLeadingButton(),
+          leading: _buildLeadingButton(context),
           actions: actions,
         ),
         body: Semantics(
-          label: '$title map view',
+          label: context.l10n.accessibility_label_mapViewTitle(title),
           child: Stack(
             children: [
               mapPane,
@@ -84,13 +85,13 @@ class MapListScaffold extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Semantics(header: true, child: Text(title)),
-        leading: _buildLeadingButton(),
+        leading: _buildLeadingButton(context),
         actions: [
           // Expand button when collapsed
           if (selectionState.isCollapsed)
             IconButton(
               icon: const Icon(Icons.chevron_right),
-              tooltip: 'Show List',
+              tooltip: context.l10n.accessibility_label_showList,
               onPressed: () => ref
                   .read(mapListSelectionProvider(sectionKey).notifier)
                   .toggleCollapse(),
@@ -103,7 +104,7 @@ class MapListScaffold extends ConsumerWidget {
           children: [
             // Collapsible list pane
             Semantics(
-              label: '$title list pane',
+              label: context.l10n.accessibility_label_listPane(title),
               child: CollapsibleListPane(
                 isCollapsed: selectionState.isCollapsed,
                 onToggle: () => ref
@@ -123,7 +124,7 @@ class MapListScaffold extends ConsumerWidget {
             // Map pane
             Expanded(
               child: Semantics(
-                label: '$title map pane',
+                label: context.l10n.accessibility_label_mapPane(title),
                 child: Stack(
                   children: [
                     mapPane,

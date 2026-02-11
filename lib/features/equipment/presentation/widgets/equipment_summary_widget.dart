@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Summary widget shown when no equipment is selected.
 class EquipmentSummaryWidget extends ConsumerWidget {
@@ -30,7 +31,8 @@ class EquipmentSummaryWidget extends ConsumerWidget {
                 serviceDueAsync.value ?? [],
               ),
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Error: $e')),
+              error: (e, _) =>
+                  Center(child: Text('${context.l10n.common_label_error}: $e')),
             ),
             const SizedBox(height: 24),
             _buildQuickActions(context),
@@ -54,7 +56,7 @@ class EquipmentSummaryWidget extends ConsumerWidget {
             ),
             const SizedBox(width: 12),
             Text(
-              'Equipment',
+              context.l10n.equipment_summary_title,
               style: Theme.of(
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
@@ -63,7 +65,7 @@ class EquipmentSummaryWidget extends ConsumerWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Select equipment from the list to view details',
+          context.l10n.equipment_summary_selectPrompt,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
@@ -95,7 +97,7 @@ class EquipmentSummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Overview',
+          context.l10n.equipment_summary_overviewTitle,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -109,14 +111,14 @@ class EquipmentSummaryWidget extends ConsumerWidget {
               context,
               icon: Icons.backpack,
               value: '${equipment.length}',
-              label: 'Total Items',
+              label: context.l10n.equipment_summary_totalItems,
               color: Colors.blue,
             ),
             _buildStatCard(
               context,
               icon: Icons.check_circle,
               value: '$activeCount',
-              label: 'Active',
+              label: context.l10n.equipment_summary_active,
               color: Colors.green,
             ),
             if (serviceDue.isNotEmpty)
@@ -124,7 +126,7 @@ class EquipmentSummaryWidget extends ConsumerWidget {
                 context,
                 icon: Icons.build,
                 value: '${serviceDue.length}',
-                label: 'Service Due',
+                label: context.l10n.equipment_summary_serviceDue,
                 color: Colors.red,
               ),
             if (totalValue > 0)
@@ -132,7 +134,7 @@ class EquipmentSummaryWidget extends ConsumerWidget {
                 context,
                 icon: Icons.attach_money,
                 value: '\$${totalValue.toStringAsFixed(0)}',
-                label: 'Total Value',
+                label: context.l10n.equipment_summary_totalValue,
                 color: Colors.orange,
               ),
           ],
@@ -207,7 +209,7 @@ class EquipmentSummaryWidget extends ConsumerWidget {
             const Icon(Icons.warning, size: 20, color: Colors.red),
             const SizedBox(width: 8),
             Text(
-              'Service Due',
+              context.l10n.equipment_summary_serviceDueTitle,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -270,7 +272,7 @@ class EquipmentSummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Recent Equipment',
+          context.l10n.equipment_summary_recentEquipmentTitle,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -316,7 +318,7 @@ class EquipmentSummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Quick Actions',
+          context.l10n.equipment_summary_quickActionsTitle,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -333,12 +335,12 @@ class EquipmentSummaryWidget extends ConsumerWidget {
                 context.go('$currentPath?mode=new');
               },
               icon: const Icon(Icons.add),
-              label: const Text('Add Equipment'),
+              label: Text(context.l10n.equipment_summary_addEquipmentButton),
             ),
             OutlinedButton.icon(
               onPressed: () => context.push('/equipment/sets'),
               icon: const Icon(Icons.folder),
-              label: const Text('Equipment Sets'),
+              label: Text(context.l10n.equipment_summary_equipmentSetsButton),
             ),
           ],
         ),

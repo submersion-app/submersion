@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A reusable line chart for trend data
 class TrendLineChart extends StatelessWidget {
@@ -42,7 +43,7 @@ class TrendLineChart extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'No trend data available',
+                context.l10n.statistics_chart_noTrendData,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -67,9 +68,12 @@ class TrendLineChart extends StatelessWidget {
     final maxY = rawMaxY;
 
     return Semantics(
-      label:
-          'Trend line chart showing ${data.length} data points'
-          '${yAxisLabel != null ? ' for $yAxisLabel' : ''}',
+      label: yAxisLabel != null
+          ? context.l10n.statistics_chart_trendSemanticLabelWithAxis(
+              data.length,
+              yAxisLabel!,
+            )
+          : context.l10n.statistics_chart_trendSemanticLabel(data.length),
       child: SizedBox(
         height: height,
         child: LineChart(
@@ -221,7 +225,7 @@ class DistributionPieChart extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'No distribution data available',
+                context.l10n.statistics_chart_noDistributionData,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -246,7 +250,9 @@ class DistributionPieChart extends StatelessWidget {
     final chartColors = colors ?? defaultColors;
 
     return Semantics(
-      label: 'Distribution pie chart with ${data.length} segments',
+      label: context.l10n.statistics_chart_distributionSemanticLabel(
+        data.length,
+      ),
       child: SizedBox(
         height: height,
         child: Row(
@@ -353,7 +359,7 @@ class CategoryBarChart extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'No data available',
+                context.l10n.statistics_chart_noBarData,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -371,7 +377,7 @@ class CategoryBarChart extends StatelessWidget {
         .toDouble();
 
     return Semantics(
-      label: 'Bar chart with ${data.length} categories',
+      label: context.l10n.statistics_chart_barSemanticLabel(data.length),
       child: SizedBox(
         height: height,
         child: BarChart(
@@ -505,7 +511,7 @@ class MultiTrendLineChart extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'No trend data available',
+                context.l10n.statistics_chart_noTrendData,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -533,7 +539,9 @@ class MultiTrendLineChart extends StatelessWidget {
     );
 
     return Semantics(
-      label: 'Multi-trend line chart comparing ${seriesLabels.join(', ')}',
+      label: context.l10n.statistics_chart_multiTrendSemanticLabel(
+        seriesLabels.join(', '),
+      ),
       child: Column(
         children: [
           SizedBox(

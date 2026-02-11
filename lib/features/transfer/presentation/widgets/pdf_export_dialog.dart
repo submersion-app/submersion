@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/constants/pdf_templates.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Dialog for selecting PDF export options.
 ///
@@ -67,7 +68,10 @@ class _PdfExportDialogState extends ConsumerState<PdfExportDialog> {
                 children: [
                   Icon(Icons.picture_as_pdf, color: colorScheme.primary),
                   const SizedBox(width: 12),
-                  Text('Export PDF Logbook', style: theme.textTheme.titleLarge),
+                  Text(
+                    context.l10n.transfer_pdfExport_dialogTitle,
+                    style: theme.textTheme.titleLarge,
+                  ),
                 ],
               ),
             ),
@@ -81,7 +85,7 @@ class _PdfExportDialogState extends ConsumerState<PdfExportDialog> {
                   children: [
                     // Template selection
                     Text(
-                      'Template',
+                      context.l10n.transfer_pdfExport_templateHeader,
                       style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -93,7 +97,7 @@ class _PdfExportDialogState extends ConsumerState<PdfExportDialog> {
                     const SizedBox(height: 16),
                     // Page size selection
                     Text(
-                      'Page Size',
+                      context.l10n.transfer_pdfExport_pageSizeHeader,
                       style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -118,9 +122,13 @@ class _PdfExportDialogState extends ConsumerState<PdfExportDialog> {
                     // Certification cards option
                     if (_selectedTemplate.supportsCertificationCards) ...[
                       SwitchListTile(
-                        title: const Text('Include Certification Cards'),
-                        subtitle: const Text(
-                          'Add scanned certification card images to the PDF',
+                        title: Text(
+                          context.l10n.transfer_pdfExport_includeCertCards,
+                        ),
+                        subtitle: Text(
+                          context
+                              .l10n
+                              .transfer_pdfExport_includeCertCardsSubtitle,
                         ),
                         value: _includeCertCards,
                         onChanged: (value) {
@@ -142,7 +150,7 @@ class _PdfExportDialogState extends ConsumerState<PdfExportDialog> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('Cancel'),
+                      child: Text(context.l10n.transfer_pdfExport_cancelButton),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -151,7 +159,7 @@ class _PdfExportDialogState extends ConsumerState<PdfExportDialog> {
                     child: FilledButton.icon(
                       onPressed: _exportPdf,
                       icon: const Icon(Icons.download),
-                      label: const Text('Export PDF'),
+                      label: Text(context.l10n.transfer_pdfExport_exportButton),
                     ),
                   ),
                 ],
@@ -166,12 +174,16 @@ class _PdfExportDialogState extends ConsumerState<PdfExportDialog> {
   Widget _buildTemplateOption(PdfTemplate template, ThemeData theme) {
     final isSelected = _selectedTemplate == template;
     final colorScheme = theme.colorScheme;
+    final templateName = _localizedTemplateName(context, template);
+    final templateDesc = _localizedTemplateDescription(context, template);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Semantics(
         button: true,
-        label: 'Select ${template.displayName} template',
+        label: context.l10n.transfer_pdfExport_templateSemanticLabel(
+          templateName,
+        ),
         child: InkWell(
           onTap: () => setState(() => _selectedTemplate = template),
           borderRadius: BorderRadius.circular(12),
@@ -216,7 +228,7 @@ class _PdfExportDialogState extends ConsumerState<PdfExportDialog> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        template.displayName,
+                        templateName,
                         style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: isSelected
                               ? FontWeight.bold
@@ -225,7 +237,7 @@ class _PdfExportDialogState extends ConsumerState<PdfExportDialog> {
                         ),
                       ),
                       Text(
-                        template.description,
+                        templateDesc,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -242,6 +254,39 @@ class _PdfExportDialogState extends ConsumerState<PdfExportDialog> {
         ),
       ),
     );
+  }
+
+  String _localizedTemplateName(BuildContext context, PdfTemplate template) {
+    switch (template) {
+      case PdfTemplate.simple:
+        return context.l10n.transfer_pdfExport_templateSimple;
+      case PdfTemplate.detailed:
+        return context.l10n.transfer_pdfExport_templateDetailed;
+      case PdfTemplate.professional:
+        return context.l10n.transfer_pdfExport_templateProfessional;
+      case PdfTemplate.padiStyle:
+        return context.l10n.transfer_pdfExport_templatePadiStyle;
+      case PdfTemplate.nauiStyle:
+        return context.l10n.transfer_pdfExport_templateNauiStyle;
+    }
+  }
+
+  String _localizedTemplateDescription(
+    BuildContext context,
+    PdfTemplate template,
+  ) {
+    switch (template) {
+      case PdfTemplate.simple:
+        return context.l10n.transfer_pdfExport_templateSimpleDesc;
+      case PdfTemplate.detailed:
+        return context.l10n.transfer_pdfExport_templateDetailedDesc;
+      case PdfTemplate.professional:
+        return context.l10n.transfer_pdfExport_templateProfessionalDesc;
+      case PdfTemplate.padiStyle:
+        return context.l10n.transfer_pdfExport_templatePadiStyleDesc;
+      case PdfTemplate.nauiStyle:
+        return context.l10n.transfer_pdfExport_templateNauiStyleDesc;
+    }
   }
 
   IconData _getTemplateIcon(PdfTemplate template) {

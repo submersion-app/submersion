@@ -4,6 +4,7 @@ import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Card displaying per-cylinder SAC (Surface Air Consumption) metrics.
 ///
@@ -132,7 +133,7 @@ class CylinderSacCard extends StatelessWidget {
                   ),
                 ] else ...[
                   Text(
-                    'SAC: --',
+                    context.l10n.diveLog_cylinderSac_noSac,
                     style: textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -196,7 +197,9 @@ class CylinderSacCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'Avg: ${units.formatDepth(cylinderSac.avgDepthDuringUse!)}',
+                        context.l10n.diveLog_cylinderSac_avgDepth(
+                          units.formatDepth(cylinderSac.avgDepthDuringUse!),
+                        ),
                         style: textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -239,7 +242,7 @@ class CylinderSacCard extends StatelessWidget {
 
     if (cylinderSac.hasTimeSeriesData) {
       return Tooltip(
-        message: 'Using AI transmitter data for higher accuracy',
+        message: context.l10n.diveLog_cylinderSac_tooltip_aiData,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
           decoration: BoxDecoration(
@@ -252,7 +255,7 @@ class CylinderSacCard extends StatelessWidget {
               Icon(Icons.verified, size: 12, color: Colors.green.shade700),
               const SizedBox(width: 2),
               Text(
-                'AI',
+                context.l10n.diveLog_cylinderSac_badge_ai,
                 style: textTheme.labelSmall?.copyWith(
                   color: Colors.green.shade700,
                   fontWeight: FontWeight.w600,
@@ -264,7 +267,7 @@ class CylinderSacCard extends StatelessWidget {
       );
     } else {
       return Tooltip(
-        message: 'Calculated from start/end pressures',
+        message: context.l10n.diveLog_cylinderSac_tooltip_basicData,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
           decoration: BoxDecoration(
@@ -272,7 +275,7 @@ class CylinderSacCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(4),
           ),
           child: Text(
-            'Basic',
+            context.l10n.diveLog_cylinderSac_badge_basic,
             style: textTheme.labelSmall?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),

@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Panel for configuring dive plan settings (GF, SAC, site).
 class PlanSettingsPanel extends ConsumerWidget {
@@ -31,7 +32,7 @@ class PlanSettingsPanel extends ConsumerWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Plan Settings',
+                  context.l10n.divePlanner_label_planSettings,
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: theme.colorScheme.primary,
                   ),
@@ -45,7 +46,7 @@ class PlanSettingsPanel extends ConsumerWidget {
               children: [
                 Expanded(
                   child: _GfSlider(
-                    label: 'GF Low',
+                    label: context.l10n.divePlanner_label_gfLow,
                     value: planState.gfLow,
                     onChanged: (value) {
                       ref
@@ -57,7 +58,7 @@ class PlanSettingsPanel extends ConsumerWidget {
                 const SizedBox(width: 16),
                 Expanded(
                   child: _GfSlider(
-                    label: 'GF High',
+                    label: context.l10n.divePlanner_label_gfHigh,
                     value: planState.gfHigh,
                     onChanged: (value) {
                       ref
@@ -73,7 +74,7 @@ class PlanSettingsPanel extends ConsumerWidget {
             // SAC rate
             Row(
               children: [
-                const Text('SAC Rate:'),
+                Text(context.l10n.divePlanner_label_sacRate),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Semantics(
@@ -184,7 +185,7 @@ class _AltitudeInputState extends State<_AltitudeInput> {
           children: [
             const Icon(Icons.terrain, size: 18),
             const SizedBox(width: 8),
-            const Text('Altitude:'),
+            Text(context.l10n.divePlanner_label_altitude),
             const SizedBox(width: 8),
             SizedBox(
               width: 100,

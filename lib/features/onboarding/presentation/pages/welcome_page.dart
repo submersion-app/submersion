@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 class WelcomePage extends ConsumerStatefulWidget {
   const WelcomePage({super.key});
@@ -57,9 +58,15 @@ class _WelcomePageState extends ConsumerState<WelcomePage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error creating profile: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              context.l10n.onboarding_welcome_errorCreatingProfile(
+                e.toString(),
+              ),
+            ),
+          ),
+        );
         setState(() => _isSaving = false);
       }
     }
@@ -95,7 +102,7 @@ class _WelcomePageState extends ConsumerState<WelcomePage> {
 
                   // Welcome text
                   Text(
-                    'Welcome to Submersion',
+                    context.l10n.onboarding_welcome_title,
                     style: theme.textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -104,7 +111,7 @@ class _WelcomePageState extends ConsumerState<WelcomePage> {
                   const SizedBox(height: 12),
 
                   Text(
-                    'Advanced dive logging and analysis',
+                    context.l10n.onboarding_welcome_subtitle,
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -122,14 +129,16 @@ class _WelcomePageState extends ConsumerState<WelcomePage> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Text(
-                              'Create Your Profile',
+                              context.l10n.onboarding_welcome_createProfile,
                               style: theme.textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Enter your name to get started. You can add more details later.',
+                              context
+                                  .l10n
+                                  .onboarding_welcome_createProfileSubtitle,
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: colorScheme.onSurfaceVariant,
                               ),
@@ -137,10 +146,12 @@ class _WelcomePageState extends ConsumerState<WelcomePage> {
                             const SizedBox(height: 24),
                             TextFormField(
                               controller: _nameController,
-                              decoration: const InputDecoration(
-                                labelText: 'Your Name',
-                                prefixIcon: Icon(Icons.person),
-                                hintText: 'Enter your name',
+                              decoration: InputDecoration(
+                                labelText:
+                                    context.l10n.onboarding_welcome_nameLabel,
+                                prefixIcon: const Icon(Icons.person),
+                                hintText:
+                                    context.l10n.onboarding_welcome_nameHint,
                               ),
                               textCapitalization: TextCapitalization.words,
                               autofocus: true,
@@ -148,7 +159,9 @@ class _WelcomePageState extends ConsumerState<WelcomePage> {
                               onFieldSubmitted: (_) => _createProfile(),
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
-                                  return 'Please enter your name';
+                                  return context
+                                      .l10n
+                                      .onboarding_welcome_nameValidation;
                                 }
                                 return null;
                               },
@@ -167,7 +180,11 @@ class _WelcomePageState extends ConsumerState<WelcomePage> {
                                     )
                                   : const Icon(Icons.arrow_forward),
                               label: Text(
-                                _isSaving ? 'Creating...' : 'Get Started',
+                                _isSaving
+                                    ? context.l10n.onboarding_welcome_creating
+                                    : context
+                                          .l10n
+                                          .onboarding_welcome_getStarted,
                               ),
                             ),
                           ],

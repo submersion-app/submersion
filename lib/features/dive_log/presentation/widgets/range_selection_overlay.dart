@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Overlay widget for selecting a time range on the dive profile chart.
 ///
@@ -128,7 +129,7 @@ class _RangeSelectionOverlayState extends ConsumerState<RangeSelectionOverlay> {
       bottom: 0,
       width: 32,
       child: Semantics(
-        label: 'Adjust range selection',
+        label: context.l10n.diveLog_rangeSelection_semantics_adjust,
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onHorizontalDragStart: (_) {
@@ -241,7 +242,7 @@ class RangeSelectionToggle extends ConsumerWidget {
           ref.read(rangeSelectionProvider(diveId).notifier).disableRangeMode();
         },
         icon: const Icon(Icons.close, size: 18),
-        label: const Text('Exit Range'),
+        label: Text(context.l10n.diveLog_rangeSelection_exitRange),
         style: FilledButton.styleFrom(
           backgroundColor: colorScheme.primaryContainer,
           foregroundColor: colorScheme.onPrimaryContainer,
@@ -256,7 +257,7 @@ class RangeSelectionToggle extends ConsumerWidget {
         ref.read(rangeSelectionProvider(diveId).notifier).enableRangeMode();
       },
       icon: const Icon(Icons.straighten, size: 18),
-      label: const Text('Select Range'),
+      label: Text(context.l10n.diveLog_rangeSelection_selectRange),
       style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         visualDensity: VisualDensity.compact,

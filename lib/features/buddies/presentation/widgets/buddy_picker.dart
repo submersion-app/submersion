@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
@@ -29,7 +30,7 @@ class BuddyPicker extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Buddies',
+              context.l10n.buddies_title,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -37,7 +38,7 @@ class BuddyPicker extends ConsumerWidget {
             TextButton.icon(
               onPressed: () => _showBuddySelectionSheet(context, ref),
               icon: const Icon(Icons.add, size: 18),
-              label: const Text('Add'),
+              label: Text(context.l10n.buddies_picker_add),
             ),
           ],
         ),
@@ -65,14 +66,14 @@ class BuddyPicker extends ConsumerWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'No buddies selected',
+                  context.l10n.buddies_picker_noneSelected,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Tap "Add" to select dive buddies',
+                  context.l10n.buddies_picker_tapToAdd,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -178,7 +179,9 @@ class _BuddyChip extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
-                'Select Role for ${buddyWithRole.buddy.name}',
+                context.l10n.buddies_picker_selectRole(
+                  buddyWithRole.buddy.name,
+                ),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
             ),
@@ -257,13 +260,13 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Select Buddies',
+                    context.l10n.buddies_picker_selectBuddies,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   TextButton(
                     onPressed: () =>
                         Navigator.pop(context, _localSelectedBuddies),
-                    child: const Text('Done'),
+                    child: Text(context.l10n.buddies_picker_done),
                   ),
                 ],
               ),
@@ -275,12 +278,12 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
-                  hintText: 'Search buddies...',
+                  hintText: context.l10n.buddies_picker_searchHint,
                   prefixIcon: const Icon(Icons.search),
                   suffixIcon: _searchQuery.isNotEmpty
                       ? IconButton(
                           icon: const Icon(Icons.clear),
-                          tooltip: 'Clear search',
+                          tooltip: context.l10n.buddies_action_clearSearch,
                           onPressed: () {
                             _searchController.clear();
                             setState(() => _searchQuery = '');
@@ -311,7 +314,7 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
                   }
                 },
                 icon: const Icon(Icons.person_add),
-                label: const Text('Add New Buddy'),
+                label: Text(context.l10n.buddies_picker_addNew),
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 44),
                 ),
@@ -341,8 +344,8 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
                           const SizedBox(height: 16),
                           Text(
                             _searchQuery.isEmpty
-                                ? 'No buddies yet'
-                                : 'No buddies found',
+                                ? context.l10n.buddies_picker_noBuddiesYet
+                                : context.l10n.buddies_picker_noBuddiesFound,
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                         ],
@@ -459,7 +462,7 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
             Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
-                'Select Role for ${buddy.name}',
+                context.l10n.buddies_picker_selectRole(buddy.name),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
             ),

@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_computer/presentation/providers/downloa
 import 'package:submersion/features/dive_computer/presentation/widgets/scan_step_widget.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/download_step_widget.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/summary_step_widget.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Multi-step wizard for discovering and connecting to dive computers.
 class DeviceDiscoveryPage extends ConsumerStatefulWidget {
@@ -64,7 +65,7 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
           leading: IconButton(
             icon: const Icon(Icons.close),
             onPressed: () => _showExitConfirmation(context),
-            tooltip: 'Exit setup',
+            tooltip: context.l10n.diveComputer_discovery_exitTooltip,
           ),
         ),
         body: Column(
@@ -107,7 +108,12 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
   }
 
   Widget _buildProgressIndicator(DiscoveryStep currentStep, ThemeData theme) {
-    final steps = ['Scan', 'Connect', 'Download', 'Done'];
+    final steps = [
+      context.l10n.diveComputer_discovery_stepScan,
+      context.l10n.diveComputer_discovery_stepConnect,
+      context.l10n.diveComputer_discovery_stepDownload,
+      context.l10n.diveComputer_discovery_stepDone,
+    ];
     final currentIndex = _getProgressIndex(currentStep);
 
     return Padding(
@@ -186,15 +192,15 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
     switch (step) {
       case DiscoveryStep.scan:
       case DiscoveryStep.select:
-        return 'Find Device';
+        return context.l10n.diveComputer_discovery_titleFindDevice;
       case DiscoveryStep.pair:
-        return 'Connecting';
+        return context.l10n.diveComputer_discovery_titleConnecting;
       case DiscoveryStep.confirm:
-        return 'Confirm Device';
+        return context.l10n.diveComputer_discovery_titleConfirmDevice;
       case DiscoveryStep.download:
-        return 'Downloading';
+        return context.l10n.diveComputer_discovery_titleDownloading;
       case DiscoveryStep.summary:
-        return 'Complete';
+        return context.l10n.diveComputer_discovery_titleComplete;
     }
   }
 
@@ -210,12 +216,12 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
           ),
           const SizedBox(height: 24),
           Text(
-            'Connecting to device...',
+            context.l10n.diveComputer_discovery_connectingToDevice,
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
           Text(
-            'Please wait while we establish a connection',
+            context.l10n.diveComputer_discovery_pleaseWaitConnection,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -228,7 +234,9 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
   Widget _buildConfirmStep(DiscoveryState state) {
     final device = state.selectedDevice;
     if (device == null) {
-      return const Center(child: Text('No device selected'));
+      return Center(
+        child: Text(context.l10n.diveComputer_discovery_noDeviceSelected),
+      );
     }
 
     final theme = Theme.of(context);
@@ -277,8 +285,13 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
                   // Custom name field
                   TextField(
                     decoration: InputDecoration(
-                      labelText: 'Device Name',
-                      hintText: 'e.g., My ${device.model ?? "Computer"}',
+                      labelText:
+                          context.l10n.diveComputer_discovery_deviceNameLabel,
+                      hintText: context.l10n
+                          .diveComputer_discovery_deviceNameHint(
+                            device.model ??
+                                context.l10n.diveComputer_discovery_computer,
+                          ),
                       prefixIcon: const Icon(Icons.edit),
                     ),
                     onChanged: (value) {
@@ -307,7 +320,7 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Recognized Device',
+                          context.l10n.diveComputer_discovery_recognizedDevice,
                           style: theme.textTheme.titleSmall?.copyWith(
                             color: colorScheme.primary,
                           ),
@@ -316,8 +329,9 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'This device is in our supported devices library. '
-                      'Dive download should work automatically.',
+                      context
+                          .l10n
+                          .diveComputer_discovery_recognizedDeviceDescription,
                       style: theme.textTheme.bodySmall,
                     ),
                   ],
@@ -341,7 +355,7 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Unknown Device',
+                          context.l10n.diveComputer_discovery_unknownDevice,
                           style: theme.textTheme.titleSmall?.copyWith(
                             color: colorScheme.error,
                           ),
@@ -350,8 +364,9 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'This device is not in our library. '
-                      'We\'ll try to connect, but download may not work.',
+                      context
+                          .l10n
+                          .diveComputer_discovery_unknownDeviceDescription,
                       style: theme.textTheme.bodySmall,
                     ),
                   ],
@@ -387,7 +402,7 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
           FilledButton.icon(
             onPressed: _onConfirmDevice,
             icon: const Icon(Icons.download),
-            label: const Text('Connect & Download'),
+            label: Text(context.l10n.diveComputer_discovery_connectAndDownload),
           ),
           const SizedBox(height: 12),
           OutlinedButton(
@@ -396,7 +411,9 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
                   .read(discoveryNotifierProvider.notifier)
                   .goToStep(DiscoveryStep.scan);
             },
-            child: const Text('Choose Different Device'),
+            child: Text(
+              context.l10n.diveComputer_discovery_chooseDifferentDevice,
+            ),
           ),
         ],
       ),
@@ -511,14 +528,12 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Exit Setup?'),
-        content: const Text(
-          'Are you sure you want to exit? Your progress will be lost.',
-        ),
+        title: Text(context.l10n.diveComputer_discovery_exitDialogTitle),
+        content: Text(context.l10n.diveComputer_discovery_exitDialogContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.diveComputer_discovery_exitDialogCancel),
           ),
           FilledButton(
             onPressed: () {
@@ -526,7 +541,7 @@ class _DeviceDiscoveryPageState extends ConsumerState<DeviceDiscoveryPage> {
               ref.read(discoveryNotifierProvider.notifier).reset();
               this.context.pop();
             },
-            child: const Text('Exit'),
+            child: Text(context.l10n.diveComputer_discovery_exitDialogConfirm),
           ),
         ],
       ),

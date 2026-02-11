@@ -8,6 +8,7 @@ import 'package:submersion/features/statistics/presentation/providers/statistics
 import 'package:submersion/features/statistics/presentation/widgets/ranking_list.dart';
 import 'package:submersion/features/statistics/presentation/widgets/stat_charts.dart';
 import 'package:submersion/features/statistics/presentation/widgets/stat_section_card.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 class StatisticsEquipmentPage extends ConsumerWidget {
   final bool embedded;
@@ -36,7 +37,9 @@ class StatisticsEquipmentPage extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Equipment')),
+      appBar: AppBar(
+        title: Text(context.l10n.statistics_equipment_appBar_title),
+      ),
       body: content,
     );
   }
@@ -45,12 +48,12 @@ class StatisticsEquipmentPage extends ConsumerWidget {
     final gearAsync = ref.watch(mostUsedGearProvider);
 
     return StatSectionCard(
-      title: 'Most Used Gear',
-      subtitle: 'Equipment by dive count',
+      title: context.l10n.statistics_equipment_mostUsedGear_title,
+      subtitle: context.l10n.statistics_equipment_mostUsedGear_subtitle,
       child: gearAsync.when(
         data: (data) => RankingList(
           items: data,
-          countLabel: 'dives',
+          countLabel: context.l10n.statistics_ranking_countLabel_dives,
           maxItems: 10,
           onItemTap: (item) => context.push('/equipment/${item.id}'),
         ),
@@ -58,9 +61,9 @@ class StatisticsEquipmentPage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, _) => const StatEmptyState(
+        error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: 'Failed to load gear data',
+          message: context.l10n.statistics_equipment_mostUsedGear_error,
         ),
       ),
     );
@@ -74,8 +77,8 @@ class StatisticsEquipmentPage extends ConsumerWidget {
     final weightTrendAsync = ref.watch(weightTrendProvider);
 
     return StatSectionCard(
-      title: 'Weight Trend',
-      subtitle: 'Average weight over time',
+      title: context.l10n.statistics_equipment_weightTrend_title,
+      subtitle: context.l10n.statistics_equipment_weightTrend_subtitle,
       child: weightTrendAsync.when(
         data: (data) => TrendLineChart(
           data: data,
@@ -86,9 +89,9 @@ class StatisticsEquipmentPage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, _) => const StatEmptyState(
+        error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: 'Failed to load weight trend',
+          message: context.l10n.statistics_equipment_weightTrend_error,
         ),
       ),
     );

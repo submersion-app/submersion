@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 
 /// A credit card-style widget displaying a certification with agency branding.
@@ -139,7 +140,7 @@ class _CardFront extends StatelessWidget {
                         ),
                       ),
                     ),
-                    _buildStatusBadge(),
+                    _buildStatusBadge(context),
                   ],
                 ),
                 const Spacer(),
@@ -213,7 +214,7 @@ class _CardFront extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'ISSUED',
+                            context.l10n.certifications_ecard_label_issued,
                             style: TextStyle(
                               color: Colors.white.withValues(alpha: 0.7),
                               fontSize: 10,
@@ -244,7 +245,7 @@ class _CardFront extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusBadge() {
+  Widget _buildStatusBadge(BuildContext context) {
     if (certification.isExpired) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -252,9 +253,9 @@ class _CardFront extends StatelessWidget {
           color: Colors.red,
           borderRadius: BorderRadius.circular(4),
         ),
-        child: const Text(
-          'EXPIRED',
-          style: TextStyle(
+        child: Text(
+          context.l10n.certifications_ecard_statusBadge_expired,
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 10,
             fontWeight: FontWeight.bold,
@@ -271,9 +272,9 @@ class _CardFront extends StatelessWidget {
           color: Colors.orange,
           borderRadius: BorderRadius.circular(4),
         ),
-        child: const Text(
-          'EXPIRING',
-          style: TextStyle(
+        child: Text(
+          context.l10n.certifications_ecard_statusBadge_expiring,
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 10,
             fontWeight: FontWeight.bold,
@@ -343,9 +344,9 @@ class _CardBack extends StatelessWidget {
                   // Instructor info
                   if (certification.instructorName != null &&
                       certification.instructorName!.isNotEmpty) ...[
-                    const Text(
-                      'INSTRUCTOR',
-                      style: TextStyle(
+                    Text(
+                      context.l10n.certifications_ecard_label_instructor,
+                      style: const TextStyle(
                         color: Color(0xFF757575),
                         fontSize: 10,
                         fontWeight: FontWeight.w500,
@@ -377,7 +378,9 @@ class _CardBack extends StatelessWidget {
                   // Certified by agency
                   Center(
                     child: Text(
-                      'Certified by ${certification.agency.displayName}',
+                      context.l10n.certifications_ecard_label_certifiedBy(
+                        certification.agency.displayName,
+                      ),
                       style: const TextStyle(
                         color: Color(0xFF757575),
                         fontSize: 12,

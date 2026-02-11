@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Page for selecting photos from the device gallery within a date range.
 ///
@@ -102,17 +103,19 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.close),
-          tooltip: 'Close photo picker',
+          tooltip: context.l10n.media_photoPicker_closeTooltip,
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text('Select Photos'),
+        title: Text(context.l10n.media_photoPicker_appBarTitle),
         actions: [
           TextButton(
             onPressed: state.selectionCount > 0 ? _handleDone : null,
             child: Text(
               state.selectionCount > 0
-                  ? 'Done (${state.selectionCount})'
-                  : 'Done',
+                  ? context.l10n.media_photoPicker_doneCountButton(
+                      state.selectionCount,
+                    )
+                  : context.l10n.media_photoPicker_doneButton,
             ),
           ),
         ],
@@ -210,7 +213,7 @@ class _DateRangeHeader extends StatelessWidget {
         ),
       ),
       child: Text(
-        'Showing photos from $rangeText',
+        context.l10n.media_photoPicker_showingPhotosFromRange(rangeText),
         style: textTheme.bodySmall?.copyWith(
           color: colorScheme.onSurfaceVariant,
         ),
@@ -272,7 +275,9 @@ class _PhotoThumbnail extends ConsumerWidget {
 
     return Semantics(
       button: true,
-      label: 'Toggle selection for photo${isSelected ? ", selected" : ""}',
+      label: isSelected
+          ? context.l10n.media_photoPicker_thumbnailToggleSelectedLabel
+          : context.l10n.media_photoPicker_thumbnailToggleLabel,
       child: GestureDetector(
         onTap: onTap,
         child: Stack(
@@ -410,10 +415,18 @@ class _EmptyStateView extends StatelessWidget {
               color: colorScheme.onSurfaceVariant,
             ),
             const SizedBox(height: 16),
-            Text('No photos found', style: textTheme.titleMedium),
+            Text(
+              context.l10n.media_photoPicker_emptyTitle,
+              style: textTheme.titleMedium,
+            ),
             const SizedBox(height: 8),
             Text(
-              'No photos were found between ${dateFormat.format(startTime)} ${timeFormat.format(startTime)} and ${dateFormat.format(endTime)} ${timeFormat.format(endTime)}.',
+              context.l10n.media_photoPicker_emptyMessage(
+                dateFormat.format(startTime),
+                timeFormat.format(startTime),
+                dateFormat.format(endTime),
+                timeFormat.format(endTime),
+              ),
               textAlign: TextAlign.center,
               style: textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
@@ -457,12 +470,15 @@ class _PermissionDeniedView extends StatelessWidget {
               color: colorScheme.error,
             ),
             const SizedBox(height: 16),
-            Text('Photo Access Required', style: textTheme.titleMedium),
+            Text(
+              context.l10n.media_photoPicker_permissionTitle,
+              style: textTheme.titleMedium,
+            ),
             const SizedBox(height: 8),
             Text(
               isPermanentlyDenied
-                  ? 'Photo library access was denied. Please enable it in Settings to add dive photos.'
-                  : 'Submersion needs access to your photo library to add dive photos.',
+                  ? context.l10n.media_photoPicker_permissionDeniedMessage
+                  : context.l10n.media_photoPicker_permissionRequestMessage,
               textAlign: TextAlign.center,
               style: textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
@@ -476,19 +492,19 @@ class _PermissionDeniedView extends StatelessWidget {
                   // Note: This requires platform-specific handling
                   // For now, just show a message
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
+                    SnackBar(
                       content: Text(
-                        'Please open Settings and enable photo access',
+                        context.l10n.media_photoPicker_openSettingsSnackbar,
                       ),
                     ),
                   );
                 },
-                child: const Text('Open Settings'),
+                child: Text(context.l10n.media_photoPicker_openSettingsButton),
               )
             else
               FilledButton(
                 onPressed: onRequestPermission,
-                child: const Text('Grant Access'),
+                child: Text(context.l10n.media_photoPicker_grantAccessButton),
               ),
           ],
         ),

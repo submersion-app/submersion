@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -123,14 +124,16 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         data: (equipment) {
           if (equipment == null) {
             if (widget.embedded) {
-              return const Center(
-                child: Text('This equipment item no longer exists.'),
+              return Center(
+                child: Text(context.l10n.equipment_edit_notFoundMessage),
               );
             }
             return Scaffold(
-              appBar: AppBar(title: const Text('Equipment Not Found')),
-              body: const Center(
-                child: Text('This equipment item no longer exists.'),
+              appBar: AppBar(
+                title: Text(context.l10n.equipment_edit_notFoundTitle),
+              ),
+              body: Center(
+                child: Text(context.l10n.equipment_edit_notFoundMessage),
               ),
             );
           }
@@ -142,17 +145,23 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             return const Center(child: CircularProgressIndicator());
           }
           return Scaffold(
-            appBar: AppBar(title: const Text('Loading...')),
+            appBar: AppBar(
+              title: Text(context.l10n.equipment_edit_loadingTitle),
+            ),
             body: const Center(child: CircularProgressIndicator()),
           );
         },
         error: (error, _) {
           if (widget.embedded) {
-            return Center(child: Text('Error: $error'));
+            return Center(
+              child: Text(context.l10n.equipment_edit_errorMessage('$error')),
+            );
           }
           return Scaffold(
-            appBar: AppBar(title: const Text('Error')),
-            body: Center(child: Text('Error: $error')),
+            appBar: AppBar(title: Text(context.l10n.equipment_edit_errorTitle)),
+            body: Center(
+              child: Text(context.l10n.equipment_edit_errorMessage('$error')),
+            ),
           );
         },
       );
@@ -175,9 +184,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           // Type
           DropdownButtonFormField<EquipmentType>(
             initialValue: _selectedType,
-            decoration: const InputDecoration(
-              labelText: 'Type *',
-              prefixIcon: Icon(Icons.category),
+            decoration: InputDecoration(
+              labelText: context.l10n.equipment_edit_typeLabel,
+              prefixIcon: const Icon(Icons.category),
             ),
             items: EquipmentType.values.map((type) {
               return DropdownMenuItem(
@@ -199,9 +208,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           // Status
           DropdownButtonFormField<EquipmentStatus>(
             initialValue: _selectedStatus,
-            decoration: const InputDecoration(
-              labelText: 'Status',
-              prefixIcon: Icon(Icons.flag),
+            decoration: InputDecoration(
+              labelText: context.l10n.equipment_edit_statusLabel,
+              prefixIcon: const Icon(Icons.flag),
             ),
             items: EquipmentStatus.values.map((status) {
               return DropdownMenuItem(
@@ -223,14 +232,14 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           // Name
           TextFormField(
             controller: _nameController,
-            decoration: const InputDecoration(
-              labelText: 'Name *',
-              prefixIcon: Icon(Icons.label),
-              hintText: 'e.g., My Primary Regulator',
+            decoration: InputDecoration(
+              labelText: context.l10n.equipment_edit_nameLabel,
+              prefixIcon: const Icon(Icons.label),
+              hintText: context.l10n.equipment_edit_nameHint,
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return 'Please enter a name';
+                return context.l10n.equipment_edit_nameValidation;
               }
               return null;
             },
@@ -243,9 +252,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
               Expanded(
                 child: TextFormField(
                   controller: _brandController,
-                  decoration: const InputDecoration(
-                    labelText: 'Brand',
-                    prefixIcon: Icon(Icons.business),
+                  decoration: InputDecoration(
+                    labelText: context.l10n.equipment_edit_brandLabel,
+                    prefixIcon: const Icon(Icons.business),
                   ),
                 ),
               ),
@@ -253,9 +262,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
               Expanded(
                 child: TextFormField(
                   controller: _modelController,
-                  decoration: const InputDecoration(
-                    labelText: 'Model',
-                    prefixIcon: Icon(Icons.info_outline),
+                  decoration: InputDecoration(
+                    labelText: context.l10n.equipment_edit_modelLabel,
+                    prefixIcon: const Icon(Icons.info_outline),
                   ),
                 ),
               ),
@@ -269,9 +278,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
               Expanded(
                 child: TextFormField(
                   controller: _serialController,
-                  decoration: const InputDecoration(
-                    labelText: 'Serial Number',
-                    prefixIcon: Icon(Icons.numbers),
+                  decoration: InputDecoration(
+                    labelText: context.l10n.equipment_edit_serialNumberLabel,
+                    prefixIcon: const Icon(Icons.numbers),
                   ),
                 ),
               ),
@@ -279,10 +288,10 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
               Expanded(
                 child: TextFormField(
                   controller: _sizeController,
-                  decoration: const InputDecoration(
-                    labelText: 'Size',
-                    prefixIcon: Icon(Icons.straighten),
-                    hintText: 'e.g., M, L, 42',
+                  decoration: InputDecoration(
+                    labelText: context.l10n.equipment_edit_sizeLabel,
+                    prefixIcon: const Icon(Icons.straighten),
+                    hintText: context.l10n.equipment_edit_sizeHint,
                   ),
                 ),
               ),
@@ -301,10 +310,10 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           // Notes
           TextFormField(
             controller: _notesController,
-            decoration: const InputDecoration(
-              labelText: 'Notes',
-              prefixIcon: Icon(Icons.notes),
-              hintText: 'Additional notes about this equipment...',
+            decoration: InputDecoration(
+              labelText: context.l10n.equipment_edit_notesLabel,
+              prefixIcon: const Icon(Icons.notes),
+              hintText: context.l10n.equipment_edit_notesHint,
             ),
             maxLines: 3,
           ),
@@ -318,8 +327,8 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             // Save Button
             Tooltip(
               message: widget.isEditing
-                  ? 'Save equipment changes'
-                  : 'Add new equipment item',
+                  ? context.l10n.equipment_edit_saveTooltip_edit
+                  : context.l10n.equipment_edit_saveTooltip_new,
               child: FilledButton(
                 onPressed: _isLoading
                     ? null
@@ -330,7 +339,11 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
                         width: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : Text(widget.isEditing ? 'Save Changes' : 'Add Equipment'),
+                    : Text(
+                        widget.isEditing
+                            ? context.l10n.equipment_edit_saveButton_edit
+                            : context.l10n.equipment_edit_saveButton_new,
+                      ),
               ),
             ),
           ],
@@ -370,7 +383,11 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(widget.isEditing ? 'Edit Equipment' : 'New Equipment'),
+          title: Text(
+            widget.isEditing
+                ? context.l10n.equipment_edit_appBar_editTitle
+                : context.l10n.equipment_edit_appBar_newTitle,
+          ),
           actions: [
             if (_isLoading)
               const Center(
@@ -385,10 +402,10 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
               )
             else
               Tooltip(
-                message: 'Save equipment changes',
+                message: context.l10n.equipment_edit_appBar_saveTooltip,
                 child: TextButton(
                   onPressed: () => _saveEquipment(existingEquipment),
-                  child: const Text('Save'),
+                  child: Text(context.l10n.equipment_edit_appBar_saveButton),
                 ),
               ),
           ],
@@ -426,7 +443,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              widget.isEditing ? 'Edit Equipment' : 'New Equipment',
+              widget.isEditing
+                  ? context.l10n.equipment_edit_embeddedHeader_editTitle
+                  : context.l10n.equipment_edit_embeddedHeader_newTitle,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -443,13 +462,15 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
                 _handleCancel();
               }
             },
-            child: const Text('Cancel'),
+            child: Text(
+              context.l10n.equipment_edit_embeddedHeader_cancelButton,
+            ),
           ),
           const SizedBox(width: 8),
           Tooltip(
             message: widget.isEditing
-                ? 'Save equipment changes'
-                : 'Add new equipment',
+                ? context.l10n.equipment_edit_embeddedHeader_saveTooltip_edit
+                : context.l10n.equipment_edit_embeddedHeader_saveTooltip_new,
             child: FilledButton(
               onPressed: _isLoading
                   ? null
@@ -463,7 +484,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
                         color: Colors.white,
                       ),
                     )
-                  : const Text('Save'),
+                  : Text(context.l10n.equipment_edit_embeddedHeader_saveButton),
             ),
           ),
         ],
@@ -475,18 +496,16 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Discard Changes?'),
-        content: const Text(
-          'You have unsaved changes. Are you sure you want to leave?',
-        ),
+        title: Text(context.l10n.equipment_edit_discardDialog_title),
+        content: Text(context.l10n.equipment_edit_discardDialog_content),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Keep Editing'),
+            child: Text(context.l10n.equipment_edit_discardDialog_keepEditing),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Discard'),
+            child: Text(context.l10n.equipment_edit_discardDialog_discard),
           ),
         ],
       ),
@@ -501,12 +520,12 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Purchase Information',
+              context.l10n.equipment_edit_purchaseInfoTitle,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 16),
             Text(
-              'Purchase Date',
+              context.l10n.equipment_edit_purchaseDateLabel,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -518,7 +537,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
               label: Text(
                 _purchaseDate != null
                     ? '${_purchaseDate!.month}/${_purchaseDate!.day}/${_purchaseDate!.year}'
-                    : 'Select Date',
+                    : context.l10n.equipment_edit_selectDate,
               ),
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 48),
@@ -530,7 +549,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
                   _purchaseDate = null;
                   _hasChanges = true;
                 }),
-                child: const Text('Clear Date'),
+                child: Text(context.l10n.equipment_edit_clearDate),
               ),
             const SizedBox(height: 16),
             Row(
@@ -539,9 +558,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
                   flex: 2,
                   child: TextFormField(
                     controller: _purchasePriceController,
-                    decoration: const InputDecoration(
-                      labelText: 'Purchase Price',
-                      prefixIcon: Icon(Icons.attach_money),
+                    decoration: InputDecoration(
+                      labelText: context.l10n.equipment_edit_purchasePriceLabel,
+                      prefixIcon: const Icon(Icons.attach_money),
                     ),
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
@@ -552,7 +571,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
                 Expanded(
                   child: TextFormField(
                     controller: _purchaseCurrencyController,
-                    decoration: const InputDecoration(labelText: 'Currency'),
+                    decoration: InputDecoration(
+                      labelText: context.l10n.equipment_edit_currencyLabel,
+                    ),
                   ),
                 ),
               ],
@@ -575,7 +596,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
                 Icon(Icons.build, color: Theme.of(context).colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
-                  'Service Settings',
+                  context.l10n.equipment_edit_serviceSettingsTitle,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ],
@@ -583,16 +604,16 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _serviceIntervalController,
-              decoration: const InputDecoration(
-                labelText: 'Service Interval (days)',
-                prefixIcon: Icon(Icons.schedule),
-                hintText: 'e.g., 365 for yearly',
+              decoration: InputDecoration(
+                labelText: context.l10n.equipment_edit_serviceIntervalLabel,
+                prefixIcon: const Icon(Icons.schedule),
+                hintText: context.l10n.equipment_edit_serviceIntervalHint,
               ),
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 16),
             Text(
-              'Last Service Date',
+              context.l10n.equipment_edit_lastServiceDateLabel,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -604,7 +625,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
               label: Text(
                 _lastServiceDate != null
                     ? '${_lastServiceDate!.month}/${_lastServiceDate!.day}/${_lastServiceDate!.year}'
-                    : 'Select Date',
+                    : context.l10n.equipment_edit_selectDate,
               ),
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 48),
@@ -616,7 +637,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
                   _lastServiceDate = null;
                   _hasChanges = true;
                 }),
-                child: const Text('Clear Date'),
+                child: Text(context.l10n.equipment_edit_clearDate),
               ),
           ],
         ),
@@ -638,22 +659,24 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
                 Icon(Icons.notifications, color: colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
-                  'Notifications (Optional)',
+                  context.l10n.equipment_edit_notificationsTitle,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ],
             ),
             const SizedBox(height: 8),
             Text(
-              'Override global notification settings for this item',
+              context.l10n.equipment_edit_notificationsSubtitle,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: 16),
             SwitchListTile(
-              title: const Text('Use Custom Reminders'),
-              subtitle: const Text('Set different reminder days for this item'),
+              title: Text(context.l10n.equipment_edit_useCustomReminders),
+              subtitle: Text(
+                context.l10n.equipment_edit_useCustomRemindersSubtitle,
+              ),
               value: _customReminderEnabled == true,
               onChanged: (value) {
                 setState(() {
@@ -666,7 +689,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             if (_customReminderEnabled == true) ...[
               const SizedBox(height: 8),
               Text(
-                'Remind me before service is due:',
+                context.l10n.equipment_edit_remindMeBeforeServiceDue,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 8),
@@ -675,7 +698,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
                 children: [7, 14, 30].map((days) {
                   final isSelected = _customReminderDays.contains(days);
                   return FilterChip(
-                    label: Text('$days days'),
+                    label: Text(context.l10n.equipment_edit_reminderDays(days)),
                     selected: isSelected,
                     onSelected: (_) {
                       setState(() {
@@ -697,8 +720,10 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             ],
             const Divider(height: 24),
             SwitchListTile(
-              title: const Text('Disable Reminders'),
-              subtitle: const Text('Turn off all notifications for this item'),
+              title: Text(context.l10n.equipment_edit_disableReminders),
+              subtitle: Text(
+                context.l10n.equipment_edit_disableRemindersSubtitle,
+              ),
               value: _customReminderEnabled == false,
               onChanged: (value) {
                 setState(() {
@@ -812,7 +837,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                widget.isEditing ? 'Equipment updated' : 'Equipment added',
+                widget.isEditing
+                    ? context.l10n.equipment_edit_snackbar_updated
+                    : context.l10n.equipment_edit_snackbar_added,
               ),
             ),
           );
@@ -822,7 +849,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error saving equipment: $e'),
+            content: Text(context.l10n.equipment_edit_snackbar_error('$e')),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );

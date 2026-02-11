@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 import 'package:submersion/features/gas_calculators/presentation/providers/gas_calculators_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/best_mix_calculator.dart';
@@ -43,12 +44,12 @@ class _GasCalculatorsPageState extends ConsumerState<GasCalculatorsPage>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Gas Calculators'),
+        title: Text(context.l10n.gasCalculators_title),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () => resetGasCalculators(ref),
-            tooltip: 'Reset all calculators',
+            tooltip: context.l10n.gasCalculators_resetAll,
           ),
         ],
         bottom: TabBar(
@@ -57,11 +58,23 @@ class _GasCalculatorsPageState extends ConsumerState<GasCalculatorsPage>
           tabAlignment: MediaQuery.of(context).size.width < 500
               ? TabAlignment.start
               : TabAlignment.fill,
-          tabs: const [
-            Tab(icon: Icon(Icons.arrow_downward), text: 'MOD'),
-            Tab(icon: Icon(Icons.science), text: 'Best Mix'),
-            Tab(icon: Icon(Icons.local_gas_station), text: 'Consumption'),
-            Tab(icon: Icon(Icons.warning_amber), text: 'Rock Bottom'),
+          tabs: [
+            Tab(
+              icon: const Icon(Icons.arrow_downward),
+              text: context.l10n.gasCalculators_tab_mod,
+            ),
+            Tab(
+              icon: const Icon(Icons.science),
+              text: context.l10n.gasCalculators_tab_bestMix,
+            ),
+            Tab(
+              icon: const Icon(Icons.local_gas_station),
+              text: context.l10n.gasCalculators_tab_consumption,
+            ),
+            Tab(
+              icon: const Icon(Icons.warning_amber),
+              text: context.l10n.gasCalculators_tab_rockBottom,
+            ),
           ],
           indicatorColor: colorScheme.primary,
           labelColor: colorScheme.primary,

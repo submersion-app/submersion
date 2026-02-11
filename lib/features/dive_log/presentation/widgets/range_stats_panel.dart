@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Panel showing statistics for a selected range of the dive profile.
 ///
@@ -62,7 +63,7 @@ class RangeStatsPanel extends ConsumerWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Range Analysis',
+                  context.l10n.diveLog_rangeStats_title,
                   style: Theme.of(
                     context,
                   ).textTheme.titleSmall?.copyWith(color: colorScheme.primary),
@@ -103,7 +104,7 @@ class RangeStatsPanel extends ConsumerWidget {
                   },
                   icon: const Icon(Icons.close, size: 18),
                   visualDensity: VisualDensity.compact,
-                  tooltip: 'Close range analysis',
+                  tooltip: context.l10n.diveLog_rangeStats_tooltip_close,
                 ),
               ],
             ),
@@ -138,7 +139,7 @@ class RangeStatsPanel extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
-                'Min',
+                context.l10n.diveLog_rangeStats_header_min,
                 style: headerStyle,
                 textAlign: TextAlign.center,
               ),
@@ -146,7 +147,7 @@ class RangeStatsPanel extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
-                'Max',
+                context.l10n.diveLog_rangeStats_header_max,
                 style: headerStyle,
                 textAlign: TextAlign.center,
               ),
@@ -154,7 +155,7 @@ class RangeStatsPanel extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
-                'Avg',
+                context.l10n.diveLog_rangeStats_header_avg,
                 style: headerStyle,
                 textAlign: TextAlign.center,
               ),
@@ -164,7 +165,7 @@ class RangeStatsPanel extends ConsumerWidget {
         // Depth row
         _buildStatRow(
           context,
-          'Depth',
+          context.l10n.diveLog_rangeStats_label_depth,
           units.formatDepth(stats.minDepth),
           units.formatDepth(stats.maxDepth),
           units.formatDepth(stats.avgDepth),
@@ -175,7 +176,7 @@ class RangeStatsPanel extends ConsumerWidget {
         if (stats.hasTemperature)
           _buildStatRow(
             context,
-            'Temp',
+            context.l10n.diveLog_rangeStats_label_temp,
             units.formatTemperature(stats.minTemp!),
             units.formatTemperature(stats.maxTemp!),
             units.formatTemperature(stats.avgTemp!),
@@ -186,7 +187,7 @@ class RangeStatsPanel extends ConsumerWidget {
         if (stats.hasPressure)
           _buildStatRow(
             context,
-            'Pressure',
+            context.l10n.diveLog_rangeStats_label_pressure,
             '${stats.minPressure!.toStringAsFixed(0)} bar',
             '${stats.maxPressure!.toStringAsFixed(0)} bar',
             '${stats.avgPressure!.toStringAsFixed(0)} bar',
@@ -197,7 +198,7 @@ class RangeStatsPanel extends ConsumerWidget {
         if (stats.hasHeartRate)
           _buildStatRow(
             context,
-            'Heart Rate',
+            context.l10n.diveLog_rangeStats_label_heartRate,
             '${stats.minHR} bpm',
             '${stats.maxHR} bpm',
             '${stats.avgHR!.toStringAsFixed(0)} bpm',

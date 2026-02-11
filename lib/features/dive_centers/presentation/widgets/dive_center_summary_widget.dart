@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 
 /// Summary widget shown when no dive center is selected.
@@ -24,7 +25,11 @@ class DiveCenterSummaryWidget extends ConsumerWidget {
             centersAsync.when(
               data: (centers) => _buildOverview(context, ref, centers),
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Error: $e')),
+              error: (e, _) => Center(
+                child: Text(
+                  context.l10n.diveCenters_error_generic(e.toString()),
+                ),
+              ),
             ),
             const SizedBox(height: 24),
             countriesAsync.when(
@@ -56,7 +61,7 @@ class DiveCenterSummaryWidget extends ConsumerWidget {
             ),
             const SizedBox(width: 12),
             Text(
-              'Dive Centers',
+              context.l10n.diveCenters_title,
               style: Theme.of(
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
@@ -65,7 +70,7 @@ class DiveCenterSummaryWidget extends ConsumerWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Select a dive center from the list to view details',
+          context.l10n.diveCenters_summary_selectPrompt,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
@@ -96,7 +101,7 @@ class DiveCenterSummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Overview',
+          context.l10n.diveCenters_summary_overview,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -110,7 +115,7 @@ class DiveCenterSummaryWidget extends ConsumerWidget {
               context,
               icon: Icons.store,
               value: '${centers.length}',
-              label: 'Total Centers',
+              label: context.l10n.diveCenters_summary_totalCenters,
               color: Colors.blue,
             ),
             if (highestRating != null)
@@ -118,7 +123,7 @@ class DiveCenterSummaryWidget extends ConsumerWidget {
                 context,
                 icon: Icons.star,
                 value: highestRating.toStringAsFixed(1),
-                label: 'Highest Rating',
+                label: context.l10n.diveCenters_summary_highestRating,
                 color: Colors.amber.shade700,
               ),
             if (withCoordinates > 0)
@@ -126,7 +131,7 @@ class DiveCenterSummaryWidget extends ConsumerWidget {
                 context,
                 icon: Icons.location_on,
                 value: '$withCoordinates',
-                label: 'With GPS',
+                label: context.l10n.diveCenters_summary_withGps,
                 color: Colors.green,
               ),
           ],
@@ -150,7 +155,7 @@ class DiveCenterSummaryWidget extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Top Rated',
+                          context.l10n.diveCenters_summary_topRated,
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(color: Colors.amber.shade900),
                         ),
@@ -222,7 +227,7 @@ class DiveCenterSummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Recent Dive Centers',
+          context.l10n.diveCenters_summary_recentCenters,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -278,7 +283,7 @@ class DiveCenterSummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Countries',
+          context.l10n.diveCenters_summary_countries,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -303,7 +308,7 @@ class DiveCenterSummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Quick Actions',
+          context.l10n.diveCenters_summary_quickActions,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -320,7 +325,7 @@ class DiveCenterSummaryWidget extends ConsumerWidget {
                 context.go('$currentPath?mode=new');
               },
               icon: const Icon(Icons.add),
-              label: const Text('Add Dive Center'),
+              label: Text(context.l10n.diveCenters_title_add),
             ),
           ],
         ),

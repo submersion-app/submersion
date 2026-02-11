@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Card displaying an imported dive for selection in the import wizard.
 class ImportedDiveCard extends StatelessWidget {
@@ -29,7 +30,7 @@ class ImportedDiveCard extends StatelessWidget {
           : null,
       child: Semantics(
         button: true,
-        label: 'Toggle selection for dive',
+        label: context.l10n.diveImport_toggleDiveSelection,
         child: InkWell(
           onTap: onToggleSelection,
           borderRadius: BorderRadius.circular(12),
@@ -119,14 +120,14 @@ class ImportedDiveCard extends StatelessWidget {
         _MetricChip(
           icon: Icons.arrow_downward,
           value: '${dive.maxDepth.toStringAsFixed(1)}m',
-          label: 'Max Depth',
+          label: context.l10n.diveImport_maxDepth,
           textStyle: textStyle,
           labelStyle: labelStyle,
         ),
         _MetricChip(
           icon: Icons.timer_outlined,
           value: _formatDuration(dive.duration),
-          label: 'Duration',
+          label: context.l10n.diveImport_duration,
           textStyle: textStyle,
           labelStyle: labelStyle,
         ),
@@ -134,7 +135,7 @@ class ImportedDiveCard extends StatelessWidget {
           _MetricChip(
             icon: Icons.thermostat_outlined,
             value: '${dive.minTemperature!.toStringAsFixed(0)}C',
-            label: 'Temp',
+            label: context.l10n.diveImport_temp,
             textStyle: textStyle,
             labelStyle: labelStyle,
           ),
@@ -142,7 +143,7 @@ class ImportedDiveCard extends StatelessWidget {
           _MetricChip(
             icon: Icons.favorite_outline,
             value: '${dive.avgHeartRate!.round()} bpm',
-            label: 'Avg HR',
+            label: context.l10n.diveImport_avgHR,
             textStyle: textStyle,
             labelStyle: labelStyle,
           ),
@@ -157,22 +158,22 @@ class ImportedDiveCard extends StatelessWidget {
       ImportMatchStatus.probable => (
         colorScheme.error,
         Icons.warning_amber_rounded,
-        'Likely duplicate',
+        context.l10n.diveImport_likelyDuplicate,
       ),
       ImportMatchStatus.possible => (
         colorScheme.tertiary,
         Icons.info_outline,
-        'Possible duplicate',
+        context.l10n.diveImport_possibleDuplicate,
       ),
       ImportMatchStatus.alreadyImported => (
         colorScheme.outline,
         Icons.check_circle_outline,
-        'Already imported',
+        context.l10n.diveImport_alreadyImported,
       ),
       ImportMatchStatus.none => (
         colorScheme.primary,
         Icons.add_circle_outline,
-        'New dive',
+        context.l10n.diveImport_newDive,
       ),
     };
 
@@ -203,10 +204,19 @@ class ImportedDiveCard extends StatelessWidget {
   Widget _buildSourceBadge(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final (icon, label) = switch (dive.source) {
-      ImportSource.appleWatch => (Icons.watch, 'Watch'),
-      ImportSource.garmin => (Icons.watch, 'Garmin'),
-      ImportSource.suunto => (Icons.watch, 'Suunto'),
-      ImportSource.uddf => (Icons.code, 'UDDF'),
+      ImportSource.appleWatch => (
+        Icons.watch,
+        context.l10n.diveImport_sourceWatch,
+      ),
+      ImportSource.garmin => (
+        Icons.watch,
+        context.l10n.diveImport_sourceGarmin,
+      ),
+      ImportSource.suunto => (
+        Icons.watch,
+        context.l10n.diveImport_sourceSuunto,
+      ),
+      ImportSource.uddf => (Icons.code, context.l10n.diveImport_sourceUDDF),
     };
 
     return Container(

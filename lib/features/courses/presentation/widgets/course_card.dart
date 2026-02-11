@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 
 /// Card widget for displaying a course in a list
@@ -21,14 +22,16 @@ class CourseCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final dateFormat = DateFormat.yMMMd();
 
-    final statusStr = course.isCompleted ? 'Completed' : 'In Progress';
+    final statusStr = course.isCompleted
+        ? context.l10n.courses_status_completed
+        : context.l10n.courses_status_inProgress;
     final instructorStr = course.instructorName != null
-        ? ', Instructor: ${course.instructorName}'
+        ? ', ${context.l10n.courses_card_instructor(course.instructorName!)}'
         : '';
 
     return Semantics(
       label:
-          '${course.name}, ${course.agency.displayName}, Started ${dateFormat.format(course.startDate)}, $statusStr$instructorStr',
+          '${course.name}, ${course.agency.displayName}, ${context.l10n.courses_card_started(dateFormat.format(course.startDate))}, $statusStr$instructorStr',
       child: Card(
         elevation: isSelected ? 2 : 1,
         color: isSelected ? colorScheme.primaryContainer : null,
@@ -152,7 +155,7 @@ class CourseCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
         ),
         child: Text(
-          'Completed',
+          context.l10n.courses_status_completed,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
             color: Colors.green,
             fontWeight: FontWeight.w600,
@@ -168,7 +171,7 @@ class CourseCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
-        'In Progress',
+        context.l10n.courses_status_inProgress,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
           color: colorScheme.primary,
           fontWeight: FontWeight.w600,

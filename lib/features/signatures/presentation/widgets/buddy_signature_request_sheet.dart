@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Bottom sheet for requesting a buddy's signature
 ///
@@ -67,7 +68,7 @@ class _BuddySignatureRequestSheetState
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Hand your device to',
+                      context.l10n.signatures_handoff_title,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 8),
@@ -94,12 +95,12 @@ class _BuddySignatureRequestSheetState
                         });
                       },
                       icon: const Icon(Icons.edit),
-                      label: const Text('Ready to Sign'),
+                      label: Text(context.l10n.signatures_action_readyToSign),
                     ),
                     const SizedBox(height: 8),
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('Cancel'),
+                      child: Text(context.l10n.common_action_cancel),
                     ),
                   ],
                 ),
@@ -109,7 +110,7 @@ class _BuddySignatureRequestSheetState
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  '${buddy.name} - Sign Here',
+                  context.l10n.signatures_signHere(buddy.name),
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
@@ -164,9 +165,9 @@ class _BuddySignatureCaptureState extends State<_BuddySignatureCapture> {
 
   void _handleSave() {
     if (_strokes.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please draw a signature')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.signatures_error_drawSignature)),
+      );
       return;
     }
 
@@ -196,7 +197,7 @@ class _BuddySignatureCaptureState extends State<_BuddySignatureCapture> {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(11),
               child: Semantics(
-                label: 'Draw signature',
+                label: context.l10n.signatures_drawSignatureSemantics,
                 child: GestureDetector(
                   onPanStart: (details) {
                     setState(() {
@@ -235,7 +236,7 @@ class _BuddySignatureCaptureState extends State<_BuddySignatureCapture> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
-            'Draw your signature above',
+            context.l10n.signatures_drawSignatureHint,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
@@ -254,12 +255,12 @@ class _BuddySignatureCaptureState extends State<_BuddySignatureCapture> {
                     ? null
                     : _clear,
                 icon: const Icon(Icons.clear),
-                label: const Text('Clear'),
+                label: Text(context.l10n.signatures_action_clear),
               ),
               const Spacer(),
               TextButton(
                 onPressed: widget.onCancel,
-                child: const Text('Cancel'),
+                child: Text(context.l10n.common_action_cancel),
               ),
               const SizedBox(width: 8),
               FilledButton.icon(
@@ -267,7 +268,7 @@ class _BuddySignatureCaptureState extends State<_BuddySignatureCapture> {
                     ? null
                     : _handleSave,
                 icon: const Icon(Icons.check),
-                label: const Text('Done'),
+                label: Text(context.l10n.signatures_action_done),
               ),
             ],
           ),

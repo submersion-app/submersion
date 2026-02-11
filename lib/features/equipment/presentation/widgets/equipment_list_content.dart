@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
@@ -157,21 +158,21 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Equipment'),
+        title: Text(context.l10n.equipment_appBar_title),
         actions: [
           IconButton(
             icon: const Icon(Icons.folder_outlined),
-            tooltip: 'Equipment Sets',
+            tooltip: context.l10n.equipment_list_setsTooltip,
             onPressed: () => context.push('/equipment/sets'),
           ),
           IconButton(
             icon: const Icon(Icons.sort),
-            tooltip: 'Sort',
+            tooltip: context.l10n.equipment_list_sortTooltip,
             onPressed: () => _showSortSheet(context),
           ),
           IconButton(
             icon: const Icon(Icons.search),
-            tooltip: 'Search Equipment',
+            tooltip: context.l10n.equipment_list_searchTooltip,
             onPressed: () {
               showSearch(context: context, delegate: EquipmentSearchDelegate());
             },
@@ -204,7 +205,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
         children: [
           const SizedBox(width: 8),
           Text(
-            'Equipment',
+            context.l10n.equipment_appBar_title,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -212,17 +213,17 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           const Spacer(),
           IconButton(
             icon: const Icon(Icons.folder_outlined, size: 20),
-            tooltip: 'Equipment Sets',
+            tooltip: context.l10n.equipment_list_setsTooltip,
             onPressed: () => context.push('/equipment/sets'),
           ),
           IconButton(
             icon: const Icon(Icons.sort, size: 20),
-            tooltip: 'Sort',
+            tooltip: context.l10n.equipment_list_sortTooltip,
             onPressed: () => _showSortSheet(context),
           ),
           IconButton(
             icon: const Icon(Icons.search, size: 20),
-            tooltip: 'Search Equipment',
+            tooltip: context.l10n.equipment_list_searchTooltip,
             onPressed: () {
               showSearch(context: context, delegate: EquipmentSearchDelegate());
             },
@@ -236,7 +237,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     final sort = ref.read(equipmentSortProvider);
     showSortBottomSheet<EquipmentSortField>(
       context: context,
-      title: 'Sort Equipment',
+      title: context.l10n.equipment_list_sortTitle,
       currentField: sort.field,
       currentDirection: sort.direction,
       fields: EquipmentSortField.values,
@@ -263,7 +264,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           ),
           const SizedBox(width: 8),
           Text(
-            'Filter:',
+            context.l10n.equipment_list_filterLabel,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -286,13 +287,13 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                 focusColor: Colors.transparent,
                 isExpanded: true,
                 items: [
-                  const DropdownMenuItem<Object?>(
+                  DropdownMenuItem<Object?>(
                     value: null,
-                    child: Text('All Equipment'),
+                    child: Text(context.l10n.equipment_list_filterAll),
                   ),
-                  const DropdownMenuItem<Object?>(
+                  DropdownMenuItem<Object?>(
                     value: _serviceDueFilter,
-                    child: Text('Service Due'),
+                    child: Text(context.l10n.equipment_list_filterServiceDue),
                   ),
                   ...EquipmentStatus.values
                       .where((status) => status != EquipmentStatus.needsService)
@@ -343,12 +344,13 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   Widget _buildEmptyState(BuildContext context, WidgetRef ref) {
     String filterText;
     if (_selectedFilter == null) {
-      filterText = 'equipment';
+      filterText = context.l10n.equipment_list_emptyState_filterText_equipment;
     } else if (_selectedFilter == _serviceDueFilter) {
-      filterText = 'equipment needing service';
+      filterText = context.l10n.equipment_list_emptyState_filterText_serviceDue;
     } else {
-      filterText =
-          '${(_selectedFilter as EquipmentStatus).displayName.toLowerCase()} equipment';
+      filterText = context.l10n.equipment_list_emptyState_filterText_status(
+        (_selectedFilter as EquipmentStatus).displayName.toLowerCase(),
+      );
     }
 
     return Center(
@@ -362,16 +364,16 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           ),
           const SizedBox(height: 16),
           Text(
-            'No $filterText',
+            context.l10n.equipment_list_emptyState_noEquipment(filterText),
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 8),
           Text(
             _selectedFilter == null
-                ? 'Add your diving equipment to track usage and service'
+                ? context.l10n.equipment_list_emptyState_addPrompt
                 : _selectedFilter == _serviceDueFilter
-                ? 'All your equipment is up to date on service!'
-                : 'No equipment with this status',
+                ? context.l10n.equipment_list_emptyState_serviceDueUpToDate
+                : context.l10n.equipment_list_emptyState_noStatusMatch,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -382,7 +384,9 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
             FilledButton.icon(
               onPressed: () => context.push('/equipment/new'),
               icon: const Icon(Icons.add),
-              label: const Text('Add Your First Equipment'),
+              label: Text(
+                context.l10n.equipment_list_emptyState_addFirstButton,
+              ),
             ),
           ],
         ],
@@ -397,11 +401,11 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
         children: [
           const Icon(Icons.error_outline, size: 48, color: Colors.red),
           const SizedBox(height: 16),
-          Text('Error loading equipment: $error'),
+          Text(context.l10n.equipment_list_errorLoading('$error')),
           const SizedBox(height: 16),
           FilledButton(
             onPressed: () => _invalidateCurrentProvider(ref),
-            child: const Text('Retry'),
+            child: Text(context.l10n.equipment_list_retryButton),
           ),
         ],
       ),

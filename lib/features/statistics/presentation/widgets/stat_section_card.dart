@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A consistent card container for statistics sections
 class StatSectionCard extends StatelessWidget {
@@ -71,7 +72,7 @@ class StatSectionCard extends StatelessWidget {
     if (onTap != null) {
       return Semantics(
         button: true,
-        label: '$title section',
+        label: context.l10n.statistics_sectionCard_semanticLabel(title),
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
@@ -143,7 +144,7 @@ class StatValueCard extends StatelessWidget {
     if (onTap != null) {
       return Semantics(
         button: true,
-        label: '$label: $value',
+        label: context.l10n.statistics_valueCard_semanticLabel(label, value),
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
@@ -183,7 +184,7 @@ class StatCategoryCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: Semantics(
         button: true,
-        label: '$title statistics category',
+        label: context.l10n.statistics_categoryCard_semanticLabel(title),
         child: InkWell(
           onTap: onTap,
           child: Padding(

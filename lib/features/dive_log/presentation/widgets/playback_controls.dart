@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_playback_provider.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Playback controls for stepping through a dive profile.
 ///
@@ -35,7 +36,7 @@ class PlaybackControls extends ConsumerWidget {
             onTogglePlaybackMode?.call();
           },
           icon: const Icon(Icons.play_circle_outline),
-          label: const Text('Step-through Playback'),
+          label: Text(context.l10n.diveLog_playback_stepThrough),
         ),
       );
     }
@@ -77,7 +78,7 @@ class PlaybackControls extends ConsumerWidget {
                   overlayColor: colorScheme.primary.withValues(alpha: 0.2),
                 ),
                 child: Slider(
-                  label: 'Playback position',
+                  label: context.l10n.diveLog_playback_sliderLabel,
                   value: playbackState.progress,
                   onChanged: (value) => playbackNotifier.seekToProgress(value),
                   onChangeStart: (_) {
@@ -118,7 +119,7 @@ class PlaybackControls extends ConsumerWidget {
                 onTogglePlaybackMode?.call();
               },
               icon: const Icon(Icons.close),
-              tooltip: 'Exit playback mode',
+              tooltip: context.l10n.diveLog_playback_tooltip_exit,
               visualDensity: VisualDensity.compact,
             ),
             const SizedBox(width: 8),
@@ -128,7 +129,7 @@ class PlaybackControls extends ConsumerWidget {
                   ? null
                   : playbackNotifier.skipToStart,
               icon: const Icon(Icons.skip_previous),
-              tooltip: 'Skip to start',
+              tooltip: context.l10n.diveLog_playback_tooltip_skipStart,
               visualDensity: VisualDensity.compact,
             ),
             // Step backward
@@ -137,7 +138,7 @@ class PlaybackControls extends ConsumerWidget {
                   ? null
                   : playbackNotifier.stepBackward,
               icon: const Icon(Icons.replay_10),
-              tooltip: 'Back 10 seconds',
+              tooltip: context.l10n.diveLog_playback_tooltip_back10,
               visualDensity: VisualDensity.compact,
             ),
             // Play/Pause
@@ -158,7 +159,9 @@ class PlaybackControls extends ConsumerWidget {
                   playbackState.isPlaying ? Icons.pause : Icons.play_arrow,
                   size: 32,
                 ),
-                tooltip: playbackState.isPlaying ? 'Pause' : 'Play',
+                tooltip: playbackState.isPlaying
+                    ? context.l10n.diveLog_playback_tooltip_pause
+                    : context.l10n.diveLog_playback_tooltip_play,
                 color: colorScheme.onPrimaryContainer,
               ),
             ),
@@ -168,7 +171,7 @@ class PlaybackControls extends ConsumerWidget {
                   ? null
                   : playbackNotifier.stepForward,
               icon: const Icon(Icons.forward_10),
-              tooltip: 'Forward 10 seconds',
+              tooltip: context.l10n.diveLog_playback_tooltip_forward10,
               visualDensity: VisualDensity.compact,
             ),
             // Skip to end
@@ -177,7 +180,7 @@ class PlaybackControls extends ConsumerWidget {
                   ? null
                   : playbackNotifier.skipToEnd,
               icon: const Icon(Icons.skip_next),
-              tooltip: 'Skip to end',
+              tooltip: context.l10n.diveLog_playback_tooltip_skipEnd,
               visualDensity: VisualDensity.compact,
             ),
             const SizedBox(width: 8),
@@ -210,9 +213,10 @@ class _SpeedSelector extends StatelessWidget {
     return PopupMenuButton<double>(
       initialValue: currentSpeed,
       onSelected: onSpeedChanged,
-      tooltip: 'Playback speed',
+      tooltip: context.l10n.diveLog_playback_tooltip_speed,
       child: Semantics(
-        label: 'Playback speed ${currentSpeed}x',
+        label:
+            '${context.l10n.diveLog_playback_tooltip_speed} ${currentSpeed}x',
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(

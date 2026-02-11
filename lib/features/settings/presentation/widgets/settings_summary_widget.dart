@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Summary widget displayed when no settings section is selected.
 /// Shows a quick overview of current settings.
@@ -33,11 +34,11 @@ class SettingsSummaryWidget extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Settings',
+                      context.l10n.settings_summary_title,
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
                     Text(
-                      'Select a category to configure',
+                      context.l10n.settings_summary_subtitle,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -51,7 +52,7 @@ class SettingsSummaryWidget extends ConsumerWidget {
 
           // Current Configuration Summary
           Text(
-            'Current Configuration',
+            context.l10n.settings_summary_currentConfiguration,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -66,30 +67,31 @@ class SettingsSummaryWidget extends ConsumerWidget {
               _buildQuickStatCard(
                 context,
                 icon: Icons.person,
-                label: 'Active Diver',
+                label: context.l10n.settings_summary_activeDiver,
                 value: currentDiverAsync.when(
-                  data: (diver) => diver?.name ?? 'Not set',
-                  loading: () => 'Loading...',
-                  error: (_, _) => 'Error',
+                  data: (diver) =>
+                      diver?.name ?? context.l10n.settings_summary_notSet,
+                  loading: () => context.l10n.settings_summary_loading,
+                  error: (_, _) => context.l10n.settings_summary_error,
                 ),
               ),
               _buildQuickStatCard(
                 context,
                 icon: Icons.straighten,
-                label: 'Units',
+                label: context.l10n.settings_summary_units,
                 value: settings.unitPreset.name.toUpperCase(),
               ),
               _buildQuickStatCard(
                 context,
                 icon: Icons.timeline,
-                label: 'Gradient Factors',
+                label: context.l10n.settings_summary_gradientFactors,
                 value: 'GF ${settings.gfLow}/${settings.gfHigh}',
               ),
               _buildQuickStatCard(
                 context,
                 icon: Icons.palette,
-                label: 'Theme',
-                value: _getThemeModeName(settings.themeMode),
+                label: context.l10n.settings_summary_theme,
+                value: _getThemeModeName(context, settings.themeMode),
               ),
             ],
           ),
@@ -111,25 +113,37 @@ class SettingsSummaryWidget extends ConsumerWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Unit Preferences',
+                        context.l10n.settings_summary_unitPreferences,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                     ],
                   ),
                   const Divider(height: 24),
-                  _buildUnitRow(context, 'Depth', settings.depthUnit.symbol),
                   _buildUnitRow(
                     context,
-                    'Temperature',
+                    context.l10n.settings_summary_depth,
+                    settings.depthUnit.symbol,
+                  ),
+                  _buildUnitRow(
+                    context,
+                    context.l10n.settings_summary_temperature,
                     '°${settings.temperatureUnit.symbol}',
                   ),
                   _buildUnitRow(
                     context,
-                    'Pressure',
+                    context.l10n.settings_summary_pressure,
                     settings.pressureUnit.symbol,
                   ),
-                  _buildUnitRow(context, 'Volume', settings.volumeUnit.symbol),
-                  _buildUnitRow(context, 'Weight', settings.weightUnit.symbol),
+                  _buildUnitRow(
+                    context,
+                    context.l10n.settings_summary_volume,
+                    settings.volumeUnit.symbol,
+                  ),
+                  _buildUnitRow(
+                    context,
+                    context.l10n.settings_summary_weight,
+                    settings.weightUnit.symbol,
+                  ),
                 ],
               ),
             ),
@@ -153,7 +167,7 @@ class SettingsSummaryWidget extends ConsumerWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Tip: Use the Data section to backup your dive logs regularly.',
+                      context.l10n.settings_summary_tip,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
@@ -232,14 +246,14 @@ class SettingsSummaryWidget extends ConsumerWidget {
     );
   }
 
-  String _getThemeModeName(ThemeMode mode) {
+  String _getThemeModeName(BuildContext context, ThemeMode mode) {
     switch (mode) {
       case ThemeMode.system:
-        return 'System';
+        return context.l10n.settings_summary_theme_system;
       case ThemeMode.light:
-        return 'Light';
+        return context.l10n.settings_summary_theme_light;
       case ThemeMode.dark:
-        return 'Dark';
+        return context.l10n.settings_summary_theme_dark;
     }
   }
 }

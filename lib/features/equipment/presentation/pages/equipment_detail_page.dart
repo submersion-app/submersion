@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -53,14 +54,16 @@ class _EquipmentDetailPageState extends ConsumerState<EquipmentDetailPage> {
       data: (equipment) {
         if (equipment == null) {
           if (widget.embedded) {
-            return const Center(
-              child: Text('This equipment item no longer exists.'),
+            return Center(
+              child: Text(context.l10n.equipment_detail_notFoundMessage),
             );
           }
           return Scaffold(
-            appBar: AppBar(title: const Text('Equipment Not Found')),
-            body: const Center(
-              child: Text('This equipment item no longer exists.'),
+            appBar: AppBar(
+              title: Text(context.l10n.equipment_detail_notFoundTitle),
+            ),
+            body: Center(
+              child: Text(context.l10n.equipment_detail_notFoundMessage),
             ),
           );
         }
@@ -76,17 +79,23 @@ class _EquipmentDetailPageState extends ConsumerState<EquipmentDetailPage> {
           return const Center(child: CircularProgressIndicator());
         }
         return Scaffold(
-          appBar: AppBar(title: const Text('Loading...')),
+          appBar: AppBar(
+            title: Text(context.l10n.equipment_detail_loadingTitle),
+          ),
           body: const Center(child: CircularProgressIndicator()),
         );
       },
       error: (error, _) {
         if (widget.embedded) {
-          return Center(child: Text('Error: $error'));
+          return Center(
+            child: Text(context.l10n.equipment_detail_errorMessage('$error')),
+          );
         }
         return Scaffold(
-          appBar: AppBar(title: const Text('Error')),
-          body: Center(child: Text('Error: $error')),
+          appBar: AppBar(title: Text(context.l10n.equipment_detail_errorTitle)),
+          body: Center(
+            child: Text(context.l10n.equipment_detail_errorMessage('$error')),
+          ),
         );
       },
     );
@@ -148,7 +157,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
-            tooltip: 'Edit Equipment',
+            tooltip: context.l10n.equipment_detail_editTooltip,
             onPressed: () => context.push('/equipment/$equipmentId/edit'),
           ),
           PopupMenuButton<String>(
@@ -215,7 +224,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
           ),
           IconButton(
             icon: const Icon(Icons.edit, size: 20),
-            tooltip: 'Edit',
+            tooltip: context.l10n.equipment_detail_editTooltipShort,
             onPressed: () {
               final state = GoRouterState.of(context);
               final currentPath = state.uri.path;
@@ -239,11 +248,11 @@ class _EquipmentDetailContent extends ConsumerWidget {
   ) {
     return [
       if (equipment.isActive)
-        const PopupMenuItem(
+        PopupMenuItem(
           value: 'service',
           child: ListTile(
-            leading: Icon(Icons.build),
-            title: Text('Mark as Serviced'),
+            leading: const Icon(Icons.build),
+            title: Text(context.l10n.equipment_menu_markAsServiced),
             contentPadding: EdgeInsets.zero,
           ),
         ),
@@ -251,15 +260,22 @@ class _EquipmentDetailContent extends ConsumerWidget {
         value: equipment.isActive ? 'retire' : 'reactivate',
         child: ListTile(
           leading: Icon(equipment.isActive ? Icons.archive : Icons.unarchive),
-          title: Text(equipment.isActive ? 'Retire Equipment' : 'Reactivate'),
+          title: Text(
+            equipment.isActive
+                ? context.l10n.equipment_menu_retireEquipment
+                : context.l10n.equipment_menu_reactivate,
+          ),
           contentPadding: EdgeInsets.zero,
         ),
       ),
-      const PopupMenuItem(
+      PopupMenuItem(
         value: 'delete',
         child: ListTile(
-          leading: Icon(Icons.delete, color: Colors.red),
-          title: Text('Delete', style: TextStyle(color: Colors.red)),
+          leading: const Icon(Icons.delete, color: Colors.red),
+          title: Text(
+            context.l10n.equipment_menu_delete,
+            style: const TextStyle(color: Colors.red),
+          ),
           contentPadding: EdgeInsets.zero,
         ),
       ),
@@ -304,7 +320,9 @@ class _EquipmentDetailContent extends ConsumerWidget {
                       ),
                       if (!equipment.isActive)
                         Chip(
-                          label: const Text('Retired'),
+                          label: Text(
+                            context.l10n.equipment_detail_retiredChip,
+                          ),
                           backgroundColor: Theme.of(
                             context,
                           ).colorScheme.surfaceContainerHighest,
@@ -336,7 +354,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Service is overdue!',
+                        context.l10n.equipment_detail_serviceOverdue,
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.onErrorContainer,
                           fontWeight: FontWeight.bold,
@@ -368,13 +386,20 @@ class _EquipmentDetailContent extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Details', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              context.l10n.equipment_detail_detailsTitle,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const Divider(),
-            _buildDetailRow(context, 'Status', equipment.status.displayName),
+            _buildDetailRow(
+              context,
+              context.l10n.equipment_detail_statusLabel,
+              equipment.status.displayName,
+            ),
             diveCountAsync.when(
               data: (count) => Semantics(
                 button: count > 0,
-                label: 'View dives using this equipment',
+                label: context.l10n.equipment_detail_divesSemanticLabel,
                 child: InkWell(
                   onTap: count > 0
                       ? () {
@@ -390,7 +415,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Dives',
+                          context.l10n.equipment_detail_divesLabel,
                           style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(
                                 color: Theme.of(
@@ -402,7 +427,15 @@ class _EquipmentDetailContent extends ConsumerWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              '$count ${count == 1 ? 'dive' : 'dives'}',
+                              count == 1
+                                  ? context.l10n
+                                        .equipment_detail_divesCountSingular(
+                                          count,
+                                        )
+                                  : context.l10n
+                                        .equipment_detail_divesCountPlural(
+                                          count,
+                                        ),
                               style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(
                                     color: count > 0
@@ -425,13 +458,17 @@ class _EquipmentDetailContent extends ConsumerWidget {
                   ),
                 ),
               ),
-              loading: () => _buildDetailRow(context, 'Dives', '...'),
+              loading: () => _buildDetailRow(
+                context,
+                context.l10n.equipment_detail_divesLabel,
+                '...',
+              ),
               error: (e, s) => const SizedBox.shrink(),
             ),
             tripCountAsync.when(
               data: (count) => Semantics(
                 button: count > 0,
-                label: 'View trips using this equipment',
+                label: context.l10n.equipment_detail_tripsSemanticLabel,
                 child: InkWell(
                   onTap: count > 0
                       ? () {
@@ -447,7 +484,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Trips',
+                          context.l10n.equipment_detail_tripsLabel,
                           style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(
                                 color: Theme.of(
@@ -459,7 +496,15 @@ class _EquipmentDetailContent extends ConsumerWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              '$count ${count == 1 ? 'trip' : 'trips'}',
+                              count == 1
+                                  ? context.l10n
+                                        .equipment_detail_tripsCountSingular(
+                                          count,
+                                        )
+                                  : context.l10n
+                                        .equipment_detail_tripsCountPlural(
+                                          count,
+                                        ),
                               style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(
                                     color: count > 0
@@ -482,38 +527,54 @@ class _EquipmentDetailContent extends ConsumerWidget {
                   ),
                 ),
               ),
-              loading: () => _buildDetailRow(context, 'Trips', '...'),
+              loading: () => _buildDetailRow(
+                context,
+                context.l10n.equipment_detail_tripsLabel,
+                '...',
+              ),
               error: (e, s) => const SizedBox.shrink(),
             ),
             if (equipment.brand != null)
-              _buildDetailRow(context, 'Brand', equipment.brand!),
+              _buildDetailRow(
+                context,
+                context.l10n.equipment_detail_brandLabel,
+                equipment.brand!,
+              ),
             if (equipment.model != null)
-              _buildDetailRow(context, 'Model', equipment.model!),
+              _buildDetailRow(
+                context,
+                context.l10n.equipment_detail_modelLabel,
+                equipment.model!,
+              ),
             if (equipment.serialNumber != null)
               _buildDetailRow(
                 context,
-                'Serial Number',
+                context.l10n.equipment_detail_serialNumberLabel,
                 equipment.serialNumber!,
               ),
             if (equipment.size != null)
-              _buildDetailRow(context, 'Size', equipment.size!),
+              _buildDetailRow(
+                context,
+                context.l10n.equipment_detail_sizeLabel,
+                equipment.size!,
+              ),
             if (equipment.purchaseDate != null)
               _buildDetailRow(
                 context,
-                'Purchase Date',
+                context.l10n.equipment_detail_purchaseDateLabel,
                 units.formatDate(equipment.purchaseDate),
               ),
             if (equipment.purchasePrice != null)
               _buildDetailRow(
                 context,
-                'Purchase Price',
+                context.l10n.equipment_detail_purchasePriceLabel,
                 '${equipment.purchasePrice!.toStringAsFixed(2)} ${equipment.purchaseCurrency}',
               ),
             if (equipment.ownershipDuration != null)
               _buildDetailRow(
                 context,
-                'Owned For',
-                _formatDuration(equipment.ownershipDuration!),
+                context.l10n.equipment_detail_ownedForLabel,
+                _formatDuration(context, equipment.ownershipDuration!),
               ),
           ],
         ),
@@ -540,7 +601,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
                 Icon(Icons.build, color: Theme.of(context).colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
-                  'Service Information',
+                  context.l10n.equipment_detail_serviceInfoTitle,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ],
@@ -548,19 +609,21 @@ class _EquipmentDetailContent extends ConsumerWidget {
             const Divider(),
             _buildDetailRow(
               context,
-              'Service Interval',
-              '${equipment.serviceIntervalDays} days',
+              context.l10n.equipment_detail_serviceIntervalLabel,
+              context.l10n.equipment_detail_serviceIntervalValue(
+                equipment.serviceIntervalDays!,
+              ),
             ),
             if (equipment.lastServiceDate != null)
               _buildDetailRow(
                 context,
-                'Last Service',
+                context.l10n.equipment_detail_lastServiceLabel,
                 units.formatDate(equipment.lastServiceDate),
               ),
             if (equipment.nextServiceDue != null)
               _buildDetailRow(
                 context,
-                'Next Service Due',
+                context.l10n.equipment_detail_nextServiceDueLabel,
                 units.formatDate(equipment.nextServiceDue),
               ),
             if (daysUntil != null)
@@ -592,8 +655,12 @@ class _EquipmentDetailContent extends ConsumerWidget {
                       const SizedBox(width: 8),
                       Text(
                         isOverdue
-                            ? '${daysUntil.abs()} days overdue'
-                            : '$daysUntil days until service',
+                            ? context.l10n.equipment_detail_daysOverdue(
+                                daysUntil.abs(),
+                              )
+                            : context.l10n.equipment_detail_daysUntilService(
+                                daysUntil,
+                              ),
                         style: TextStyle(
                           color: isOverdue
                               ? Theme.of(context).colorScheme.onErrorContainer
@@ -626,7 +693,10 @@ class _EquipmentDetailContent extends ConsumerWidget {
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 8),
-                Text('Notes', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  context.l10n.equipment_detail_notesTitle,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
               ],
             ),
             const SizedBox(height: 8),
@@ -658,14 +728,42 @@ class _EquipmentDetailContent extends ConsumerWidget {
     );
   }
 
-  String _formatDuration(Duration duration) {
+  String _formatDuration(BuildContext context, Duration duration) {
     final days = duration.inDays;
-    if (days < 30) return '$days days';
-    if (days < 365) return '${(days / 30).floor()} months';
+    if (days < 30) return context.l10n.equipment_detail_durationDays(days);
+    if (days < 365) {
+      final months = (days / 30).floor();
+      return context.l10n.equipment_detail_durationMonths(months);
+    }
     final years = (days / 365).floor();
     final months = ((days % 365) / 30).floor();
-    if (months == 0) return '$years ${years == 1 ? 'year' : 'years'}';
-    return '$years ${years == 1 ? 'year' : 'years'}, $months ${months == 1 ? 'month' : 'months'}';
+    if (months == 0) {
+      return years == 1
+          ? context.l10n.equipment_detail_durationYearsSingular(years)
+          : context.l10n.equipment_detail_durationYearsPlural(years);
+    }
+    if (years == 1 && months == 1) {
+      return context.l10n.equipment_detail_durationYearsMonthsSingularSingular(
+        years,
+        months,
+      );
+    }
+    if (years == 1) {
+      return context.l10n.equipment_detail_durationYearsMonthsSingularPlural(
+        years,
+        months,
+      );
+    }
+    if (months == 1) {
+      return context.l10n.equipment_detail_durationYearsMonthsPluralSingular(
+        years,
+        months,
+      );
+    }
+    return context.l10n.equipment_detail_durationYearsMonthsPluralPlural(
+      years,
+      months,
+    );
   }
 
   Future<void> _handleMenuAction(
@@ -681,9 +779,11 @@ class _EquipmentDetailContent extends ConsumerWidget {
         await notifier.markAsServiced(equipmentId);
         ref.invalidate(equipmentItemProvider(equipmentId));
         if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Marked as serviced')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(context.l10n.equipment_snackbar_markedAsServiced),
+            ),
+          );
         }
         break;
 
@@ -691,9 +791,9 @@ class _EquipmentDetailContent extends ConsumerWidget {
         await notifier.retireEquipment(equipmentId);
         ref.invalidate(equipmentItemProvider(equipmentId));
         if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Equipment retired')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(context.l10n.equipment_snackbar_retired)),
+          );
         }
         break;
 
@@ -702,7 +802,9 @@ class _EquipmentDetailContent extends ConsumerWidget {
         ref.invalidate(equipmentItemProvider(equipmentId));
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Equipment reactivated')),
+            SnackBar(
+              content: Text(context.l10n.equipment_snackbar_reactivated),
+            ),
           );
         }
         break;
@@ -711,21 +813,19 @@ class _EquipmentDetailContent extends ConsumerWidget {
         final confirmed = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Delete Equipment'),
-            content: const Text(
-              'Are you sure you want to delete this equipment? This action cannot be undone.',
-            ),
+            title: Text(context.l10n.equipment_deleteDialog_title),
+            content: Text(context.l10n.equipment_deleteDialog_content),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Cancel'),
+                child: Text(context.l10n.equipment_deleteDialog_cancel),
               ),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(true),
                 style: FilledButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.error,
                 ),
-                child: const Text('Delete'),
+                child: Text(context.l10n.equipment_deleteDialog_confirm),
               ),
             ],
           ),
@@ -739,9 +839,9 @@ class _EquipmentDetailContent extends ConsumerWidget {
             } else {
               context.go('/equipment');
             }
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text('Equipment deleted')));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(context.l10n.equipment_snackbar_deleted)),
+            );
           }
         }
         break;
@@ -807,7 +907,7 @@ class _ServiceHistorySection extends ConsumerWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Service History',
+                      context.l10n.equipment_service_historyTitle,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                   ],
@@ -815,7 +915,7 @@ class _ServiceHistorySection extends ConsumerWidget {
                 FilledButton.tonalIcon(
                   onPressed: () => _showAddServiceDialog(context, ref),
                   icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Add'),
+                  label: Text(context.l10n.equipment_service_addButton),
                 ),
               ],
             ),
@@ -838,7 +938,7 @@ class _ServiceHistorySection extends ConsumerWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'No service records yet',
+                            context.l10n.equipment_service_emptyState,
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(
                                   color: Theme.of(
@@ -871,7 +971,7 @@ class _ServiceHistorySection extends ConsumerWidget {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  'Total Service Cost',
+                                  context.l10n.equipment_service_totalCostLabel,
                                   style: Theme.of(context).textTheme.bodyMedium,
                                 ),
                                 Text(
@@ -907,7 +1007,11 @@ class _ServiceHistorySection extends ConsumerWidget {
                   child: CircularProgressIndicator(),
                 ),
               ),
-              error: (error, _) => Center(child: Text('Error: $error')),
+              error: (error, _) => Center(
+                child: Text(
+                  context.l10n.equipment_detail_errorMessage('$error'),
+                ),
+              ),
             ),
           ],
         ),
@@ -956,21 +1060,23 @@ class _ServiceHistorySection extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Service Record?'),
+        title: Text(context.l10n.equipment_service_deleteDialog_title),
         content: Text(
-          'Are you sure you want to delete this ${record.serviceType.displayName} record?',
+          context.l10n.equipment_service_deleteDialog_content(
+            record.serviceType.displayName,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.equipment_service_deleteDialog_cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('Delete'),
+            child: Text(context.l10n.equipment_service_deleteDialog_confirm),
           ),
         ],
       ),
@@ -981,9 +1087,11 @@ class _ServiceHistorySection extends ConsumerWidget {
           .read(serviceRecordNotifierProvider(equipmentId).notifier)
           .deleteRecord(record.id);
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Service record deleted')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.equipment_service_snackbar_deleted),
+          ),
+        );
       }
     }
   }
@@ -1047,10 +1155,16 @@ class _ServiceRecordTile extends ConsumerWidget {
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(value: 'edit', child: Text('Edit')),
-              const PopupMenuItem(
+              PopupMenuItem(
+                value: 'edit',
+                child: Text(context.l10n.equipment_service_editMenuItem),
+              ),
+              PopupMenuItem(
                 value: 'delete',
-                child: Text('Delete', style: TextStyle(color: Colors.red)),
+                child: Text(
+                  context.l10n.equipment_service_deleteMenuItem,
+                  style: const TextStyle(color: Colors.red),
+                ),
               ),
             ],
           ),
@@ -1147,7 +1261,11 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
     final units = UnitFormatter(settings);
 
     return AlertDialog(
-      title: Text(isEditing ? 'Edit Service Record' : 'Add Service Record'),
+      title: Text(
+        isEditing
+            ? context.l10n.equipment_serviceDialog_editTitle
+            : context.l10n.equipment_serviceDialog_addTitle,
+      ),
       content: SizedBox(
         width: double.maxFinite,
         child: Form(
@@ -1159,9 +1277,10 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
                 // Service type dropdown
                 DropdownButtonFormField<ServiceType>(
                   initialValue: _serviceType,
-                  decoration: const InputDecoration(
-                    labelText: 'Service Type',
-                    prefixIcon: Icon(Icons.build),
+                  decoration: InputDecoration(
+                    labelText:
+                        context.l10n.equipment_serviceDialog_serviceTypeLabel,
+                    prefixIcon: const Icon(Icons.build),
                   ),
                   items: ServiceType.values.map((type) {
                     return DropdownMenuItem(
@@ -1180,13 +1299,17 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
                 // Service date picker
                 Semantics(
                   button: true,
-                  label: 'Pick service date',
+                  label: context
+                      .l10n
+                      .equipment_serviceDialog_serviceDateSemanticLabel,
                   child: InkWell(
                     onTap: () => _pickServiceDate(),
                     child: InputDecorator(
-                      decoration: const InputDecoration(
-                        labelText: 'Service Date',
-                        prefixIcon: Icon(Icons.calendar_today),
+                      decoration: InputDecoration(
+                        labelText: context
+                            .l10n
+                            .equipment_serviceDialog_serviceDateLabel,
+                        prefixIcon: const Icon(Icons.calendar_today),
                       ),
                       child: Text(units.formatDate(_serviceDate)),
                     ),
@@ -1197,10 +1320,11 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
                 // Provider field
                 TextFormField(
                   controller: _providerController,
-                  decoration: const InputDecoration(
-                    labelText: 'Provider/Shop',
-                    prefixIcon: Icon(Icons.store),
-                    hintText: 'e.g., Dive Shop Name',
+                  decoration: InputDecoration(
+                    labelText:
+                        context.l10n.equipment_serviceDialog_providerLabel,
+                    prefixIcon: const Icon(Icons.store),
+                    hintText: context.l10n.equipment_serviceDialog_providerHint,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -1208,10 +1332,10 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
                 // Cost field
                 TextFormField(
                   controller: _costController,
-                  decoration: const InputDecoration(
-                    labelText: 'Cost',
-                    prefixIcon: Icon(Icons.attach_money),
-                    hintText: '0.00',
+                  decoration: InputDecoration(
+                    labelText: context.l10n.equipment_serviceDialog_costLabel,
+                    prefixIcon: const Icon(Icons.attach_money),
+                    hintText: context.l10n.equipment_serviceDialog_costHint,
                   ),
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
@@ -1220,7 +1344,9 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
                     if (value != null && value.isNotEmpty) {
                       final parsed = double.tryParse(value);
                       if (parsed == null || parsed < 0) {
-                        return 'Enter a valid amount';
+                        return context
+                            .l10n
+                            .equipment_serviceDialog_costValidation;
                       }
                     }
                     return null;
@@ -1231,17 +1357,23 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
                 // Next service due date picker
                 Semantics(
                   button: true,
-                  label: 'Pick next service due date',
+                  label: context
+                      .l10n
+                      .equipment_serviceDialog_nextServiceDueSemanticLabel,
                   child: InkWell(
                     onTap: () => _pickNextServiceDate(),
                     child: InputDecorator(
                       decoration: InputDecoration(
-                        labelText: 'Next Service Due',
+                        labelText: context
+                            .l10n
+                            .equipment_serviceDialog_nextServiceDueLabel,
                         prefixIcon: const Icon(Icons.event),
                         suffixIcon: _nextServiceDue != null
                             ? IconButton(
                                 icon: const Icon(Icons.clear),
-                                tooltip: 'Clear Next Service Date',
+                                tooltip: context
+                                    .l10n
+                                    .equipment_serviceDialog_clearNextServiceDateTooltip,
                                 onPressed: () =>
                                     setState(() => _nextServiceDue = null),
                               )
@@ -1250,7 +1382,9 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
                       child: Text(
                         _nextServiceDue != null
                             ? units.formatDate(_nextServiceDue)
-                            : 'Not set',
+                            : context
+                                  .l10n
+                                  .equipment_serviceDialog_nextServiceNotSet,
                         style: TextStyle(
                           color: _nextServiceDue == null
                               ? Theme.of(context).colorScheme.onSurfaceVariant
@@ -1265,9 +1399,9 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
                 // Notes field
                 TextFormField(
                   controller: _notesController,
-                  decoration: const InputDecoration(
-                    labelText: 'Notes',
-                    prefixIcon: Icon(Icons.notes),
+                  decoration: InputDecoration(
+                    labelText: context.l10n.equipment_serviceDialog_notesLabel,
+                    prefixIcon: const Icon(Icons.notes),
                     alignLabelWithHint: true,
                   ),
                   maxLines: 3,
@@ -1280,7 +1414,7 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
       actions: [
         TextButton(
           onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.equipment_serviceDialog_cancelButton),
         ),
         FilledButton(
           onPressed: _isSaving ? null : _save,
@@ -1290,7 +1424,11 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
                   height: 20,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : Text(isEditing ? 'Update' : 'Add'),
+              : Text(
+                  isEditing
+                      ? context.l10n.equipment_serviceDialog_updateButton
+                      : context.l10n.equipment_serviceDialog_addButton,
+                ),
         ),
       ],
     );
@@ -1353,16 +1491,22 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              isEditing ? 'Service record updated' : 'Service record added',
+              isEditing
+                  ? context.l10n.equipment_serviceDialog_snackbar_updated
+                  : context.l10n.equipment_serviceDialog_snackbar_added,
             ),
           ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              context.l10n.equipment_serviceDialog_snackbar_error('$e'),
+            ),
+          ),
+        );
         setState(() => _isSaving = false);
       }
     }

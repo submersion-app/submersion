@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
@@ -64,31 +65,35 @@ class CourseDetailPage extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSectionHeader(context, 'Course Details', Icons.school),
+                  _buildSectionHeader(
+                    context,
+                    context.l10n.courses_section_details,
+                    Icons.school,
+                  ),
                   const SizedBox(height: 12),
                   _buildDetailRow(
                     context,
-                    'Agency',
+                    context.l10n.courses_label_agency,
                     course.agency.displayName,
                     Icons.business,
                   ),
                   _buildDetailRow(
                     context,
-                    'Start Date',
+                    context.l10n.courses_label_startDate,
                     dateFormat.format(course.startDate),
                     Icons.calendar_today,
                   ),
                   if (course.completionDate != null)
                     _buildDetailRow(
                       context,
-                      'Completed',
+                      context.l10n.courses_label_completed,
                       dateFormat.format(course.completionDate!),
                       Icons.check_circle,
                     ),
                   if (course.location != null)
                     _buildDetailRow(
                       context,
-                      'Location',
+                      context.l10n.courses_label_location,
                       course.location!,
                       Icons.place,
                     ),
@@ -106,18 +111,22 @@ class CourseDetailPage extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildSectionHeader(context, 'Instructor', Icons.person),
+                    _buildSectionHeader(
+                      context,
+                      context.l10n.courses_section_instructor,
+                      Icons.person,
+                    ),
                     const SizedBox(height: 12),
                     _buildDetailRow(
                       context,
-                      'Name',
+                      context.l10n.courses_label_name,
                       course.instructorName!,
                       Icons.badge,
                     ),
                     if (course.instructorNumber != null)
                       _buildDetailRow(
                         context,
-                        'Instructor #',
+                        context.l10n.courses_label_instructorNumber,
                         course.instructorNumber!,
                         Icons.numbers,
                       ),
@@ -141,7 +150,7 @@ class CourseDetailPage extends ConsumerWidget {
                 children: [
                   _buildSectionHeader(
                     context,
-                    'Training Dives',
+                    context.l10n.courses_section_trainingDives,
                     Icons.scuba_diving,
                   ),
                   const SizedBox(height: 12),
@@ -149,7 +158,7 @@ class CourseDetailPage extends ConsumerWidget {
                     data: (dives) {
                       if (dives.isEmpty) {
                         return Text(
-                          'No training dives linked yet',
+                          context.l10n.courses_detail_noTrainingDives,
                           style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(
                                 color: colorScheme.onSurfaceVariant,
@@ -188,7 +197,7 @@ class CourseDetailPage extends ConsumerWidget {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     ),
                     error: (error, stack) => Text(
-                      'Error loading dives',
+                      context.l10n.courses_error_loadingDives,
                       style: TextStyle(color: colorScheme.error),
                     ),
                   ),
@@ -206,7 +215,11 @@ class CourseDetailPage extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildSectionHeader(context, 'Notes', Icons.notes),
+                    _buildSectionHeader(
+                      context,
+                      context.l10n.courses_section_notes,
+                      Icons.notes,
+                    ),
                     const SizedBox(height: 12),
                     Text(course.notes),
                   ],
@@ -223,7 +236,7 @@ class CourseDetailPage extends ConsumerWidget {
               child: FilledButton.icon(
                 onPressed: () => _markCompleted(context, ref, course),
                 icon: const Icon(Icons.check),
-                label: const Text('Mark as Completed'),
+                label: Text(context.l10n.courses_action_markCompleted),
               ),
             ),
             const SizedBox(height: 16),
@@ -247,11 +260,11 @@ class CourseDetailPage extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
-            tooltip: 'Edit course',
+            tooltip: context.l10n.courses_action_edit,
             onPressed: () => context.push('/courses/${course.id}/edit'),
           ),
           PopupMenuButton<String>(
-            tooltip: 'More options',
+            tooltip: context.l10n.courses_action_moreOptions,
             onSelected: (value) {
               if (value == 'delete') {
                 _confirmDelete(context, ref, course);
@@ -260,23 +273,26 @@ class CourseDetailPage extends ConsumerWidget {
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'export',
                 child: Row(
                   children: [
-                    Icon(Icons.picture_as_pdf_outlined),
-                    SizedBox(width: 8),
-                    Text('Export Training Log'),
+                    const Icon(Icons.picture_as_pdf_outlined),
+                    const SizedBox(width: 8),
+                    Text(context.l10n.courses_action_exportTrainingLog),
                   ],
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'delete',
                 child: Row(
                   children: [
-                    Icon(Icons.delete_outline, color: Colors.red),
-                    SizedBox(width: 8),
-                    Text('Delete', style: TextStyle(color: Colors.red)),
+                    const Icon(Icons.delete_outline, color: Colors.red),
+                    const SizedBox(width: 8),
+                    Text(
+                      context.l10n.common_action_delete,
+                      style: const TextStyle(color: Colors.red),
+                    ),
                   ],
                 ),
               ),
@@ -290,13 +306,18 @@ class CourseDetailPage extends ConsumerWidget {
 
   Widget _buildStatusCard(BuildContext context, Course course) {
     final colorScheme = Theme.of(context).colorScheme;
-    final statusLabel = course.isCompleted ? 'Completed' : 'In Progress';
+    final statusLabel = course.isCompleted
+        ? context.l10n.courses_status_completed
+        : context.l10n.courses_status_inProgress;
     final durationLabel = course.durationDays != null
-        ? '${course.durationDays} days'
-        : '${course.daysSinceStart} days since start';
+        ? context.l10n.courses_status_durationDays(course.durationDays!)
+        : context.l10n.courses_status_daysSinceStart(course.daysSinceStart);
 
     return Semantics(
-      label: 'Course status: $statusLabel, $durationLabel',
+      label: context.l10n.courses_status_semanticLabel(
+        statusLabel,
+        durationLabel,
+      ),
       child: Card(
         color: course.isCompleted
             ? Colors.green.withValues(alpha: 0.1)
@@ -316,7 +337,9 @@ class CourseDetailPage extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      course.isCompleted ? 'Completed' : 'In Progress',
+                      course.isCompleted
+                          ? context.l10n.courses_status_completed
+                          : context.l10n.courses_status_inProgress,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: course.isCompleted
@@ -326,14 +349,18 @@ class CourseDetailPage extends ConsumerWidget {
                     ),
                     if (course.durationDays != null)
                       Text(
-                        '${course.durationDays} days',
+                        context.l10n.courses_status_durationDays(
+                          course.durationDays!,
+                        ),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
                       )
                     else
                       Text(
-                        '${course.daysSinceStart} days since start',
+                        context.l10n.courses_status_daysSinceStart(
+                          course.daysSinceStart,
+                        ),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -421,7 +448,7 @@ class CourseDetailPage extends ConsumerWidget {
               children: [
                 _buildSectionHeader(
                   context,
-                  'Earned Certification',
+                  context.l10n.courses_section_earnedCertification,
                   Icons.card_membership,
                 ),
                 const SizedBox(height: 12),
@@ -429,7 +456,7 @@ class CourseDetailPage extends ConsumerWidget {
                   data: (cert) {
                     if (cert == null) {
                       return Text(
-                        'Certification not found',
+                        context.l10n.courses_detail_certificationNotFound,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                           fontStyle: FontStyle.italic,
@@ -469,7 +496,7 @@ class CourseDetailPage extends ConsumerWidget {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   ),
                   error: (error, stack) => Text(
-                    'Error loading certification',
+                    context.l10n.courses_error_loadingCertification,
                     style: TextStyle(color: colorScheme.error),
                   ),
                 ),
@@ -497,7 +524,7 @@ class CourseDetailPage extends ConsumerWidget {
   ) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 16, 8, 8),
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 8, 8),
       decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
       ),
@@ -513,7 +540,7 @@ class CourseDetailPage extends ConsumerWidget {
           ),
           IconButton(
             icon: const Icon(Icons.edit),
-            tooltip: 'Edit course',
+            tooltip: context.l10n.courses_action_edit,
             onPressed: () {
               if (ResponsiveBreakpoints.isMasterDetail(context)) {
                 final state = GoRouterState.of(context);
@@ -526,7 +553,7 @@ class CourseDetailPage extends ConsumerWidget {
             },
           ),
           PopupMenuButton<String>(
-            tooltip: 'More options',
+            tooltip: context.l10n.courses_action_moreOptions,
             onSelected: (value) {
               if (value == 'delete') {
                 _confirmDelete(context, ref, course);
@@ -535,23 +562,26 @@ class CourseDetailPage extends ConsumerWidget {
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'export',
                 child: Row(
                   children: [
-                    Icon(Icons.picture_as_pdf_outlined),
-                    SizedBox(width: 8),
-                    Text('Export Training Log'),
+                    const Icon(Icons.picture_as_pdf_outlined),
+                    const SizedBox(width: 8),
+                    Text(context.l10n.courses_action_exportTrainingLog),
                   ],
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'delete',
                 child: Row(
                   children: [
-                    Icon(Icons.delete_outline, color: Colors.red),
-                    SizedBox(width: 8),
-                    Text('Delete', style: TextStyle(color: Colors.red)),
+                    const Icon(Icons.delete_outline, color: Colors.red),
+                    const SizedBox(width: 8),
+                    Text(
+                      context.l10n.common_action_delete,
+                      style: const TextStyle(color: Colors.red),
+                    ),
                   ],
                 ),
               ),
@@ -567,18 +597,18 @@ class CourseDetailPage extends ConsumerWidget {
       return const Center(child: CircularProgressIndicator());
     }
     return Scaffold(
-      appBar: AppBar(title: const Text('Course')),
+      appBar: AppBar(title: Text(context.l10n.courses_title_singular)),
       body: const Center(child: CircularProgressIndicator()),
     );
   }
 
   Widget _buildNotFound(BuildContext context) {
     if (embedded) {
-      return const Center(child: Text('Course not found'));
+      return Center(child: Text(context.l10n.courses_detail_notFound));
     }
     return Scaffold(
-      appBar: AppBar(title: const Text('Course')),
-      body: const Center(child: Text('Course not found')),
+      appBar: AppBar(title: Text(context.l10n.courses_title_singular)),
+      body: Center(child: Text(context.l10n.courses_detail_notFound)),
     );
   }
 
@@ -598,7 +628,7 @@ class CourseDetailPage extends ConsumerWidget {
     if (embedded) return content;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Course')),
+      appBar: AppBar(title: Text(context.l10n.courses_title_singular)),
       body: content,
     );
   }
@@ -611,16 +641,16 @@ class CourseDetailPage extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Mark Course as Completed?'),
-        content: const Text('This will set the completion date to today.'),
+        title: Text(context.l10n.courses_dialog_markCompletedTitle),
+        content: Text(context.l10n.courses_dialog_markCompletedMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.common_action_cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Complete'),
+            child: Text(context.l10n.courses_dialog_complete),
           ),
         ],
       ),
@@ -641,21 +671,19 @@ class CourseDetailPage extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Course?'),
-        content: Text(
-          'Are you sure you want to delete "${course.name}"? This action cannot be undone.',
-        ),
+        title: Text(context.l10n.courses_dialog_deleteTitle),
+        content: Text(context.l10n.courses_dialog_deleteMessage(course.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.common_action_cancel),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
+            child: Text(context.l10n.common_action_delete),
           ),
         ],
       ),
@@ -705,7 +733,9 @@ class CourseDetailPage extends ConsumerWidget {
         // Show error
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to export training log: $e'),
+            content: Text(
+              context.l10n.courses_message_exportFailed(e.toString()),
+            ),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );

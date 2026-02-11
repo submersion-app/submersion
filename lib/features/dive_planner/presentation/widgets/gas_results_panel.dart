@@ -5,6 +5,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Panel displaying gas consumption projections for all tanks.
 ///
@@ -40,7 +41,7 @@ class GasResultsPanel extends ConsumerWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Gas Consumption',
+                  context.l10n.divePlanner_label_gasConsumption,
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: theme.colorScheme.primary,
                   ),
@@ -54,7 +55,7 @@ class GasResultsPanel extends ConsumerWidget {
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Text(
-                    'Add segments to see gas projections',
+                    context.l10n.divePlanner_message_addSegmentsForGas,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.outline,
                     ),
@@ -85,11 +86,14 @@ class _GasConsumptionCard extends StatelessWidget {
     final hasWarning = consumption.reserveViolation;
     final percentUsed = consumption.percentUsed.clamp(0.0, 100.0);
     final tankName = consumption.tankName ?? consumption.gasMix.name;
-    final semanticDescription =
-        '$tankName: used ${units.formatPressure(consumption.gasUsedBar)}, '
-        'remaining ${_formatRemainingPressure()}, '
-        '${consumption.percentFormatted} consumed'
-        '${hasWarning ? ', below minimum reserve' : ''}';
+    final semanticDescription = context.l10n
+        .divePlanner_semantics_gasConsumption(
+          tankName,
+          units.formatPressure(consumption.gasUsedBar),
+          _formatRemainingPressure(context),
+          consumption.percentFormatted,
+          hasWarning ? context.l10n.divePlanner_label_belowMinReserve : '',
+        );
 
     return Semantics(
       label: semanticDescription,
@@ -164,7 +168,7 @@ class _GasConsumptionCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Used',
+                        context.l10n.divePlanner_label_used,
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: theme.colorScheme.outline,
                         ),
@@ -184,13 +188,13 @@ class _GasConsumptionCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
-                        'Remaining',
+                        context.l10n.divePlanner_label_remaining,
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: theme.colorScheme.outline,
                         ),
                       ),
                       Text(
-                        _formatRemainingPressure(),
+                        _formatRemainingPressure(context),
                         style: theme.textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: hasWarning ? theme.colorScheme.error : null,
@@ -205,7 +209,7 @@ class _GasConsumptionCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        'Consumption',
+                        context.l10n.divePlanner_label_consumption,
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: theme.colorScheme.outline,
                         ),
@@ -234,7 +238,11 @@ class _GasConsumptionCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    'Below minimum reserve (${units.formatPressure(consumption.minGasReserve?.toDouble())})',
+                    context.l10n.divePlanner_warning_belowMinReserve(
+                      units.formatPressure(
+                        consumption.minGasReserve?.toDouble(),
+                      ),
+                    ),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.error,
                     ),
@@ -249,10 +257,10 @@ class _GasConsumptionCard extends StatelessWidget {
   }
 
   /// Format remaining pressure with proper unit settings.
-  String _formatRemainingPressure() {
+  String _formatRemainingPressure(BuildContext context) {
     final remaining = consumption.remainingPressure;
     if (remaining == null) return '--';
-    if (remaining <= 0) return 'EMPTY';
+    if (remaining <= 0) return context.l10n.divePlanner_label_empty;
     return units.formatPressure(remaining.toDouble());
   }
 

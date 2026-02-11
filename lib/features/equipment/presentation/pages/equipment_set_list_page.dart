@@ -3,6 +3,7 @@ import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 
@@ -14,7 +15,7 @@ class EquipmentSetListPage extends ConsumerWidget {
     final setsAsync = ref.watch(equipmentSetListNotifierProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Equipment Sets')),
+      appBar: AppBar(title: Text(context.l10n.equipment_sets_appBar_title)),
       body: setsAsync.when(
         data: (sets) => sets.isEmpty
             ? _buildEmptyState(context)
@@ -26,13 +27,13 @@ class EquipmentSetListPage extends ConsumerWidget {
             children: [
               const Icon(Icons.error_outline, size: 48, color: Colors.red),
               const SizedBox(height: 16),
-              Text('Error loading sets: $error'),
+              Text(context.l10n.equipment_sets_errorLoading('$error')),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => ref
                     .read(equipmentSetListNotifierProvider.notifier)
                     .refresh(),
-                child: const Text('Retry'),
+                child: Text(context.l10n.equipment_sets_retryButton),
               ),
             ],
           ),
@@ -40,9 +41,9 @@ class EquipmentSetListPage extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/equipment/sets/new'),
-        tooltip: 'Create a new equipment set',
+        tooltip: context.l10n.equipment_sets_fabTooltip,
         icon: const Icon(Icons.add),
-        label: const Text('Create Set'),
+        label: Text(context.l10n.equipment_sets_fab_createSet),
       ),
     );
   }
@@ -65,12 +66,12 @@ class EquipmentSetListPage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'No Equipment Sets',
+              context.l10n.equipment_sets_emptyState_title,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 8),
             Text(
-              'Create equipment sets to quickly add commonly used combinations of equipment to your dives.',
+              context.l10n.equipment_sets_emptyState_description,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -80,7 +81,9 @@ class EquipmentSetListPage extends ConsumerWidget {
             FilledButton.icon(
               onPressed: () => context.push('/equipment/sets/new'),
               icon: const Icon(Icons.add),
-              label: const Text('Create Your First Set'),
+              label: Text(
+                context.l10n.equipment_sets_emptyState_createFirstButton,
+              ),
             ),
           ],
         ),
@@ -94,8 +97,9 @@ class EquipmentSetListPage extends ConsumerWidget {
       itemCount: sets.length,
       itemBuilder: (context, index) {
         final set = sets[index];
-        final itemCountText =
-            '${set.itemCount} ${set.itemCount == 1 ? 'item' : 'items'}';
+        final itemCountText = set.itemCount == 1
+            ? context.l10n.equipment_sets_itemCountSingular(set.itemCount)
+            : context.l10n.equipment_sets_itemCountPlural(set.itemCount);
         return Semantics(
           label: listItemLabel(
             title: set.name,
@@ -122,7 +126,9 @@ class EquipmentSetListPage extends ConsumerWidget {
               ),
               trailing: set.itemCount > 0
                   ? Semantics(
-                      label: '$itemCountText in set',
+                      label: context.l10n.equipment_sets_itemCountSemanticLabel(
+                        '${set.itemCount}',
+                      ),
                       child: Chip(
                         label: Text('${set.itemCount}'),
                         visualDensity: VisualDensity.compact,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
 import 'package:submersion/features/tides/presentation/widgets/current_tide_indicator.dart';
@@ -50,7 +51,10 @@ class TideSection extends ConsumerWidget {
               children: [
                 Icon(Icons.waves, size: 20, color: colorScheme.primary),
                 const SizedBox(width: 8),
-                Text('Tides', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  context.l10n.tides_title,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -68,7 +72,7 @@ class TideSection extends ConsumerWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Tide data not available for this location',
+                    context.l10n.tides_noDataForLocation,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                       fontStyle: FontStyle.italic,
@@ -97,7 +101,10 @@ class TideSection extends ConsumerWidget {
               children: [
                 Icon(Icons.waves, size: 20, color: colorScheme.primary),
                 const SizedBox(width: 8),
-                Text('Tides', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  context.l10n.tides_title,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
               ],
             ),
             const SizedBox(height: 24),
@@ -122,13 +129,16 @@ class TideSection extends ConsumerWidget {
               children: [
                 Icon(Icons.waves, size: 20, color: colorScheme.primary),
                 const SizedBox(width: 8),
-                Text('Tides', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  context.l10n.tides_title,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
               ],
             ),
             const SizedBox(height: 12),
             Center(
               child: Text(
-                'Unable to load tide data',
+                context.l10n.tides_error_unableToLoad,
                 style: Theme.of(
                   context,
                 ).textTheme.bodyMedium?.copyWith(color: colorScheme.error),
@@ -166,7 +176,10 @@ class _TideSectionContent extends ConsumerWidget {
               children: [
                 Icon(Icons.waves, size: 20, color: colorScheme.primary),
                 const SizedBox(width: 8),
-                Text('Tides', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  context.l10n.tides_title,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const Spacer(),
                 // Refresh button
                 IconButton(
@@ -176,7 +189,7 @@ class _TideSectionContent extends ConsumerWidget {
                     ref.invalidate(tidePredictionsProvider(location));
                     ref.invalidate(tideExtremesProvider(location));
                   },
-                  tooltip: 'Refresh tide data',
+                  tooltip: context.l10n.tides_action_refresh,
                 ),
               ],
             ),
@@ -208,7 +221,7 @@ class _TideSectionContent extends ConsumerWidget {
 
               // Tide Chart
               Text(
-                '24-Hour Forecast',
+                context.l10n.tides_chart_24hourForecast,
                 style: Theme.of(
                   context,
                 ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
@@ -249,7 +262,7 @@ class _TideSectionContent extends ConsumerWidget {
                   height: 180,
                   child: Center(
                     child: Text(
-                      'Unable to load chart',
+                      context.l10n.tides_error_unableToLoadChart,
                       style: TextStyle(color: colorScheme.error),
                     ),
                   ),
@@ -262,7 +275,7 @@ class _TideSectionContent extends ConsumerWidget {
 
               // Tide Times
               Text(
-                'Upcoming Tides',
+                context.l10n.tides_label_upcomingTides,
                 style: Theme.of(
                   context,
                 ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
@@ -273,7 +286,7 @@ class _TideSectionContent extends ConsumerWidget {
                   if (extremes.isEmpty) {
                     return Center(
                       child: Text(
-                        'No tide times available',
+                        context.l10n.tides_noTideTimesAvailable,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),

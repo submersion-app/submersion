@@ -7,6 +7,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/features/statistics/presentation/widgets/stat_charts.dart';
 import 'package:submersion/features/statistics/presentation/widgets/stat_section_card.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 class StatisticsProfilePage extends ConsumerWidget {
   final bool embedded;
@@ -37,7 +38,7 @@ class StatisticsProfilePage extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile Analysis')),
+      appBar: AppBar(title: Text(context.l10n.statistics_profile_appBar_title)),
       body: content,
     );
   }
@@ -50,14 +51,14 @@ class StatisticsProfilePage extends ConsumerWidget {
     final ratesAsync = ref.watch(ascentDescentRatesProvider);
 
     return StatSectionCard(
-      title: 'Average Ascent & Descent Rates',
-      subtitle: 'From dive profile data',
+      title: context.l10n.statistics_profile_ascentDescent_title,
+      subtitle: context.l10n.statistics_profile_ascentDescent_subtitle,
       child: ratesAsync.when(
         data: (data) {
           if (data.avgAscent == null && data.avgDescent == null) {
-            return const StatEmptyState(
+            return StatEmptyState(
               icon: Icons.trending_up,
-              message: 'No profile data available',
+              message: context.l10n.statistics_profile_ascentDescent_empty,
             );
           }
 
@@ -67,7 +68,7 @@ class StatisticsProfilePage extends ConsumerWidget {
                 Expanded(
                   child: _buildRateStat(
                     context,
-                    'Avg Ascent',
+                    context.l10n.statistics_profile_avgAscent,
                     '${units.convertDepth(data.avgAscent!).toStringAsFixed(1)} ${units.depthSymbol}/min',
                     Icons.arrow_upward,
                     Colors.green,
@@ -79,7 +80,7 @@ class StatisticsProfilePage extends ConsumerWidget {
                 Expanded(
                   child: _buildRateStat(
                     context,
-                    'Avg Descent',
+                    context.l10n.statistics_profile_avgDescent,
                     '${units.convertDepth(data.avgDescent!).toStringAsFixed(1)} ${units.depthSymbol}/min',
                     Icons.arrow_downward,
                     Colors.blue,
@@ -92,9 +93,9 @@ class StatisticsProfilePage extends ConsumerWidget {
           height: 100,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, _) => const StatEmptyState(
+        error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: 'Failed to load rate data',
+          message: context.l10n.statistics_profile_ascentDescent_error,
         ),
       ),
     );
@@ -143,29 +144,30 @@ class StatisticsProfilePage extends ConsumerWidget {
     final depthRangesAsync = ref.watch(timeAtDepthRangesProvider);
 
     return StatSectionCard(
-      title: 'Time at Depth Ranges',
-      subtitle: 'Approximate time spent at each depth',
+      title: context.l10n.statistics_profile_timeAtDepth_title,
+      subtitle: context.l10n.statistics_profile_timeAtDepth_subtitle,
       child: depthRangesAsync.when(
         data: (data) {
           if (data.isEmpty) {
-            return const StatEmptyState(
+            return StatEmptyState(
               icon: Icons.layers,
-              message: 'No depth data available',
+              message: context.l10n.statistics_profile_timeAtDepth_empty,
             );
           }
           return CategoryBarChart(
             data: data.map((d) => (label: d.range, count: d.minutes)).toList(),
             barColor: Colors.indigo,
-            valueFormatter: (value) => '$value min',
+            valueFormatter: (value) =>
+                context.l10n.statistics_profile_timeAtDepth_valueFormat(value),
           );
         },
         loading: () => const SizedBox(
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, _) => const StatEmptyState(
+        error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: 'Failed to load depth range data',
+          message: context.l10n.statistics_profile_timeAtDepth_error,
         ),
       ),
     );
@@ -175,14 +177,14 @@ class StatisticsProfilePage extends ConsumerWidget {
     final decoAsync = ref.watch(decoObligationStatsProvider);
 
     return StatSectionCard(
-      title: 'Decompression Obligation',
-      subtitle: 'Dives that incurred deco stops',
+      title: context.l10n.statistics_profile_deco_title,
+      subtitle: context.l10n.statistics_profile_deco_subtitle,
       child: decoAsync.when(
         data: (data) {
           if (data.totalCount == 0) {
-            return const StatEmptyState(
+            return StatEmptyState(
               icon: Icons.stop_circle,
-              message: 'No deco data available',
+              message: context.l10n.statistics_profile_deco_empty,
             );
           }
 
@@ -195,19 +197,19 @@ class StatisticsProfilePage extends ConsumerWidget {
                 children: [
                   _buildDecoStat(
                     context,
-                    'Deco Dives',
+                    context.l10n.statistics_profile_deco_decoDives,
                     data.decoCount.toString(),
                     Colors.orange,
                   ),
                   _buildDecoStat(
                     context,
-                    'No Deco',
+                    context.l10n.statistics_profile_deco_noDeco,
                     (data.totalCount - data.decoCount).toString(),
                     Colors.green,
                   ),
                   _buildDecoStat(
                     context,
-                    'Deco Rate',
+                    context.l10n.statistics_profile_deco_decoRate,
                     '${percentage.toStringAsFixed(1)}%',
                     Colors.blue,
                   ),
@@ -215,8 +217,9 @@ class StatisticsProfilePage extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               Semantics(
-                label:
-                    'Decompression rate: ${percentage.toStringAsFixed(1)}% of dives required deco stops',
+                label: context.l10n.statistics_profile_deco_semanticLabel(
+                  percentage.toStringAsFixed(1),
+                ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: LinearProgressIndicator(
@@ -233,13 +236,13 @@ class StatisticsProfilePage extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'No Deco',
+                      context.l10n.statistics_profile_deco_noDeco,
                       style: Theme.of(
                         context,
                       ).textTheme.bodySmall?.copyWith(color: Colors.green),
                     ),
                     Text(
-                      'Deco',
+                      context.l10n.statistics_profile_deco_decoLabel,
                       style: Theme.of(
                         context,
                       ).textTheme.bodySmall?.copyWith(color: Colors.orange),
@@ -254,9 +257,9 @@ class StatisticsProfilePage extends ConsumerWidget {
           height: 100,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, _) => const StatEmptyState(
+        error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: 'Failed to load deco data',
+          message: context.l10n.statistics_profile_deco_error,
         ),
       ),
     );

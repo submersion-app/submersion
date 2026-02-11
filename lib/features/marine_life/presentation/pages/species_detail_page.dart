@@ -8,6 +8,7 @@ import 'package:submersion/features/marine_life/presentation/providers/species_p
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/domain/entities/species_statistics.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 class SpeciesDetailPage extends ConsumerWidget {
   final String speciesId;
@@ -22,23 +23,29 @@ class SpeciesDetailPage extends ConsumerWidget {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          tooltip: 'Back',
+          tooltip: context.l10n.marineLife_speciesDetail_backTooltip,
           onPressed: () => context.pop(),
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.edit_outlined),
-            tooltip: 'Edit species',
+            tooltip: context.l10n.marineLife_speciesDetail_editTooltip,
             onPressed: () => context.push('/species/$speciesId/edit'),
           ),
         ],
       ),
       body: speciesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, st) => Center(child: Text('Error: $e')),
+        error: (e, st) => Center(
+          child: Text(
+            context.l10n.marineLife_speciesDetail_errorPrefix(e.toString()),
+          ),
+        ),
         data: (species) {
           if (species == null) {
-            return const Center(child: Text('Species not found'));
+            return Center(
+              child: Text(context.l10n.marineLife_speciesDetail_notFound),
+            );
           }
 
           return SingleChildScrollView(
@@ -131,7 +138,9 @@ class SpeciesDetailPage extends ConsumerWidget {
         ),
         const SizedBox(width: 4),
         Text(
-          'Class: $taxonomyClass',
+          context.l10n.marineLife_speciesDetail_taxonomyClassLabel(
+            taxonomyClass,
+          ),
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: Theme.of(context).colorScheme.onSurface.withAlpha(153),
           ),
@@ -148,7 +157,7 @@ class SpeciesDetailPage extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Description',
+              context.l10n.marineLife_speciesDetail_descriptionTitle,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 color: Theme.of(context).colorScheme.primary,
               ),
@@ -191,7 +200,7 @@ class SpeciesDetailPage extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'No sightings recorded yet',
+                      context.l10n.marineLife_speciesDetail_noSightings,
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: Theme.of(
                           context,
@@ -222,7 +231,7 @@ class SpeciesDetailPage extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Sighting Statistics',
+          context.l10n.marineLife_speciesDetail_sightingStatsTitle,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
             color: Theme.of(context).colorScheme.primary,
           ),
@@ -235,7 +244,8 @@ class SpeciesDetailPage extends ConsumerWidget {
               child: _buildStatCard(
                 context,
                 icon: Icons.visibility,
-                label: 'Total Sightings',
+                label:
+                    context.l10n.marineLife_speciesDetail_totalSightingsLabel,
                 value: stats.totalSightings.toString(),
               ),
             ),
@@ -244,7 +254,7 @@ class SpeciesDetailPage extends ConsumerWidget {
               child: _buildStatCard(
                 context,
                 icon: Icons.scuba_diving,
-                label: 'Dives',
+                label: context.l10n.marineLife_speciesDetail_divesLabel,
                 value: stats.diveCount.toString(),
               ),
             ),
@@ -253,7 +263,7 @@ class SpeciesDetailPage extends ConsumerWidget {
               child: _buildStatCard(
                 context,
                 icon: Icons.place,
-                label: 'Sites',
+                label: context.l10n.marineLife_speciesDetail_sitesLabel,
                 value: stats.siteCount.toString(),
               ),
             ),
@@ -265,7 +275,9 @@ class SpeciesDetailPage extends ConsumerWidget {
           Card(
             child: ListTile(
               leading: const Icon(Icons.arrow_downward),
-              title: const Text('Depth Range'),
+              title: Text(
+                context.l10n.marineLife_speciesDetail_depthRangeTitle,
+              ),
               subtitle: Text(
                 '${units.formatDepth(stats.minDepthMeters)} - '
                 '${units.formatDepth(stats.maxDepthMeters)}',
@@ -277,7 +289,9 @@ class SpeciesDetailPage extends ConsumerWidget {
           Card(
             child: ListTile(
               leading: const Icon(Icons.calendar_today),
-              title: const Text('Sighting Period'),
+              title: Text(
+                context.l10n.marineLife_speciesDetail_sightingPeriodTitle,
+              ),
               subtitle: Text(
                 stats.lastSeen != null && stats.firstSeen != stats.lastSeen
                     ? '${units.formatDate(stats.firstSeen)} - '
@@ -290,7 +304,7 @@ class SpeciesDetailPage extends ConsumerWidget {
         if (stats.topSites.isNotEmpty) ...[
           const SizedBox(height: 12),
           Text(
-            'Top Sites',
+            context.l10n.marineLife_speciesDetail_topSitesTitle,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
               color: Theme.of(context).colorScheme.primary,
             ),
@@ -302,7 +316,9 @@ class SpeciesDetailPage extends ConsumerWidget {
                 leading: const Icon(Icons.place_outlined),
                 title: Text(site.name),
                 trailing: Text(
-                  '${site.count} sighting${site.count == 1 ? '' : 's'}',
+                  context.l10n.marineLife_speciesDetail_sightingCount(
+                    site.count,
+                  ),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 onTap: () => context.push('/sites/${site.id}'),

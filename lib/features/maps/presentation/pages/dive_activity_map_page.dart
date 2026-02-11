@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
@@ -139,7 +140,7 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
 
     // Build subtitle with date, depth, duration, water temp (matching DiveListTile)
     final parts = <String>[];
-    parts.add(units.formatDateTime(dive.dateTime));
+    parts.add(units.formatDateTime(dive.dateTime, l10n: context.l10n));
     if (dive.maxDepth != null) {
       parts.add(units.formatDepth(dive.maxDepth!));
     }

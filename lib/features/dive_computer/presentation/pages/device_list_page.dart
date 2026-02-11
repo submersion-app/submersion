@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Page displaying a list of saved dive computers.
 class DeviceListPage extends ConsumerWidget {
@@ -17,12 +18,12 @@ class DeviceListPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dive Computers'),
+        title: Text(context.l10n.diveComputer_list_title),
         actions: [
           IconButton(
             icon: const Icon(Icons.help_outline),
             onPressed: () => _showHelpDialog(context),
-            tooltip: 'Help',
+            tooltip: context.l10n.diveComputer_list_helpTooltip,
           ),
         ],
       ),
@@ -41,7 +42,7 @@ class DeviceListPage extends ConsumerWidget {
               Icon(Icons.error_outline, size: 48, color: colorScheme.error),
               const SizedBox(height: 16),
               Text(
-                'Failed to load dive computers',
+                context.l10n.diveComputer_list_loadFailed,
                 style: theme.textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
@@ -54,7 +55,7 @@ class DeviceListPage extends ConsumerWidget {
               FilledButton.icon(
                 onPressed: () => ref.invalidate(allDiveComputersProvider),
                 icon: const Icon(Icons.refresh),
-                label: const Text('Retry'),
+                label: Text(context.l10n.diveComputer_list_retry),
               ),
             ],
           ),
@@ -63,7 +64,7 @@ class DeviceListPage extends ConsumerWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/dive-computers/discover'),
         icon: const Icon(Icons.add),
-        label: const Text('Add Computer'),
+        label: Text(context.l10n.diveComputer_list_addComputer),
       ),
     );
   }
@@ -84,12 +85,12 @@ class DeviceListPage extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              'No Dive Computers',
+              context.l10n.diveComputer_list_emptyTitle,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 12),
             Text(
-              'Connect your dive computer to download dives directly into the app.',
+              context.l10n.diveComputer_list_emptyMessage,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -99,7 +100,7 @@ class DeviceListPage extends ConsumerWidget {
             FilledButton.icon(
               onPressed: () => context.push('/dive-computers/discover'),
               icon: const Icon(Icons.bluetooth_searching),
-              label: const Text('Find Computers'),
+              label: Text(context.l10n.diveComputer_list_findComputers),
             ),
           ],
         ),
@@ -139,43 +140,43 @@ class DeviceListPage extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Dive Computer Help'),
-        content: const SingleChildScrollView(
+        title: Text(context.l10n.diveComputer_list_helpDialogTitle),
+        content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Supported Connections',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                context.l10n.diveComputer_list_helpConnectionsTitle,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 8),
-              Text('• Bluetooth LE (most modern computers)'),
-              Text('• Bluetooth Classic (older models)'),
-              Text('• USB (desktop only)'),
-              SizedBox(height: 16),
-              Text('Tips', style: TextStyle(fontWeight: FontWeight.bold)),
-              SizedBox(height: 8),
-              Text('• Ensure your computer is in transfer mode'),
-              Text('• Keep devices close during download'),
-              Text('• Make sure Bluetooth is enabled'),
-              SizedBox(height: 16),
+              const SizedBox(height: 8),
+              Text(context.l10n.diveComputer_list_helpBluetooth),
+              Text(context.l10n.diveComputer_list_helpBluetoothClassic),
+              Text(context.l10n.diveComputer_list_helpUsb),
+              const SizedBox(height: 16),
               Text(
-                'Supported Brands',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                context.l10n.diveComputer_list_helpTipsTitle,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
+              Text(context.l10n.diveComputer_list_helpTip1),
+              Text(context.l10n.diveComputer_list_helpTip2),
+              Text(context.l10n.diveComputer_list_helpTip3),
+              const SizedBox(height: 16),
               Text(
-                'Shearwater, Suunto, Garmin, Mares, Scubapro, '
-                'Oceanic, Aqualung, Cressi, and 50+ more models.',
+                context.l10n.diveComputer_list_helpBrandsTitle,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
+              const SizedBox(height: 8),
+              Text(context.l10n.diveComputer_list_helpBrandsList),
             ],
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Got it'),
+            child: Text(context.l10n.diveComputer_list_helpDismiss),
           ),
         ],
       ),
@@ -204,7 +205,9 @@ class _ComputerCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Semantics(
         button: true,
-        label: 'Dive computer: ${computer.displayName}',
+        label: context.l10n.diveComputer_list_cardSemanticLabel(
+          computer.displayName,
+        ),
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
@@ -271,7 +274,9 @@ class _ComputerCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            '${computer.diveCount} dives',
+                            context.l10n.diveComputer_list_diveCount(
+                              computer.diveCount,
+                            ),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),
@@ -298,7 +303,7 @@ class _ComputerCard extends StatelessWidget {
                 IconButton(
                   onPressed: onDownload,
                   icon: const Icon(Icons.download),
-                  tooltip: 'Download dives',
+                  tooltip: context.l10n.diveComputer_list_downloadTooltip,
                 ),
               ],
             ),

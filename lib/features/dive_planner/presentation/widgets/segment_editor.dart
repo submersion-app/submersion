@@ -6,6 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 const _uuid = Uuid();
 
@@ -86,14 +87,20 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
     }
 
     return AlertDialog(
-      title: Text(isNew ? 'Add Segment' : 'Edit Segment'),
+      title: Text(
+        isNew
+            ? context.l10n.divePlanner_segmentEditor_addTitle
+            : context.l10n.divePlanner_segmentEditor_editTitle,
+      ),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             // Segment type dropdown
             InputDecorator(
-              decoration: const InputDecoration(labelText: 'Segment Type'),
+              decoration: InputDecoration(
+                labelText: context.l10n.divePlanner_segmentEditor_segmentType,
+              ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<SegmentType>(
                   value: _type,
@@ -131,7 +138,10 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
                   child: TextField(
                     controller: _startDepthController,
                     decoration: InputDecoration(
-                      labelText: 'Start Depth (${units.depthSymbol})',
+                      labelText: context.l10n
+                          .divePlanner_segmentEditor_startDepth(
+                            units.depthSymbol,
+                          ),
                     ),
                     keyboardType: TextInputType.number,
                     enabled: _type != SegmentType.gasSwitch,
@@ -142,7 +152,10 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
                   child: TextField(
                     controller: _endDepthController,
                     decoration: InputDecoration(
-                      labelText: 'End Depth (${units.depthSymbol})',
+                      labelText: context.l10n
+                          .divePlanner_segmentEditor_endDepth(
+                            units.depthSymbol,
+                          ),
                     ),
                     keyboardType: TextInputType.number,
                     enabled: _type != SegmentType.gasSwitch,
@@ -156,9 +169,9 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
             TextField(
               controller: _durationController,
               decoration: InputDecoration(
-                labelText: 'Duration (min)',
+                labelText: context.l10n.divePlanner_segmentEditor_duration,
                 helperText: _type == SegmentType.gasSwitch
-                    ? 'Gas switch time'
+                    ? context.l10n.divePlanner_segmentEditor_gasSwitchTime
                     : null,
               ),
               keyboardType: TextInputType.number,
@@ -171,8 +184,12 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
                 controller: _rateController,
                 decoration: InputDecoration(
                   labelText: _type == SegmentType.descent
-                      ? 'Descent Rate (${units.depthSymbol}/min)'
-                      : 'Ascent Rate (${units.depthSymbol}/min)',
+                      ? context.l10n.divePlanner_segmentEditor_descentRate(
+                          units.depthSymbol,
+                        )
+                      : context.l10n.divePlanner_segmentEditor_ascentRate(
+                          units.depthSymbol,
+                        ),
                 ),
                 keyboardType: TextInputType.number,
               ),
@@ -181,7 +198,9 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
 
             // Tank selection
             InputDecorator(
-              decoration: const InputDecoration(labelText: 'Tank / Gas'),
+              decoration: InputDecoration(
+                labelText: context.l10n.divePlanner_segmentEditor_tankGas,
+              ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
                   value: _selectedTankId,
@@ -207,9 +226,12 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.common_action_cancel),
         ),
-        FilledButton(onPressed: _save, child: const Text('Save')),
+        FilledButton(
+          onPressed: _save,
+          child: Text(context.l10n.common_action_save),
+        ),
       ],
     );
   }
@@ -266,17 +288,17 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
   String _getTypeLabel(SegmentType type) {
     switch (type) {
       case SegmentType.descent:
-        return 'Descent';
+        return context.l10n.divePlanner_segmentType_descent;
       case SegmentType.bottom:
-        return 'Bottom Time';
+        return context.l10n.divePlanner_segmentType_bottomTime;
       case SegmentType.ascent:
-        return 'Ascent';
+        return context.l10n.divePlanner_segmentType_ascent;
       case SegmentType.decoStop:
-        return 'Deco Stop';
+        return context.l10n.divePlanner_segmentType_decoStop;
       case SegmentType.safetyStop:
-        return 'Safety Stop';
+        return context.l10n.divePlanner_segmentType_safetyStop;
       case SegmentType.gasSwitch:
-        return 'Gas Switch';
+        return context.l10n.divePlanner_segmentType_gasSwitch;
     }
   }
 

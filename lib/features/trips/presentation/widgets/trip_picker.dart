@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 
@@ -38,10 +39,12 @@ class _TripPickerState extends ConsumerState<TripPicker> {
               color: Theme.of(context).colorScheme.onPrimaryContainer,
             ),
           ),
-          title: Text(widget.selectedTrip?.name ?? 'No trip selected'),
+          title: Text(
+            widget.selectedTrip?.name ?? context.l10n.trips_picker_noSelection,
+          ),
           subtitle: widget.selectedTrip != null
               ? Text(_formatTripDates(widget.selectedTrip!))
-              : const Text('Tap to select a trip'),
+              : Text(context.l10n.trips_picker_hint),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -49,7 +52,7 @@ class _TripPickerState extends ConsumerState<TripPicker> {
                 IconButton(
                   icon: const Icon(Icons.clear),
                   onPressed: () => widget.onTripSelected(null),
-                  tooltip: 'Clear selection',
+                  tooltip: context.l10n.trips_picker_clearTooltip,
                 ),
               const Icon(Icons.chevron_right),
             ],
@@ -75,7 +78,7 @@ class _TripPickerState extends ConsumerState<TripPicker> {
         if (suggestedTrip == null) return const SizedBox.shrink();
 
         return Padding(
-          padding: const EdgeInsets.only(left: 56, top: 4),
+          padding: const EdgeInsetsDirectional.only(start: 56, top: 4),
           child: Semantics(
             button: true,
             label: 'Suggested trip: ${suggestedTrip.name}. Tap to use',
@@ -91,7 +94,9 @@ class _TripPickerState extends ConsumerState<TripPicker> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Suggested: ${suggestedTrip.name}',
+                      context.l10n.trips_picker_suggestedPrefix(
+                        suggestedTrip.name,
+                      ),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.primary,
                       ),
@@ -99,7 +104,7 @@ class _TripPickerState extends ConsumerState<TripPicker> {
                   ),
                   TextButton(
                     onPressed: () => widget.onTripSelected(suggestedTrip),
-                    child: const Text('Use'),
+                    child: Text(context.l10n.trips_picker_suggestedUse),
                   ),
                 ],
               ),
@@ -173,7 +178,7 @@ class TripPickerSheet extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Select Trip',
+                context.l10n.trips_picker_sheetTitle,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               TextButton.icon(
@@ -182,7 +187,7 @@ class TripPickerSheet extends ConsumerWidget {
                   context.push('/trips/new');
                 },
                 icon: const Icon(Icons.add),
-                label: const Text('New Trip'),
+                label: Text(context.l10n.trips_picker_newTrip),
               ),
             ],
           ),
@@ -205,7 +210,7 @@ class TripPickerSheet extends ConsumerWidget {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'No trips yet',
+                        context.l10n.trips_picker_empty_title,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 8),
@@ -215,7 +220,9 @@ class TripPickerSheet extends ConsumerWidget {
                           context.push('/trips/new');
                         },
                         icon: const Icon(Icons.add),
-                        label: const Text('Create Trip'),
+                        label: Text(
+                          context.l10n.trips_picker_empty_createButton,
+                        ),
                       ),
                     ],
                   ),
@@ -269,7 +276,7 @@ class TripPickerSheet extends ConsumerWidget {
             },
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (error, _) =>
-                Center(child: Text('Error loading trips: $error')),
+                Center(child: Text(context.l10n.trips_picker_error('$error'))),
           ),
         ),
       ],

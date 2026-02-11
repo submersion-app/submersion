@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Utility class for formatting values with the correct units based on settings
 class UnitFormatter {
@@ -234,9 +235,11 @@ class UnitFormatter {
 
   /// Format date and time together
   /// Example: "Jan 15, 2024 at 2:30 PM"
-  String formatDateTime(DateTime? dateTime) {
+  /// Pass [l10n] to localize the "at" connector word.
+  String formatDateTime(DateTime? dateTime, {AppLocalizations? l10n}) {
     if (dateTime == null) return '--';
-    return '${formatDate(dateTime)} at ${formatTime(dateTime)}';
+    final connector = l10n?.formatter_connector_at ?? 'at';
+    return '${formatDate(dateTime)} $connector ${formatTime(dateTime)}';
   }
 
   /// Format date and time in compact form with bullet separator
@@ -256,10 +259,21 @@ class UnitFormatter {
 
   /// Format date range for display
   /// Example: "Jan 15 - Jan 20, 2024"
-  String formatDateRange(DateTime? start, DateTime? end) {
+  /// Pass [l10n] to localize the "Until"/"From" connector words.
+  String formatDateRange(
+    DateTime? start,
+    DateTime? end, {
+    AppLocalizations? l10n,
+  }) {
     if (start == null && end == null) return '--';
-    if (start == null) return 'Until ${formatDate(end)}';
-    if (end == null) return 'From ${formatDate(start)}';
+    if (start == null) {
+      final connector = l10n?.formatter_connector_until ?? 'Until';
+      return '$connector ${formatDate(end)}';
+    }
+    if (end == null) {
+      final connector = l10n?.formatter_connector_from ?? 'From';
+      return '$connector ${formatDate(start)}';
+    }
 
     // Same year - abbreviate start date
     if (start.year == end.year) {

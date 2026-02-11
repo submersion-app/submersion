@@ -5,6 +5,7 @@ import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
 import 'package:submersion/features/dive_import/presentation/providers/uddf_import_providers.dart';
 import 'package:submersion/features/dive_import/presentation/pages/uddf_import_page.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Test notifier that allows setting state directly.
 class TestUddfImportNotifier extends StateNotifier<UddfImportState>
@@ -42,7 +43,11 @@ class TestUddfImportNotifier extends StateNotifier<UddfImportState>
 Widget buildTestApp(TestUddfImportNotifier notifier) {
   return ProviderScope(
     overrides: [uddfImportNotifierProvider.overrideWith((_) => notifier)],
-    child: const MaterialApp(home: UddfImportPage()),
+    child: const MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: UddfImportPage(),
+    ),
   );
 }
 

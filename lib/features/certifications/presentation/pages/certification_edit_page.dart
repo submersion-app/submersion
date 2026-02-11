@@ -7,6 +7,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
@@ -102,7 +103,13 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading certification: $e')),
+          SnackBar(
+            content: Text(
+              context.l10n.certifications_edit_snackBar_errorLoading(
+                e.toString(),
+              ),
+            ),
+          ),
         );
       }
     }
@@ -118,12 +125,14 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
           children: [
             ListTile(
               leading: const Icon(Icons.camera_alt),
-              title: const Text('Take Photo'),
+              title: Text(context.l10n.certifications_edit_photo_takePhoto),
               onTap: () => Navigator.pop(context, ImageSource.camera),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('Choose from Gallery'),
+              title: Text(
+                context.l10n.certifications_edit_photo_chooseFromGallery,
+              ),
               onTap: () => Navigator.pop(context, ImageSource.gallery),
             ),
           ],
@@ -148,9 +157,15 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
       return await file.readAsBytes();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error picking photo: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              context.l10n.certifications_edit_snackBar_errorPhoto(
+                e.toString(),
+              ),
+            ),
+          ),
+        );
       }
       return null;
     }
@@ -170,8 +185,8 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
     return Semantics(
       button: true,
       label: hasPhoto
-          ? '$label photo attached. Tap to change'
-          : 'Add $label photo. Tap to select',
+          ? context.l10n.certifications_edit_photo_attachedSemanticLabel(label)
+          : context.l10n.certifications_edit_photo_addSemanticLabel(label),
       child: AspectRatio(
         aspectRatio: 1.6, // Standard card aspect ratio
         child: Card(
@@ -220,7 +235,8 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                         right: 4,
                         child: IconButton(
                           icon: const Icon(Icons.close),
-                          tooltip: 'Remove $label photo',
+                          tooltip: context.l10n
+                              .certifications_edit_photo_removeTooltip(label),
                           color: Colors.white,
                           style: IconButton.styleFrom(
                             backgroundColor: Colors.black54,
@@ -289,15 +305,21 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                   // Certification name field
                   TextFormField(
                     controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Certification Name *',
-                      prefixIcon: Icon(Icons.card_membership),
-                      hintText: 'e.g., Open Water Diver',
+                    decoration: InputDecoration(
+                      labelText: context
+                          .l10n
+                          .certifications_edit_label_certificationName,
+                      prefixIcon: const Icon(Icons.card_membership),
+                      hintText: context
+                          .l10n
+                          .certifications_edit_hint_certificationName,
                     ),
                     textCapitalization: TextCapitalization.words,
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Please enter a certification name';
+                        return context
+                            .l10n
+                            .certifications_edit_validation_nameRequired;
                       }
                       return null;
                     },
@@ -307,9 +329,9 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                   // Agency dropdown
                   DropdownButtonFormField<CertificationAgency>(
                     initialValue: _agency,
-                    decoration: const InputDecoration(
-                      labelText: 'Agency *',
-                      prefixIcon: Icon(Icons.business),
+                    decoration: InputDecoration(
+                      labelText: context.l10n.certifications_edit_label_agency,
+                      prefixIcon: const Icon(Icons.business),
                     ),
                     items: CertificationAgency.values.map((agency) {
                       return DropdownMenuItem(
@@ -331,14 +353,16 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                   // Level dropdown
                   DropdownButtonFormField<CertificationLevel>(
                     initialValue: _level,
-                    decoration: const InputDecoration(
-                      labelText: 'Level',
-                      prefixIcon: Icon(Icons.stairs),
+                    decoration: InputDecoration(
+                      labelText: context.l10n.certifications_edit_label_level,
+                      prefixIcon: const Icon(Icons.stairs),
                     ),
                     items: [
-                      const DropdownMenuItem(
+                      DropdownMenuItem(
                         value: null,
-                        child: Text('Not specified'),
+                        child: Text(
+                          context.l10n.certifications_edit_level_notSpecified,
+                        ),
                       ),
                       ...CertificationLevel.values.map((level) {
                         return DropdownMenuItem(
@@ -359,17 +383,19 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                   // Card number field
                   TextFormField(
                     controller: _cardNumberController,
-                    decoration: const InputDecoration(
-                      labelText: 'Card Number',
-                      prefixIcon: Icon(Icons.numbers),
-                      hintText: 'Enter certification card number',
+                    decoration: InputDecoration(
+                      labelText:
+                          context.l10n.certifications_edit_label_cardNumber,
+                      prefixIcon: const Icon(Icons.numbers),
+                      hintText:
+                          context.l10n.certifications_edit_hint_cardNumber,
                     ),
                   ),
                   const SizedBox(height: 24),
 
                   // Dates section header
                   Text(
-                    'Dates',
+                    context.l10n.certifications_edit_sectionTitle_dates,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -378,7 +404,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
 
                   // Issue date picker
                   _DatePickerField(
-                    label: 'Issue Date',
+                    label: context.l10n.certifications_edit_label_issueDate,
                     value: _issueDate,
                     icon: Icons.event_available,
                     onChanged: (date) {
@@ -392,11 +418,10 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
 
                   // Expiry date picker
                   _DatePickerField(
-                    label: 'Expiry Date',
+                    label: context.l10n.certifications_edit_label_expiryDate,
                     value: _expiryDate,
                     icon: Icons.event_busy,
-                    helpText:
-                        'Leave empty for certifications that don\'t expire',
+                    helpText: context.l10n.certifications_edit_help_expiryDate,
                     onChanged: (date) {
                       setState(() {
                         _expiryDate = date;
@@ -408,7 +433,9 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
 
                   // Instructor section header
                   Text(
-                    'Instructor Information',
+                    context
+                        .l10n
+                        .certifications_edit_sectionTitle_instructorInfo,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -418,10 +445,12 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                   // Instructor name field
                   TextFormField(
                     controller: _instructorNameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Instructor Name',
-                      prefixIcon: Icon(Icons.person),
-                      hintText: 'Name of certifying instructor',
+                    decoration: InputDecoration(
+                      labelText:
+                          context.l10n.certifications_edit_label_instructorName,
+                      prefixIcon: const Icon(Icons.person),
+                      hintText:
+                          context.l10n.certifications_edit_hint_instructorName,
                     ),
                     textCapitalization: TextCapitalization.words,
                   ),
@@ -430,17 +459,21 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                   // Instructor number field
                   TextFormField(
                     controller: _instructorNumberController,
-                    decoration: const InputDecoration(
-                      labelText: 'Instructor Number',
-                      prefixIcon: Icon(Icons.badge),
-                      hintText: 'Instructor certification number',
+                    decoration: InputDecoration(
+                      labelText: context
+                          .l10n
+                          .certifications_edit_label_instructorNumber,
+                      prefixIcon: const Icon(Icons.badge),
+                      hintText: context
+                          .l10n
+                          .certifications_edit_hint_instructorNumber,
                     ),
                   ),
                   const SizedBox(height: 24),
 
                   // Card photos section
                   Text(
-                    'Card Photos',
+                    context.l10n.certifications_edit_sectionTitle_cardPhotos,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -451,7 +484,9 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                       Expanded(
                         child: _buildPhotoCard(
                           context,
-                          label: 'Front',
+                          label: context
+                              .l10n
+                              .certifications_detail_photoLabel_front,
                           imageData: _photoFront,
                           onPick: () async {
                             final bytes = await _pickPhoto();
@@ -474,7 +509,9 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                       Expanded(
                         child: _buildPhotoCard(
                           context,
-                          label: 'Back',
+                          label: context
+                              .l10n
+                              .certifications_detail_photoLabel_back,
                           imageData: _photoBack,
                           onPick: () async {
                             final bytes = await _pickPhoto();
@@ -499,7 +536,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
 
                   // Notes section header
                   Text(
-                    'Notes',
+                    context.l10n.certifications_edit_sectionTitle_notes,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -509,10 +546,10 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                   // Notes field
                   TextFormField(
                     controller: _notesController,
-                    decoration: const InputDecoration(
-                      labelText: 'Notes',
-                      prefixIcon: Icon(Icons.notes),
-                      hintText: 'Any additional notes',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.certifications_edit_label_notes,
+                      prefixIcon: const Icon(Icons.notes),
+                      hintText: context.l10n.certifications_edit_hint_notes,
                       alignLabelWithHint: true,
                     ),
                     maxLines: 4,
@@ -530,8 +567,8 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                           )
                         : Text(
                             isEditing
-                                ? 'Update Certification'
-                                : 'Add Certification',
+                                ? context.l10n.certifications_edit_button_update
+                                : context.l10n.certifications_edit_button_add,
                           ),
                   ),
 
@@ -539,7 +576,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                   const SizedBox(height: 8),
                   OutlinedButton(
                     onPressed: () => _confirmCancel(),
-                    child: const Text('Cancel'),
+                    child: Text(context.l10n.certifications_edit_button_cancel),
                   ),
                 ],
               ),
@@ -579,7 +616,11 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(isEditing ? 'Edit Certification' : 'Add Certification'),
+          title: Text(
+            isEditing
+                ? context.l10n.certifications_edit_appBar_edit
+                : context.l10n.certifications_edit_appBar_add,
+          ),
           actions: [
             if (_isSaving)
               const Center(
@@ -595,7 +636,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
             else
               TextButton(
                 onPressed: _saveCertification,
-                child: const Text('Save'),
+                child: Text(context.l10n.certifications_edit_button_save),
               ),
           ],
         ),
@@ -625,7 +666,9 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              isEditing ? 'Edit Certification' : 'Add Certification',
+              isEditing
+                  ? context.l10n.certifications_edit_appBar_edit
+                  : context.l10n.certifications_edit_appBar_add,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -638,11 +681,14 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
               child: CircularProgressIndicator(strokeWidth: 2),
             )
           else ...[
-            TextButton(onPressed: _handleCancel, child: const Text('Cancel')),
+            TextButton(
+              onPressed: _handleCancel,
+              child: Text(context.l10n.certifications_edit_button_cancel),
+            ),
             const SizedBox(width: 8),
             FilledButton(
               onPressed: _saveCertification,
-              child: const Text('Save'),
+              child: Text(context.l10n.certifications_edit_button_save),
             ),
           ],
         ],
@@ -676,18 +722,16 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Discard Changes?'),
-        content: const Text(
-          'You have unsaved changes. Are you sure you want to leave?',
-        ),
+        title: Text(context.l10n.certifications_edit_dialog_discardTitle),
+        content: Text(context.l10n.certifications_edit_dialog_discardContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Keep Editing'),
+            child: Text(context.l10n.certifications_edit_dialog_keepEditing),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Discard'),
+            child: Text(context.l10n.certifications_edit_dialog_discard),
           ),
         ],
       ),
@@ -753,8 +797,8 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
           SnackBar(
             content: Text(
               isEditing
-                  ? 'Certification updated successfully'
-                  : 'Certification added successfully',
+                  ? context.l10n.certifications_edit_snackBar_updated
+                  : context.l10n.certifications_edit_snackBar_added,
             ),
           ),
         );
@@ -763,7 +807,11 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error saving certification: $e'),
+            content: Text(
+              context.l10n.certifications_edit_snackBar_errorSaving(
+                e.toString(),
+              ),
+            ),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -807,7 +855,8 @@ class _DatePickerField extends StatelessWidget {
                 suffixIcon: value != null
                     ? IconButton(
                         icon: const Icon(Icons.clear),
-                        tooltip: 'Clear $label',
+                        tooltip: context.l10n
+                            .certifications_edit_datePicker_clearTooltip(label),
                         onPressed: () => onChanged(null),
                       )
                     : const Icon(Icons.calendar_today),
@@ -815,7 +864,7 @@ class _DatePickerField extends StatelessWidget {
               child: Text(
                 value != null
                     ? DateFormat.yMMMd().format(value!)
-                    : 'Tap to select',
+                    : context.l10n.certifications_edit_datePicker_tapToSelect,
                 style: TextStyle(
                   color: value != null
                       ? null
@@ -827,7 +876,7 @@ class _DatePickerField extends StatelessWidget {
         ),
         if (helpText != null)
           Padding(
-            padding: const EdgeInsets.only(left: 16, top: 4),
+            padding: const EdgeInsetsDirectional.only(start: 16, top: 4),
             child: Text(
               helpText!,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/surface_interval_tool/presentation/providers/surface_interval_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Input card for the first (previous) dive parameters.
 /// Allows setting depth, time, and gas mix (O2/He percentages).
@@ -30,11 +31,14 @@ class PreviousDiveInput extends ConsumerWidget {
     // Determine gas mix name
     String gasName;
     if (he > 0) {
-      gasName = 'Trimix ${o2.toInt()}/${he.toInt()}';
+      gasName = context.l10n.surfaceInterval_gasMix_trimix(
+        o2.toInt(),
+        he.toInt(),
+      );
     } else if (o2 > 21.5) {
-      gasName = 'EAN${o2.toInt()}';
+      gasName = context.l10n.surfaceInterval_gasMix_ean(o2.toInt());
     } else {
-      gasName = 'Air';
+      gasName = context.l10n.surfaceInterval_gasMix_air;
     }
 
     return Card(
@@ -60,7 +64,7 @@ class PreviousDiveInput extends ConsumerWidget {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  'First Dive',
+                  context.l10n.surfaceInterval_firstDive_title,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -72,12 +76,14 @@ class PreviousDiveInput extends ConsumerWidget {
             // Depth Slider
             _buildSliderRow(
               context: context,
-              label: 'Depth',
+              label: context.l10n.surfaceInterval_field_depth,
               icon: Icons.arrow_downward,
               value: '${displayDepth.toStringAsFixed(0)} $depthSymbol',
               slider: Semantics(
-                label:
-                    'First dive depth: ${displayDepth.toStringAsFixed(0)} $depthSymbol',
+                label: context.l10n.surfaceInterval_firstDive_depthSemantics(
+                  displayDepth.toStringAsFixed(0),
+                  depthSymbol,
+                ),
                 child: Slider(
                   value: depth,
                   min: 6,
@@ -97,11 +103,13 @@ class PreviousDiveInput extends ConsumerWidget {
             // Time Slider
             _buildSliderRow(
               context: context,
-              label: 'Time',
+              label: context.l10n.surfaceInterval_field_time,
               icon: Icons.timer,
-              value: '$time min',
+              value: context.l10n.surfaceInterval_format_minutes(time),
               slider: Semantics(
-                label: 'First dive time: $time minutes',
+                label: context.l10n.surfaceInterval_firstDive_timeSemantics(
+                  time,
+                ),
                 child: Slider(
                   value: time.toDouble(),
                   min: 5,
@@ -113,8 +121,8 @@ class PreviousDiveInput extends ConsumerWidget {
                   },
                 ),
               ),
-              minLabel: '5 min',
-              maxLabel: '120 min',
+              minLabel: context.l10n.surfaceInterval_format_minutes(5),
+              maxLabel: context.l10n.surfaceInterval_format_minutes(120),
             ),
             const SizedBox(height: 16),
 
@@ -130,7 +138,7 @@ class PreviousDiveInput extends ConsumerWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Gas Mix: ',
+                  context.l10n.surfaceInterval_field_gasMix,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -159,11 +167,13 @@ class PreviousDiveInput extends ConsumerWidget {
             // O2 Slider
             _buildSliderRow(
               context: context,
-              label: 'O₂',
+              label: context.l10n.surfaceInterval_field_o2,
               icon: Icons.bubble_chart,
               value: '${o2.toStringAsFixed(0)}%',
               slider: Semantics(
-                label: 'O2: ${o2.toStringAsFixed(0)}%',
+                label: context.l10n.surfaceInterval_o2Semantics(
+                  o2.toStringAsFixed(0),
+                ),
                 child: Slider(
                   value: o2,
                   min: 21,
@@ -187,11 +197,13 @@ class PreviousDiveInput extends ConsumerWidget {
             const SizedBox(height: 12),
             _buildSliderRow(
               context: context,
-              label: 'He',
+              label: context.l10n.surfaceInterval_field_he,
               icon: Icons.air,
               value: '${he.toStringAsFixed(0)}%',
               slider: Semantics(
-                label: 'Helium: ${he.toStringAsFixed(0)}%',
+                label: context.l10n.surfaceInterval_heSemantics(
+                  he.toStringAsFixed(0),
+                ),
                 child: Slider(
                   value: he,
                   min: 0,

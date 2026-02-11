@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/services/location_service.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 
 /// Result from the location picker
@@ -133,23 +134,23 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pick Location'),
+        title: Text(context.l10n.diveSites_locationPicker_appBar_title),
         actions: [
           if (_selectedLocation != null)
             Tooltip(
-              message: 'Confirm selected location',
+              message: context.l10n.diveSites_locationPicker_confirmTooltip,
               child: TextButton.icon(
                 onPressed: _confirmSelection,
                 icon: const Icon(Icons.check),
-                label: const Text('Confirm'),
+                label: Text(
+                  context.l10n.diveSites_locationPicker_confirmButton,
+                ),
               ),
             ),
         ],
       ),
       body: Semantics(
-        label:
-            'Interactive map for picking a dive site location. '
-            'Tap on the map to select a location.',
+        label: context.l10n.diveSites_locationPicker_semantics_map,
         child: Stack(
           children: [
             FlutterMap(
@@ -218,10 +219,15 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
               child: Semantics(
                 liveRegion: true,
                 label: _selectedLocation == null
-                    ? 'Tap on the map to select a location'
+                    ? context
+                          .l10n
+                          .diveSites_locationPicker_instruction_tapToSelect
                     : _isGeocoding
-                    ? 'Looking up location'
-                    : _locationPreview ?? 'Location selected',
+                    ? context.l10n.diveSites_locationPicker_semantics_lookingUp
+                    : _locationPreview ??
+                          context
+                              .l10n
+                              .diveSites_locationPicker_instruction_locationSelected,
                 child: Card(
                   child: Padding(
                     padding: const EdgeInsets.all(12),
@@ -237,10 +243,17 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
                         Expanded(
                           child: Text(
                             _selectedLocation == null
-                                ? 'Tap on the map to select a location'
+                                ? context
+                                      .l10n
+                                      .diveSites_locationPicker_instruction_tapToSelect
                                 : _isGeocoding
-                                ? 'Looking up location...'
-                                : _locationPreview ?? 'Location selected',
+                                ? context
+                                      .l10n
+                                      .diveSites_locationPicker_instruction_lookingUp
+                                : _locationPreview ??
+                                      context
+                                          .l10n
+                                          .diveSites_locationPicker_instruction_locationSelected,
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                         ),
@@ -264,10 +277,11 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
                 left: 16,
                 right: 16,
                 child: Semantics(
-                  label:
-                      'Selected coordinates: '
-                      'latitude ${_selectedLocation!.latitude.toStringAsFixed(6)}, '
-                      'longitude ${_selectedLocation!.longitude.toStringAsFixed(6)}',
+                  label: context.l10n
+                      .diveSites_locationPicker_semantics_coordinates(
+                        _selectedLocation!.latitude.toStringAsFixed(6),
+                        _selectedLocation!.longitude.toStringAsFixed(6),
+                      ),
                   child: Card(
                     child: Padding(
                       padding: const EdgeInsets.all(16),
@@ -281,7 +295,9 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Latitude',
+                                      context
+                                          .l10n
+                                          .diveSites_locationPicker_label_latitude,
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodySmall
@@ -305,7 +321,9 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Longitude',
+                                      context
+                                          .l10n
+                                          .diveSites_locationPicker_label_longitude,
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodySmall
@@ -339,7 +357,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
               right: 16,
               child: FloatingActionButton(
                 onPressed: _useCurrentLocation,
-                tooltip: 'Use my location',
+                tooltip: context.l10n.diveSites_locationPicker_fab_tooltip,
                 child: const Icon(Icons.my_location),
               ),
             ),

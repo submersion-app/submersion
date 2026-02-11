@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -56,18 +57,28 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage> {
               body: const Center(child: CircularProgressIndicator()),
             ),
       error: (error, stack) => widget.embedded
-          ? Center(child: Text('Error: $error'))
+          ? Center(
+              child: Text(
+                context.l10n.diveCenters_error_generic(error.toString()),
+              ),
+            )
           : Scaffold(
               appBar: AppBar(),
-              body: Center(child: Text('Error: $error')),
+              body: Center(
+                child: Text(
+                  context.l10n.diveCenters_error_generic(error.toString()),
+                ),
+              ),
             ),
       data: (center) {
         if (center == null) {
           return widget.embedded
-              ? const Center(child: Text('Dive center not found'))
+              ? Center(child: Text(context.l10n.diveCenters_error_notFound))
               : Scaffold(
                   appBar: AppBar(),
-                  body: const Center(child: Text('Dive center not found')),
+                  body: Center(
+                    child: Text(context.l10n.diveCenters_error_notFound),
+                  ),
                 );
         }
 
@@ -105,7 +116,7 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage> {
             actions: [
               IconButton(
                 icon: const Icon(Icons.edit_outlined),
-                tooltip: 'Edit dive center',
+                tooltip: context.l10n.diveCenters_tooltip_edit,
                 onPressed: () =>
                     context.push('/dive-centers/${widget.centerId}/edit'),
               ),
@@ -182,7 +193,7 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage> {
               final currentPath = state.uri.path;
               context.go('$currentPath?selected=${widget.centerId}&mode=edit');
             },
-            tooltip: 'Edit',
+            tooltip: context.l10n.common_action_edit,
           ),
           _buildMoreMenu(context, center),
         ],
@@ -197,21 +208,21 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage> {
           final confirmed = await showDialog<bool>(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('Delete Dive Center'),
+              title: Text(context.l10n.diveCenters_dialog_deleteTitle),
               content: Text(
-                'Are you sure you want to delete "${center.name}"?',
+                context.l10n.diveCenters_dialog_deleteMessage(center.name),
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Cancel'),
+                  child: Text(context.l10n.common_action_cancel),
                 ),
                 TextButton(
                   onPressed: () => Navigator.pop(context, true),
                   style: TextButton.styleFrom(
                     foregroundColor: Theme.of(context).colorScheme.error,
                   ),
-                  child: const Text('Delete'),
+                  child: Text(context.l10n.common_action_delete),
                 ),
               ],
             ),
@@ -242,7 +253,7 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage> {
               ),
               const SizedBox(width: 8),
               Text(
-                'Delete',
+                context.l10n.common_action_delete,
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ],
@@ -397,12 +408,15 @@ class _ContactSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Contact', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            context.l10n.diveCenters_section_contact,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 12),
           if (center.phone != null)
             _ContactTile(
               icon: Icons.phone_outlined,
-              label: 'Phone',
+              label: context.l10n.diveCenters_label_phone,
               value: center.phone!,
               onTap: () => _launchPhone(center.phone!),
               onLongPress: () => _copyToClipboard(context, center.phone!),
@@ -410,7 +424,7 @@ class _ContactSection extends StatelessWidget {
           if (center.email != null)
             _ContactTile(
               icon: Icons.email_outlined,
-              label: 'Email',
+              label: context.l10n.diveCenters_label_email,
               value: center.email!,
               onTap: () => _launchEmail(center.email!),
               onLongPress: () => _copyToClipboard(context, center.email!),
@@ -418,7 +432,7 @@ class _ContactSection extends StatelessWidget {
           if (center.website != null)
             _ContactTile(
               icon: Icons.language_outlined,
-              label: 'Website',
+              label: context.l10n.diveCenters_label_website,
               value: center.website!,
               onTap: () => _launchWebsite(center.website!),
               onLongPress: () => _copyToClipboard(context, center.website!),
@@ -455,9 +469,11 @@ class _ContactSection extends StatelessWidget {
 
   void _copyToClipboard(BuildContext context, String text) {
     Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Copied to clipboard')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(context.l10n.diveCenters_snackbar_copiedToClipboard),
+      ),
+    );
   }
 }
 
@@ -539,7 +555,10 @@ class _NotesSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Notes', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            context.l10n.diveCenters_section_notes,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 8),
           Text(notes, style: Theme.of(context).textTheme.bodyMedium),
         ],
@@ -628,7 +647,8 @@ class _MapSection extends StatelessWidget {
                 borderRadius: BorderRadius.circular(4),
                 child: Semantics(
                   button: true,
-                  label: 'View fullscreen map',
+                  label:
+                      context.l10n.diveCenters_accessibility_viewFullscreenMap,
                   child: InkWell(
                     borderRadius: BorderRadius.circular(4),
                     onTap: () => _showFullscreenMap(context),
@@ -736,7 +756,7 @@ class _DivesSection extends ConsumerWidget {
             clipBehavior: Clip.antiAlias,
             child: Semantics(
               button: true,
-              label: 'View dives with this center',
+              label: context.l10n.diveCenters_accessibility_viewDives,
               child: InkWell(
                 onTap: diveCount > 0
                     ? () {
@@ -765,16 +785,18 @@ class _DivesSection extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Dives with this Center',
+                              context.l10n.diveCenters_detail_divesWithCenter,
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                             const SizedBox(height: 4),
                             Text(
                               diveCount == 0
-                                  ? 'No dives logged yet'
-                                  : diveCount == 1
-                                  ? '1 dive logged'
-                                  : '$diveCount dives logged',
+                                  ? context
+                                        .l10n
+                                        .diveCenters_detail_noDivesLogged
+                                  : context.l10n.diveCenters_detail_divesLogged(
+                                      diveCount,
+                                    ),
                               style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(
                                     color: colorScheme.onSurfaceVariant,

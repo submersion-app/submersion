@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Widget for selecting between multiple dive profiles (computers).
 class ProfileSelectorWidget extends StatelessWidget {
@@ -87,9 +88,9 @@ class ProfileSelectorWidget extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.only(left: 4, bottom: 8),
+            padding: const EdgeInsetsDirectional.only(start: 4, bottom: 8),
             child: Text(
-              'Dive Computers',
+              context.l10n.diveLog_profileSelector_label_diveComputers,
               style: textTheme.labelSmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
                 fontWeight: FontWeight.w600,
@@ -127,7 +128,8 @@ class ProfileSelectorWidget extends StatelessWidget {
 
     return Semantics(
       button: true,
-      label: 'Select dive computer ${computer.displayName}',
+      label:
+          '${context.l10n.diveLog_profileSelector_label_diveComputers} ${computer.displayName}',
       child: InkWell(
         onTap: onSelectionChanged != null
             ? () => onSelectionChanged!(computer.id)
@@ -179,7 +181,7 @@ class ProfileSelectorWidget extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    'Primary',
+                    context.l10n.diveLog_profileSelector_badge_primary,
                     style: textTheme.labelSmall?.copyWith(
                       color: colorScheme.onTertiary,
                       fontWeight: FontWeight.bold,
@@ -317,7 +319,7 @@ class ProfileSelectorDropdown extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    'Primary',
+                    context.l10n.diveLog_profileSelector_badge_primary,
                     style: textTheme.labelSmall?.copyWith(
                       color: colorScheme.onTertiaryContainer,
                       fontWeight: FontWeight.w600,

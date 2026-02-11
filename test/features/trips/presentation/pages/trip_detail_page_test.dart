@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void _setMobileTestSurfaceSize(WidgetTester tester) {
   // The default widget test surface width is 800px, which trips the app's
@@ -54,7 +55,11 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: MaterialApp(home: TripDetailPage(tripId: testTrip.id)),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripDetailPage(tripId: testTrip.id),
+          ),
         ),
       );
 
@@ -77,7 +82,11 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: MaterialApp(home: TripDetailPage(tripId: testTrip.id)),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripDetailPage(tripId: testTrip.id),
+          ),
         ),
       );
 
@@ -101,7 +110,11 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: MaterialApp(home: TripDetailPage(tripId: testTrip.id)),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripDetailPage(tripId: testTrip.id),
+          ),
         ),
       );
 
@@ -124,7 +137,11 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: MaterialApp(home: TripDetailPage(tripId: testTrip.id)),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripDetailPage(tripId: testTrip.id),
+          ),
         ),
       );
 
@@ -148,7 +165,11 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: MaterialApp(home: TripDetailPage(tripId: testTrip.id)),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripDetailPage(tripId: testTrip.id),
+          ),
         ),
       );
 
@@ -172,7 +193,11 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: MaterialApp(home: TripDetailPage(tripId: testTrip.id)),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripDetailPage(tripId: testTrip.id),
+          ),
         ),
       );
 
@@ -198,7 +223,11 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: MaterialApp(home: TripDetailPage(tripId: testTrip.id)),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripDetailPage(tripId: testTrip.id),
+          ),
         ),
       );
 
@@ -222,7 +251,11 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: MaterialApp(home: TripDetailPage(tripId: testTrip.id)),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripDetailPage(tripId: testTrip.id),
+          ),
         ),
       );
 
@@ -246,7 +279,11 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: MaterialApp(home: TripDetailPage(tripId: testTrip.id)),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripDetailPage(tripId: testTrip.id),
+          ),
         ),
       );
 
@@ -276,7 +313,11 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: MaterialApp(home: TripDetailPage(tripId: testTrip.id)),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripDetailPage(tripId: testTrip.id),
+          ),
         ),
       );
 
@@ -308,7 +349,11 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: MaterialApp(home: TripDetailPage(tripId: testTrip.id)),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripDetailPage(tripId: testTrip.id),
+          ),
         ),
       );
 
@@ -338,7 +383,11 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: MaterialApp(home: TripDetailPage(tripId: testTrip.id)),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripDetailPage(tripId: testTrip.id),
+          ),
         ),
       );
 
@@ -363,7 +412,11 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: MaterialApp(home: TripDetailPage(tripId: testTrip.id)),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripDetailPage(tripId: testTrip.id),
+          ),
         ),
       );
 
@@ -394,7 +447,11 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: MaterialApp(home: TripDetailPage(tripId: testTrip.id)),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripDetailPage(tripId: testTrip.id),
+          ),
         ),
       );
 
@@ -436,7 +493,11 @@ void main() {
               return _MockTripListNotifier([]);
             }),
           ],
-          child: MaterialApp(home: TripDetailPage(tripId: liveaboardTrip.id)),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripDetailPage(tripId: liveaboardTrip.id),
+          ),
         ),
       );
 

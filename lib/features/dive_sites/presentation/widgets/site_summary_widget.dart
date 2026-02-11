@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Summary widget shown when no site is selected.
 class SiteSummaryWidget extends ConsumerWidget {
@@ -48,7 +49,7 @@ class SiteSummaryWidget extends ConsumerWidget {
             ),
             const SizedBox(width: 12),
             Text(
-              'Dive Sites',
+              context.l10n.diveSites_summary_header_title,
               style: Theme.of(
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
@@ -57,7 +58,7 @@ class SiteSummaryWidget extends ConsumerWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Select a site from the list to view details',
+          context.l10n.diveSites_summary_header_subtitle,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
@@ -97,7 +98,7 @@ class SiteSummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Overview',
+          context.l10n.diveSites_summary_section_overview,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -111,21 +112,21 @@ class SiteSummaryWidget extends ConsumerWidget {
               context,
               icon: Icons.location_on,
               value: '${sites.length}',
-              label: 'Total Sites',
+              label: context.l10n.diveSites_summary_stat_totalSites,
               color: Colors.blue,
             ),
             _buildStatCard(
               context,
               icon: Icons.scuba_diving,
               value: '$totalDives',
-              label: 'Total Dives',
+              label: context.l10n.diveSites_summary_stat_totalDives,
               color: Colors.teal,
             ),
             _buildStatCard(
               context,
               icon: Icons.gps_fixed,
               value: '$sitesWithGps',
-              label: 'With GPS',
+              label: context.l10n.diveSites_summary_stat_withGps,
               color: Colors.green,
             ),
             if (ratedSites > 0)
@@ -133,7 +134,7 @@ class SiteSummaryWidget extends ConsumerWidget {
                 context,
                 icon: Icons.star,
                 value: avgRating.toStringAsFixed(1),
-                label: 'Avg Rating',
+                label: context.l10n.diveSites_summary_stat_avgRating,
                 color: Colors.amber,
               ),
           ],
@@ -212,7 +213,7 @@ class SiteSummaryWidget extends ConsumerWidget {
             ),
             const SizedBox(width: 8),
             Text(
-              'Countries & Regions',
+              context.l10n.diveSites_summary_section_countriesRegions,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -234,7 +235,9 @@ class SiteSummaryWidget extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Text(
-              '+ ${countries.length - 5} more',
+              context.l10n.diveSites_summary_countriesMore(
+                countries.length - 5,
+              ),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -264,7 +267,7 @@ class SiteSummaryWidget extends ConsumerWidget {
       children: [
         if (topRated.isNotEmpty) ...[
           Text(
-            'Top Rated',
+            context.l10n.diveSites_summary_section_topRated,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -306,7 +309,7 @@ class SiteSummaryWidget extends ConsumerWidget {
         ],
         if (topDived.isNotEmpty) ...[
           Text(
-            'Most Dived',
+            context.l10n.diveSites_summary_section_mostDived,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -363,7 +366,7 @@ class SiteSummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Quick Actions',
+          context.l10n.diveSites_summary_section_quickActions,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -380,17 +383,17 @@ class SiteSummaryWidget extends ConsumerWidget {
                 context.go('$currentPath?mode=new');
               },
               icon: const Icon(Icons.add_location),
-              label: const Text('Add Site'),
+              label: Text(context.l10n.diveSites_summary_action_addSite),
             ),
             OutlinedButton.icon(
               onPressed: () => context.push('/sites/map'),
               icon: const Icon(Icons.map),
-              label: const Text('View Map'),
+              label: Text(context.l10n.diveSites_summary_action_viewMap),
             ),
             OutlinedButton.icon(
               onPressed: () => context.push('/sites/import'),
               icon: const Icon(Icons.travel_explore),
-              label: const Text('Import'),
+              label: Text(context.l10n.diveSites_summary_action_import),
             ),
           ],
         ),

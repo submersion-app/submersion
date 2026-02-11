@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The type of CSV data to export.
 enum CsvExportType {
@@ -6,25 +7,25 @@ enum CsvExportType {
   sites,
   equipment;
 
-  String get displayName {
+  String localizedDisplayName(BuildContext context) {
     switch (this) {
       case CsvExportType.dives:
-        return 'Dives';
+        return context.l10n.transfer_csvExport_typeDives;
       case CsvExportType.sites:
-        return 'Sites';
+        return context.l10n.transfer_csvExport_typeSites;
       case CsvExportType.equipment:
-        return 'Equipment';
+        return context.l10n.transfer_csvExport_typeEquipment;
     }
   }
 
-  String get description {
+  String localizedDescription(BuildContext context) {
     switch (this) {
       case CsvExportType.dives:
-        return 'Export all dive logs as a spreadsheet';
+        return context.l10n.transfer_csvExport_descriptionDives;
       case CsvExportType.sites:
-        return 'Export dive site locations and details';
+        return context.l10n.transfer_csvExport_descriptionSites;
       case CsvExportType.equipment:
-        return 'Export equipment inventory and service info';
+        return context.l10n.transfer_csvExport_descriptionEquipment;
     }
   }
 
@@ -97,7 +98,10 @@ class _CsvExportDialogState extends State<CsvExportDialog> {
                 children: [
                   Icon(Icons.table_chart, color: colorScheme.primary),
                   const SizedBox(width: 12),
-                  Text('Export CSV', style: theme.textTheme.titleLarge),
+                  Text(
+                    context.l10n.transfer_csvExport_dialogTitle,
+                    style: theme.textTheme.titleLarge,
+                  ),
                 ],
               ),
             ),
@@ -110,7 +114,7 @@ class _CsvExportDialogState extends State<CsvExportDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Data Type',
+                      context.l10n.transfer_csvExport_dataTypeHeader,
                       style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -132,7 +136,7 @@ class _CsvExportDialogState extends State<CsvExportDialog> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('Cancel'),
+                      child: Text(context.l10n.transfer_csvExport_cancelButton),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -141,7 +145,7 @@ class _CsvExportDialogState extends State<CsvExportDialog> {
                     child: FilledButton.icon(
                       onPressed: () => Navigator.of(context).pop(_selected),
                       icon: const Icon(Icons.download),
-                      label: const Text('Export CSV'),
+                      label: Text(context.l10n.transfer_csvExport_exportButton),
                     ),
                   ),
                 ],
@@ -161,7 +165,9 @@ class _CsvExportDialogState extends State<CsvExportDialog> {
       padding: const EdgeInsets.only(bottom: 8),
       child: Semantics(
         button: true,
-        label: 'Export ${type.displayName}',
+        label: context.l10n.transfer_csvExport_semanticLabel(
+          type.localizedDisplayName(context),
+        ),
         child: InkWell(
           onTap: () => setState(() => _selected = type),
           borderRadius: BorderRadius.circular(12),
@@ -204,7 +210,7 @@ class _CsvExportDialogState extends State<CsvExportDialog> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        type.displayName,
+                        type.localizedDisplayName(context),
                         style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: isSelected
                               ? FontWeight.bold
@@ -213,7 +219,7 @@ class _CsvExportDialogState extends State<CsvExportDialog> {
                         ),
                       ),
                       Text(
-                        type.description,
+                        type.localizedDescription(context),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),

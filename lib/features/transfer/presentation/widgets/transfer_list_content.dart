@@ -1,41 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Transfer section data model.
 class TransferSection {
   final String id;
   final IconData icon;
-  final String title;
-  final String subtitle;
+  final String Function(BuildContext) titleBuilder;
+  final String Function(BuildContext) subtitleBuilder;
   final Color? color;
 
   const TransferSection({
     required this.id,
     required this.icon,
-    required this.title,
-    required this.subtitle,
+    required this.titleBuilder,
+    required this.subtitleBuilder,
     this.color,
   });
 }
 
 /// List of all transfer sections.
-const transferSections = [
+final transferSections = [
   TransferSection(
     id: 'import',
     icon: Icons.file_download,
-    title: 'Import',
-    subtitle: 'CSV, UDDF files',
+    titleBuilder: (context) => context.l10n.transfer_section_importTitle,
+    subtitleBuilder: (context) => context.l10n.transfer_section_importSubtitle,
   ),
   TransferSection(
     id: 'export',
     icon: Icons.file_upload,
-    title: 'Export',
-    subtitle: 'CSV, UDDF, PDF logbook',
+    titleBuilder: (context) => context.l10n.transfer_section_exportTitle,
+    subtitleBuilder: (context) => context.l10n.transfer_section_exportSubtitle,
   ),
   TransferSection(
     id: 'computers',
     icon: Icons.bluetooth,
-    title: 'Dive Computers',
-    subtitle: 'Download from device',
+    titleBuilder: (context) => context.l10n.transfer_section_computersTitle,
+    subtitleBuilder: (context) =>
+        context.l10n.transfer_section_computersSubtitle,
   ),
 ];
 
@@ -58,7 +60,7 @@ class TransferListContent extends StatelessWidget {
 
     return Scaffold(
       appBar: showAppBar
-          ? AppBar(title: const Text('Transfer'))
+          ? AppBar(title: Text(context.l10n.transfer_appBar_title))
           : PreferredSize(
               preferredSize: const Size.fromHeight(56),
               child: Container(
@@ -69,7 +71,7 @@ class TransferListContent extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          'Transfer',
+                          context.l10n.transfer_appBar_title,
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                       ),
@@ -134,13 +136,13 @@ class _TransferSectionTile extends StatelessWidget {
           ),
         ),
         title: Text(
-          section.title,
+          section.titleBuilder(context),
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
           ),
         ),
         subtitle: Text(
-          section.subtitle,
+          section.subtitleBuilder(context),
           style: Theme.of(
             context,
           ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),

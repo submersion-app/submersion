@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A card showing alerts and reminders (equipment service, insurance expiry)
 class AlertsCard extends ConsumerWidget {
@@ -57,7 +58,7 @@ class _AlertsCardContent extends StatelessWidget {
                 Semantics(
                   header: true,
                   child: Text(
-                    'Alerts & Reminders',
+                    context.l10n.dashboard_alerts_sectionTitle,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -65,7 +66,9 @@ class _AlertsCardContent extends StatelessWidget {
                 ),
                 const Spacer(),
                 Semantics(
-                  label: '${alerts.alertCount} active alerts',
+                  label: context.l10n.dashboard_semantics_activeAlerts(
+                    alerts.alertCount,
+                  ),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 8,
@@ -92,22 +95,26 @@ class _AlertsCardContent extends StatelessWidget {
               _AlertTile(
                 icon: Icons.warning_amber,
                 iconColor: theme.colorScheme.error,
-                title: 'Insurance Expired',
+                title: context.l10n.dashboard_alerts_insuranceExpired,
                 subtitle: alerts.insuranceProvider != null
-                    ? '${alerts.insuranceProvider} expired'
-                    : 'Your dive insurance has expired',
-                actionLabel: 'Update',
+                    ? context.l10n.dashboard_alerts_insuranceExpiredProvider(
+                        alerts.insuranceProvider!,
+                      )
+                    : context.l10n.dashboard_alerts_insuranceExpiredGeneric,
+                actionLabel: context.l10n.dashboard_alerts_actionUpdate,
                 onAction: () => context.go('/settings'),
               ),
             if (alerts.insuranceExpiringSoon && !alerts.insuranceExpired)
               _AlertTile(
                 icon: Icons.schedule,
                 iconColor: Colors.orange,
-                title: 'Insurance Expiring Soon',
+                title: context.l10n.dashboard_alerts_insuranceExpiringSoon,
                 subtitle: alerts.insuranceExpiryDate != null
-                    ? 'Expires ${DateFormat.MMMd().format(alerts.insuranceExpiryDate!)}'
-                    : 'Check your insurance expiry date',
-                actionLabel: 'View',
+                    ? context.l10n.dashboard_alerts_insuranceExpiresDate(
+                        DateFormat.MMMd().format(alerts.insuranceExpiryDate!),
+                      )
+                    : context.l10n.dashboard_alerts_checkInsuranceExpiry,
+                actionLabel: context.l10n.dashboard_alerts_actionView,
                 onAction: () => context.go('/settings'),
               ),
             // Equipment service alerts
@@ -200,24 +207,32 @@ class _EquipmentAlertTile extends StatelessWidget {
     return _AlertTile(
       icon: Icons.build,
       iconColor: isOverdue ? theme.colorScheme.error : Colors.orange,
-      title: '${equipment.name} Service ${isOverdue ? 'Overdue' : 'Due'}',
-      subtitle: _getServiceSubtitle(daysOverdue),
-      actionLabel: 'View',
+      title: isOverdue
+          ? context.l10n.dashboard_alerts_equipmentServiceOverdue(
+              equipment.name,
+            )
+          : context.l10n.dashboard_alerts_equipmentServiceDue(equipment.name),
+      subtitle: _getServiceSubtitle(context, daysOverdue),
+      actionLabel: context.l10n.dashboard_alerts_actionView,
       onAction: () => context.go('/equipment/${equipment.id}'),
     );
   }
 
-  String _getServiceSubtitle(int? daysUntilService) {
+  String _getServiceSubtitle(BuildContext context, int? daysUntilService) {
     if (daysUntilService == null) {
-      return 'Service interval reached';
+      return context.l10n.dashboard_alerts_serviceIntervalReached;
     }
     if (daysUntilService < 0) {
       final overdue = -daysUntilService;
-      return '$overdue day${overdue == 1 ? '' : 's'} overdue';
+      return overdue == 1
+          ? context.l10n.dashboard_alerts_daysOverdueOne
+          : context.l10n.dashboard_alerts_daysOverdueOther(overdue);
     }
     if (daysUntilService == 0) {
-      return 'Service due today';
+      return context.l10n.dashboard_alerts_serviceDueToday;
     }
-    return 'Due in $daysUntilService day${daysUntilService == 1 ? '' : 's'}';
+    return daysUntilService == 1
+        ? context.l10n.dashboard_alerts_dueInDaysOne
+        : context.l10n.dashboard_alerts_dueInDaysOther(daysUntilService);
   }
 }

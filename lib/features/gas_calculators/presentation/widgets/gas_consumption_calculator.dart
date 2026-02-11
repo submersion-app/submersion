@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -66,7 +67,7 @@ class GasConsumptionCalculator extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Dive Parameters',
+                        context.l10n.decoCalculator_diveParameters,
                         style: textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -77,7 +78,7 @@ class GasConsumptionCalculator extends ConsumerWidget {
                       _buildSliderSection(
                         context,
                         icon: Icons.arrow_downward,
-                        label: 'Average Depth',
+                        label: context.l10n.gasCalculators_consumption_avgDepth,
                         value: displayDepth,
                         unit: depthSymbol,
                         min: minDepthDisplay,
@@ -94,7 +95,7 @@ class GasConsumptionCalculator extends ConsumerWidget {
                       _buildSliderSection(
                         context,
                         icon: Icons.timer,
-                        label: 'Dive Time',
+                        label: context.l10n.gasCalculators_consumption_diveTime,
                         value: time.toDouble(),
                         unit: 'min',
                         min: 5,
@@ -111,7 +112,7 @@ class GasConsumptionCalculator extends ConsumerWidget {
                       _buildSliderSection(
                         context,
                         icon: Icons.air,
-                        label: 'SAC Rate',
+                        label: context.l10n.gasCalculators_sacRate,
                         value: sac,
                         unit: '$volumeSymbol/min',
                         min: 8,
@@ -126,7 +127,7 @@ class GasConsumptionCalculator extends ConsumerWidget {
 
                       // Tank size selector
                       Text(
-                        'Tank Size',
+                        context.l10n.gasCalculators_tankSize,
                         style: textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w500,
                         ),
@@ -169,7 +170,7 @@ class GasConsumptionCalculator extends ConsumerWidget {
                     child: Column(
                       children: [
                         Text(
-                          'Gas Consumption',
+                          context.l10n.gasCalculators_consumption_title,
                           style: textTheme.titleMedium?.copyWith(
                             color: result.exceedsTank
                                 ? colorScheme.onErrorContainer
@@ -182,7 +183,9 @@ class GasConsumptionCalculator extends ConsumerWidget {
                           children: [
                             _buildResultColumn(
                               context,
-                              label: 'Volume',
+                              label: context
+                                  .l10n
+                                  .gasCalculators_consumption_volume,
                               value: displayVolume.toStringAsFixed(0),
                               unit: volumeSymbol,
                               isError: result.exceedsTank,
@@ -198,7 +201,9 @@ class GasConsumptionCalculator extends ConsumerWidget {
                             ),
                             _buildResultColumn(
                               context,
-                              label: 'Pressure',
+                              label: context
+                                  .l10n
+                                  .gasCalculators_consumption_pressure,
                               value: displayPressure.toStringAsFixed(0),
                               unit: pressureSymbol,
                               isError: result.exceedsTank,
@@ -219,8 +224,11 @@ class GasConsumptionCalculator extends ConsumerWidget {
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    'Consumption exceeds a ${maxFillPressure.toStringAsFixed(0)} $pressureSymbol fill! '
-                                    'Reduce dive time or depth.',
+                                    context.l10n
+                                        .gasCalculators_consumption_exceedsTank(
+                                          maxFillPressure.toStringAsFixed(0),
+                                          pressureSymbol,
+                                        ),
                                     style: textTheme.bodySmall?.copyWith(
                                       color: colorScheme.error,
                                       fontWeight: FontWeight.w500,
@@ -254,7 +262,7 @@ class GasConsumptionCalculator extends ConsumerWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Calculation Breakdown',
+                            context.l10n.gasCalculators_consumption_breakdown,
                             style: textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
@@ -264,30 +272,40 @@ class GasConsumptionCalculator extends ConsumerWidget {
                       const SizedBox(height: 12),
                       _buildBreakdownRow(
                         context,
-                        'Ambient pressure at ${displayDepth.toStringAsFixed(0)}$depthSymbol',
+                        context.l10n.gasCalculators_consumption_ambientPressure(
+                          displayDepth.toStringAsFixed(0),
+                          depthSymbol,
+                        ),
                         '${((depth / 10) + 1).toStringAsFixed(2)} ATM',
                       ),
                       _buildBreakdownRow(
                         context,
-                        'Gas consumption at depth',
+                        context.l10n.gasCalculators_consumption_gasAtDepth,
                         '${units.convertVolume(sac * ((depth / 10) + 1)).toStringAsFixed(1)} $volumeSymbol/min',
                       ),
                       _buildBreakdownRow(
                         context,
-                        'Total gas for $time minutes',
+                        context.l10n.gasCalculators_consumption_totalGas(
+                          time.toString(),
+                        ),
                         '${displayVolume.toStringAsFixed(0)} $volumeSymbol',
                       ),
                       _buildBreakdownRow(
                         context,
-                        'Tank capacity (${displayTankSize.toStringAsFixed(0)}$volumeSymbol @ ${maxFillPressure.toStringAsFixed(0)} $pressureSymbol)',
+                        context.l10n.gasCalculators_consumption_tankCapacity(
+                          displayTankSize.toStringAsFixed(0),
+                          volumeSymbol,
+                          maxFillPressure.toStringAsFixed(0),
+                          pressureSymbol,
+                        ),
                         '${units.convertVolume(tankSize * 200).toStringAsFixed(0)} $volumeSymbol',
                       ),
                       const Divider(height: 24),
                       _buildBreakdownRow(
                         context,
-                        'Remaining gas',
+                        context.l10n.gasCalculators_consumption_remainingGas,
                         '${units.convertVolume((tankSize * 200) - result.liters).toStringAsFixed(0)} $volumeSymbol '
-                            '(${units.convertPressure(200 - result.bar).toStringAsFixed(0)} $pressureSymbol)',
+                        '(${units.convertPressure(200 - result.bar).toStringAsFixed(0)} $pressureSymbol)',
                         isHighlight: true,
                       ),
                     ],

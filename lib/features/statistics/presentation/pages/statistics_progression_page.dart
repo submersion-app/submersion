@@ -7,6 +7,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/features/statistics/presentation/widgets/stat_charts.dart';
 import 'package:submersion/features/statistics/presentation/widgets/stat_section_card.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 class StatisticsProgressionPage extends ConsumerWidget {
   final bool embedded;
@@ -39,7 +40,9 @@ class StatisticsProgressionPage extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Dive Progression')),
+      appBar: AppBar(
+        title: Text(context.l10n.statistics_progression_appBar_title),
+      ),
       body: content,
     );
   }
@@ -52,8 +55,8 @@ class StatisticsProgressionPage extends ConsumerWidget {
     final depthTrendAsync = ref.watch(depthProgressionTrendProvider);
 
     return StatSectionCard(
-      title: 'Maximum Depth Progression',
-      subtitle: 'Monthly max depth over 5 years',
+      title: context.l10n.statistics_progression_depthProgression_title,
+      subtitle: context.l10n.statistics_progression_depthProgression_subtitle,
       child: depthTrendAsync.when(
         data: (data) => TrendLineChart(
           data: data,
@@ -64,9 +67,9 @@ class StatisticsProgressionPage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, _) => const StatEmptyState(
+        error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: 'Failed to load depth progression',
+          message: context.l10n.statistics_progression_depthProgression_error,
         ),
       ),
     );
@@ -76,8 +79,8 @@ class StatisticsProgressionPage extends ConsumerWidget {
     final bottomTimeAsync = ref.watch(bottomTimeTrendProvider);
 
     return StatSectionCard(
-      title: 'Bottom Time Trend',
-      subtitle: 'Average duration by month',
+      title: context.l10n.statistics_progression_bottomTime_title,
+      subtitle: context.l10n.statistics_progression_bottomTime_subtitle,
       child: bottomTimeAsync.when(
         data: (data) => TrendLineChart(
           data: data,
@@ -88,9 +91,9 @@ class StatisticsProgressionPage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, _) => const StatEmptyState(
+        error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: 'Failed to load bottom time trend',
+          message: context.l10n.statistics_progression_bottomTime_error,
         ),
       ),
     );
@@ -100,14 +103,14 @@ class StatisticsProgressionPage extends ConsumerWidget {
     final divesPerYearAsync = ref.watch(divesPerYearProvider);
 
     return StatSectionCard(
-      title: 'Dives Per Year',
-      subtitle: 'Annual dive count comparison',
+      title: context.l10n.statistics_progression_divesPerYear_title,
+      subtitle: context.l10n.statistics_progression_divesPerYear_subtitle,
       child: divesPerYearAsync.when(
         data: (data) {
           if (data.isEmpty) {
-            return const StatEmptyState(
+            return StatEmptyState(
               icon: Icons.bar_chart,
-              message: 'No yearly data available',
+              message: context.l10n.statistics_progression_divesPerYear_empty,
             );
           }
           final chartData = data
@@ -131,9 +134,9 @@ class StatisticsProgressionPage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, _) => const StatEmptyState(
+        error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: 'Failed to load yearly data',
+          message: context.l10n.statistics_progression_divesPerYear_error,
         ),
       ),
     );
@@ -143,8 +146,8 @@ class StatisticsProgressionPage extends ConsumerWidget {
     final cumulativeAsync = ref.watch(cumulativeDiveCountProvider);
 
     return StatSectionCard(
-      title: 'Cumulative Dive Count',
-      subtitle: 'Total dives over time',
+      title: context.l10n.statistics_progression_cumulative_title,
+      subtitle: context.l10n.statistics_progression_cumulative_subtitle,
       child: cumulativeAsync.when(
         data: (data) => TrendLineChart(
           data: data,
@@ -155,9 +158,9 @@ class StatisticsProgressionPage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, _) => const StatEmptyState(
+        error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: 'Failed to load cumulative data',
+          message: context.l10n.statistics_progression_cumulative_error,
         ),
       ),
     );

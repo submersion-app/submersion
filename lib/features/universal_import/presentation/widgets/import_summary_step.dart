@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 
@@ -27,7 +28,10 @@ class ImportSummaryStep extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 24),
-          Text('Import Complete', style: theme.textTheme.headlineMedium),
+          Text(
+            context.l10n.universalImport_label_importComplete,
+            style: theme.textTheme.headlineMedium,
+          ),
           const SizedBox(height: 16),
           for (final entry in state.importCounts.entries)
             _SummaryRow(
@@ -40,7 +44,9 @@ class ImportSummaryStep extends ConsumerWidget {
               state.options!.batchTag!.isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(
-              'Tagged as: ${state.options!.batchTag}',
+              context.l10n.universalImport_label_taggedAs(
+                state.options!.batchTag!,
+              ),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -52,7 +58,7 @@ class ImportSummaryStep extends ConsumerWidget {
               ref.read(universalImportNotifierProvider.notifier).reset();
               context.pop();
             },
-            child: const Text('Done'),
+            child: Text(context.l10n.universalImport_action_done),
           ),
         ],
       ),

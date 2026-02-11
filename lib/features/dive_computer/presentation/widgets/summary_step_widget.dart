@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Widget for the summary step of the discovery wizard.
 class SummaryStepWidget extends ConsumerWidget {
@@ -47,15 +48,21 @@ class SummaryStepWidget extends ConsumerWidget {
           const SizedBox(height: 24),
 
           // Title
-          Text('Download Complete!', style: theme.textTheme.headlineSmall),
+          Text(
+            context.l10n.diveComputer_summary_title,
+            style: theme.textTheme.headlineSmall,
+          ),
           const SizedBox(height: 8),
 
           // Summary
           Semantics(
-            label:
-                '$diveCount ${diveCount == 1 ? 'dive' : 'dives'} downloaded from ${computer?.displayName ?? 'dive computer'}',
+            label: context.l10n.diveComputer_summary_semanticLabel(
+              diveCount,
+              computer?.displayName ??
+                  context.l10n.diveComputer_summary_diveComputer,
+            ),
             child: Text(
-              '$diveCount ${diveCount == 1 ? 'dive' : 'dives'} downloaded',
+              context.l10n.diveComputer_summary_divesDownloaded(diveCount),
               style: theme.textTheme.bodyLarge?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -117,7 +124,7 @@ class SummaryStepWidget extends ConsumerWidget {
                     _buildStatRow(
                       context,
                       Icons.add_circle_outline,
-                      'Imported',
+                      context.l10n.diveComputer_summary_imported,
                       '${importResult.imported}',
                       colorScheme.primary,
                     ),
@@ -125,7 +132,7 @@ class SummaryStepWidget extends ConsumerWidget {
                       _buildStatRow(
                         context,
                         Icons.skip_next,
-                        'Skipped (duplicates)',
+                        context.l10n.diveComputer_summary_skippedDuplicates,
                         '${importResult.skipped}',
                         colorScheme.onSurfaceVariant,
                       ),
@@ -133,7 +140,7 @@ class SummaryStepWidget extends ConsumerWidget {
                       _buildStatRow(
                         context,
                         Icons.update,
-                        'Updated',
+                        context.l10n.diveComputer_summary_updated,
                         '${importResult.updated}',
                         colorScheme.secondary,
                       ),
@@ -147,10 +154,13 @@ class SummaryStepWidget extends ConsumerWidget {
           FilledButton.icon(
             onPressed: onViewDives,
             icon: const Icon(Icons.list),
-            label: const Text('View Dives'),
+            label: Text(context.l10n.diveComputer_summary_viewDives),
           ),
           const SizedBox(height: 12),
-          OutlinedButton(onPressed: onDone, child: const Text('Done')),
+          OutlinedButton(
+            onPressed: onDone,
+            child: Text(context.l10n.diveComputer_summary_done),
+          ),
         ],
       ),
     );

@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_import/presentation/providers/dive_import_providers.dart';
 import 'package:submersion/features/dive_import/presentation/widgets/imported_dive_card.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Import wizard for HealthKit dives (Apple Watch).
 ///
@@ -36,10 +37,10 @@ class _HealthKitImportPageState extends ConsumerState<HealthKitImportPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Import from Apple Watch'),
+        title: Text(context.l10n.diveImport_healthkit_title),
         leading: IconButton(
           icon: const Icon(Icons.close),
-          tooltip: 'Close Apple Watch import',
+          tooltip: context.l10n.diveImport_healthkit_closeTooltip,
           onPressed: () => context.pop(),
         ),
       ),
@@ -58,8 +59,10 @@ class _HealthKitImportPageState extends ConsumerState<HealthKitImportPage> {
         return _buildWizard(context);
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) =>
-          _buildError(context, 'Failed to check permissions'),
+      error: (error, stack) => _buildError(
+        context,
+        context.l10n.diveImport_healthkit_permissionCheckFailed,
+      ),
     );
   }
 
@@ -67,10 +70,10 @@ class _HealthKitImportPageState extends ConsumerState<HealthKitImportPage> {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Import from Watch'),
+        title: Text(context.l10n.diveImport_healthkit_watchTitle),
         leading: IconButton(
           icon: const Icon(Icons.close),
-          tooltip: 'Close Apple Watch import',
+          tooltip: context.l10n.diveImport_healthkit_closeTooltip,
           onPressed: () => context.pop(),
         ),
       ),
@@ -88,10 +91,13 @@ class _HealthKitImportPageState extends ConsumerState<HealthKitImportPage> {
                 ),
               ),
               const SizedBox(height: 16),
-              Text('Not Available', style: theme.textTheme.headlineSmall),
+              Text(
+                context.l10n.diveImport_healthkit_notAvailable,
+                style: theme.textTheme.headlineSmall,
+              ),
               const SizedBox(height: 8),
               Text(
-                'Apple Watch import is only available on iOS and macOS devices.',
+                context.l10n.diveImport_healthkit_notAvailableDescription,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -121,13 +127,13 @@ class _HealthKitImportPageState extends ConsumerState<HealthKitImportPage> {
             ),
             const SizedBox(height: 16),
             Text(
-              'HealthKit Access Required',
+              context.l10n.diveImport_healthkit_accessRequired,
               style: theme.textTheme.headlineSmall,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
-              'Submersion needs access to your Apple Watch dive data to import dives.',
+              context.l10n.diveImport_healthkit_accessDescription,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -136,7 +142,7 @@ class _HealthKitImportPageState extends ConsumerState<HealthKitImportPage> {
             const SizedBox(height: 24),
             FilledButton.icon(
               icon: const Icon(Icons.lock_open),
-              label: const Text('Grant Access'),
+              label: Text(context.l10n.diveImport_healthkit_grantAccess),
               onPressed: _requestPermissions,
             ),
           ],
@@ -193,7 +199,11 @@ class _HealthKitImportPageState extends ConsumerState<HealthKitImportPage> {
               ),
             _StepDot(
               step: i + 1,
-              label: ['Select', 'Review', 'Done'][i],
+              label: [
+                context.l10n.diveImport_step_select,
+                context.l10n.diveImport_step_review,
+                context.l10n.diveImport_step_done,
+              ][i],
               isActive: i == _currentStep,
               isCompleted: i < _currentStep,
             ),
@@ -237,7 +247,9 @@ class _HealthKitImportPageState extends ConsumerState<HealthKitImportPage> {
                     )
                   : const Icon(Icons.refresh),
               label: Text(
-                importState.isLoading ? 'Fetching...' : 'Fetch Dives',
+                importState.isLoading
+                    ? context.l10n.diveImport_healthkit_fetching
+                    : context.l10n.diveImport_healthkit_fetchDives,
               ),
               onPressed: importState.isLoading ? null : _fetchDives,
             ),
@@ -272,12 +284,16 @@ class _HealthKitImportPageState extends ConsumerState<HealthKitImportPage> {
                               .read(healthKitImportProvider.notifier)
                               .selectAll(),
                     child: Text(
-                      importState.hasSelection ? 'Deselect All' : 'Select All',
+                      importState.hasSelection
+                          ? context.l10n.diveImport_deselectAll
+                          : context.l10n.diveImport_selectAll,
                     ),
                   ),
                   const Spacer(),
                   Text(
-                    '${importState.selectedCount} selected',
+                    context.l10n.diveImport_selectedCount(
+                      importState.selectedCount,
+                    ),
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -287,7 +303,7 @@ class _HealthKitImportPageState extends ConsumerState<HealthKitImportPage> {
                     onPressed: importState.hasSelection
                         ? _checkDuplicatesAndAdvance
                         : null,
-                    child: const Text('Next'),
+                    child: Text(context.l10n.diveImport_next),
                   ),
                 ],
               ),
@@ -350,14 +366,16 @@ class _HealthKitImportPageState extends ConsumerState<HealthKitImportPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Review Selected Dives',
+                  context.l10n.diveImport_reviewSelectedDives,
                   style: theme.textTheme.titleLarge,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '$newCount new'
-                  '${possibleCount > 0 ? ', $possibleCount possible duplicates' : ''}'
-                  '${skipCount > 0 ? ', $skipCount will be skipped' : ''}',
+                  context.l10n.diveImport_reviewSummary(
+                    newCount,
+                    possibleCount,
+                    skipCount,
+                  ),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -395,7 +413,7 @@ class _HealthKitImportPageState extends ConsumerState<HealthKitImportPage> {
               children: [
                 OutlinedButton(
                   onPressed: () => setState(() => _currentStep = 0),
-                  child: const Text('Back'),
+                  child: Text(context.l10n.diveImport_back),
                 ),
                 const Spacer(),
                 FilledButton(
@@ -406,7 +424,7 @@ class _HealthKitImportPageState extends ConsumerState<HealthKitImportPage> {
                           height: 16,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Import'),
+                      : Text(context.l10n.diveImport_import),
                 ),
               ],
             ),
@@ -433,24 +451,27 @@ class _HealthKitImportPageState extends ConsumerState<HealthKitImportPage> {
             ),
           ),
           const SizedBox(height: 24),
-          Text('Import Complete', style: theme.textTheme.headlineMedium),
+          Text(
+            context.l10n.diveImport_importComplete,
+            style: theme.textTheme.headlineMedium,
+          ),
           const SizedBox(height: 16),
           _SummaryRow(
-            label: 'Dives imported',
+            label: context.l10n.diveImport_divesImported,
             value: importState.importedCount.toString(),
             icon: Icons.add_circle_outline,
             color: theme.colorScheme.primary,
           ),
           const SizedBox(height: 8),
           _SummaryRow(
-            label: 'Dives merged',
+            label: context.l10n.diveImport_divesMerged,
             value: importState.mergedCount.toString(),
             icon: Icons.merge,
             color: theme.colorScheme.tertiary,
           ),
           const SizedBox(height: 8),
           _SummaryRow(
-            label: 'Dives skipped',
+            label: context.l10n.diveImport_divesSkipped,
             value: importState.skippedCount.toString(),
             icon: Icons.skip_next,
             color: theme.colorScheme.outline,
@@ -458,7 +479,7 @@ class _HealthKitImportPageState extends ConsumerState<HealthKitImportPage> {
           const SizedBox(height: 32),
           FilledButton(
             onPressed: () => context.pop(),
-            child: const Text('Done'),
+            child: Text(context.l10n.diveImport_done),
           ),
         ],
       ),
@@ -479,10 +500,13 @@ class _HealthKitImportPageState extends ConsumerState<HealthKitImportPage> {
             ),
           ),
           const SizedBox(height: 16),
-          Text('No Dives Found', style: theme.textTheme.titleLarge),
+          Text(
+            context.l10n.diveImport_healthkit_noDivesFound,
+            style: theme.textTheme.titleLarge,
+          ),
           const SizedBox(height: 8),
           Text(
-            'No underwater diving activities found in the selected date range.',
+            context.l10n.diveImport_healthkit_noDivesFoundDescription,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -501,7 +525,10 @@ class _HealthKitImportPageState extends ConsumerState<HealthKitImportPage> {
         children: [
           Icon(Icons.error_outline, size: 64, color: theme.colorScheme.error),
           const SizedBox(height: 16),
-          Text('Error', style: theme.textTheme.titleLarge),
+          Text(
+            context.l10n.diveImport_error,
+            style: theme.textTheme.titleLarge,
+          ),
           const SizedBox(height: 8),
           Text(
             message,
@@ -639,7 +666,7 @@ class _DateRangeSelector extends StatelessWidget {
       children: [
         Expanded(
           child: _DateButton(
-            label: 'From',
+            label: context.l10n.diveImport_healthkit_dateFrom,
             date: startDate,
             onTap: () => _selectDate(context, true),
           ),
@@ -647,7 +674,7 @@ class _DateRangeSelector extends StatelessWidget {
         const SizedBox(width: 16),
         Expanded(
           child: _DateButton(
-            label: 'To',
+            label: context.l10n.diveImport_healthkit_dateTo,
             date: endDate,
             onTap: () => _selectDate(context, false),
           ),
@@ -700,7 +727,7 @@ class _DateButton extends StatelessWidget {
 
     return Semantics(
       button: true,
-      label: '$label date selector',
+      label: context.l10n.diveImport_healthkit_dateSelectorLabel(label),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(8),

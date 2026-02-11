@@ -4,6 +4,7 @@ import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
@@ -44,7 +45,7 @@ class _DiveCenterMapPageState extends ConsumerState<DiveCenterMapPage>
 
     return MapListScaffold(
       sectionKey: 'dive-centers',
-      title: 'Dive Centers',
+      title: context.l10n.diveCenters_title,
       onBackPressed: () => context.go('/dive-centers'),
       listPane: DiveCenterListContent(
         showAppBar: false,
@@ -76,12 +77,12 @@ class _DiveCenterMapPageState extends ConsumerState<DiveCenterMapPage>
             children: [
               const Icon(Icons.error_outline, size: 48, color: Colors.red),
               const SizedBox(height: 16),
-              Text('Error loading dive centers: $error'),
+              Text(context.l10n.diveCenters_error_loading(error.toString())),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () =>
                     ref.read(diveCenterListNotifierProvider.notifier).refresh(),
-                child: const Text('Retry'),
+                child: Text(context.l10n.diveCenters_action_retry),
               ),
             ],
           ),
@@ -93,17 +94,17 @@ class _DiveCenterMapPageState extends ConsumerState<DiveCenterMapPage>
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/dive-centers/new'),
         icon: const Icon(Icons.add),
-        label: const Text('Add Center'),
+        label: Text(context.l10n.diveCenters_action_addCenter),
       ),
       actions: [
         IconButton(
           icon: const Icon(Icons.list),
-          tooltip: 'List View',
+          tooltip: context.l10n.diveCenters_tooltip_listView,
           onPressed: () => context.go('/dive-centers'),
         ),
         IconButton(
           icon: const Icon(Icons.my_location),
-          tooltip: 'Fit All Centers',
+          tooltip: context.l10n.diveCenters_tooltip_fitAllCenters,
           onPressed: () => _fitAllCenters(centersAsync.value ?? []),
         ),
       ],
@@ -239,7 +240,9 @@ class _DiveCenterMapPageState extends ConsumerState<DiveCenterMapPage>
                     height: isSelected ? 50 : 40,
                     child: Semantics(
                       button: true,
-                      label: 'Dive center: ${diveCenter.name}',
+                      label: context.l10n.diveCenters_accessibility_markerLabel(
+                        diveCenter.name,
+                      ),
                       child: GestureDetector(
                         onTap: () => _onMarkerTapped(diveCenter),
                         child: _buildMarker(context, diveCenter, isSelected),
@@ -278,12 +281,12 @@ class _DiveCenterMapPageState extends ConsumerState<DiveCenterMapPage>
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'No dive centers with coordinates',
+                      context.l10n.diveCenters_map_noCoordinates,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Add coordinates to your dive centers to see them on the map',
+                      context.l10n.diveCenters_map_addCoordinatesHint,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),

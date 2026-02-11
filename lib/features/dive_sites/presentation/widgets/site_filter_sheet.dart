@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 
@@ -100,12 +101,12 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Filter Sites',
+                      context.l10n.diveSites_filter_title,
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     TextButton(
                       onPressed: _clearAll,
-                      child: const Text('Clear All'),
+                      child: Text(context.l10n.diveSites_filter_clearAll),
                     ),
                   ],
                 ),
@@ -148,14 +149,14 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
                     Expanded(
                       child: OutlinedButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        child: const Text('Cancel'),
+                        child: Text(context.l10n.diveSites_filter_cancel),
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: FilledButton(
                         onPressed: _applyFilters,
-                        child: const Text('Apply Filters'),
+                        child: Text(context.l10n.diveSites_filter_apply),
                       ),
                     ),
                   ],
@@ -172,15 +173,18 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Location', style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          context.l10n.diveSites_filter_section_location,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         const SizedBox(height: 12),
         TextField(
           controller: _countryController,
-          decoration: const InputDecoration(
-            labelText: 'Country',
-            hintText: 'e.g., Thailand',
-            prefixIcon: Icon(Icons.public),
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: context.l10n.diveSites_filter_country_label,
+            hintText: context.l10n.diveSites_filter_country_hint,
+            prefixIcon: const Icon(Icons.public),
+            border: const OutlineInputBorder(),
           ),
           onChanged: (value) {
             setState(() {
@@ -191,11 +195,11 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
         const SizedBox(height: 12),
         TextField(
           controller: _regionController,
-          decoration: const InputDecoration(
-            labelText: 'Region',
-            hintText: 'e.g., Phuket',
-            prefixIcon: Icon(Icons.place),
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: context.l10n.diveSites_filter_region_label,
+            hintText: context.l10n.diveSites_filter_region_hint,
+            prefixIcon: const Icon(Icons.place),
+            border: const OutlineInputBorder(),
           ),
           onChanged: (value) {
             setState(() {
@@ -211,14 +215,17 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Difficulty', style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          context.l10n.diveSites_filter_section_difficulty,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         const SizedBox(height: 12),
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: [
             FilterChip(
-              label: const Text('Any'),
+              label: Text(context.l10n.diveSites_filter_difficulty_any),
               selected: _difficulty == null,
               onSelected: (selected) {
                 if (selected) {
@@ -247,7 +254,10 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Max Depth Range', style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          context.l10n.diveSites_filter_section_depthRange,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         const SizedBox(height: 12),
         Row(
           children: [
@@ -255,10 +265,10 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
               child: TextField(
                 controller: _minDepthController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Min',
+                decoration: InputDecoration(
+                  labelText: context.l10n.diveSites_filter_depth_min_label,
                   suffixText: 'm',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                 ),
                 onChanged: (value) {
                   setState(() {
@@ -267,18 +277,18 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
                 },
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Text('to'),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(context.l10n.diveSites_filter_depth_separator),
             ),
             Expanded(
               child: TextField(
                 controller: _maxDepthController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Max',
+                decoration: InputDecoration(
+                  labelText: context.l10n.diveSites_filter_depth_max_label,
                   suffixText: 'm',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                 ),
                 onChanged: (value) {
                   setState(() {
@@ -297,7 +307,10 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Minimum Rating', style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          context.l10n.diveSites_filter_section_minRating,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         const SizedBox(height: 12),
         Row(
           children: [
@@ -307,7 +320,7 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
                   i <= (_minRating ?? 0) ? Icons.star : Icons.star_border,
                   color: Colors.amber.shade600,
                 ),
-                tooltip: '$i ${i == 1 ? 'star' : 'stars'}',
+                tooltip: context.l10n.diveSites_edit_rating_starTooltip(i),
                 onPressed: () {
                   setState(() {
                     // Tapping the same star clears the filter
@@ -322,7 +335,9 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
             const SizedBox(width: 8),
             if (_minRating != null)
               Text(
-                '${_minRating!.toInt()}+ stars',
+                context.l10n.diveSites_filter_rating_starsPlus(
+                  _minRating!.toInt(),
+                ),
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
           ],
@@ -335,11 +350,18 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Options', style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          context.l10n.diveSites_filter_section_options,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         const SizedBox(height: 12),
         SwitchListTile(
-          title: const Text('Has Coordinates'),
-          subtitle: const Text('Only show sites with GPS location'),
+          title: Text(
+            context.l10n.diveSites_filter_option_hasCoordinates_title,
+          ),
+          subtitle: Text(
+            context.l10n.diveSites_filter_option_hasCoordinates_subtitle,
+          ),
           value: _hasCoordinates == true,
           onChanged: (value) {
             setState(() {
@@ -348,8 +370,10 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
           },
         ),
         SwitchListTile(
-          title: const Text('Has Dives'),
-          subtitle: const Text('Only show sites with logged dives'),
+          title: Text(context.l10n.diveSites_filter_option_hasDives_title),
+          subtitle: Text(
+            context.l10n.diveSites_filter_option_hasDives_subtitle,
+          ),
           value: _hasDives == true,
           onChanged: (value) {
             setState(() {

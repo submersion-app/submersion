@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
@@ -71,7 +72,9 @@ class TransferPage extends ConsumerWidget {
       case 'computers':
         return _ComputersSectionContent(ref: ref);
       default:
-        return Center(child: Text('Unknown section: $sectionId'));
+        return Center(
+          child: Text(context.l10n.transfer_unknownSection(sectionId)),
+        );
     }
   }
 }
@@ -83,7 +86,7 @@ class TransferMobileContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Transfer')),
+      appBar: AppBar(title: Text(context.l10n.transfer_appBar_title)),
       body: ListView.separated(
         padding: const EdgeInsets.symmetric(vertical: 8),
         itemCount: transferSections.length,
@@ -113,14 +116,15 @@ class _TransferSectionDetailPage extends ConsumerWidget {
     final section = transferSections
         .where((s) => s.id == sectionId)
         .firstOrNull;
-    final title = section?.title ?? 'Transfer';
+    final title =
+        section?.titleBuilder(context) ?? context.l10n.transfer_appBar_title;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          tooltip: 'Back to transfer',
+          tooltip: context.l10n.transfer_detail_backTooltip,
           onPressed: () => context.go('/transfer'),
         ),
       ),
@@ -137,7 +141,9 @@ class _TransferSectionDetailPage extends ConsumerWidget {
       case 'computers':
         return _ComputersSectionContent(ref: ref);
       default:
-        return Center(child: Text('Unknown section: $sectionId'));
+        return Center(
+          child: Text(context.l10n.transfer_unknownSection(sectionId)),
+        );
     }
   }
 }
@@ -163,13 +169,13 @@ class _MobileTransferTile extends StatelessWidget {
         child: Icon(section.icon, color: color, size: 24),
       ),
       title: Text(
-        section.title,
+        section.titleBuilder(context),
         style: Theme.of(
           context,
         ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
       ),
       subtitle: Text(
-        section.subtitle,
+        section.subtitleBuilder(context),
         style: Theme.of(
           context,
         ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
@@ -206,14 +212,17 @@ class _ImportSectionContent extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader(context, 'Import Data'),
+          _buildSectionHeader(
+            context,
+            context.l10n.transfer_import_sectionHeader,
+          ),
           const SizedBox(height: 8),
           // Universal Import (primary entry point)
           Card(
             clipBehavior: Clip.antiAlias,
             child: Semantics(
               button: true,
-              label: 'Import data with auto-detection',
+              label: context.l10n.transfer_import_autoDetectSemanticLabel,
               child: InkWell(
                 onTap: () => context.push('/transfer/import-wizard'),
                 child: Padding(
@@ -238,13 +247,13 @@ class _ImportSectionContent extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Import Data',
+                              context.l10n.transfer_import_autoDetectTitle,
                               style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(fontWeight: FontWeight.w600),
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              'Auto-detects CSV, UDDF, FIT, and more',
+                              context.l10n.transfer_import_autoDetectSubtitle,
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
                                     color: colorScheme.onSurfaceVariant,
@@ -265,15 +274,18 @@ class _ImportSectionContent extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           // Legacy import options
-          _buildSectionHeader(context, 'Import by Format'),
+          _buildSectionHeader(
+            context,
+            context.l10n.transfer_import_byFormatHeader,
+          ),
           const SizedBox(height: 8),
           Card(
             child: Column(
               children: [
                 ListTile(
                   leading: const Icon(Icons.table_chart),
-                  title: const Text('Import from CSV'),
-                  subtitle: const Text('Import dives from CSV file'),
+                  title: Text(context.l10n.transfer_import_csvTitle),
+                  subtitle: Text(context.l10n.transfer_import_csvSubtitle),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => _handleImport(
                     context,
@@ -286,18 +298,16 @@ class _ImportSectionContent extends ConsumerWidget {
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.code),
-                  title: const Text('Import from UDDF'),
-                  subtitle: const Text('Universal Dive Data Format'),
+                  title: Text(context.l10n.transfer_import_uddfTitle),
+                  subtitle: Text(context.l10n.transfer_import_uddfSubtitle),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/transfer/uddf-import'),
                 ),
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.file_open),
-                  title: const Text('Import from FIT File'),
-                  subtitle: const Text(
-                    'Import dives from Garmin Descent export files',
-                  ),
+                  title: Text(context.l10n.transfer_import_fitTitle),
+                  subtitle: Text(context.l10n.transfer_import_fitSubtitle),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/transfer/fit-import'),
                 ),
@@ -307,10 +317,8 @@ class _ImportSectionContent extends ConsumerWidget {
           const SizedBox(height: 16),
           _buildInfoCard(
             context,
-            'About Import',
-            'Use "Import Data" for the best experience -- it '
-                'auto-detects your file format and source app. The individual '
-                'format options below are also available for direct access.',
+            context.l10n.transfer_import_aboutTitle,
+            context.l10n.transfer_import_aboutContent,
           ),
         ],
       ),
@@ -352,7 +360,10 @@ class _ImportSectionContent extends ConsumerWidget {
         if (state.status != ExportStatus.idle) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message ?? 'Operation completed'),
+              content: Text(
+                state.message ??
+                    context.l10n.transfer_import_operationCompleted,
+              ),
               backgroundColor: state.status == ExportStatus.success
                   ? Colors.green
                   : Colors.red,
@@ -365,7 +376,7 @@ class _ImportSectionContent extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Operation failed: $e'),
+            content: Text(context.l10n.transfer_import_operationFailed('$e')),
             backgroundColor: Colors.red,
           ),
         );
@@ -387,28 +398,31 @@ class _ExportSectionContent extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader(context, 'Export Data'),
+          _buildSectionHeader(
+            context,
+            context.l10n.transfer_export_sectionHeader,
+          ),
           const SizedBox(height: 8),
           Card(
             child: Column(
               children: [
                 ListTile(
                   leading: const Icon(Icons.picture_as_pdf),
-                  title: const Text('PDF Logbook'),
-                  subtitle: const Text('Printable dive logbook'),
+                  title: Text(context.l10n.transfer_export_pdfTitle),
+                  subtitle: Text(context.l10n.transfer_export_pdfSubtitle),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => _handlePdfExport(context, ref),
                 ),
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.code),
-                  title: const Text('UDDF Export'),
-                  subtitle: const Text('Universal Dive Data Format'),
+                  title: Text(context.l10n.transfer_export_uddfTitle),
+                  subtitle: Text(context.l10n.transfer_export_uddfSubtitle),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => _showExportOptions(
                     context,
                     ref,
-                    title: 'UDDF Export',
+                    title: context.l10n.transfer_export_uddfTitle,
                     shareAction: () => ref
                         .read(exportNotifierProvider.notifier)
                         .exportDivesToUddf(),
@@ -420,8 +434,8 @@ class _ExportSectionContent extends ConsumerWidget {
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.table_chart),
-                  title: const Text('CSV Export'),
-                  subtitle: const Text('Spreadsheet format'),
+                  title: Text(context.l10n.transfer_export_csvTitle),
+                  subtitle: Text(context.l10n.transfer_export_csvSubtitle),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => _handleCsvExport(context, ref),
                 ),
@@ -429,22 +443,23 @@ class _ExportSectionContent extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          _buildSectionHeader(context, 'Multi-Format Export'),
+          _buildSectionHeader(
+            context,
+            context.l10n.transfer_export_multiFormatHeader,
+          ),
           const SizedBox(height: 8),
           Card(
             child: Column(
               children: [
                 ListTile(
                   leading: const Icon(Icons.grid_on),
-                  title: const Text('Excel Workbook'),
-                  subtitle: const Text(
-                    'All data in one file (dives, sites, equipment, stats)',
-                  ),
+                  title: Text(context.l10n.transfer_export_excelTitle),
+                  subtitle: Text(context.l10n.transfer_export_excelSubtitle),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => _showExportOptions(
                     context,
                     ref,
-                    title: 'Excel Workbook',
+                    title: context.l10n.transfer_export_excelTitle,
                     shareAction: () => ref
                         .read(exportNotifierProvider.notifier)
                         .exportToExcel(),
@@ -456,13 +471,13 @@ class _ExportSectionContent extends ConsumerWidget {
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.map),
-                  title: const Text('Google Earth KML'),
-                  subtitle: const Text('View dive sites on a 3D globe'),
+                  title: Text(context.l10n.transfer_export_kmlTitle),
+                  subtitle: Text(context.l10n.transfer_export_kmlSubtitle),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => _showExportOptions(
                     context,
                     ref,
-                    title: 'Google Earth KML',
+                    title: context.l10n.transfer_export_kmlTitle,
                     shareAction: () =>
                         ref.read(exportNotifierProvider.notifier).exportToKml(),
                     saveAction: () => ref
@@ -476,11 +491,8 @@ class _ExportSectionContent extends ConsumerWidget {
           const SizedBox(height: 16),
           _buildInfoCard(
             context,
-            'About Export',
-            'Export your dive data in various formats. '
-                'PDF creates a printable logbook. UDDF is a universal format '
-                'compatible with most dive logging software. CSV files can be '
-                'opened in spreadsheet applications.',
+            context.l10n.transfer_export_aboutTitle,
+            context.l10n.transfer_export_aboutContent,
           ),
         ],
       ),
@@ -499,7 +511,7 @@ class _ExportSectionContent extends ConsumerWidget {
     _showExportOptions(
       context,
       ref,
-      title: 'PDF Logbook',
+      title: context.l10n.transfer_export_pdfTitle,
       shareAction: () =>
           ref.read(exportNotifierProvider.notifier).exportDivesToPdf(options),
       saveAction: () =>
@@ -518,7 +530,7 @@ class _ExportSectionContent extends ConsumerWidget {
         _showExportOptions(
           context,
           ref,
-          title: 'Dives CSV',
+          title: context.l10n.transfer_csvExport_optionDivesTitle,
           shareAction: () => notifier.exportDivesToCsv(),
           saveAction: () => notifier.saveDivesCsvToFile(),
         );
@@ -526,7 +538,7 @@ class _ExportSectionContent extends ConsumerWidget {
         _showExportOptions(
           context,
           ref,
-          title: 'Sites CSV',
+          title: context.l10n.transfer_csvExport_optionSitesTitle,
           shareAction: () => notifier.exportSitesToCsv(),
           saveAction: () => notifier.saveSitesCsvToFile(),
         );
@@ -534,7 +546,7 @@ class _ExportSectionContent extends ConsumerWidget {
         _showExportOptions(
           context,
           ref,
-          title: 'Equipment CSV',
+          title: context.l10n.transfer_csvExport_optionEquipmentTitle,
           shareAction: () => notifier.exportEquipmentToCsv(),
           saveAction: () => notifier.saveEquipmentCsvToFile(),
         );
@@ -550,12 +562,12 @@ class _ExportSectionContent extends ConsumerWidget {
       context: context,
       barrierDismissible: false,
       useRootNavigator: true,
-      builder: (dialogContext) => const AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         content: Row(
           children: [
-            CircularProgressIndicator(),
-            SizedBox(width: 24),
-            Text('Exporting...'),
+            const CircularProgressIndicator(),
+            const SizedBox(width: 24),
+            Text(context.l10n.transfer_export_progressExporting),
           ],
         ),
       ),
@@ -570,7 +582,9 @@ class _ExportSectionContent extends ConsumerWidget {
             final state = ref.read(exportNotifierProvider);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(state.message ?? 'Export completed'),
+                content: Text(
+                  state.message ?? context.l10n.transfer_export_completed,
+                ),
                 backgroundColor: state.status == ExportStatus.success
                     ? Colors.green
                     : Colors.red,
@@ -587,7 +601,7 @@ class _ExportSectionContent extends ConsumerWidget {
             Navigator.of(context, rootNavigator: true).pop();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Export failed: $e'),
+                content: Text(context.l10n.transfer_export_failed('$e')),
                 backgroundColor: Colors.red,
               ),
             );
@@ -623,8 +637,10 @@ class _ExportSectionContent extends ConsumerWidget {
               const SizedBox(height: 16),
               ListTile(
                 leading: const Icon(Icons.share),
-                title: const Text('Share'),
-                subtitle: const Text('Send via email, messages, or other apps'),
+                title: Text(context.l10n.transfer_export_optionShareTitle),
+                subtitle: Text(
+                  context.l10n.transfer_export_optionShareSubtitle,
+                ),
                 onTap: () {
                   Navigator.of(bottomSheetContext).pop();
                   _handleExport(context, ref, shareAction);
@@ -633,8 +649,8 @@ class _ExportSectionContent extends ConsumerWidget {
               const Divider(height: 1),
               ListTile(
                 leading: const Icon(Icons.save_alt),
-                title: const Text('Save to File'),
-                subtitle: const Text('Choose where to save on your device'),
+                title: Text(context.l10n.transfer_export_optionSaveTitle),
+                subtitle: Text(context.l10n.transfer_export_optionSaveSubtitle),
                 onTap: () {
                   Navigator.of(bottomSheetContext).pop();
                   _handleExport(context, ref, saveAction);
@@ -663,30 +679,39 @@ class _ComputersSectionContent extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader(context, 'Dive Computers'),
+          _buildSectionHeader(
+            context,
+            context.l10n.transfer_computers_sectionHeader,
+          ),
           const SizedBox(height: 8),
           Card(
             child: Column(
               children: [
                 ListTile(
                   leading: const Icon(Icons.bluetooth_searching),
-                  title: const Text('Connect New Computer'),
-                  subtitle: const Text('Discover and pair a dive computer'),
+                  title: Text(context.l10n.transfer_computers_connectTitle),
+                  subtitle: Text(
+                    context.l10n.transfer_computers_connectSubtitle,
+                  ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/dive-computers/discover'),
                 ),
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.devices),
-                  title: const Text('Manage Computers'),
+                  title: Text(context.l10n.transfer_computers_manageTitle),
                   subtitle: computersAsync.when(
                     data: (computers) => Text(
                       computers.isEmpty
-                          ? 'No computers saved'
-                          : '${computers.length} saved ${computers.length == 1 ? 'computer' : 'computers'}',
+                          ? context.l10n.transfer_computers_noComputersSaved
+                          : context.l10n.transfer_computers_savedCount(
+                              computers.length,
+                            ),
                     ),
-                    loading: () => const Text('Loading...'),
-                    error: (e, st) => const Text('Error loading computers'),
+                    loading: () =>
+                        Text(context.l10n.transfer_computers_loading),
+                    error: (e, st) =>
+                        Text(context.l10n.transfer_computers_errorLoading),
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/dive-computers'),
@@ -695,14 +720,17 @@ class _ComputersSectionContent extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          _buildSectionHeader(context, 'Apple Watch'),
+          _buildSectionHeader(
+            context,
+            context.l10n.transfer_computers_appleWatchHeader,
+          ),
           const SizedBox(height: 8),
           Card(
             child: ListTile(
               leading: const Icon(Icons.watch),
-              title: const Text('Import from Apple Watch'),
-              subtitle: const Text(
-                'Import dives recorded on Apple Watch Ultra',
+              title: Text(context.l10n.transfer_computers_appleWatchTitle),
+              subtitle: Text(
+                context.l10n.transfer_computers_appleWatchSubtitle,
               ),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => context.push('/settings/wearable-import'),
@@ -711,12 +739,8 @@ class _ComputersSectionContent extends ConsumerWidget {
           const SizedBox(height: 16),
           _buildInfoCard(
             context,
-            'About Dive Computers',
-            'Connect your dive computer via Bluetooth to download dive logs '
-                'directly to the app. Supported computers include Suunto, '
-                'Shearwater, Garmin, Mares, and many other popular brands.\n\n'
-                'Apple Watch Ultra users can import dive data directly from '
-                'the Health app, including depth, duration, and heart rate.',
+            context.l10n.transfer_computers_aboutTitle,
+            context.l10n.transfer_computers_aboutContent,
           ),
         ],
       ),
@@ -744,17 +768,20 @@ class _TransferSummaryWidget extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Text('Transfer', style: Theme.of(context).textTheme.headlineSmall),
+          Text(
+            context.l10n.transfer_summary_title,
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
           const SizedBox(height: 8),
           Text(
-            'Import and export dive data',
+            context.l10n.transfer_summary_description,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 24),
           Text(
-            'Select a section from the list',
+            context.l10n.transfer_summary_selectSection,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),

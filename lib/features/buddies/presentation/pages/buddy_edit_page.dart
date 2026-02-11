@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
@@ -104,9 +105,13 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error loading buddy: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              context.l10n.buddies_message_errorLoading(e.toString()),
+            ),
+          ),
+        );
       }
     }
   }
@@ -176,7 +181,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                   const SizedBox(height: 8),
                   Center(
                     child: Text(
-                      'Photo support coming in v2.0',
+                      context.l10n.buddies_label_photoComingSoon,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -187,15 +192,15 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                   // Name field
                   TextFormField(
                     controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Name *',
-                      prefixIcon: Icon(Icons.person),
-                      hintText: 'Enter buddy name',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.buddies_field_nameRequired,
+                      prefixIcon: const Icon(Icons.person),
+                      hintText: context.l10n.buddies_field_nameHint,
                     ),
                     textCapitalization: TextCapitalization.words,
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Please enter a name';
+                        return context.l10n.buddies_validation_nameRequired;
                       }
                       return null;
                     },
@@ -205,10 +210,10 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                   // Email field
                   TextFormField(
                     controller: _emailController,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: Icon(Icons.email),
-                      hintText: 'email@example.com',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.buddies_field_email,
+                      prefixIcon: const Icon(Icons.email),
+                      hintText: context.l10n.buddies_field_emailHint,
                     ),
                     keyboardType: TextInputType.emailAddress,
                     validator: (value) {
@@ -217,7 +222,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                           r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
                         );
                         if (!emailRegex.hasMatch(value)) {
-                          return 'Please enter a valid email';
+                          return context.l10n.buddies_validation_emailInvalid;
                         }
                       }
                       return null;
@@ -228,10 +233,10 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                   // Phone field
                   TextFormField(
                     controller: _phoneController,
-                    decoration: const InputDecoration(
-                      labelText: 'Phone',
-                      prefixIcon: Icon(Icons.phone),
-                      hintText: '+1 234 567 8900',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.buddies_field_phone,
+                      prefixIcon: const Icon(Icons.phone),
+                      hintText: context.l10n.buddies_field_phoneHint,
                     ),
                     keyboardType: TextInputType.phone,
                   ),
@@ -239,7 +244,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
 
                   // Certification section header
                   Text(
-                    'Certification',
+                    context.l10n.buddies_section_certification,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -249,14 +254,14 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                   // Certification level dropdown
                   DropdownButtonFormField<CertificationLevel>(
                     initialValue: _certLevel,
-                    decoration: const InputDecoration(
-                      labelText: 'Certification Level',
-                      prefixIcon: Icon(Icons.card_membership),
+                    decoration: InputDecoration(
+                      labelText: context.l10n.buddies_field_certificationLevel,
+                      prefixIcon: const Icon(Icons.card_membership),
                     ),
                     items: [
-                      const DropdownMenuItem(
+                      DropdownMenuItem(
                         value: null,
-                        child: Text('Not specified'),
+                        child: Text(context.l10n.buddies_label_notSpecified),
                       ),
                       ...CertificationLevel.values.map((level) {
                         return DropdownMenuItem(
@@ -277,14 +282,14 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                   // Certification agency dropdown
                   DropdownButtonFormField<CertificationAgency>(
                     initialValue: _certAgency,
-                    decoration: const InputDecoration(
-                      labelText: 'Certification Agency',
-                      prefixIcon: Icon(Icons.business),
+                    decoration: InputDecoration(
+                      labelText: context.l10n.buddies_field_certificationAgency,
+                      prefixIcon: const Icon(Icons.business),
                     ),
                     items: [
-                      const DropdownMenuItem(
+                      DropdownMenuItem(
                         value: null,
-                        child: Text('Not specified'),
+                        child: Text(context.l10n.buddies_label_notSpecified),
                       ),
                       ...CertificationAgency.values.map((agency) {
                         return DropdownMenuItem(
@@ -304,7 +309,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
 
                   // Notes section header
                   Text(
-                    'Notes',
+                    context.l10n.buddies_section_notes,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -314,10 +319,10 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                   // Notes field
                   TextFormField(
                     controller: _notesController,
-                    decoration: const InputDecoration(
-                      labelText: 'Notes',
-                      prefixIcon: Icon(Icons.notes),
-                      hintText: 'Any additional notes about this buddy',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.buddies_field_notes,
+                      prefixIcon: const Icon(Icons.notes),
+                      hintText: context.l10n.buddies_field_notesHint,
                       alignLabelWithHint: true,
                     ),
                     maxLines: 4,
@@ -333,14 +338,18 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                             width: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : Text(isEditing ? 'Update Buddy' : 'Add Buddy'),
+                        : Text(
+                            isEditing
+                                ? context.l10n.buddies_action_update
+                                : context.l10n.buddies_action_add,
+                          ),
                   ),
 
                   // Cancel button
                   const SizedBox(height: 8),
                   OutlinedButton(
                     onPressed: () => _confirmCancel(),
-                    child: const Text('Cancel'),
+                    child: Text(context.l10n.common_action_cancel),
                   ),
                 ],
               ),
@@ -381,7 +390,11 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(isEditing ? 'Edit Buddy' : 'Add Buddy'),
+          title: Text(
+            isEditing
+                ? context.l10n.buddies_title_edit
+                : context.l10n.buddies_title_add,
+          ),
           actions: [
             if (_isSaving)
               const Center(
@@ -395,7 +408,10 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                 ),
               )
             else
-              TextButton(onPressed: _saveBuddy, child: const Text('Save')),
+              TextButton(
+                onPressed: _saveBuddy,
+                child: Text(context.l10n.common_action_save),
+              ),
           ],
         ),
         body: body,
@@ -424,7 +440,9 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              isEditing ? 'Edit Buddy' : 'Add Buddy',
+              isEditing
+                  ? context.l10n.buddies_title_edit
+                  : context.l10n.buddies_title_add,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -437,9 +455,15 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
               child: CircularProgressIndicator(strokeWidth: 2),
             )
           else ...[
-            TextButton(onPressed: _handleCancel, child: const Text('Cancel')),
+            TextButton(
+              onPressed: _handleCancel,
+              child: Text(context.l10n.common_action_cancel),
+            ),
             const SizedBox(width: 8),
-            FilledButton(onPressed: _saveBuddy, child: const Text('Save')),
+            FilledButton(
+              onPressed: _saveBuddy,
+              child: Text(context.l10n.common_action_save),
+            ),
           ],
         ],
       ),
@@ -480,18 +504,16 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Discard Changes?'),
-        content: const Text(
-          'You have unsaved changes. Are you sure you want to leave?',
-        ),
+        title: Text(context.l10n.buddies_dialog_discardTitle),
+        content: Text(context.l10n.buddies_dialog_discardMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Keep Editing'),
+            child: Text(context.l10n.buddies_dialog_keepEditing),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Discard'),
+            child: Text(context.l10n.buddies_dialog_discard),
           ),
         ],
       ),
@@ -548,8 +570,8 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
           SnackBar(
             content: Text(
               isEditing
-                  ? 'Buddy updated successfully'
-                  : 'Buddy added successfully',
+                  ? context.l10n.buddies_message_updated
+                  : context.l10n.buddies_message_added,
             ),
           ),
         );
@@ -558,7 +580,9 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error saving buddy: $e'),
+            content: Text(
+              context.l10n.buddies_message_errorSaving(e.toString()),
+            ),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );

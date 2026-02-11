@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import 'package:submersion/features/deco_calculator/presentation/providers/deco_calculator_providers.dart';
@@ -49,7 +50,7 @@ class GasWarningsDisplay extends ConsumerWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Gas Safety',
+                  context.l10n.decoCalculator_gasSafety,
                   style: textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -66,7 +67,7 @@ class GasWarningsDisplay extends ConsumerWidget {
                     label: 'ppO₂',
                     value: units.formatPressure(ppO2),
                     status: ppO2Status,
-                    tooltip: _getPpO2Tooltip(ppO2),
+                    tooltip: _getPpO2Tooltip(context, ppO2),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -79,8 +80,8 @@ class GasWarningsDisplay extends ConsumerWidget {
                     value: units.formatDepth(mod),
                     status: modStatus,
                     tooltip: modStatus == WarningStatus.ok
-                        ? 'Within safe operating depth'
-                        : 'Current depth exceeds MOD!',
+                        ? context.l10n.decoCalculator_modSafe
+                        : context.l10n.decoCalculator_modExceeded,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -92,7 +93,7 @@ class GasWarningsDisplay extends ConsumerWidget {
                     label: 'END',
                     value: units.formatDepth(end),
                     status: endStatus,
-                    tooltip: _getEndTooltip(end),
+                    tooltip: _getEndTooltip(context, end),
                   ),
                 ),
               ],
@@ -175,17 +176,17 @@ class GasWarningsDisplay extends ConsumerWidget {
     return WarningStatus.ok;
   }
 
-  String _getPpO2Tooltip(double ppO2) {
-    if (ppO2 > 1.6) return 'DANGER: High oxygen toxicity risk!';
-    if (ppO2 > 1.4) return 'Caution: Approaching toxicity limit';
-    if (ppO2 < 0.16) return 'DANGER: Hypoxic - insufficient oxygen!';
-    return 'Safe oxygen partial pressure';
+  String _getPpO2Tooltip(BuildContext context, double ppO2) {
+    if (ppO2 > 1.6) return context.l10n.decoCalculator_ppO2Danger;
+    if (ppO2 > 1.4) return context.l10n.decoCalculator_ppO2Caution;
+    if (ppO2 < 0.16) return context.l10n.decoCalculator_ppO2Hypoxic;
+    return context.l10n.decoCalculator_ppO2Safe;
   }
 
-  String _getEndTooltip(double end) {
-    if (end > 40) return 'DANGER: Severe narcosis risk!';
-    if (end > 30) return 'Caution: Narcosis may affect judgment';
-    return 'Narcosis risk within acceptable limits';
+  String _getEndTooltip(BuildContext context, double end) {
+    if (end > 40) return context.l10n.decoCalculator_endDanger;
+    if (end > 30) return context.l10n.decoCalculator_endCaution;
+    return context.l10n.decoCalculator_endSafe;
   }
 
   Color _getStatusColor(WarningStatus status) {

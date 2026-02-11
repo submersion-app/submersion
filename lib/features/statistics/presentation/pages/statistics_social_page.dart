@@ -7,6 +7,7 @@ import 'package:submersion/features/statistics/presentation/providers/statistics
 import 'package:submersion/features/statistics/presentation/widgets/ranking_list.dart';
 import 'package:submersion/features/statistics/presentation/widgets/stat_charts.dart';
 import 'package:submersion/features/statistics/presentation/widgets/stat_section_card.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 class StatisticsSocialPage extends ConsumerWidget {
   final bool embedded;
@@ -34,7 +35,7 @@ class StatisticsSocialPage extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Social & Buddies')),
+      appBar: AppBar(title: Text(context.l10n.statistics_social_appBar_title)),
       body: content,
     );
   }
@@ -43,27 +44,27 @@ class StatisticsSocialPage extends ConsumerWidget {
     final soloVsBuddyAsync = ref.watch(soloVsBuddyCountProvider);
 
     return StatSectionCard(
-      title: 'Solo vs Buddy Dives',
-      subtitle: 'Diving with or without companions',
+      title: context.l10n.statistics_social_soloVsBuddy_title,
+      subtitle: context.l10n.statistics_social_soloVsBuddy_subtitle,
       child: soloVsBuddyAsync.when(
         data: (data) {
           final total = data.solo + data.buddy;
           if (total == 0) {
-            return const StatEmptyState(
+            return StatEmptyState(
               icon: Icons.people,
-              message: 'No dive data available',
+              message: context.l10n.statistics_social_soloVsBuddy_empty,
             );
           }
 
           return DistributionPieChart(
             data: [
               DistributionSegment(
-                label: 'With Buddy',
+                label: context.l10n.statistics_social_soloVsBuddy_withBuddy,
                 count: data.buddy,
                 percentage: data.buddy / total * 100,
               ),
               DistributionSegment(
-                label: 'Solo',
+                label: context.l10n.statistics_social_soloVsBuddy_solo,
                 count: data.solo,
                 percentage: data.solo / total * 100,
               ),
@@ -75,9 +76,9 @@ class StatisticsSocialPage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, _) => const StatEmptyState(
+        error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: 'Failed to load buddy data',
+          message: context.l10n.statistics_social_soloVsBuddy_error,
         ),
       ),
     );
@@ -87,12 +88,12 @@ class StatisticsSocialPage extends ConsumerWidget {
     final topBuddiesAsync = ref.watch(topBuddiesProvider);
 
     return StatSectionCard(
-      title: 'Top Dive Buddies',
-      subtitle: 'Most frequent diving companions',
+      title: context.l10n.statistics_social_topBuddies_title,
+      subtitle: context.l10n.statistics_social_topBuddies_subtitle,
       child: topBuddiesAsync.when(
         data: (data) => RankingList(
           items: data,
-          countLabel: 'dives',
+          countLabel: context.l10n.statistics_ranking_countLabel_dives,
           maxItems: 5,
           onItemTap: (item) => context.push('/buddies/${item.id}'),
         ),
@@ -100,9 +101,9 @@ class StatisticsSocialPage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, _) => const StatEmptyState(
+        error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: 'Failed to load buddy rankings',
+          message: context.l10n.statistics_social_topBuddies_error,
         ),
       ),
     );
@@ -112,12 +113,12 @@ class StatisticsSocialPage extends ConsumerWidget {
     final topCentersAsync = ref.watch(topDiveCentersProvider);
 
     return StatSectionCard(
-      title: 'Top Dive Centers',
-      subtitle: 'Most visited operators',
+      title: context.l10n.statistics_social_topDiveCenters_title,
+      subtitle: context.l10n.statistics_social_topDiveCenters_subtitle,
       child: topCentersAsync.when(
         data: (data) => RankingList(
           items: data,
-          countLabel: 'dives',
+          countLabel: context.l10n.statistics_ranking_countLabel_dives,
           maxItems: 5,
           onItemTap: (item) => context.push('/dive-centers/${item.id}'),
         ),
@@ -125,9 +126,9 @@ class StatisticsSocialPage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, _) => const StatEmptyState(
+        error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: 'Failed to load dive center rankings',
+          message: context.l10n.statistics_social_topDiveCenters_error,
         ),
       ),
     );

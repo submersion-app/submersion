@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/features/statistics/presentation/widgets/ranking_list.dart';
 import 'package:submersion/features/statistics/presentation/widgets/stat_section_card.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 class StatisticsGeographicPage extends ConsumerWidget {
   final bool embedded;
@@ -32,7 +33,9 @@ class StatisticsGeographicPage extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Geographic')),
+      appBar: AppBar(
+        title: Text(context.l10n.statistics_geographic_appBar_title),
+      ),
       body: content,
     );
   }
@@ -41,25 +44,33 @@ class StatisticsGeographicPage extends ConsumerWidget {
     final countriesAsync = ref.watch(countriesVisitedProvider);
 
     return StatSectionCard(
-      title: 'Countries Visited',
-      subtitle: 'Dives by country',
+      title: context.l10n.statistics_geographic_countries_title,
+      subtitle: context.l10n.statistics_geographic_countries_subtitle,
       child: countriesAsync.when(
         data: (data) {
           final summary = data.isNotEmpty
-              ? '${data.length} countries. Top: ${data.first.name} with ${data.first.count} dives'
-              : 'No countries visited';
+              ? context.l10n.statistics_geographic_countries_summary(
+                  data.length,
+                  data.first.name,
+                  data.first.count,
+                )
+              : context.l10n.statistics_geographic_countries_empty;
           return Semantics(
             label: summary,
-            child: RankingList(items: data, countLabel: 'dives', maxItems: 10),
+            child: RankingList(
+              items: data,
+              countLabel: context.l10n.statistics_ranking_countLabel_dives,
+              maxItems: 10,
+            ),
           );
         },
         loading: () => const SizedBox(
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, _) => const StatEmptyState(
+        error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: 'Failed to load country data',
+          message: context.l10n.statistics_geographic_countries_error,
         ),
       ),
     );
@@ -69,25 +80,33 @@ class StatisticsGeographicPage extends ConsumerWidget {
     final regionsAsync = ref.watch(regionsExploredProvider);
 
     return StatSectionCard(
-      title: 'Regions Explored',
-      subtitle: 'Dives by region',
+      title: context.l10n.statistics_geographic_regions_title,
+      subtitle: context.l10n.statistics_geographic_regions_subtitle,
       child: regionsAsync.when(
         data: (data) {
           final summary = data.isNotEmpty
-              ? '${data.length} regions. Top: ${data.first.name} with ${data.first.count} dives'
-              : 'No regions explored';
+              ? context.l10n.statistics_geographic_regions_summary(
+                  data.length,
+                  data.first.name,
+                  data.first.count,
+                )
+              : context.l10n.statistics_geographic_regions_empty;
           return Semantics(
             label: summary,
-            child: RankingList(items: data, countLabel: 'dives', maxItems: 10),
+            child: RankingList(
+              items: data,
+              countLabel: context.l10n.statistics_ranking_countLabel_dives,
+              maxItems: 10,
+            ),
           );
         },
         loading: () => const SizedBox(
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, _) => const StatEmptyState(
+        error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: 'Failed to load region data',
+          message: context.l10n.statistics_geographic_regions_error,
         ),
       ),
     );
@@ -97,18 +116,22 @@ class StatisticsGeographicPage extends ConsumerWidget {
     final tripsAsync = ref.watch(divesPerTripProvider);
 
     return StatSectionCard(
-      title: 'Dives Per Trip',
-      subtitle: 'Most productive trips',
+      title: context.l10n.statistics_geographic_trips_title,
+      subtitle: context.l10n.statistics_geographic_trips_subtitle,
       child: tripsAsync.when(
         data: (data) {
           final summary = data.isNotEmpty
-              ? '${data.length} trips. Top: ${data.first.name} with ${data.first.count} dives'
-              : 'No trip data';
+              ? context.l10n.statistics_geographic_trips_summary(
+                  data.length,
+                  data.first.name,
+                  data.first.count,
+                )
+              : context.l10n.statistics_geographic_trips_empty;
           return Semantics(
             label: summary,
             child: RankingList(
               items: data,
-              countLabel: 'dives',
+              countLabel: context.l10n.statistics_ranking_countLabel_dives,
               maxItems: 10,
               onItemTap: (item) => context.push('/trips/${item.id}'),
             ),
@@ -118,9 +141,9 @@ class StatisticsGeographicPage extends ConsumerWidget {
           height: 200,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (_, _) => const StatEmptyState(
+        error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: 'Failed to load trip data',
+          message: context.l10n.statistics_geographic_trips_error,
         ),
       ),
     );
