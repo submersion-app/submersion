@@ -1,0 +1,449 @@
+# Multi-Platform Release Workflow
+#
+# Triggers on version tag push (v*). Builds all 5 platforms in parallel,
+# then creates a GitHub Release with all artifacts attached.
+#
+# Beta tags (v1.0.0-beta.1) create pre-releases.
+# Clean tags (v1.0.0) create full releases.
+#
+# Required Secrets - see docs/plans/2026-02-12-github-releases-design.md
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: '3.x'
+
+jobs:
+  # ============================================================================
+  # macOS Build (signed DMG + Mac App Store)
+  # ============================================================================
+  build-macos:
+    name: Build macOS
+    runs-on: macos-14
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: |
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+
+      - name: Build macOS release
+        run: flutter build macos --release
+
+      # -- Developer ID DMG (for GitHub Release) --
+
+      - name: Import Developer ID certificate
+        env:
+          MACOS_CERTIFICATE_BASE64: ${{ secrets.MACOS_CERTIFICATE_BASE64 }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          MACOS_KEYCHAIN_PASSWORD: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
+        run: |
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          echo -n "$MACOS_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+          security create-keychain -p "$MACOS_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$MACOS_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security import $CERTIFICATE_PATH -P "$MACOS_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple: -k "$MACOS_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+      - name: Codesign the app
+        run: |
+          APP_PATH="build/macos/Build/Products/Release/Submersion.app"
+          codesign --deep --force --options runtime \
+            --sign "Developer ID Application" \
+            "$APP_PATH"
+
+      - name: Install create-dmg
+        run: brew install create-dmg
+
+      - name: Create DMG
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          create-dmg \
+            --volname "Submersion" \
+            --volicon "macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_512.png" \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 100 \
+            --icon "Submersion.app" 150 200 \
+            --app-drop-link 450 200 \
+            "Submersion-${TAG_NAME}-macOS.dmg" \
+            "build/macos/Build/Products/Release/Submersion.app" || true
+          # create-dmg returns non-zero if background image is missing; dmg is still valid
+
+      - name: Notarize DMG
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          xcrun notarytool submit "Submersion-${TAG_NAME}-macOS.dmg" \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_APP_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" \
+            --wait
+          xcrun stapler staple "Submersion-${TAG_NAME}-macOS.dmg"
+
+      - name: Upload DMG artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-dmg
+          path: Submersion-*.dmg
+          retention-days: 5
+
+      # -- Mac App Store (via Fastlane) --
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: macos
+
+      - name: Setup App Store Connect API Key
+        env:
+          APP_STORE_CONNECT_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+        run: |
+          mkdir -p macos/fastlane
+          echo "$APP_STORE_CONNECT_API_KEY_BASE64" | base64 --decode > macos/fastlane/AuthKey.p8
+
+      - name: Determine Fastlane lane
+        id: lane
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          if echo "$TAG_NAME" | grep -qE '\-(beta|rc)'; then
+            echo "lane=beta" >> "$GITHUB_OUTPUT"
+          else
+            echo "lane=release" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Sync macOS code signing
+        working-directory: macos
+        env:
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: fastlane/AuthKey.p8
+        run: bundle exec fastlane sync_signing
+
+      - name: Upload to App Store / TestFlight
+        working-directory: macos
+        env:
+          FASTLANE_LANE: ${{ steps.lane.outputs.lane }}
+          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: fastlane/AuthKey.p8
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+        run: bundle exec fastlane "$FASTLANE_LANE"
+
+      - name: Cleanup sensitive files
+        if: always()
+        run: rm -f macos/fastlane/AuthKey.p8
+
+  # ============================================================================
+  # Windows Build
+  # ============================================================================
+  build-windows:
+    name: Build Windows
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: |
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+
+      - name: Build Windows release
+        run: flutter build windows --release
+
+      - name: Create ZIP archive
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "Submersion-${env:TAG_NAME}-Windows.zip"
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-zip
+          path: Submersion-*.zip
+          retention-days: 5
+
+  # ============================================================================
+  # Linux Build
+  # ============================================================================
+  build-linux:
+    name: Build Linux
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y \
+            clang cmake ninja-build pkg-config \
+            libgtk-3-dev liblzma-dev libstdc++-12-dev \
+            libsqlite3-dev
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: |
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+
+      - name: Build Linux release
+        run: flutter build linux --release
+
+      - name: Create tarball
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          cd build/linux/x64/release/bundle
+          tar czf "$GITHUB_WORKSPACE/Submersion-${TAG_NAME}-Linux.tar.gz" .
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-tar
+          path: Submersion-*.tar.gz
+          retention-days: 5
+
+  # ============================================================================
+  # Android Build
+  # ============================================================================
+  build-android:
+    name: Build Android
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: |
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+
+      - name: Setup Android signing
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/release.keystore
+          cat > android/key.properties <<EOL
+          storePassword=$ANDROID_KEYSTORE_PASSWORD
+          keyPassword=$ANDROID_KEY_PASSWORD
+          keyAlias=$ANDROID_KEY_ALIAS
+          storeFile=release.keystore
+          EOL
+
+      - name: Build Android APK
+        run: flutter build apk --release
+
+      - name: Rename APK
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          mv build/app/outputs/flutter-apk/app-release.apk \
+            "Submersion-${TAG_NAME}-Android.apk"
+
+      - name: Upload Android artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: Submersion-*.apk
+          retention-days: 5
+
+      - name: Cleanup sensitive files
+        if: always()
+        run: |
+          rm -f android/app/release.keystore
+          rm -f android/key.properties
+
+  # ============================================================================
+  # iOS Build
+  # ============================================================================
+  build-ios:
+    name: Build iOS
+    runs-on: macos-14
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: ios
+
+      - name: Install dependencies
+        run: |
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+
+      - name: Setup App Store Connect API Key
+        env:
+          APP_STORE_CONNECT_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+        run: |
+          mkdir -p ios/fastlane
+          echo "$APP_STORE_CONNECT_API_KEY_BASE64" | base64 --decode > ios/fastlane/AuthKey.p8
+
+      - name: Determine Fastlane lane
+        id: lane
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          if echo "$TAG_NAME" | grep -qE '\-(beta|rc)'; then
+            echo "lane=beta" >> "$GITHUB_OUTPUT"
+          else
+            echo "lane=release" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Sync iOS code signing
+        working-directory: ios
+        env:
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: fastlane/AuthKey.p8
+        run: bundle exec fastlane sync_signing
+
+      - name: Build and upload iOS
+        working-directory: ios
+        env:
+          FASTLANE_LANE: ${{ steps.lane.outputs.lane }}
+          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: fastlane/AuthKey.p8
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+        run: bundle exec fastlane "$FASTLANE_LANE"
+
+      - name: Rename IPA
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          mv ios/build/Submersion.ipa "Submersion-${TAG_NAME}-iOS.ipa"
+
+      - name: Upload iOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa
+          path: Submersion-*.ipa
+          retention-days: 5
+
+      - name: Cleanup sensitive files
+        if: always()
+        run: rm -f ios/fastlane/AuthKey.p8
+
+  # ============================================================================
+  # Create GitHub Release
+  # ============================================================================
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [build-macos, build-windows, build-linux, build-android, build-ios]
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - name: List artifacts
+        run: ls -la Submersion-*
+
+      - name: Determine if pre-release
+        id: prerelease
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          if echo "$TAG_NAME" | grep -qE '\-(beta|rc|alpha)'; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Submersion-*
+          prerelease: ${{ steps.prerelease.outputs.prerelease }}
+          generate_release_notes: true
