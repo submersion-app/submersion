@@ -1,4 +1,7 @@
 import 'dart:io';
+import 'dart:ui' as ui;
+
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -67,14 +70,37 @@ class ScreenshotHelper {
     final paddedIndex = _screenshotIndex.toString().padLeft(2, '0');
     final filename = '${deviceName}_${paddedIndex}_$name';
 
-    // Capture screenshot bytes and save to file
-    final bytes = await binding.takeScreenshot(filename);
+    // Capture screenshot bytes and save to file.
+    // On desktop (macOS/Windows/Linux), the integration_test platform channel
+    // for captureScreenshot is not implemented. Use Flutter's rendering pipeline
+    // directly via OffsetLayer.toImage() instead.
+    final List<int> bytes;
+    if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
+      bytes = await _captureViaRenderPipeline(tester);
+    } else {
+      bytes = await binding.takeScreenshot(filename);
+    }
     final file = File('$outputDir/$deviceName/$filename.png');
     await file.writeAsBytes(bytes);
 
     // Log for visibility during test runs
     // ignore: avoid_print
     print('📸 Screenshot saved: ${file.path}');
+  }
+
+  /// Captures a screenshot using Flutter's rendering pipeline.
+  /// This works on all platforms (including desktop) without needing the
+  /// integration_test platform channel.
+  Future<List<int>> _captureViaRenderPipeline(WidgetTester tester) async {
+    final renderView = tester.binding.renderViews.first;
+    final layer = renderView.debugLayer! as OffsetLayer;
+    final image = await layer.toImage(
+      renderView.paintBounds,
+      pixelRatio: tester.view.devicePixelRatio,
+    );
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    image.dispose();
+    return byteData!.buffer.asUint8List();
   }
 
   /// Waits for content to load with visual feedback.
