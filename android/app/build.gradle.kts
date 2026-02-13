@@ -1,5 +1,4 @@
 import java.util.Properties
-import java.io.FileInputStream
 
 plugins {
     id("com.android.application")
@@ -10,7 +9,7 @@ plugins {
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
 if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+    keystorePropertiesFile.inputStream().use { keystoreProperties.load(it) }
 }
 
 android {
@@ -39,10 +38,14 @@ android {
     signingConfigs {
         if (keystorePropertiesFile.exists()) {
             create("release") {
-                keyAlias = keystoreProperties["keyAlias"] as String
-                keyPassword = keystoreProperties["keyPassword"] as String
-                storeFile = file(keystoreProperties["storeFile"] as String)
-                storePassword = keystoreProperties["storePassword"] as String
+                keyAlias = keystoreProperties["keyAlias"]?.toString()
+                    ?: error("Missing 'keyAlias' in key.properties")
+                keyPassword = keystoreProperties["keyPassword"]?.toString()
+                    ?: error("Missing 'keyPassword' in key.properties")
+                storeFile = file(keystoreProperties["storeFile"]?.toString()
+                    ?: error("Missing 'storeFile' in key.properties"))
+                storePassword = keystoreProperties["storePassword"]?.toString()
+                    ?: error("Missing 'storePassword' in key.properties")
             }
         }
     }
