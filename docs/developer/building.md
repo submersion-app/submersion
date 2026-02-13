@@ -376,10 +376,13 @@ Before releasing:
 1. [ ] Run `flutter analyze` - no errors
 2. [ ] Run `flutter test` - all passing
 3. [ ] Update version in `pubspec.yaml`
-4. [ ] Update CHANGELOG.md
-5. [ ] Build for target platforms
-6. [ ] Test on physical devices
-7. [ ] Sign and notarize (macOS/iOS)
-8. [ ] Create GitHub release
-9. [ ] Upload to app stores
+4. [ ] Commit: `git commit -am "chore: bump version to X.Y.Z"`
+5. [ ] Tag: `git tag vX.Y.Z`
+6. [ ] Push: `git push origin main --tags`
+7. [ ] Monitor the Release workflow in GitHub Actions
+8. [ ] Verify all artifacts appear on the GitHub Release page
+9. [ ] Verify iOS build appears in TestFlight
+10. [ ] Verify macOS build appears in TestFlight
+
+For beta releases, use tags like `v1.0.0-beta.1` (creates a pre-release).
 
