@@ -79,13 +79,15 @@ jobs:
             --wiFiMode active --wiFiBars 3 --cellularMode active --cellularBars 4 \
             --operatorName "" 2>/dev/null || true
 
+          # iOS simulator resolves relative paths against the app bundle (read-only).
+          # Use absolute paths so the Dart VM can read/write the host filesystem.
           flutter test integration_test/screenshots_test.dart \
             -d "$UDID" \
             --dart-define=SCREENSHOT_MODE=true \
             --dart-define=SCREENSHOT_DEVICE_NAME=iPhone_6_7_inch \
-            --dart-define=SCREENSHOT_OUTPUT_DIR=screenshots \
+            --dart-define=SCREENSHOT_OUTPUT_DIR="$GITHUB_WORKSPACE/screenshots" \
             --dart-define=SCREENSHOT_ORIENTATION=portrait \
-            --dart-define=UDDF_TEST_DATA_PATH=integration_test/fixtures/screenshot_test_data.uddf
+            --dart-define=UDDF_TEST_DATA_PATH="$GITHUB_WORKSPACE/integration_test/fixtures/screenshot_test_data.uddf"
 
           xcrun simctl shutdown "$UDID" 2>/dev/null || true
 
@@ -115,9 +117,9 @@ jobs:
             -d "$UDID" \
             --dart-define=SCREENSHOT_MODE=true \
             --dart-define=SCREENSHOT_DEVICE_NAME=iPad_13_inch \
-            --dart-define=SCREENSHOT_OUTPUT_DIR=screenshots \
+            --dart-define=SCREENSHOT_OUTPUT_DIR="$GITHUB_WORKSPACE/screenshots" \
             --dart-define=SCREENSHOT_ORIENTATION=landscape \
-            --dart-define=UDDF_TEST_DATA_PATH=integration_test/fixtures/screenshot_test_data.uddf
+            --dart-define=UDDF_TEST_DATA_PATH="$GITHUB_WORKSPACE/integration_test/fixtures/screenshot_test_data.uddf"
 
           mv "$PLIST.backup" "$PLIST"
           xcrun simctl shutdown "$UDID" 2>/dev/null || true
@@ -161,16 +163,16 @@ jobs:
           flutter pub get
           dart run build_runner build --delete-conflicting-outputs
 
+      - name: Disable code signing for CI
+        run: |
+          echo 'CODE_SIGNING_ALLOWED = NO' >> macos/Runner/Configs/Debug.xcconfig
+          echo 'CODE_SIGNING_REQUIRED = NO' >> macos/Runner/Configs/Debug.xcconfig
+          echo 'CODE_SIGN_IDENTITY = ' >> macos/Runner/Configs/Debug.xcconfig
+
       - name: Generate UDDF test data
         run: |
           mkdir -p integration_test/fixtures
           python3 scripts/generate_uddf_test_data.py -o integration_test/fixtures/screenshot_test_data.uddf
-
-      - name: Stage test data into macOS sandbox
-        run: |
-          SANDBOX_DIR="$HOME/Library/Containers/app.submersion/Data/integration_test/fixtures"
-          mkdir -p "$SANDBOX_DIR"
-          cp integration_test/fixtures/screenshot_test_data.uddf "$SANDBOX_DIR/"
 
       - name: Capture macOS screenshots
         run: |
@@ -181,16 +183,22 @@ jobs:
             --dart-define=SCREENSHOT_OUTPUT_DIR=screenshots \
             --dart-define=UDDF_TEST_DATA_PATH=integration_test/fixtures/screenshot_test_data.uddf
 
-      - name: Retrieve screenshots from sandbox
+      - name: Collect screenshots
         run: |
-          SANDBOX_SCREENSHOTS="$HOME/Library/Containers/app.submersion/Data/screenshots/macOS"
-          if [ -d "$SANDBOX_SCREENSHOTS" ]; then
-            mkdir -p screenshots/macOS
-            cp "$SANDBOX_SCREENSHOTS"/*.png screenshots/macOS/
-            echo "Retrieved $(ls screenshots/macOS/*.png | wc -l | tr -d ' ') macOS screenshots"
+          # Without code signing, sandbox is not enforced — screenshots may be
+          # in the project directory or in the sandbox container. Check both.
+          if [ -d "screenshots/macOS" ] && ls screenshots/macOS/*.png 1>/dev/null 2>&1; then
+            echo "Found $(ls screenshots/macOS/*.png | wc -l | tr -d ' ') screenshots in project directory"
           else
-            echo "No screenshots found in sandbox container"
-            exit 1
+            SANDBOX_SCREENSHOTS="$HOME/Library/Containers/app.submersion/Data/screenshots/macOS"
+            if [ -d "$SANDBOX_SCREENSHOTS" ] && ls "$SANDBOX_SCREENSHOTS"/*.png 1>/dev/null 2>&1; then
+              mkdir -p screenshots/macOS
+              cp "$SANDBOX_SCREENSHOTS"/*.png screenshots/macOS/
+              echo "Retrieved $(ls screenshots/macOS/*.png | wc -l | tr -d ' ') screenshots from sandbox container"
+            else
+              echo "No screenshots found in project directory or sandbox container"
+              exit 1
+            fi
           fi
 
       - name: Upload macOS screenshot artifacts
