@@ -21,6 +21,10 @@ name: Capture & Upload Screenshots
 on:
   workflow_dispatch:
 
+concurrency:
+  group: screenshots
+  cancel-in-progress: true
+
 env:
   FLUTTER_VERSION: '3.x'
 
