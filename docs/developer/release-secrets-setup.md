@@ -7,15 +7,18 @@ multi-platform release workflow.
 
 Go to: Repository Settings > Secrets and variables > Actions > New repository secret
 
-### Already Configured (iOS)
+### App Store Connect API Key
 
-These should already exist from the iOS release workflow:
+These are shared by both iOS and macOS Fastlane builds for automatic signing
+and App Store/TestFlight uploads:
 
-- `APP_STORE_CONNECT_API_KEY_ID`
-- `APP_STORE_CONNECT_API_ISSUER_ID`
-- `APP_STORE_CONNECT_API_KEY_BASE64`
-- `MATCH_PASSWORD`
-- `MATCH_GIT_BASIC_AUTHORIZATION`
+- `APP_STORE_CONNECT_API_KEY_ID` - Key ID from App Store Connect
+- `APP_STORE_CONNECT_API_ISSUER_ID` - Issuer ID from App Store Connect
+- `APP_STORE_CONNECT_API_KEY_BASE64` - Base64-encoded .p8 private key file
+
+The API key is used with Xcode's `-allowProvisioningUpdates` flag to
+automatically download and manage provisioning profiles from Apple's Developer
+Portal during CI builds. No separate certificate repository is needed.
 
 ### macOS Signing (Developer ID DMG)
 
@@ -80,19 +83,6 @@ The alias of the key within the keystore (e.g., `submersion`).
 **ANDROID_KEY_PASSWORD**
 
 The password for the key (often the same as the keystore password).
-
-## macOS Match Setup
-
-If macOS provisioning profiles have not been added to your Match repository yet:
-
-```bash
-cd macos
-bundle install
-bundle exec fastlane match appstore --platform macos
-```
-
-This will generate Mac App Store certificates and provisioning profiles and
-store them encrypted in your certificates repository.
 
 ## Verification
 

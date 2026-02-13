@@ -148,16 +148,6 @@ jobs:
             echo "lane=release" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Sync macOS code signing
-        working-directory: macos
-        env:
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
-          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-          APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: fastlane/AuthKey.p8
-        run: bundle exec fastlane sync_signing
-
       - name: Upload to App Store / TestFlight
         working-directory: macos
         env:
@@ -165,8 +155,6 @@ jobs:
           APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
           APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: fastlane/AuthKey.p8
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
         run: bundle exec fastlane "$FASTLANE_LANE"
 
       - name: Cleanup sensitive files
@@ -380,16 +368,6 @@ jobs:
             echo "lane=release" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Sync iOS code signing
-        working-directory: ios
-        env:
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
-          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-          APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: fastlane/AuthKey.p8
-        run: bundle exec fastlane sync_signing
-
       - name: Build and upload iOS
         working-directory: ios
         env:
@@ -397,8 +375,6 @@ jobs:
           APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
           APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: fastlane/AuthKey.p8
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
         run: bundle exec fastlane "$FASTLANE_LANE"
 
       - name: Rename IPA

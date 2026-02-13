@@ -10,8 +10,7 @@
 #   bundle exec fastlane release            # Build + upload to App Store
 #   bundle exec fastlane full_release       # Screenshots + build + upload
 #
-#   bundle exec fastlane sync_signing       # Sync code signing certs (Match)
-#   bundle exec fastlane setup_signing      # First-time Match setup (creates certs)
+#   Signing is handled automatically via Xcode + App Store Connect API key.
 
 default_platform(:ios)
 
@@ -109,48 +108,6 @@ platform :ios do
   end
 
   # ============================================================================
-  # Code Signing Lanes (Match)
-  # ============================================================================
-
-  desc "Sync code signing certificates and provisioning profiles"
-  lane :sync_signing do
-    # Creates a temporary keychain for CI environments
-    if ENV["CI"]
-      create_keychain(
-        name: "fastlane_keychain",
-        password: ENV["MATCH_PASSWORD"] || "temporary",
-        default_keychain: true,
-        unlock: true,
-        timeout: 3600,
-        lock_when_sleeps: false
-      )
-    end
-
-    match(
-      type: "appstore",
-      readonly: true,
-      keychain_name: ENV["CI"] ? "fastlane_keychain" : nil,
-      keychain_password: ENV["CI"] ? (ENV["MATCH_PASSWORD"] || "temporary") : nil
-    )
-
-    UI.success("Code signing synced successfully!")
-  end
-
-  desc "Setup Match for the first time (creates new certificates)"
-  lane :setup_signing do
-    UI.important("This will create new App Store distribution certificates and profiles.")
-    UI.important("Only run this once per team, or when certificates expire.")
-
-    match(
-      type: "appstore",
-      readonly: false  # Allow creating new certs
-    )
-
-    UI.success("Code signing setup complete!")
-    UI.message("Your certificates are now stored in your Match git repository.")
-  end
-
-  # ============================================================================
   # Build Lanes
   # ============================================================================
 
@@ -181,7 +138,7 @@ platform :ios do
         signingStyle: "automatic",
         teamID: "8U3RSKF42Q"
       },
-      export_xcargs: "-allowProvisioningUpdates"
+      export_xcargs: "-allowProvisioningUpdates -authenticationKeyPath '#{ENV["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"]}' -authenticationKeyID '#{ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"]}' -authenticationKeyIssuerID '#{ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"]}'"
     )
 
     UI.success("Build complete! IPA saved to ios/build/Submersion.ipa")
@@ -285,10 +242,6 @@ platform :ios do
     UI.message("    screenshots        - Capture App Store screenshots")
     UI.message("    upload_screenshots - Upload screenshots to App Store Connect")
     UI.message("    capture_and_upload - Both in one command")
-    UI.message("")
-    UI.message("  Code Signing:")
-    UI.message("    sync_signing       - Sync certificates from Match repo (readonly)")
-    UI.message("    setup_signing      - First-time setup (creates new certs)")
     UI.message("")
     UI.message("  Build & Release:")
     UI.message("    build              - Build IPA for App Store")

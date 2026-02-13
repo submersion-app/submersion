@@ -1,10 +1,11 @@
 # Fastfile for Submersion macOS App Store Automation
 #
 # Usage:
-#   bundle exec fastlane sync_signing  # Sync code signing certs (Match)
 #   bundle exec fastlane build         # Build pkg for Mac App Store
 #   bundle exec fastlane beta          # Build + upload to TestFlight
 #   bundle exec fastlane release       # Build + upload to App Store
+#
+#   Signing is handled automatically via Xcode + App Store Connect API key.
 
 default_platform(:mac)
 
@@ -49,34 +50,6 @@ platform :mac do
   end
 
   # ============================================================================
-  # Code Signing Lanes (Match)
-  # ============================================================================
-
-  desc "Sync code signing certificates and provisioning profiles for macOS"
-  lane :sync_signing do
-    if ENV["CI"]
-      create_keychain(
-        name: "fastlane_keychain",
-        password: ENV["MATCH_PASSWORD"] || "temporary",
-        default_keychain: true,
-        unlock: true,
-        timeout: 3600,
-        lock_when_sleeps: false
-      )
-    end
-
-    match(
-      type: "appstore",
-      platform: "macos",
-      readonly: true,
-      keychain_name: ENV["CI"] ? "fastlane_keychain" : nil,
-      keychain_password: ENV["CI"] ? (ENV["MATCH_PASSWORD"] || "temporary") : nil
-    )
-
-    UI.success("macOS code signing synced successfully!")
-  end
-
-  # ============================================================================
   # Build Lanes
   # ============================================================================
 
@@ -97,7 +70,8 @@ platform :mac do
       export_options: {
         signingStyle: "automatic",
         teamID: "8U3RSKF42Q"
-      }
+      },
+      export_xcargs: "-allowProvisioningUpdates -authenticationKeyPath '#{ENV["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"]}' -authenticationKeyID '#{ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"]}' -authenticationKeyIssuerID '#{ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"]}'"
     )
 
     UI.success("Build complete! Pkg saved to macos/build/Submersion.pkg")

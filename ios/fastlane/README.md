@@ -39,22 +39,6 @@ Upload screenshots to App Store Connect
 
 Capture screenshots and upload to App Store Connect
 
-### ios sync_signing
-
-```sh
-[bundle exec] fastlane ios sync_signing
-```
-
-Sync code signing certificates and provisioning profiles
-
-### ios setup_signing
-
-```sh
-[bundle exec] fastlane ios setup_signing
-```
-
-Setup Match for the first time (creates new certificates)
-
 ### ios build
 
 ```sh
