@@ -91,8 +91,14 @@ jobs:
             --icon "Submersion.app" 150 200 \
             --app-drop-link 450 200 \
             "Submersion-${TAG_NAME}-macOS.dmg" \
-            "build/macos/Build/Products/Release/Submersion.app" || true
-          # create-dmg returns non-zero if background image is missing; dmg is still valid
+            "build/macos/Build/Products/Release/Submersion.app" || {
+              if [ -f "Submersion-${TAG_NAME}-macOS.dmg" ]; then
+                echo "Warning: create-dmg returned non-zero but DMG exists (likely missing background image)"
+              else
+                echo "Error: create-dmg failed and DMG was not created"
+                exit 1
+              fi
+            }
 
       - name: Notarize DMG
         env:
@@ -136,7 +142,7 @@ jobs:
         env:
           TAG_NAME: ${{ github.ref_name }}
         run: |
-          if echo "$TAG_NAME" | grep -qE '\-(beta|rc)'; then
+          if echo "$TAG_NAME" | grep -qE '\-(alpha|beta|rc)'; then
             echo "lane=beta" >> "$GITHUB_OUTPUT"
           else
             echo "lane=release" >> "$GITHUB_OUTPUT"
@@ -300,6 +306,7 @@ jobs:
           keyAlias=$ANDROID_KEY_ALIAS
           storeFile=release.keystore
           EOL
+          chmod 600 android/key.properties android/app/release.keystore
 
       - name: Build Android APK
         run: flutter build apk --release
@@ -367,7 +374,7 @@ jobs:
         env:
           TAG_NAME: ${{ github.ref_name }}
         run: |
-          if echo "$TAG_NAME" | grep -qE '\-(beta|rc)'; then
+          if echo "$TAG_NAME" | grep -qE '\-(alpha|beta|rc)'; then
             echo "lane=beta" >> "$GITHUB_OUTPUT"
           else
             echo "lane=release" >> "$GITHUB_OUTPUT"
