@@ -6,11 +6,11 @@
 <br clear="all"/>
 
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Build macOS](https://img.shields.io/github/actions/workflow/status/submersion-app/submersion/ci.yaml?branch=main&label=macOS&logo=apple)](https://github.com/submersion-app/submersion/actions/workflows/ci.yaml)
-[![Build Windows](https://img.shields.io/github/actions/workflow/status/submersion-app/submersion/ci.yaml?branch=main&label=Windows&logo=windows)](https://github.com/submersion-app/submersion/actions/workflows/ci.yaml)
-[![Build Linux](https://img.shields.io/github/actions/workflow/status/submersion-app/submersion/ci.yaml?branch=main&label=Linux&logo=linux)](https://github.com/submersion-app/submersion/actions/workflows/ci.yaml)
-[![Build Android](https://img.shields.io/github/actions/workflow/status/submersion-app/submersion/ci.yaml?branch=main&label=Android&logo=android)](https://github.com/submersion-app/submersion/actions/workflows/ci.yaml)
-[![Build iOS](https://img.shields.io/github/actions/workflow/status/submersion-app/submersion/ci.yaml?branch=main&label=iOS&logo=apple)](https://github.com/submersion-app/submersion/actions/workflows/ci.yaml)
+[![Build macOS](https://img.shields.io/github/actions/workflow/status/submersion-app/submersion/build-macos.yml?branch=main&label=macOS&logo=apple)](https://github.com/submersion-app/submersion/actions/workflows/build-macos.yml)
+[![Build Windows](https://img.shields.io/github/actions/workflow/status/submersion-app/submersion/build-windows.yml?branch=main&label=Windows&logo=windows)](https://github.com/submersion-app/submersion/actions/workflows/build-windows.yml)
+[![Build Linux](https://img.shields.io/github/actions/workflow/status/submersion-app/submersion/build-linux.yml?branch=main&label=Linux&logo=linux)](https://github.com/submersion-app/submersion/actions/workflows/build-linux.yml)
+[![Build Android](https://img.shields.io/github/actions/workflow/status/submersion-app/submersion/build-android.yml?branch=main&label=Android&logo=android)](https://github.com/submersion-app/submersion/actions/workflows/build-android.yml)
+[![Build iOS](https://img.shields.io/github/actions/workflow/status/submersion-app/submersion/build-ios.yml?branch=main&label=iOS&logo=apple)](https://github.com/submersion-app/submersion/actions/workflows/build-ios.yml)
 
 
 

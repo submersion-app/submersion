@@ -1,0 +1,84 @@
+# Builds Android after CI passes on main.
+# Separate workflow so the README badge tracks Android status independently.
+
+name: Build Android
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+env:
+  FLUTTER_VERSION: '3.38.5'
+  DART_DEFINES: '--dart-define=flutter.flutter_map.unblockOSM=Our tile servers are not.'
+
+jobs:
+  gate:
+    name: Verify CI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check CI conclusion
+        env:
+          CI_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+        run: |
+          if [ "$CI_CONCLUSION" != "success" ]; then
+            echo "CI workflow did not succeed (conclusion: $CI_CONCLUSION)"
+            exit 1
+          fi
+
+  build-android:
+    name: Build Android
+    needs: gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            ${{ github.workspace }}/.dart_tool
+          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run code generation
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Build Android APK
+        run: flutter build apk --release "$DART_DEFINES" -v
+
+      - name: Upload Android artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 7
