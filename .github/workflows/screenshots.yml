@@ -59,7 +59,9 @@ jobs:
           dart run build_runner build --delete-conflicting-outputs
 
       - name: Generate UDDF test data
-        run: python3 scripts/generate_uddf_test_data.py -o integration_test/fixtures/screenshot_test_data.uddf
+        run: |
+          mkdir -p integration_test/fixtures
+          python3 scripts/generate_uddf_test_data.py -o integration_test/fixtures/screenshot_test_data.uddf
 
       - name: Capture iPhone 6.7" screenshots
         run: |
@@ -160,7 +162,9 @@ jobs:
           dart run build_runner build --delete-conflicting-outputs
 
       - name: Generate UDDF test data
-        run: python3 scripts/generate_uddf_test_data.py -o integration_test/fixtures/screenshot_test_data.uddf
+        run: |
+          mkdir -p integration_test/fixtures
+          python3 scripts/generate_uddf_test_data.py -o integration_test/fixtures/screenshot_test_data.uddf
 
       - name: Stage test data into macOS sandbox
         run: |
