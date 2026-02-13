@@ -1,30 +1,100 @@
-name: Upload Screenshots
+# Capture & Upload App Store Screenshots
+#
+# Manually triggered workflow that captures screenshots on iOS simulators
+# and macOS desktop, then uploads them to App Store Connect for both platforms.
+#
+# The capture script (scripts/release/capture_screenshots.sh) handles:
+#   - iPhone 15 Pro Max (6.7" class)
+#   - iPad Pro 13" (landscape)
+#   - macOS desktop
+#
+# Screenshots are organized into Fastlane's expected locale structure,
+# with alpha channels stripped for App Store compatibility.
+#
+# Required Secrets:
+#   APP_STORE_CONNECT_API_KEY_KEY       - Base64-encoded .p8 API key
+#   APP_STORE_CONNECT_API_KEY_KEY_ID    - API key ID
+#   APP_STORE_CONNECT_API_KEY_ISSUER_ID - Issuer ID
+
+name: Capture & Upload Screenshots
 
 on:
-  workflow_dispatch:  # Manual trigger
+  workflow_dispatch:
 
 jobs:
-  upload:
+  screenshots:
+    name: Capture & Upload
     runs-on: macos-14
-    steps:
-      - uses: actions/checkout@v4
+    timeout-minutes: 60
 
-      - name: Set up Ruby
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: stable
+          cache: true
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Setup Ruby (iOS)
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.2'
           bundler-cache: true
           working-directory: ios
 
-      - name: Decode API Key
-        run: |
-          echo "${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}" | base64 -d > ios/fastlane/AuthKey.p8
+      - name: Install macOS Fastlane gems
+        run: cd macos && bundle install
 
-      - name: Upload Screenshots
+      - name: Install Flutter dependencies
+        run: |
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+
+      - name: Install ImageMagick
+        run: brew install imagemagick
+
+      - name: Capture screenshots (iOS + macOS)
+        run: ./scripts/release/capture_screenshots.sh
+
+      - name: Upload screenshot artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: screenshots/
+          retention-days: 30
+
+      - name: Decode API Key
+        env:
+          APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
+        run: |
+          echo "$APP_STORE_CONNECT_API_KEY_KEY" | base64 -d > ios/fastlane/AuthKey.p8
+          cp ios/fastlane/AuthKey.p8 macos/fastlane/AuthKey.p8
+
+      - name: Upload iOS screenshots to App Store Connect
         env:
           APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
           APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
           APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: fastlane/AuthKey.p8
+        run: cd ios && bundle exec fastlane upload_screenshots
+
+      - name: Upload macOS screenshots to App Store Connect
+        env:
+          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: fastlane/AuthKey.p8
+        run: cd macos && bundle exec fastlane upload_screenshots
+
+      - name: Cleanup sensitive files
+        if: always()
         run: |
-          cd ios
-          bundle exec fastlane upload_screenshots
+          rm -f ios/fastlane/AuthKey.p8
+          rm -f macos/fastlane/AuthKey.p8
