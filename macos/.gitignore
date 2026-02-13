@@ -5,3 +5,21 @@
 # Xcode-related
 **/dgph
 **/xcuserdata/
+
+# Fastlane sensitive files
+fastlane/api_key.json
+fastlane/AuthKey*.p8
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/
+fastlane/test_output/
+
+# Fastlane build output
+fastlane/build/
+build/
+*.pkg
+*.dSYM.zip
+
+# Ruby bundle
+vendor/bundle/
+.bundle/
