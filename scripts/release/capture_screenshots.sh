@@ -184,15 +184,36 @@ if [[ "$(uname)" == "Darwin" ]]; then
   echo "Running macOS screenshot capture via integration test..."
   cd "$PROJECT_ROOT"
 
+  # macOS sandbox remaps relative paths to ~/Library/Containers/<bundle-id>/Data/.
+  # We stage the UDDF input into the sandbox container before the test, then copy
+  # screenshots out of the container afterward.
+  SANDBOX_DATA="$HOME/Library/Containers/app.submersion/Data"
+  SANDBOX_UDDF_DIR="$SANDBOX_DATA/integration_test/fixtures"
+
+  # Stage UDDF test data into the sandbox container
+  if [ -f "$UDDF_FILE" ]; then
+    mkdir -p "$SANDBOX_UDDF_DIR"
+    cp "$UDDF_FILE" "$SANDBOX_UDDF_DIR/"
+    echo "Staged UDDF test data into sandbox container"
+  fi
+
   flutter test integration_test/screenshots_test.dart \
     -d macos \
     --dart-define=SCREENSHOT_MODE=true \
     --dart-define=SCREENSHOT_DEVICE_NAME=macOS \
-    --dart-define=SCREENSHOT_OUTPUT_DIR="$SCREENSHOTS_DIR" \
-    --dart-define=UDDF_TEST_DATA_PATH="$UDDF_FILE" \
+    --dart-define=SCREENSHOT_OUTPUT_DIR=screenshots \
+    --dart-define=UDDF_TEST_DATA_PATH=integration_test/fixtures/screenshot_test_data.uddf \
     2>&1 || {
       echo "Warning: macOS screenshot capture encountered issues"
     }
+
+  # Copy screenshots from sandbox container back to project directory
+  SANDBOX_SCREENSHOTS="$SANDBOX_DATA/screenshots/macOS"
+  if [ -d "$SANDBOX_SCREENSHOTS" ]; then
+    mkdir -p "$SCREENSHOTS_DIR/macOS"
+    cp "$SANDBOX_SCREENSHOTS"/*.png "$SCREENSHOTS_DIR/macOS/" 2>/dev/null
+    echo "Copied macOS screenshots from sandbox container to $SCREENSHOTS_DIR/macOS/"
+  fi
 
   echo "Completed: macOS"
 else

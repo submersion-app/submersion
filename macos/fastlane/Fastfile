@@ -71,13 +71,32 @@ platform :mac do
       sh("python3 '#{generate_script}' -o '#{uddf_file}'") rescue UI.message("Warning: Failed to generate UDDF test data")
     end
 
-    # Run integration test on macOS
+    # macOS sandbox remaps relative paths to ~/Library/Containers/<bundle-id>/Data/.
+    # Stage the UDDF input into the sandbox container before the test, then copy
+    # screenshots out of the container afterward.
+    sandbox_data = File.join(Dir.home, "Library", "Containers", "app.submersion", "Data")
+    sandbox_uddf_dir = File.join(sandbox_data, "integration_test", "fixtures")
+
+    if File.exist?(uddf_file)
+      FileUtils.mkdir_p(sandbox_uddf_dir)
+      FileUtils.cp(uddf_file, sandbox_uddf_dir)
+      UI.message("Staged UDDF test data into sandbox container")
+    end
+
     sh("cd ../.. && flutter test integration_test/screenshots_test.dart " \
        "-d macos " \
        "--dart-define=SCREENSHOT_MODE=true " \
        "--dart-define=SCREENSHOT_DEVICE_NAME=macOS " \
-       "--dart-define=SCREENSHOT_OUTPUT_DIR=#{screenshots_dir} " \
-       "--dart-define=UDDF_TEST_DATA_PATH=#{uddf_file}")
+       "--dart-define=SCREENSHOT_OUTPUT_DIR=screenshots " \
+       "--dart-define=UDDF_TEST_DATA_PATH=integration_test/fixtures/screenshot_test_data.uddf")
+
+    # Copy screenshots from sandbox container back to project directory
+    sandbox_screenshots = File.join(sandbox_data, "screenshots", "macOS")
+    if File.directory?(sandbox_screenshots)
+      FileUtils.mkdir_p(File.join(screenshots_dir, "macOS"))
+      FileUtils.cp(Dir.glob(File.join(sandbox_screenshots, "*.png")), File.join(screenshots_dir, "macOS"))
+      UI.message("Copied macOS screenshots from sandbox container")
+    end
 
     UI.success("macOS screenshots captured successfully!")
     UI.message("Screenshots saved to: #{screenshots_dir}/macOS/")
