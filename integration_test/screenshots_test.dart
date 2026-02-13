@@ -59,6 +59,10 @@ const String _kOrientation = String.fromEnvironment(
   defaultValue: 'portrait',
 );
 
+/// Whether we are running on a desktop platform (macOS, Windows, Linux).
+bool get _isDesktop =>
+    Platform.isMacOS || Platform.isWindows || Platform.isLinux;
+
 /// Pumps multiple frames to allow layout and navigation transitions to
 /// complete, without waiting for all animations to stop. This avoids hangs
 /// caused by infinite/repeating animations (e.g. the HeroHeader ocean effect).
@@ -158,8 +162,8 @@ void main() {
       // 1. Dashboard (initial screen)
       await screenshotHelper.takeScreenshot(tester, 'dashboard');
 
-      // 2. Navigate to Dives - tap on scuba diving icon in bottom nav
-      await _tapBottomNavItem(tester, Icons.scuba_diving_outlined);
+      // 2. Navigate to Dives
+      await _navigateTo(tester, Icons.scuba_diving_outlined);
       await screenshotHelper.waitForContent(tester);
       await screenshotHelper.takeScreenshot(tester, 'dive_list');
 
@@ -229,7 +233,7 @@ void main() {
       }
 
       // 4. Navigate to Sites
-      await _tapBottomNavItem(tester, Icons.location_on_outlined);
+      await _navigateTo(tester, Icons.location_on_outlined);
       await screenshotHelper.waitForContent(tester);
       await screenshotHelper.takeScreenshot(tester, 'sites_list');
 
@@ -424,71 +428,59 @@ void main() {
         print('WARNING: Could not navigate to map view');
       }
 
-      // 6. Navigate to Equipment via "More" menu
-      await _tapBottomNavItem(tester, Icons.more_horiz_outlined);
-      await _settle(tester);
-
-      // Find and tap Equipment in the menu/list
-      final equipmentText = find.text('Equipment');
-      if (equipmentText.evaluate().isNotEmpty) {
-        await tester.tap(equipmentText.first);
-        await _settle(tester);
+      // 6. Navigate to Equipment
+      if (_isDesktop) {
+        // Desktop: Equipment is directly in NavigationRail
+        await _navigateTo(tester, Icons.backpack_outlined);
         await screenshotHelper.waitForContent(tester);
-
-        // On iPad, select an equipment item to show its details in the right pane
-        // Find the ListView containing equipment cards
-        final equipmentListView = find.byType(ListView);
-        if (equipmentListView.evaluate().isNotEmpty) {
-          final equipmentCards = find.descendant(
-            of: equipmentListView.first,
-            matching: find.byType(Card),
-          );
-
-          // ignore: avoid_print
-          print(
-            'Found ${equipmentCards.evaluate().length} cards in equipment ListView',
-          );
-
-          if (equipmentCards.evaluate().length > 1) {
-            // Tap on the second equipment card (skip first in case it's a header)
-            final cardIndex = min(2, equipmentCards.evaluate().length - 1);
-            await tester.tap(equipmentCards.at(cardIndex));
-            await _settle(tester);
-            await screenshotHelper.waitForContent(
-              tester,
-              duration: const Duration(seconds: 1),
-            );
-          }
-        }
-
+        await _selectEquipmentCard(tester, screenshotHelper);
         await screenshotHelper.takeScreenshot(tester, 'equipment');
+      } else {
+        // Mobile: Equipment is under "More" menu
+        await _tapBottomNavItem(tester, Icons.more_horiz_outlined);
+        await _settle(tester);
+        final equipmentText = find.text('Equipment');
+        if (equipmentText.evaluate().isNotEmpty) {
+          await tester.tap(equipmentText.first);
+          await _settle(tester);
+          await screenshotHelper.waitForContent(tester);
+          await _selectEquipmentCard(tester, screenshotHelper);
+          await screenshotHelper.takeScreenshot(tester, 'equipment');
+        }
       }
 
-      // 7. Navigate to Statistics via "More" menu
-      await _tapBottomNavItem(tester, Icons.more_horiz_outlined);
-      await _settle(tester);
-
-      final statisticsText = find.text('Statistics');
-      if (statisticsText.evaluate().isNotEmpty) {
-        await tester.tap(statisticsText.first);
-        await _settle(tester);
+      // 7. Navigate to Statistics
+      if (_isDesktop) {
+        await _navigateTo(tester, Icons.bar_chart_outlined);
         await screenshotHelper.waitForContent(
           tester,
           duration: const Duration(seconds: 2),
-        ); // Charts need time
+        );
         await screenshotHelper.takeScreenshot(tester, 'statistics');
+      } else {
+        await _tapBottomNavItem(tester, Icons.more_horiz_outlined);
+        await _settle(tester);
+        final statisticsText = find.text('Statistics');
+        if (statisticsText.evaluate().isNotEmpty) {
+          await tester.tap(statisticsText.first);
+          await _settle(tester);
+          await screenshotHelper.waitForContent(
+            tester,
+            duration: const Duration(seconds: 2),
+          );
+          await screenshotHelper.takeScreenshot(tester, 'statistics');
+        }
       }
 
-      // 8. Navigate to Records
-      // First check if Records is directly accessible or under Statistics
+      // 8. Records
       final recordsText = find.text('Records');
       if (recordsText.evaluate().isNotEmpty) {
         await tester.tap(recordsText.first);
         await _settle(tester);
         await screenshotHelper.waitForContent(tester);
         await screenshotHelper.takeScreenshot(tester, 'records');
-      } else {
-        // Try via More menu
+      } else if (!_isDesktop) {
+        // Mobile only: try via More menu
         await _tapBottomNavItem(tester, Icons.more_horiz_outlined);
         await _settle(tester);
         final recordsInMore = find.text('Records');
@@ -501,6 +493,29 @@ void main() {
       }
     });
   });
+}
+
+/// Selects an equipment card in the list to show its detail pane.
+Future<void> _selectEquipmentCard(
+  WidgetTester tester,
+  ScreenshotHelper screenshotHelper,
+) async {
+  final equipmentListView = find.byType(ListView);
+  if (equipmentListView.evaluate().isNotEmpty) {
+    final equipmentCards = find.descendant(
+      of: equipmentListView.first,
+      matching: find.byType(Card),
+    );
+    if (equipmentCards.evaluate().length > 1) {
+      final cardIndex = min(2, equipmentCards.evaluate().length - 1);
+      await tester.tap(equipmentCards.at(cardIndex));
+      await _settle(tester);
+      await screenshotHelper.waitForContent(
+        tester,
+        duration: const Duration(seconds: 1),
+      );
+    }
+  }
 }
 
 /// Enables Pressure and SAC toggles in the dive profile chart.
@@ -533,22 +548,14 @@ Future<void> _tapBottomNavItem(WidgetTester tester, IconData icon) async {
 
   // Try to find the icon in the bottom navigation area
   final iconFinder = find.byIcon(icon);
-  Widget? targetIcon = _findIconInBottomNav(
-    tester,
-    iconFinder,
-    bottomNavThreshold,
-  );
+  Widget? targetIcon = _findIconInBottomNav(iconFinder, bottomNavThreshold);
 
   // If not found, try the selected version of the icon
   if (targetIcon == null) {
     final selectedIcon = _getSelectedIcon(icon);
     if (selectedIcon != null) {
       final selectedIconFinder = find.byIcon(selectedIcon);
-      targetIcon = _findIconInBottomNav(
-        tester,
-        selectedIconFinder,
-        bottomNavThreshold,
-      );
+      targetIcon = _findIconInBottomNav(selectedIconFinder, bottomNavThreshold);
     }
   }
 
@@ -565,11 +572,7 @@ Future<void> _tapBottomNavItem(WidgetTester tester, IconData icon) async {
 }
 
 /// Finds an icon widget that is positioned in the bottom navigation area.
-Widget? _findIconInBottomNav(
-  WidgetTester tester,
-  Finder finder,
-  double bottomNavThreshold,
-) {
+Widget? _findIconInBottomNav(Finder finder, double bottomNavThreshold) {
   for (final element in finder.evaluate()) {
     final renderBox = element.renderObject as RenderBox?;
     if (renderBox != null && renderBox.hasSize) {
@@ -590,5 +593,61 @@ IconData? _getSelectedIcon(IconData outlinedIcon) {
   if (outlinedIcon == Icons.location_on_outlined) return Icons.location_on;
   if (outlinedIcon == Icons.flight_outlined) return Icons.flight;
   if (outlinedIcon == Icons.more_horiz_outlined) return Icons.more_horiz;
+  if (outlinedIcon == Icons.backpack_outlined) return Icons.backpack;
+  if (outlinedIcon == Icons.people_outlined) return Icons.people;
+  if (outlinedIcon == Icons.store_outlined) return Icons.store;
+  if (outlinedIcon == Icons.bar_chart_outlined) return Icons.bar_chart;
+  if (outlinedIcon == Icons.settings_outlined) return Icons.settings;
   return null;
+}
+
+/// Taps a NavigationRail item by its icon on desktop layout.
+/// Uses position filtering to ensure we tap icons on the left edge (rail area),
+/// not icons elsewhere in the UI.
+Future<void> _tapNavRailItem(WidgetTester tester, IconData icon) async {
+  const railMaxX = 200.0;
+
+  final iconFinder = find.byIcon(icon);
+  Widget? targetIcon = _findIconInNavRail(iconFinder, railMaxX);
+
+  if (targetIcon == null) {
+    final selectedIcon = _getSelectedIcon(icon);
+    if (selectedIcon != null) {
+      final selectedFinder = find.byIcon(selectedIcon);
+      targetIcon = _findIconInNavRail(selectedFinder, railMaxX);
+    }
+  }
+
+  if (targetIcon != null) {
+    await tester.tap(find.byWidget(targetIcon), warnIfMissed: false);
+    await _settle(tester);
+  } else if (iconFinder.evaluate().isNotEmpty) {
+    await tester.tap(iconFinder.first, warnIfMissed: false);
+    await _settle(tester);
+  }
+}
+
+/// Finds an icon widget positioned in the NavigationRail area (left edge).
+Widget? _findIconInNavRail(Finder finder, double railMaxX) {
+  for (final element in finder.evaluate()) {
+    final renderBox = element.renderObject as RenderBox?;
+    if (renderBox != null && renderBox.hasSize) {
+      final position = renderBox.localToGlobal(Offset.zero);
+      if (position.dx <= railMaxX) {
+        return element.widget;
+      }
+    }
+  }
+  return null;
+}
+
+/// Navigates to a screen using the appropriate navigation method.
+/// On desktop: taps NavigationRail icon directly.
+/// On mobile: taps BottomNavigationBar icon.
+Future<void> _navigateTo(WidgetTester tester, IconData icon) async {
+  if (_isDesktop) {
+    await _tapNavRailItem(tester, icon);
+  } else {
+    await _tapBottomNavItem(tester, icon);
+  }
 }
