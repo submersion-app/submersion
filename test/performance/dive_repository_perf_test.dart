@@ -114,7 +114,9 @@ void main() {
       print('  batchProfileSummaries (50): ${ms}ms');
       if (ms > 2500) {
         // ignore: avoid_print
-        print('  WARNING: batchProfileSummaries exceeds 2500ms ideal threshold');
+        print(
+          '  WARNING: batchProfileSummaries exceeds 2500ms ideal threshold',
+        );
       }
       // Hard ceiling -- scans millions of profile points across 50 dives;
       // CI runners are ~2x slower than local machines
