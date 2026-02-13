@@ -90,10 +90,26 @@ if [ -d "$SCREENSHOTS_DIR/iPad_13_inch" ]; then
     echo "  Done!"
 fi
 
+# Process macOS screenshots
+if [ -d "$SCREENSHOTS_DIR/macOS" ]; then
+    echo "Processing macOS -> $LOCALE/"
+
+    for file in "$SCREENSHOTS_DIR/macOS"/*.png; do
+        if [ -f "$file" ]; then
+            filename=$(basename "$file")
+            echo "  $filename"
+            strip_alpha "$file" "$SCREENSHOTS_DIR/$LOCALE/$filename"
+        fi
+    done
+    echo "  Done!"
+fi
+
 echo ""
 echo "Screenshots organized in: $SCREENSHOTS_DIR/$LOCALE/"
 echo ""
 echo "Contents:"
 ls -la "$SCREENSHOTS_DIR/$LOCALE/"
 echo ""
-echo "You can now run: cd ios && bundle exec fastlane upload_screenshots"
+echo "You can now upload screenshots:"
+echo "  iOS:   cd ios && bundle exec fastlane upload_screenshots"
+echo "  macOS: cd macos && bundle exec fastlane upload_screenshots"

@@ -181,24 +181,18 @@ echo "=========================================="
 
 # Check if we're on macOS
 if [[ "$(uname)" == "Darwin" ]]; then
-  echo "Running macOS screenshot capture..."
+  echo "Running macOS screenshot capture via integration test..."
   cd "$PROJECT_ROOT"
 
-  # For macOS, use a dedicated screenshot script that:
-  # 1. Builds and runs the app
-  # 2. Uses native macOS screencapture for reliable screenshots
-  # This avoids the unreliable flutter integration test infrastructure on desktop
-  if [ -f "$SCRIPT_DIR/capture_macos_screenshots.sh" ]; then
-    bash "$SCRIPT_DIR/capture_macos_screenshots.sh" \
-      --output-dir "$SCREENSHOTS_DIR/macOS" \
-      --uddf-file "$UDDF_FILE" \
-      2>&1 || {
-        echo "Warning: macOS screenshot capture encountered issues"
-      }
-  else
-    echo "Warning: macOS screenshot script not found at $SCRIPT_DIR/capture_macos_screenshots.sh"
-    echo "Skipping macOS screenshots."
-  fi
+  flutter test integration_test/screenshots_test.dart \
+    -d macos \
+    --dart-define=SCREENSHOT_MODE=true \
+    --dart-define=SCREENSHOT_DEVICE_NAME=macOS \
+    --dart-define=SCREENSHOT_OUTPUT_DIR="$SCREENSHOTS_DIR" \
+    --dart-define=UDDF_TEST_DATA_PATH="$UDDF_FILE" \
+    2>&1 || {
+      echo "Warning: macOS screenshot capture encountered issues"
+    }
 
   echo "Completed: macOS"
 else
@@ -277,9 +271,10 @@ organize_device() {
   fi
 }
 
-# Organize iOS screenshots for Fastlane
+# Organize screenshots for Fastlane
 organize_device "iPhone_6_7_inch"
 organize_device "iPad_13_inch"
+organize_device "macOS"
 
 echo ""
 echo "Fastlane-ready screenshots: $FASTLANE_DIR"
