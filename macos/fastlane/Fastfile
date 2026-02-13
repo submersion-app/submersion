@@ -1,0 +1,145 @@
+# Fastfile for Submersion macOS App Store Automation
+#
+# Usage:
+#   bundle exec fastlane sync_signing  # Sync code signing certs (Match)
+#   bundle exec fastlane build         # Build pkg for Mac App Store
+#   bundle exec fastlane beta          # Build + upload to TestFlight
+#   bundle exec fastlane release       # Build + upload to App Store
+
+default_platform(:mac)
+
+platform :mac do
+  # ============================================================================
+  # Helper Methods
+  # ============================================================================
+
+  def load_api_key
+    if ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"] &&
+       ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"] &&
+       ENV["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"]
+
+      UI.message("Using API key from environment variables")
+      return app_store_connect_api_key(
+        key_id: ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"],
+        issuer_id: ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"],
+        key_filepath: ENV["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"],
+        in_house: false
+      )
+    end
+
+    json_path = "fastlane/api_key.json"
+    if File.exist?(json_path)
+      UI.message("Using API key from api_key.json")
+      config = JSON.parse(File.read(json_path))
+      return app_store_connect_api_key(
+        key_id: config["key_id"],
+        issuer_id: config["issuer_id"],
+        key_filepath: config["key_filepath"],
+        in_house: config["in_house"] || false
+      )
+    end
+
+    UI.user_error!(
+      "No API key found. Either set environment variables:\n" \
+      "  APP_STORE_CONNECT_API_KEY_KEY_ID\n" \
+      "  APP_STORE_CONNECT_API_KEY_ISSUER_ID\n" \
+      "  APP_STORE_CONNECT_API_KEY_KEY_FILEPATH\n" \
+      "Or create fastlane/api_key.json"
+    )
+  end
+
+  # ============================================================================
+  # Code Signing Lanes (Match)
+  # ============================================================================
+
+  desc "Sync code signing certificates and provisioning profiles for macOS"
+  lane :sync_signing do
+    if ENV["CI"]
+      create_keychain(
+        name: "fastlane_keychain",
+        password: ENV["MATCH_PASSWORD"] || "temporary",
+        default_keychain: true,
+        unlock: true,
+        timeout: 3600,
+        lock_when_sleeps: false
+      )
+    end
+
+    match(
+      type: "appstore",
+      platform: "macos",
+      readonly: true,
+      keychain_name: ENV["CI"] ? "fastlane_keychain" : nil,
+      keychain_password: ENV["CI"] ? (ENV["MATCH_PASSWORD"] || "temporary") : nil
+    )
+
+    UI.success("macOS code signing synced successfully!")
+  end
+
+  # ============================================================================
+  # Build Lanes
+  # ============================================================================
+
+  desc "Build the macOS app for Mac App Store distribution"
+  lane :build do
+    api_key = load_api_key
+
+    UI.message("Building Flutter app for macOS...")
+    sh("cd ../.. && flutter build macos --release")
+
+    UI.message("Building and signing pkg...")
+    build_mac_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      export_method: "app-store",
+      output_directory: "./build",
+      output_name: "Submersion.pkg",
+      export_options: {
+        signingStyle: "automatic",
+        teamID: "8U3RSKF42Q"
+      }
+    )
+
+    UI.success("Build complete! Pkg saved to macos/build/Submersion.pkg")
+  end
+
+  # ============================================================================
+  # Upload Lanes
+  # ============================================================================
+
+  desc "Build and upload to TestFlight for beta testing"
+  lane :beta do
+    build
+
+    api_key = load_api_key
+
+    UI.message("Uploading to TestFlight...")
+    upload_to_testflight(
+      api_key: api_key,
+      pkg: "./build/Submersion.pkg",
+      skip_waiting_for_build_processing: true
+    )
+
+    UI.success("macOS build uploaded to TestFlight!")
+  end
+
+  desc "Build and upload to Mac App Store"
+  lane :release do
+    build
+
+    api_key = load_api_key
+
+    UI.message("Uploading to Mac App Store...")
+    upload_to_app_store(
+      api_key: api_key,
+      pkg: "./build/Submersion.pkg",
+      skip_screenshots: true,
+      skip_metadata: true,
+      submit_for_review: false,
+      automatic_release: false,
+      precheck_include_in_app_purchases: false
+    )
+
+    UI.success("macOS build uploaded to Mac App Store!")
+  end
+end
