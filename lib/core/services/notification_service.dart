@@ -184,6 +184,49 @@ class NotificationService {
     return notificationId;
   }
 
+  /// Show an immediate notification for backup results.
+  ///
+  /// Used by both foreground operations and background tasks.
+  /// Uses a separate Android channel from equipment reminders.
+  Future<void> showBackupNotification({
+    required bool success,
+    String? error,
+  }) async {
+    if (!_isMobilePlatform) return;
+
+    const androidDetails = AndroidNotificationDetails(
+      'backup_notifications',
+      'Backup Notifications',
+      channelDescription: 'Notifications for automatic backup status',
+      importance: Importance.defaultImportance,
+      priority: Priority.defaultPriority,
+      category: AndroidNotificationCategory.status,
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: false,
+      presentSound: false,
+    );
+
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    final title = success ? 'Backup Complete' : 'Backup Failed';
+    final body = success
+        ? 'Your dive data has been backed up successfully.'
+        : 'Automatic backup failed${error != null ? ': $error' : '. Please try a manual backup.'}';
+
+    // Use a fixed ID so repeated backup notifications replace each other
+    const backupNotificationId = 99000;
+
+    await _plugin.show(backupNotificationId, title, body, details);
+
+    _log.info('Showed backup notification (success: $success)');
+  }
+
   /// Cancel a specific notification
   Future<void> cancelNotification(int notificationId) async {
     if (!_isMobilePlatform) return;

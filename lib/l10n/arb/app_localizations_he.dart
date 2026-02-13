@@ -153,6 +153,138 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get backup_appBar_title => 'גיבוי ושחזור';
+
+  @override
+  String get backup_backingUp => 'מגבה...';
+
+  @override
+  String get backup_backupNow => 'גבה עכשיו';
+
+  @override
+  String get backup_cloud_enabled => 'גיבוי ענן';
+
+  @override
+  String get backup_cloud_enabled_subtitle => 'העלה גיבויים לאחסון ענן';
+
+  @override
+  String get backup_delete_dialog_cancel => 'ביטול';
+
+  @override
+  String get backup_delete_dialog_content =>
+      'גיבוי זה יימחק לצמיתות. לא ניתן לבטל פעולה זו.';
+
+  @override
+  String get backup_delete_dialog_delete => 'מחיקה';
+
+  @override
+  String get backup_delete_dialog_title => 'מחיקת גיבוי';
+
+  @override
+  String get backup_frequency_daily => 'יומי';
+
+  @override
+  String get backup_frequency_monthly => 'חודשי';
+
+  @override
+  String get backup_frequency_weekly => 'שבועי';
+
+  @override
+  String get backup_history_action_delete => 'מחיקה';
+
+  @override
+  String get backup_history_action_restore => 'שחזור';
+
+  @override
+  String get backup_history_empty => 'אין גיבויים';
+
+  @override
+  String backup_history_error(Object error) {
+    return 'שגיאה בטעינת היסטוריה: $error';
+  }
+
+  @override
+  String get backup_restore_dialog_cancel => 'ביטול';
+
+  @override
+  String get backup_restore_dialog_restore => 'שחזור';
+
+  @override
+  String get backup_restore_dialog_safetyNote =>
+      'גיבוי בטיחות של הנתונים הנוכחיים שלך ייווצר אוטומטית לפני השחזור.';
+
+  @override
+  String get backup_restore_dialog_title => 'שחזור גיבוי';
+
+  @override
+  String get backup_restore_dialog_warning =>
+      'פעולה זו תחליף את כל הנתונים הנוכחיים בנתוני הגיבוי. לא ניתן לבטל פעולה זו.';
+
+  @override
+  String get backup_schedule_enabled => 'גיבויים אוטומטיים';
+
+  @override
+  String get backup_schedule_enabled_subtitle => 'גבה את הנתונים לפי לוח זמנים';
+
+  @override
+  String get backup_schedule_frequency => 'תדירות';
+
+  @override
+  String get backup_schedule_retention => 'שמור גיבויים';
+
+  @override
+  String get backup_schedule_retention_subtitle =>
+      'גיבויים ישנים יותר מוסרים אוטומטית';
+
+  @override
+  String get backup_section_cloud => 'ענן';
+
+  @override
+  String get backup_section_history => 'היסטוריה';
+
+  @override
+  String get backup_section_schedule => 'תזמון';
+
+  @override
+  String get backup_status_disabled => 'גיבויים אוטומטיים מושבתים';
+
+  @override
+  String backup_status_lastBackup(String time) {
+    return 'גיבוי אחרון: $time';
+  }
+
+  @override
+  String get backup_status_neverBackedUp => 'מעולם לא גובה';
+
+  @override
+  String get backup_status_noBackupsYet =>
+      'צור את הגיבוי הראשון שלך כדי להגן על הנתונים שלך';
+
+  @override
+  String get backup_status_overdue => 'גיבוי באיחור';
+
+  @override
+  String get backup_status_upToDate => 'גיבויים מעודכנים';
+
+  @override
+  String backup_time_daysAgo(int count) {
+    return 'לפני $count ימים';
+  }
+
+  @override
+  String backup_time_hoursAgo(int count) {
+    return 'לפני $count שעות';
+  }
+
+  @override
+  String get backup_time_justNow => 'הרגע';
+
+  @override
+  String backup_time_minutesAgo(int count) {
+    return 'לפני $count דקות';
+  }
+
+  @override
   String get buddies_action_add => 'הוסף חבר צוללים';
 
   @override

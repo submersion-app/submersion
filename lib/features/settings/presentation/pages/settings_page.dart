@@ -13,12 +13,11 @@ import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.d
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
+import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
-import 'package:submersion/features/settings/presentation/widgets/import_progress_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_summary_widget.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -1805,21 +1804,9 @@ class _DataSectionContent extends ConsumerWidget {
                 ListTile(
                   leading: const Icon(Icons.backup),
                   title: Text(context.l10n.settings_data_backup),
-                  subtitle: Text(context.l10n.settings_data_backup_subtitle),
-                  onTap: () => _handleExport(
-                    context,
-                    ref,
-                    () => ref
-                        .read(exportNotifierProvider.notifier)
-                        .createBackup(),
-                  ),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.restore),
-                  title: Text(context.l10n.settings_data_restore),
-                  subtitle: Text(context.l10n.settings_data_restore_subtitle),
-                  onTap: () => _showRestoreConfirmation(context, ref),
+                  subtitle: _buildBackupSubtitle(context, ref),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/settings/backup'),
                 ),
               ],
             ),
@@ -1840,154 +1827,23 @@ class _DataSectionContent extends ConsumerWidget {
     return context.l10n.settings_data_sync_notConfigured;
   }
 
-  void _showRestoreConfirmation(BuildContext context, WidgetRef ref) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(context.l10n.settings_data_restoreDialog_title),
-        content: Text(context.l10n.settings_data_restoreDialog_content),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(context.l10n.settings_data_restoreDialog_cancel),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.of(dialogContext).pop();
-              _handleImport(
-                context,
-                ref,
-                () => ref.read(exportNotifierProvider.notifier).restoreBackup(),
-              );
-            },
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-            child: Text(context.l10n.settings_data_restoreDialog_restore),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _handleExport(
-    BuildContext context,
-    WidgetRef ref,
-    Future<void> Function() exportFn,
-  ) async {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      useRootNavigator: true,
-      builder: (dialogContext) => AlertDialog(
-        content: Row(
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(width: 24),
-            Text(context.l10n.settings_data_export_exporting),
-          ],
-        ),
-      ),
-    );
-
-    try {
-      await exportFn();
-      if (context.mounted) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (context.mounted) {
-            Navigator.of(context, rootNavigator: true).pop();
-            final state = ref.read(exportNotifierProvider);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  state.message ?? context.l10n.settings_data_export_completed,
-                ),
-                backgroundColor: state.status == ExportStatus.success
-                    ? Colors.green
-                    : Colors.red,
-              ),
-            );
-            ref.read(exportNotifierProvider.notifier).reset();
-          }
-        });
-      }
-    } catch (e) {
-      if (context.mounted) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (context.mounted) {
-            Navigator.of(context, rootNavigator: true).pop();
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  context.l10n.settings_data_export_failed(e.toString()),
-                ),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-        });
-      }
+  Widget? _buildBackupSubtitle(BuildContext context, WidgetRef ref) {
+    final lastBackup = ref.watch(lastBackupTimeProvider);
+    if (lastBackup == null) {
+      return Text(context.l10n.settings_data_backup_subtitle);
     }
-  }
-
-  Future<void> _handleImport(
-    BuildContext context,
-    WidgetRef ref,
-    Future<void> Function() importFn,
-  ) async {
-    var dialogShown = false;
-
-    void showDialogIfNeeded(ExportState state) {
-      if (!dialogShown &&
-          state.importPhase != null &&
-          state.status == ExportStatus.exporting &&
-          context.mounted) {
-        dialogShown = true;
-        ImportProgressDialog.show(context);
-      }
+    final diff = DateTime.now().difference(lastBackup);
+    final String timeAgo;
+    if (diff.inMinutes < 1) {
+      timeAgo = context.l10n.backup_time_justNow;
+    } else if (diff.inHours < 1) {
+      timeAgo = context.l10n.backup_time_minutesAgo(diff.inMinutes);
+    } else if (diff.inDays < 1) {
+      timeAgo = context.l10n.backup_time_hoursAgo(diff.inHours);
+    } else {
+      timeAgo = context.l10n.backup_time_daysAgo(diff.inDays);
     }
-
-    try {
-      final subscription = ref.listenManual(
-        exportNotifierProvider,
-        (previous, next) => showDialogIfNeeded(next),
-        fireImmediately: true,
-      );
-
-      try {
-        await importFn();
-      } finally {
-        subscription.close();
-      }
-
-      if (context.mounted) {
-        final state = ref.read(exportNotifierProvider);
-        if (state.status != ExportStatus.idle) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                state.message ?? context.l10n.settings_data_import_completed,
-              ),
-              backgroundColor: state.status == ExportStatus.success
-                  ? Colors.green
-                  : Colors.red,
-            ),
-          );
-        }
-        ref.read(exportNotifierProvider.notifier).reset();
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              context.l10n.settings_data_import_failed(e.toString()),
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
+    return Text(context.l10n.backup_status_lastBackup(timeAgo));
   }
 }
 

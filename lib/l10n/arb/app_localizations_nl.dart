@@ -153,6 +153,140 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get backup_appBar_title => 'Back-up en Herstel';
+
+  @override
+  String get backup_backingUp => 'Back-up maken...';
+
+  @override
+  String get backup_backupNow => 'Nu Back-up Maken';
+
+  @override
+  String get backup_cloud_enabled => 'Cloud back-up';
+
+  @override
+  String get backup_cloud_enabled_subtitle =>
+      'Back-ups uploaden naar cloudopslag';
+
+  @override
+  String get backup_delete_dialog_cancel => 'Annuleren';
+
+  @override
+  String get backup_delete_dialog_content =>
+      'Deze back-up wordt permanent verwijderd. Dit kan niet ongedaan worden gemaakt.';
+
+  @override
+  String get backup_delete_dialog_delete => 'Verwijderen';
+
+  @override
+  String get backup_delete_dialog_title => 'Back-up Verwijderen';
+
+  @override
+  String get backup_frequency_daily => 'Dagelijks';
+
+  @override
+  String get backup_frequency_monthly => 'Maandelijks';
+
+  @override
+  String get backup_frequency_weekly => 'Wekelijks';
+
+  @override
+  String get backup_history_action_delete => 'Verwijderen';
+
+  @override
+  String get backup_history_action_restore => 'Herstellen';
+
+  @override
+  String get backup_history_empty => 'Geen back-ups';
+
+  @override
+  String backup_history_error(Object error) {
+    return 'Fout bij laden geschiedenis: $error';
+  }
+
+  @override
+  String get backup_restore_dialog_cancel => 'Annuleren';
+
+  @override
+  String get backup_restore_dialog_restore => 'Herstellen';
+
+  @override
+  String get backup_restore_dialog_safetyNote =>
+      'Er wordt automatisch een veiligheidsback-up van uw huidige gegevens gemaakt voor het herstellen.';
+
+  @override
+  String get backup_restore_dialog_title => 'Back-up Herstellen';
+
+  @override
+  String get backup_restore_dialog_warning =>
+      'Dit vervangt ALLE huidige gegevens door de back-upgegevens. Deze actie kan niet ongedaan worden gemaakt.';
+
+  @override
+  String get backup_schedule_enabled => 'Automatische back-ups';
+
+  @override
+  String get backup_schedule_enabled_subtitle =>
+      'Maak back-ups van uw gegevens volgens schema';
+
+  @override
+  String get backup_schedule_frequency => 'Frequentie';
+
+  @override
+  String get backup_schedule_retention => 'Back-ups bewaren';
+
+  @override
+  String get backup_schedule_retention_subtitle =>
+      'Oudere back-ups worden automatisch verwijderd';
+
+  @override
+  String get backup_section_cloud => 'Cloud';
+
+  @override
+  String get backup_section_history => 'Geschiedenis';
+
+  @override
+  String get backup_section_schedule => 'Schema';
+
+  @override
+  String get backup_status_disabled => 'Automatische Back-ups Uitgeschakeld';
+
+  @override
+  String backup_status_lastBackup(String time) {
+    return 'Laatste back-up: $time';
+  }
+
+  @override
+  String get backup_status_neverBackedUp => 'Nooit Back-up Gemaakt';
+
+  @override
+  String get backup_status_noBackupsYet =>
+      'Maak uw eerste back-up om uw gegevens te beschermen';
+
+  @override
+  String get backup_status_overdue => 'Back-up Achterstallig';
+
+  @override
+  String get backup_status_upToDate => 'Back-ups Actueel';
+
+  @override
+  String backup_time_daysAgo(int count) {
+    return '${count}d geleden';
+  }
+
+  @override
+  String backup_time_hoursAgo(int count) {
+    return '${count}u geleden';
+  }
+
+  @override
+  String get backup_time_justNow => 'Zojuist';
+
+  @override
+  String backup_time_minutesAgo(int count) {
+    return '${count}m geleden';
+  }
+
+  @override
   String get buddies_action_add => 'Buddy toevoegen';
 
   @override

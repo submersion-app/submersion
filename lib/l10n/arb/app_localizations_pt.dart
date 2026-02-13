@@ -154,6 +154,140 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get backup_appBar_title => 'Backup e Restauração';
+
+  @override
+  String get backup_backingUp => 'Fazendo backup...';
+
+  @override
+  String get backup_backupNow => 'Fazer Backup Agora';
+
+  @override
+  String get backup_cloud_enabled => 'Backup na nuvem';
+
+  @override
+  String get backup_cloud_enabled_subtitle =>
+      'Enviar backups para o armazenamento na nuvem';
+
+  @override
+  String get backup_delete_dialog_cancel => 'Cancelar';
+
+  @override
+  String get backup_delete_dialog_content =>
+      'Este backup será excluído permanentemente. Esta ação não pode ser desfeita.';
+
+  @override
+  String get backup_delete_dialog_delete => 'Excluir';
+
+  @override
+  String get backup_delete_dialog_title => 'Excluir Backup';
+
+  @override
+  String get backup_frequency_daily => 'Diário';
+
+  @override
+  String get backup_frequency_monthly => 'Mensal';
+
+  @override
+  String get backup_frequency_weekly => 'Semanal';
+
+  @override
+  String get backup_history_action_delete => 'Excluir';
+
+  @override
+  String get backup_history_action_restore => 'Restaurar';
+
+  @override
+  String get backup_history_empty => 'Nenhum backup';
+
+  @override
+  String backup_history_error(Object error) {
+    return 'Erro ao carregar histórico: $error';
+  }
+
+  @override
+  String get backup_restore_dialog_cancel => 'Cancelar';
+
+  @override
+  String get backup_restore_dialog_restore => 'Restaurar';
+
+  @override
+  String get backup_restore_dialog_safetyNote =>
+      'Um backup de segurança dos seus dados atuais será criado automaticamente antes da restauração.';
+
+  @override
+  String get backup_restore_dialog_title => 'Restaurar Backup';
+
+  @override
+  String get backup_restore_dialog_warning =>
+      'Isso substituirá TODOS os dados atuais pelos dados do backup. Esta ação não pode ser desfeita.';
+
+  @override
+  String get backup_schedule_enabled => 'Backups automáticos';
+
+  @override
+  String get backup_schedule_enabled_subtitle =>
+      'Fazer backup dos dados em um agendamento';
+
+  @override
+  String get backup_schedule_frequency => 'Frequência';
+
+  @override
+  String get backup_schedule_retention => 'Manter backups';
+
+  @override
+  String get backup_schedule_retention_subtitle =>
+      'Backups mais antigos são removidos automaticamente';
+
+  @override
+  String get backup_section_cloud => 'Nuvem';
+
+  @override
+  String get backup_section_history => 'Histórico';
+
+  @override
+  String get backup_section_schedule => 'Agendamento';
+
+  @override
+  String get backup_status_disabled => 'Backups Automáticos Desativados';
+
+  @override
+  String backup_status_lastBackup(String time) {
+    return 'Último backup: $time';
+  }
+
+  @override
+  String get backup_status_neverBackedUp => 'Nunca Feito Backup';
+
+  @override
+  String get backup_status_noBackupsYet =>
+      'Crie seu primeiro backup para proteger seus dados';
+
+  @override
+  String get backup_status_overdue => 'Backup Atrasado';
+
+  @override
+  String get backup_status_upToDate => 'Backups Atualizados';
+
+  @override
+  String backup_time_daysAgo(int count) {
+    return '${count}d atrás';
+  }
+
+  @override
+  String backup_time_hoursAgo(int count) {
+    return '${count}h atrás';
+  }
+
+  @override
+  String get backup_time_justNow => 'Agora mesmo';
+
+  @override
+  String backup_time_minutesAgo(int count) {
+    return '${count}m atrás';
+  }
+
+  @override
   String get buddies_action_add => 'Adicionar Companheiro';
 
   @override

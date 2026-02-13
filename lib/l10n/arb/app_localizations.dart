@@ -372,6 +372,240 @@ abstract class AppLocalizations {
   /// **'Sort by {displayName}'**
   String accessibility_sort_unselectedLabel(Object displayName);
 
+  /// No description provided for @backup_appBar_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup & Restore'**
+  String get backup_appBar_title;
+
+  /// No description provided for @backup_backingUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Backing up...'**
+  String get backup_backingUp;
+
+  /// No description provided for @backup_backupNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup Now'**
+  String get backup_backupNow;
+
+  /// No description provided for @backup_cloud_enabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud backup'**
+  String get backup_cloud_enabled;
+
+  /// No description provided for @backup_cloud_enabled_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload backups to cloud storage'**
+  String get backup_cloud_enabled_subtitle;
+
+  /// No description provided for @backup_delete_dialog_cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get backup_delete_dialog_cancel;
+
+  /// No description provided for @backup_delete_dialog_content.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup will be permanently deleted. This cannot be undone.'**
+  String get backup_delete_dialog_content;
+
+  /// No description provided for @backup_delete_dialog_delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get backup_delete_dialog_delete;
+
+  /// No description provided for @backup_delete_dialog_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Backup'**
+  String get backup_delete_dialog_title;
+
+  /// No description provided for @backup_frequency_daily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily'**
+  String get backup_frequency_daily;
+
+  /// No description provided for @backup_frequency_monthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get backup_frequency_monthly;
+
+  /// No description provided for @backup_frequency_weekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get backup_frequency_weekly;
+
+  /// No description provided for @backup_history_action_delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get backup_history_action_delete;
+
+  /// No description provided for @backup_history_action_restore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get backup_history_action_restore;
+
+  /// No description provided for @backup_history_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No backups yet'**
+  String get backup_history_empty;
+
+  /// No description provided for @backup_history_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load history: {error}'**
+  String backup_history_error(Object error);
+
+  /// No description provided for @backup_restore_dialog_cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get backup_restore_dialog_cancel;
+
+  /// No description provided for @backup_restore_dialog_restore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get backup_restore_dialog_restore;
+
+  /// No description provided for @backup_restore_dialog_safetyNote.
+  ///
+  /// In en, this message translates to:
+  /// **'A safety backup of your current data will be created automatically before restoring.'**
+  String get backup_restore_dialog_safetyNote;
+
+  /// No description provided for @backup_restore_dialog_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Backup'**
+  String get backup_restore_dialog_title;
+
+  /// No description provided for @backup_restore_dialog_warning.
+  ///
+  /// In en, this message translates to:
+  /// **'This will replace ALL current data with the backup data. This action cannot be undone.'**
+  String get backup_restore_dialog_warning;
+
+  /// No description provided for @backup_schedule_enabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic backups'**
+  String get backup_schedule_enabled;
+
+  /// No description provided for @backup_schedule_enabled_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up your data on a schedule'**
+  String get backup_schedule_enabled_subtitle;
+
+  /// No description provided for @backup_schedule_frequency.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequency'**
+  String get backup_schedule_frequency;
+
+  /// No description provided for @backup_schedule_retention.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep backups'**
+  String get backup_schedule_retention;
+
+  /// No description provided for @backup_schedule_retention_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Older backups are automatically removed'**
+  String get backup_schedule_retention_subtitle;
+
+  /// No description provided for @backup_section_cloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud'**
+  String get backup_section_cloud;
+
+  /// No description provided for @backup_section_history.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get backup_section_history;
+
+  /// No description provided for @backup_section_schedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get backup_section_schedule;
+
+  /// No description provided for @backup_status_disabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic Backups Disabled'**
+  String get backup_status_disabled;
+
+  /// No description provided for @backup_status_lastBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Last backup: {time}'**
+  String backup_status_lastBackup(String time);
+
+  /// No description provided for @backup_status_neverBackedUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Never Backed Up'**
+  String get backup_status_neverBackedUp;
+
+  /// No description provided for @backup_status_noBackupsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your first backup to protect your data'**
+  String get backup_status_noBackupsYet;
+
+  /// No description provided for @backup_status_overdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup Overdue'**
+  String get backup_status_overdue;
+
+  /// No description provided for @backup_status_upToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Backups Up to Date'**
+  String get backup_status_upToDate;
+
+  /// No description provided for @backup_time_daysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}d ago'**
+  String backup_time_daysAgo(int count);
+
+  /// No description provided for @backup_time_hoursAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}h ago'**
+  String backup_time_hoursAgo(int count);
+
+  /// No description provided for @backup_time_justNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Just now'**
+  String get backup_time_justNow;
+
+  /// No description provided for @backup_time_minutesAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}m ago'**
+  String backup_time_minutesAgo(int count);
+
   /// No description provided for @buddies_action_add.
   ///
   /// In en, this message translates to:

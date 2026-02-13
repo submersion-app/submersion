@@ -154,6 +154,139 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get backup_appBar_title => 'Backup & Restore';
+
+  @override
+  String get backup_backingUp => 'Backing up...';
+
+  @override
+  String get backup_backupNow => 'Backup Now';
+
+  @override
+  String get backup_cloud_enabled => 'Cloud backup';
+
+  @override
+  String get backup_cloud_enabled_subtitle => 'Upload backups to cloud storage';
+
+  @override
+  String get backup_delete_dialog_cancel => 'Cancel';
+
+  @override
+  String get backup_delete_dialog_content =>
+      'This backup will be permanently deleted. This cannot be undone.';
+
+  @override
+  String get backup_delete_dialog_delete => 'Delete';
+
+  @override
+  String get backup_delete_dialog_title => 'Delete Backup';
+
+  @override
+  String get backup_frequency_daily => 'Daily';
+
+  @override
+  String get backup_frequency_monthly => 'Monthly';
+
+  @override
+  String get backup_frequency_weekly => 'Weekly';
+
+  @override
+  String get backup_history_action_delete => 'Delete';
+
+  @override
+  String get backup_history_action_restore => 'Restore';
+
+  @override
+  String get backup_history_empty => 'No backups yet';
+
+  @override
+  String backup_history_error(Object error) {
+    return 'Failed to load history: $error';
+  }
+
+  @override
+  String get backup_restore_dialog_cancel => 'Cancel';
+
+  @override
+  String get backup_restore_dialog_restore => 'Restore';
+
+  @override
+  String get backup_restore_dialog_safetyNote =>
+      'A safety backup of your current data will be created automatically before restoring.';
+
+  @override
+  String get backup_restore_dialog_title => 'Restore Backup';
+
+  @override
+  String get backup_restore_dialog_warning =>
+      'This will replace ALL current data with the backup data. This action cannot be undone.';
+
+  @override
+  String get backup_schedule_enabled => 'Automatic backups';
+
+  @override
+  String get backup_schedule_enabled_subtitle =>
+      'Back up your data on a schedule';
+
+  @override
+  String get backup_schedule_frequency => 'Frequency';
+
+  @override
+  String get backup_schedule_retention => 'Keep backups';
+
+  @override
+  String get backup_schedule_retention_subtitle =>
+      'Older backups are automatically removed';
+
+  @override
+  String get backup_section_cloud => 'Cloud';
+
+  @override
+  String get backup_section_history => 'History';
+
+  @override
+  String get backup_section_schedule => 'Schedule';
+
+  @override
+  String get backup_status_disabled => 'Automatic Backups Disabled';
+
+  @override
+  String backup_status_lastBackup(String time) {
+    return 'Last backup: $time';
+  }
+
+  @override
+  String get backup_status_neverBackedUp => 'Never Backed Up';
+
+  @override
+  String get backup_status_noBackupsYet =>
+      'Create your first backup to protect your data';
+
+  @override
+  String get backup_status_overdue => 'Backup Overdue';
+
+  @override
+  String get backup_status_upToDate => 'Backups Up to Date';
+
+  @override
+  String backup_time_daysAgo(int count) {
+    return '${count}d ago';
+  }
+
+  @override
+  String backup_time_hoursAgo(int count) {
+    return '${count}h ago';
+  }
+
+  @override
+  String get backup_time_justNow => 'Just now';
+
+  @override
+  String backup_time_minutesAgo(int count) {
+    return '${count}m ago';
+  }
+
+  @override
   String get buddies_action_add => 'Add Buddy';
 
   @override

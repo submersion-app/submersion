@@ -57,6 +57,7 @@ import 'package:submersion/features/statistics/presentation/pages/statistics_mar
 import 'package:submersion/features/statistics/presentation/pages/statistics_time_patterns_page.dart';
 import 'package:submersion/features/statistics/presentation/pages/statistics_equipment_page.dart';
 import 'package:submersion/features/statistics/presentation/pages/statistics_profile_page.dart';
+import 'package:submersion/features/backup/presentation/pages/backup_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
@@ -701,6 +702,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'wearable-import',
                 name: 'wearableImport',
                 builder: (context, state) => const HealthKitImportPage(),
+              ),
+              GoRoute(
+                path: 'backup',
+                name: 'backupSettings',
+                builder: (context, state) => const BackupSettingsPage(),
               ),
             ],
           ),

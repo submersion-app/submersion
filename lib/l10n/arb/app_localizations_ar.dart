@@ -155,6 +155,140 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get backup_appBar_title => 'النسخ الاحتياطي والاستعادة';
+
+  @override
+  String get backup_backingUp => 'جاري النسخ الاحتياطي...';
+
+  @override
+  String get backup_backupNow => 'نسخ احتياطي الآن';
+
+  @override
+  String get backup_cloud_enabled => 'نسخ احتياطي سحابي';
+
+  @override
+  String get backup_cloud_enabled_subtitle =>
+      'رفع النسخ الاحتياطية إلى التخزين السحابي';
+
+  @override
+  String get backup_delete_dialog_cancel => 'إلغاء';
+
+  @override
+  String get backup_delete_dialog_content =>
+      'سيتم حذف هذه النسخة الاحتياطية نهائياً. لا يمكن التراجع عن هذا الإجراء.';
+
+  @override
+  String get backup_delete_dialog_delete => 'حذف';
+
+  @override
+  String get backup_delete_dialog_title => 'حذف النسخة الاحتياطية';
+
+  @override
+  String get backup_frequency_daily => 'يومي';
+
+  @override
+  String get backup_frequency_monthly => 'شهري';
+
+  @override
+  String get backup_frequency_weekly => 'أسبوعي';
+
+  @override
+  String get backup_history_action_delete => 'حذف';
+
+  @override
+  String get backup_history_action_restore => 'استعادة';
+
+  @override
+  String get backup_history_empty => 'لا توجد نسخ احتياطية';
+
+  @override
+  String backup_history_error(Object error) {
+    return 'فشل في تحميل السجل: $error';
+  }
+
+  @override
+  String get backup_restore_dialog_cancel => 'إلغاء';
+
+  @override
+  String get backup_restore_dialog_restore => 'استعادة';
+
+  @override
+  String get backup_restore_dialog_safetyNote =>
+      'سيتم إنشاء نسخة احتياطية آمنة من بياناتك الحالية تلقائياً قبل الاستعادة.';
+
+  @override
+  String get backup_restore_dialog_title => 'استعادة النسخة الاحتياطية';
+
+  @override
+  String get backup_restore_dialog_warning =>
+      'سيؤدي هذا إلى استبدال جميع البيانات الحالية ببيانات النسخة الاحتياطية. لا يمكن التراجع عن هذا الإجراء.';
+
+  @override
+  String get backup_schedule_enabled => 'نسخ احتياطي تلقائي';
+
+  @override
+  String get backup_schedule_enabled_subtitle =>
+      'نسخ البيانات احتياطياً وفقاً لجدول زمني';
+
+  @override
+  String get backup_schedule_frequency => 'التكرار';
+
+  @override
+  String get backup_schedule_retention => 'الاحتفاظ بالنسخ';
+
+  @override
+  String get backup_schedule_retention_subtitle =>
+      'تتم إزالة النسخ الاحتياطية القديمة تلقائياً';
+
+  @override
+  String get backup_section_cloud => 'السحابة';
+
+  @override
+  String get backup_section_history => 'السجل';
+
+  @override
+  String get backup_section_schedule => 'الجدولة';
+
+  @override
+  String get backup_status_disabled => 'النسخ الاحتياطي التلقائي معطل';
+
+  @override
+  String backup_status_lastBackup(String time) {
+    return 'آخر نسخة: $time';
+  }
+
+  @override
+  String get backup_status_neverBackedUp => 'لم يتم النسخ الاحتياطي مطلقاً';
+
+  @override
+  String get backup_status_noBackupsYet =>
+      'أنشئ أول نسخة احتياطية لحماية بياناتك';
+
+  @override
+  String get backup_status_overdue => 'النسخ الاحتياطي متأخر';
+
+  @override
+  String get backup_status_upToDate => 'النسخ الاحتياطية محدثة';
+
+  @override
+  String backup_time_daysAgo(int count) {
+    return 'منذ $count يوم';
+  }
+
+  @override
+  String backup_time_hoursAgo(int count) {
+    return 'منذ $count ساعة';
+  }
+
+  @override
+  String get backup_time_justNow => 'الآن';
+
+  @override
+  String backup_time_minutesAgo(int count) {
+    return 'منذ $count دقيقة';
+  }
+
+  @override
   String get buddies_action_add => 'إضافة رفيق';
 
   @override

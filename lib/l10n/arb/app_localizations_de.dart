@@ -154,6 +154,139 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get backup_appBar_title => 'Sicherung und Wiederherstellung';
+
+  @override
+  String get backup_backingUp => 'Sicherung wird erstellt...';
+
+  @override
+  String get backup_backupNow => 'Jetzt Sichern';
+
+  @override
+  String get backup_cloud_enabled => 'Cloud-Sicherung';
+
+  @override
+  String get backup_cloud_enabled_subtitle =>
+      'Sicherungen in den Cloud-Speicher hochladen';
+
+  @override
+  String get backup_delete_dialog_cancel => 'Abbrechen';
+
+  @override
+  String get backup_delete_dialog_content =>
+      'Diese Sicherung wird dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.';
+
+  @override
+  String get backup_delete_dialog_delete => 'Löschen';
+
+  @override
+  String get backup_delete_dialog_title => 'Sicherung Löschen';
+
+  @override
+  String get backup_frequency_daily => 'Täglich';
+
+  @override
+  String get backup_frequency_monthly => 'Monatlich';
+
+  @override
+  String get backup_frequency_weekly => 'Wöchentlich';
+
+  @override
+  String get backup_history_action_delete => 'Löschen';
+
+  @override
+  String get backup_history_action_restore => 'Wiederherstellen';
+
+  @override
+  String get backup_history_empty => 'Keine Sicherungen vorhanden';
+
+  @override
+  String backup_history_error(Object error) {
+    return 'Fehler beim Laden des Verlaufs: $error';
+  }
+
+  @override
+  String get backup_restore_dialog_cancel => 'Abbrechen';
+
+  @override
+  String get backup_restore_dialog_restore => 'Wiederherstellen';
+
+  @override
+  String get backup_restore_dialog_safetyNote =>
+      'Eine Sicherheitskopie Ihrer aktuellen Daten wird automatisch vor der Wiederherstellung erstellt.';
+
+  @override
+  String get backup_restore_dialog_title => 'Sicherung Wiederherstellen';
+
+  @override
+  String get backup_restore_dialog_warning =>
+      'Dies ersetzt ALLE aktuellen Daten durch die Sicherungsdaten. Diese Aktion kann nicht rückgängig gemacht werden.';
+
+  @override
+  String get backup_schedule_enabled => 'Automatische Sicherungen';
+
+  @override
+  String get backup_schedule_enabled_subtitle => 'Daten nach Zeitplan sichern';
+
+  @override
+  String get backup_schedule_frequency => 'Häufigkeit';
+
+  @override
+  String get backup_schedule_retention => 'Sicherungen behalten';
+
+  @override
+  String get backup_schedule_retention_subtitle =>
+      'Ältere Sicherungen werden automatisch entfernt';
+
+  @override
+  String get backup_section_cloud => 'Cloud';
+
+  @override
+  String get backup_section_history => 'Verlauf';
+
+  @override
+  String get backup_section_schedule => 'Zeitplan';
+
+  @override
+  String get backup_status_disabled => 'Automatische Sicherungen Deaktiviert';
+
+  @override
+  String backup_status_lastBackup(String time) {
+    return 'Letzte Sicherung: $time';
+  }
+
+  @override
+  String get backup_status_neverBackedUp => 'Nie Gesichert';
+
+  @override
+  String get backup_status_noBackupsYet =>
+      'Erstellen Sie Ihre erste Sicherung, um Ihre Daten zu schützen';
+
+  @override
+  String get backup_status_overdue => 'Sicherung Überfällig';
+
+  @override
+  String get backup_status_upToDate => 'Sicherungen Aktuell';
+
+  @override
+  String backup_time_daysAgo(int count) {
+    return 'vor ${count}T';
+  }
+
+  @override
+  String backup_time_hoursAgo(int count) {
+    return 'vor ${count}Std';
+  }
+
+  @override
+  String get backup_time_justNow => 'Gerade eben';
+
+  @override
+  String backup_time_minutesAgo(int count) {
+    return 'vor ${count}Min';
+  }
+
+  @override
   String get buddies_action_add => 'Tauchpartner hinzufügen';
 
   @override

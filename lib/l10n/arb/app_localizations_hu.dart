@@ -154,6 +154,140 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get backup_appBar_title => 'Biztonsági Mentés és Visszaállítás';
+
+  @override
+  String get backup_backingUp => 'Mentés folyamatban...';
+
+  @override
+  String get backup_backupNow => 'Mentés Most';
+
+  @override
+  String get backup_cloud_enabled => 'Felhő mentés';
+
+  @override
+  String get backup_cloud_enabled_subtitle =>
+      'Mentések feltöltése a felhőtárhelyre';
+
+  @override
+  String get backup_delete_dialog_cancel => 'Mégse';
+
+  @override
+  String get backup_delete_dialog_content =>
+      'Ez a biztonsági mentés véglegesen törlésre kerül. Ez a művelet nem vonható vissza.';
+
+  @override
+  String get backup_delete_dialog_delete => 'Törlés';
+
+  @override
+  String get backup_delete_dialog_title => 'Mentés Törlése';
+
+  @override
+  String get backup_frequency_daily => 'Napi';
+
+  @override
+  String get backup_frequency_monthly => 'Havi';
+
+  @override
+  String get backup_frequency_weekly => 'Heti';
+
+  @override
+  String get backup_history_action_delete => 'Törlés';
+
+  @override
+  String get backup_history_action_restore => 'Visszaállítás';
+
+  @override
+  String get backup_history_empty => 'Nincsenek mentések';
+
+  @override
+  String backup_history_error(Object error) {
+    return 'Hiba az előzmények betöltésekor: $error';
+  }
+
+  @override
+  String get backup_restore_dialog_cancel => 'Mégse';
+
+  @override
+  String get backup_restore_dialog_restore => 'Visszaállítás';
+
+  @override
+  String get backup_restore_dialog_safetyNote =>
+      'A jelenlegi adatokról automatikusan biztonsági mentés készül a visszaállítás előtt.';
+
+  @override
+  String get backup_restore_dialog_title => 'Mentés Visszaállítása';
+
+  @override
+  String get backup_restore_dialog_warning =>
+      'Ez MINDEN jelenlegi adatot lecserél a mentés adataival. Ez a művelet nem vonható vissza.';
+
+  @override
+  String get backup_schedule_enabled => 'Automatikus mentések';
+
+  @override
+  String get backup_schedule_enabled_subtitle =>
+      'Adatok mentése ütemezés szerint';
+
+  @override
+  String get backup_schedule_frequency => 'Gyakoriság';
+
+  @override
+  String get backup_schedule_retention => 'Mentések megőrzése';
+
+  @override
+  String get backup_schedule_retention_subtitle =>
+      'A régebbi mentések automatikusan eltávolításra kerülnek';
+
+  @override
+  String get backup_section_cloud => 'Felhő';
+
+  @override
+  String get backup_section_history => 'Előzmények';
+
+  @override
+  String get backup_section_schedule => 'Ütemezés';
+
+  @override
+  String get backup_status_disabled => 'Automatikus Mentések Kikapcsolva';
+
+  @override
+  String backup_status_lastBackup(String time) {
+    return 'Utolsó mentés: $time';
+  }
+
+  @override
+  String get backup_status_neverBackedUp => 'Még Nem Készült Mentés';
+
+  @override
+  String get backup_status_noBackupsYet =>
+      'Hozza létre az első mentést az adatok védelméhez';
+
+  @override
+  String get backup_status_overdue => 'Mentés Késésben';
+
+  @override
+  String get backup_status_upToDate => 'Mentések Naprakészek';
+
+  @override
+  String backup_time_daysAgo(int count) {
+    return '$count napja';
+  }
+
+  @override
+  String backup_time_hoursAgo(int count) {
+    return '$count órája';
+  }
+
+  @override
+  String get backup_time_justNow => 'Éppen most';
+
+  @override
+  String backup_time_minutesAgo(int count) {
+    return '$count perce';
+  }
+
+  @override
   String get buddies_action_add => 'Búvártárs hozzáadása';
 
   @override

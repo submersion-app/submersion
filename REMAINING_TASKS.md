@@ -200,12 +200,6 @@ This document contains only the features and tasks that are **not yet completed*
 - [ ] Web platform sync (requires backend)
 - [ ] "Force push" and "force pull" options for troubleshooting
 
-### 12.3 Backup
-**Tasks:**
-- [ ] Automatic scheduled backups
-- [ ] Backup history (keep last N backups)
-- [ ] One-click restore from cloud backup
-
 ### 12.4 Offline Behavior
 | Feature | Notes |
 |---------|-------|

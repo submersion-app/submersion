@@ -975,9 +975,9 @@
 | Custom folder sync | ✅ Implemented | v1.5 | Dropbox/OneDrive via folder selection |
 
 **v2.0 Tasks:**
-- [ ] Automatic scheduled backups
-- [ ] Backup history (keep last N backups)
-- [ ] One-click restore from cloud backup
+- [x] Automatic scheduled backups
+- [x] Backup history (keep last N backups)
+- [x] One-click restore from cloud backup
 
 ---
 
