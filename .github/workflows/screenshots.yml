@@ -3,13 +3,13 @@
 # Manually triggered workflow that captures screenshots on iOS simulators
 # and macOS desktop, then uploads them to App Store Connect for both platforms.
 #
-# The capture script (scripts/release/capture_screenshots.sh) handles:
-#   - iPhone 15 Pro Max (6.7" class)
-#   - iPad Pro 13" (landscape)
-#   - macOS desktop
+# Visual layout in GitHub Actions:
 #
-# Screenshots are organized into Fastlane's expected locale structure,
-# with alpha channels stripped for App Store compatibility.
+#   capture-ios ──┐
+#                 ├── upload
+#   capture-macos ┘
+#
+# iOS and macOS capture run in parallel, then upload depends on both.
 #
 # Required Secrets:
 #   APP_STORE_CONNECT_API_KEY_KEY       - Base64-encoded .p8 API key
@@ -21,11 +21,17 @@ name: Capture & Upload Screenshots
 on:
   workflow_dispatch:
 
+env:
+  FLUTTER_VERSION: '3.x'
+
 jobs:
-  screenshots:
-    name: Capture & Upload
+  # ============================================================================
+  # Capture iOS Screenshots (iPhone + iPad, in parallel with macOS)
+  # ============================================================================
+  capture-ios:
+    name: Capture iOS
     runs-on: macos-14
-    timeout-minutes: 60
+    timeout-minutes: 45
 
     steps:
       - name: Checkout repository
@@ -34,7 +40,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.x'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
 
@@ -42,6 +48,209 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.x'
+
+      - name: Install Flutter dependencies
+        run: |
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+
+      - name: Generate UDDF test data
+        run: python3 scripts/generate_uddf_test_data.py -o integration_test/fixtures/screenshot_test_data.uddf
+
+      - name: Capture iPhone 6.7" screenshots
+        run: |
+          UDID=$(xcrun simctl list devices available | grep "iPhone 16 Pro Max" | head -1 | grep -oE "[0-9A-F-]{36}")
+          if [ -z "$UDID" ]; then
+            UDID=$(xcrun simctl list devices available | grep "iPhone 15 Pro Max" | head -1 | grep -oE "[0-9A-F-]{36}")
+          fi
+          if [ -z "$UDID" ]; then echo "No 6.7-inch iPhone simulator found"; exit 1; fi
+
+          xcrun simctl boot "$UDID" 2>/dev/null || true
+          sleep 3
+
+          xcrun simctl status_bar "$UDID" override \
+            --time "9:41" --batteryState charged --batteryLevel 100 \
+            --wiFiMode active --wiFiBars 3 --cellularMode active --cellularBars 4 \
+            --operatorName "" 2>/dev/null || true
+
+          flutter test integration_test/screenshots_test.dart \
+            -d "$UDID" \
+            --dart-define=SCREENSHOT_MODE=true \
+            --dart-define=SCREENSHOT_DEVICE_NAME=iPhone_6_7_inch \
+            --dart-define=SCREENSHOT_OUTPUT_DIR=screenshots \
+            --dart-define=SCREENSHOT_ORIENTATION=portrait \
+            --dart-define=UDDF_TEST_DATA_PATH=integration_test/fixtures/screenshot_test_data.uddf
+
+          xcrun simctl shutdown "$UDID" 2>/dev/null || true
+
+      - name: Capture iPad 13" screenshots (landscape)
+        run: |
+          UDID=$(xcrun simctl list devices available | grep "iPad Pro" | grep "13" | head -1 | grep -oE "[0-9A-F-]{36}")
+          if [ -z "$UDID" ]; then echo "No iPad Pro 13-inch simulator found"; exit 1; fi
+
+          xcrun simctl boot "$UDID" 2>/dev/null || true
+
+          # Force landscape orientation via Info.plist
+          PLIST=ios/Runner/Info.plist
+          cp "$PLIST" "$PLIST.backup"
+          /usr/libexec/PlistBuddy -c "Delete :UISupportedInterfaceOrientations~ipad" "$PLIST" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations~ipad array" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations~ipad:0 string UIInterfaceOrientationLandscapeLeft" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations~ipad:1 string UIInterfaceOrientationLandscapeRight" "$PLIST"
+
+          sleep 3
+
+          xcrun simctl status_bar "$UDID" override \
+            --time "9:41" --batteryState charged --batteryLevel 100 \
+            --wiFiMode active --wiFiBars 3 --cellularMode active --cellularBars 4 \
+            --operatorName "" 2>/dev/null || true
+
+          flutter test integration_test/screenshots_test.dart \
+            -d "$UDID" \
+            --dart-define=SCREENSHOT_MODE=true \
+            --dart-define=SCREENSHOT_DEVICE_NAME=iPad_13_inch \
+            --dart-define=SCREENSHOT_OUTPUT_DIR=screenshots \
+            --dart-define=SCREENSHOT_ORIENTATION=landscape \
+            --dart-define=UDDF_TEST_DATA_PATH=integration_test/fixtures/screenshot_test_data.uddf
+
+          mv "$PLIST.backup" "$PLIST"
+          xcrun simctl shutdown "$UDID" 2>/dev/null || true
+
+      - name: Upload iOS screenshot artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-ios
+          path: |
+            screenshots/iPhone_6_7_inch/
+            screenshots/iPad_13_inch/
+          retention-days: 30
+
+  # ============================================================================
+  # Capture macOS Screenshots (in parallel with iOS)
+  # ============================================================================
+  capture-macos:
+    name: Capture macOS
+    runs-on: macos-14
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Flutter dependencies
+        run: |
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+
+      - name: Generate UDDF test data
+        run: python3 scripts/generate_uddf_test_data.py -o integration_test/fixtures/screenshot_test_data.uddf
+
+      - name: Stage test data into macOS sandbox
+        run: |
+          SANDBOX_DIR="$HOME/Library/Containers/app.submersion/Data/integration_test/fixtures"
+          mkdir -p "$SANDBOX_DIR"
+          cp integration_test/fixtures/screenshot_test_data.uddf "$SANDBOX_DIR/"
+
+      - name: Capture macOS screenshots
+        run: |
+          flutter test integration_test/screenshots_test.dart \
+            -d macos \
+            --dart-define=SCREENSHOT_MODE=true \
+            --dart-define=SCREENSHOT_DEVICE_NAME=macOS \
+            --dart-define=SCREENSHOT_OUTPUT_DIR=screenshots \
+            --dart-define=UDDF_TEST_DATA_PATH=integration_test/fixtures/screenshot_test_data.uddf
+
+      - name: Retrieve screenshots from sandbox
+        run: |
+          SANDBOX_SCREENSHOTS="$HOME/Library/Containers/app.submersion/Data/screenshots/macOS"
+          if [ -d "$SANDBOX_SCREENSHOTS" ]; then
+            mkdir -p screenshots/macOS
+            cp "$SANDBOX_SCREENSHOTS"/*.png screenshots/macOS/
+            echo "Retrieved $(ls screenshots/macOS/*.png | wc -l | tr -d ' ') macOS screenshots"
+          else
+            echo "No screenshots found in sandbox container"
+            exit 1
+          fi
+
+      - name: Upload macOS screenshot artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-macos
+          path: screenshots/macOS/
+          retention-days: 30
+
+  # ============================================================================
+  # Upload to App Store Connect (after both captures complete)
+  # ============================================================================
+  upload:
+    name: Upload to App Store Connect
+    runs-on: macos-14
+    needs: [capture-ios, capture-macos]
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download iOS screenshots
+        uses: actions/download-artifact@v4
+        with:
+          name: screenshots-ios
+          path: screenshots/
+
+      - name: Download macOS screenshots
+        uses: actions/download-artifact@v4
+        with:
+          name: screenshots-macos
+          path: screenshots/macOS/
+
+      - name: List downloaded screenshots
+        run: find screenshots -name "*.png" | sort
+
+      - name: Install ImageMagick
+        run: brew install imagemagick
+
+      - name: Strip alpha channels and organize for Fastlane
+        run: |
+          LOCALE_DIR="screenshots/en-US"
+          mkdir -p "$LOCALE_DIR"
+
+          for device_dir in screenshots/iPhone_6_7_inch screenshots/iPad_13_inch screenshots/macOS; do
+            if [ -d "$device_dir" ] && ls "$device_dir"/*.png 1>/dev/null 2>&1; then
+              device_name=$(basename "$device_dir")
+              count=$(ls "$device_dir"/*.png | wc -l | tr -d ' ')
+              echo "Processing $device_name ($count screenshots)..."
+              for file in "$device_dir"/*.png; do
+                filename=$(basename "$file")
+                convert "$file" -background white -alpha remove -alpha off "$LOCALE_DIR/$filename"
+              done
+            fi
+          done
+
+          echo ""
+          echo "Organized screenshots:"
+          ls -1 "$LOCALE_DIR"
+
+      - name: Upload organized screenshots as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-organized
+          path: screenshots/
+          retention-days: 30
 
       - name: Setup Ruby (iOS)
         uses: ruby/setup-ruby@v1
@@ -52,25 +261,6 @@ jobs:
 
       - name: Install macOS Fastlane gems
         run: cd macos && bundle install
-
-      - name: Install Flutter dependencies
-        run: |
-          flutter pub get
-          dart run build_runner build --delete-conflicting-outputs
-
-      - name: Install ImageMagick
-        run: brew install imagemagick
-
-      - name: Capture screenshots (iOS + macOS)
-        run: ./scripts/release/capture_screenshots.sh
-
-      - name: Upload screenshot artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: screenshots
-          path: screenshots/
-          retention-days: 30
 
       - name: Decode API Key
         env:
