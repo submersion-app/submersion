@@ -61,7 +61,7 @@ jobs:
       - name: Generate UDDF test data
         run: |
           mkdir -p integration_test/fixtures
-          python3 scripts/generate_uddf_test_data.py -o integration_test/fixtures/screenshot_test_data.uddf
+          python3 scripts/generate_uddf_test_data.py -n 50 --sample-interval 30 -o integration_test/fixtures/screenshot_test_data.uddf
 
       - name: Capture iPhone 6.7" screenshots
         run: |
@@ -81,8 +81,10 @@ jobs:
 
           # iOS simulator resolves relative paths against the app bundle (read-only).
           # Use absolute paths so the Dart VM can read/write the host filesystem.
+          # --ignore-timeouts: CI simulators are slow; job timeout is the real guard.
           flutter test integration_test/screenshots_test.dart \
             -d "$UDID" \
+            --ignore-timeouts \
             --dart-define=SCREENSHOT_MODE=true \
             --dart-define=SCREENSHOT_DEVICE_NAME=iPhone_6_7_inch \
             --dart-define=SCREENSHOT_OUTPUT_DIR="$GITHUB_WORKSPACE/screenshots" \
@@ -115,6 +117,7 @@ jobs:
 
           flutter test integration_test/screenshots_test.dart \
             -d "$UDID" \
+            --ignore-timeouts \
             --dart-define=SCREENSHOT_MODE=true \
             --dart-define=SCREENSHOT_DEVICE_NAME=iPad_13_inch \
             --dart-define=SCREENSHOT_OUTPUT_DIR="$GITHUB_WORKSPACE/screenshots" \
@@ -172,7 +175,7 @@ jobs:
       - name: Generate UDDF test data
         run: |
           mkdir -p integration_test/fixtures
-          python3 scripts/generate_uddf_test_data.py -o integration_test/fixtures/screenshot_test_data.uddf
+          python3 scripts/generate_uddf_test_data.py -n 50 --sample-interval 30 -o integration_test/fixtures/screenshot_test_data.uddf
 
       - name: Capture macOS screenshots
         run: |
