@@ -162,6 +162,11 @@ platform :mac do
     sh("cd ../.. && flutter build macos --release")
 
     UI.message("Building and signing pkg...")
+    auth_flags = "-allowProvisioningUpdates" \
+      " -authenticationKeyPath '#{ENV["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"]}'" \
+      " -authenticationKeyID '#{ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"]}'" \
+      " -authenticationKeyIssuerID '#{ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"]}'"
+
     build_mac_app(
       workspace: "Runner.xcworkspace",
       scheme: "Runner",
@@ -172,7 +177,8 @@ platform :mac do
         signingStyle: "automatic",
         teamID: "8U3RSKF42Q"
       },
-      export_xcargs: "-allowProvisioningUpdates -authenticationKeyPath '#{ENV["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"]}' -authenticationKeyID '#{ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"]}' -authenticationKeyIssuerID '#{ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"]}'"
+      xcargs: auth_flags,
+      export_xcargs: auth_flags,
     )
 
     UI.success("Build complete! Pkg saved to macos/build/Submersion.pkg")

@@ -129,6 +129,11 @@ platform :ios do
 
     # Build and sign the IPA
     UI.message("Building and signing IPA...")
+    auth_flags = "-allowProvisioningUpdates" \
+      " -authenticationKeyPath '#{ENV["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"]}'" \
+      " -authenticationKeyID '#{ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"]}'" \
+      " -authenticationKeyIssuerID '#{ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"]}'"
+
     build_ios_app(
       workspace: "Runner.xcworkspace",
       scheme: "Runner",
@@ -139,7 +144,8 @@ platform :ios do
         signingStyle: "automatic",
         teamID: "8U3RSKF42Q"
       },
-      export_xcargs: "-allowProvisioningUpdates -authenticationKeyPath '#{ENV["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"]}' -authenticationKeyID '#{ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"]}' -authenticationKeyIssuerID '#{ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"]}'"
+      xcargs: auth_flags,
+      export_xcargs: auth_flags,
     )
 
     UI.success("Build complete! IPA saved to ios/build/Submersion.ipa")

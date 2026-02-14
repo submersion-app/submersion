@@ -67,18 +67,29 @@ jobs:
           CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
           echo -n "$MACOS_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+          echo "Certificate .p12 size: $(wc -c < $CERTIFICATE_PATH) bytes"
           security create-keychain -p "$MACOS_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
           security unlock-keychain -p "$MACOS_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security import $CERTIFICATE_PATH -P "$MACOS_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          security set-key-partition-list -S apple-tool:,apple: -k "$MACOS_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -k "$MACOS_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
+          echo "Available signing identities:"
+          security find-identity -v -p codesigning $KEYCHAIN_PATH
 
       - name: Codesign the app
         run: |
           APP_PATH="build/macos/Build/Products/Release/Submersion.app"
+          IDENTITY=$(security find-identity -v -p codesigning $RUNNER_TEMP/app-signing.keychain-db | grep "Developer ID Application" | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          if [ -z "$IDENTITY" ]; then
+            echo "Error: No 'Developer ID Application' identity found in keychain."
+            echo "Available identities:"
+            security find-identity -v -p codesigning $RUNNER_TEMP/app-signing.keychain-db
+            exit 1
+          fi
+          echo "Signing with: $IDENTITY"
           codesign --deep --force --options runtime \
-            --sign "Developer ID Application" \
+            --sign "$IDENTITY" \
             "$APP_PATH"
 
       - name: Install create-dmg
