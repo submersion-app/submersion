@@ -162,8 +162,9 @@ platform :mac do
     sh("cd ../.. && flutter build macos --release")
 
     UI.message("Building and signing pkg...")
+    key_path = File.absolute_path(ENV["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"])
     auth_flags = "-allowProvisioningUpdates" \
-      " -authenticationKeyPath '#{ENV["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"]}'" \
+      " -authenticationKeyPath '#{key_path}'" \
       " -authenticationKeyID '#{ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"]}'" \
       " -authenticationKeyIssuerID '#{ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"]}'"
 
