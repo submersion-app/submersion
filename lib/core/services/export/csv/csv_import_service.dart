@@ -18,9 +18,8 @@ class CsvImportService {
       throw const FormatException('CSV file is empty');
     }
 
-    final headers = rows.first
-        .map((e) => e.toString().toLowerCase().trim())
-        .toList();
+    final originalHeaders = rows.first.map((e) => e.toString().trim()).toList();
+    final headers = originalHeaders.map((e) => e.toLowerCase()).toList();
     final dataRows = rows.skip(1);
 
     final dives = <Map<String, dynamic>>[];
@@ -85,6 +84,16 @@ class CsvImportService {
           diveData['tankVolume'] = _parseDouble(value);
         } else if (header.contains('o2') || header.contains('oxygen')) {
           diveData['o2Percent'] = _parseDouble(value);
+        } else if (header.startsWith('custom:')) {
+          // Extract key from original (non-lowercased) header to preserve case
+          final customKey = originalHeaders[i].substring(7).trim();
+          if (customKey.isNotEmpty) {
+            diveData.putIfAbsent('customFields', () => <Map<String, String>>[]);
+            (diveData['customFields'] as List).add({
+              'key': customKey,
+              'value': value,
+            });
+          }
         }
       }
 
