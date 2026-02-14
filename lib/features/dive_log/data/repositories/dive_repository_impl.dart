@@ -20,6 +20,9 @@ import 'package:submersion/features/dive_centers/domain/entities/dive_center.dar
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart'
+    as domain;
+import 'package:submersion/features/dive_log/data/repositories/dive_custom_field_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart' as domain;
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart' as domain;
@@ -30,6 +33,8 @@ class DiveRepository {
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(DiveRepository);
   final TagRepository _tagRepository = TagRepository();
+  late final DiveCustomFieldRepository _customFieldRepository =
+      DiveCustomFieldRepository(_db);
 
   // ============================================================================
   // CRUD Operations
@@ -159,6 +164,10 @@ class DiveRepository {
         // Load all tags for these dives in one query
         final tagsByDive = await _tagRepository.getTagsForDives(diveIds);
 
+        // Load all custom fields for these dives in one query
+        final customFieldsByDive = await _customFieldRepository
+            .getFieldsForDiveIds(diveIds);
+
         return rows
             .map(
               (row) => _mapRowToDiveWithPreloadedData(
@@ -171,6 +180,7 @@ class DiveRepository {
                     : null,
                 trip: row.tripId != null ? tripsById[row.tripId] : null,
                 tags: tagsByDive[row.id] ?? [],
+                customFields: customFieldsByDive[row.id] ?? [],
               ),
             )
             .toList();
@@ -414,6 +424,22 @@ class DiveRepository {
           );
         }
 
+        // Insert custom fields
+        for (final field in dive.customFields) {
+          final fieldId = field.id.isNotEmpty ? field.id : _uuid.v4();
+          batch.insert(
+            _db.diveCustomFields,
+            DiveCustomFieldsCompanion(
+              id: Value(fieldId),
+              diveId: Value(id),
+              fieldKey: Value(field.key),
+              fieldValue: Value(field.value),
+              sortOrder: Value(field.sortOrder),
+              createdAt: Value(now),
+            ),
+          );
+        }
+
         // Insert profile points - no individual sync records needed,
         // the parent dive sync record covers all child data
         for (final point in dive.profile) {
@@ -643,6 +669,40 @@ class DiveRepository {
         await _syncRepository.markRecordPending(
           entityType: 'diveEquipment',
           recordId: '${dive.id}|${item.id}',
+          localUpdatedAt: now,
+        );
+      }
+
+      // Update custom fields: delete and re-insert
+      final existingCustomFields = await (_db.select(
+        _db.diveCustomFields,
+      )..where((cf) => cf.diveId.equals(dive.id))).get();
+      await (_db.delete(
+        _db.diveCustomFields,
+      )..where((cf) => cf.diveId.equals(dive.id))).go();
+      for (final cf in existingCustomFields) {
+        await _syncRepository.logDeletion(
+          entityType: 'diveCustomFields',
+          recordId: cf.id,
+        );
+      }
+      for (final field in dive.customFields) {
+        final fieldId = field.id.isNotEmpty ? field.id : _uuid.v4();
+        await _db
+            .into(_db.diveCustomFields)
+            .insert(
+              DiveCustomFieldsCompanion(
+                id: Value(fieldId),
+                diveId: Value(dive.id),
+                fieldKey: Value(field.key),
+                fieldValue: Value(field.value),
+                sortOrder: Value(field.sortOrder),
+                createdAt: Value(DateTime.now().millisecondsSinceEpoch),
+              ),
+            );
+        await _syncRepository.markRecordPending(
+          entityType: 'diveCustomFields',
+          recordId: fieldId,
           localUpdatedAt: now,
         );
       }
@@ -1431,6 +1491,7 @@ class DiveRepository {
     DiveCenter? center,
     Trip? trip,
     List<domain.Tag> tags = const [],
+    List<domain.DiveCustomField> customFields = const [],
   }) {
     // Map site if exists
     domain.DiveSite? domainSite;
@@ -1637,6 +1698,8 @@ class DiveRepository {
       // Wearable integration (v2.0)
       wearableSource: row.wearableSource,
       wearableId: row.wearableId,
+      // User-defined custom fields
+      customFields: customFields,
     );
   }
 
@@ -1695,6 +1758,9 @@ class DiveRepository {
 
     // Get weights for this dive
     final weights = await _loadWeightsForDive(row.id);
+
+    // Get custom fields for this dive
+    final customFields = await _loadCustomFieldsForDive(row.id);
 
     // Get site if exists
     domain.DiveSite? site;
@@ -1932,6 +1998,8 @@ class DiveRepository {
       // Wearable integration (v2.0)
       wearableSource: row.wearableSource,
       wearableId: row.wearableId,
+      // User-defined custom fields
+      customFields: customFields,
     );
   }
 
@@ -2163,6 +2231,22 @@ class DiveRepository {
           .toList();
     } catch (e, stackTrace) {
       _log.error('Failed to load weights for dive: $diveId', e, stackTrace);
+      return [];
+    }
+  }
+
+  /// Load custom fields for a dive
+  Future<List<domain.DiveCustomField>> _loadCustomFieldsForDive(
+    String diveId,
+  ) async {
+    try {
+      return await _customFieldRepository.getFieldsForDive(diveId);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to load custom fields for dive: $diveId',
+        e,
+        stackTrace,
+      );
       return [];
     }
   }
