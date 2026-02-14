@@ -28,8 +28,11 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/trips/presentation/widgets/trip_picker.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/custom_field_input_row.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/ccr_settings_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_selector.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/scr_settings_panel.dart';
@@ -119,6 +122,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   // Tags
   List<Tag> _selectedTags = [];
+
+  // Custom fields
+  List<DiveCustomField> _customFields = [];
 
   // Dive mode and rebreather settings
   DiveMode _diveMode = DiveMode.oc;
@@ -300,6 +306,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           // Load tags
           _selectedTags = List.from(dive.tags);
 
+          // Load custom fields
+          _customFields = List.from(dive.customFields);
+
           // Load CCR/SCR rebreather settings
           _diveMode = dive.diveMode;
           _setpointLow = dive.setpointLow;
@@ -446,6 +455,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _buildCourseSection(),
           const SizedBox(height: 16),
           _buildTagsSection(),
+          const SizedBox(height: 16),
+          _buildCustomFieldsSection(),
           const SizedBox(height: 32),
         ],
       ),
@@ -560,6 +571,68 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               onTagsChanged: (tags) {
                 setState(() => _selectedTags = tags);
               },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCustomFieldsSection() {
+    final currentDiverId = ref.read(currentDiverIdProvider);
+    final suggestions = currentDiverId != null
+        ? ref
+                  .watch(customFieldKeySuggestionsProvider(currentDiverId))
+                  .valueOrNull ??
+              []
+        : <String>[];
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              context.l10n.diveLog_edit_section_customFields,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            if (_customFields.isNotEmpty) const Divider(),
+            ..._customFields.asMap().entries.map((entry) {
+              final index = entry.key;
+              final field = entry.value;
+              return CustomFieldInputRow(
+                key: ValueKey(field.id),
+                field: field,
+                keySuggestions: suggestions,
+                onChanged: (updated) {
+                  setState(() {
+                    _customFields[index] = updated;
+                  });
+                },
+                onDelete: () {
+                  setState(() {
+                    _customFields.removeAt(index);
+                  });
+                },
+              );
+            }),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: () {
+                setState(() {
+                  _customFields.add(
+                    DiveCustomField(
+                      id: _uuid.v4(),
+                      key: '',
+                      value: '',
+                      sortOrder: _customFields.length,
+                    ),
+                  );
+                });
+              },
+              icon: const Icon(Icons.add),
+              label: Text(context.l10n.diveLog_edit_addCustomField),
             ),
           ],
         ),
@@ -2696,6 +2769,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         weights: _weights,
         // Tags
         tags: _selectedTags,
+        // Custom fields
+        customFields: _customFields,
         // Preserve favorite status when editing
         isFavorite: _existingDive?.isFavorite ?? false,
         // Preserve dive profile data (time series from dive computer)
