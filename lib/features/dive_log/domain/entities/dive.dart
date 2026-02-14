@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 
 /// Core dive log entry entity
@@ -104,6 +105,9 @@ class Dive extends Equatable {
   final String? wearableSource; // 'appleWatch', 'garmin', 'suunto'
   final String? wearableId; // Source-specific ID (e.g., HealthKit UUID)
 
+  // User-defined custom fields
+  final List<DiveCustomField> customFields;
+
   const Dive({
     required this.id,
     this.diverId,
@@ -174,6 +178,8 @@ class Dive extends Equatable {
     // Wearable integration (v2.0)
     this.wearableSource,
     this.wearableId,
+    // User-defined custom fields
+    this.customFields = const [],
   });
 
   /// Effective start time of the dive (entryTime if set, otherwise dateTime)
@@ -425,6 +431,8 @@ class Dive extends Equatable {
     // Wearable integration
     String? wearableSource,
     String? wearableId,
+    // User-defined custom fields
+    List<DiveCustomField>? customFields,
   }) {
     return Dive(
       id: id ?? this.id,
@@ -496,6 +504,8 @@ class Dive extends Equatable {
       // Wearable integration
       wearableSource: wearableSource ?? this.wearableSource,
       wearableId: wearableId ?? this.wearableId,
+      // User-defined custom fields
+      customFields: customFields ?? this.customFields,
     );
   }
 
@@ -570,6 +580,8 @@ class Dive extends Equatable {
     // Wearable integration
     wearableSource,
     wearableId,
+    // User-defined custom fields
+    customFields,
   ];
 }
 

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 
 void main() {
@@ -45,6 +46,40 @@ void main() {
 
       expect(a, equals(b));
       expect(a, isNot(equals(c)));
+    });
+  });
+
+  group('Dive.customFields', () {
+    test('defaults to empty list', () {
+      final dive = Dive(id: 'd-1', dateTime: DateTime(2024, 1, 15));
+      expect(dive.customFields, isEmpty);
+    });
+
+    test('copyWith preserves customFields', () {
+      final dive = Dive(
+        id: 'd-1',
+        dateTime: DateTime(2024, 1, 15),
+        customFields: const [
+          DiveCustomField(id: 'cf-1', key: 'mood', value: 'great'),
+        ],
+      );
+
+      final updated = dive.copyWith(notes: 'updated');
+      expect(updated.customFields.length, 1);
+      expect(updated.customFields.first.key, 'mood');
+    });
+
+    test('copyWith replaces customFields', () {
+      final dive = Dive(
+        id: 'd-1',
+        dateTime: DateTime(2024, 1, 15),
+        customFields: const [
+          DiveCustomField(id: 'cf-1', key: 'mood', value: 'great'),
+        ],
+      );
+
+      final updated = dive.copyWith(customFields: const []);
+      expect(updated.customFields, isEmpty);
     });
   });
 }
