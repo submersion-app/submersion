@@ -102,6 +102,15 @@ class CsvExportService {
 
   /// Generate CSV content for dives (without sharing).
   String generateDivesCsvContent(List<Dive> dives) {
+    // Collect all distinct custom field keys across exported dives
+    final allCustomFieldKeys = <String>{};
+    for (final dive in dives) {
+      for (final field in dive.customFields) {
+        allCustomFieldKeys.add(field.key);
+      }
+    }
+    final sortedCustomKeys = allCustomFieldKeys.toList()..sort();
+
     final headers = [
       'Dive Number',
       'Date',
@@ -124,6 +133,7 @@ class CsvExportService {
       'Tank Volume (L)',
       'O2 %',
       'Notes',
+      ...sortedCustomKeys.map((key) => 'custom:$key'),
     ];
 
     final rows = <List<dynamic>>[headers];
@@ -152,6 +162,12 @@ class CsvExportService {
         tank?.volume?.toStringAsFixed(0) ?? '',
         tank?.gasMix.o2.toStringAsFixed(0) ?? '',
         dive.notes.replaceAll('\n', ' '),
+        ...sortedCustomKeys.map((key) {
+          final field = dive.customFields
+              .where((f) => f.key == key)
+              .firstOrNull;
+          return field?.value ?? '';
+        }),
       ]);
     }
 
