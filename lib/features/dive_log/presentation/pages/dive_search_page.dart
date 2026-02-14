@@ -10,6 +10,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Advanced search page with all filter options in collapsible sections.
@@ -54,12 +55,17 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
   int? _minRating;
   bool _favoritesOnly = false;
 
+  // Custom Fields
+  String? _customFieldKey;
+  String? _customFieldValue;
+
   // Controllers
   final _minDepthController = TextEditingController();
   final _maxDepthController = TextEditingController();
   final _minDurationController = TextEditingController();
   final _maxDurationController = TextEditingController();
   final _buddyNameController = TextEditingController();
+  final _customFieldValueController = TextEditingController();
 
   // Expansion state
   final Map<String, bool> _expanded = {
@@ -69,6 +75,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
     'gas': false,
     'social': false,
     'organization': false,
+    'customFields': false,
   };
 
   @override
@@ -93,6 +100,9 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
     _selectedTagIds = List.from(filter.tagIds);
     _minRating = filter.minRating;
     _favoritesOnly = filter.favoritesOnly ?? false;
+    _customFieldKey = filter.customFieldKey;
+    _customFieldValue = filter.customFieldValue;
+    _customFieldValueController.text = _customFieldValue ?? '';
 
     // Set controller text
     _minDepthController.text = _minDepth?.toStringAsFixed(0) ?? '';
@@ -124,6 +134,9 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
     if (_selectedTagIds.isNotEmpty || _minRating != null || _favoritesOnly) {
       _expanded['organization'] = true;
     }
+    if (_customFieldKey != null && _customFieldKey!.isNotEmpty) {
+      _expanded['customFields'] = true;
+    }
   }
 
   @override
@@ -133,6 +146,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
     _minDurationController.dispose();
     _maxDurationController.dispose();
     _buddyNameController.dispose();
+    _customFieldValueController.dispose();
     super.dispose();
   }
 
@@ -200,6 +214,14 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
             title: context.l10n.diveLog_search_section_organization,
             icon: Icons.label,
             child: _buildOrganizationContent(),
+          ),
+
+          // Custom Fields Section
+          _buildSection(
+            key: 'customFields',
+            title: context.l10n.diveLog_search_customFieldKey,
+            icon: Icons.extension,
+            child: _buildCustomFieldsContent(),
           ),
 
           const SizedBox(height: 16),
@@ -737,6 +759,9 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
       _selectedTagIds = [];
       _minRating = null;
       _favoritesOnly = false;
+      _customFieldKey = null;
+      _customFieldValue = null;
+      _customFieldValueController.clear();
 
       _minDepthController.clear();
       _maxDepthController.clear();
@@ -766,9 +791,80 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
       tagIds: _selectedTagIds,
       minRating: _minRating,
       favoritesOnly: _favoritesOnly ? true : null,
+      customFieldKey: _customFieldKey,
+      customFieldValue: _customFieldValue,
     );
 
     // Navigate to dive list
     context.go('/dives');
+  }
+
+  Widget _buildCustomFieldsContent() {
+    final currentDiverId = ref.watch(currentDiverIdProvider);
+    final suggestionsAsync = currentDiverId != null
+        ? ref.watch(customFieldKeySuggestionsProvider(currentDiverId))
+        : null;
+    final suggestions = suggestionsAsync?.valueOrNull ?? <String>[];
+
+    if (suggestions.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: Text(
+          context.l10n.diveLog_search_customFieldValue,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            fontStyle: FontStyle.italic,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          DropdownButtonFormField<String?>(
+            initialValue: _customFieldKey,
+            decoration: InputDecoration(
+              labelText: context.l10n.diveLog_search_customFieldKey,
+              prefixIcon: const Icon(Icons.extension),
+            ),
+            items: [
+              DropdownMenuItem<String?>(
+                value: null,
+                child: Text(context.l10n.diveLog_search_customFieldKey),
+              ),
+              ...suggestions.map(
+                (key) =>
+                    DropdownMenuItem<String?>(value: key, child: Text(key)),
+              ),
+            ],
+            onChanged: (value) {
+              setState(() {
+                _customFieldKey = value;
+                if (value == null) {
+                  _customFieldValue = null;
+                  _customFieldValueController.clear();
+                }
+              });
+            },
+          ),
+          if (_customFieldKey != null) ...[
+            const SizedBox(height: 16),
+            TextField(
+              controller: _customFieldValueController,
+              decoration: InputDecoration(
+                labelText: context.l10n.diveLog_search_customFieldValue,
+                prefixIcon: const Icon(Icons.search),
+              ),
+              onChanged: (value) {
+                _customFieldValue = value.isEmpty ? null : value;
+              },
+            ),
+          ],
+        ],
+      ),
+    );
   }
 }

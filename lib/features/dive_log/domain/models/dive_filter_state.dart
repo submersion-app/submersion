@@ -26,6 +26,8 @@ class DiveFilterState {
   final int? minRating;
   final int? minDurationMinutes;
   final int? maxDurationMinutes;
+  final String? customFieldKey;
+  final String? customFieldValue;
 
   const DiveFilterState({
     this.startDate,
@@ -47,6 +49,8 @@ class DiveFilterState {
     this.minRating,
     this.minDurationMinutes,
     this.maxDurationMinutes,
+    this.customFieldKey,
+    this.customFieldValue,
   });
 
   bool get hasActiveFilters =>
@@ -68,7 +72,8 @@ class DiveFilterState {
       maxO2Percent != null ||
       minRating != null ||
       minDurationMinutes != null ||
-      maxDurationMinutes != null;
+      maxDurationMinutes != null ||
+      (customFieldKey != null && customFieldKey!.isNotEmpty);
 
   DiveFilterState copyWith({
     DateTime? startDate,
@@ -90,6 +95,8 @@ class DiveFilterState {
     int? minRating,
     int? minDurationMinutes,
     int? maxDurationMinutes,
+    String? customFieldKey,
+    String? customFieldValue,
     bool clearStartDate = false,
     bool clearEndDate = false,
     bool clearDiveType = false,
@@ -109,6 +116,8 @@ class DiveFilterState {
     bool clearMinRating = false,
     bool clearMinDurationMinutes = false,
     bool clearMaxDurationMinutes = false,
+    bool clearCustomFieldKey = false,
+    bool clearCustomFieldValue = false,
   }) {
     return DiveFilterState(
       startDate: clearStartDate ? null : (startDate ?? this.startDate),
@@ -146,6 +155,12 @@ class DiveFilterState {
       maxDurationMinutes: clearMaxDurationMinutes
           ? null
           : (maxDurationMinutes ?? this.maxDurationMinutes),
+      customFieldKey: clearCustomFieldKey
+          ? null
+          : (customFieldKey ?? this.customFieldKey),
+      customFieldValue: clearCustomFieldValue
+          ? null
+          : (customFieldValue ?? this.customFieldValue),
     );
   }
 
@@ -228,6 +243,18 @@ class DiveFilterState {
             durationMinutes > maxDurationMinutes!) {
           return false;
         }
+      }
+      if (customFieldKey != null && customFieldKey!.isNotEmpty) {
+        final hasMatch = dive.customFields.any((cf) {
+          if (cf.key != customFieldKey) return false;
+          if (customFieldValue != null && customFieldValue!.isNotEmpty) {
+            return cf.value.toLowerCase().contains(
+              customFieldValue!.toLowerCase(),
+            );
+          }
+          return true;
+        });
+        if (!hasMatch) return false;
       }
       return true;
     }).toList();

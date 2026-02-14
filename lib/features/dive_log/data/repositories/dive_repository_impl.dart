@@ -1041,6 +1041,24 @@ class DiveRepository {
       clauses.add('d.duration <= ?');
       args.add(Variable(filter.maxDurationMinutes! * 60));
     }
+    if (filter.customFieldKey != null && filter.customFieldKey!.isNotEmpty) {
+      if (filter.customFieldValue != null &&
+          filter.customFieldValue!.isNotEmpty) {
+        clauses.add(
+          'EXISTS (SELECT 1 FROM dive_custom_fields cf '
+          'WHERE cf.dive_id = d.id AND cf.field_key = ? '
+          'AND cf.field_value LIKE ?)',
+        );
+        args.add(Variable(filter.customFieldKey!));
+        args.add(Variable('%${filter.customFieldValue}%'));
+      } else {
+        clauses.add(
+          'EXISTS (SELECT 1 FROM dive_custom_fields cf '
+          'WHERE cf.dive_id = d.id AND cf.field_key = ?)',
+        );
+        args.add(Variable(filter.customFieldKey!));
+      }
+    }
   }
 
   // ============================================================================
@@ -1210,7 +1228,44 @@ class DiveRepository {
       }
 
       final rows = await searchQuery.get();
-      return Future.wait(rows.map(_mapRowToDive));
+
+      // Also search custom field keys and values
+      final customFieldMatches = await _db
+          .customSelect(
+            'SELECT DISTINCT cf.dive_id FROM dive_custom_fields cf '
+            'INNER JOIN dives d ON cf.dive_id = d.id '
+            'WHERE (cf.field_key LIKE ? OR cf.field_value LIKE ?) '
+            '${diverId != null ? 'AND d.diver_id = ?' : ''}',
+            variables: [
+              Variable('%$query%'),
+              Variable('%$query%'),
+              if (diverId != null) Variable(diverId),
+            ],
+          )
+          .get();
+
+      final customFieldDiveIds = customFieldMatches
+          .map((r) => r.data['dive_id'] as String)
+          .toSet();
+
+      // Remove IDs already found by the main query
+      final existingIds = rows.map((r) => r.id).toSet();
+      final additionalIds = customFieldDiveIds.difference(existingIds);
+
+      // Load additional dives from custom field matches
+      final List<Dive> allRows = rows.toList();
+      if (additionalIds.isNotEmpty) {
+        final additionalQuery = _db.select(_db.dives)
+          ..where((t) => t.id.isIn(additionalIds.toList()))
+          ..orderBy([
+            (t) => OrderingTerm.desc(coalesce([t.entryTime, t.diveDateTime])),
+            (t) => OrderingTerm.desc(t.diveNumber),
+          ]);
+        final additionalRows = await additionalQuery.get();
+        allRows.addAll(additionalRows);
+      }
+
+      return Future.wait(allRows.map(_mapRowToDive));
     } catch (e, stackTrace) {
       _log.error('Failed to search dives: $query', e, stackTrace);
       rethrow;
