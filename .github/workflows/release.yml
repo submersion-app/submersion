@@ -140,6 +140,9 @@ jobs:
 
       # -- Mac App Store (via Fastlane) --
 
+      - name: Restore Release.xcconfig for App Store build
+        run: git checkout macos/Runner/Configs/Release.xcconfig
+
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
