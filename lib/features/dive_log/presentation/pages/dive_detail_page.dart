@@ -243,6 +243,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             _buildMediaSection(context, ref, dive),
             const SizedBox(height: 24),
             _buildNotesSection(context, dive),
+            if (dive.customFields.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              _buildCustomFieldsSection(context, dive),
+            ],
             if (dive.courseId != null) ...[
               const SizedBox(height: 24),
               _buildSignatureSection(context, ref, dive),
@@ -3440,6 +3444,63 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     ? Theme.of(context).colorScheme.onSurfaceVariant
                     : null,
                 fontStyle: dive.notes.isEmpty ? FontStyle.italic : null,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCustomFieldsSection(BuildContext context, Dive dive) {
+    if (dive.customFields.isEmpty) return const SizedBox.shrink();
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  context.l10n.diveLog_detail_section_customFields,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                Text(
+                  context.l10n.diveLog_detail_customFieldCount(
+                    dive.customFields.length,
+                  ),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+            const Divider(),
+            ...dive.customFields.map(
+              (field) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${field.key}:',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        field.value,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
