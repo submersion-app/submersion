@@ -438,6 +438,41 @@ class PdfExportService {
               maxLines: 2,
             ),
           ],
+          if (dive.customFields.isNotEmpty) ...[
+            pw.SizedBox(height: 6),
+            pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: dive.customFields
+                  .map(
+                    (field) => pw.Padding(
+                      padding: const pw.EdgeInsets.symmetric(vertical: 1),
+                      child: pw.Row(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text(
+                            '${field.key}: ',
+                            style: pw.TextStyle(
+                              fontSize: 9,
+                              fontWeight: pw.FontWeight.bold,
+                              color: PdfColors.grey700,
+                            ),
+                          ),
+                          pw.Expanded(
+                            child: pw.Text(
+                              field.value,
+                              style: const pw.TextStyle(
+                                fontSize: 9,
+                                color: PdfColors.grey700,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ],
           if (dive.rating != null && dive.rating! > 0) ...[
             pw.SizedBox(height: 4),
             pw.Text(
