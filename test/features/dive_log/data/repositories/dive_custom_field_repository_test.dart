@@ -30,7 +30,7 @@ void main() {
         .insert(
           DiversCompanion(
             id: Value(diverId),
-            name: Value('Test Diver'),
+            name: const Value('Test Diver'),
             createdAt: Value(now),
             updatedAt: Value(now),
           ),

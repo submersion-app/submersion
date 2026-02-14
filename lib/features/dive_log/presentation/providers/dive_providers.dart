@@ -3,6 +3,8 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_custom_field_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
@@ -95,6 +97,20 @@ List<domain.Dive> _applySorting(
 final diveRepositoryProvider = Provider<DiveRepository>((ref) {
   return DiveRepository();
 });
+
+/// Custom field repository singleton
+final diveCustomFieldRepositoryProvider = Provider<DiveCustomFieldRepository>((
+  ref,
+) {
+  return DiveCustomFieldRepository(DatabaseService.instance.database);
+});
+
+/// Autocomplete suggestions: distinct keys this diver has used
+final customFieldKeySuggestionsProvider =
+    FutureProvider.family<List<String>, String>((ref, diverId) async {
+      final repository = ref.watch(diveCustomFieldRepositoryProvider);
+      return repository.getDistinctKeysForDiver(diverId);
+    });
 
 /// All dives list provider (filtered by current diver)
 final divesProvider = FutureProvider<List<domain.Dive>>((ref) async {
