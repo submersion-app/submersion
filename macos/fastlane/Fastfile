@@ -173,7 +173,7 @@ platform :mac do
       scheme: "Runner",
       export_method: "app-store",
       output_directory: "./build",
-      output_name: "Submersion.pkg",
+      output_name: "Submersion",
       export_options: {
         signingStyle: "automatic",
         teamID: "8U3RSKF42Q"
