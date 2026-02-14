@@ -32,11 +32,12 @@ platform :ios do
 
   desc "Upload screenshots to App Store Connect"
   lane :upload_screenshots do
-    # Check if screenshots exist
-    screenshots_path = File.absolute_path("../../screenshots")
+    # iOS screenshots are in their own directory to avoid "Display Type Not Allowed!"
+    # errors from mixing iOS and macOS resolutions in the same Fastlane screenshots path
+    screenshots_path = File.absolute_path("../../screenshots/ios")
 
     unless File.directory?(screenshots_path)
-      UI.user_error!("Screenshots directory not found at #{screenshots_path}. Run 'fastlane screenshots' first.")
+      UI.user_error!("iOS screenshots directory not found at #{screenshots_path}. Run 'fastlane screenshots' first.")
     end
 
     # Load API key - prefer environment variables, fall back to JSON file

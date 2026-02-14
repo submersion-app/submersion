@@ -240,37 +240,6 @@ jobs:
       - name: List downloaded screenshots
         run: find screenshots -name "*.png" | sort
 
-      - name: Install ImageMagick
-        run: brew install imagemagick
-
-      - name: Strip alpha channels and organize for Fastlane
-        run: |
-          LOCALE_DIR="screenshots/en-US"
-          mkdir -p "$LOCALE_DIR"
-
-          for device_dir in screenshots/iPhone_6_7_inch screenshots/iPad_13_inch screenshots/macOS; do
-            if [ -d "$device_dir" ] && ls "$device_dir"/*.png 1>/dev/null 2>&1; then
-              device_name=$(basename "$device_dir")
-              count=$(ls "$device_dir"/*.png | wc -l | tr -d ' ')
-              echo "Processing $device_name ($count screenshots)..."
-              for file in "$device_dir"/*.png; do
-                filename=$(basename "$file")
-                convert "$file" -background white -alpha remove -alpha off "$LOCALE_DIR/$filename"
-              done
-            fi
-          done
-
-          echo ""
-          echo "Organized screenshots:"
-          ls -1 "$LOCALE_DIR"
-
-      - name: Upload organized screenshots as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: screenshots-organized
-          path: screenshots/
-          retention-days: 30
-
       - name: Setup Ruby (iOS)
         uses: ruby/setup-ruby@v1
         with:
@@ -281,6 +250,9 @@ jobs:
       - name: Install macOS Fastlane gems
         run: cd macos && bundle install
 
+      - name: Install ImageMagick
+        run: brew install imagemagick
+
       - name: Decode API Key
         env:
           APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
@@ -288,19 +260,53 @@ jobs:
           echo "$APP_STORE_CONNECT_API_KEY_KEY" | base64 -d > ios/fastlane/AuthKey.p8
           cp ios/fastlane/AuthKey.p8 macos/fastlane/AuthKey.p8
 
-      - name: Upload iOS screenshots to App Store Connect
-        env:
-          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
-          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
-          APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: fastlane/AuthKey.p8
-        run: cd ios && bundle exec fastlane upload_screenshots
+      # Fastlane infers display type from image dimensions. Mixing iOS and macOS
+      # screenshots in the same en-US folder causes "Display Type Not Allowed!"
+      # errors. Prepare en-US with only the right platform before each upload.
 
-      - name: Upload macOS screenshots to App Store Connect
+      - name: Prepare and upload iOS screenshots
         env:
           APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
           APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
           APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: fastlane/AuthKey.p8
-        run: cd macos && bundle exec fastlane upload_screenshots
+        run: |
+          mkdir -p screenshots/en-US
+          for dir in screenshots/iPhone_6_7_inch screenshots/iPad_13_inch; do
+            if [ -d "$dir" ] && ls "$dir"/*.png 1>/dev/null 2>&1; then
+              echo "Processing $(basename "$dir")..."
+              for f in "$dir"/*.png; do
+                convert "$f" -background white -alpha remove -alpha off "screenshots/en-US/$(basename "$f")"
+              done
+            fi
+          done
+          echo "iOS screenshots prepared:"
+          ls -1 screenshots/en-US/
+          cd ios && bundle exec fastlane upload_screenshots
+
+      - name: Prepare and upload macOS screenshots
+        env:
+          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: fastlane/AuthKey.p8
+        run: |
+          rm -f screenshots/en-US/*.png
+          if [ -d "screenshots/macOS" ] && ls screenshots/macOS/*.png 1>/dev/null 2>&1; then
+            echo "Processing macOS..."
+            for f in screenshots/macOS/*.png; do
+              convert "$f" -background white -alpha remove -alpha off "screenshots/en-US/$(basename "$f")"
+            done
+          fi
+          echo "macOS screenshots prepared:"
+          ls -1 screenshots/en-US/
+          cd macos && bundle exec fastlane upload_screenshots
+
+      - name: Upload all screenshots as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-organized
+          path: screenshots/
+          retention-days: 30
 
       - name: Cleanup sensitive files
         if: always()

@@ -229,13 +229,18 @@ echo "Organizing screenshots for Fastlane"
 echo "=========================================="
 
 # Fastlane's deliver expects: screenshots/<locale>/screenshot.png
-# Screenshots go DIRECTLY in locale folder - fastlane identifies device by image resolution
-# We keep device prefix in filename to distinguish between devices
+# Fastlane identifies device type by image resolution.
+# IMPORTANT: iOS and macOS screenshots MUST be in separate directories.
+# Mixing them causes "Display Type Not Allowed!" errors because Fastlane
+# infers display type from pixel dimensions and each platform's App Store
+# listing only accepts its own display types.
 # IMPORTANT: App Store rejects PNGs with alpha channels - we must strip them
 
 LOCALE="en-US"
-FASTLANE_DIR="$SCREENSHOTS_DIR/$LOCALE"
-mkdir -p "$FASTLANE_DIR"
+IOS_FASTLANE_DIR="$SCREENSHOTS_DIR/ios/$LOCALE"
+MACOS_FASTLANE_DIR="$SCREENSHOTS_DIR/macos/$LOCALE"
+mkdir -p "$IOS_FASTLANE_DIR"
+mkdir -p "$MACOS_FASTLANE_DIR"
 
 # Remove alpha channel from PNG files
 # App Store Connect requires screenshots without transparency (IMAGE_ALPHA_NOT_ALLOWED error)
@@ -269,21 +274,20 @@ else:
   cp "$file" "$output"
 }
 
-# Copy screenshots from device folder to locale folder (flat structure)
+# Copy screenshots from device folder to target locale folder
 # Also strips alpha channel for App Store compatibility
 organize_device() {
   local source_name="$1"
+  local target_dir="$2"
   local source_dir="$SCREENSHOTS_DIR/$source_name"
 
   if [ -d "$source_dir" ] && [ "$(ls -A "$source_dir"/*.png 2>/dev/null)" ]; then
-    echo "Organizing: $source_name -> $LOCALE/"
+    echo "Organizing: $source_name -> $(basename "$(dirname "$target_dir")")/$(basename "$target_dir")/"
 
     for file in "$source_dir"/*.png; do
       if [ -f "$file" ]; then
         filename=$(basename "$file")
-        # Keep device prefix in filename for organization
-        # Strip alpha channel for App Store compatibility
-        strip_alpha "$file" "$FASTLANE_DIR/$filename"
+        strip_alpha "$file" "$target_dir/$filename"
       fi
     done
 
@@ -292,13 +296,15 @@ organize_device() {
   fi
 }
 
-# Organize screenshots for Fastlane
-organize_device "iPhone_6_7_inch"
-organize_device "iPad_13_inch"
-organize_device "macOS"
+# Organize screenshots into platform-specific Fastlane directories
+organize_device "iPhone_6_7_inch" "$IOS_FASTLANE_DIR"
+organize_device "iPad_13_inch" "$IOS_FASTLANE_DIR"
+organize_device "macOS" "$MACOS_FASTLANE_DIR"
 
 echo ""
-echo "Fastlane-ready screenshots: $FASTLANE_DIR"
+echo "Fastlane-ready screenshots:"
+echo "  iOS:   $IOS_FASTLANE_DIR"
+echo "  macOS: $MACOS_FASTLANE_DIR"
 echo ""
 
 echo "=========================================="
@@ -328,3 +334,4 @@ echo "Next steps:"
 echo "  1. Review screenshots in $SCREENSHOTS_DIR"
 echo "  2. Upload to App Store Connect (screenshots are already organized for Fastlane):"
 echo "     cd ios && bundle exec fastlane upload_screenshots"
+echo "     cd macos && bundle exec fastlane upload_screenshots"

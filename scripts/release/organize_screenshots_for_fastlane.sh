@@ -2,16 +2,19 @@
 # Reorganizes screenshots into Fastlane's required directory structure
 #
 # Fastlane deliver expects screenshots DIRECTLY in locale folder:
-#   screenshots/<locale>/screenshot.png
+#   screenshots/<platform>/<locale>/screenshot.png
 #
-# Fastlane identifies device type by image resolution, not folder structure.
-# We keep device prefix in filename to distinguish between devices.
+# iOS and macOS screenshots MUST be in separate directories. Mixing them
+# causes "Display Type Not Allowed!" errors because Fastlane infers
+# display type from pixel dimensions and each platform's App Store listing
+# only accepts its own display types.
 #
 # IMPORTANT: App Store rejects PNGs with alpha channels, so we strip them here.
 #
-# Example:
-#   screenshots/en-US/iPhone_6_7_inch_01_dashboard.png
-#   screenshots/en-US/iPad_13_inch_01_dashboard.png
+# Output structure:
+#   screenshots/ios/en-US/iPhone_6_7_inch_01_dashboard.png
+#   screenshots/ios/en-US/iPad_13_inch_01_dashboard.png
+#   screenshots/macos/en-US/macOS_01_dashboard.png
 
 set -e
 
@@ -24,8 +27,11 @@ if [ ! -d "$SCREENSHOTS_DIR" ]; then
     exit 1
 fi
 
-# Create locale directory
-mkdir -p "$SCREENSHOTS_DIR/$LOCALE"
+# Create platform-specific locale directories
+IOS_DIR="$SCREENSHOTS_DIR/ios/$LOCALE"
+MACOS_DIR="$SCREENSHOTS_DIR/macos/$LOCALE"
+mkdir -p "$IOS_DIR"
+mkdir -p "$MACOS_DIR"
 
 # Remove alpha channel from PNG files
 # App Store Connect requires screenshots without transparency (IMAGE_ALPHA_NOT_ALLOWED error)
@@ -62,53 +68,58 @@ echo "Reorganizing screenshots for Fastlane..."
 echo "(Stripping alpha channel for App Store compatibility)"
 echo ""
 
-# Process iPhone 6.7" screenshots
+# Process iPhone 6.7" screenshots -> ios/
 if [ -d "$SCREENSHOTS_DIR/iPhone_6_7_inch" ]; then
-    echo "Processing iPhone_6_7_inch -> $LOCALE/"
+    echo "Processing iPhone_6_7_inch -> ios/$LOCALE/"
 
     for file in "$SCREENSHOTS_DIR/iPhone_6_7_inch"/*.png; do
         if [ -f "$file" ]; then
             filename=$(basename "$file")
             echo "  $filename"
-            strip_alpha "$file" "$SCREENSHOTS_DIR/$LOCALE/$filename"
+            strip_alpha "$file" "$IOS_DIR/$filename"
         fi
     done
     echo "  Done!"
 fi
 
-# Process iPad 13" screenshots
+# Process iPad 13" screenshots -> ios/
 if [ -d "$SCREENSHOTS_DIR/iPad_13_inch" ]; then
-    echo "Processing iPad_13_inch -> $LOCALE/"
+    echo "Processing iPad_13_inch -> ios/$LOCALE/"
 
     for file in "$SCREENSHOTS_DIR/iPad_13_inch"/*.png; do
         if [ -f "$file" ]; then
             filename=$(basename "$file")
             echo "  $filename"
-            strip_alpha "$file" "$SCREENSHOTS_DIR/$LOCALE/$filename"
+            strip_alpha "$file" "$IOS_DIR/$filename"
         fi
     done
     echo "  Done!"
 fi
 
-# Process macOS screenshots
+# Process macOS screenshots -> macos/
 if [ -d "$SCREENSHOTS_DIR/macOS" ]; then
-    echo "Processing macOS -> $LOCALE/"
+    echo "Processing macOS -> macos/$LOCALE/"
 
     for file in "$SCREENSHOTS_DIR/macOS"/*.png; do
         if [ -f "$file" ]; then
             filename=$(basename "$file")
             echo "  $filename"
-            strip_alpha "$file" "$SCREENSHOTS_DIR/$LOCALE/$filename"
+            strip_alpha "$file" "$MACOS_DIR/$filename"
         fi
     done
     echo "  Done!"
 fi
 
 echo ""
-echo "Screenshots organized in: $SCREENSHOTS_DIR/$LOCALE/"
+echo "Screenshots organized:"
+echo "  iOS:   $IOS_DIR/"
+echo "  macOS: $MACOS_DIR/"
 echo ""
-echo "Contents:"
-ls -la "$SCREENSHOTS_DIR/$LOCALE/"
+echo "Contents (iOS):"
+ls -la "$IOS_DIR/" 2>/dev/null || echo "  (empty)"
+echo ""
+echo "Contents (macOS):"
+ls -la "$MACOS_DIR/" 2>/dev/null || echo "  (empty)"
 echo ""
 echo "You can now upload screenshots:"
 echo "  iOS:   cd ios && bundle exec fastlane upload_screenshots"
