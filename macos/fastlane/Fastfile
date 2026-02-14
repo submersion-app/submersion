@@ -179,7 +179,6 @@ platform :mac do
         teamID: "8U3RSKF42Q"
       },
       xcargs: auth_flags,
-      export_xcargs: auth_flags,
     )
 
     UI.success("Build complete! Pkg saved to macos/build/Submersion.pkg")

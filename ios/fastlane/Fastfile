@@ -146,7 +146,6 @@ platform :ios do
         teamID: "8U3RSKF42Q"
       },
       xcargs: auth_flags,
-      export_xcargs: auth_flags,
     )
 
     UI.success("Build complete! IPA saved to ios/build/Submersion.ipa")
