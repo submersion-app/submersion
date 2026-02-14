@@ -112,12 +112,25 @@ platform :mac do
       UI.user_error!("macOS screenshots directory not found at #{screenshots_path}. Run 'fastlane screenshots' first.")
     end
 
+    # Resize screenshots to 2560x1600 (accepted macOS App Store size).
+    # Captured screenshots are often 5120x3200 (native Retina 2x resolution).
+    Dir.glob(File.join(screenshots_path, "**", "*.png")).each do |png|
+      dimensions = `sips -g pixelWidth -g pixelHeight "#{png}" 2>/dev/null`
+      width = dimensions[/pixelWidth:\s*(\d+)/, 1].to_i
+      height = dimensions[/pixelHeight:\s*(\d+)/, 1].to_i
+      if width > 2560 || height > 1600
+        UI.message("Resizing #{File.basename(png)} from #{width}x#{height} to 2560x1600")
+        sh("sips --resampleHeightWidth 1600 2560 \"#{png}\" >/dev/null 2>&1")
+      end
+    end
+
     api_key = load_api_key
 
     UI.message("Uploading macOS screenshots to App Store Connect...")
 
     upload_to_app_store(
       api_key: api_key,
+      platform: 'osx',
       skip_binary_upload: true,
       skip_metadata: true,
       skip_app_version_update: true,

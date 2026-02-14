@@ -292,7 +292,7 @@ jobs:
           if [ -d "screenshots/macOS" ] && ls screenshots/macOS/*.png 1>/dev/null 2>&1; then
             echo "Processing macOS..."
             for f in screenshots/macOS/*.png; do
-              magick "$f" -background white -alpha remove -alpha off "screenshots/macos/en-US/$(basename "$f")"
+              magick "$f" -resize 2560x1600 -background white -alpha remove -alpha off "screenshots/macos/en-US/$(basename "$f")"
             done
           fi
           echo "macOS screenshots prepared:"
