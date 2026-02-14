@@ -1550,6 +1550,14 @@
   "diveLog_detail_collapsed_cnsMaxPpO2": "CNS: {cns} • Max ppO₂: {maxPpO2}",
   "diveLog_detail_collapsed_cnsMaxPpO2AtTime": "CNS: {cns} • Max ppO₂: {maxPpO2} • At {timestamp}: {ppO2} bar",
   "diveLog_detail_collapsed_ndl": "NDL: {value}",
+  "diveLog_detail_customFieldCount": "{count, plural, =1{1 field} other{{count} fields}}",
+  "@diveLog_detail_customFieldCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveLog_detail_equipmentCount": "{count} {count, plural, =1{item} other{items}}",
   "diveLog_detail_errorLoading": "Error loading dive",
   "diveLog_detail_fullscreen_sampleData": "Sample Data",
@@ -1592,6 +1600,7 @@
   "diveLog_detail_section_altitudeDive": "Altitude Dive",
   "diveLog_detail_section_buddies": "Buddies",
   "diveLog_detail_section_conditions": "Conditions",
+  "diveLog_detail_section_customFields": "Custom Fields",
   "diveLog_detail_section_decoStatus": "Decompression Status",
   "diveLog_detail_section_details": "Details",
   "diveLog_detail_section_diveProfile": "Dive Profile",
@@ -1635,6 +1644,7 @@
   "diveLog_editSighting_removeTitle": "Remove Sighting?",
   "diveLog_editSighting_save": "Save Changes",
   "diveLog_edit_add": "Add",
+  "diveLog_edit_addCustomField": "Add Field",
   "diveLog_edit_addTank": "Add Tank",
   "diveLog_edit_addWeightEntry": "Add Weight Entry",
   "diveLog_edit_addedGps": "Added GPS to {name}",
@@ -1643,6 +1653,10 @@
   "diveLog_edit_cancel": "Cancel",
   "diveLog_edit_clearAllEquipment": "Clear All",
   "diveLog_edit_createdSite": "Created site: {name}",
+  "diveLog_edit_customFieldKey": "Key",
+  "diveLog_edit_customFieldKeyHint": "e.g., camera_settings",
+  "diveLog_edit_customFieldValue": "Value",
+  "diveLog_edit_customFieldValueHint": "e.g., f/8 ISO400",
   "diveLog_edit_durationMinutes": "Duration: {minutes} min",
   "diveLog_edit_equipmentHint": "Tap \"Use Set\" or \"Add\" to select equipment",
   "diveLog_edit_errorLoadingDiveTypes": "Error loading dive types: {error}",
@@ -1683,6 +1697,7 @@
   "diveLog_edit_saveAsSetDialog_title": "Save as Equipment Set",
   "diveLog_edit_saveAsSetDialog_validation": "Please enter a set name",
   "diveLog_edit_section_conditions": "Conditions",
+  "diveLog_edit_section_customFields": "Custom Fields",
   "diveLog_edit_section_depthDuration": "Depth & Duration",
   "diveLog_edit_section_diveCenter": "Dive Center",
   "diveLog_edit_section_diveSite": "Dive Site",
@@ -1953,6 +1968,8 @@
   "diveLog_search_appBar": "Advanced Search",
   "diveLog_search_cancel": "Cancel",
   "diveLog_search_clearAll": "Clear All",
+  "diveLog_search_customFieldKey": "Custom Field Key",
+  "diveLog_search_customFieldValue": "Value contains...",
   "diveLog_search_end": "End",
   "diveLog_search_errorLoadingCenters": "Error loading dive centers",
   "diveLog_search_errorLoadingDiveTypes": "Error loading dive types",

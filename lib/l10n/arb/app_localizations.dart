@@ -4636,6 +4636,12 @@ abstract class AppLocalizations {
   /// **'NDL: {value}'**
   String diveLog_detail_collapsed_ndl(Object value);
 
+  /// No description provided for @diveLog_detail_customFieldCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 field} other{{count} fields}}'**
+  String diveLog_detail_customFieldCount(int count);
+
   /// No description provided for @diveLog_detail_equipmentCount.
   ///
   /// In en, this message translates to:
@@ -4887,6 +4893,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Conditions'**
   String get diveLog_detail_section_conditions;
+
+  /// No description provided for @diveLog_detail_section_customFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Fields'**
+  String get diveLog_detail_section_customFields;
 
   /// No description provided for @diveLog_detail_section_decoStatus.
   ///
@@ -5146,6 +5158,12 @@ abstract class AppLocalizations {
   /// **'Add'**
   String get diveLog_edit_add;
 
+  /// No description provided for @diveLog_edit_addCustomField.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Field'**
+  String get diveLog_edit_addCustomField;
+
   /// No description provided for @diveLog_edit_addTank.
   ///
   /// In en, this message translates to:
@@ -5193,6 +5211,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Created site: {name}'**
   String diveLog_edit_createdSite(Object name);
+
+  /// No description provided for @diveLog_edit_customFieldKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Key'**
+  String get diveLog_edit_customFieldKey;
+
+  /// No description provided for @diveLog_edit_customFieldKeyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., camera_settings'**
+  String get diveLog_edit_customFieldKeyHint;
+
+  /// No description provided for @diveLog_edit_customFieldValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Value'**
+  String get diveLog_edit_customFieldValue;
+
+  /// No description provided for @diveLog_edit_customFieldValueHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., f/8 ISO400'**
+  String get diveLog_edit_customFieldValueHint;
 
   /// No description provided for @diveLog_edit_durationMinutes.
   ///
@@ -5433,6 +5475,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Conditions'**
   String get diveLog_edit_section_conditions;
+
+  /// No description provided for @diveLog_edit_section_customFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Fields'**
+  String get diveLog_edit_section_customFields;
 
   /// No description provided for @diveLog_edit_section_depthDuration.
   ///
@@ -7053,6 +7101,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear All'**
   String get diveLog_search_clearAll;
+
+  /// No description provided for @diveLog_search_customFieldKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Field Key'**
+  String get diveLog_search_customFieldKey;
+
+  /// No description provided for @diveLog_search_customFieldValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Value contains...'**
+  String get diveLog_search_customFieldValue;
 
   /// No description provided for @diveLog_search_end.
   ///

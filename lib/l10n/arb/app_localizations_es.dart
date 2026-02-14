@@ -2726,6 +2726,17 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String diveLog_detail_customFieldCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fields',
+      one: '1 field',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String diveLog_detail_equipmentCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -2866,6 +2877,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_detail_section_conditions => 'Condiciones';
+
+  @override
+  String get diveLog_detail_section_customFields => 'Custom Fields';
 
   @override
   String get diveLog_detail_section_decoStatus => 'Estado de descompresión';
@@ -3029,6 +3043,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_edit_add => 'Agregar';
 
   @override
+  String get diveLog_edit_addCustomField => 'Add Field';
+
+  @override
   String get diveLog_edit_addTank => 'Agregar tanque';
 
   @override
@@ -3055,6 +3072,18 @@ class AppLocalizationsEs extends AppLocalizations {
   String diveLog_edit_createdSite(Object name) {
     return 'Punto de buceo creado: $name';
   }
+
+  @override
+  String get diveLog_edit_customFieldKey => 'Key';
+
+  @override
+  String get diveLog_edit_customFieldKeyHint => 'e.g., camera_settings';
+
+  @override
+  String get diveLog_edit_customFieldValue => 'Value';
+
+  @override
+  String get diveLog_edit_customFieldValueHint => 'e.g., f/8 ISO400';
 
   @override
   String diveLog_edit_durationMinutes(Object minutes) {
@@ -3197,6 +3226,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_edit_section_conditions => 'Condiciones';
+
+  @override
+  String get diveLog_edit_section_customFields => 'Custom Fields';
 
   @override
   String get diveLog_edit_section_depthDuration => 'Profundidad y duración';
@@ -4115,6 +4147,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_search_clearAll => 'Borrar todo';
+
+  @override
+  String get diveLog_search_customFieldKey => 'Custom Field Key';
+
+  @override
+  String get diveLog_search_customFieldValue => 'Value contains...';
 
   @override
   String get diveLog_search_end => 'Fin';

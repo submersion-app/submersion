@@ -2652,6 +2652,17 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String diveLog_detail_customFieldCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fields',
+      one: '1 field',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String diveLog_detail_equipmentCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -2789,6 +2800,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_detail_section_conditions => 'תנאים';
+
+  @override
+  String get diveLog_detail_section_customFields => 'Custom Fields';
 
   @override
   String get diveLog_detail_section_decoStatus => 'מצב דקומפרסיה';
@@ -2944,6 +2958,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_add => 'הוספה';
 
   @override
+  String get diveLog_edit_addCustomField => 'Add Field';
+
+  @override
   String get diveLog_edit_addTank => 'הוספת בלון';
 
   @override
@@ -2970,6 +2987,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String diveLog_edit_createdSite(Object name) {
     return 'אתר נוצר: $name';
   }
+
+  @override
+  String get diveLog_edit_customFieldKey => 'Key';
+
+  @override
+  String get diveLog_edit_customFieldKeyHint => 'e.g., camera_settings';
+
+  @override
+  String get diveLog_edit_customFieldValue => 'Value';
+
+  @override
+  String get diveLog_edit_customFieldValueHint => 'e.g., f/8 ISO400';
 
   @override
   String diveLog_edit_durationMinutes(Object minutes) {
@@ -3108,6 +3137,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_edit_section_conditions => 'תנאים';
+
+  @override
+  String get diveLog_edit_section_customFields => 'Custom Fields';
 
   @override
   String get diveLog_edit_section_depthDuration => 'עומק ומשך';
@@ -3998,6 +4030,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_search_clearAll => 'נקה הכל';
+
+  @override
+  String get diveLog_search_customFieldKey => 'Custom Field Key';
+
+  @override
+  String get diveLog_search_customFieldValue => 'Value contains...';
 
   @override
   String get diveLog_search_end => 'סיום';

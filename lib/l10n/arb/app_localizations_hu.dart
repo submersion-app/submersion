@@ -2717,6 +2717,17 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String diveLog_detail_customFieldCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fields',
+      one: '1 field',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String diveLog_detail_equipmentCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -2855,6 +2866,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_detail_section_conditions => 'Korulmenyek';
+
+  @override
+  String get diveLog_detail_section_customFields => 'Custom Fields';
 
   @override
   String get diveLog_detail_section_decoStatus => 'Dekompresszios allapot';
@@ -3015,6 +3029,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_add => 'Hozzaadas';
 
   @override
+  String get diveLog_edit_addCustomField => 'Add Field';
+
+  @override
   String get diveLog_edit_addTank => 'Palack hozzaadasa';
 
   @override
@@ -3041,6 +3058,18 @@ class AppLocalizationsHu extends AppLocalizations {
   String diveLog_edit_createdSite(Object name) {
     return 'Letrehozott merulohely: $name';
   }
+
+  @override
+  String get diveLog_edit_customFieldKey => 'Key';
+
+  @override
+  String get diveLog_edit_customFieldKeyHint => 'e.g., camera_settings';
+
+  @override
+  String get diveLog_edit_customFieldValue => 'Value';
+
+  @override
+  String get diveLog_edit_customFieldValueHint => 'e.g., f/8 ISO400';
 
   @override
   String diveLog_edit_durationMinutes(Object minutes) {
@@ -3184,6 +3213,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_edit_section_conditions => 'Korulmenyek';
+
+  @override
+  String get diveLog_edit_section_customFields => 'Custom Fields';
 
   @override
   String get diveLog_edit_section_depthDuration => 'Melyseg es idotartam';
@@ -4101,6 +4133,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_search_clearAll => 'Osszes torlese';
+
+  @override
+  String get diveLog_search_customFieldKey => 'Custom Field Key';
+
+  @override
+  String get diveLog_search_customFieldValue => 'Value contains...';
 
   @override
   String get diveLog_search_end => 'Vege';
