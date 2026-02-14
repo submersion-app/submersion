@@ -158,9 +158,6 @@ platform :mac do
   lane :build do
     api_key = load_api_key
 
-    UI.message("Building Flutter app for macOS...")
-    sh("cd ../.. && flutter build macos --release")
-
     UI.message("Building and signing pkg...")
     key_path = File.expand_path(ENV["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"], "..")
     auth_flags = "-allowProvisioningUpdates" \
