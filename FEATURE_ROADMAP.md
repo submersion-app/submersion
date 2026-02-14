@@ -5,7 +5,7 @@
 > **Current Version:** 1.1.0 (v1.1 Complete)
 > **Status:** v1.0 ✅ COMPLETE | v1.1 ✅ COMPLETE | v1.5 🚧 In Progress
 >
-> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Profile Visualization (Category 2.1) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete | Search & Filtering (Category 10.1) ✅ Complete | Tools & Calculators (Category 11) ✅ Complete | Digital Signatures (Category 7.2) ✅ Complete | Training Dives (Category 8.3) ✅ Complete | Underwater Photography (Category 9.3) ✅ Complete | Maps & Visualization (Category 5.3) ✅ Complete | Certification Cards (Category 8.1) ✅ Complete | Push Notifications (Category 6.3) ✅ Complete | PDF Templates (Category 10.3) ✅ Complete | Wearable Integration v1 (Category 15.5) ✅ Complete | Marine Life Tracking (Category 9.2) ✅ Complete | Universal Import (Category 13.2/13.3) ✅ Complete | Accessibility & Keyboard Navigation (Category 15.3) ✅ Complete | Internationalization & Localization (Category 15.3) ✅ Complete
+> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Profile Visualization (Category 2.1) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete | Search & Filtering (Category 10.1) ✅ Complete | Tools & Calculators (Category 11) ✅ Complete | Digital Signatures (Category 7.2) ✅ Complete | Training Dives (Category 8.3) ✅ Complete | Underwater Photography (Category 9.3) ✅ Complete | Maps & Visualization (Category 5.3) ✅ Complete | Certification Cards (Category 8.1) ✅ Complete | Push Notifications (Category 6.3) ✅ Complete | PDF Templates (Category 10.3) ✅ Complete | Wearable Integration v1 (Category 15.5) ✅ Complete | Marine Life Tracking (Category 9.2) ✅ Complete | Universal Import (Category 13.2/13.3) ✅ Complete | Accessibility & Keyboard Navigation (Category 15.3) ✅ Complete | Internationalization & Localization (Category 15.3) ✅ Complete | Custom Fields (Category 1.4) ✅ Complete
 
 ---
 
@@ -94,7 +94,24 @@
 | Favorite flag | ✅ Implemented | v1.1 | Boolean flag with toggle in list/detail |
 | Tags (many-to-many with colors) | ✅ Implemented | v1.1 | Chip selector with autocomplete |
 | Tag-based filtering | ✅ Implemented | v1.1 | With tag statistics |
+| Custom key:value fields | ✅ Implemented | v1.5 | Freeform metadata with autocomplete key suggestions |
+| Custom field search/filter | ✅ Implemented | v1.5 | Full-text + advanced search by key/value |
+| Custom fields in export/import | ✅ Implemented | v1.5 | CSV (`custom:` prefix), UDDF (`applicationdata`), PDF |
 | Smart collections based on tags | 📋 Planned | v2.0 | Saved filters |
+
+**v1.5 Tasks (Complete):**
+- [x] DiveCustomField entity with copyWith and Equatable
+- [x] `dive_custom_fields` table (schema v34) with cascade delete and indexes
+- [x] DiveCustomFieldRepository with batch loading, key suggestions, replace-all
+- [x] DiveRepository integration (load/save custom fields as part of Dive aggregate)
+- [x] Riverpod providers (repository singleton + key autocomplete suggestions)
+- [x] Dive edit page: reorderable custom fields section with drag handles and autocomplete
+- [x] Dive detail page: key:value display section (hidden when empty)
+- [x] Full-text search and advanced filter by custom field key/value (EXISTS subquery)
+- [x] CSV export/import with `custom:` prefix columns and CSV injection prevention
+- [x] UDDF export/import via `<applicationdata>` element
+- [x] PDF export with key:value list after notes section
+- [x] Localization keys for all 10 languages (11 keys)
 
 ---
 
@@ -1382,6 +1399,11 @@
 -- species.taxonomy_class (text, e.g., 'Actinopterygii')
 -- species.is_built_in (boolean, true for JSON-seeded species)
 -- 511 built-in species loaded from assets/data/species.json
+
+-- Custom fields table (v34):
+-- dive_custom_fields (id, dive_id, field_key, field_value, sort_order, created_at)
+-- CASCADE delete when parent dive is deleted
+-- Indexes: idx_dive_custom_fields_dive_id, idx_dive_custom_fields_key
 ```
 
 ## v2.0 Tables (Planned)
@@ -1488,6 +1510,7 @@
 - [x] Marine Life Tracking (511 species database, taxonomy, management UI, detail page with stats, reset-to-defaults)
 - [x] Universal Import (6-step wizard, 12+ source app detection, 9 entity types, field mapping, dry-run preview, 161 tests)
 - [x] Accessibility & Keyboard Navigation (Semantics on 200+ files, global shortcuts, focus traversal, shortcuts help dialog, 83 tests)
+- [x] Custom Fields (freeform key:value metadata per dive, autocomplete, reorderable, search/filter, CSV/UDDF/PDF export/import)
 - [ ] Performance with 5000+ dives
 
 ## v2.0 (Planned)
@@ -1510,5 +1533,5 @@
 
 ---
 
-**Document Version:** 2.22
-**Last Updated:** 2026-02-10 (Internationalization & Localization: 10 languages, 3,931 ARB keys, RTL support, locale-aware formatting, language picker)
+**Document Version:** 2.23
+**Last Updated:** 2026-02-13 (Custom Fields: freeform key:value metadata per dive with autocomplete, reorderable UI, search/filter, CSV/UDDF/PDF export/import)
