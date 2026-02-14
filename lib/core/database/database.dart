@@ -878,6 +878,20 @@ class TideRecords extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// User-defined key:value fields per dive
+class DiveCustomFields extends Table {
+  TextColumn get id => text()();
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  TextColumn get fieldKey => text()();
+  TextColumn get fieldValue => text().withDefault(const Constant(''))();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  IntColumn get createdAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 // ============================================================================
 // Sync Tables
 // ============================================================================
@@ -1055,13 +1069,15 @@ class ScheduledNotifications extends Table {
     CachedRegions,
     // Notifications
     ScheduledNotifications,
+    // User-defined custom fields
+    DiveCustomFields,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 33;
+  int get schemaVersion => 34;
 
   @override
   MigrationStrategy get migration {
@@ -1775,6 +1791,27 @@ class AppDatabase extends _$AppDatabase {
           await customStatement(
             "ALTER TABLE diver_settings ADD COLUMN locale TEXT NOT NULL DEFAULT 'system'",
           );
+        }
+        if (from < 34) {
+          // User-defined key:value custom fields per dive
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS dive_custom_fields (
+              id TEXT NOT NULL PRIMARY KEY,
+              dive_id TEXT NOT NULL REFERENCES dives(id) ON DELETE CASCADE,
+              field_key TEXT NOT NULL,
+              field_value TEXT NOT NULL DEFAULT '',
+              sort_order INTEGER NOT NULL DEFAULT 0,
+              created_at INTEGER NOT NULL
+            )
+          ''');
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dive_custom_fields_dive_id
+            ON dive_custom_fields(dive_id)
+          ''');
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dive_custom_fields_key
+            ON dive_custom_fields(field_key)
+          ''');
         }
       },
       beforeOpen: (details) async {
