@@ -579,7 +579,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   }
 
   Widget _buildCustomFieldsSection() {
-    final currentDiverId = ref.read(currentDiverIdProvider);
+    final currentDiverId = ref.watch(currentDiverIdProvider);
     final suggestions = currentDiverId != null
         ? ref
                   .watch(customFieldKeySuggestionsProvider(currentDiverId))
@@ -598,25 +598,44 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             if (_customFields.isNotEmpty) const Divider(),
-            ..._customFields.asMap().entries.map((entry) {
-              final index = entry.key;
-              final field = entry.value;
-              return CustomFieldInputRow(
-                key: ValueKey(field.id),
-                field: field,
-                keySuggestions: suggestions,
-                onChanged: (updated) {
+            if (_customFields.isNotEmpty)
+              ReorderableListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                buildDefaultDragHandles: false,
+                itemCount: _customFields.length,
+                onReorder: (oldIndex, newIndex) {
                   setState(() {
-                    _customFields[index] = updated;
+                    if (newIndex > oldIndex) newIndex--;
+                    final item = _customFields.removeAt(oldIndex);
+                    _customFields.insert(newIndex, item);
+                    for (var i = 0; i < _customFields.length; i++) {
+                      _customFields[i] = _customFields[i].copyWith(
+                        sortOrder: i,
+                      );
+                    }
                   });
                 },
-                onDelete: () {
-                  setState(() {
-                    _customFields.removeAt(index);
-                  });
+                itemBuilder: (context, index) {
+                  final field = _customFields[index];
+                  return CustomFieldInputRow(
+                    key: ValueKey(field.id),
+                    index: index,
+                    field: field,
+                    keySuggestions: suggestions,
+                    onChanged: (updated) {
+                      setState(() {
+                        _customFields[index] = updated;
+                      });
+                    },
+                    onDelete: () {
+                      setState(() {
+                        _customFields.removeAt(index);
+                      });
+                    },
+                  );
                 },
-              );
-            }),
+              ),
             const SizedBox(height: 8),
             OutlinedButton.icon(
               onPressed: () {
@@ -2769,8 +2788,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         weights: _weights,
         // Tags
         tags: _selectedTags,
-        // Custom fields
-        customFields: _customFields,
+        // Custom fields (filter out entries with empty keys)
+        customFields: _customFields
+            .where((f) => f.key.trim().isNotEmpty)
+            .toList(),
         // Preserve favorite status when editing
         isFavorite: _existingDive?.isFavorite ?? false,
         // Preserve dive profile data (time series from dive computer)

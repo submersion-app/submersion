@@ -133,7 +133,7 @@ class CsvExportService {
       'Tank Volume (L)',
       'O2 %',
       'Notes',
-      ...sortedCustomKeys.map((key) => 'custom:$key'),
+      ...sortedCustomKeys.map((key) => sanitizeCsvField('custom:$key')),
     ];
 
     final rows = <List<dynamic>>[headers];
@@ -166,7 +166,7 @@ class CsvExportService {
           final field = dive.customFields
               .where((f) => f.key == key)
               .firstOrNull;
-          return field?.value ?? '';
+          return sanitizeCsvField(field?.value ?? '');
         }),
       ]);
     }
