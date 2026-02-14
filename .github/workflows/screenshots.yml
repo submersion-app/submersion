@@ -260,9 +260,8 @@ jobs:
           echo "$APP_STORE_CONNECT_API_KEY_KEY" | base64 -d > ios/fastlane/AuthKey.p8
           cp ios/fastlane/AuthKey.p8 macos/fastlane/AuthKey.p8
 
-      # Fastlane infers display type from image dimensions. Mixing iOS and macOS
-      # screenshots in the same en-US folder causes "Display Type Not Allowed!"
-      # errors. Prepare en-US with only the right platform before each upload.
+      # Each platform's screenshots go into their own directory so Fastlane
+      # only sees the correct display types for that platform's App Store listing.
 
       - name: Prepare and upload iOS screenshots
         env:
@@ -270,17 +269,17 @@ jobs:
           APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
           APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: fastlane/AuthKey.p8
         run: |
-          mkdir -p screenshots/en-US
+          mkdir -p screenshots/ios/en-US
           for dir in screenshots/iPhone_6_7_inch screenshots/iPad_13_inch; do
             if [ -d "$dir" ] && ls "$dir"/*.png 1>/dev/null 2>&1; then
               echo "Processing $(basename "$dir")..."
               for f in "$dir"/*.png; do
-                convert "$f" -background white -alpha remove -alpha off "screenshots/en-US/$(basename "$f")"
+                magick "$f" -background white -alpha remove -alpha off "screenshots/ios/en-US/$(basename "$f")"
               done
             fi
           done
           echo "iOS screenshots prepared:"
-          ls -1 screenshots/en-US/
+          ls -1 screenshots/ios/en-US/
           cd ios && bundle exec fastlane upload_screenshots
 
       - name: Prepare and upload macOS screenshots
@@ -289,15 +288,15 @@ jobs:
           APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
           APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: fastlane/AuthKey.p8
         run: |
-          rm -f screenshots/en-US/*.png
+          mkdir -p screenshots/macos/en-US
           if [ -d "screenshots/macOS" ] && ls screenshots/macOS/*.png 1>/dev/null 2>&1; then
             echo "Processing macOS..."
             for f in screenshots/macOS/*.png; do
-              convert "$f" -background white -alpha remove -alpha off "screenshots/en-US/$(basename "$f")"
+              magick "$f" -background white -alpha remove -alpha off "screenshots/macos/en-US/$(basename "$f")"
             done
           fi
           echo "macOS screenshots prepared:"
-          ls -1 screenshots/en-US/
+          ls -1 screenshots/macos/en-US/
           cd macos && bundle exec fastlane upload_screenshots
 
       - name: Upload all screenshots as artifact
