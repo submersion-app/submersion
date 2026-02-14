@@ -47,6 +47,12 @@ jobs:
           flutter pub get
           dart run build_runner build --delete-conflicting-outputs
 
+      - name: Disable automatic signing for CI build
+        run: |
+          echo 'CODE_SIGNING_ALLOWED = NO' >> macos/Runner/Configs/Release.xcconfig
+          echo 'CODE_SIGNING_REQUIRED = NO' >> macos/Runner/Configs/Release.xcconfig
+          echo 'CODE_SIGN_IDENTITY = ' >> macos/Runner/Configs/Release.xcconfig
+
       - name: Build macOS release
         run: flutter build macos --release
 
@@ -132,10 +138,10 @@ jobs:
 
       - name: Setup App Store Connect API Key
         env:
-          APP_STORE_CONNECT_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+          APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
         run: |
           mkdir -p macos/fastlane
-          echo "$APP_STORE_CONNECT_API_KEY_BASE64" | base64 --decode > macos/fastlane/AuthKey.p8
+          echo "$APP_STORE_CONNECT_API_KEY_KEY" | base64 --decode > macos/fastlane/AuthKey.p8
 
       - name: Determine Fastlane lane
         id: lane
@@ -152,8 +158,8 @@ jobs:
         working-directory: macos
         env:
           FASTLANE_LANE: ${{ steps.lane.outputs.lane }}
-          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
           APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: fastlane/AuthKey.p8
         run: bundle exec fastlane "$FASTLANE_LANE"
 
@@ -219,7 +225,7 @@ jobs:
           sudo apt-get install -y \
             clang cmake ninja-build pkg-config \
             libgtk-3-dev liblzma-dev libstdc++-12-dev \
-            libsqlite3-dev
+            libsqlite3-dev libsecret-1-dev
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -352,10 +358,10 @@ jobs:
 
       - name: Setup App Store Connect API Key
         env:
-          APP_STORE_CONNECT_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+          APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
         run: |
           mkdir -p ios/fastlane
-          echo "$APP_STORE_CONNECT_API_KEY_BASE64" | base64 --decode > ios/fastlane/AuthKey.p8
+          echo "$APP_STORE_CONNECT_API_KEY_KEY" | base64 --decode > ios/fastlane/AuthKey.p8
 
       - name: Determine Fastlane lane
         id: lane
@@ -372,8 +378,8 @@ jobs:
         working-directory: ios
         env:
           FASTLANE_LANE: ${{ steps.lane.outputs.lane }}
-          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
           APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: fastlane/AuthKey.p8
         run: bundle exec fastlane "$FASTLANE_LANE"
 
