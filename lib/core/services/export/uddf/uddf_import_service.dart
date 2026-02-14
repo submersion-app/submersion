@@ -716,6 +716,28 @@ class UddfImportService {
           }
         }
       }
+
+      // Parse custom fields from applicationdata
+      final appDataElements = afterElement.findElements('applicationdata');
+      for (final appData in appDataElements) {
+        final appName = _getElementText(appData, 'name');
+        if (appName == 'Submersion') {
+          final customFieldElements = appData.findElements('customfield');
+          if (customFieldElements.isNotEmpty) {
+            diveData['customFields'] = <Map<String, String>>[];
+            for (final fieldElement in customFieldElements) {
+              final key = fieldElement.getAttribute('key');
+              final value = fieldElement.innerText.trim();
+              if (key != null && key.isNotEmpty) {
+                (diveData['customFields'] as List).add({
+                  'key': key,
+                  'value': value,
+                });
+              }
+            }
+          }
+        }
+      }
     }
 
     // Final fallback: extract water temp from profile if still not set
