@@ -501,6 +501,21 @@ class UddfExportService {
                                 },
                               );
                             }
+                            if (dive.customFields.isNotEmpty) {
+                              builder.element(
+                                'applicationdata',
+                                nest: () {
+                                  builder.element('name', nest: 'Submersion');
+                                  for (final field in dive.customFields) {
+                                    builder.element(
+                                      'customfield',
+                                      attributes: {'key': field.key},
+                                      nest: field.value,
+                                    );
+                                  }
+                                },
+                              );
+                            }
                           },
                         );
                       },
