@@ -35,6 +35,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: 'latest-stable'
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -350,6 +355,31 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: 'latest-stable'
+
+      - name: Verify Xcode and iOS SDK
+        run: |
+          xcodebuild -version
+          XCODE_VERSION=$(xcodebuild -version | awk '/Xcode/ { print $2 }')
+          XCODE_MAJOR=${XCODE_VERSION%%.*}
+
+          IOS_SDK=$(xcodebuild -showsdks | grep -oE 'iphoneos[0-9]+(\.[0-9]+)?' | sed 's/iphoneos//' | head -1)
+          IOS_SDK_MAJOR=${IOS_SDK%%.*}
+          echo "Detected iOS SDK: ${IOS_SDK}"
+
+          if [ -z "$XCODE_MAJOR" ] || [ "$XCODE_MAJOR" -lt 26 ]; then
+            echo "Error: Xcode 26 or later is required for App Store uploads."
+            exit 1
+          fi
+
+          if [ -z "$IOS_SDK_MAJOR" ] || [ "$IOS_SDK_MAJOR" -lt 26 ]; then
+            echo "Error: iOS SDK 26 or later is required for App Store uploads."
+            exit 1
+          fi
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2

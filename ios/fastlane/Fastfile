@@ -102,6 +102,47 @@ platform :ios do
     )
   end
 
+  # Ensures the selected Xcode/iOS SDK meets App Store Connect requirements.
+  def ensure_required_ios_build_tools
+    required_xcode_major = 26
+    required_ios_sdk_major = 26
+
+    xcode_version_output = sh("xcodebuild -version", log: false)
+    xcode_version_match = xcode_version_output.match(/Xcode\s+(\d+(?:\.\d+)?)/)
+    unless xcode_version_match
+      UI.user_error!(
+        "Unable to detect Xcode version from `xcodebuild -version` output:\n#{xcode_version_output}"
+      )
+    end
+
+    xcode_version = xcode_version_match[1]
+    xcode_major = xcode_version.split(".").first.to_i
+    if xcode_major < required_xcode_major
+      UI.user_error!(
+        "Xcode #{required_xcode_major}+ is required for App Store uploads. " \
+        "Current Xcode: #{xcode_version}. Install Xcode #{required_xcode_major}+ and " \
+        "set it with `xcode-select`."
+      )
+    end
+
+    sdk_output = sh("xcodebuild -showsdks", log: false)
+    ios_sdk_versions = sdk_output.scan(/iphoneos(\d+(?:\.\d+)?)/).flatten
+    if ios_sdk_versions.empty?
+      UI.user_error!("Unable to detect iPhoneOS SDK from `xcodebuild -showsdks` output.")
+    end
+
+    ios_sdk_version = ios_sdk_versions.max_by { |version| version.split(".").map(&:to_i) }
+    ios_sdk_major = ios_sdk_version.split(".").first.to_i
+    if ios_sdk_major < required_ios_sdk_major
+      UI.user_error!(
+        "iOS SDK #{required_ios_sdk_major}+ is required for App Store uploads. " \
+        "Current SDK: #{ios_sdk_version}. Install Xcode #{required_xcode_major}+."
+      )
+    end
+
+    UI.message("Using Xcode #{xcode_version} with iOS SDK #{ios_sdk_version}")
+  end
+
   desc "Capture screenshots and upload to App Store Connect"
   lane :capture_and_upload do
     screenshots
@@ -114,6 +155,8 @@ platform :ios do
 
   desc "Build the iOS app for App Store distribution"
   lane :build do
+    ensure_required_ios_build_tools
+
     # Ensure CocoaPods dependencies are up to date
     UI.message("Running pod install...")
     cocoapods(
