@@ -21,6 +21,9 @@ import 'package:submersion/features/settings/presentation/pages/language_setting
 import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_summary_widget.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/auto_update/domain/entities/update_channel.dart';
+import 'package:submersion/features/auto_update/domain/entities/update_status.dart';
+import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
 
 /// Main settings page with master-detail layout on desktop.
 ///
@@ -1847,12 +1850,16 @@ class _DataSectionContent extends ConsumerWidget {
   }
 }
 
-/// About section content
-class _AboutSectionContent extends StatelessWidget {
+/// About section content with optional auto-update controls.
+///
+/// When [UpdateChannelConfig.isAutoUpdateEnabled] is true (non-store builds),
+/// an Updates card is shown with check-for-update, auto-update toggle,
+/// and last-checked timestamp.
+class _AboutSectionContent extends ConsumerWidget {
   const _AboutSectionContent();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -1897,6 +1904,13 @@ class _AboutSectionContent extends StatelessWidget {
               ],
             ),
           ),
+          // Auto-update section (only for non-store builds)
+          if (UpdateChannelConfig.isAutoUpdateEnabled) ...[
+            const SizedBox(height: 24),
+            _buildSectionHeader(context, 'Updates'),
+            const SizedBox(height: 8),
+            _buildUpdatesCard(context, ref),
+          ],
           const SizedBox(height: 24),
           // App info card
           Center(
@@ -1924,6 +1938,61 @@ class _AboutSectionContent extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUpdatesCard(BuildContext context, WidgetRef ref) {
+    final updateStatus = ref.watch(updateStatusProvider);
+    final prefs = ref.watch(updatePreferencesProvider);
+
+    final statusText = switch (updateStatus) {
+      UpToDate() => 'Up to date',
+      Checking() => 'Checking...',
+      UpdateAvailable(:final version) => 'Version $version available',
+      Downloading(:final progress) =>
+        'Downloading... ${(progress * 100).toInt()}%',
+      ReadyToInstall(:final version) => 'Version $version ready to install',
+      UpdateError(:final message) => 'Error: $message',
+    };
+
+    final lastCheck = prefs.lastCheckTime;
+    final lastCheckText = lastCheck != null
+        ? '${lastCheck.month}/${lastCheck.day}/${lastCheck.year} '
+              '${lastCheck.hour.toString().padLeft(2, '0')}:'
+              '${lastCheck.minute.toString().padLeft(2, '0')}'
+        : 'Never';
+
+    return Card(
+      child: Column(
+        children: [
+          ListTile(
+            leading: const Icon(Icons.refresh),
+            title: const Text('Check for Updates'),
+            subtitle: Text(statusText),
+            onTap: updateStatus is Checking
+                ? null
+                : () =>
+                      ref.read(updateStatusProvider.notifier).checkForUpdate(),
+          ),
+          const Divider(height: 1),
+          SwitchListTile(
+            secondary: const Icon(Icons.auto_mode),
+            title: const Text('Automatic updates'),
+            subtitle: const Text('Check for updates periodically'),
+            value: prefs.autoUpdateEnabled,
+            onChanged: (value) async {
+              await prefs.setAutoUpdateEnabled(value);
+              ref.invalidate(updatePreferencesProvider);
+            },
+          ),
+          const Divider(height: 1),
+          ListTile(
+            leading: const Icon(Icons.schedule),
+            title: const Text('Last checked'),
+            subtitle: Text(lastCheckText),
           ),
         ],
       ),
