@@ -221,7 +221,6 @@ This document contains only the features and tasks that are **not yet completed*
 ### 13.1 File Formats
 | Feature | Notes |
 |---------|-------|
-| ePub export | Electronic book format for travel |
 | HTML export | Web-viewable logbook |
 
 **Tasks:**
