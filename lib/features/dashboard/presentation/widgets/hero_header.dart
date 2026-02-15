@@ -58,20 +58,27 @@ class HeroHeader extends ConsumerStatefulWidget {
 
 class _HeroHeaderState extends ConsumerState<HeroHeader>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _animation;
+  late final AnimationController _ticker;
+  final _stopwatch = Stopwatch();
+
+  /// Seconds for one conceptual animation cycle (controls bubble rise speed).
+  static const _cyclePeriod = 10.0;
 
   @override
   void initState() {
     super.initState();
-    _animation = AnimationController(
+    _stopwatch.start();
+    // Controller is used only to schedule repaints every frame.
+    _ticker = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 10),
+      duration: const Duration(seconds: 1),
     )..repeat();
   }
 
   @override
   void dispose() {
-    _animation.dispose();
+    _ticker.dispose();
+    _stopwatch.stop();
     super.dispose();
   }
 
@@ -121,14 +128,19 @@ class _HeroHeaderState extends ConsumerState<HeroHeader>
               Positioned.fill(
                 child: RepaintBoundary(
                   child: AnimatedBuilder(
-                    animation: _animation,
-                    builder: (context, _) => CustomPaint(
-                      painter: _OceanEffectPainter(
-                        animationValue: _animation.value,
-                        bubbleColor: bubbleColor,
-                        causticOpacity: causticOpacity,
-                      ),
-                    ),
+                    animation: _ticker,
+                    builder: (context, _) {
+                      final t =
+                          _stopwatch.elapsedMilliseconds /
+                          (_cyclePeriod * 1000);
+                      return CustomPaint(
+                        painter: _OceanEffectPainter(
+                          animationValue: t,
+                          bubbleColor: bubbleColor,
+                          causticOpacity: causticOpacity,
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
