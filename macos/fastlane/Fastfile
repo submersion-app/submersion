@@ -162,15 +162,22 @@ platform :mac do
     # Sparkle.framework whose helper executables lack App Sandbox entitlements,
     # causing Apple to reject the upload. The Dart code already disables
     # auto-update for store channels via UPDATE_CHANNEL=appstore.
-    flutter_plugins = File.absolute_path("../../.flutter-plugins")
-    plugins_backup = File.exist?(flutter_plugins) ? File.read(flutter_plugins) : nil
+    pubspec_path = File.absolute_path("../../pubspec.yaml")
+    pubspec_lock_path = File.absolute_path("../../pubspec.lock")
+    pubspec_backup = File.read(pubspec_path)
+    pubspec_lock_backup = File.exist?(pubspec_lock_path) ? File.read(pubspec_lock_path) : nil
 
     begin
-      if plugins_backup
-        filtered = plugins_backup.lines.reject { |l| l.start_with?("auto_updater=") }.join
-        File.write(flutter_plugins, filtered)
-        UI.message("Excluded auto_updater plugin for App Store build")
+      filtered_pubspec = pubspec_backup.lines.reject { |l| l.match?(/^\s*auto_updater:\s*/) }.join
+      if filtered_pubspec == pubspec_backup
+        UI.message("auto_updater dependency not found in pubspec; continuing")
+      else
+        File.write(pubspec_path, filtered_pubspec)
+        UI.message("Temporarily removed auto_updater dependency for App Store build")
       end
+
+      # Regenerate lockfile/plugin metadata without auto_updater.
+      sh("cd ../.. && flutter pub get")
 
       # Regenerate Flutter configs and plugin registrant (without auto_updater)
       UI.message("Building Flutter app...")
@@ -210,9 +217,19 @@ platform :mac do
 
       UI.success("Build complete! Pkg saved to macos/build/Submersion.pkg")
     ensure
-      if plugins_backup
-        File.write(flutter_plugins, plugins_backup)
-        UI.message("Restored .flutter-plugins")
+      File.write(pubspec_path, pubspec_backup)
+
+      if pubspec_lock_backup
+        File.write(pubspec_lock_path, pubspec_lock_backup)
+      elsif File.exist?(pubspec_lock_path)
+        File.delete(pubspec_lock_path)
+      end
+
+      begin
+        sh("cd ../.. && flutter pub get")
+        UI.message("Restored pubspec/pubspec.lock after App Store build")
+      rescue => e
+        UI.important("Warning: Failed to refresh Flutter metadata after restore: #{e}")
       end
     end
   end
