@@ -30,6 +30,11 @@ cat <<APPCAST
         type="application/octet-stream"
         sparkle:os="macos"
       />
+      <enclosure
+        url="${WINDOWS_URL}"
+        type="application/octet-stream"
+        sparkle:os="windows"
+      />
     </item>
   </channel>
 </rss>
