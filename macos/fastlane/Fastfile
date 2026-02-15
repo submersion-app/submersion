@@ -167,6 +167,14 @@ platform :mac do
     pubspec_backup = File.read(pubspec_path)
     pubspec_lock_backup = File.exist?(pubspec_lock_path) ? File.read(pubspec_lock_path) : nil
 
+    # Also stub out SparkleUpdateService which imports auto_updater at compile
+    # time. The stub implements the same interface so the rest of the code
+    # compiles, but never calls into the native Sparkle framework.
+    sparkle_path = File.absolute_path(
+      "../../lib/features/auto_update/data/services/sparkle_update_service.dart"
+    )
+    sparkle_backup = File.exist?(sparkle_path) ? File.read(sparkle_path) : nil
+
     begin
       filtered_pubspec = pubspec_backup.lines.reject { |l| l.match?(/^\s*auto_updater:\s*/) }.join
       if filtered_pubspec == pubspec_backup
@@ -174,6 +182,26 @@ platform :mac do
       else
         File.write(pubspec_path, filtered_pubspec)
         UI.message("Temporarily removed auto_updater dependency for App Store build")
+      end
+
+      # Replace SparkleUpdateService with a no-op stub (no auto_updater import)
+      if sparkle_backup
+        stub = <<~DART
+          import 'package:submersion/features/auto_update/data/services/update_service.dart';
+          import 'package:submersion/features/auto_update/domain/entities/update_status.dart';
+
+          class SparkleUpdateService implements UpdateService {
+            final String feedUrl;
+            SparkleUpdateService({required this.feedUrl});
+
+            @override
+            Future<UpdateStatus> checkForUpdate() async => const UpToDate();
+
+            Future<void> checkForUpdatesInteractively() async {}
+          }
+        DART
+        File.write(sparkle_path, stub)
+        UI.message("Replaced SparkleUpdateService with App Store stub")
       end
 
       # Regenerate lockfile/plugin metadata without auto_updater.
@@ -222,6 +250,7 @@ platform :mac do
       UI.success("Build complete! Pkg saved to macos/build/Submersion.pkg")
     ensure
       File.write(pubspec_path, pubspec_backup)
+      File.write(sparkle_path, sparkle_backup) if sparkle_backup
 
       if pubspec_lock_backup
         File.write(pubspec_lock_path, pubspec_lock_backup)
