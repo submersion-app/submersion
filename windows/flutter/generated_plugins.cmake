@@ -3,6 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  auto_updater_windows
   file_selector_windows
   flutter_blue_plus_winrt
   flutter_secure_storage_windows

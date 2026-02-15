@@ -94,6 +94,10 @@ dependencies:
   crypto: ^3.0.3
   gal: ^2.3.2
 
+  # Auto-Update
+  auto_updater: ^1.0.0
+  package_info_plus: ^8.0.0
+
   # Notifications
   flutter_local_notifications: ^18.0.1
   workmanager: ^0.9.0+3
