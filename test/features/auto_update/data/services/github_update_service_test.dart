@@ -201,6 +201,23 @@ void main() {
       final status = await service.checkForUpdate();
       expect(status, isA<UpToDate>());
     });
+
+    test('returns UpdateError on malformed JSON response', () async {
+      final client = MockClient((request) async {
+        return http.Response('<html>Error</html>', 200);
+      });
+
+      final service = GithubUpdateService(
+        owner: owner,
+        repo: repo,
+        currentVersion: currentVersion,
+        platformSuffix: 'Linux.tar.gz',
+        httpClient: client,
+      );
+
+      final status = await service.checkForUpdate();
+      expect(status, isA<UpdateError>());
+    });
   });
 
   group('Version comparison', () {
@@ -226,6 +243,11 @@ void main() {
 
     test('isNewer handles versions with different segment counts', () {
       expect(GithubUpdateService.isNewer('1.1', '1.0.0'), true);
+    });
+
+    test('isNewer strips pre-release suffix before comparing', () {
+      expect(GithubUpdateService.isNewer('2.0.0-beta.1', '1.9.9'), true);
+      expect(GithubUpdateService.isNewer('1.0.0-beta.1', '1.0.0'), false);
     });
   });
 }

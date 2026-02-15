@@ -81,27 +81,26 @@ class GithubUpdateService implements UpdateService {
   }
 
   /// Compares two semver strings. Returns true if [remote] is newer than [current].
+  /// Pre-release suffixes (e.g., "-beta.1") are stripped before comparison.
   static bool isNewer(String remote, String current) {
-    final remoteParts = remote
-        .split('.')
-        .map((s) => int.tryParse(s) ?? 0)
-        .toList();
-    final currentParts = current
-        .split('.')
-        .map((s) => int.tryParse(s) ?? 0)
-        .toList();
+    // Strip pre-release suffix (e.g., "2.0.0-beta.1" -> "2.0.0")
+    final remoteBase = remote.split('-').first;
+    final currentBase = current.split('-').first;
 
-    // Pad shorter list with zeros
-    while (remoteParts.length < 3) {
-      remoteParts.add(0);
-    }
-    while (currentParts.length < 3) {
-      currentParts.add(0);
-    }
+    final remoteParts = remoteBase
+        .split('.')
+        .map((s) => int.tryParse(s) ?? 0)
+        .toList();
+    final currentParts = currentBase
+        .split('.')
+        .map((s) => int.tryParse(s) ?? 0)
+        .toList();
 
     for (var i = 0; i < 3; i++) {
-      if (remoteParts[i] > currentParts[i]) return true;
-      if (remoteParts[i] < currentParts[i]) return false;
+      final r = i < remoteParts.length ? remoteParts[i] : 0;
+      final c = i < currentParts.length ? currentParts[i] : 0;
+      if (r > c) return true;
+      if (r < c) return false;
     }
     return false;
   }
