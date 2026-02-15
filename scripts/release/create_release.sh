@@ -115,6 +115,7 @@ else
   fi
 
   # 2. Clean working tree (fail fast — no point running slow checks)
+  git update-index --refresh > /dev/null 2>&1 || true
   if ! git diff-index --quiet HEAD -- 2>/dev/null; then
     echo "  [FAIL] Uncommitted changes detected"
     echo ""
