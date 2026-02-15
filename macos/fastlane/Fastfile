@@ -179,6 +179,10 @@ platform :mac do
       # Regenerate lockfile/plugin metadata without auto_updater.
       sh("cd ../.. && flutter pub get")
 
+      # Clean stale macOS build artifacts from any prior flutter build (e.g. the
+      # GitHub DMG build) so the App Store build starts from a clean state.
+      sh("rm -rf ../../build/macos")
+
       # Regenerate Flutter configs and plugin registrant (without auto_updater)
       UI.message("Building Flutter app...")
       sh("cd ../.. && flutter build macos --release --config-only --dart-define=UPDATE_CHANNEL=appstore")
