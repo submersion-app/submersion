@@ -158,36 +158,59 @@ platform :mac do
   lane :build do
     api_key = load_api_key
 
-    # Run flutter build to regenerate Flutter-Generated.xcconfig with the
-    # current version and build number from pubspec.yaml.
-    UI.message("Building Flutter app...")
-    sh("cd ../.. && flutter build macos --release --config-only")
+    # Exclude auto_updater for App Store builds. The auto_updater plugin bundles
+    # Sparkle.framework whose helper executables lack App Sandbox entitlements,
+    # causing Apple to reject the upload. The Dart code already disables
+    # auto-update for store channels via UPDATE_CHANNEL=appstore.
+    flutter_plugins = File.absolute_path("../../.flutter-plugins")
+    plugins_backup = File.exist?(flutter_plugins) ? File.read(flutter_plugins) : nil
 
-    UI.message("Building and signing pkg...")
-    key_path = File.expand_path(
-      ENV["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"],
-      File.expand_path("..", __dir__)
-    )
-    auth_flags = "-allowProvisioningUpdates" \
-      " -authenticationKeyPath '#{key_path}'" \
-      " -authenticationKeyID '#{ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"]}'" \
-      " -authenticationKeyIssuerID '#{ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"]}'"
+    begin
+      if plugins_backup
+        filtered = plugins_backup.lines.reject { |l| l.start_with?("auto_updater=") }.join
+        File.write(flutter_plugins, filtered)
+        UI.message("Excluded auto_updater plugin for App Store build")
+      end
 
-    build_mac_app(
-      workspace: "Runner.xcworkspace",
-      scheme: "Runner",
-      export_method: "app-store",
-      output_directory: "./build",
-      output_name: "Submersion",
-      export_options: {
-        signingStyle: "automatic",
-        teamID: "8U3RSKF42Q",
-        manageAppVersionAndBuildNumber: false
-      },
-      xcargs: auth_flags,
-    )
+      # Regenerate Flutter configs and plugin registrant (without auto_updater)
+      UI.message("Building Flutter app...")
+      sh("cd ../.. && flutter build macos --release --config-only --dart-define=UPDATE_CHANNEL=appstore")
 
-    UI.success("Build complete! Pkg saved to macos/build/Submersion.pkg")
+      # Reinstall pods without auto_updater_macos / Sparkle
+      sh("pod install")
+
+      UI.message("Building and signing pkg...")
+      key_path = File.expand_path(
+        ENV["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"],
+        File.expand_path("..", __dir__)
+      )
+      auth_flags = "-allowProvisioningUpdates" \
+        " -authenticationKeyPath '#{key_path}'" \
+        " -authenticationKeyID '#{ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"]}'" \
+        " -authenticationKeyIssuerID '#{ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"]}'"
+
+      build_mac_app(
+        workspace: "Runner.xcworkspace",
+        scheme: "Runner",
+        export_method: "app-store",
+        clean: true,
+        output_directory: "./build",
+        output_name: "Submersion",
+        export_options: {
+          signingStyle: "automatic",
+          teamID: "8U3RSKF42Q",
+          manageAppVersionAndBuildNumber: false
+        },
+        xcargs: auth_flags,
+      )
+
+      UI.success("Build complete! Pkg saved to macos/build/Submersion.pkg")
+    ensure
+      if plugins_backup
+        File.write(flutter_plugins, plugins_backup)
+        UI.message("Restored .flutter-plugins")
+      end
+    end
   end
 
   # ============================================================================
