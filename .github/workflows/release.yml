@@ -37,8 +37,15 @@ jobs:
 
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1
+        id: setup-xcode-macos
         with:
-          xcode-version: 'latest-stable'
+          xcode-version: '26'
+
+      - name: Verify selected Xcode (macOS build)
+        run: |
+          echo "setup-xcode selected: ${{ steps.setup-xcode-macos.outputs.version }}"
+          echo "Xcode path: ${{ steps.setup-xcode-macos.outputs.path }}"
+          xcodebuild -version
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -358,16 +365,20 @@ jobs:
 
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1
+        id: setup-xcode-ios
         with:
-          xcode-version: 'latest-stable'
+          xcode-version: '26'
 
       - name: Verify Xcode and iOS SDK
         run: |
+          echo "setup-xcode selected: ${{ steps.setup-xcode-ios.outputs.version }}"
+          echo "Xcode path: ${{ steps.setup-xcode-ios.outputs.path }}"
+          echo "DEVELOPER_DIR: ${DEVELOPER_DIR:-<not set>}"
+          xcode-select -p
           xcodebuild -version
           XCODE_VERSION=$(xcodebuild -version | awk '/Xcode/ { print $2 }')
           XCODE_MAJOR=${XCODE_VERSION%%.*}
-
-          IOS_SDK=$(xcodebuild -showsdks | grep -oE 'iphoneos[0-9]+(\.[0-9]+)?' | sed 's/iphoneos//' | head -1)
+          IOS_SDK=$(xcrun --sdk iphoneos --show-sdk-version)
           IOS_SDK_MAJOR=${IOS_SDK%%.*}
           echo "Detected iOS SDK: ${IOS_SDK}"
 

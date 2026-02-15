@@ -125,13 +125,10 @@ platform :ios do
       )
     end
 
-    sdk_output = sh("xcodebuild -showsdks", log: false)
-    ios_sdk_versions = sdk_output.scan(/iphoneos(\d+(?:\.\d+)?)/).flatten
-    if ios_sdk_versions.empty?
-      UI.user_error!("Unable to detect iPhoneOS SDK from `xcodebuild -showsdks` output.")
+    ios_sdk_version = sh("xcrun --sdk iphoneos --show-sdk-version", log: false).strip
+    if ios_sdk_version.empty?
+      UI.user_error!("Unable to detect active iPhoneOS SDK from `xcrun --sdk iphoneos --show-sdk-version`.")
     end
-
-    ios_sdk_version = ios_sdk_versions.max_by { |version| version.split(".").map(&:to_i) }
     ios_sdk_major = ios_sdk_version.split(".").first.to_i
     if ios_sdk_major < required_ios_sdk_major
       UI.user_error!(
