@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/auto_update/presentation/widgets/update_banner.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 class MainScaffold extends StatefulWidget {
@@ -360,7 +361,14 @@ class _MainScaffoldState extends State<MainScaffold> {
               ],
             ),
             const VerticalDivider(thickness: 1, width: 1),
-            Expanded(child: widget.child),
+            Expanded(
+              child: Column(
+                children: [
+                  const UpdateBanner(),
+                  Expanded(child: widget.child),
+                ],
+              ),
+            ),
           ],
         ),
       );
@@ -368,7 +376,12 @@ class _MainScaffoldState extends State<MainScaffold> {
 
     // Mobile layout with BottomNavigationBar
     return Scaffold(
-      body: widget.child,
+      body: Column(
+        children: [
+          const UpdateBanner(),
+          Expanded(child: widget.child),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedIndex,
         onDestinationSelected: (index) =>
