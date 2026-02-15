@@ -9,6 +9,7 @@
 #   ./scripts/release/bump_version.sh --major       # X.Y.Z+N -> (X+1).0.0+(N+1)
 #   ./scripts/release/bump_version.sh --build       # X.Y.Z+N -> X.Y.Z+(N+1)
 #   ./scripts/release/bump_version.sh --set 2.0.0   # X.Y.Z+N -> 2.0.0+(N+1)
+#   ./scripts/release/bump_version.sh --patch --commit  # bump + git commit
 #   ./scripts/release/bump_version.sh --dry-run --minor
 
 set -euo pipefail
@@ -21,6 +22,7 @@ PUBSPEC="$PROJECT_DIR/pubspec.yaml"
 BUMP_TYPE=""
 SET_VERSION=""
 DRY_RUN=false
+AUTO_COMMIT=false
 
 for arg in "$@"; do
   case "$arg" in
@@ -29,6 +31,7 @@ for arg in "$@"; do
     --patch)   BUMP_TYPE="patch" ;;
     --build)   BUMP_TYPE="build" ;;
     --set)     BUMP_TYPE="set" ;;
+    --commit)  AUTO_COMMIT=true ;;
     --dry-run) DRY_RUN=true ;;
     --help|-h)
       sed -nE '2,/^$/s/^# ?//p' "$0"
@@ -39,7 +42,7 @@ for arg in "$@"; do
         SET_VERSION="$arg"
       else
         echo "Unknown argument: $arg"
-        echo "Usage: $0 [--major|--minor|--patch|--build|--set X.Y.Z] [--dry-run]"
+        echo "Usage: $0 [--major|--minor|--patch|--build|--set X.Y.Z] [--commit] [--dry-run]"
         exit 1
       fi
       ;;
@@ -126,7 +129,16 @@ if [ "$UPDATED" != "$NEW_FULL" ]; then
 fi
 
 echo "Updated $PUBSPEC"
-echo ""
-echo "Next steps:"
-echo "  git add pubspec.yaml && git commit -m 'chore: bump version to $NEW_FULL'"
-echo "  ./scripts/release/create_release.sh    # pushes commits, tags, triggers CI"
+
+if [ "$AUTO_COMMIT" = true ]; then
+  git add "$PUBSPEC"
+  git commit -m "chore: bump version to $NEW_FULL"
+  echo ""
+  echo "Next step:"
+  echo "  ./scripts/release/create_release.sh    # pushes commits, tags, triggers CI"
+else
+  echo ""
+  echo "Next steps:"
+  echo "  git add pubspec.yaml && git commit -m 'chore: bump version to $NEW_FULL'"
+  echo "  ./scripts/release/create_release.sh    # pushes commits, tags, triggers CI"
+fi
