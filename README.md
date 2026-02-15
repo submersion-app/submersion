@@ -12,7 +12,7 @@
 [![Build Android](https://img.shields.io/github/actions/workflow/status/submersion-app/submersion/ci.yaml?branch=main&label=Android&logo=android)](https://github.com/submersion-app/submersion/actions/workflows/ci.yaml)
 [![Build iOS](https://img.shields.io/github/actions/workflow/status/submersion-app/submersion/ci.yaml?branch=main&label=iOS&logo=apple)](https://github.com/submersion-app/submersion/actions/workflows/ci.yaml)
 
-
+[![Download macOS](https://img.shields.io/badge/Download-macOS-2ea44f?logo=apple)](https://github.com/submersion-app/submersion/releases) [![Download Windows](https://img.shields.io/badge/Download-Windows-2ea44f?logo=windows)](https://github.com/submersion-app/submersion/releases) [![Download Linux](https://img.shields.io/badge/Download-Linux-2ea44f?logo=linux)](https://github.com/submersion-app/submersion/releases) [![Download Android](https://img.shields.io/badge/Download-Android-2ea44f?logo=android)](https://github.com/submersion-app/submersion/releases) [![Download iOS](https://img.shields.io/badge/Download-iOS-2ea44f?logo=apple)](https://github.com/submersion-app/submersion/releases)
 
 Submersion gives scuba divers full ownership of their logbooks — no proprietary formats, no cloud lock-in, no subscription fees. Track analytics, stats, records, and trends across your dives, all stored locally and exportable to open standards. Free and open-source, forever.
 
