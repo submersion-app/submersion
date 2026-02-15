@@ -51,7 +51,7 @@ done
 
 if [ -z "$BUMP_TYPE" ]; then
   echo "Error: No bump type specified."
-  echo "Usage: $0 [--major|--minor|--patch|--build|--set X.Y.Z] [--dry-run]"
+  echo "Usage: $0 [--major|--minor|--patch|--build|--set X.Y.Z] [--commit] [--dry-run]"
   exit 1
 fi
 
