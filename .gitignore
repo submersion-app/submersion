@@ -35,7 +35,7 @@ build/
 *.db
 *.log
 .env
-.claude/settings.local.json
+.claude/
 coverage/
 devtools_options.yaml
 .worktrees/
