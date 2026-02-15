@@ -7,9 +7,9 @@
 # building, signing, and uploading artifacts.
 #
 # Usage:
-#   ./scripts/release/create_release.sh              # release tag: v1.1.0.33
-#   ./scripts/release/create_release.sh --beta       # beta tag:    v1.1.0-beta.33
-#   ./scripts/release/create_release.sh --rc         # RC tag:      v1.1.0-rc.33
+#   ./scripts/release/create_release.sh              # release tag: vX.Y.Z.N
+#   ./scripts/release/create_release.sh --beta       # beta tag:    vX.Y.Z-beta.N
+#   ./scripts/release/create_release.sh --rc         # RC tag:      vX.Y.Z-rc.N
 #   ./scripts/release/create_release.sh --dry-run    # show what would happen
 #   ./scripts/release/create_release.sh --skip-preflight  # skip checks
 #   ./scripts/release/create_release.sh --beta --dry-run
@@ -100,7 +100,6 @@ elif [ "$DRY_RUN" = true ]; then
   echo ""
 else
   echo "=== Preflight Checks ==="
-  PREFLIGHT_FAILED=false
 
   # 1. Branch check
   CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
@@ -115,13 +114,14 @@ else
     echo "  [OK] On main branch"
   fi
 
-  # 2. Clean working tree
+  # 2. Clean working tree (fail fast — no point running slow checks)
   if ! git diff-index --quiet HEAD -- 2>/dev/null; then
     echo "  [FAIL] Uncommitted changes detected"
-    PREFLIGHT_FAILED=true
-  else
-    echo "  [OK] Working tree is clean"
+    echo ""
+    echo "Commit your changes first, then re-run."
+    exit 1
   fi
+  echo "  [OK] Working tree is clean"
 
   # 3. Up to date with remote
   git fetch origin main --quiet 2>/dev/null || true
@@ -140,7 +140,9 @@ else
     echo "  [OK] Code formatting"
   else
     echo "  [FAIL] Code formatting (run: dart format lib/ test/)"
-    PREFLIGHT_FAILED=true
+    echo ""
+    echo "Fix formatting, commit, then re-run."
+    exit 1
   fi
 
   # 5. Static analysis
@@ -149,7 +151,9 @@ else
     echo "  [OK] Static analysis"
   else
     echo "  [FAIL] Static analysis (run: flutter analyze)"
-    PREFLIGHT_FAILED=true
+    echo ""
+    echo "Fix analysis issues, commit, then re-run."
+    exit 1
   fi
 
   # 6. Tests
@@ -158,29 +162,40 @@ else
     echo "  [OK] Tests pass"
   else
     echo "  [FAIL] Tests failing (run: flutter test)"
-    PREFLIGHT_FAILED=true
-  fi
-
-  echo ""
-
-  if [ "$PREFLIGHT_FAILED" = true ]; then
-    echo "Preflight checks failed. Fix the issues above or use --skip-preflight to bypass."
+    echo ""
+    echo "Fix failing tests, commit, then re-run."
     exit 1
   fi
 
+  echo ""
   echo "All preflight checks passed."
   echo ""
 fi
 
 # --- Dry run ---
 if [ "$DRY_RUN" = true ]; then
+  echo "[Dry run] Would push any unpushed commits to origin"
   echo "[Dry run] Would create tag: $TAG"
   echo "[Dry run] Would push tag to origin"
   echo "[Dry run] CI would then build and create GitHub Release"
   exit 0
 fi
 
-# --- Create and push ---
+# --- Push unpushed commits ---
+UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null || echo "")
+if [ -n "$UPSTREAM" ]; then
+  UNPUSHED=$(git rev-list "$UPSTREAM"..HEAD --count 2>/dev/null || echo "0")
+  if [ "$UNPUSHED" -gt 0 ]; then
+    echo "=== Unpushed Commits ($UNPUSHED) ==="
+    git log "$UPSTREAM"..HEAD --oneline
+    echo ""
+    echo "Pushing to origin..."
+    git push --no-verify
+    echo ""
+  fi
+fi
+
+# --- Create and push tag ---
 echo "Creating tag '$TAG'..."
 git tag "$TAG"
 

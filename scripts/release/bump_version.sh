@@ -4,11 +4,11 @@
 # Always increments the build number. Optionally bumps major, minor, or patch.
 #
 # Usage:
-#   ./scripts/release/bump_version.sh --patch       # 1.1.0+33 -> 1.1.1+34
-#   ./scripts/release/bump_version.sh --minor       # 1.1.0+33 -> 1.2.0+34
-#   ./scripts/release/bump_version.sh --major       # 1.1.0+33 -> 2.0.0+34
-#   ./scripts/release/bump_version.sh --build       # 1.1.0+33 -> 1.1.0+34
-#   ./scripts/release/bump_version.sh --set 2.0.0   # 1.1.0+33 -> 2.0.0+34
+#   ./scripts/release/bump_version.sh --patch       # X.Y.Z+N -> X.Y.(Z+1)+(N+1)
+#   ./scripts/release/bump_version.sh --minor       # X.Y.Z+N -> X.(Y+1).0+(N+1)
+#   ./scripts/release/bump_version.sh --major       # X.Y.Z+N -> (X+1).0.0+(N+1)
+#   ./scripts/release/bump_version.sh --build       # X.Y.Z+N -> X.Y.Z+(N+1)
+#   ./scripts/release/bump_version.sh --set 2.0.0   # X.Y.Z+N -> 2.0.0+(N+1)
 #   ./scripts/release/bump_version.sh --dry-run --minor
 
 set -euo pipefail
@@ -128,6 +128,5 @@ fi
 echo "Updated $PUBSPEC"
 echo ""
 echo "Next steps:"
-echo "  git add pubspec.yaml"
-echo "  git commit -m 'chore: bump version to $NEW_FULL'"
-echo "  ./scripts/release/create_release.sh"
+echo "  git add pubspec.yaml && git commit -m 'chore: bump version to $NEW_FULL'"
+echo "  ./scripts/release/create_release.sh    # pushes commits, tags, triggers CI"
