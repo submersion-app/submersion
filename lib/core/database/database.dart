@@ -1788,9 +1788,17 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 33) {
           // Add locale column for i18n language preference
-          await customStatement(
-            "ALTER TABLE diver_settings ADD COLUMN locale TEXT NOT NULL DEFAULT 'system'",
+          final cols = await customSelect(
+            'PRAGMA table_info(diver_settings)',
+          ).get();
+          final hasLocale = cols.any(
+            (row) => row.read<String>('name') == 'locale',
           );
+          if (!hasLocale) {
+            await customStatement(
+              "ALTER TABLE diver_settings ADD COLUMN locale TEXT NOT NULL DEFAULT 'system'",
+            );
+          }
         }
         if (from < 34) {
           // User-defined key:value custom fields per dive
