@@ -177,7 +177,11 @@ platform :mac do
       sh("cd ../.. && flutter build macos --release --config-only --dart-define=UPDATE_CHANNEL=appstore")
 
       # Reinstall pods without auto_updater_macos / Sparkle
-      sh("pod install")
+      # Clear Bundler env so system CocoaPods doesn't inherit fastlane's
+      # Ruby 3.2 gem paths, which causes GemNotFound on CI runners
+      Bundler.with_unbundled_env do
+        sh("pod install")
+      end
 
       UI.message("Building and signing pkg...")
       key_path = File.expand_path(
