@@ -210,6 +210,10 @@ This document contains only the features and tasks that are **not yet completed*
 - [ ] Auto-sync when connectivity restored
 - [ ] Sync conflict warnings and resolution
 
+### 12.5 Auto-update
+**Tasks:**
+- [ ] Application auto-update for non-app store releases
+
 ---
 
 ## Category 13: Import, Export & Interoperability

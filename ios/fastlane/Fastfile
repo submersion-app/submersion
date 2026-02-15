@@ -143,7 +143,8 @@ platform :ios do
       output_name: "Submersion.ipa",
       export_options: {
         signingStyle: "automatic",
-        teamID: "8U3RSKF42Q"
+        teamID: "8U3RSKF42Q",
+        manageAppVersionAndBuildNumber: false
       },
       xcargs: auth_flags,
     )
