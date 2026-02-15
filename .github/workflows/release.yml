@@ -66,7 +66,7 @@ jobs:
           echo 'CODE_SIGN_IDENTITY = ' >> macos/Runner/Configs/Release.xcconfig
 
       - name: Build macOS release
-        run: flutter build macos --release
+        run: flutter build macos --release --dart-define=UPDATE_CHANNEL=github
 
       # -- Developer ID DMG (for GitHub Release) --
 
@@ -218,7 +218,7 @@ jobs:
           dart run build_runner build --delete-conflicting-outputs
 
       - name: Build Windows release
-        run: flutter build windows --release
+        run: flutter build windows --release --dart-define=UPDATE_CHANNEL=github
 
       - name: Create ZIP archive
         env:
@@ -266,7 +266,7 @@ jobs:
           dart run build_runner build --delete-conflicting-outputs
 
       - name: Build Linux release
-        run: flutter build linux --release
+        run: flutter build linux --release --dart-define=UPDATE_CHANNEL=github
 
       - name: Create tarball
         env:
@@ -329,7 +329,7 @@ jobs:
           chmod 600 android/key.properties android/app/release.keystore
 
       - name: Build Android APK
-        run: flutter build apk --release
+        run: flutter build apk --release --dart-define=UPDATE_CHANNEL=github
 
       - name: Rename APK
         env:
@@ -456,12 +456,57 @@ jobs:
         run: rm -f ios/fastlane/AuthKey.p8
 
   # ============================================================================
+  # Generate Appcast & Checksums
+  # ============================================================================
+  generate-appcast:
+    name: Generate Appcast & Checksums
+    runs-on: ubuntu-latest
+    needs: [build-macos, build-windows, build-linux, build-android]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - name: Generate appcast.xml
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+          SPARKLE_EDDSA_SIGNATURE: ${{ secrets.SPARKLE_EDDSA_SIGNATURE }}
+        run: |
+          VERSION="${TAG_NAME#v}"
+          DATE=$(date -R)
+          MACOS_URL="https://github.com/${{ github.repository }}/releases/download/${TAG_NAME}/Submersion-${TAG_NAME}-macOS.dmg"
+          WINDOWS_URL="https://github.com/${{ github.repository }}/releases/download/${TAG_NAME}/Submersion-${TAG_NAME}-Windows.zip"
+          ./scripts/generate_appcast.sh "$VERSION" "$DATE" "$MACOS_URL" "$WINDOWS_URL" > appcast.xml
+
+      - name: Generate checksums
+        run: sha256sum Submersion-* > checksums-sha256.txt
+
+      - name: Upload appcast artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: appcast
+          path: appcast.xml
+          retention-days: 5
+
+      - name: Upload checksums artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: checksums
+          path: checksums-sha256.txt
+          retention-days: 5
+
+  # ============================================================================
   # Create GitHub Release
   # ============================================================================
   create-release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
-    needs: [build-macos, build-windows, build-linux, build-android, build-ios]
+    needs: [build-macos, build-windows, build-linux, build-android, build-ios, generate-appcast]
     permissions:
       contents: write
 
@@ -472,7 +517,7 @@ jobs:
           merge-multiple: true
 
       - name: List artifacts
-        run: ls -la Submersion-*
+        run: ls -la
 
       - name: Determine if pre-release
         id: prerelease
@@ -488,6 +533,9 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: Submersion-*
+          files: |
+            Submersion-*
+            appcast.xml
+            checksums-sha256.txt
           prerelease: ${{ steps.prerelease.outputs.prerelease }}
           generate_release_notes: true
