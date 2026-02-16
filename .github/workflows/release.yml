@@ -571,7 +571,7 @@ jobs:
   generate-appcast:
     name: Generate Appcast & Checksums
     runs-on: ubuntu-latest
-    needs: [build-macos, build-windows, build-linux, build-android]
+    needs: [build-macos, build-windows, build-linux, build-android, build-ios]
 
     steps:
       - name: Checkout repository
