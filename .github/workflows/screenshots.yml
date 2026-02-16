@@ -249,13 +249,13 @@ jobs:
           xcode-version: 'latest-stable'
 
       - name: Download iOS screenshots
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: screenshots-ios
           path: screenshots/
 
       - name: Download macOS screenshots
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: screenshots-macos
           path: screenshots/macOS/
