@@ -148,7 +148,7 @@ else
 
   # 5. Static analysis
   echo "  [..] Running flutter analyze..."
-  if flutter analyze --no-fatal-infos > /dev/null 2>&1; then
+  if flutter analyze --fatal-infos > /dev/null 2>&1; then
     echo "  [OK] Static analysis"
   else
     echo "  [FAIL] Static analysis (run: flutter analyze)"
