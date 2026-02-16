@@ -1,7 +1,7 @@
 name: submersion
 description: An open-source dive logging application for scuba divers.
 publish_to: 'none'
-version: 1.1.1+38
+version: 1.1.2+39
 
 environment:
   sdk: ^3.10.0
