@@ -33,7 +33,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Read Flutter version
         id: flutter-ver
@@ -159,7 +159,7 @@ jobs:
           xcrun stapler staple "$DMG"
 
       - name: Upload DMG artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: macos-dmg
           path: Submersion-*.dmg
@@ -258,7 +258,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Read Flutter version
         id: flutter-ver
@@ -286,7 +286,7 @@ jobs:
           Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "Submersion-${env:TAG_NAME}-Windows.zip"
 
       - name: Upload Windows artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: windows-zip
           path: Submersion-*.zip
@@ -302,7 +302,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Read Flutter version
         id: flutter-ver
@@ -339,7 +339,7 @@ jobs:
           tar czf "$GITHUB_WORKSPACE/Submersion-${TAG_NAME}-Linux.tar.gz" .
 
       - name: Upload Linux artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: linux-tar
           path: Submersion-*.tar.gz
@@ -355,14 +355,14 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Read Flutter version
         id: flutter-ver
         run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '21'
@@ -406,7 +406,7 @@ jobs:
             "Submersion-${TAG_NAME}-Android.apk"
 
       - name: Upload Android artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: android-apk
           path: Submersion-*.apk
@@ -428,7 +428,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Read Flutter version
         id: flutter-ver
@@ -553,7 +553,7 @@ jobs:
           mv ios/build/Submersion.ipa "Submersion-${TAG_NAME}-iOS.ipa"
 
       - name: Upload iOS artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ios-ipa
           path: Submersion-*.ipa
@@ -575,10 +575,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           merge-multiple: true
 
@@ -597,14 +597,14 @@ jobs:
         run: sha256sum Submersion-* > checksums-sha256.txt
 
       - name: Upload appcast artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: appcast
           path: appcast.xml
           retention-days: 5
 
       - name: Upload checksums artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: checksums
           path: checksums-sha256.txt
@@ -622,7 +622,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -631,7 +631,7 @@ jobs:
           ./scripts/release/generate_changelog.sh --notes-only > release-notes.md
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           merge-multiple: true
 

@@ -21,7 +21,7 @@ jobs:
     name: Analyze & Format
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Read Flutter version
         id: flutter-ver
@@ -60,7 +60,7 @@ jobs:
     needs: analyze
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Read Flutter version
         id: flutter-ver
@@ -105,7 +105,7 @@ jobs:
     runs-on: macos-14
     if: github.event_name == 'pull_request'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Read Flutter version
         id: flutter-ver
@@ -156,7 +156,7 @@ jobs:
     runs-on: macos-14
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Read Flutter version
         id: flutter-ver
@@ -206,7 +206,7 @@ jobs:
         run: flutter build ios --release --no-codesign "${{ env.DART_DEFINES }}" -v
 
       - name: Upload iOS artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ios-build
           path: build/ios/iphoneos/Runner.app
@@ -218,7 +218,7 @@ jobs:
     runs-on: macos-14
     if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Read Flutter version
         id: flutter-ver
@@ -293,7 +293,7 @@ jobs:
             build/macos/Build/Products/Release/submersion.app
 
       - name: Upload macOS artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         with:
           name: macos-build
@@ -306,14 +306,14 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Read Flutter version
         id: flutter-ver
         run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '21'
@@ -354,7 +354,7 @@ jobs:
         run: flutter build apk --release "${{ env.DART_DEFINES }}" -v
 
       - name: Upload Android artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: android-apk
           path: build/app/outputs/flutter-apk/app-release.apk
@@ -366,7 +366,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Read Flutter version
         id: flutter-ver
@@ -411,7 +411,7 @@ jobs:
         run: flutter build linux --release "${{ env.DART_DEFINES }}" -v
 
       - name: Upload Linux artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: linux-build
           path: build/linux/x64/release/bundle
@@ -423,7 +423,7 @@ jobs:
     runs-on: windows-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Read Flutter version
         id: flutter-ver
@@ -464,7 +464,7 @@ jobs:
         run: flutter build windows --release "${{ env.DART_DEFINES }}" -v
 
       - name: Upload Windows artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: windows-build
           path: build\windows\x64\runner\Release
