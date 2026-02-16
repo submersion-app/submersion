@@ -8,6 +8,116 @@ import 'package:submersion/features/dive_log/domain/entities/outlier_result.dart
 /// Pure Dart -- no Flutter dependencies. All methods are stateless
 /// and return new lists (never mutate input).
 class ProfileEditingService {
+  /// Smooth a dive profile using weighted moving average with triangular kernel.
+  ///
+  /// [windowSize] controls the smoothing radius (3=light, 5=medium, 7=heavy).
+  /// First and last points are preserved unchanged.
+  /// All non-depth fields (pressure, temperature, etc.) are preserved.
+  List<DiveProfilePoint> smoothProfile(
+    List<DiveProfilePoint> profile, {
+    int windowSize = 5,
+  }) {
+    if (profile.length <= 2) return List.of(profile);
+
+    final effectiveWindow = math.min(windowSize, profile.length);
+    final halfWindow = effectiveWindow ~/ 2;
+
+    // Build triangular weights: [1, 2, ..., center, ..., 2, 1]
+    final weights = List.generate(
+      effectiveWindow,
+      (i) => (i < halfWindow ? i + 1 : effectiveWindow - i).toDouble(),
+    );
+
+    final result = <DiveProfilePoint>[];
+
+    for (int i = 0; i < profile.length; i++) {
+      // Preserve first and last points
+      if (i == 0 || i == profile.length - 1) {
+        result.add(profile[i]);
+        continue;
+      }
+
+      // Calculate weighted average of depth within window
+      double weightedDepth = 0;
+      double usedWeightSum = 0;
+
+      for (int w = 0; w < effectiveWindow; w++) {
+        final sourceIdx = i - halfWindow + w;
+        if (sourceIdx >= 0 && sourceIdx < profile.length) {
+          weightedDepth += profile[sourceIdx].depth * weights[w];
+          usedWeightSum += weights[w];
+        }
+      }
+
+      final smoothedDepth = usedWeightSum > 0
+          ? weightedDepth / usedWeightSum
+          : profile[i].depth;
+
+      result.add(profile[i].copyWith(depth: smoothedDepth));
+    }
+
+    return result;
+  }
+
+  /// Remove outlier points by replacing them with linearly interpolated values.
+  ///
+  /// For each outlier, replaces its depth with a linear interpolation between
+  /// its nearest non-outlier neighbors. All other fields are preserved.
+  List<DiveProfilePoint> removeOutliers(
+    List<DiveProfilePoint> profile,
+    List<OutlierResult> outliers,
+  ) {
+    if (outliers.isEmpty) return List.of(profile);
+
+    final outlierIndices = outliers.map((o) => o.index).toSet();
+    final result = List<DiveProfilePoint>.from(profile);
+
+    for (final outlier in outliers) {
+      final idx = outlier.index;
+      if (idx < 0 || idx >= profile.length) continue;
+
+      // Find nearest non-outlier neighbors
+      double? leftDepth;
+      double? rightDepth;
+      int? leftIdx;
+      int? rightIdx;
+
+      for (int j = idx - 1; j >= 0; j--) {
+        if (!outlierIndices.contains(j)) {
+          leftDepth = profile[j].depth;
+          leftIdx = j;
+          break;
+        }
+      }
+
+      for (int j = idx + 1; j < profile.length; j++) {
+        if (!outlierIndices.contains(j)) {
+          rightDepth = profile[j].depth;
+          rightIdx = j;
+          break;
+        }
+      }
+
+      // Interpolate
+      double interpolatedDepth;
+      if (leftDepth != null && rightDepth != null) {
+        // Linear interpolation based on index position
+        final ratio = (idx - leftIdx!) / (rightIdx! - leftIdx);
+        interpolatedDepth = leftDepth + (rightDepth - leftDepth) * ratio;
+      } else if (leftDepth != null) {
+        interpolatedDepth = leftDepth;
+      } else if (rightDepth != null) {
+        interpolatedDepth = rightDepth;
+      } else {
+        continue; // All points are outliers -- skip
+      }
+
+      result[idx] = profile[idx].copyWith(depth: interpolatedDepth);
+    }
+
+    return result;
+  }
+
   /// Detect outlier points in a dive profile using z-score on depth deltas.
   ///
   /// For each point, computes the depth delta from the previous point and
