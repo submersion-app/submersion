@@ -183,15 +183,16 @@
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Smoothing / cleaning bad samples | 📋 Planned | v2.0 | Outlier removal |
-| Manual profile drawing | 📋 Planned | v2.0 | For dives without computer |
-| Segment editing | 📋 Planned | v2.0 | Adjust timestamps, depths |
+| Smoothing / cleaning bad samples | Done | v2.0 | Weighted moving average with triangular kernel |
+| Manual profile drawing | Done | v2.0 | Waypoint-based with linear interpolation |
+| Segment editing | Done | v2.0 | Range selection, depth/time shift, delete |
+| Outlier detection | Done | v2.0 | Z-score on depth deltas + physical impossibility check |
 
 **v2.0 Tasks:**
-- [ ] Profile outlier detection algorithm (sudden depth jumps)
-- [ ] Smoothing algorithm (moving average)
-- [ ] Manual profile editor with touch/mouse drawing
-- [ ] Segment selection and adjustment UI
+- [x] Profile outlier detection algorithm (sudden depth jumps)
+- [x] Smoothing algorithm (moving average)
+- [x] Manual profile editor with touch/mouse drawing
+- [x] Segment selection and adjustment UI
 - [ ] Profile export as PNG image for sharing
 
 ---
