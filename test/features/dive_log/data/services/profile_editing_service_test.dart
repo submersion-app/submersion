@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/data/services/profile_editing_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/outlier_result.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_waypoint.dart';
 
 void main() {
   late ProfileEditingService service;
@@ -336,6 +337,73 @@ void main() {
       expect(result.length, 2); // only first and last remain
       expect(result[0].timestamp, 0);
       expect(result[1].timestamp, 16);
+    });
+  });
+
+  group('interpolateWaypoints', () {
+    test('generates points between two waypoints', () {
+      final waypoints = [
+        const ProfileWaypoint(timestamp: 0, depth: 0.0),
+        const ProfileWaypoint(timestamp: 20, depth: 20.0),
+      ];
+      final profile = service.interpolateWaypoints(
+        waypoints,
+        intervalSeconds: 4,
+      );
+      // Expect points at 0, 4, 8, 12, 16, 20 = 6 points
+      expect(profile.length, 6);
+      expect(profile.first.depth, 0.0);
+      expect(profile.last.depth, 20.0);
+      // Midpoint should be interpolated
+      expect(profile[2].depth, closeTo(8.0, 0.1)); // at t=8, depth=8
+    });
+
+    test('respects interval spacing', () {
+      final waypoints = [
+        const ProfileWaypoint(timestamp: 0, depth: 0.0),
+        const ProfileWaypoint(timestamp: 100, depth: 30.0),
+      ];
+      final profile = service.interpolateWaypoints(
+        waypoints,
+        intervalSeconds: 10,
+      );
+      // Points at 0, 10, 20, ..., 100 = 11 points
+      expect(profile.length, 11);
+      for (int i = 0; i < profile.length; i++) {
+        expect(profile[i].timestamp, i * 10);
+      }
+    });
+
+    test('handles multiple waypoints', () {
+      final waypoints = [
+        const ProfileWaypoint(timestamp: 0, depth: 0.0),
+        const ProfileWaypoint(timestamp: 60, depth: 20.0),
+        const ProfileWaypoint(timestamp: 180, depth: 20.0), // flat bottom
+        const ProfileWaypoint(timestamp: 240, depth: 5.0), // ascent
+        const ProfileWaypoint(timestamp: 300, depth: 0.0), // surface
+      ];
+      final profile = service.interpolateWaypoints(
+        waypoints,
+        intervalSeconds: 4,
+      );
+      expect(profile.first.depth, 0.0);
+      expect(profile.last.depth, 0.0);
+      expect(profile.last.timestamp, 300);
+      // All depths should be >= 0
+      for (final point in profile) {
+        expect(point.depth, greaterThanOrEqualTo(0.0));
+      }
+    });
+
+    test('returns empty for empty waypoints', () {
+      expect(service.interpolateWaypoints([]), isEmpty);
+    });
+
+    test('returns single point for single waypoint', () {
+      final waypoints = [const ProfileWaypoint(timestamp: 0, depth: 10.0)];
+      final profile = service.interpolateWaypoints(waypoints);
+      expect(profile.length, 1);
+      expect(profile.first.depth, 10.0);
     });
   });
 }

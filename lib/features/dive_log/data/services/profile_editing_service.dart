@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/outlier_result.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_waypoint.dart';
 
 /// Service for editing dive profiles.
 ///
@@ -283,5 +284,58 @@ class ProfileEditingService {
     }
 
     return [...before, ...after];
+  }
+
+  /// Interpolate waypoints into a full dive profile using linear interpolation.
+  ///
+  /// Generates points at [intervalSeconds] intervals between consecutive
+  /// waypoints. Waypoints should be sorted by timestamp.
+  List<DiveProfilePoint> interpolateWaypoints(
+    List<ProfileWaypoint> waypoints, {
+    int intervalSeconds = 4,
+  }) {
+    if (waypoints.isEmpty) return [];
+    if (waypoints.length == 1) {
+      return [
+        DiveProfilePoint(
+          timestamp: waypoints.first.timestamp,
+          depth: waypoints.first.depth,
+        ),
+      ];
+    }
+
+    // Sort by timestamp (creates new list -- does not mutate input)
+    final sorted = List<ProfileWaypoint>.from(waypoints)
+      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+    final result = <DiveProfilePoint>[];
+
+    for (int i = 0; i < sorted.length - 1; i++) {
+      final from = sorted[i];
+      final to = sorted[i + 1];
+      final segmentDuration = to.timestamp - from.timestamp;
+
+      if (segmentDuration <= 0) continue;
+
+      // Generate points at intervalSeconds intervals
+      int t = from.timestamp;
+      while (t < to.timestamp) {
+        final progress = (t - from.timestamp) / segmentDuration;
+        final depth = from.depth + (to.depth - from.depth) * progress;
+        result.add(DiveProfilePoint(timestamp: t, depth: depth));
+        t += intervalSeconds;
+      }
+    }
+
+    // Add final waypoint
+    final last = sorted.last;
+    // Avoid duplicate if last interval landed exactly on the waypoint
+    if (result.isEmpty || result.last.timestamp != last.timestamp) {
+      result.add(
+        DiveProfilePoint(timestamp: last.timestamp, depth: last.depth),
+      );
+    }
+
+    return result;
   }
 }
