@@ -542,4 +542,135 @@ void main() {
       expect(duration!.inMilliseconds, lessThan(50));
     });
   });
+
+  group('profile editing persistence', () {
+    test('saveEditedProfile stores edited points as primary', () async {
+      final dive = createTestDive(maxDepth: 20.0, avgDepth: 15.0);
+      final createdDive = await repository.createDive(
+        dive.copyWith(
+          profile: [
+            const DiveProfilePoint(timestamp: 0, depth: 0.0),
+            const DiveProfilePoint(timestamp: 4, depth: 10.0),
+            const DiveProfilePoint(timestamp: 8, depth: 20.0),
+            const DiveProfilePoint(timestamp: 12, depth: 10.0),
+            const DiveProfilePoint(timestamp: 16, depth: 0.0),
+          ],
+        ),
+      );
+
+      // Save edited profile
+      final editedPoints = [
+        const DiveProfilePoint(timestamp: 0, depth: 0.0),
+        const DiveProfilePoint(timestamp: 4, depth: 8.0),
+        const DiveProfilePoint(timestamp: 8, depth: 15.0),
+        const DiveProfilePoint(timestamp: 12, depth: 8.0),
+        const DiveProfilePoint(timestamp: 16, depth: 0.0),
+      ];
+      await repository.saveEditedProfile(createdDive.id, editedPoints);
+
+      // getDiveProfile should return edited profile (primary)
+      final profile = await repository.getDiveProfile(createdDive.id);
+      expect(profile.length, 5);
+      expect(profile[2].depth, 15.0); // edited max depth
+    });
+
+    test('saveEditedProfile demotes original to non-primary', () async {
+      final dive = createTestDive();
+      final createdDive = await repository.createDive(
+        dive.copyWith(
+          profile: [
+            const DiveProfilePoint(timestamp: 0, depth: 0.0),
+            const DiveProfilePoint(timestamp: 4, depth: 10.0),
+          ],
+        ),
+      );
+
+      await repository.saveEditedProfile(createdDive.id, [
+        const DiveProfilePoint(timestamp: 0, depth: 0.0),
+        const DiveProfilePoint(timestamp: 4, depth: 5.0),
+      ]);
+
+      // getProfilesBySource should show both
+      final sources = await repository.getProfilesBySource(createdDive.id);
+      expect(sources.length, 2); // original + edited
+      expect(sources.containsKey('user-edited'), isTrue);
+    });
+
+    test(
+      'restoreOriginalProfile deletes edited and restores original',
+      () async {
+        final dive = createTestDive();
+        final createdDive = await repository.createDive(
+          dive.copyWith(
+            profile: [
+              const DiveProfilePoint(timestamp: 0, depth: 0.0),
+              const DiveProfilePoint(timestamp: 4, depth: 20.0),
+            ],
+          ),
+        );
+
+        // Save edited then restore
+        await repository.saveEditedProfile(createdDive.id, [
+          const DiveProfilePoint(timestamp: 0, depth: 0.0),
+          const DiveProfilePoint(timestamp: 4, depth: 10.0),
+        ]);
+        await repository.restoreOriginalProfile(createdDive.id);
+
+        // getDiveProfile should return original
+        final profile = await repository.getDiveProfile(createdDive.id);
+        expect(profile.length, 2);
+        expect(profile[1].depth, 20.0); // original depth restored
+      },
+    );
+
+    test('getProfilesBySource returns both original and edited', () async {
+      final dive = createTestDive();
+      final createdDive = await repository.createDive(
+        dive.copyWith(
+          profile: [
+            const DiveProfilePoint(timestamp: 0, depth: 0.0),
+            const DiveProfilePoint(timestamp: 4, depth: 10.0),
+            const DiveProfilePoint(timestamp: 8, depth: 20.0),
+          ],
+        ),
+      );
+
+      await repository.saveEditedProfile(createdDive.id, [
+        const DiveProfilePoint(timestamp: 0, depth: 0.0),
+        const DiveProfilePoint(timestamp: 4, depth: 8.0),
+        const DiveProfilePoint(timestamp: 8, depth: 15.0),
+      ]);
+
+      final sources = await repository.getProfilesBySource(createdDive.id);
+      expect(sources.length, 2);
+      // Check user-edited source
+      expect(sources['user-edited']!.length, 3);
+      expect(sources['user-edited']![2].depth, 15.0);
+    });
+
+    test('saveEditedProfile recalculates dive stats', () async {
+      final dive = createTestDive(maxDepth: 20.0, avgDepth: 10.0);
+      final createdDive = await repository.createDive(
+        dive.copyWith(
+          profile: [
+            const DiveProfilePoint(timestamp: 0, depth: 0.0),
+            const DiveProfilePoint(timestamp: 4, depth: 20.0),
+            const DiveProfilePoint(timestamp: 8, depth: 0.0),
+          ],
+        ),
+      );
+
+      // Save edited with lower max depth
+      await repository.saveEditedProfile(createdDive.id, [
+        const DiveProfilePoint(timestamp: 0, depth: 0.0),
+        const DiveProfilePoint(timestamp: 4, depth: 12.0),
+        const DiveProfilePoint(timestamp: 8, depth: 0.0),
+      ]);
+
+      // Dive stats should be recalculated
+      final updatedDive = await repository.getDiveById(createdDive.id);
+      expect(updatedDive!.maxDepth, 12.0);
+      expect(updatedDive.avgDepth, 4.0); // (0 + 12 + 0) / 3 = 4.0
+    });
+  });
 }

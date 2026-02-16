@@ -214,6 +214,7 @@ class DiveRepository {
       return await PerfTimer.measure('getDiveProfile', () async {
         final profileQuery = _db.select(_db.diveProfiles)
           ..where((t) => t.diveId.equals(diveId))
+          ..where((t) => t.isPrimary.equals(true))
           ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]);
         final profileRows = await profileQuery.get();
 
@@ -233,6 +234,173 @@ class DiveRepository {
     } catch (e, stackTrace) {
       _log.error('Failed to get profile for dive: $diveId', e, stackTrace);
       return [];
+    }
+  }
+
+  /// Save an edited profile for a dive.
+  ///
+  /// Demotes all existing profiles to non-primary, then inserts
+  /// the edited points as the new primary profile with null computerId.
+  Future<void> saveEditedProfile(
+    String diveId,
+    List<domain.DiveProfilePoint> editedPoints,
+  ) async {
+    try {
+      _log.info('Saving edited profile for dive: $diveId');
+      final now = DateTime.now().millisecondsSinceEpoch;
+
+      await _db.transaction(() async {
+        // Demote all existing profiles to non-primary
+        await (_db.update(_db.diveProfiles)
+              ..where((t) => t.diveId.equals(diveId)))
+            .write(const DiveProfilesCompanion(isPrimary: Value(false)));
+
+        // Insert edited profile points (computerId left null to avoid FK violation)
+        await _db.batch((batch) {
+          for (final point in editedPoints) {
+            batch.insert(
+              _db.diveProfiles,
+              DiveProfilesCompanion(
+                id: Value(_uuid.v4()),
+                diveId: Value(diveId),
+                isPrimary: const Value(true),
+                timestamp: Value(point.timestamp),
+                depth: Value(point.depth),
+                pressure: Value(point.pressure),
+                temperature: Value(point.temperature),
+                heartRate: Value(point.heartRate),
+                heartRateSource: Value(point.heartRateSource),
+                setpoint: Value(point.setpoint),
+                ppO2: Value(point.ppO2),
+              ),
+            );
+          }
+        });
+
+        // Recalculate dive stats from edited profile
+        if (editedPoints.isNotEmpty) {
+          double maxDepth = 0;
+          double depthSum = 0;
+          for (final point in editedPoints) {
+            if (point.depth > maxDepth) maxDepth = point.depth;
+            depthSum += point.depth;
+          }
+          final avgDepth = depthSum / editedPoints.length;
+
+          await (_db.update(
+            _db.dives,
+          )..where((t) => t.id.equals(diveId))).write(
+            DivesCompanion(
+              maxDepth: Value(maxDepth),
+              avgDepth: Value(avgDepth),
+              updatedAt: Value(now),
+            ),
+          );
+        }
+      });
+
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: diveId,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+      _log.info('Saved edited profile for dive: $diveId');
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to save edited profile for dive: $diveId',
+        e,
+        stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Get all profile sources for a dive.
+  ///
+  /// Returns a map keyed by logical source label to profile points.
+  /// Primary profiles are labeled 'user-edited', non-primary profiles
+  /// are labeled by their computerId or 'original'.
+  Future<Map<String?, List<domain.DiveProfilePoint>>> getProfilesBySource(
+    String diveId,
+  ) async {
+    try {
+      final query = _db.select(_db.diveProfiles)
+        ..where((t) => t.diveId.equals(diveId))
+        ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]);
+      final rows = await query.get();
+
+      // Check whether an edited (non-original) profile exists.
+      // When it does, original rows have isPrimary=false and edited rows
+      // have isPrimary=true. We use this to build meaningful source labels.
+      final hasEditedProfile =
+          rows.any((r) => r.isPrimary) && rows.any((r) => !r.isPrimary);
+
+      final result = <String?, List<domain.DiveProfilePoint>>{};
+      for (final row in rows) {
+        String? source;
+        if (hasEditedProfile) {
+          source = row.isPrimary
+              ? 'user-edited'
+              : (row.computerId ?? 'original');
+        } else {
+          source = row.computerId ?? 'original';
+        }
+
+        result
+            .putIfAbsent(source, () => [])
+            .add(
+              domain.DiveProfilePoint(
+                timestamp: row.timestamp,
+                depth: row.depth,
+                pressure: row.pressure,
+                temperature: row.temperature,
+                heartRate: row.heartRate,
+                heartRateSource: row.heartRateSource,
+              ),
+            );
+      }
+      return result;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get profiles by source for dive: $diveId',
+        e,
+        stackTrace,
+      );
+      return {};
+    }
+  }
+
+  /// Restore the original profile as primary.
+  ///
+  /// Deletes the edited (currently primary) profiles and promotes the
+  /// original (non-primary) profiles back to primary.
+  Future<void> restoreOriginalProfile(String diveId) async {
+    try {
+      _log.info('Restoring original profile for dive: $diveId');
+
+      await _db.transaction(() async {
+        // Delete edited profiles (currently marked as primary)
+        await (_db.delete(_db.diveProfiles)
+              ..where((t) => t.diveId.equals(diveId))
+              ..where((t) => t.isPrimary.equals(true)))
+            .go();
+
+        // Restore original profiles to primary
+        await (_db.update(_db.diveProfiles)
+              ..where((t) => t.diveId.equals(diveId)))
+            .write(const DiveProfilesCompanion(isPrimary: Value(true)));
+      });
+
+      SyncEventBus.notifyLocalChange();
+      _log.info('Restored original profile for dive: $diveId');
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to restore original profile for dive: $diveId',
+        e,
+        stackTrace,
+      );
+      rethrow;
     }
   }
 
