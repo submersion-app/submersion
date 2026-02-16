@@ -275,6 +275,12 @@ def main():
     adaptive_bg.save(adaptive_bg_path, 'PNG')
     print(f"  Created: {adaptive_bg_path}")
 
+    # Web favicon without rounded corners (Google crops to circle)
+    web_favicon = create_icon_no_rounded_corners(512)
+    web_favicon_path = os.path.join(assets_dir, 'favicon.png')
+    web_favicon.save(web_favicon_path, 'PNG')
+    print(f"  Created: {web_favicon_path}")
+
     print("\nIcon generation complete!")
 
 
