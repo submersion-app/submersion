@@ -621,6 +621,15 @@ jobs:
       contents: write
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate release notes
+        run: |
+          ./scripts/release/generate_changelog.sh --notes-only > release-notes.md
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
@@ -648,4 +657,87 @@ jobs:
             appcast.xml
             checksums-sha256.txt
           prerelease: ${{ steps.prerelease.outputs.prerelease }}
-          generate_release_notes: true
+          body_path: release-notes.md
+
+  # ============================================================================
+  # Validate Release
+  # ============================================================================
+  validate-release:
+    name: Validate Release
+    needs: create-release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Verify release assets
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "=== Verifying release assets for $TAG_NAME ==="
+
+          ASSETS=$(gh release view "$TAG_NAME" \
+            --repo "${{ github.repository }}" \
+            --json assets -q '.assets[].name')
+
+          MISSING=()
+          for expected in \
+            "Submersion-${TAG_NAME}-macOS.dmg" \
+            "Submersion-${TAG_NAME}-Windows.zip" \
+            "Submersion-${TAG_NAME}-Linux.tar.gz" \
+            "Submersion-${TAG_NAME}-Android.apk" \
+            "appcast.xml" \
+            "checksums-sha256.txt"; do
+            if echo "$ASSETS" | grep -q "$expected"; then
+              echo "  [OK] $expected"
+            else
+              echo "  [MISSING] $expected"
+              MISSING+=("$expected")
+            fi
+          done
+
+          if [ ${#MISSING[@]} -gt 0 ]; then
+            echo ""
+            echo "ERROR: ${#MISSING[@]} expected asset(s) missing from release"
+            exit 1
+          fi
+
+          echo ""
+          echo "All expected assets present."
+
+      - name: Verify checksums
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "=== Verifying checksums ==="
+          gh release download "$TAG_NAME" \
+            --repo "${{ github.repository }}" \
+            --pattern "checksums-sha256.txt" \
+            --pattern "Submersion-*"
+
+          if sha256sum -c checksums-sha256.txt; then
+            echo "All checksums verified."
+          else
+            echo "ERROR: Checksum verification failed"
+            exit 1
+          fi
+
+      - name: Validate appcast XML
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "=== Validating appcast.xml ==="
+          gh release download "$TAG_NAME" \
+            --repo "${{ github.repository }}" \
+            --pattern "appcast.xml" \
+            --clobber
+
+          if python3 -c "import xml.etree.ElementTree as ET; ET.parse('appcast.xml'); print('Valid XML')"; then
+            echo "Appcast is well-formed."
+          else
+            echo "ERROR: appcast.xml is not valid XML"
+            exit 1
+          fi
