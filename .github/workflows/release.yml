@@ -140,12 +140,23 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           TAG_NAME: ${{ github.ref_name }}
         run: |
-          xcrun notarytool submit "Submersion-${TAG_NAME}-macOS.dmg" \
-            --apple-id "$APPLE_ID" \
-            --password "$APPLE_APP_PASSWORD" \
-            --team-id "$APPLE_TEAM_ID" \
-            --wait
-          xcrun stapler staple "Submersion-${TAG_NAME}-macOS.dmg"
+          DMG="Submersion-${TAG_NAME}-macOS.dmg"
+          for attempt in 1 2 3; do
+            if xcrun notarytool submit "$DMG" \
+                --apple-id "$APPLE_ID" \
+                --password "$APPLE_APP_PASSWORD" \
+                --team-id "$APPLE_TEAM_ID" \
+                --wait; then
+              break
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "Notarization failed after 3 attempts"
+              exit 1
+            fi
+            echo "Notarization attempt $attempt failed, retrying in 30s..."
+            sleep 30
+          done
+          xcrun stapler staple "$DMG"
 
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
@@ -220,7 +231,18 @@ jobs:
           APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
           APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
           APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: fastlane/AuthKey.p8
-        run: bundle exec fastlane "$FASTLANE_LANE"
+        run: |
+          for attempt in 1 2; do
+            if bundle exec fastlane "$FASTLANE_LANE"; then
+              break
+            fi
+            if [ "$attempt" -eq 2 ]; then
+              echo "Fastlane upload failed after 2 attempts"
+              exit 1
+            fi
+            echo "Fastlane attempt $attempt failed, retrying in 30s..."
+            sleep 30
+          done
 
       - name: Cleanup sensitive files
         if: always()
@@ -511,7 +533,18 @@ jobs:
           APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
           APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
           APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: fastlane/AuthKey.p8
-        run: bundle exec fastlane "$FASTLANE_LANE"
+        run: |
+          for attempt in 1 2; do
+            if bundle exec fastlane "$FASTLANE_LANE"; then
+              break
+            fi
+            if [ "$attempt" -eq 2 ]; then
+              echo "Fastlane upload failed after 2 attempts"
+              exit 1
+            fi
+            echo "Fastlane attempt $attempt failed, retrying in 30s..."
+            sleep 30
+          done
 
       - name: Rename IPA
         env:
