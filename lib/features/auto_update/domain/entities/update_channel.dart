@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 /// Distribution channels for the application.
 enum UpdateChannel { github, appstore, playstore, msstore, snapstore }
 
@@ -24,8 +26,12 @@ class UpdateChannelConfig {
   }
 
   /// Whether in-app auto-update is enabled.
+  /// Always false on iOS and Android (store-only platforms).
   /// Store-distributed builds rely on the store's own update mechanism.
-  static bool get isAutoUpdateEnabled => !isStoreChannel(current);
+  static bool get isAutoUpdateEnabled {
+    if (Platform.isIOS || Platform.isAndroid) return false;
+    return !isStoreChannel(current);
+  }
 
   /// Returns true for every channel except [UpdateChannel.github].
   /// Store channels manage their own update delivery.
