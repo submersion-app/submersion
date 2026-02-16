@@ -96,7 +96,7 @@ jobs:
         if: always()
         with:
           files: coverage/lcov.info
-          fail_ci_if_error: false
+          fail_ci_if_error: true
 
   build-ios:
     name: Build iOS
