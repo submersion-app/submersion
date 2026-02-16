@@ -138,7 +138,7 @@ jobs:
 
       - name: Upload iOS screenshot artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: screenshots-ios
           path: |
@@ -224,7 +224,7 @@ jobs:
 
       - name: Upload macOS screenshot artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: screenshots-macos
           path: screenshots/macOS/
@@ -324,7 +324,7 @@ jobs:
 
       - name: Upload all screenshots as artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: screenshots-organized
           path: screenshots/
