@@ -29,6 +29,8 @@ import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.d
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_search_page.dart';
+import 'package:submersion/features/dive_log/presentation/pages/profile_editor_page.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_editor_provider.dart';
 import 'package:submersion/features/maps/presentation/pages/dive_activity_map_page.dart';
 import 'package:submersion/features/maps/presentation/pages/offline_maps_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_list_page.dart';
@@ -240,6 +242,25 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     name: 'editDive',
                     builder: (context, state) =>
                         DiveEditPage(diveId: state.pathParameters['diveId']),
+                  ),
+                  GoRoute(
+                    path: 'edit-profile',
+                    name: 'editProfile',
+                    builder: (context, state) {
+                      EditorMode? initialMode;
+                      final modeParam = state.uri.queryParameters['mode'];
+                      if (modeParam != null) {
+                        try {
+                          initialMode = EditorMode.values.byName(modeParam);
+                        } on ArgumentError {
+                          // Ignore invalid mode values from deep links
+                        }
+                      }
+                      return ProfileEditorPage(
+                        diveId: state.pathParameters['diveId']!,
+                        initialMode: initialMode,
+                      );
+                    },
                   ),
                 ],
               ),
