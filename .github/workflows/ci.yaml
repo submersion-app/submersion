@@ -97,7 +97,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage/lcov.info
-          fail_ci_if_error: ${{ secrets.CODECOV_TOKEN != '' }}
+          fail_ci_if_error: false  # Enable after configuring repo on codecov.io
 
   integration-test:
     name: Integration Test (macOS)
