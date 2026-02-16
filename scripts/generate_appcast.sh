@@ -22,7 +22,7 @@ cat <<APPCAST
       <title>Version ${VERSION}</title>
       <sparkle:version>${VERSION}</sparkle:version>
       <sparkle:shortVersionString>${VERSION}</sparkle:shortVersionString>
-      <sparkle:releaseNotesLink>https://github.com/ericgriffin/submersion/releases/tag/v${VERSION}</sparkle:releaseNotesLink>
+      <sparkle:releaseNotesLink>https://github.com/submersion-app/submersion/releases/tag/v${VERSION}</sparkle:releaseNotesLink>
       <pubDate>${DATE}</pubDate>
       <enclosure
         url="${MACOS_URL}"

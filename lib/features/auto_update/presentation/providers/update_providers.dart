@@ -12,7 +12,7 @@ import 'package:submersion/features/auto_update/domain/entities/update_status.da
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// GitHub repository coordinates for update checks.
-const _githubOwner = 'ericgriffin';
+const _githubOwner = 'submersion-app';
 const _githubRepo = 'submersion';
 
 /// Appcast feed URL for Sparkle/WinSparkle (macOS + Windows).
