@@ -187,4 +187,101 @@ class ProfileEditingService {
 
     return results;
   }
+
+  /// Shift depth of all points within a timestamp range.
+  ///
+  /// Points outside the range are unchanged. Depths are clamped to >= 0.
+  List<DiveProfilePoint> shiftSegmentDepth(
+    List<DiveProfilePoint> profile, {
+    required int startTimestamp,
+    required int endTimestamp,
+    required double depthDelta,
+  }) {
+    final start = math.min(startTimestamp, endTimestamp);
+    final end = math.max(startTimestamp, endTimestamp);
+
+    return profile.map((point) {
+      if (point.timestamp >= start && point.timestamp <= end) {
+        final newDepth = math.max(0.0, point.depth + depthDelta);
+        return point.copyWith(depth: newDepth);
+      }
+      return point;
+    }).toList();
+  }
+
+  /// Shift timestamps of all points within a range.
+  ///
+  /// Returns null if the shift would cause timestamps to overlap with
+  /// points outside the range.
+  List<DiveProfilePoint>? shiftSegmentTime(
+    List<DiveProfilePoint> profile, {
+    required int startTimestamp,
+    required int endTimestamp,
+    required int timeDelta,
+  }) {
+    final start = math.min(startTimestamp, endTimestamp);
+    final end = math.max(startTimestamp, endTimestamp);
+
+    // Find boundary points outside the range
+    int? lastBeforeRange;
+    int? firstAfterRange;
+
+    for (final point in profile) {
+      if (point.timestamp < start) {
+        lastBeforeRange = point.timestamp;
+      }
+      if (point.timestamp > end && firstAfterRange == null) {
+        firstAfterRange = point.timestamp;
+      }
+    }
+
+    // Check for overlap
+    final shiftedStart = start + timeDelta;
+    final shiftedEnd = end + timeDelta;
+
+    if (lastBeforeRange != null && shiftedStart <= lastBeforeRange) {
+      return null;
+    }
+    if (firstAfterRange != null && shiftedEnd >= firstAfterRange) {
+      return null;
+    }
+
+    return profile.map((point) {
+      if (point.timestamp >= start && point.timestamp <= end) {
+        return point.copyWith(timestamp: point.timestamp + timeDelta);
+      }
+      return point;
+    }).toList();
+  }
+
+  /// Delete points within a timestamp range.
+  ///
+  /// If [interpolateGap] is true (default false), inserts a single
+  /// interpolated point at the midpoint of the gap.
+  List<DiveProfilePoint> deleteSegment(
+    List<DiveProfilePoint> profile, {
+    required int startTimestamp,
+    required int endTimestamp,
+    bool interpolateGap = false,
+  }) {
+    final start = math.min(startTimestamp, endTimestamp);
+    final end = math.max(startTimestamp, endTimestamp);
+
+    final before = profile.where((p) => p.timestamp < start).toList();
+    final after = profile.where((p) => p.timestamp > end).toList();
+
+    if (interpolateGap && before.isNotEmpty && after.isNotEmpty) {
+      final left = before.last;
+      final right = after.first;
+      final midTimestamp = (left.timestamp + right.timestamp) ~/ 2;
+      final midDepth = (left.depth + right.depth) / 2;
+      final bridgePoint = DiveProfilePoint(
+        timestamp: midTimestamp,
+        depth: midDepth,
+      );
+      return [...before, bridgePoint, ...after];
+    }
+
+    return [...before, ...after];
+  }
 }

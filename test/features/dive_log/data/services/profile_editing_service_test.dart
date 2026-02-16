@@ -223,4 +223,119 @@ void main() {
       expect(cleaned, profile);
     });
   });
+
+  group('shiftSegmentDepth', () {
+    test('shifts only points in range', () {
+      final profile = [
+        const DiveProfilePoint(timestamp: 0, depth: 10.0),
+        const DiveProfilePoint(timestamp: 4, depth: 10.0),
+        const DiveProfilePoint(timestamp: 8, depth: 10.0),
+        const DiveProfilePoint(timestamp: 12, depth: 10.0),
+        const DiveProfilePoint(timestamp: 16, depth: 10.0),
+      ];
+      final shifted = service.shiftSegmentDepth(
+        profile,
+        startTimestamp: 4,
+        endTimestamp: 12,
+        depthDelta: 5.0,
+      );
+      expect(shifted[0].depth, 10.0); // before range
+      expect(shifted[1].depth, 15.0); // in range
+      expect(shifted[2].depth, 15.0); // in range
+      expect(shifted[3].depth, 15.0); // in range
+      expect(shifted[4].depth, 10.0); // after range
+    });
+
+    test('clamps depth to zero (no negative depths)', () {
+      final profile = [
+        const DiveProfilePoint(timestamp: 0, depth: 2.0),
+        const DiveProfilePoint(timestamp: 4, depth: 2.0),
+      ];
+      final shifted = service.shiftSegmentDepth(
+        profile,
+        startTimestamp: 0,
+        endTimestamp: 4,
+        depthDelta: -5.0,
+      );
+      expect(shifted[0].depth, 0.0);
+      expect(shifted[1].depth, 0.0);
+    });
+  });
+
+  group('shiftSegmentTime', () {
+    test('shifts timestamps in range', () {
+      final profile = [
+        const DiveProfilePoint(timestamp: 0, depth: 10.0),
+        const DiveProfilePoint(timestamp: 10, depth: 15.0),
+        const DiveProfilePoint(timestamp: 20, depth: 15.0),
+        const DiveProfilePoint(timestamp: 30, depth: 10.0),
+      ];
+      final shifted = service.shiftSegmentTime(
+        profile,
+        startTimestamp: 10,
+        endTimestamp: 20,
+        timeDelta: 5,
+      );
+      expect(shifted![0].timestamp, 0);
+      expect(shifted[1].timestamp, 15);
+      expect(shifted[2].timestamp, 25);
+      expect(shifted[3].timestamp, 30);
+    });
+
+    test('returns null when shift causes overlap', () {
+      final profile = [
+        const DiveProfilePoint(timestamp: 0, depth: 10.0),
+        const DiveProfilePoint(timestamp: 10, depth: 15.0),
+        const DiveProfilePoint(timestamp: 20, depth: 10.0),
+      ];
+      // Shifting middle point by +15 would put it at 25 > next point 20
+      final result = service.shiftSegmentTime(
+        profile,
+        startTimestamp: 10,
+        endTimestamp: 10,
+        timeDelta: 15,
+      );
+      expect(result, isNull);
+    });
+  });
+
+  group('deleteSegment', () {
+    test('removes points in range with interpolation', () {
+      final profile = [
+        const DiveProfilePoint(timestamp: 0, depth: 0.0),
+        const DiveProfilePoint(timestamp: 4, depth: 10.0),
+        const DiveProfilePoint(timestamp: 8, depth: 20.0),
+        const DiveProfilePoint(timestamp: 12, depth: 10.0),
+        const DiveProfilePoint(timestamp: 16, depth: 0.0),
+      ];
+      final result = service.deleteSegment(
+        profile,
+        startTimestamp: 4,
+        endTimestamp: 12,
+        interpolateGap: true,
+      );
+      // Should have: point at 0, interpolated bridge, point at 16
+      expect(result.first.depth, 0.0);
+      expect(result.last.depth, 0.0);
+      expect(result.length, lessThan(profile.length));
+    });
+
+    test('removes points without interpolation', () {
+      final profile = [
+        const DiveProfilePoint(timestamp: 0, depth: 0.0),
+        const DiveProfilePoint(timestamp: 4, depth: 10.0),
+        const DiveProfilePoint(timestamp: 8, depth: 20.0),
+        const DiveProfilePoint(timestamp: 12, depth: 10.0),
+        const DiveProfilePoint(timestamp: 16, depth: 0.0),
+      ];
+      final result = service.deleteSegment(
+        profile,
+        startTimestamp: 4,
+        endTimestamp: 12,
+      );
+      expect(result.length, 2); // only first and last remain
+      expect(result[0].timestamp, 0);
+      expect(result[1].timestamp, 16);
+    });
+  });
 }
