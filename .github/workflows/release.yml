@@ -162,6 +162,35 @@ jobs:
           bundler-cache: true
           working-directory: macos
 
+      - name: Import App Store certificates
+        env:
+          APPLE_DEVELOPMENT_CERTIFICATE_BASE64: ${{ secrets.APPLE_DEVELOPMENT_CERTIFICATE_BASE64 }}
+          APPLE_DEVELOPMENT_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPMENT_CERTIFICATE_PASSWORD }}
+          APPLE_DISTRIBUTION_CERTIFICATE_BASE64: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE_BASE64 }}
+          APPLE_DISTRIBUTION_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE_PASSWORD }}
+        run: |
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          # Reuse the keychain from the DMG step if it exists, otherwise create it
+          if ! security show-keychain-info "$KEYCHAIN_PATH" 2>/dev/null; then
+            security create-keychain -p "ci-build" "$KEYCHAIN_PATH"
+            security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          fi
+          security unlock-keychain -p "ci-build" "$KEYCHAIN_PATH"
+          # Import Apple Development certificate (for archive signing)
+          DEV_CERT=$RUNNER_TEMP/apple_development.p12
+          echo -n "$APPLE_DEVELOPMENT_CERTIFICATE_BASE64" | base64 --decode -o "$DEV_CERT"
+          security import "$DEV_CERT" -P "$APPLE_DEVELOPMENT_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          rm -f "$DEV_CERT"
+          # Import Apple Distribution certificate (for export signing)
+          DIST_CERT=$RUNNER_TEMP/apple_distribution.p12
+          echo -n "$APPLE_DISTRIBUTION_CERTIFICATE_BASE64" | base64 --decode -o "$DIST_CERT"
+          security import "$DIST_CERT" -P "$APPLE_DISTRIBUTION_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          rm -f "$DIST_CERT"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -k "ci-build" "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+          echo "Available signing identities:"
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+
       - name: Setup App Store Connect API Key
         env:
           APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
