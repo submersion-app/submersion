@@ -26,7 +26,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  FLUTTER_VERSION: '3.x'
+  FLUTTER_VERSION_FILE: '.github/flutter-version.txt'
 
 jobs:
   # ============================================================================
@@ -41,6 +41,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Read Flutter version
+        id: flutter-ver
+        run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
+
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
@@ -49,7 +53,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
+          flutter-version: ${{ steps.flutter-ver.outputs.version }}
           channel: stable
           cache: true
 
@@ -154,6 +158,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Read Flutter version
+        id: flutter-ver
+        run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
+
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
@@ -162,7 +170,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
+          flutter-version: ${{ steps.flutter-ver.outputs.version }}
           channel: stable
           cache: true
 
