@@ -31,7 +31,6 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_detail_
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/outlier_suggestion_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_playback_provider.dart';
@@ -832,15 +831,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.edit),
-                      tooltip: 'Edit Profile',
-                      visualDensity: VisualDensity.compact,
-                      onPressed: () => context.pushNamed(
-                        'editProfile',
-                        pathParameters: {'diveId': dive.id},
-                      ),
-                    ),
                     const SizedBox(width: 8),
                     IconButton(
                       icon: _isExportingProfile
@@ -869,35 +859,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   ],
                 ),
               ],
-            ),
-            // Outlier suggestion badge
-            Builder(
-              builder: (context) {
-                final outliersAsync = ref.watch(
-                  outlierSuggestionProvider(dive.id),
-                );
-                return outliersAsync.when(
-                  loading: () => const SizedBox.shrink(),
-                  error: (_, _) => const SizedBox.shrink(),
-                  data: (outliers) {
-                    if (outliers.isEmpty) return const SizedBox.shrink();
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: ActionChip(
-                        avatar: const Icon(Icons.warning_amber, size: 18),
-                        label: Text(
-                          '${outliers.length} potential outlier${outliers.length == 1 ? '' : 's'} detected',
-                        ),
-                        onPressed: () => context.pushNamed(
-                          'editProfile',
-                          pathParameters: {'diveId': dive.id},
-                          queryParameters: {'mode': 'outlier'},
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
             ),
             const SizedBox(height: 16),
             // Chart with optional range selection overlay

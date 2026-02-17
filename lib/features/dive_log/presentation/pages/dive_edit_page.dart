@@ -31,6 +31,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/outlier_suggestion_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/custom_field_input_row.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/ccr_settings_panel.dart';
@@ -433,6 +434,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _buildDiveCenterSection(),
           const SizedBox(height: 16),
           _buildDepthDurationSection(units),
+          const SizedBox(height: 16),
+          _buildProfileSection(),
           const SizedBox(height: 16),
           _buildDiveModeSection(),
           const SizedBox(height: 16),
@@ -1337,6 +1340,97 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 ),
               ],
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileSection() {
+    final hasProfile = _existingDive?.profile.isNotEmpty == true;
+    final profileLength = _existingDive?.profile.length ?? 0;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Dive Profile',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                if (hasProfile)
+                  Text(
+                    '$profileLength points',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (hasProfile) ...[
+              // Outlier suggestion
+              Consumer(
+                builder: (context, ref, _) {
+                  final outliersAsync = ref.watch(
+                    outlierSuggestionProvider(_existingDive!.id),
+                  );
+                  return outliersAsync.when(
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, _) => const SizedBox.shrink(),
+                    data: (outliers) {
+                      if (outliers.isEmpty) return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: ActionChip(
+                          avatar: const Icon(Icons.warning_amber, size: 18),
+                          label: Text(
+                            '${outliers.length} potential '
+                            'outlier${outliers.length == 1 ? '' : 's'} detected',
+                          ),
+                          onPressed: () => context.pushNamed(
+                            'editProfile',
+                            pathParameters: {'diveId': _existingDive!.id},
+                            queryParameters: {'mode': 'outlier'},
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+              FilledButton.tonalIcon(
+                icon: const Icon(Icons.edit),
+                label: const Text('Edit Profile'),
+                onPressed: () => context.pushNamed(
+                  'editProfile',
+                  pathParameters: {'diveId': _existingDive!.id},
+                ),
+              ),
+            ] else ...[
+              Text(
+                'No profile data recorded. You can draw a profile manually.',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 12),
+              if (widget.isEditing)
+                FilledButton.tonalIcon(
+                  icon: const Icon(Icons.draw),
+                  label: const Text('Draw Profile'),
+                  onPressed: () => context.pushNamed(
+                    'editProfile',
+                    pathParameters: {'diveId': widget.diveId!},
+                    queryParameters: {'mode': 'draw'},
+                  ),
+                ),
+            ],
           ],
         ),
       ),
