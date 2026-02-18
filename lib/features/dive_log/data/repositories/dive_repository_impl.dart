@@ -996,6 +996,7 @@ class DiveRepository {
             'd.id, d.dive_number, d.dive_date_time, d.entry_time, '
             'd.max_depth, d.duration, d.water_temp, d.rating, '
             'd.is_favorite, d.dive_type, '
+            'd.otu, '
             'COALESCE(d.entry_time, d.dive_date_time) AS sort_timestamp, '
             's.name AS site_name, s.country AS site_country, '
             's.region AS site_region, s.latitude AS site_latitude, '
@@ -1018,9 +1019,10 @@ class DiveRepository {
 
         if (rows.isEmpty) return [];
 
-        // Batch load tags for all returned dive IDs
+        // Batch load tags and maxPpO2 for all returned dive IDs
         final diveIds = rows.map((r) => r.read<String>('id')).toList();
         final tagsByDive = await _tagRepository.getTagsForDives(diveIds);
+        final maxPpO2ByDive = await _batchMaxPpO2(diveIds);
 
         return rows.map((row) {
           final id = row.read<String>('id');
@@ -1042,6 +1044,8 @@ class DiveRepository {
             rating: row.readNullable<int>('rating'),
             isFavorite: row.read<int>('is_favorite') == 1,
             diveTypeId: row.read<String>('dive_type'),
+            otu: row.readNullable<double>('otu'),
+            maxPpO2: maxPpO2ByDive[id],
             tags: tagsByDive[id] ?? [],
             siteName: row.readNullable<String>('site_name'),
             siteCountry: row.readNullable<String>('site_country'),
@@ -1056,6 +1060,27 @@ class DiveRepository {
       _log.error('Failed to get dive summaries', e, stackTrace);
       rethrow;
     }
+  }
+
+  /// Batch-fetch MAX(pp_o2) from dive_profiles for a list of dive IDs.
+  Future<Map<String, double>> _batchMaxPpO2(List<String> diveIds) async {
+    if (diveIds.isEmpty) return {};
+    final placeholders = List.filled(diveIds.length, '?').join(', ');
+    final rows = await _db
+        .customSelect(
+          'SELECT dive_id, MAX(pp_o2) AS max_pp_o2 '
+          'FROM dive_profiles '
+          'WHERE dive_id IN ($placeholders) '
+          'GROUP BY dive_id',
+          variables: diveIds.map((id) => Variable<String>(id)).toList(),
+          readsFrom: {_db.diveProfiles},
+        )
+        .get();
+    return {
+      for (final row in rows)
+        if (row.readNullable<double>('max_pp_o2') != null)
+          row.read<String>('dive_id'): row.read<double>('max_pp_o2'),
+    };
   }
 
   /// Get total count of dives matching the given filters.

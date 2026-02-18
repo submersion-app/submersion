@@ -73,6 +73,9 @@ class DiveSummary extends Equatable {
       rating: dive.rating,
       isFavorite: dive.isFavorite,
       diveTypeId: dive.diveTypeId,
+      // otu and maxPpO2 are computed from dive_profiles in the paginated query;
+      // they are not available on the Dive entity, so card coloring will be
+      // absent during optimistic UI updates until the next database refresh.
       otu: null,
       maxPpO2: null,
       tags: dive.tags,

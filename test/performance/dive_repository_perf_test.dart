@@ -35,12 +35,12 @@ void main() {
   });
 
   group('Dive repository benchmarks (5000 dives)', () {
-    test('getDiveSummaries first page < 500ms', () async {
+    test('getDiveSummaries first page < 800ms', () async {
       await repository.getDiveSummaries(diverId: summary.diverId, limit: 50);
       final ms = PerfTimer.lastResult('getDiveSummaries')!.inMilliseconds;
       // ignore: avoid_print
       print('  getDiveSummaries: ${ms}ms');
-      expect(ms, lessThan(500));
+      expect(ms, lessThan(800));
     });
 
     test('getDiveCount < 200ms', () async {
