@@ -75,6 +75,10 @@ class DiverSettingsRepository {
               lastStopDepth: Value(s.lastStopDepth),
               decoStopIncrement: Value(s.decoStopIncrement),
               showDepthColoredDiveCards: Value(s.showDepthColoredDiveCards),
+              cardColorAttribute: Value(s.cardColorAttribute.name),
+              cardColorGradientPreset: Value(s.cardColorGradientPreset),
+              cardColorGradientStart: Value(s.cardColorGradientStart),
+              cardColorGradientEnd: Value(s.cardColorGradientEnd),
               showMapBackgroundOnDiveCards: Value(
                 s.showMapBackgroundOnDiveCards,
               ),
@@ -168,6 +172,10 @@ class DiverSettingsRepository {
           lastStopDepth: Value(settings.lastStopDepth),
           decoStopIncrement: Value(settings.decoStopIncrement),
           showDepthColoredDiveCards: Value(settings.showDepthColoredDiveCards),
+          cardColorAttribute: Value(settings.cardColorAttribute.name),
+          cardColorGradientPreset: Value(settings.cardColorGradientPreset),
+          cardColorGradientStart: Value(settings.cardColorGradientStart),
+          cardColorGradientEnd: Value(settings.cardColorGradientEnd),
           showMapBackgroundOnDiveCards: Value(
             settings.showMapBackgroundOnDiveCards,
           ),
@@ -296,9 +304,10 @@ class DiverSettingsRepository {
       showNdlOnProfile: row.showNdlOnProfile,
       lastStopDepth: row.lastStopDepth,
       decoStopIncrement: row.decoStopIncrement,
-      cardColorAttribute: row.showDepthColoredDiveCards
-          ? CardColorAttribute.depth
-          : CardColorAttribute.none,
+      cardColorAttribute: CardColorAttribute.fromName(row.cardColorAttribute),
+      cardColorGradientPreset: row.cardColorGradientPreset,
+      cardColorGradientStart: row.cardColorGradientStart,
+      cardColorGradientEnd: row.cardColorGradientEnd,
       showMapBackgroundOnDiveCards: row.showMapBackgroundOnDiveCards,
       showMapBackgroundOnSiteCards: row.showMapBackgroundOnSiteCards,
       showMaxDepthMarker: row.showMaxDepthMarker,
