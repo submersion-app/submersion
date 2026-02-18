@@ -8967,7 +8967,9 @@ class AppLocalizationsIt extends AppLocalizations {
       'Visita github.com/submersion/submersion';
 
   @override
-  String get settings_about_version => 'Versione 0.1.0';
+  String settings_about_version(String version, String buildNumber) {
+    return 'Versione $version ($buildNumber)';
+  }
 
   @override
   String get settings_appBar_title => 'Impostazioni';
@@ -8982,6 +8984,57 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_appearance_depthColoredCards_subtitle =>
       'Mostra le schede immersione con sfondi colorati come l\'oceano in base alla profondità';
+
+  @override
+  String get settings_appearance_cardColorAttribute => 'Colora schede per';
+
+  @override
+  String get settings_appearance_cardColorAttribute_subtitle =>
+      'Scegli quale attributo determina il colore di sfondo delle schede';
+
+  @override
+  String get settings_appearance_cardColorAttribute_none => 'Nessuno';
+
+  @override
+  String get settings_appearance_cardColorAttribute_depth => 'Profondità';
+
+  @override
+  String get settings_appearance_cardColorAttribute_duration => 'Durata';
+
+  @override
+  String get settings_appearance_cardColorAttribute_temperature =>
+      'Temperatura';
+
+  @override
+  String get settings_appearance_cardColorAttribute_otu => 'OTU';
+
+  @override
+  String get settings_appearance_cardColorAttribute_maxPpO2 => 'Max ppO2';
+
+  @override
+  String get settings_appearance_colorGradient => 'Gradiente di colore';
+
+  @override
+  String get settings_appearance_colorGradient_subtitle =>
+      'Scegli la gamma di colori per gli sfondi delle schede';
+
+  @override
+  String get settings_appearance_colorGradient_ocean => 'Oceano';
+
+  @override
+  String get settings_appearance_colorGradient_thermal => 'Thermal';
+
+  @override
+  String get settings_appearance_colorGradient_sunset => 'Tramonto';
+
+  @override
+  String get settings_appearance_colorGradient_forest => 'Foresta';
+
+  @override
+  String get settings_appearance_colorGradient_monochrome => 'Monocromo';
+
+  @override
+  String get settings_appearance_colorGradient_custom => 'Personalizzato';
 
   @override
   String get settings_appearance_gasSwitchMarkers => 'Marcatori cambio gas';

@@ -8933,7 +8933,9 @@ class AppLocalizationsHu extends AppLocalizations {
       'Latogasson el: github.com/submersion/submersion';
 
   @override
-  String get settings_about_version => 'Verzio 0.1.0';
+  String settings_about_version(String version, String buildNumber) {
+    return 'Verzio $version ($buildNumber)';
+  }
 
   @override
   String get settings_appBar_title => 'Beallitasok';
@@ -8948,6 +8950,57 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_appearance_depthColoredCards_subtitle =>
       'Merülesi kartyak megjelenites ocean-szinu hatterrel a melyseg alapjan';
+
+  @override
+  String get settings_appearance_cardColorAttribute => 'Kartyak szinezese';
+
+  @override
+  String get settings_appearance_cardColorAttribute_subtitle =>
+      'Valassza ki, melyik jellemzo hatarozza meg a kartya hatterszinet';
+
+  @override
+  String get settings_appearance_cardColorAttribute_none => 'Nincs';
+
+  @override
+  String get settings_appearance_cardColorAttribute_depth => 'Melyseg';
+
+  @override
+  String get settings_appearance_cardColorAttribute_duration => 'Idotartam';
+
+  @override
+  String get settings_appearance_cardColorAttribute_temperature =>
+      'Homerseklet';
+
+  @override
+  String get settings_appearance_cardColorAttribute_otu => 'OTU';
+
+  @override
+  String get settings_appearance_cardColorAttribute_maxPpO2 => 'Max ppO2';
+
+  @override
+  String get settings_appearance_colorGradient => 'Szinatlenet';
+
+  @override
+  String get settings_appearance_colorGradient_subtitle =>
+      'Valassza ki a szintartomanyt a kartya hatterekhez';
+
+  @override
+  String get settings_appearance_colorGradient_ocean => 'Ocean';
+
+  @override
+  String get settings_appearance_colorGradient_thermal => 'Termikus';
+
+  @override
+  String get settings_appearance_colorGradient_sunset => 'Naplemente';
+
+  @override
+  String get settings_appearance_colorGradient_forest => 'Erdo';
+
+  @override
+  String get settings_appearance_colorGradient_monochrome => 'Monokrom';
+
+  @override
+  String get settings_appearance_colorGradient_custom => 'Egyeni';
 
   @override
   String get settings_appearance_gasSwitchMarkers => 'Gazvaltas jelolok';

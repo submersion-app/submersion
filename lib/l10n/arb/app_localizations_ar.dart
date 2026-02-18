@@ -8785,7 +8785,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'قم بزيارة github.com/submersion/submersion';
 
   @override
-  String get settings_about_version => 'الإصدار 0.1.0';
+  String settings_about_version(String version, String buildNumber) {
+    return 'الإصدار $version ($buildNumber)';
+  }
 
   @override
   String get settings_appBar_title => 'الإعدادات';
@@ -8799,6 +8801,57 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_appearance_depthColoredCards_subtitle =>
       'عرض بطاقات الغوص بخلفيات ملونة بألوان المحيط حسب العمق';
+
+  @override
+  String get settings_appearance_cardColorAttribute => 'تلوين البطاقات حسب';
+
+  @override
+  String get settings_appearance_cardColorAttribute_subtitle =>
+      'اختر السمة التي تحدد لون خلفية البطاقة';
+
+  @override
+  String get settings_appearance_cardColorAttribute_none => 'لا شيء';
+
+  @override
+  String get settings_appearance_cardColorAttribute_depth => 'العمق';
+
+  @override
+  String get settings_appearance_cardColorAttribute_duration => 'المدة';
+
+  @override
+  String get settings_appearance_cardColorAttribute_temperature =>
+      'درجة الحرارة';
+
+  @override
+  String get settings_appearance_cardColorAttribute_otu => 'OTU';
+
+  @override
+  String get settings_appearance_cardColorAttribute_maxPpO2 => 'Max ppO2';
+
+  @override
+  String get settings_appearance_colorGradient => 'تدرج الألوان';
+
+  @override
+  String get settings_appearance_colorGradient_subtitle =>
+      'اختر نطاق الألوان لخلفيات البطاقات';
+
+  @override
+  String get settings_appearance_colorGradient_ocean => 'محيط';
+
+  @override
+  String get settings_appearance_colorGradient_thermal => 'حراري';
+
+  @override
+  String get settings_appearance_colorGradient_sunset => 'غروب';
+
+  @override
+  String get settings_appearance_colorGradient_forest => 'غابة';
+
+  @override
+  String get settings_appearance_colorGradient_monochrome => 'أحادي اللون';
+
+  @override
+  String get settings_appearance_colorGradient_custom => 'مخصص';
 
   @override
   String get settings_appearance_gasSwitchMarkers => 'علامات تبديل الغاز';

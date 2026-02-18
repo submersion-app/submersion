@@ -8723,7 +8723,9 @@ class AppLocalizationsHe extends AppLocalizations {
       'בקר ב-github.com/submersion/submersion';
 
   @override
-  String get settings_about_version => 'גרסה 0.1.0';
+  String settings_about_version(String version, String buildNumber) {
+    return 'גרסה $version ($buildNumber)';
+  }
 
   @override
   String get settings_appBar_title => 'הגדרות';
@@ -8738,6 +8740,56 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_appearance_depthColoredCards_subtitle =>
       'הצג כרטיסי צלילה עם רקעים בצבעי אוקיינוס לפי עומק';
+
+  @override
+  String get settings_appearance_cardColorAttribute => 'צבע כרטיסים לפי';
+
+  @override
+  String get settings_appearance_cardColorAttribute_subtitle =>
+      'בחר איזה מאפיין קובע את צבע הרקע של הכרטיסים';
+
+  @override
+  String get settings_appearance_cardColorAttribute_none => 'ללא';
+
+  @override
+  String get settings_appearance_cardColorAttribute_depth => 'עומק';
+
+  @override
+  String get settings_appearance_cardColorAttribute_duration => 'משך';
+
+  @override
+  String get settings_appearance_cardColorAttribute_temperature => 'טמפרטורה';
+
+  @override
+  String get settings_appearance_cardColorAttribute_otu => 'OTU';
+
+  @override
+  String get settings_appearance_cardColorAttribute_maxPpO2 => 'Max ppO2';
+
+  @override
+  String get settings_appearance_colorGradient => 'מעבר צבעים';
+
+  @override
+  String get settings_appearance_colorGradient_subtitle =>
+      'בחר את טווח הצבעים לרקעי הכרטיסים';
+
+  @override
+  String get settings_appearance_colorGradient_ocean => 'אוקיינוס';
+
+  @override
+  String get settings_appearance_colorGradient_thermal => 'תרמי';
+
+  @override
+  String get settings_appearance_colorGradient_sunset => 'שקיעה';
+
+  @override
+  String get settings_appearance_colorGradient_forest => 'יער';
+
+  @override
+  String get settings_appearance_colorGradient_monochrome => 'מונוכרום';
+
+  @override
+  String get settings_appearance_colorGradient_custom => 'מותאם אישית';
 
   @override
   String get settings_appearance_gasSwitchMarkers => 'סמני החלפת גז';

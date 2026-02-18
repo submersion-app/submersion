@@ -8956,7 +8956,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Besuchen Sie github.com/submersion/submersion';
 
   @override
-  String get settings_about_version => 'Version 0.1.0';
+  String settings_about_version(String version, String buildNumber) {
+    return 'Version $version ($buildNumber)';
+  }
 
   @override
   String get settings_appBar_title => 'Einstellungen';
@@ -8971,6 +8973,56 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_appearance_depthColoredCards_subtitle =>
       'Tauchkarten mit ozeanfarbenen Hintergruenden basierend auf der Tiefe anzeigen';
+
+  @override
+  String get settings_appearance_cardColorAttribute => 'Karten faerben nach';
+
+  @override
+  String get settings_appearance_cardColorAttribute_subtitle =>
+      'Waehlen Sie, welches Attribut die Hintergrundfarbe der Karten bestimmt';
+
+  @override
+  String get settings_appearance_cardColorAttribute_none => 'Keine';
+
+  @override
+  String get settings_appearance_cardColorAttribute_depth => 'Tiefe';
+
+  @override
+  String get settings_appearance_cardColorAttribute_duration => 'Dauer';
+
+  @override
+  String get settings_appearance_cardColorAttribute_temperature => 'Temperatur';
+
+  @override
+  String get settings_appearance_cardColorAttribute_otu => 'OTU';
+
+  @override
+  String get settings_appearance_cardColorAttribute_maxPpO2 => 'Max. ppO2';
+
+  @override
+  String get settings_appearance_colorGradient => 'Farbverlauf';
+
+  @override
+  String get settings_appearance_colorGradient_subtitle =>
+      'Waehlen Sie den Farbbereich fuer Kartenhintergruende';
+
+  @override
+  String get settings_appearance_colorGradient_ocean => 'Ozean';
+
+  @override
+  String get settings_appearance_colorGradient_thermal => 'Thermal';
+
+  @override
+  String get settings_appearance_colorGradient_sunset => 'Sonnenuntergang';
+
+  @override
+  String get settings_appearance_colorGradient_forest => 'Wald';
+
+  @override
+  String get settings_appearance_colorGradient_monochrome => 'Monochrom';
+
+  @override
+  String get settings_appearance_colorGradient_custom => 'Benutzerdefiniert';
 
   @override
   String get settings_appearance_gasSwitchMarkers => 'Gaswechsel-Markierungen';

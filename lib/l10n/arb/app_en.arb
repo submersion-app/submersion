@@ -4840,11 +4840,37 @@
   "settings_about_openSourceLicenses": "Open Source Licenses",
   "settings_about_reportIssue": "Report an Issue",
   "settings_about_reportIssue_snackbar": "Visit github.com/submersion/submersion",
-  "settings_about_version": "Version 0.1.0",
+  "settings_about_version": "Version {version} ({buildNumber})",
+  "@settings_about_version": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "buildNumber": {
+        "type": "String"
+      }
+    }
+  },
   "settings_appBar_title": "Settings",
   "settings_appearance_appLanguage": "App Language",
   "settings_appearance_depthColoredCards": "Depth-colored dive cards",
   "settings_appearance_depthColoredCards_subtitle": "Show dive cards with ocean-colored backgrounds based on depth",
+  "settings_appearance_cardColorAttribute": "Color cards by",
+  "settings_appearance_cardColorAttribute_subtitle": "Choose which attribute determines card background color",
+  "settings_appearance_cardColorAttribute_none": "None",
+  "settings_appearance_cardColorAttribute_depth": "Depth",
+  "settings_appearance_cardColorAttribute_duration": "Duration",
+  "settings_appearance_cardColorAttribute_temperature": "Temperature",
+  "settings_appearance_cardColorAttribute_otu": "OTU",
+  "settings_appearance_cardColorAttribute_maxPpO2": "Max ppO2",
+  "settings_appearance_colorGradient": "Color gradient",
+  "settings_appearance_colorGradient_subtitle": "Choose the color range for card backgrounds",
+  "settings_appearance_colorGradient_ocean": "Ocean",
+  "settings_appearance_colorGradient_thermal": "Thermal",
+  "settings_appearance_colorGradient_sunset": "Sunset",
+  "settings_appearance_colorGradient_forest": "Forest",
+  "settings_appearance_colorGradient_monochrome": "Monochrome",
+  "settings_appearance_colorGradient_custom": "Custom",
   "settings_appearance_gasSwitchMarkers": "Gas switch markers",
   "settings_appearance_gasSwitchMarkers_subtitle": "Show markers for gas switches",
   "settings_appearance_header_diveLog": "Dive Log",

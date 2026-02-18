@@ -15477,8 +15477,8 @@ abstract class AppLocalizations {
   /// No description provided for @settings_about_version.
   ///
   /// In en, this message translates to:
-  /// **'Version 0.1.0'**
-  String get settings_about_version;
+  /// **'Version {version} ({buildNumber})'**
+  String settings_about_version(String version, String buildNumber);
 
   /// No description provided for @settings_appBar_title.
   ///
@@ -15503,6 +15503,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show dive cards with ocean-colored backgrounds based on depth'**
   String get settings_appearance_depthColoredCards_subtitle;
+
+  /// No description provided for @settings_appearance_cardColorAttribute.
+  ///
+  /// In en, this message translates to:
+  /// **'Color cards by'**
+  String get settings_appearance_cardColorAttribute;
+
+  /// No description provided for @settings_appearance_cardColorAttribute_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose which attribute determines card background color'**
+  String get settings_appearance_cardColorAttribute_subtitle;
+
+  /// No description provided for @settings_appearance_cardColorAttribute_none.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get settings_appearance_cardColorAttribute_none;
+
+  /// No description provided for @settings_appearance_cardColorAttribute_depth.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth'**
+  String get settings_appearance_cardColorAttribute_depth;
+
+  /// No description provided for @settings_appearance_cardColorAttribute_duration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get settings_appearance_cardColorAttribute_duration;
+
+  /// No description provided for @settings_appearance_cardColorAttribute_temperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Temperature'**
+  String get settings_appearance_cardColorAttribute_temperature;
+
+  /// No description provided for @settings_appearance_cardColorAttribute_otu.
+  ///
+  /// In en, this message translates to:
+  /// **'OTU'**
+  String get settings_appearance_cardColorAttribute_otu;
+
+  /// No description provided for @settings_appearance_cardColorAttribute_maxPpO2.
+  ///
+  /// In en, this message translates to:
+  /// **'Max ppO2'**
+  String get settings_appearance_cardColorAttribute_maxPpO2;
+
+  /// No description provided for @settings_appearance_colorGradient.
+  ///
+  /// In en, this message translates to:
+  /// **'Color gradient'**
+  String get settings_appearance_colorGradient;
+
+  /// No description provided for @settings_appearance_colorGradient_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the color range for card backgrounds'**
+  String get settings_appearance_colorGradient_subtitle;
+
+  /// No description provided for @settings_appearance_colorGradient_ocean.
+  ///
+  /// In en, this message translates to:
+  /// **'Ocean'**
+  String get settings_appearance_colorGradient_ocean;
+
+  /// No description provided for @settings_appearance_colorGradient_thermal.
+  ///
+  /// In en, this message translates to:
+  /// **'Thermal'**
+  String get settings_appearance_colorGradient_thermal;
+
+  /// No description provided for @settings_appearance_colorGradient_sunset.
+  ///
+  /// In en, this message translates to:
+  /// **'Sunset'**
+  String get settings_appearance_colorGradient_sunset;
+
+  /// No description provided for @settings_appearance_colorGradient_forest.
+  ///
+  /// In en, this message translates to:
+  /// **'Forest'**
+  String get settings_appearance_colorGradient_forest;
+
+  /// No description provided for @settings_appearance_colorGradient_monochrome.
+  ///
+  /// In en, this message translates to:
+  /// **'Monochrome'**
+  String get settings_appearance_colorGradient_monochrome;
+
+  /// No description provided for @settings_appearance_colorGradient_custom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get settings_appearance_colorGradient_custom;
 
   /// No description provided for @settings_appearance_gasSwitchMarkers.
   ///

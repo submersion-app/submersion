@@ -8894,7 +8894,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Ga naar github.com/submersion/submersion';
 
   @override
-  String get settings_about_version => 'Versie 0.1.0';
+  String settings_about_version(String version, String buildNumber) {
+    return 'Versie $version ($buildNumber)';
+  }
 
   @override
   String get settings_appBar_title => 'Instellingen';
@@ -8909,6 +8911,57 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_appearance_depthColoredCards_subtitle =>
       'Toon duikkaarten met oceaangekleurde achtergronden op basis van diepte';
+
+  @override
+  String get settings_appearance_cardColorAttribute => 'Kaarten kleuren op';
+
+  @override
+  String get settings_appearance_cardColorAttribute_subtitle =>
+      'Kies welk attribuut de achtergrondkleur van kaarten bepaalt';
+
+  @override
+  String get settings_appearance_cardColorAttribute_none => 'Geen';
+
+  @override
+  String get settings_appearance_cardColorAttribute_depth => 'Diepte';
+
+  @override
+  String get settings_appearance_cardColorAttribute_duration => 'Duur';
+
+  @override
+  String get settings_appearance_cardColorAttribute_temperature =>
+      'Temperatuur';
+
+  @override
+  String get settings_appearance_cardColorAttribute_otu => 'OTU';
+
+  @override
+  String get settings_appearance_cardColorAttribute_maxPpO2 => 'Max ppO2';
+
+  @override
+  String get settings_appearance_colorGradient => 'Kleurverloop';
+
+  @override
+  String get settings_appearance_colorGradient_subtitle =>
+      'Kies het kleurbereik voor kaartachtergronden';
+
+  @override
+  String get settings_appearance_colorGradient_ocean => 'Oceaan';
+
+  @override
+  String get settings_appearance_colorGradient_thermal => 'Thermal';
+
+  @override
+  String get settings_appearance_colorGradient_sunset => 'Zonsondergang';
+
+  @override
+  String get settings_appearance_colorGradient_forest => 'Bos';
+
+  @override
+  String get settings_appearance_colorGradient_monochrome => 'Monochroom';
+
+  @override
+  String get settings_appearance_colorGradient_custom => 'Aangepast';
 
   @override
   String get settings_appearance_gasSwitchMarkers => 'Gaswisselmarkeringen';

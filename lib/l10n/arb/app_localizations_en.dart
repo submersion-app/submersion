@@ -8815,7 +8815,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Visit github.com/submersion/submersion';
 
   @override
-  String get settings_about_version => 'Version 0.1.0';
+  String settings_about_version(String version, String buildNumber) {
+    return 'Version $version ($buildNumber)';
+  }
 
   @override
   String get settings_appBar_title => 'Settings';
@@ -8830,6 +8832,57 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_appearance_depthColoredCards_subtitle =>
       'Show dive cards with ocean-colored backgrounds based on depth';
+
+  @override
+  String get settings_appearance_cardColorAttribute => 'Color cards by';
+
+  @override
+  String get settings_appearance_cardColorAttribute_subtitle =>
+      'Choose which attribute determines card background color';
+
+  @override
+  String get settings_appearance_cardColorAttribute_none => 'None';
+
+  @override
+  String get settings_appearance_cardColorAttribute_depth => 'Depth';
+
+  @override
+  String get settings_appearance_cardColorAttribute_duration => 'Duration';
+
+  @override
+  String get settings_appearance_cardColorAttribute_temperature =>
+      'Temperature';
+
+  @override
+  String get settings_appearance_cardColorAttribute_otu => 'OTU';
+
+  @override
+  String get settings_appearance_cardColorAttribute_maxPpO2 => 'Max ppO2';
+
+  @override
+  String get settings_appearance_colorGradient => 'Color gradient';
+
+  @override
+  String get settings_appearance_colorGradient_subtitle =>
+      'Choose the color range for card backgrounds';
+
+  @override
+  String get settings_appearance_colorGradient_ocean => 'Ocean';
+
+  @override
+  String get settings_appearance_colorGradient_thermal => 'Thermal';
+
+  @override
+  String get settings_appearance_colorGradient_sunset => 'Sunset';
+
+  @override
+  String get settings_appearance_colorGradient_forest => 'Forest';
+
+  @override
+  String get settings_appearance_colorGradient_monochrome => 'Monochrome';
+
+  @override
+  String get settings_appearance_colorGradient_custom => 'Custom';
 
   @override
   String get settings_appearance_gasSwitchMarkers => 'Gas switch markers';

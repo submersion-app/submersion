@@ -8989,7 +8989,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Rendez-vous sur github.com/submersion/submersion';
 
   @override
-  String get settings_about_version => 'Version 0.1.0';
+  String settings_about_version(String version, String buildNumber) {
+    return 'Version $version ($buildNumber)';
+  }
 
   @override
   String get settings_appBar_title => 'Reglages';
@@ -9004,6 +9006,57 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_appearance_depthColoredCards_subtitle =>
       'Afficher les cartes de plongee avec des fonds colores selon la profondeur';
+
+  @override
+  String get settings_appearance_cardColorAttribute => 'Colorer les cartes par';
+
+  @override
+  String get settings_appearance_cardColorAttribute_subtitle =>
+      'Choisir quel attribut determine la couleur de fond des cartes';
+
+  @override
+  String get settings_appearance_cardColorAttribute_none => 'Aucun';
+
+  @override
+  String get settings_appearance_cardColorAttribute_depth => 'Profondeur';
+
+  @override
+  String get settings_appearance_cardColorAttribute_duration => 'Duree';
+
+  @override
+  String get settings_appearance_cardColorAttribute_temperature =>
+      'Temperature';
+
+  @override
+  String get settings_appearance_cardColorAttribute_otu => 'OTU';
+
+  @override
+  String get settings_appearance_cardColorAttribute_maxPpO2 => 'Max ppO2';
+
+  @override
+  String get settings_appearance_colorGradient => 'Degrade de couleur';
+
+  @override
+  String get settings_appearance_colorGradient_subtitle =>
+      'Choisir la gamme de couleurs pour les fonds de cartes';
+
+  @override
+  String get settings_appearance_colorGradient_ocean => 'Ocean';
+
+  @override
+  String get settings_appearance_colorGradient_thermal => 'Thermal';
+
+  @override
+  String get settings_appearance_colorGradient_sunset => 'Coucher de soleil';
+
+  @override
+  String get settings_appearance_colorGradient_forest => 'Foret';
+
+  @override
+  String get settings_appearance_colorGradient_monochrome => 'Monochrome';
+
+  @override
+  String get settings_appearance_colorGradient_custom => 'Personnalise';
 
   @override
   String get settings_appearance_gasSwitchMarkers =>
