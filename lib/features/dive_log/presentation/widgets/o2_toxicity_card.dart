@@ -353,6 +353,327 @@ class O2ToxicityCard extends StatelessWidget {
   }
 }
 
+/// Compact panel showing all O2 toxicity data in a condensed card format.
+///
+/// Designed to fit alongside the dive profile chart (~150px height)
+/// and is tappable to expand to the full [O2ToxicityCard] view.
+class CompactO2ToxicityPanel extends StatelessWidget {
+  /// Oxygen exposure data
+  final O2Exposure exposure;
+
+  /// Currently selected ppO2 value from the dive profile cursor
+  final double? selectedPpO2;
+
+  /// Callback when the panel is tapped (to expand to full view)
+  final VoidCallback? onTap;
+
+  const CompactO2ToxicityPanel({
+    super.key,
+    required this.exposure,
+    this.selectedPpO2,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Card(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header row
+              _buildHeader(context, colorScheme, textTheme),
+              const SizedBox(height: 8),
+
+              // CNS progress section
+              _buildCnsProgress(context, colorScheme, textTheme),
+              const SizedBox(height: 6),
+
+              // OTU + details row
+              _buildOtuRow(context, colorScheme, textTheme),
+
+              // Time above thresholds (only if > 0)
+              if (exposure.timeAboveWarning > 0 ||
+                  exposure.timeAboveCritical > 0) ...[
+                const SizedBox(height: 4),
+                _buildTimeAboveThresholds(context, colorScheme, textTheme),
+              ],
+
+              // Selected ppO2 row (only when present)
+              if (selectedPpO2 != null) ...[
+                const SizedBox(height: 6),
+                _buildSelectedPpO2(context, colorScheme, textTheme),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(
+    BuildContext context,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
+    final isCritical = exposure.cnsCritical || exposure.ppO2Critical;
+    final isWarning = exposure.cnsWarning || exposure.ppO2Warning;
+
+    return Row(
+      children: [
+        ExcludeSemantics(
+          child: Icon(Icons.air, size: 16, color: colorScheme.primary),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          context.l10n.diveLog_detail_section_oxygenToxicity,
+          style: textTheme.titleSmall,
+        ),
+        if (isWarning) ...[
+          const SizedBox(width: 6),
+          Semantics(
+            label: isCritical
+                ? context.l10n.diveLog_o2tox_semantics_criticalWarning
+                : context.l10n.diveLog_o2tox_semantics_warning,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+              decoration: BoxDecoration(
+                color: isCritical ? colorScheme.error : Colors.orange,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                isCritical
+                    ? context.l10n.diveLog_detail_badge_critical
+                    : context.l10n.diveLog_detail_badge_warning,
+                style: textTheme.labelSmall?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 10,
+                ),
+              ),
+            ),
+          ),
+        ],
+        const Spacer(),
+        ExcludeSemantics(
+          child: Icon(
+            Icons.chevron_right,
+            size: 18,
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCnsProgress(
+    BuildContext context,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
+    Color getCnsColor() {
+      if (exposure.cnsEnd >= 100) return colorScheme.error;
+      if (exposure.cnsEnd >= 80) return Colors.orange;
+      if (exposure.cnsEnd >= 50) return Colors.amber;
+      return Colors.green;
+    }
+
+    return Semantics(
+      label: statLabel(
+        name: context.l10n.diveLog_o2tox_cnsOxygenClock,
+        value: exposure.cnsFormatted,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                context.l10n.diveLog_o2tox_cnsOxygenClock,
+                style: textTheme.bodySmall,
+              ),
+              Text(
+                exposure.cnsFormatted,
+                style: textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: getCnsColor(),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(3),
+            child: LinearProgressIndicator(
+              value: (exposure.cnsEnd / 100).clamp(0.0, 1.0),
+              minHeight: 6,
+              backgroundColor: colorScheme.surfaceContainerHighest,
+              valueColor: AlwaysStoppedAnimation<Color>(getCnsColor()),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                context.l10n.diveLog_o2tox_startPercent(
+                  exposure.cnsStart.toStringAsFixed(0),
+                ),
+                style: textTheme.labelSmall?.copyWith(
+                  fontSize: 10,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              Text(
+                context.l10n.diveLog_o2tox_deltaDive(
+                  exposure.cnsDelta.toStringAsFixed(1),
+                ),
+                style: textTheme.labelSmall?.copyWith(
+                  fontSize: 10,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOtuRow(
+    BuildContext context,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
+    return Semantics(
+      label: context.l10n.diveLog_o2tox_semantics_otu(
+        exposure.otuFormatted,
+        exposure.otuPercentOfDaily.toStringAsFixed(0),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(
+                  text: exposure.otuFormatted,
+                  style: textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                TextSpan(
+                  text: ' (${exposure.otuPercentOfDaily.toStringAsFixed(0)}%)',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            '${context.l10n.diveLog_o2tox_label_maxPpO2}: '
+            '${exposure.maxPpO2Formatted}',
+            style: textTheme.labelSmall?.copyWith(
+              color: _getPpO2Color(colorScheme),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimeAboveThresholds(
+    BuildContext context,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
+    final parts = <InlineSpan>[];
+
+    if (exposure.timeAboveWarning > 0) {
+      parts.add(
+        TextSpan(
+          text:
+              '${context.l10n.diveLog_o2tox_label_timeAbove14}: '
+              '${_formatDuration(exposure.timeAboveWarning)}',
+          style: textTheme.labelSmall?.copyWith(color: Colors.orange),
+        ),
+      );
+    }
+
+    if (exposure.timeAboveCritical > 0) {
+      if (parts.isNotEmpty) {
+        parts.add(TextSpan(text: '  ', style: textTheme.labelSmall));
+      }
+      parts.add(
+        TextSpan(
+          text:
+              '${context.l10n.diveLog_o2tox_label_timeAbove16}: '
+              '${_formatDuration(exposure.timeAboveCritical)}',
+          style: textTheme.labelSmall?.copyWith(color: colorScheme.error),
+        ),
+      );
+    }
+
+    return Text.rich(TextSpan(children: parts));
+  }
+
+  Widget _buildSelectedPpO2(
+    BuildContext context,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            context.l10n.diveLog_detail_label_ppO2AtPoint,
+            style: textTheme.labelSmall?.copyWith(
+              color: colorScheme.onPrimaryContainer,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '${selectedPpO2!.toStringAsFixed(2)} bar',
+            style: textTheme.labelSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onPrimaryContainer,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getPpO2Color(ColorScheme colorScheme) {
+    if (exposure.ppO2Critical) return colorScheme.error;
+    if (exposure.ppO2Warning) return Colors.orange;
+    return colorScheme.onSurfaceVariant;
+  }
+
+  String _formatDuration(int seconds) {
+    if (seconds < 60) return '${seconds}s';
+    final minutes = seconds ~/ 60;
+    final secs = seconds % 60;
+    if (secs == 0) return '${minutes}m';
+    return '${minutes}m ${secs}s';
+  }
+}
+
 /// Compact version of O2 toxicity display for inline use.
 class O2ToxicityBadge extends StatelessWidget {
   final O2Exposure exposure;
