@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/gradient_preset_picker.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 class AppearancePage extends ConsumerWidget {
@@ -45,21 +46,51 @@ class AppearancePage extends ConsumerWidget {
             context,
             context.l10n.settings_appearance_header_diveLog,
           ),
-          SwitchListTile(
-            title: Text(context.l10n.settings_appearance_depthColoredCards),
+          // Card coloring attribute selector
+          ListTile(
+            leading: const Icon(Icons.palette),
+            title: Text(context.l10n.settings_appearance_cardColorAttribute),
             subtitle: Text(
-              context.l10n.settings_appearance_depthColoredCards_subtitle,
+              context.l10n.settings_appearance_cardColorAttribute_subtitle,
             ),
-            secondary: const Icon(Icons.gradient),
-            value: settings.showDepthColoredDiveCards,
-            onChanged: (value) {
-              ref
-                  .read(settingsProvider.notifier)
-                  .setCardColorAttribute(
-                    value ? CardColorAttribute.depth : CardColorAttribute.none,
-                  );
-            },
+            trailing: DropdownButton<CardColorAttribute>(
+              value: settings.cardColorAttribute,
+              underline: const SizedBox(),
+              onChanged: (value) {
+                if (value != null) {
+                  ref
+                      .read(settingsProvider.notifier)
+                      .setCardColorAttribute(value);
+                }
+              },
+              items: CardColorAttribute.values.map((attr) {
+                return DropdownMenuItem(
+                  value: attr,
+                  child: Text(_getAttributeDisplayName(context, attr)),
+                );
+              }).toList(),
+            ),
           ),
+          // Gradient picker (visible when coloring is active)
+          if (settings.cardColorAttribute != CardColorAttribute.none)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: GradientPresetPicker(
+                selectedPreset: settings.cardColorGradientPreset,
+                customStart: settings.cardColorGradientStart,
+                customEnd: settings.cardColorGradientEnd,
+                onPresetSelected: (preset) {
+                  ref
+                      .read(settingsProvider.notifier)
+                      .setCardColorGradientPreset(preset);
+                },
+                onCustomSelected: (start, end) {
+                  ref
+                      .read(settingsProvider.notifier)
+                      .setCardColorGradientCustom(start, end);
+                },
+              ),
+            ),
           SwitchListTile(
             title: Text(
               context.l10n.settings_appearance_mapBackgroundDiveCards,
@@ -415,5 +446,25 @@ class AppearancePage extends ConsumerWidget {
       case ThemeMode.dark:
         return Icons.dark_mode;
     }
+  }
+
+  String _getAttributeDisplayName(
+    BuildContext context,
+    CardColorAttribute attr,
+  ) {
+    return switch (attr) {
+      CardColorAttribute.none =>
+        context.l10n.settings_appearance_cardColorAttribute_none,
+      CardColorAttribute.depth =>
+        context.l10n.settings_appearance_cardColorAttribute_depth,
+      CardColorAttribute.duration =>
+        context.l10n.settings_appearance_cardColorAttribute_duration,
+      CardColorAttribute.temperature =>
+        context.l10n.settings_appearance_cardColorAttribute_temperature,
+      CardColorAttribute.otu =>
+        context.l10n.settings_appearance_cardColorAttribute_otu,
+      CardColorAttribute.maxPpO2 =>
+        context.l10n.settings_appearance_cardColorAttribute_maxPpO2,
+    };
   }
 }
