@@ -14,6 +14,8 @@ import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
+import 'package:submersion/core/deco/entities/deco_status.dart';
+import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
@@ -201,9 +203,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             if (dive.profile.isNotEmpty) ...[
               _buildProfileSection(context, ref, dive),
               const SizedBox(height: 24),
-              _buildDecoSection(context, ref, dive),
-              const SizedBox(height: 24),
-              _buildO2ToxicitySection(context, ref, dive),
+              _buildDecoO2Panel(context, ref, dive),
               const SizedBox(height: 24),
               _buildSacSegmentsSection(context, ref, dive),
             ],
@@ -1032,7 +1032,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
   }
 
-  Widget _buildDecoSection(BuildContext context, WidgetRef ref, Dive dive) {
+  String _formatTimestamp(int seconds) {
+    final minutes = seconds ~/ 60;
+    final secs = seconds % 60;
+    return '$minutes:${secs.toString().padLeft(2, '0')}';
+  }
+
+  Widget _buildDecoO2Panel(BuildContext context, WidgetRef ref, Dive dive) {
     final analysis = ref.watch(diveProfileAnalysisProvider(dive));
 
     // Don't show if no analysis available
@@ -1048,90 +1054,135 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         : analysis.decoStatuses.length - 1;
     final status = analysis.decoStatuses[index];
 
-    // Get collapsed state from provider
-    final isExpanded = ref.watch(decoSectionExpandedProvider);
+    final exposure = analysis.o2Exposure;
 
-    // Build trailing badge for DECO/NO DECO status (always shown)
-    final Widget statusBadge = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: status.inDeco
-            ? Colors.orange.withValues(alpha: 0.2)
-            : Colors.green.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        status.inDeco
-            ? context.l10n.diveLog_detail_badge_deco
-            : context.l10n.diveLog_detail_badge_noDeco,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: status.inDeco ? Colors.orange : Colors.green,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
+    // Show ppO2 at selected point if available
+    final selectedPpO2 =
+        _selectedPointIndex != null &&
+            _selectedPointIndex! < analysis.ppO2Curve.length
+        ? analysis.ppO2Curve[_selectedPointIndex!]
+        : null;
 
-    // Build "Show end" button for collapsed state (when a point is selected)
-    Widget? showEndButton;
-    if (_selectedPointIndex != null) {
-      showEndButton = TextButton.icon(
-        onPressed: () => setState(() => _selectedPointIndex = null),
-        icon: const Icon(Icons.last_page, size: 16),
-        label: Text(context.l10n.diveLog_detail_button_showEnd),
-        style: TextButton.styleFrom(
-          visualDensity: VisualDensity.compact,
-          padding: const EdgeInsets.symmetric(horizontal: 8),
+    final decoExpanded = ref.watch(decoSectionExpandedProvider);
+    final o2Expanded = ref.watch(o2ToxicitySectionExpandedProvider);
+
+    // Build "at time" subtitle when a point is selected
+    final String? timeSubtitle = _selectedPointIndex != null
+        ? context.l10n.diveLog_detail_collapsed_atTime(
+            _formatTimestamp(dive.profile[_selectedPointIndex!].timestamp),
+          )
+        : null;
+
+    // Build the deco widget
+    final Widget decoWidget = decoExpanded
+        ? _buildExpandedDecoCard(context, ref, dive, status, timeSubtitle)
+        : CompactDecoPanel(
+            status: status,
+            subtitle: timeSubtitle,
+            onTap: () {
+              ref
+                  .read(collapsibleSectionProvider.notifier)
+                  .setDecoExpanded(true);
+            },
+          );
+
+    // Build the O2 widget
+    final Widget o2Widget = o2Expanded
+        ? _buildExpandedO2Card(context, ref, dive, exposure, selectedPpO2)
+        : CompactO2ToxicityPanel(
+            exposure: exposure,
+            selectedPpO2: selectedPpO2,
+            onTap: () {
+              ref
+                  .read(collapsibleSectionProvider.notifier)
+                  .setO2ToxicityExpanded(true);
+            },
+          );
+
+    // If either is expanded, stack vertically
+    if (decoExpanded || o2Expanded) {
+      return Column(
+        children: [decoWidget, const SizedBox(height: 8), o2Widget],
+      );
+    }
+
+    // Both compact: side-by-side on desktop, stacked on phone
+    if (ResponsiveBreakpoints.isDesktop(context)) {
+      return IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(child: decoWidget),
+            const SizedBox(width: 8),
+            Expanded(child: o2Widget),
+          ],
         ),
       );
     }
 
-    // Collapsed subtitle showing key info and time if a point is selected
-    final baseInfo = status.inDeco
-        ? context.l10n.diveLog_detail_collapsed_ceiling(
-            '${status.ceilingMeters.toStringAsFixed(1)}m',
-          )
-        : context.l10n.diveLog_detail_collapsed_ndl(status.ndlFormatted);
-    final collapsedSubtitle = _selectedPointIndex != null
-        ? context.l10n.diveLog_detail_collapsed_atTimeInfo(
-            _formatTimestamp(dive.profile[_selectedPointIndex!].timestamp),
-            baseInfo,
-          )
-        : baseInfo;
+    return Column(children: [decoWidget, const SizedBox(height: 8), o2Widget]);
+  }
 
-    return CollapsibleCardSection(
-      title: context.l10n.diveLog_detail_section_decoStatus,
-      icon: status.inDeco ? Icons.warning : Icons.check_circle,
-      iconColor: status.inDeco ? Colors.orange : Colors.green,
-      trailing: statusBadge, // Always show the DECO/NO DECO badge
-      collapsedTrailing:
-          showEndButton, // Show "Show end" button when collapsed and point selected
-      collapsedSubtitle: collapsedSubtitle,
-      isExpanded: isExpanded,
-      onToggle: (expanded) {
-        ref.read(collapsibleSectionProvider.notifier).setDecoExpanded(expanded);
-      },
-      contentBuilder: (context) => Column(
+  Widget _buildExpandedDecoCard(
+    BuildContext context,
+    WidgetRef ref,
+    Dive dive,
+    DecoStatus status,
+    String? timeSubtitle,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Card(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (_selectedPointIndex != null)
+          InkWell(
+            onTap: () {
+              ref
+                  .read(collapsibleSectionProvider.notifier)
+                  .setDecoExpanded(false);
+            },
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  Icon(
+                    status.inDeco ? Icons.warning : Icons.check_circle,
+                    size: 20,
+                    color: status.inDeco ? Colors.orange : Colors.green,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      context.l10n.diveLog_detail_section_decoStatus,
+                      style: textTheme.titleMedium,
+                    ),
+                  ),
+                  AnimatedRotation(
+                    turns: 0.5,
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(
+                      Icons.expand_more,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (_selectedPointIndex != null && timeSubtitle != null)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.timeline,
-                    size: 16,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
+                  Icon(Icons.timeline, size: 16, color: colorScheme.primary),
                   const SizedBox(width: 8),
                   Text(
-                    context.l10n.diveLog_detail_collapsed_atTime(
-                      _formatTimestamp(
-                        dive.profile[_selectedPointIndex!].timestamp,
-                      ),
-                    ),
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
+                    timeSubtitle,
+                    style: textTheme.labelMedium?.copyWith(
+                      color: colorScheme.primary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -1159,52 +1210,32 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
   }
 
-  String _formatTimestamp(int seconds) {
-    final minutes = seconds ~/ 60;
-    final secs = seconds % 60;
-    return '$minutes:${secs.toString().padLeft(2, '0')}';
-  }
-
-  Widget _buildO2ToxicitySection(
+  Widget _buildExpandedO2Card(
     BuildContext context,
     WidgetRef ref,
     Dive dive,
+    O2Exposure exposure,
+    double? selectedPpO2,
   ) {
-    final analysis = ref.watch(diveProfileAnalysisProvider(dive));
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
-    // Don't show if no analysis available
-    if (analysis == null) {
-      return const SizedBox.shrink();
-    }
-
-    // Get collapsed state from provider
-    final isExpanded = ref.watch(o2ToxicitySectionExpandedProvider);
-
-    // Show ppO2 at selected point if available
-    final selectedPpO2 =
-        _selectedPointIndex != null &&
-            _selectedPointIndex! < analysis.ppO2Curve.length
-        ? analysis.ppO2Curve[_selectedPointIndex!]
-        : null;
-
-    final exposure = analysis.o2Exposure;
-
-    // Build trailing badge for collapsed state (warning/critical status)
-    Widget? trailingBadge;
+    // Build optional warning/critical badge
+    Widget? badge;
     if (exposure.cnsWarning || exposure.ppO2Warning) {
-      trailingBadge = Container(
+      final isCritical = exposure.cnsCritical || exposure.ppO2Critical;
+      badge = Container(
+        margin: const EdgeInsets.only(left: 8),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         decoration: BoxDecoration(
-          color: exposure.cnsCritical || exposure.ppO2Critical
-              ? Theme.of(context).colorScheme.error
-              : Colors.orange,
+          color: isCritical ? colorScheme.error : Colors.orange,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Text(
-          exposure.cnsCritical || exposure.ppO2Critical
+          isCritical
               ? context.l10n.diveLog_detail_badge_critical
               : context.l10n.diveLog_detail_badge_warning,
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          style: textTheme.labelSmall?.copyWith(
             color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
@@ -1212,40 +1243,46 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       );
     }
 
-    // Collapsed subtitle showing CNS first, then max ppO2, and selected point ppO2 if applicable
-    final String collapsedSubtitle;
-    if (selectedPpO2 != null && _selectedPointIndex != null) {
-      // Show CNS first, then max ppO2, then ppO2 at selected time
-      collapsedSubtitle = context.l10n
-          .diveLog_detail_collapsed_cnsMaxPpO2AtTime(
-            exposure.cnsFormatted,
-            exposure.maxPpO2Formatted,
-            _formatTimestamp(dive.profile[_selectedPointIndex!].timestamp),
-            '${selectedPpO2.toStringAsFixed(2)} bar',
-          );
-    } else {
-      // Show CNS and max ppO2
-      collapsedSubtitle = context.l10n.diveLog_detail_collapsed_cnsMaxPpO2(
-        exposure.cnsFormatted,
-        exposure.maxPpO2Formatted,
-      );
-    }
-
-    return CollapsibleCardSection(
-      title: context.l10n.diveLog_detail_section_oxygenToxicity,
-      icon: Icons.air,
-      trailing:
-          trailingBadge, // Always show warning/critical badge if applicable
-      collapsedSubtitle: collapsedSubtitle,
-      isExpanded: isExpanded,
-      onToggle: (expanded) {
-        ref
-            .read(collapsibleSectionProvider.notifier)
-            .setO2ToxicityExpanded(expanded);
-      },
-      contentBuilder: (context) => Column(
+    return Card(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          InkWell(
+            onTap: () {
+              ref
+                  .read(collapsibleSectionProvider.notifier)
+                  .setO2ToxicityExpanded(false);
+            },
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  const Icon(Icons.air, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Text(
+                          context.l10n.diveLog_detail_section_oxygenToxicity,
+                          style: textTheme.titleMedium,
+                        ),
+                        if (badge != null) badge,
+                      ],
+                    ),
+                  ),
+                  AnimatedRotation(
+                    turns: 0.5,
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(
+                      Icons.expand_more,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
           if (selectedPpO2 != null)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -1255,7 +1292,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   vertical: 12,
                 ),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
+                  color: colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -1268,12 +1305,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     const SizedBox(width: 12),
                     Text(
                       context.l10n.diveLog_detail_label_ppO2AtPoint,
-                      style: Theme.of(context).textTheme.bodyMedium,
+                      style: textTheme.bodyMedium,
                     ),
                     const Spacer(),
                     Text(
                       '${selectedPpO2.toStringAsFixed(2)} bar',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      style: textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: _getPpO2Color(selectedPpO2),
                       ),
