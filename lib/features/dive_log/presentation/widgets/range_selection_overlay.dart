@@ -136,7 +136,7 @@ class _RangeSelectionOverlayState extends ConsumerState<RangeSelectionOverlay> {
             setState(() => _activeDrag = target);
           },
           onHorizontalDragUpdate: (details) {
-            _handleDrag(details.localPosition.dx + position - 16, isStart);
+            _handleDrag(details.delta.dx, isStart);
           },
           onHorizontalDragEnd: (_) {
             setState(() => _activeDrag = null);
@@ -174,19 +174,21 @@ class _RangeSelectionOverlayState extends ConsumerState<RangeSelectionOverlay> {
     );
   }
 
-  void _handleDrag(double localX, bool isStart) {
-    // Convert pixel position to progress (0.0 to 1.0)
-    final progress = ((localX - widget.leftPadding) / _selectableWidth).clamp(
-      0.0,
-      1.0,
-    );
+  void _handleDrag(double deltaX, bool isStart) {
+    // Convert pixel delta to progress delta (0.0 to 1.0 scale)
+    final rangeState = ref.read(rangeSelectionProvider(widget.diveId));
+    final currentProgress = isStart
+        ? rangeState.startProgress
+        : rangeState.endProgress;
+    final progressDelta = deltaX / _selectableWidth;
+    final newProgress = (currentProgress + progressDelta).clamp(0.0, 1.0);
 
     final notifier = ref.read(rangeSelectionProvider(widget.diveId).notifier);
 
     if (isStart) {
-      notifier.setStartProgress(progress);
+      notifier.setStartProgress(newProgress);
     } else {
-      notifier.setEndProgress(progress);
+      notifier.setEndProgress(newProgress);
     }
   }
 }

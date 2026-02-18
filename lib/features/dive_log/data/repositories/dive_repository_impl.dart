@@ -2068,6 +2068,10 @@ class DiveRepository {
     // Get tags for this dive
     final tags = await _tagRepository.getTagsForDive(row.id);
 
+    // Derive waterTemp from profile if not set in the dives table.
+    // Some imports populate per-point temperature but miss the dive-level field.
+    final effectiveWaterTemp = row.waterTemp ?? _minProfileTemp(profileRows);
+
     return domain.Dive(
       id: row.id,
       diverId: row.diverId,
@@ -2083,7 +2087,7 @@ class DiveRepository {
       runtime: row.runtime != null ? Duration(seconds: row.runtime!) : null,
       maxDepth: row.maxDepth,
       avgDepth: row.avgDepth,
-      waterTemp: row.waterTemp,
+      waterTemp: effectiveWaterTemp,
       airTemp: row.airTemp,
       visibility: row.visibility != null
           ? Visibility.values.firstWhere(
@@ -2992,6 +2996,19 @@ class DiveRepository {
       _log.error('Failed to bulk remove tags', e, stackTrace);
       rethrow;
     }
+  }
+
+  /// Compute minimum temperature from profile rows, matching import fallback.
+  /// Returns null if no valid temperature data exists.
+  double? _minProfileTemp(List<DiveProfile> rows) {
+    double? min;
+    for (final p in rows) {
+      final t = p.temperature;
+      if (t != null && t >= -2 && t <= 40 && (min == null || t < min)) {
+        min = t;
+      }
+    }
+    return min;
   }
 }
 

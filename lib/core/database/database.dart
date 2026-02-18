@@ -1084,7 +1084,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 35;
+  int get schemaVersion => 36;
 
   @override
   MigrationStrategy get migration {
@@ -1846,6 +1846,21 @@ class AppDatabase extends _$AppDatabase {
           await customStatement(
             "UPDATE diver_settings SET card_color_attribute = 'depth' WHERE show_depth_colored_dive_cards = 1",
           );
+        }
+        if (from < 36) {
+          // Backfill water_temp from profile temperature data for dives
+          // where water_temp is NULL but profile points have temperature.
+          // Uses MIN(temperature) to match the import fallback logic.
+          await customStatement('''
+            UPDATE dives SET water_temp = (
+              SELECT MIN(temperature) FROM dive_profiles
+              WHERE dive_profiles.dive_id = dives.id
+              AND dive_profiles.is_primary = 1
+              AND dive_profiles.temperature IS NOT NULL
+              AND dive_profiles.temperature >= -2
+              AND dive_profiles.temperature <= 40
+            ) WHERE water_temp IS NULL
+          ''');
         }
       },
       beforeOpen: (details) async {

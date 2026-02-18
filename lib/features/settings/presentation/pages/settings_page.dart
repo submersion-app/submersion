@@ -85,7 +85,7 @@ class SettingsPage extends ConsumerWidget {
       case 'decompression':
         return _DecompressionSectionContent(ref: ref);
       case 'appearance':
-        return _AppearanceSectionContent(ref: ref);
+        return const _AppearanceSectionContent();
       case 'notifications':
         return _NotificationsSectionContent(ref: ref);
       case 'manage':
@@ -161,7 +161,7 @@ class _SettingsSectionDetailPage extends ConsumerWidget {
       case 'decompression':
         return _DecompressionSectionContent(ref: ref);
       case 'appearance':
-        return _AppearanceSectionContent(ref: ref);
+        return const _AppearanceSectionContent();
       case 'notifications':
         return _NotificationsSectionContent(ref: ref);
       case 'manage':
@@ -1026,14 +1026,25 @@ class _DecompressionSectionContent extends ConsumerWidget {
 }
 
 /// Appearance section content
-class _AppearanceSectionContent extends ConsumerWidget {
-  final WidgetRef ref;
-
-  const _AppearanceSectionContent({required this.ref});
+class _AppearanceSectionContent extends ConsumerStatefulWidget {
+  const _AppearanceSectionContent();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_AppearanceSectionContent> createState() =>
+      _AppearanceSectionContentState();
+}
+
+class _AppearanceSectionContentState
+    extends ConsumerState<_AppearanceSectionContent> {
+  bool _showLanguageList = false;
+
+  @override
+  Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
+
+    if (_showLanguageList) {
+      return _buildLanguageSubPage(context, settings);
+    }
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -1074,12 +1085,16 @@ class _AppearanceSectionContent extends ConsumerWidget {
           Card(
             child: ListTile(
               leading: const Icon(Icons.language),
-              title: Text(context.l10n.settings_appearance_appLanguage),
+              title: Text(context.l10n.settings_appearance_header_language),
               subtitle: Text(
                 LanguageSettingsPage.getDisplayName(settings.locale),
               ),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.go('/settings/language'),
+              onTap: () {
+                setState(() {
+                  _showLanguageList = true;
+                });
+              },
             ),
           ),
           const SizedBox(height: 24),
@@ -1526,6 +1541,74 @@ class _AppearanceSectionContent extends ConsumerWidget {
       CardColorAttribute.temperature =>
         context.l10n.settings_appearance_cardColorAttribute_temperature,
     };
+  }
+
+  Widget _buildLanguageSubPage(BuildContext context, AppSettings settings) {
+    final theme = Theme.of(context);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back),
+                tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+                onPressed: () {
+                  setState(() {
+                    _showLanguageList = false;
+                  });
+                },
+              ),
+              const SizedBox(width: 8),
+              Text(
+                context.l10n.settings_language_appBar_title,
+                style: theme.textTheme.titleLarge,
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: LanguageSettingsPage.supportedLocales.map((option) {
+                final isSelected = option.code == settings.locale;
+                return Semantics(
+                  selected: isSelected,
+                  child: ListTile(
+                    leading: option.code == 'system'
+                        ? const Icon(Icons.phone_android)
+                        : null,
+                    title: Text(
+                      option.code == 'system'
+                          ? context.l10n.settings_language_systemDefault
+                          : option.nativeName,
+                    ),
+                    subtitle: option.englishName.isNotEmpty
+                        ? Text(option.englishName)
+                        : null,
+                    trailing: isSelected
+                        ? Icon(
+                            Icons.check,
+                            color: theme.colorScheme.primary,
+                            semanticLabel:
+                                context.l10n.settings_language_selected,
+                          )
+                        : null,
+                    onTap: () {
+                      ref
+                          .read(settingsProvider.notifier)
+                          .setLocale(option.code);
+                    },
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

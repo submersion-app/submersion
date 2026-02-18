@@ -30,6 +30,10 @@ This document contains only the features and tasks that are **not yet completed*
 
 ## Category 2: Dive Profile & Telemetry
 
+### 2.1 Profile Options
+- [ ] Re-enable profile "Range Analysis"
+- [ ] Re-enable profile "Playback"
+
 ### 2.2 Multi-Profile Support
 | Feature | Notes |
 |---------|-------|
