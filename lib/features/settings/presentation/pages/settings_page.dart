@@ -1090,24 +1090,17 @@ class _AppearanceSectionContent extends ConsumerWidget {
           Card(
             child: Column(
               children: [
-                SwitchListTile(
+                ListTile(
+                  leading: const Icon(Icons.palette),
                   title: Text(
-                    context.l10n.settings_appearance_depthColoredCards,
+                    context.l10n.settings_appearance_cardColorAttribute,
                   ),
                   subtitle: Text(
-                    context.l10n.settings_appearance_depthColoredCards_subtitle,
+                    _getAttributeDisplayName(
+                      context,
+                      settings.cardColorAttribute,
+                    ),
                   ),
-                  secondary: const Icon(Icons.gradient),
-                  value: settings.showDepthColoredDiveCards,
-                  onChanged: (value) {
-                    ref
-                        .read(settingsProvider.notifier)
-                        .setCardColorAttribute(
-                          value
-                              ? CardColorAttribute.depth
-                              : CardColorAttribute.none,
-                        );
-                  },
                 ),
                 const Divider(height: 1),
                 SwitchListTile(
@@ -1483,6 +1476,26 @@ class _AppearanceSectionContent extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  String _getAttributeDisplayName(
+    BuildContext context,
+    CardColorAttribute attr,
+  ) {
+    return switch (attr) {
+      CardColorAttribute.none =>
+        context.l10n.settings_appearance_cardColorAttribute_none,
+      CardColorAttribute.depth =>
+        context.l10n.settings_appearance_cardColorAttribute_depth,
+      CardColorAttribute.duration =>
+        context.l10n.settings_appearance_cardColorAttribute_duration,
+      CardColorAttribute.temperature =>
+        context.l10n.settings_appearance_cardColorAttribute_temperature,
+      CardColorAttribute.otu =>
+        context.l10n.settings_appearance_cardColorAttribute_otu,
+      CardColorAttribute.maxPpO2 =>
+        context.l10n.settings_appearance_cardColorAttribute_maxPpO2,
+    };
   }
 }
 
