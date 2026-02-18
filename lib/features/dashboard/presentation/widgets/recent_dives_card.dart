@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -49,16 +51,23 @@ class RecentDivesCard extends ConsumerWidget {
               return _buildEmptyState(context);
             }
 
-            // Calculate depth range for relative depth coloring
-            final depthsWithValues = dives
-                .where((d) => d.maxDepth != null)
-                .map((d) => d.maxDepth!);
-            final minDepth = depthsWithValues.isNotEmpty
-                ? depthsWithValues.reduce((a, b) => a < b ? a : b)
+            // Calculate value range for card coloring based on active attribute
+            final settings = ref.read(settingsProvider);
+            final colorAttribute = settings.cardColorAttribute;
+            final colorValues = dives
+                .map((d) => getCardColorValueFromDive(d, colorAttribute))
+                .whereType<double>();
+            final minValue = colorValues.isNotEmpty
+                ? colorValues.reduce((a, b) => a < b ? a : b)
                 : null;
-            final maxDepth = depthsWithValues.isNotEmpty
-                ? depthsWithValues.reduce((a, b) => a > b ? a : b)
+            final maxValue = colorValues.isNotEmpty
+                ? colorValues.reduce((a, b) => a > b ? a : b)
                 : null;
+            final gradientColors = resolveGradientColors(
+              presetName: settings.cardColorGradientPreset,
+              customStart: settings.cardColorGradientStart,
+              customEnd: settings.cardColorGradientEnd,
+            );
 
             return Column(
               children: dives.asMap().entries.map((entry) {
@@ -76,9 +85,11 @@ class RecentDivesCard extends ConsumerWidget {
                   rating: dive.rating,
                   isFavorite: dive.isFavorite,
                   tags: dive.tags,
-                  colorValue: dive.maxDepth,
-                  minValueInList: minDepth,
-                  maxValueInList: maxDepth,
+                  colorValue: getCardColorValueFromDive(dive, colorAttribute),
+                  minValueInList: minValue,
+                  maxValueInList: maxValue,
+                  gradientStartColor: gradientColors.start,
+                  gradientEndColor: gradientColors.end,
                   siteLatitude: dive.site?.location?.latitude,
                   siteLongitude: dive.site?.location?.longitude,
                   onTap: () => context.push('/dives/${dive.id}'),

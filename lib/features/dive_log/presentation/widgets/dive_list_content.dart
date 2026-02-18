@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -1133,16 +1134,23 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   ) {
     final dives = paginatedState.dives;
 
-    // Calculate depth range for relative depth coloring
-    final depthsWithValues = dives
-        .where((d) => d.maxDepth != null)
-        .map((d) => d.maxDepth!);
-    final minDepth = depthsWithValues.isNotEmpty
-        ? depthsWithValues.reduce((a, b) => a < b ? a : b)
+    // Calculate value range for card coloring based on active attribute
+    final settings = ref.read(settingsProvider);
+    final colorAttribute = settings.cardColorAttribute;
+    final colorValues = dives
+        .map((d) => getCardColorValue(d, colorAttribute))
+        .whereType<double>();
+    final minValue = colorValues.isNotEmpty
+        ? colorValues.reduce((a, b) => a < b ? a : b)
         : null;
-    final maxDepth = depthsWithValues.isNotEmpty
-        ? depthsWithValues.reduce((a, b) => a > b ? a : b)
+    final maxValue = colorValues.isNotEmpty
+        ? colorValues.reduce((a, b) => a > b ? a : b)
         : null;
+    final gradientColors = resolveGradientColors(
+      presetName: settings.cardColorGradientPreset,
+      customStart: settings.cardColorGradientStart,
+      customEnd: settings.cardColorGradientEnd,
+    );
 
     // +1 for loading indicator when more pages are available
     final itemCount =
@@ -1185,9 +1193,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   tags: dive.tags,
                   isSelectionMode: _isSelectionMode,
                   isSelected: isSelected || isMasterSelected,
-                  colorValue: dive.maxDepth,
-                  minValueInList: minDepth,
-                  maxValueInList: maxDepth,
+                  colorValue: getCardColorValue(dive, colorAttribute),
+                  minValueInList: minValue,
+                  maxValueInList: maxValue,
+                  gradientStartColor: gradientColors.start,
+                  gradientEndColor: gradientColors.end,
                   siteLatitude: dive.siteLatitude,
                   siteLongitude: dive.siteLongitude,
                   onTap: () => _handleItemTap(dive),
