@@ -1390,6 +1390,40 @@ class MockDiveRepository extends _i1.Mock implements _i13.DiveRepository {
           as _i17.Future<List<_i12.DiveProfilePoint>>);
 
   @override
+  _i17.Future<void> saveEditedProfile(
+    String? diveId,
+    List<_i12.DiveProfilePoint>? editedPoints,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveEditedProfile, [diveId, editedPoints]),
+            returnValue: _i17.Future<void>.value(),
+            returnValueForMissingStub: _i17.Future<void>.value(),
+          )
+          as _i17.Future<void>);
+
+  @override
+  _i17.Future<Map<String?, List<_i12.DiveProfilePoint>>> getProfilesBySource(
+    String? diveId,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#getProfilesBySource, [diveId]),
+            returnValue:
+                _i17.Future<Map<String?, List<_i12.DiveProfilePoint>>>.value(
+                  <String?, List<_i12.DiveProfilePoint>>{},
+                ),
+          )
+          as _i17.Future<Map<String?, List<_i12.DiveProfilePoint>>>);
+
+  @override
+  _i17.Future<void> restoreOriginalProfile(String? diveId) =>
+      (super.noSuchMethod(
+            Invocation.method(#restoreOriginalProfile, [diveId]),
+            returnValue: _i17.Future<void>.value(),
+            returnValueForMissingStub: _i17.Future<void>.value(),
+          )
+          as _i17.Future<void>);
+
+  @override
   _i17.Future<Map<String, List<_i12.DiveProfilePoint>>>
   getBatchProfileSummaries(List<String>? diveIds, {int? maxSamples = 20}) =>
       (super.noSuchMethod(

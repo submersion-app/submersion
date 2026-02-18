@@ -5,7 +5,7 @@ import 'package:auto_updater/auto_updater.dart';
 import 'package:submersion/features/auto_update/data/services/update_service.dart';
 import 'package:submersion/features/auto_update/domain/entities/update_status.dart';
 
-class SparkleUpdateService implements UpdateService {
+class SparkleUpdateService extends UpdateService {
   final String feedUrl;
   bool _initialized = false;
 
@@ -41,12 +41,20 @@ class SparkleUpdateService implements UpdateService {
     }
   }
 
-  /// Trigger a user-initiated (foreground) update check.
-  /// Shows Sparkle's native "checking for updates" dialog.
-  Future<void> checkForUpdatesInteractively() async {
-    if (!Platform.isMacOS && !Platform.isWindows) return;
+  @override
+  Future<UpdateStatus> checkForUpdateInteractively() async {
+    if (!Platform.isMacOS && !Platform.isWindows) {
+      return const UpToDate();
+    }
 
-    await _ensureInitialized();
-    await autoUpdater.checkForUpdates(inBackground: false);
+    try {
+      await _ensureInitialized();
+      // inBackground: false shows Sparkle's native "checking for updates"
+      // dialog with spinner, then the update prompt or "up to date" message.
+      await autoUpdater.checkForUpdates(inBackground: false);
+      return const UpToDate();
+    } catch (e) {
+      return UpdateError(message: e.toString());
+    }
   }
 }

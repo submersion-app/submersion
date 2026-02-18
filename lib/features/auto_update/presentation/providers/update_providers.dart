@@ -96,6 +96,25 @@ class UpdateStatusNotifier extends StateNotifier<UpdateStatus> {
       state = result;
     }
   }
+
+  /// User-initiated update check. Uses the platform's interactive UI
+  /// (e.g. Sparkle's native dialog on macOS) when available.
+  Future<void> checkForUpdateInteractively() async {
+    final serviceAsync = _ref.read(updateServiceProvider);
+    final service = serviceAsync.valueOrNull;
+    if (service == null) return;
+
+    state = const Checking();
+
+    final result = await service.checkForUpdateInteractively();
+
+    final prefs = _ref.read(updatePreferencesProvider);
+    await prefs.setLastCheckTime(DateTime.now());
+
+    if (mounted) {
+      state = result;
+    }
+  }
 }
 
 /// Convenience provider: true when an update is available or ready.

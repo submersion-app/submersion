@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:submersion/features/auto_update/data/services/update_service.dart';
 import 'package:submersion/features/auto_update/domain/entities/update_status.dart';
 
-class GithubUpdateService implements UpdateService {
+class GithubUpdateService extends UpdateService {
   final String owner;
   final String repo;
   final String currentVersion;
