@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -311,8 +312,9 @@ class DiveSearchDelegate extends SearchDelegate<Dive?> {
               rating: dive.rating,
               isFavorite: dive.isFavorite,
               tags: dive.tags,
-              minDepthInList: minDepth,
-              maxDepthInList: maxDepth,
+              colorValue: dive.maxDepth,
+              minValueInList: minDepth,
+              maxValueInList: maxDepth,
               siteLatitude: dive.site?.location?.latitude,
               siteLongitude: dive.site?.location?.longitude,
               onTap: () {
@@ -351,11 +353,20 @@ class DiveListTile extends ConsumerWidget {
   final bool isSelectionMode;
   final bool isSelected;
 
-  /// Min depth in the current list (for relative depth coloring)
-  final double? minDepthInList;
+  /// The dive's value for the active color attribute
+  final double? colorValue;
 
-  /// Max depth in the current list (for relative depth coloring)
-  final double? maxDepthInList;
+  /// Min value in the current list for normalization
+  final double? minValueInList;
+
+  /// Max value in the current list for normalization
+  final double? maxValueInList;
+
+  /// Gradient start color (low value)
+  final Color? gradientStartColor;
+
+  /// Gradient end color (high value)
+  final Color? gradientEndColor;
 
   /// Site location for map background
   final double? siteLatitude;
@@ -378,33 +389,24 @@ class DiveListTile extends ConsumerWidget {
     this.onLongPress,
     this.isSelectionMode = false,
     this.isSelected = false,
-    this.minDepthInList,
-    this.maxDepthInList,
+    this.colorValue,
+    this.minValueInList,
+    this.maxValueInList,
+    this.gradientStartColor,
+    this.gradientEndColor,
     this.siteLatitude,
     this.siteLongitude,
   });
 
-  /// Calculate background color based on relative depth
-  Color? _getDepthBackgroundColor(BuildContext context) {
-    if (maxDepth == null || minDepthInList == null || maxDepthInList == null) {
-      return null;
-    }
-
-    final depthRange = maxDepthInList! - minDepthInList!;
-    if (depthRange <= 0) {
-      // All dives are the same depth, use a medium blue
-      return Colors.blue.withValues(alpha: 0.25);
-    }
-
-    // Normalize depth to 0.0 (shallowest) - 1.0 (deepest)
-    final normalizedDepth = (maxDepth! - minDepthInList!) / depthRange;
-
-    // Map to ocean colors: shallow = turquoise (Caribbean), deep = dark navy (abyss)
-    // Using Color.lerp for smooth gradient between the two
-    const shallowTurquoise = Color(0xFF4DD0E1); // Bright turquoise (Cyan 300)
-    const deepNavy = Color(0xFF0D1B2A); // Very dark navy (deep ocean)
-
-    return Color.lerp(shallowTurquoise, deepNavy, normalizedDepth);
+  /// Calculate background color based on the active color attribute
+  Color? _getAttributeBackgroundColor() {
+    return normalizeAndLerp(
+      value: colorValue,
+      min: minValueInList,
+      max: maxValueInList,
+      startColor: gradientStartColor ?? const Color(0xFF4DD0E1),
+      endColor: gradientEndColor ?? const Color(0xFF0D1B2A),
+    );
   }
 
   /// Determine if text should be light or dark based on background color
@@ -425,22 +427,23 @@ class DiveListTile extends ConsumerWidget {
     final profileCache = ref.watch(batchProfileCacheProvider);
     final profile = profileCache[diveId] ?? const [];
 
-    // Check if depth-colored cards are enabled
-    final showDepthColors = ref.watch(showDepthColoredDiveCardsProvider);
+    // Check if attribute-colored cards are enabled
+    final colorAttribute = ref.watch(cardColorAttributeProvider);
+    final showCardColors = colorAttribute != CardColorAttribute.none;
     // Check if map background is enabled
     final showMapBackground = ref.watch(showMapBackgroundOnDiveCardsProvider);
 
     // Determine if we should show the map (setting enabled + location available)
     final shouldShowMap = showMapBackground && _hasLocation && !isSelected;
 
-    // Determine card background: selection takes priority, then depth coloring (if enabled)
-    // When map is shown, we don't use depth coloring on the card itself
-    final depthColor = (showDepthColors && !shouldShowMap)
-        ? _getDepthBackgroundColor(context)
+    // Determine card background: selection takes priority, then attribute coloring
+    // When map is shown, we don't use attribute coloring on the card itself
+    final attributeColor = (showCardColors && !shouldShowMap)
+        ? _getAttributeBackgroundColor()
         : null;
     final cardColor = isSelected
         ? colorScheme.primaryContainer.withValues(alpha: 0.3)
-        : depthColor;
+        : attributeColor;
 
     // Determine text colors based on background luminance
     // When map is shown, use light text since the gradient overlay makes the background dark
