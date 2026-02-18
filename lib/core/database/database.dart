@@ -552,6 +552,13 @@ class DiverSettings extends Table {
   // Appearance settings
   BoolColumn get showDepthColoredDiveCards =>
       boolean().withDefault(const Constant(false))();
+  // Card coloring settings (v35)
+  TextColumn get cardColorAttribute =>
+      text().withDefault(const Constant('none'))();
+  TextColumn get cardColorGradientPreset =>
+      text().withDefault(const Constant('ocean'))();
+  IntColumn get cardColorGradientStart => integer().nullable()();
+  IntColumn get cardColorGradientEnd => integer().nullable()();
   BoolColumn get showMapBackgroundOnDiveCards =>
       boolean().withDefault(const Constant(false))();
   BoolColumn get showMapBackgroundOnSiteCards =>
@@ -1077,7 +1084,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 34;
+  int get schemaVersion => 35;
 
   @override
   MigrationStrategy get migration {
@@ -1820,6 +1827,25 @@ class AppDatabase extends _$AppDatabase {
             CREATE INDEX IF NOT EXISTS idx_dive_custom_fields_key
             ON dive_custom_fields(field_key)
           ''');
+        }
+        if (from < 35) {
+          // Card coloring: attribute selector + gradient settings
+          await customStatement(
+            "ALTER TABLE diver_settings ADD COLUMN card_color_attribute TEXT NOT NULL DEFAULT 'none'",
+          );
+          await customStatement(
+            "ALTER TABLE diver_settings ADD COLUMN card_color_gradient_preset TEXT NOT NULL DEFAULT 'ocean'",
+          );
+          await customStatement(
+            'ALTER TABLE diver_settings ADD COLUMN card_color_gradient_start INTEGER',
+          );
+          await customStatement(
+            'ALTER TABLE diver_settings ADD COLUMN card_color_gradient_end INTEGER',
+          );
+          // Migrate existing depth coloring users
+          await customStatement(
+            "UPDATE diver_settings SET card_color_attribute = 'depth' WHERE show_depth_colored_dive_cards = 1",
+          );
         }
       },
       beforeOpen: (details) async {
