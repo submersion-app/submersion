@@ -402,6 +402,295 @@ class DecoInfoPanel extends StatelessWidget {
   }
 }
 
+/// Compact decompression status panel showing all deco data in a condensed
+/// card format. Tappable to expand to the full [DecoInfoPanel] view.
+class CompactDecoPanel extends StatelessWidget {
+  /// Current decompression status
+  final DecoStatus status;
+
+  /// Optional subtitle text (e.g. "at 3:42")
+  final String? subtitle;
+
+  /// Callback when the panel is tapped to expand
+  final VoidCallback? onTap;
+
+  const CompactDecoPanel({
+    super.key,
+    required this.status,
+    this.subtitle,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Card(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header row
+              _buildHeaderRow(context, colorScheme, textTheme),
+              const SizedBox(height: 8),
+
+              // Metrics row
+              _buildMetricsRow(context, colorScheme, textTheme),
+              const SizedBox(height: 8),
+
+              // Tissue chart
+              _buildTissueChart(context),
+              const SizedBox(height: 6),
+
+              // Bottom row: GF values and deco stops
+              _buildBottomRow(context, colorScheme, textTheme),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeaderRow(
+    BuildContext context,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
+    return Row(
+      children: [
+        ExcludeSemantics(
+          child: Icon(
+            status.inDeco ? Icons.warning : Icons.check_circle,
+            size: 16,
+            color: status.inDeco ? Colors.orange : Colors.green,
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          context.l10n.diveLog_detail_section_decoStatus,
+          style: textTheme.titleSmall,
+        ),
+        if (subtitle != null) ...[
+          const SizedBox(width: 6),
+          Text(
+            subtitle!,
+            style: textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+        const Spacer(),
+        Semantics(
+          label: status.inDeco
+              ? context.l10n.diveLog_deco_semantics_required
+              : context.l10n.diveLog_deco_semantics_notRequired,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+            decoration: BoxDecoration(
+              color: status.inDeco
+                  ? Colors.orange.withValues(alpha: 0.2)
+                  : Colors.green.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              status.inDeco
+                  ? context.l10n.diveLog_deco_badge_deco
+                  : context.l10n.diveLog_deco_badge_noDeco,
+              style: textTheme.labelSmall?.copyWith(
+                fontSize: 10,
+                color: status.inDeco ? Colors.orange : Colors.green,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 4),
+        ExcludeSemantics(
+          child: Icon(
+            Icons.expand_more,
+            size: 18,
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMetricsRow(
+    BuildContext context,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
+    return Row(
+      children: [
+        // NDL or Ceiling
+        Expanded(
+          child: _buildCompactMetric(
+            context,
+            value: status.inDeco
+                ? '${status.ceilingMeters.toStringAsFixed(1)}m'
+                : status.ndlFormatted,
+            label: status.inDeco
+                ? context.l10n.diveLog_deco_label_ceiling
+                : context.l10n.diveLog_deco_label_ndl,
+            textTheme: textTheme,
+            colorScheme: colorScheme,
+          ),
+        ),
+
+        // TTS
+        Expanded(
+          child: _buildCompactMetric(
+            context,
+            value: status.ttsFormatted,
+            label: context.l10n.diveLog_deco_label_tts,
+            textTheme: textTheme,
+            colorScheme: colorScheme,
+          ),
+        ),
+
+        // Leading compartment
+        Expanded(
+          child: _buildCompactMetric(
+            context,
+            value:
+                '#${status.leadingCompartmentNumber} ${status.leadingCompartmentLoading.toStringAsFixed(0)}%',
+            label: context.l10n.diveLog_deco_label_leading,
+            textTheme: textTheme,
+            colorScheme: colorScheme,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCompactMetric(
+    BuildContext context, {
+    required String value,
+    required String label,
+    required TextTheme textTheme,
+    required ColorScheme colorScheme,
+  }) {
+    return Semantics(
+      label: '$label: $value',
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        child: Column(
+          children: [
+            Text(
+              value,
+              style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            Text(
+              label,
+              style: textTheme.labelSmall?.copyWith(
+                fontSize: 10,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTissueChart(BuildContext context) {
+    return Semantics(
+      label: chartSummaryLabel(
+        chartType: 'Tissue loading bar',
+        description:
+            '${status.compartments.length} compartments, leading compartment ${status.leadingCompartmentNumber} at ${status.leadingCompartmentLoading.toStringAsFixed(0)} percent',
+      ),
+      child: SizedBox(
+        height: 40,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: status.compartments.map((comp) {
+            final loading = comp.percentLoading.clamp(0.0, 120.0);
+            final normalizedHeight = (loading / 120.0).clamp(0.0, 1.0);
+            final color = _getLoadingColor(loading);
+
+            return Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 0.5),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.3),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(1),
+                    ),
+                  ),
+                  child: FractionallySizedBox(
+                    heightFactor: normalizedHeight,
+                    alignment: Alignment.bottomCenter,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: color,
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(1),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomRow(
+    BuildContext context,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
+    return Row(
+      children: [
+        Semantics(
+          label:
+              'Gradient factors: low ${(status.gfLow * 100).toInt()}, high ${(status.gfHigh * 100).toInt()}',
+          child: Text(
+            'GF: ${(status.gfLow * 100).toInt()}/${(status.gfHigh * 100).toInt()}',
+            style: textTheme.labelSmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        if (status.decoStops.isNotEmpty) ...[
+          const SizedBox(width: 8),
+          Expanded(
+            child: Semantics(
+              label:
+                  '${context.l10n.diveLog_deco_sectionDecoStops}: ${status.decoStops.take(3).map((s) => '${s.depthFormatted()} ${s.durationFormatted}').join(', ')}',
+              child: Text(
+                '${context.l10n.diveLog_deco_sectionDecoStops}: ${status.decoStops.take(3).map((s) => '${s.depthFormatted()} ${s.durationFormatted}').join(', ')}',
+                style: textTheme.labelSmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Color _getLoadingColor(double loading) {
+    if (loading >= 100) return Colors.red;
+    if (loading >= 80) return Colors.orange;
+    if (loading >= 60) return Colors.amber;
+    return Colors.green;
+  }
+}
+
 /// Compact NDL/Ceiling display widget.
 class NdlBadge extends StatelessWidget {
   final DecoStatus status;
