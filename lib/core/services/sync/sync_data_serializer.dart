@@ -1266,7 +1266,7 @@ class SyncDataSerializer {
   /// Applies default values for DiverSettings fields that may be missing
   /// from older sync data or incomplete conflict records.
   Map<String, dynamic> _applyDiverSettingDefaults(Map<String, dynamic> data) {
-    return {
+    final merged = {
       // Unit settings
       'depthUnit': 'meters',
       'temperatureUnit': 'celsius',
@@ -1299,6 +1299,10 @@ class SyncDataSerializer {
       'decoStopIncrement': 3.0,
       // Appearance settings
       'showDepthColoredDiveCards': false,
+      'cardColorAttribute': 'none',
+      'cardColorGradientPreset': 'ocean',
+      'cardColorGradientStart': null,
+      'cardColorGradientEnd': null,
       'showMapBackgroundOnDiveCards': false,
       'showMapBackgroundOnSiteCards': false,
       // Dive profile markers
@@ -1307,6 +1311,15 @@ class SyncDataSerializer {
       // Override with actual data (existing values take precedence)
       ...data,
     };
+    // Backward compat: old exports have showDepthColoredDiveCards but not
+    // cardColorAttribute. If the old boolean is true and no new key was
+    // provided, infer depth coloring.
+    if (merged['cardColorAttribute'] == 'none' &&
+        data['showDepthColoredDiveCards'] == true &&
+        !data.containsKey('cardColorAttribute')) {
+      merged['cardColorAttribute'] = 'depth';
+    }
+    return merged;
   }
 
   // ============================================================================
@@ -1363,6 +1376,10 @@ class SyncDataSerializer {
     'lastStopDepth': r.lastStopDepth,
     'decoStopIncrement': r.decoStopIncrement,
     'showDepthColoredDiveCards': r.showDepthColoredDiveCards,
+    'cardColorAttribute': r.cardColorAttribute,
+    'cardColorGradientPreset': r.cardColorGradientPreset,
+    'cardColorGradientStart': r.cardColorGradientStart,
+    'cardColorGradientEnd': r.cardColorGradientEnd,
     'showMapBackgroundOnDiveCards': r.showMapBackgroundOnDiveCards,
     'showMapBackgroundOnSiteCards': r.showMapBackgroundOnSiteCards,
     'showMaxDepthMarker': r.showMaxDepthMarker,
