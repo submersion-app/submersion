@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -103,8 +105,21 @@ class AppSettings {
   final double decoStopIncrement;
 
   // Appearance settings
-  /// Show depth-based colored backgrounds on dive cards in the dive list
-  final bool showDepthColoredDiveCards;
+  /// Which attribute to use for card background coloring
+  final CardColorAttribute cardColorAttribute;
+
+  /// Name of the selected gradient preset ('ocean', 'thermal', etc.)
+  final String cardColorGradientPreset;
+
+  /// Custom gradient start color (ARGB int), null when using preset
+  final int? cardColorGradientStart;
+
+  /// Custom gradient end color (ARGB int), null when using preset
+  final int? cardColorGradientEnd;
+
+  /// Backward-compatible getter: true when any card coloring is active
+  bool get showDepthColoredDiveCards =>
+      cardColorAttribute != CardColorAttribute.none;
 
   /// Show dive site map as background on dive cards in the dive list
   final bool showMapBackgroundOnDiveCards;
@@ -199,7 +214,10 @@ class AppSettings {
     this.lastStopDepth = 3.0,
     this.decoStopIncrement = 3.0,
     // Appearance defaults
-    this.showDepthColoredDiveCards = false,
+    this.cardColorAttribute = CardColorAttribute.none,
+    this.cardColorGradientPreset = 'ocean',
+    this.cardColorGradientStart,
+    this.cardColorGradientEnd,
     this.showMapBackgroundOnDiveCards = false,
     this.showMapBackgroundOnSiteCards = false,
     // Dive profile marker defaults
@@ -287,7 +305,12 @@ class AppSettings {
     bool? showNdlOnProfile,
     double? lastStopDepth,
     double? decoStopIncrement,
-    bool? showDepthColoredDiveCards,
+    CardColorAttribute? cardColorAttribute,
+    String? cardColorGradientPreset,
+    int? cardColorGradientStart,
+    int? cardColorGradientEnd,
+    bool clearCardColorGradientStart = false,
+    bool clearCardColorGradientEnd = false,
     bool? showMapBackgroundOnDiveCards,
     bool? showMapBackgroundOnSiteCards,
     bool? showMaxDepthMarker,
@@ -338,8 +361,15 @@ class AppSettings {
       showNdlOnProfile: showNdlOnProfile ?? this.showNdlOnProfile,
       lastStopDepth: lastStopDepth ?? this.lastStopDepth,
       decoStopIncrement: decoStopIncrement ?? this.decoStopIncrement,
-      showDepthColoredDiveCards:
-          showDepthColoredDiveCards ?? this.showDepthColoredDiveCards,
+      cardColorAttribute: cardColorAttribute ?? this.cardColorAttribute,
+      cardColorGradientPreset:
+          cardColorGradientPreset ?? this.cardColorGradientPreset,
+      cardColorGradientStart: clearCardColorGradientStart
+          ? null
+          : (cardColorGradientStart ?? this.cardColorGradientStart),
+      cardColorGradientEnd: clearCardColorGradientEnd
+          ? null
+          : (cardColorGradientEnd ?? this.cardColorGradientEnd),
       showMapBackgroundOnDiveCards:
           showMapBackgroundOnDiveCards ?? this.showMapBackgroundOnDiveCards,
       showMapBackgroundOnSiteCards:
@@ -372,6 +402,11 @@ class AppSettings {
     );
   }
 }
+
+/// App package info (version, build number, etc.) from the platform.
+final packageInfoProvider = FutureProvider<PackageInfo>((ref) async {
+  return PackageInfo.fromPlatform();
+});
 
 /// SharedPreferences provider
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
@@ -634,8 +669,26 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   // Appearance setters
 
-  Future<void> setShowDepthColoredDiveCards(bool value) async {
-    state = state.copyWith(showDepthColoredDiveCards: value);
+  Future<void> setCardColorAttribute(CardColorAttribute attribute) async {
+    state = state.copyWith(cardColorAttribute: attribute);
+    await _saveSettings();
+  }
+
+  Future<void> setCardColorGradientPreset(String preset) async {
+    state = state.copyWith(
+      cardColorGradientPreset: preset,
+      clearCardColorGradientStart: true,
+      clearCardColorGradientEnd: true,
+    );
+    await _saveSettings();
+  }
+
+  Future<void> setCardColorGradientCustom(int start, int end) async {
+    state = state.copyWith(
+      cardColorGradientPreset: 'custom',
+      cardColorGradientStart: start,
+      cardColorGradientEnd: end,
+    );
     await _saveSettings();
   }
 
@@ -892,6 +945,10 @@ final decoStopIncrementProvider = Provider<double>((ref) {
 /// Appearance settings convenience providers
 final showDepthColoredDiveCardsProvider = Provider<bool>((ref) {
   return ref.watch(settingsProvider.select((s) => s.showDepthColoredDiveCards));
+});
+
+final cardColorAttributeProvider = Provider<CardColorAttribute>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.cardColorAttribute));
 });
 
 final showMapBackgroundOnDiveCardsProvider = Provider<bool>((ref) {

@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 void main() {
   group('CardColorAttribute', () {
@@ -287,6 +288,31 @@ void main() {
       final thermal = cardColorPresets['thermal']!;
       expect(result.start, thermal.startColor);
       expect(result.end, thermal.endColor);
+    });
+  });
+
+  group('AppSettings backward compatibility', () {
+    test(
+      'showDepthColoredDiveCards returns true when attribute is not none',
+      () {
+        const settings = AppSettings(
+          cardColorAttribute: CardColorAttribute.depth,
+        );
+        expect(settings.showDepthColoredDiveCards, true);
+      },
+    );
+
+    test('showDepthColoredDiveCards returns false when attribute is none', () {
+      const settings = AppSettings(cardColorAttribute: CardColorAttribute.none);
+      expect(settings.showDepthColoredDiveCards, false);
+    });
+
+    test('default AppSettings has cardColorAttribute none', () {
+      const settings = AppSettings();
+      expect(settings.cardColorAttribute, CardColorAttribute.none);
+      expect(settings.cardColorGradientPreset, 'ocean');
+      expect(settings.cardColorGradientStart, isNull);
+      expect(settings.cardColorGradientEnd, isNull);
     });
   });
 }

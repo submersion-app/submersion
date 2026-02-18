@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/notification_service.dart';
@@ -1101,7 +1102,11 @@ class _AppearanceSectionContent extends ConsumerWidget {
                   onChanged: (value) {
                     ref
                         .read(settingsProvider.notifier)
-                        .setShowDepthColoredDiveCards(value);
+                        .setCardColorAttribute(
+                          value
+                              ? CardColorAttribute.depth
+                              : CardColorAttribute.none,
+                        );
                   },
                 ),
                 const Divider(height: 1),
@@ -1860,6 +1865,14 @@ class _AboutSectionContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final packageInfoAsync = ref.watch(packageInfoProvider);
+    final versionString = packageInfoAsync.when(
+      data: (info) =>
+          context.l10n.settings_about_version(info.version, info.buildNumber),
+      loading: () => '',
+      error: (_, _) => '',
+    );
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -1873,7 +1886,7 @@ class _AboutSectionContent extends ConsumerWidget {
                 ListTile(
                   leading: const Icon(Icons.info_outline),
                   title: Text(context.l10n.settings_about_aboutSubmersion),
-                  onTap: () => _showAboutDialog(context),
+                  onTap: () => _showAboutDialog(context, versionString),
                 ),
                 const Divider(height: 1),
                 ListTile(
@@ -1883,7 +1896,7 @@ class _AboutSectionContent extends ConsumerWidget {
                     showLicensePage(
                       context: context,
                       applicationName: context.l10n.settings_about_appName,
-                      applicationVersion: context.l10n.settings_about_version,
+                      applicationVersion: versionString,
                     );
                   },
                 ),
@@ -1931,7 +1944,7 @@ class _AboutSectionContent extends ConsumerWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  context.l10n.settings_about_version,
+                  versionString,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -1974,8 +1987,9 @@ class _AboutSectionContent extends ConsumerWidget {
             subtitle: Text(statusText),
             onTap: updateStatus is Checking
                 ? null
-                : () =>
-                      ref.read(updateStatusProvider.notifier).checkForUpdate(),
+                : () => ref
+                      .read(updateStatusProvider.notifier)
+                      .checkForUpdateInteractively(),
           ),
           const Divider(height: 1),
           SwitchListTile(
@@ -1999,11 +2013,11 @@ class _AboutSectionContent extends ConsumerWidget {
     );
   }
 
-  void _showAboutDialog(BuildContext context) {
+  void _showAboutDialog(BuildContext context, String versionString) {
     showAboutDialog(
       context: context,
       applicationName: context.l10n.settings_about_appName,
-      applicationVersion: context.l10n.settings_about_version,
+      applicationVersion: versionString,
       applicationIcon: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: Image.asset('assets/icon/icon.png', width: 64, height: 64),

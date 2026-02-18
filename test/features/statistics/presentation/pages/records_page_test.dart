@@ -8,6 +8,7 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/presentation/pages/records_page.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -101,8 +102,18 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setDecoStopIncrement(double value) async =>
       state = state.copyWith(decoStopIncrement: value);
   @override
-  Future<void> setShowDepthColoredDiveCards(bool value) async =>
-      state = state.copyWith(showDepthColoredDiveCards: value);
+  Future<void> setCardColorAttribute(CardColorAttribute attribute) async =>
+      state = state.copyWith(cardColorAttribute: attribute);
+  @override
+  Future<void> setCardColorGradientPreset(String preset) async =>
+      state = state.copyWith(cardColorGradientPreset: preset);
+  @override
+  Future<void> setCardColorGradientCustom(int start, int end) async =>
+      state = state.copyWith(
+        cardColorGradientPreset: 'custom',
+        cardColorGradientStart: start,
+        cardColorGradientEnd: end,
+      );
   @override
   Future<void> setShowMapBackgroundOnDiveCards(bool value) async =>
       state = state.copyWith(showMapBackgroundOnDiveCards: value);

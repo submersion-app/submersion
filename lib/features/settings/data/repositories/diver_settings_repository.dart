@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
@@ -295,7 +296,9 @@ class DiverSettingsRepository {
       showNdlOnProfile: row.showNdlOnProfile,
       lastStopDepth: row.lastStopDepth,
       decoStopIncrement: row.decoStopIncrement,
-      showDepthColoredDiveCards: row.showDepthColoredDiveCards,
+      cardColorAttribute: row.showDepthColoredDiveCards
+          ? CardColorAttribute.depth
+          : CardColorAttribute.none,
       showMapBackgroundOnDiveCards: row.showMapBackgroundOnDiveCards,
       showMapBackgroundOnSiteCards: row.showMapBackgroundOnSiteCards,
       showMaxDepthMarker: row.showMaxDepthMarker,

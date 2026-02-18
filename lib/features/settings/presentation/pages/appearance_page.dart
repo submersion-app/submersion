@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -54,7 +55,9 @@ class AppearancePage extends ConsumerWidget {
             onChanged: (value) {
               ref
                   .read(settingsProvider.notifier)
-                  .setShowDepthColoredDiveCards(value);
+                  .setCardColorAttribute(
+                    value ? CardColorAttribute.depth : CardColorAttribute.none,
+                  );
             },
           ),
           SwitchListTile(
