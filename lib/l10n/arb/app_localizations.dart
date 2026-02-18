@@ -15540,18 +15540,6 @@ abstract class AppLocalizations {
   /// **'Temperature'**
   String get settings_appearance_cardColorAttribute_temperature;
 
-  /// No description provided for @settings_appearance_cardColorAttribute_otu.
-  ///
-  /// In en, this message translates to:
-  /// **'OTU'**
-  String get settings_appearance_cardColorAttribute_otu;
-
-  /// No description provided for @settings_appearance_cardColorAttribute_maxPpO2.
-  ///
-  /// In en, this message translates to:
-  /// **'Max ppO2'**
-  String get settings_appearance_cardColorAttribute_maxPpO2;
-
   /// No description provided for @settings_appearance_colorGradient.
   ///
   /// In en, this message translates to:

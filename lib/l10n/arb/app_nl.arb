@@ -2852,8 +2852,6 @@
   "settings_appearance_cardColorAttribute_depth": "Diepte",
   "settings_appearance_cardColorAttribute_duration": "Duur",
   "settings_appearance_cardColorAttribute_temperature": "Temperatuur",
-  "settings_appearance_cardColorAttribute_otu": "OTU",
-  "settings_appearance_cardColorAttribute_maxPpO2": "Max ppO2",
   "settings_appearance_colorGradient": "Kleurverloop",
   "settings_appearance_colorGradient_subtitle": "Kies het kleurbereik voor kaartachtergronden",
   "settings_appearance_colorGradient_ocean": "Oceaan",

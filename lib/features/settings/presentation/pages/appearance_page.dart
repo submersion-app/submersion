@@ -461,10 +461,6 @@ class AppearancePage extends ConsumerWidget {
         context.l10n.settings_appearance_cardColorAttribute_duration,
       CardColorAttribute.temperature =>
         context.l10n.settings_appearance_cardColorAttribute_temperature,
-      CardColorAttribute.otu =>
-        context.l10n.settings_appearance_cardColorAttribute_otu,
-      CardColorAttribute.maxPpO2 =>
-        context.l10n.settings_appearance_cardColorAttribute_maxPpO2,
     };
   }
 }

@@ -2852,8 +2852,6 @@
   "settings_appearance_cardColorAttribute_depth": "العمق",
   "settings_appearance_cardColorAttribute_duration": "المدة",
   "settings_appearance_cardColorAttribute_temperature": "درجة الحرارة",
-  "settings_appearance_cardColorAttribute_otu": "OTU",
-  "settings_appearance_cardColorAttribute_maxPpO2": "Max ppO2",
   "settings_appearance_colorGradient": "تدرج الألوان",
   "settings_appearance_colorGradient_subtitle": "اختر نطاق الألوان لخلفيات البطاقات",
   "settings_appearance_colorGradient_ocean": "محيط",

@@ -2852,8 +2852,6 @@
   "settings_appearance_cardColorAttribute_depth": "Profondeur",
   "settings_appearance_cardColorAttribute_duration": "Duree",
   "settings_appearance_cardColorAttribute_temperature": "Temperature",
-  "settings_appearance_cardColorAttribute_otu": "OTU",
-  "settings_appearance_cardColorAttribute_maxPpO2": "Max ppO2",
   "settings_appearance_colorGradient": "Degrade de couleur",
   "settings_appearance_colorGradient_subtitle": "Choisir la gamme de couleurs pour les fonds de cartes",
   "settings_appearance_colorGradient_ocean": "Ocean",

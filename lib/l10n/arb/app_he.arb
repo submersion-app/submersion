@@ -2580,8 +2580,6 @@
   "settings_appearance_cardColorAttribute_depth": "עומק",
   "settings_appearance_cardColorAttribute_duration": "משך",
   "settings_appearance_cardColorAttribute_temperature": "טמפרטורה",
-  "settings_appearance_cardColorAttribute_otu": "OTU",
-  "settings_appearance_cardColorAttribute_maxPpO2": "Max ppO2",
   "settings_appearance_colorGradient": "מעבר צבעים",
   "settings_appearance_colorGradient_subtitle": "בחר את טווח הצבעים לרקעי הכרטיסים",
   "settings_appearance_colorGradient_ocean": "אוקיינוס",

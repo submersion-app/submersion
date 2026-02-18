@@ -40,7 +40,27 @@ class DashboardAlerts {
 final recentDivesProvider = FutureProvider<List<Dive>>((ref) async {
   final allDives = await ref.watch(divesProvider.future);
   // Dives are already sorted by date descending in the repository
-  return allDives.take(5).toList();
+  final recent = allDives.take(5).toList();
+
+  // Pre-load downsampled profiles so DiveListTile mini charts render
+  // immediately (the batch cache is shared with the paginated dive list).
+  if (recent.isNotEmpty) {
+    final cache = ref.read(batchProfileCacheProvider);
+    final uncached = recent
+        .map((d) => d.id)
+        .where((id) => !cache.containsKey(id))
+        .toList();
+    if (uncached.isNotEmpty) {
+      final repository = ref.read(diveRepositoryProvider);
+      final profiles = await repository.getBatchProfileSummaries(uncached);
+      ref.read(batchProfileCacheProvider.notifier).state = {
+        ...cache,
+        ...profiles,
+      };
+    }
+  }
+
+  return recent;
 });
 
 /// Dashboard alerts provider - combines equipment and insurance alerts

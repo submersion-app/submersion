@@ -19,8 +19,6 @@ class DiveSummary extends Equatable {
   final int? rating;
   final bool isFavorite;
   final String diveTypeId;
-  final double? otu;
-  final double? maxPpO2;
   final List<Tag> tags;
 
   // Site fields (from LEFT JOIN, avoids loading full DiveSite object)
@@ -44,8 +42,6 @@ class DiveSummary extends Equatable {
     this.rating,
     this.isFavorite = false,
     this.diveTypeId = 'recreational',
-    this.otu,
-    this.maxPpO2,
     this.tags = const [],
     this.siteName,
     this.siteCountry,
@@ -73,11 +69,6 @@ class DiveSummary extends Equatable {
       rating: dive.rating,
       isFavorite: dive.isFavorite,
       diveTypeId: dive.diveTypeId,
-      // otu and maxPpO2 are computed from dive_profiles in the paginated query;
-      // they are not available on the Dive entity, so card coloring will be
-      // absent during optimistic UI updates until the next database refresh.
-      otu: null,
-      maxPpO2: null,
       tags: dive.tags,
       siteName: dive.site?.name,
       siteCountry: dive.site?.country,
@@ -111,8 +102,6 @@ class DiveSummary extends Equatable {
     int? rating,
     bool? isFavorite,
     String? diveTypeId,
-    double? otu,
-    double? maxPpO2,
     List<Tag>? tags,
     String? siteName,
     String? siteCountry,
@@ -132,8 +121,6 @@ class DiveSummary extends Equatable {
       rating: rating ?? this.rating,
       isFavorite: isFavorite ?? this.isFavorite,
       diveTypeId: diveTypeId ?? this.diveTypeId,
-      otu: otu ?? this.otu,
-      maxPpO2: maxPpO2 ?? this.maxPpO2,
       tags: tags ?? this.tags,
       siteName: siteName ?? this.siteName,
       siteCountry: siteCountry ?? this.siteCountry,
@@ -156,8 +143,6 @@ class DiveSummary extends Equatable {
     rating,
     isFavorite,
     diveTypeId,
-    otu,
-    maxPpO2,
     tags,
     siteName,
     siteCountry,

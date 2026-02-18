@@ -2580,8 +2580,6 @@
   "settings_appearance_cardColorAttribute_depth": "Tiefe",
   "settings_appearance_cardColorAttribute_duration": "Dauer",
   "settings_appearance_cardColorAttribute_temperature": "Temperatur",
-  "settings_appearance_cardColorAttribute_otu": "OTU",
-  "settings_appearance_cardColorAttribute_maxPpO2": "Max. ppO2",
   "settings_appearance_colorGradient": "Farbverlauf",
   "settings_appearance_colorGradient_subtitle": "Waehlen Sie den Farbbereich fuer Kartenhintergruende",
   "settings_appearance_colorGradient_ocean": "Ozean",

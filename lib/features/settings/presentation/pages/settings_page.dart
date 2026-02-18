@@ -20,6 +20,7 @@ import 'package:submersion/features/settings/presentation/providers/storage_prov
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
+import 'package:submersion/features/settings/presentation/widgets/gradient_preset_picker.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_summary_widget.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/auto_update/domain/entities/update_channel.dart';
@@ -1095,13 +1096,46 @@ class _AppearanceSectionContent extends ConsumerWidget {
                   title: Text(
                     context.l10n.settings_appearance_cardColorAttribute,
                   ),
-                  subtitle: Text(
-                    _getAttributeDisplayName(
-                      context,
-                      settings.cardColorAttribute,
-                    ),
+                  trailing: DropdownButton<CardColorAttribute>(
+                    value: settings.cardColorAttribute,
+                    underline: const SizedBox(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        ref
+                            .read(settingsProvider.notifier)
+                            .setCardColorAttribute(value);
+                      }
+                    },
+                    items: CardColorAttribute.values.map((attr) {
+                      return DropdownMenuItem(
+                        value: attr,
+                        child: Text(_getAttributeDisplayName(context, attr)),
+                      );
+                    }).toList(),
                   ),
                 ),
+                if (settings.cardColorAttribute != CardColorAttribute.none)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    child: GradientPresetPicker(
+                      selectedPreset: settings.cardColorGradientPreset,
+                      customStart: settings.cardColorGradientStart,
+                      customEnd: settings.cardColorGradientEnd,
+                      onPresetSelected: (preset) {
+                        ref
+                            .read(settingsProvider.notifier)
+                            .setCardColorGradientPreset(preset);
+                      },
+                      onCustomSelected: (start, end) {
+                        ref
+                            .read(settingsProvider.notifier)
+                            .setCardColorGradientCustom(start, end);
+                      },
+                    ),
+                  ),
                 const Divider(height: 1),
                 SwitchListTile(
                   title: Text(
@@ -1491,10 +1525,6 @@ class _AppearanceSectionContent extends ConsumerWidget {
         context.l10n.settings_appearance_cardColorAttribute_duration,
       CardColorAttribute.temperature =>
         context.l10n.settings_appearance_cardColorAttribute_temperature,
-      CardColorAttribute.otu =>
-        context.l10n.settings_appearance_cardColorAttribute_otu,
-      CardColorAttribute.maxPpO2 =>
-        context.l10n.settings_appearance_cardColorAttribute_maxPpO2,
     };
   }
 }

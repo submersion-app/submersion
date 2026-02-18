@@ -8,9 +8,7 @@ enum CardColorAttribute {
   none,
   depth,
   duration,
-  temperature,
-  otu,
-  maxPpO2;
+  temperature;
 
   /// Parse from stored string, defaulting to none.
   static CardColorAttribute fromName(String name) {
@@ -70,21 +68,16 @@ double? getCardColorValue(DiveSummary dive, CardColorAttribute attribute) {
     CardColorAttribute.depth => dive.maxDepth,
     CardColorAttribute.duration => dive.duration?.inMinutes.toDouble(),
     CardColorAttribute.temperature => dive.waterTemp,
-    CardColorAttribute.otu => dive.otu,
-    CardColorAttribute.maxPpO2 => dive.maxPpO2,
   };
 }
 
 /// Extract the numeric value from a full Dive entity for a given attribute.
-/// OTU and maxPpO2 are not available on Dive (they are computed from profiles).
 double? getCardColorValueFromDive(Dive dive, CardColorAttribute attribute) {
   return switch (attribute) {
     CardColorAttribute.none => null,
     CardColorAttribute.depth => dive.maxDepth,
     CardColorAttribute.duration => dive.duration?.inMinutes.toDouble(),
     CardColorAttribute.temperature => dive.waterTemp,
-    CardColorAttribute.otu => null,
-    CardColorAttribute.maxPpO2 => null,
   };
 }
 

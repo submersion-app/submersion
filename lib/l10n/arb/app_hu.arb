@@ -2580,8 +2580,6 @@
   "settings_appearance_cardColorAttribute_depth": "Melyseg",
   "settings_appearance_cardColorAttribute_duration": "Idotartam",
   "settings_appearance_cardColorAttribute_temperature": "Homerseklet",
-  "settings_appearance_cardColorAttribute_otu": "OTU",
-  "settings_appearance_cardColorAttribute_maxPpO2": "Max ppO2",
   "settings_appearance_colorGradient": "Szinatlenet",
   "settings_appearance_colorGradient_subtitle": "Valassza ki a szintartomanyt a kartya hatterekhez",
   "settings_appearance_colorGradient_ocean": "Ocean",

@@ -8989,12 +8989,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Temperatura';
 
   @override
-  String get settings_appearance_cardColorAttribute_otu => 'OTU';
-
-  @override
-  String get settings_appearance_cardColorAttribute_maxPpO2 => 'Max ppO2';
-
-  @override
   String get settings_appearance_colorGradient => 'Gradiente de color';
 
   @override

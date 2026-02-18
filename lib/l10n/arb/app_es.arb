@@ -2580,8 +2580,6 @@
   "settings_appearance_cardColorAttribute_depth": "Profundidad",
   "settings_appearance_cardColorAttribute_duration": "Duracion",
   "settings_appearance_cardColorAttribute_temperature": "Temperatura",
-  "settings_appearance_cardColorAttribute_otu": "OTU",
-  "settings_appearance_cardColorAttribute_maxPpO2": "Max ppO2",
   "settings_appearance_colorGradient": "Gradiente de color",
   "settings_appearance_colorGradient_subtitle": "Elegir el rango de colores para los fondos de las tarjetas",
   "settings_appearance_colorGradient_ocean": "Oceano",

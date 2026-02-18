@@ -7,8 +7,8 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 
 void main() {
   group('CardColorAttribute', () {
-    test('has 6 values including none', () {
-      expect(CardColorAttribute.values.length, 6);
+    test('has 4 values including none', () {
+      expect(CardColorAttribute.values.length, 4);
       expect(
         CardColorAttribute.values,
         containsAll([
@@ -16,8 +16,6 @@ void main() {
           CardColorAttribute.depth,
           CardColorAttribute.duration,
           CardColorAttribute.temperature,
-          CardColorAttribute.otu,
-          CardColorAttribute.maxPpO2,
         ]),
       );
     });
@@ -32,11 +30,6 @@ void main() {
       expect(
         CardColorAttribute.fromName('temperature'),
         CardColorAttribute.temperature,
-      );
-      expect(CardColorAttribute.fromName('otu'), CardColorAttribute.otu);
-      expect(
-        CardColorAttribute.fromName('maxPpO2'),
-        CardColorAttribute.maxPpO2,
       );
     });
 
@@ -79,8 +72,6 @@ void main() {
       maxDepth: 30.0,
       duration: const Duration(minutes: 45),
       waterTemp: 22.5,
-      otu: 18.0,
-      maxPpO2: 1.4,
       sortTimestamp: DateTime(2024, 6, 15).millisecondsSinceEpoch,
     );
 
@@ -94,14 +85,6 @@ void main() {
 
     test('returns waterTemp for temperature attribute', () {
       expect(getCardColorValue(dive, CardColorAttribute.temperature), 22.5);
-    });
-
-    test('returns otu for otu attribute', () {
-      expect(getCardColorValue(dive, CardColorAttribute.otu), 18.0);
-    });
-
-    test('returns maxPpO2 for maxPpO2 attribute', () {
-      expect(getCardColorValue(dive, CardColorAttribute.maxPpO2), 1.4);
     });
 
     test('returns null for none attribute', () {
@@ -120,8 +103,6 @@ void main() {
         getCardColorValue(spareDive, CardColorAttribute.temperature),
         isNull,
       );
-      expect(getCardColorValue(spareDive, CardColorAttribute.otu), isNull);
-      expect(getCardColorValue(spareDive, CardColorAttribute.maxPpO2), isNull);
     });
   });
 
