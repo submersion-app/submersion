@@ -24,8 +24,8 @@ class CollapsibleSectionState {
   final bool tideExpanded;
 
   const CollapsibleSectionState({
-    this.decoExpanded = true,
-    this.o2ToxicityExpanded = true,
+    this.decoExpanded = false,
+    this.o2ToxicityExpanded = false,
     this.sacSegmentsExpanded = true,
     this.equipmentExpanded = true,
     this.tideExpanded = true,
@@ -61,9 +61,9 @@ class CollapsibleSectionNotifier
   void _loadState() {
     state = CollapsibleSectionState(
       decoExpanded:
-          _prefs.getBool(DiveDetailUiKeys.decoSectionExpanded) ?? true,
+          _prefs.getBool(DiveDetailUiKeys.decoSectionExpanded) ?? false,
       o2ToxicityExpanded:
-          _prefs.getBool(DiveDetailUiKeys.o2ToxicitySectionExpanded) ?? true,
+          _prefs.getBool(DiveDetailUiKeys.o2ToxicitySectionExpanded) ?? false,
       sacSegmentsExpanded:
           _prefs.getBool(DiveDetailUiKeys.sacSegmentsSectionExpanded) ?? true,
       equipmentExpanded:
