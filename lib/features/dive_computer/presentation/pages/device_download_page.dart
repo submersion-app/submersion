@@ -66,11 +66,9 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
       final discoveryNotifier = ref.read(discoveryNotifierProvider.notifier);
       await discoveryNotifier.startScan();
 
-      // Subscribe to the discovered devices stream directly
-      // This is necessary because ref.read() on a StreamProvider doesn't
-      // create an active subscription, so broadcast stream events are missed
-      final connectionManager = ref.read(bluetoothConnectionManagerProvider);
-      StreamSubscription<List<DiscoveredDevice>>? subscription;
+      // Subscribe to the discovery notifier's accumulated devices
+      final service = ref.read(diveComputerServiceProvider);
+      StreamSubscription<dynamic>? subscription;
       final completer = Completer<DiscoveredDevice?>();
 
       // Set up timeout
@@ -80,17 +78,14 @@ class _DeviceDownloadPageState extends ConsumerState<DeviceDownloadPage> {
         }
       });
 
-      // Listen for discovered devices
-      subscription = connectionManager.discoveredDevices.listen((devices) {
+      // Listen for discovered devices via the service stream
+      subscription = service.discoveredDevices.listen((pigeonDevice) {
         if (completer.isCompleted) return;
 
-        // Look for a device that matches our saved computer
-        for (final device in devices) {
-          if (_deviceMatchesComputer(device, computer)) {
-            if (!completer.isCompleted) {
-              completer.complete(device);
-            }
-            return;
+        final device = DiscoveredDevice.fromPigeon(pigeonDevice);
+        if (_deviceMatchesComputer(device, computer)) {
+          if (!completer.isCompleted) {
+            completer.complete(device);
           }
         }
       });

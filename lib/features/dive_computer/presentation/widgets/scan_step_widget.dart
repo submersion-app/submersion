@@ -110,7 +110,7 @@ class _BluetoothScanTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final discoveryState = ref.watch(discoveryNotifierProvider);
-    final devicesAsync = ref.watch(discoveredDevicesProvider);
+    final devices = ref.watch(discoveredDevicesProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -171,16 +171,9 @@ class _BluetoothScanTab extends ConsumerWidget {
 
         // Device list
         Expanded(
-          child: devicesAsync.when(
-            data: (devices) {
-              if (devices.isEmpty && !discoveryState.isScanning) {
-                return _buildEmptyState(context, colorScheme);
-              }
-              return _buildDeviceList(context, devices);
-            },
-            loading: () => _buildEmptyState(context, colorScheme),
-            error: (error, stack) => Center(child: Text('Error: $error')),
-          ),
+          child: devices.isEmpty && !discoveryState.isScanning
+              ? _buildEmptyState(context, colorScheme)
+              : _buildDeviceList(context, devices),
         ),
 
         // Scan controls
@@ -275,91 +268,100 @@ class _UsbDevicesTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final usbDevicesByManufacturer = ref.watch(
-      usbDevicesByManufacturerProvider,
-    );
-    final usbScanner = ref.watch(usbDeviceScannerProvider);
+    final usbDevicesAsync = ref.watch(usbDevicesByManufacturerProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    if (usbDevicesByManufacturer.isEmpty) {
-      return Center(
-        child: Text(
-          'No USB devices available',
-          style: theme.textTheme.bodyLarge,
-        ),
-      );
-    }
+    return usbDevicesAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => Center(child: Text('Error: $error')),
+      data: (usbDevicesByManufacturer) {
+        if (usbDevicesByManufacturer.isEmpty) {
+          return Center(
+            child: Text(
+              'No USB devices available',
+              style: theme.textTheme.bodyLarge,
+            ),
+          );
+        }
 
-    return Column(
-      children: [
-        // Instructions
-        Container(
-          margin: const EdgeInsets.all(16),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.info_outline, color: colorScheme.primary),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'Connect your dive computer via USB cable, then select it below.',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
+        return Column(
+          children: [
+            // Instructions
+            Container(
+              margin: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(12),
               ),
-            ],
-          ),
-        ),
-
-        // Device list grouped by manufacturer
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: usbDevicesByManufacturer.length,
-            itemBuilder: (context, index) {
-              final manufacturer = usbDevicesByManufacturer.keys.elementAt(
-                index,
-              );
-              final devices = usbDevicesByManufacturer[manufacturer]!;
-
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  // Manufacturer header
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                  Icon(Icons.info_outline, color: colorScheme.primary),
+                  const SizedBox(width: 12),
+                  Expanded(
                     child: Text(
-                      manufacturer,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.bold,
+                      'Connect your dive computer via USB cable, then select it below.',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ),
-                  // Devices
-                  ...devices.map(
-                    (model) => _UsbDeviceListTile(
-                      model: model,
-                      onTap: () {
-                        final discoveredDevice = usbScanner
-                            .createDiscoveredDevice(model);
-                        onDeviceSelected(discoveredDevice);
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 8),
                 ],
-              );
-            },
-          ),
-        ),
-      ],
+              ),
+            ),
+
+            // Device list grouped by manufacturer
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: usbDevicesByManufacturer.length,
+                itemBuilder: (context, index) {
+                  final manufacturer = usbDevicesByManufacturer.keys.elementAt(
+                    index,
+                  );
+                  final devices = usbDevicesByManufacturer[manufacturer]!;
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Manufacturer header
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text(
+                          manufacturer,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            color: colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      // Devices
+                      ...devices.map(
+                        (model) => _UsbDeviceListTile(
+                          model: model,
+                          onTap: () {
+                            final discoveredDevice = DiscoveredDevice(
+                              id: model.id,
+                              name: model.fullName,
+                              connectionType: DeviceConnectionType.usb,
+                              address: model.id,
+                              recognizedModel: model,
+                              discoveredAt: DateTime.now(),
+                            );
+                            onDeviceSelected(discoveredDevice);
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

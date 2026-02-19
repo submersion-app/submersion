@@ -8,33 +8,21 @@ import 'package:submersion/features/dive_computer/data/services/libdc_download_m
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/domain/services/download_manager.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/pin_entry_dialog.dart';
-import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
 
 /// Provider for the dive computer repository.
 final diveComputerRepositoryProvider = Provider<DiveComputerRepository>((ref) {
   return DiveComputerRepository();
 });
 
-/// Whether to use the mock download manager for development/testing.
-/// Set to true to use simulated downloads instead of real device communication.
-final useMockDownloadManagerProvider = StateProvider<bool>((ref) => false);
-
 /// Provider for the download manager.
 ///
-/// Uses MockDownloadManager for development/testing.
-/// Switch to LibdcDownloadManager for real device communication.
+/// Currently uses MockDownloadManager. Task 15 will rewrite this
+/// to use DiveComputerService for real downloads via libdivecomputer.
 final downloadManagerProvider = Provider<DownloadManager>((ref) {
-  final connectionManager = ref.watch(bluetoothConnectionManagerProvider);
-  final useMock = ref.watch(useMockDownloadManagerProvider);
-
-  if (useMock) {
-    return MockDownloadManager(
-      mockDiveCount: 5,
-      downloadDelay: const Duration(milliseconds: 800),
-    );
-  }
-
-  return LibdcDownloadManager(connectionManager: connectionManager);
+  return MockDownloadManager(
+    mockDiveCount: 5,
+    downloadDelay: const Duration(milliseconds: 800),
+  );
 });
 
 /// Provider for the dive import service.
