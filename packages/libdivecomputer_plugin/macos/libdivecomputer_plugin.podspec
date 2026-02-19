@@ -7,14 +7,14 @@ Pod::Spec.new do |s|
   s.author           = { 'Submersion' => 'dev@submersion.app' }
   s.source           = { :path => '.' }
 
-  s.source_files     = 'Classes/**/*.swift'
+  s.source_files     = 'Classes/**/*.{swift,c,h}'
+  s.public_header_files = 'Classes/libdc_wrapper.h'
   s.dependency 'FlutterMacOS'
   s.platform         = :osx, '11.0'
   s.swift_version    = '5.9'
 
   # Preserve libdivecomputer source and config for build script
-  s.preserve_paths   = '../third_party/libdivecomputer/**/*', 'config/**/*', 'build_libdc.sh',
-                       'Classes/LibdcBridge/**/*'
+  s.preserve_paths   = '../third_party/libdivecomputer/**/*', 'config/**/*', 'build_libdc.sh'
 
   s.pod_target_xcconfig = {
     'DEFINES_MODULE' => 'YES',
@@ -25,7 +25,6 @@ Pod::Spec.new do |s|
     'LIBRARY_SEARCH_PATHS' => '"$(PODS_TARGET_SRCROOT)/build"',
     'OTHER_LDFLAGS' => '-ldivecomputer',
     'CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES' => 'YES',
-    'SWIFT_INCLUDE_PATHS' => '"$(PODS_TARGET_SRCROOT)/Classes/LibdcBridge"',
   }
 
   # Build libdivecomputer from source before compiling Swift

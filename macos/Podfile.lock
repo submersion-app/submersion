@@ -227,7 +227,7 @@ SPEC CHECKSUMS:
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   GTMAppAuth: 217a876b249c3c585a54fd6f73e6b58c4f5c4238
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
-  libdivecomputer_plugin: dec840def01d42df6819067b3a7b122ca8777c93
+  libdivecomputer_plugin: 7d2ffa004a9efa152e15bf305b6f3432577ddc38
   ObjectBox: 7da4aceb5013d041bfafdbc6d744a26918b09757
   objectbox_flutter_libs: f51d18f6a4b5965c218843373b7dc5ed5e3a2008
   package_info_plus: f0052d280d17aa382b932f399edf32507174e870

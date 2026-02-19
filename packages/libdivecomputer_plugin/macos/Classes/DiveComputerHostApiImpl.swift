@@ -33,6 +33,9 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
     }
 
     func getLibdivecomputerVersion() throws -> String {
-        return "0.0.0-stub"
+        guard let versionPtr = libdc_get_version() else {
+            return "unknown"
+        }
+        return String(cString: versionPtr)
     }
 }
