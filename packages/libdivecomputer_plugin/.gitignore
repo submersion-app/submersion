@@ -1,0 +1,13 @@
+# Override root .gitignore: Pigeon-generated files must be committed
+# because they are part of the plugin's public API and native platform code
+!*.g.dart
+!*.g.swift
+!*.g.kt
+!*.g.h
+!*.g.cc
+
+# Standard ignores for the plugin package
+.dart_tool/
+.pub/
+build/
+pubspec.lock
