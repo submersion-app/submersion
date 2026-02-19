@@ -10,8 +10,49 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
     }
 
     func getDeviceDescriptors(completion: @escaping (Result<[DeviceDescriptor], Error>) -> Void) {
-        // TODO: Implement with dc_descriptor_iterator
-        completion(.success([]))
+        DispatchQueue.global(qos: .userInitiated).async {
+            var descriptors: [DeviceDescriptor] = []
+
+            guard let iter = libdc_descriptor_iterator_new() else {
+                completion(.success([]))
+                return
+            }
+
+            var info = libdc_descriptor_info_t()
+            while libdc_descriptor_iterator_next(iter, &info) == 0 {
+                let vendor = info.vendor.map { String(cString: $0) } ?? ""
+                let product = info.product.map { String(cString: $0) } ?? ""
+                let transports = Self.mapTransports(info.transports)
+
+                descriptors.append(DeviceDescriptor(
+                    vendor: vendor,
+                    product: product,
+                    model: Int64(info.model),
+                    transports: transports
+                ))
+            }
+
+            libdc_descriptor_iterator_free(iter)
+            completion(.success(descriptors))
+        }
+    }
+
+    private static func mapTransports(_ bitmask: UInt32) -> [TransportType] {
+        var transports: [TransportType] = []
+        if bitmask & UInt32(LIBDC_TRANSPORT_BLE) != 0 {
+            transports.append(.ble)
+        }
+        if bitmask & UInt32(LIBDC_TRANSPORT_USB) != 0 ||
+           bitmask & UInt32(LIBDC_TRANSPORT_USBHID) != 0 {
+            transports.append(.usb)
+        }
+        if bitmask & UInt32(LIBDC_TRANSPORT_SERIAL) != 0 {
+            transports.append(.serial)
+        }
+        if bitmask & UInt32(LIBDC_TRANSPORT_IRDA) != 0 {
+            transports.append(.infrared)
+        }
+        return transports
     }
 
     func startDiscovery(transport: TransportType, completion: @escaping (Result<Void, Error>) -> Void) {
