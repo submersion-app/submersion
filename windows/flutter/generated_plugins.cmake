@@ -9,6 +9,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   flutter_secure_storage_windows
   gal
   geolocator_windows
+  libdivecomputer_plugin
   objectbox_flutter_libs
   permission_handler_windows
   printing

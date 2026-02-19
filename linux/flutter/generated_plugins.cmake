@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   file_selector_linux
   flutter_secure_storage_linux
+  libdivecomputer_plugin
   objectbox_flutter_libs
   printing
   sqlite3_flutter_libs

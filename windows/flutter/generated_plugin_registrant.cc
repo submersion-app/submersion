@@ -12,6 +12,7 @@
 #include <flutter_secure_storage_windows/flutter_secure_storage_windows_plugin.h>
 #include <gal/gal_plugin_c_api.h>
 #include <geolocator_windows/geolocator_windows.h>
+#include <libdivecomputer_plugin/libdivecomputer_plugin.h>
 #include <objectbox_flutter_libs/objectbox_flutter_libs_plugin.h>
 #include <permission_handler_windows/permission_handler_windows_plugin.h>
 #include <printing/printing_plugin.h>
@@ -32,6 +33,8 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("GalPluginCApi"));
   GeolocatorWindowsRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("GeolocatorWindows"));
+  LibdivecomputerPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("LibdivecomputerPlugin"));
   ObjectboxFlutterLibsPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("ObjectboxFlutterLibsPlugin"));
   PermissionHandlerWindowsPluginRegisterWithRegistrar(

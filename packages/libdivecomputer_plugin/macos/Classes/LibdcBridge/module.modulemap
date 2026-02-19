@@ -1,0 +1,4 @@
+module LibdcBridge [system] {
+    header "shim.h"
+    export *
+}
