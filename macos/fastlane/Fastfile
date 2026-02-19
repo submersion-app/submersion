@@ -190,14 +190,12 @@ platform :mac do
           import 'package:submersion/features/auto_update/data/services/update_service.dart';
           import 'package:submersion/features/auto_update/domain/entities/update_status.dart';
 
-          class SparkleUpdateService implements UpdateService {
+          class SparkleUpdateService extends UpdateService {
             final String feedUrl;
             SparkleUpdateService({required this.feedUrl});
 
             @override
             Future<UpdateStatus> checkForUpdate() async => const UpToDate();
-
-            Future<void> checkForUpdatesInteractively() async {}
           }
         DART
         File.write(sparkle_path, stub)
